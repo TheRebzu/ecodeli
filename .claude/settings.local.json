@@ -116,7 +116,9 @@
       "Bash(-H \"Content-Type: application/json\" )",
       "Bash(-H \"Content-Type: application/json\" )",
       "Bash(-c cookies.txt )",
-      "Bash(-H \"Content-Type: application/json\" )"
+      "Bash(-H \"Content-Type: application/json\" )",
+      "Bash(npm install:*)",
+      "Bash(pnpm add:*)"
     ]
   },
   "allowed_tools": [

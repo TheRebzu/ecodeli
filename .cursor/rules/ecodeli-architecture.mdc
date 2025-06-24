@@ -1,0 +1,80 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# EcoDeli - Architecture Projet
+
+## Vue d'ensemble
+EcoDeli est une plateforme de crowdshipping avec 5 espaces utilisateur distincts :
+
+### 1. Espace Client
+- Dépôt d'annonces (colis ou services)
+- Réservation de services à la personne
+- Gestion des paiements et abonnements (Free/Starter/Premium)
+- Suivi des livraisons en temps réel
+- Accès aux box de stockage
+- **Tutoriel obligatoire première connexion** (overlay)
+
+### 2. Espace Livreur
+- Inscription avec validation documents (identité, permis, assurance)
+- Déclaration de trajets à l'avance
+- Matching automatique avec annonces
+- Gestion des livraisons (complètes/partielles)
+- Validation par code à 6 chiffres
+- Portefeuille et retraits
+- Carte NFC après validation
+
+### 3. Espace Commerçant
+- Gestion contrat avec EcoDeli
+- Création d'annonces produits
+- Configuration lâcher de chariot
+- Facturation et paiements
+- Import bulk d'annonces
+
+### 4. Espace Prestataire
+- Validation avec certifications/habilitations
+- Calendrier de disponibilités
+- Gestion des interventions
+- Évaluations clients
+- Facturation mensuelle automatique
+- Tarifs négociés avec EcoDeli
+
+### 5. Back Office Admin
+- Validation documents livreurs/prestataires
+- Gestion complète utilisateurs
+- Monitoring livraisons et litiges
+- Gestion financière globale
+- Configuration des 6 entrepôts
+- Paramètres services cloud
+
+## Services Disponibles
+- Transport de colis (intégral ou partiel avec relais)
+- Transport de personnes
+- Transfert aéroport
+- Courses
+- Achats internationaux
+- Garde d'animaux
+- Services à domicile (ménage, jardinage)
+- Lâcher de chariot
+- Box de stockage temporaire
+
+## Structure de Fichiers
+- Configuration : [components.json](mdc:components.json)
+- Base de données : [prisma/schema.prisma](mdc:prisma/schema.prisma)
+- Authentification : [src/lib/auth.ts](mdc:src/lib/auth.ts)
+- Routes API : [src/app/api/](mdc:src/app/api)
+- Layouts par rôle : [src/app/[locale]/(protected)/](mdc:src/app/[locale]/(protected)/)
+- Composants UI : [src/components/ui/](mdc:src/components/ui)
+- Features modulaires : [src/features/](mdc:src/features)
+
+## Instance Unique et MCP
+- **Instance** : EcoDeli fonctionne avec une instance unique sur le port 3000
+- **MCP Integration** : Utilisation obligatoire des [MCP disponibles](mdc:.cursor/rules/ecodeli-mcp-instance.mdc)
+- **Desktop Commander** : Pour toutes les opérations de fichiers et commandes
+- **GitHub MCP** : Pour la recherche de code et gestion du repository
+- **21st DevMagic** : Pour la génération de composants UI modernes
+
+
+
+

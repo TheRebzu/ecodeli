@@ -1,0 +1,18 @@
+// Modèles admin
+
+model Admin {
+  id                String              @id @default(cuid())
+  userId            String              @unique
+  permissions       String[]            @default([])
+  department        String?             // "OPERATIONS", "FINANCE", "SUPPORT", etc.
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  // Relations
+  user              User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  validatedDocuments Document[]         @relation("ValidatedDocuments")
+  validatedDeliverers Deliverer[]       @relation("ValidatedDeliverers")
+  validatedProviders Provider[]         @relation("ValidatedProviders")
+  
+  @@index([userId])
+}

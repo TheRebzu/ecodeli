@@ -1,20 +1,9 @@
 onlyBuiltDependencies:
-  - '@firebase/util'
   - '@prisma/client'
   - '@prisma/engines'
-  - '@scarf/scarf'
-  - '@sentry/cli'
-  - '@tailwindcss/oxide'
-  - '@tree-sitter-grammars/tree-sitter-yaml'
   - bcrypt
-  - canvas
-  - core-js-pure
+  - core-js
   - esbuild
-  - msw
   - prisma
-  - protobufjs
-  - puppeteer
   - sharp
-  - tree-sitter
-  - tree-sitter-json
   - unrs-resolver

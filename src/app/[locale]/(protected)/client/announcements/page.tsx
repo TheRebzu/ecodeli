@@ -1,223 +1,86 @@
-"use client";
-
-import { useEffect, useState } from "react";
-import { useTranslations } from "next-intl";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
-import { Plus, Filter, RefreshCw, AlertCircle } from "lucide-react";
-import { Link } from "@/navigation";
-import { useClientAnnouncements } from "@/hooks/delivery/use-announcement";
-import AnnouncementList from "@/components/client/announcements/announcement-list";
-import { AnnouncementFilter } from "@/components/shared/announcements/announcement-filters";
-import { ClientStatusDashboard } from "@/components/client/announcements/client-status-dashboard";
-import { DeliveryStatus, UserRole } from "@prisma/client";
-import { Skeleton } from "@/components/ui/skeleton";
-import { AlertDescription, AlertTitle, Alert } from "@/components/ui/alert";
-import { useRoleProtection } from "@/hooks/auth/use-role-protection";
-import { Separator } from "@/components/ui/separator";
-import { type AnnouncementWithDetails, convertToAnnouncementCard } from "@/types/client/announcements";
+// Page de gestion des annonces client
+import { useTranslations } from "next-intl"
+import { ClientAnnouncementsList } from "@/features/announcements/components/client-announcements-list"
+import Link from "next/link"
 
 export default function ClientAnnouncementsPage() {
-  useRoleProtection(["CLIENT"]);
-  const t = useTranslations("announcements");
-  const [activeTab, setActiveTab] = useState("active");
-  const [showFilters, setShowFilters] = useState(false);
-
-  const {
-    myAnnouncements,
-    isLoading,
-    error,
-    fetchMyAnnouncements,
-    fetchActiveAnnouncements,
-    fetchAnnouncementHistory,
-    resetError} = useClientAnnouncements({
-    initialFilter: {
-      limit: 10,
-      page: 1,
-      status: ["PUBLISHED", "IN_APPLICATION", "ASSIGNED", "IN_PROGRESS"]}});
-
-  // Charger les annonces actives ou historiques selon l'onglet, mais en évitant la boucle infinie
-  useEffect(() => {
-    const loadAnnouncements = async () => {
-      if (activeTab === "active") {
-        await fetchActiveAnnouncements();
-      } else {
-        await fetchAnnouncementHistory();
-      }
-    };
-
-    loadAnnouncements();
-    // Ne pas inclure fetchActiveAnnouncements et fetchAnnouncementHistory dans les dépendances
-    // car ces fonctions peuvent changer à chaque rendu, créant une boucle infinie
-  }, [activeTab]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  const refreshAnnouncements = () => {
-    if (activeTab === "active") {
-      fetchActiveAnnouncements();
-    } else {
-      fetchAnnouncementHistory();
-    }
-  };
-
-  // Les données sont déjà dans le bon format (AnnouncementWithDetails)
-  // Plus de conversion complexe nécessaire
+  const t = useTranslations()
 
   return (
-    <div className="container py-6 space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">
-            {t("myAnnouncements")}
-          </h1>
-          <p className="text-muted-foreground mt-1">
-            {t("manageYourAnnouncements")}
-          </p>
+    <div className="min-h-screen bg-gray-50">
+      <div className="p-6">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+              Mes annonces
+            </h1>
+            <p className="text-gray-600">
+              Gérez vos demandes de livraison et suivez leur progression
+            </p>
+          </div>
+          <Link
+            href="/client/announcements/create"
+            className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors font-medium"
+          >
+            + Nouvelle annonce
+          </Link>
         </div>
 
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setShowFilters(!showFilters)}
-          >
-            <Filter className="h-4 w-4 mr-2" />
-            {t("filter")}
-          </Button>
+        {/* Stats rapides */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+          <div className="bg-white rounded-lg p-6 shadow-sm border">
+            <div className="flex items-center">
+              <div className="p-2 bg-blue-100 rounded-lg">
+                <div className="text-blue-600">📢</div>
+              </div>
+              <div className="ml-4">
+                <h3 className="text-sm font-medium text-gray-500">Actives</h3>
+                <p className="text-2xl font-bold text-gray-900">5</p>
+              </div>
+            </div>
+          </div>
 
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={refreshAnnouncements}
-            disabled={isLoading}
-          >
-            <RefreshCw
-              className={`h-4 w-4 mr-2 ${isLoading ? "animate-spin" : ""}`}
-            />
-            {t("refresh")}
-          </Button>
+          <div className="bg-white rounded-lg p-6 shadow-sm border">
+            <div className="flex items-center">
+              <div className="p-2 bg-orange-100 rounded-lg">
+                <div className="text-orange-600">🤝</div>
+              </div>
+              <div className="ml-4">
+                <h3 className="text-sm font-medium text-gray-500">Matchées</h3>
+                <p className="text-2xl font-bold text-gray-900">3</p>
+              </div>
+            </div>
+          </div>
 
-          <Button asChild>
-            <Link href="/client/announcements/create">
-              <Plus className="h-4 w-4 mr-2" />
-              {t("createNew")}
-            </Link>
-          </Button>
+          <div className="bg-white rounded-lg p-6 shadow-sm border">
+            <div className="flex items-center">
+              <div className="p-2 bg-green-100 rounded-lg">
+                <div className="text-green-600">✅</div>
+              </div>
+              <div className="ml-4">
+                <h3 className="text-sm font-medium text-gray-500">Complétées</h3>
+                <p className="text-2xl font-bold text-gray-900">12</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-lg p-6 shadow-sm border">
+            <div className="flex items-center">
+              <div className="p-2 bg-purple-100 rounded-lg">
+                <div className="text-purple-600">💰</div>
+              </div>
+              <div className="ml-4">
+                <h3 className="text-sm font-medium text-gray-500">Économisé</h3>
+                <p className="text-2xl font-bold text-gray-900">245€</p>
+              </div>
+            </div>
+          </div>
         </div>
+
+        {/* Liste des annonces */}
+        <ClientAnnouncementsList />
       </div>
-
-      {/* Dashboard de statistiques */}
-      <ClientStatusDashboard announcements={myAnnouncements} />
-
-      <Separator className="my-6" />
-
-      {error && (
-        <Alert variant="destructive" className="mb-4">
-          <AlertCircle className="h-4 w-4" />
-          <AlertTitle>{t("error")}</AlertTitle>
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      )}
-
-      {/* Filtres conditionnels avec props corrects */}
-      {showFilters && (
-        <div className="mb-6">
-          <AnnouncementFilter
-            onFiltersChange={(newFilters) => {
-              // Filtres appliqués avec succès
-              if (activeTab === "active") {
-                fetchActiveAnnouncements();
-              } else {
-                fetchAnnouncementHistory();
-              }
-            }}
-            isLoading={isLoading}
-          />
-        </div>
-      )}
-
-      <Tabs
-        defaultValue="active"
-        value={activeTab}
-        onValueChange={setActiveTab}
-      >
-        <TabsList className="mb-6">
-          <TabsTrigger value="active">{t("activeAnnouncements")}</TabsTrigger>
-          <TabsTrigger value="history">{t("announcementHistory")}</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="active" className="space-y-4">
-          {isLoading ? (
-            
-            <div className="space-y-4">
-              {Array.from({ length: 3  }).map((_, i) => (
-                <Skeleton key={i} className="h-[200px] w-full rounded-lg" />
-              ))}
-            </div>
-          ) : myAnnouncements.length === 0 ? (
-            // Message quand il n'y a pas d'annonces
-            <div className="text-center py-12 bg-muted/50 rounded-lg">
-              <h3 className="text-lg font-medium">
-                {t("noActiveAnnouncements")}
-              </h3>
-              <p className="text-muted-foreground mt-2">
-                {t("createAnnouncementPrompt")}
-              </p>
-              <Button asChild className="mt-4">
-                <Link href="/client/announcements/create">
-                  {t("createAnnouncement")}
-                </Link>
-              </Button>
-            </div>
-          ) : (
-            // Liste des annonces avec props corrects
-            <AnnouncementList
-              announcements={myAnnouncements}
-              isLoading={isLoading}
-              userRole={"CLIENT" as UserRole}
-              totalCount={myAnnouncements.length}
-              currentPage={1}
-              totalPages={1}
-              onPageChange={(page) => fetchMyAnnouncements(page)}
-              emptyStateTitle={t("noActiveAnnouncements")}
-              emptyStateMessage={t("createAnnouncementPrompt")}
-            />
-          )}
-        </TabsContent>
-
-        <TabsContent value="history" className="space-y-4">
-          {isLoading ? (
-            
-            <div className="space-y-4">
-              {Array.from({ length: 3  }).map((_, i) => (
-                <Skeleton key={i} className="h-[200px] w-full rounded-lg" />
-              ))}
-            </div>
-          ) : myAnnouncements.length === 0 ? (
-            // Message quand il n'y a pas d'annonces
-            <div className="text-center py-12 bg-muted/50 rounded-lg">
-              <h3 className="text-lg font-medium">
-                {t("noAnnouncementHistory")}
-              </h3>
-              <p className="text-muted-foreground mt-2">
-                {t("completedAnnouncementsWillAppearHere")}
-              </p>
-            </div>
-          ) : (
-            // Liste des annonces avec props corrects
-            <AnnouncementList
-              announcements={myAnnouncements}
-              isLoading={isLoading}
-              userRole={"CLIENT" as UserRole}
-              totalCount={myAnnouncements.length}
-              currentPage={1}
-              totalPages={1}
-              onPageChange={(page) => fetchMyAnnouncements(page)}
-              emptyStateTitle={t("noAnnouncementHistory")}
-              emptyStateMessage={t("completedAnnouncementsWillAppearHere")}
-            />
-          )}
-        </TabsContent>
-      </Tabs>
     </div>
-  );
+  )
 }

@@ -1,0 +1,49 @@
+// Modèles factures
+
+model Invoice {
+  id                String              @id @default(cuid())
+  invoiceNumber     String              @unique
+  type              String              // "PROVIDER_MONTHLY", "DELIVERY", "SERVICE", "MERCHANT"
+  status            String              @default("DRAFT") // DRAFT, SENT, PAID, OVERDUE
+  providerId        String?
+  merchantId        String?
+  clientId          String?
+  billingPeriodStart DateTime?
+  billingPeriodEnd  DateTime?
+  subtotal          Float
+  tax               Float
+  total             Float
+  currency          String              @default("EUR")
+  dueDate           DateTime
+  paidAt            DateTime?
+  pdfUrl            String?
+  metadata          Json?
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  // Relations
+  provider          Provider?           @relation("ProviderInvoices", fields: [providerId], references: [id])
+  items             InvoiceItem[]
+  
+  @@index([invoiceNumber])
+  @@index([type])
+  @@index([status])
+  @@index([providerId])
+}
+
+model InvoiceItem {
+  id                String              @id @default(cuid())
+  invoiceId         String
+  description       String
+  quantity          Float               @default(1)
+  unitPrice         Float
+  total             Float
+  referenceType     String?             // "INTERVENTION", "DELIVERY", etc.
+  referenceId       String?
+  metadata          Json?
+  createdAt         DateTime            @default(now())
+
+  invoice           Invoice             @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  
+  @@index([invoiceId])
+}

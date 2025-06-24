@@ -1,0 +1,71 @@
+// Enums et types partagés
+
+enum UserRole {
+  CLIENT
+  DELIVERER
+  MERCHANT
+  PROVIDER
+  ADMIN
+}
+
+enum AnnouncementType {
+  PACKAGE
+  SERVICE
+}
+
+enum ServiceType {
+  PERSON_TRANSPORT
+  AIRPORT_TRANSFER
+  SHOPPING
+  INTERNATIONAL_PURCHASE
+  PET_CARE
+  HOME_SERVICE
+}
+
+enum AnnouncementStatus {
+  DRAFT
+  PUBLISHED
+  ASSIGNED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum DeliveryStatus {
+  PENDING
+  ACCEPTED
+  PICKED_UP
+  IN_TRANSIT
+  RELAY_POINT
+  DELIVERED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  REFUNDED
+}
+
+enum SubscriptionPlan {
+  FREE
+  STARTER
+  PREMIUM
+}
+
+enum DocumentType {
+  IDENTITY
+  DRIVING_LICENSE
+  INSURANCE
+  VEHICLE_REGISTRATION
+  CERTIFICATION
+  OTHER
+}
+
+enum ValidationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}

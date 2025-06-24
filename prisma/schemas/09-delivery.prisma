@@ -1,0 +1,87 @@
+// Modèles livraisons
+
+model Delivery {
+  id                String              @id @default(cuid())
+  announcementId    String              @unique
+  clientId          String
+  delivererId       String
+  status            DeliveryStatus      @default(PENDING)
+  trackingNumber    String              @unique @default(cuid())
+  validationCode    String?             // Code à 6 chiffres
+  pickupDate        DateTime?
+  deliveryDate      DateTime?
+  actualDeliveryDate DateTime?
+  isPartial         Boolean             @default(false)
+  currentLocation   Json?               // {address, lat, lng, updatedAt}
+  price             Float
+  delivererFee      Float               // Part du livreur
+  platformFee       Float               // Commission plateforme
+  insuranceFee      Float?
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  // Relations
+  announcement      Announcement          @relation(fields: [announcementId], references: [id])
+  client            Client                @relation("ClientDeliveries", fields: [clientId], references: [id])
+  deliverer         Deliverer             @relation("DelivererDeliveries", fields: [delivererId], references: [id])
+  statusHistory     DeliveryStatus[]
+  handovers         Handover[]
+  proofOfDelivery   ProofOfDelivery?
+  payment           Payment?
+  validationCodes   DeliveryValidation[]
+  history           DeliveryHistory[]
+  
+  @@index([trackingNumber])
+  @@index([clientId])
+  @@index([delivererId])
+  @@index([status])
+}
+
+model DeliveryStatus {
+  id                String              @id @default(cuid())
+  deliveryId        String
+  status            DeliveryStatus
+  comment           String?
+  location          Json?               // {address, lat, lng}
+  createdBy         String
+  createdAt         DateTime            @default(now())
+
+  delivery          Delivery            @relation(fields: [deliveryId], references: [id], onDelete: Cascade)
+  
+  @@index([deliveryId])
+}
+
+model Handover {
+  id                String              @id @default(cuid())
+  deliveryId        String
+  fromDelivererId   String
+  toDelivererId     String?
+  locationId        String
+  handoverDate      DateTime
+  handoverCode      String              // Code de transfert
+  isCompleted       Boolean             @default(false)
+  completedAt       DateTime?
+  notes             String?
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  delivery          Delivery            @relation(fields: [deliveryId], references: [id], onDelete: Cascade)
+  location          Location            @relation(fields: [locationId], references: [id])
+  
+  @@index([deliveryId])
+  @@index([handoverCode])
+}
+
+model ProofOfDelivery {
+  id                String              @id @default(cuid())
+  deliveryId        String              @unique
+  recipientName     String?
+  recipientSignature String?            // Base64
+  photos            String[]            // URLs
+  notes             String?
+  validatedWithCode Boolean             @default(false)
+  validatedWithNFC  Boolean             @default(false)
+  createdAt         DateTime            @default(now())
+
+  delivery          Delivery            @relation(fields: [deliveryId], references: [id], onDelete: Cascade)
+}

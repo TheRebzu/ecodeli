@@ -1,0 +1,95 @@
+// Modèles évaluations et autres
+
+model Review {
+  id                String              @id @default(cuid())
+  clientId          String
+  targetType        String              // "DELIVERER", "PROVIDER", "MERCHANT"
+  targetId          String
+  bookingId         String?             @unique
+  deliveryId        String?             @unique
+  rating            Int                 // 1-5
+  comment           String?
+  isPublic          Boolean             @default(true)
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  // Relations
+  client            Client              @relation(fields: [clientId], references: [id])
+  booking           Booking?            @relation(fields: [bookingId], references: [id])
+  
+  @@index([clientId])
+  @@index([targetType, targetId])
+  @@index([rating])
+}
+
+model Availability {
+  id                String              @id @default(cuid())
+  providerId        String?
+  delivererId       String?
+  dayOfWeek         Int                 // 0-6 (Dimanche-Samedi)
+  startTime         String              // HH:MM
+  endTime           String              // HH:MM
+  isRecurring       Boolean             @default(true)
+  specificDate      DateTime?           // Pour disponibilités ponctuelles
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  // Relations
+  provider          Provider?           @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  deliverer         Deliverer?          @relation(fields: [delivererId], references: [id], onDelete: Cascade)
+  
+  @@index([providerId])
+  @@index([delivererId])
+  @@index([dayOfWeek])
+}
+
+model Contract {
+  id                String              @id @default(cuid())
+  merchantId        String              @unique
+  contractNumber    String              @unique
+  type              String              // "STANDARD", "PREMIUM", "CUSTOM"
+  terms             Json                // Conditions du contrat
+  commissionRate    Float
+  startDate         DateTime
+  endDate           DateTime?
+  status            String              @default("ACTIVE") // "DRAFT", "ACTIVE", "SUSPENDED", "TERMINATED"
+  signedAt          DateTime?
+  signedBy          String?
+  pdfUrl            String?
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  // Relations
+  merchant          Merchant            @relation(fields: [merchantId], references: [id])
+  
+  @@index([contractNumber])
+  @@index([status])
+}
+
+model Order {
+  id                String              @id @default(cuid())
+  merchantId        String
+  orderNumber       String              @unique
+  clientName        String
+  clientEmail       String?
+  clientPhone       String?
+  deliveryAddress   Json                // {address, city, postalCode, lat, lng}
+  deliveryDate      DateTime
+  deliverySlot      String              // HH:MM-HH:MM
+  items             Json[]              // [{name, quantity, price}]
+  subtotal          Float
+  deliveryFee       Float
+  total             Float
+  status            String              @default("PENDING") // PENDING, CONFIRMED, DELIVERED, CANCELLED
+  isCartDrop        Boolean             @default(false)
+  notes             String?
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  // Relations
+  merchant          Merchant            @relation(fields: [merchantId], references: [id])
+  
+  @@index([merchantId])
+  @@index([orderNumber])
+  @@index([status])
+}

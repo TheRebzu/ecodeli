@@ -1,0 +1,164 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# EcoDeli - Bonnes Pratiques de Développement
+
+## Méthodologie Obligatoire
+
+### 0. Instance Unique et MCP
+**AVANT TOUT** : Vérifier l'instance unique et utiliser les MCP appropriés
+- **Instance** : Une seule instance EcoDeli active (port 3000)
+- **MCP** : Utiliser les [MCP disponibles](mdc:.cursor/rules/ecodeli-mcp-instance.mdc) selon les besoins
+- **Desktop Commander** : Pour toutes les opérations de fichiers locaux
+- **GitHub MCP** : Pour rechercher des exemples et gérer le repository
+
+### 1. Backend First
+**TOUJOURS** développer dans cet ordre :
+1. Créer/mettre à jour le modèle Prisma (avec MCP Desktop Commander)
+2. Créer le service avec la logique métier
+3. Créer l'API Route
+4. Tester avec cURL (via MCP Desktop Commander)
+
+### 2. Validation Continue
+Pour **CHAQUE** fonctionnalité développée :
+
+```bash
+# Exemple : Test création utilisateur
+curl -X POST http://localhost:3000/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"email":"test@test.com","password":"password123","role":"CLIENT"}'
+
+# Test route protégée
+curl -X GET http://localhost:3000/api/users/profile \
+  -H "Cookie: [cookie-reçu]"
+```
+
+### 3. Structure Modulaire
+- **Features** : Chaque fonctionnalité dans [src/features/](mdc:src/features)
+- **Services** : Logique métier dans `*/services/`
+- **Schemas** : Validation Zod dans `*/schemas/`
+- **Types** : Types TypeScript dans `*/types/`
+- **Hooks** : Hooks React dans `*/hooks/`
+- **Components** : Composants dans `*/components/`
+
+## Comptes de Test Obligatoires
+
+```typescript
+// À créer au début du développement
+const testAccounts = [
+  { email: 'client@test.com', password: 'Test123!', role: 'CLIENT' },
+  { email: 'livreur@test.com', password: 'Test123!', role: 'DELIVERER' },
+  { email: 'commercant@test.com', password: 'Test123!', role: 'MERCHANT' },
+  { email: 'prestataire@test.com', password: 'Test123!', role: 'PROVIDER' },
+  { email: 'admin@test.com', password: 'Test123!', role: 'ADMIN' }
+]
+```
+
+## Validation End-to-End
+
+### Points de Contrôle Critiques
+- [ ] Auth fonctionne avec cookies/sessions
+- [ ] Permissions par rôle correctes
+- [ ] Upload documents fonctionne
+- [ ] Notifications push configurées
+- [ ] Paiements Stripe intégrés
+- [ ] PDF générés correctement
+- [ ] Multilingue switch FR/EN
+- [ ] Tutoriel client overlay
+- [ ] Matching trajets/annonces
+- [ ] Code validation livraison
+- [ ] Facturation mensuelle auto
+
+## Flux de Validation Obligatoires
+
+### 1. Inscription Livreur
+1. Upload documents (identité, permis, assurance)
+2. Admin valide dans le back office
+3. Génération carte NFC
+4. Activation compte
+
+### 2. Création Annonce → Livraison
+1. Client crée annonce
+2. Matching avec trajets livreurs
+3. Notification push livreur
+4. Acceptation livraison
+5. Paiement bloqué
+6. Code validation 6 chiffres
+7. Déblocage paiement
+
+### 3. Réservation Service
+1. Client browse services
+2. Sélection prestataire
+3. Réservation créneau
+4. Paiement
+5. Intervention
+6. Évaluation
+
+## Standards de Code
+
+### Cohérence Obligatoire
+**TOUJOURS** vérifier :
+- Modèle Prisma ↔ Schema Zod ↔ Types TS
+- API Route ↔ Service ↔ Hook ↔ Component
+
+### Gestion d'Erreurs
+- Try/catch partout
+- Messages d'erreur clairs et traduits
+- Logs appropriés avec niveaux
+
+### Performance
+- Pagination des listes
+- Optimisation requêtes Prisma
+- Cache approprié avec Next.js
+
+## Commandes Utiles avec MCP
+
+### Via MCP Desktop Commander
+```typescript
+// Base de données
+mcp_desktop-commander_execute_command({ command: "npx prisma studio", timeout_ms: 10000 })
+mcp_desktop-commander_execute_command({ command: "npx prisma migrate dev --name [description]", timeout_ms: 30000 })
+mcp_desktop-commander_execute_command({ command: "npx prisma generate", timeout_ms: 20000 })
+
+// Développement
+mcp_desktop-commander_execute_command({ command: "pnpm run dev", timeout_ms: 15000 })
+mcp_desktop-commander_execute_command({ command: "pnpm run build", timeout_ms: 60000 })
+mcp_desktop-commander_execute_command({ command: "pnpm run type-check", timeout_ms: 30000 })
+
+// Tests API
+mcp_desktop-commander_execute_command({ 
+  command: "curl -X GET http://localhost:3000/api/health", 
+  timeout_ms: 5000 
+})
+```
+
+### Commandes Bash Traditionnelles
+```bash
+# Base de données
+npx prisma studio
+npx prisma migrate dev --name [description]
+npx prisma generate
+
+# Développement
+pnpm run dev
+pnpm run build
+pnpm run type-check
+
+# Tests API
+./test-api.sh  # Script avec tous les cURL
+```
+
+## Documentation Obligatoire
+Maintenir [DEVELOPMENT_REPORT.md](mdc:DEVELOPMENT_REPORT.md) avec :
+- État d'avancement par feature
+- Tests API documentés
+- Comptes de test avec tokens
+- Problèmes rencontrésx
+- TODO prioritaire
+
+
+
+
+

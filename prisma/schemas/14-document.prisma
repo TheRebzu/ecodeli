@@ -1,0 +1,26 @@
+// Modèles documents
+
+model Document {
+  id                String              @id @default(cuid())
+  userId            String
+  type              DocumentType
+  name              String
+  url               String
+  size              Int                 // En bytes
+  mimeType          String
+  validationStatus  ValidationStatus    @default(PENDING)
+  validatedBy       String?
+  validatedAt       DateTime?
+  validationNotes   String?
+  expiryDate        DateTime?
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  // Relations
+  user              User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  validator         Admin?              @relation("ValidatedDocuments", fields: [validatedBy], references: [id])
+  
+  @@index([userId])
+  @@index([type])
+  @@index([validationStatus])
+}

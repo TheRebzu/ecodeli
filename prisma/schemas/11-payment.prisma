@@ -1,0 +1,88 @@
+// Modèles paiements
+
+model Payment {
+  id                String              @id @default(cuid())
+  amount            Float
+  currency          String              @default("EUR")
+  status            PaymentStatus       @default(PENDING)
+  type              String              // "DELIVERY", "SERVICE", "SUBSCRIPTION", "WITHDRAWAL"
+  method            String?             // "CARD", "BANK_TRANSFER", "WALLET"
+  stripePaymentId   String?
+  stripeSessionId   String?
+  clientId          String?
+  merchantId        String?
+  deliveryId        String?             @unique
+  bookingId         String?             @unique
+  walletTransactionId String?           @unique
+  metadata          Json?
+  paidAt            DateTime?
+  failedAt          DateTime?
+  refundedAt        DateTime?
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  // Relations
+  client            Client?             @relation("ClientPayments", fields: [clientId], references: [id])
+  merchant          Merchant?           @relation("MerchantPayments", fields: [merchantId], references: [id])
+  delivery          Delivery?           @relation(fields: [deliveryId], references: [id])
+  booking           Booking?            @relation(fields: [bookingId], references: [id])
+  walletTransaction WalletTransaction?  @relation(fields: [walletTransactionId], references: [id])
+  
+  @@index([status])
+  @@index([type])
+  @@index([stripePaymentId])
+}
+
+model Wallet {
+  id                String              @id @default(cuid())
+  delivererId       String              @unique
+  balance           Float               @default(0)
+  pendingBalance    Float               @default(0)
+  currency          String              @default("EUR")
+  stripeAccountId   String?
+  bankAccountId     String?
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  // Relations
+  deliverer         Deliverer           @relation(fields: [delivererId], references: [id], onDelete: Cascade)
+  transactions      WalletTransaction[]
+  withdrawals       Withdrawal[]
+}
+
+model WalletTransaction {
+  id                String              @id @default(cuid())
+  walletId          String
+  type              String              // "CREDIT", "DEBIT", "WITHDRAWAL", "REFUND"
+  amount            Float
+  description       String
+  referenceId       String?             // ID de la livraison ou autre
+  balanceBefore     Float
+  balanceAfter      Float
+  createdAt         DateTime            @default(now())
+
+  // Relations
+  wallet            Wallet              @relation(fields: [walletId], references: [id], onDelete: Cascade)
+  payment           Payment?
+  
+  @@index([walletId])
+  @@index([type])
+}
+
+model Withdrawal {
+  id                String              @id @default(cuid())
+  walletId          String
+  amount            Float
+  status            String              @default("PENDING") // PENDING, PROCESSING, COMPLETED, FAILED
+  bankAccount       Json                // {iban, bic, accountHolder}
+  stripeTransferId  String?
+  processedAt       DateTime?
+  failureReason     String?
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  wallet            Wallet              @relation(fields: [walletId], references: [id])
+  
+  @@index([walletId])
+  @@index([status])
+}

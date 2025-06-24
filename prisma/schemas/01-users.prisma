@@ -1,0 +1,48 @@
+// Modèles utilisateurs
+
+model User {
+  id                String              @id @default(cuid())
+  email             String              @unique
+  password          String
+  firstName         String
+  lastName          String
+  phoneNumber       String?
+  role              UserRole
+  isVerified        Boolean             @default(false)
+  isActive          Boolean             @default(true)
+  isFirstLogin      Boolean             @default(true)
+  lastLoginAt       DateTime?
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  // Relations
+  profile           Profile?
+  client            Client?
+  deliverer         Deliverer?
+  merchant          Merchant?
+  provider          Provider?
+  admin             Admin?
+  sessions          Session[]
+  notifications     Notification[]
+  documents         Document[]
+  
+  @@index([email])
+  @@index([role])
+}
+
+model Profile {
+  id                String              @id @default(cuid())
+  userId            String              @unique
+  avatar            String?
+  bio               String?
+  address           String?
+  city              String?
+  postalCode        String?
+  country           String              @default("FR")
+  locale            String              @default("fr")
+  timezone          String              @default("Europe/Paris")
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  user              User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+}

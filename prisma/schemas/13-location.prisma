@@ -1,0 +1,80 @@
+// Modèles emplacements
+
+model Location {
+  id                String              @id @default(cuid())
+  name              String
+  type              String              // "WAREHOUSE", "RELAY_POINT", "OFFICE"
+  address           String
+  city              String
+  postalCode        String
+  country           String              @default("FR")
+  lat               Float
+  lng               Float
+  phone             String?
+  email             String?
+  openingHours      Json?               // [{day, open, close}]
+  isActive          Boolean             @default(true)
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  // Relations
+  warehouses        Warehouse[]
+  handovers         Handover[]
+  storageBoxes      StorageBox[]
+  
+  @@index([type])
+  @@index([city])
+}
+
+model Warehouse {
+  id                String              @id @default(cuid())
+  locationId        String              @unique
+  capacity          Int                 // Nombre de colis max
+  currentOccupancy  Int                 @default(0)
+  managerName       String?
+  managerEmail      String?
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  location          Location            @relation(fields: [locationId], references: [id])
+}
+
+model StorageBox {
+  id                String              @id @default(cuid())
+  locationId        String
+  boxNumber         String
+  size              String              // "SMALL", "MEDIUM", "LARGE"
+  pricePerDay       Float
+  isAvailable       Boolean             @default(true)
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  // Relations
+  location          Location            @relation(fields: [locationId], references: [id])
+  rentals           StorageBoxRental[]
+  
+  @@unique([locationId, boxNumber])
+  @@index([locationId])
+  @@index([isAvailable])
+}
+
+model StorageBoxRental {
+  id                String              @id @default(cuid())
+  clientId          String
+  storageBoxId      String
+  startDate         DateTime
+  endDate           DateTime?
+  accessCode        String              // Code d'accès au box
+  totalPrice        Float?
+  isPaid            Boolean             @default(false)
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  // Relations
+  client            Client              @relation(fields: [clientId], references: [id])
+  storageBox        StorageBox          @relation(fields: [storageBoxId], references: [id])
+  
+  @@index([clientId])
+  @@index([storageBoxId])
+  @@index([startDate])
+}

@@ -1,276 +1,41 @@
-# ===============================================
-# GITIGNORE ECODELI PROJECT
-# ===============================================
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
-# -----------------------------------------------
-# DEPENDENCIES & PACKAGE MANAGERS
-# -----------------------------------------------
-/node_modules/
+# dependencies
+/node_modules
 /.pnp
 .pnp.*
-
-# Yarn
 .yarn/*
 !.yarn/patches
 !.yarn/plugins
 !.yarn/releases
 !.yarn/versions
-yarn-error.log*
-yarn-debug.log*
 
-# PNPM
-.pnpm-debug.log*
-.pnpm-store/
+# testing
+/coverage
 
-# NPM
-npm-debug.log*
-package-lock.json
-
-# -----------------------------------------------
-# NEXT.JS & BUILD OUTPUTS
-# -----------------------------------------------
+# next.js
 /.next/
 /out/
-/build/
-/dist/
 
-# Next.js cache
-.next/cache/
+# production
+/build
 
-# Static exports
-out/
-
-# -----------------------------------------------
-# ENVIRONMENT & CONFIGURATION
-# -----------------------------------------------
-# Variables d'environnement
-.env*
-!.env.example
-!.env.local.example
-
-# Configuration locale
-.vscode/settings.json
-.vscode/launch.json
-.idea/
-
-# -----------------------------------------------
-# DATABASES & PRISMA
-# -----------------------------------------------
-# Base de données SQLite locale
-*.db
-*.sqlite
-*.sqlite3
-
-# Prisma
-prisma/migrations/migration_lock.toml
-prisma/dev.db*
-
-# Sauvegardes de base de données
-prisma/backups/*.sql
-prisma/backups/*.dump
-!prisma/backups/.gitkeep
-
-# -----------------------------------------------
-# UPLOADS & FILES UTILISATEURS
-# -----------------------------------------------
-# Fichiers uploadés par les utilisateurs
-public/uploads/*
-!public/uploads/.gitkeep
-
-# Documents temporaires
-temp/
-tmp/
-*.tmp
-*.temp
-
-# Logs de fichiers
-uploads.log
-file-operations.log
-
-# -----------------------------------------------
-# TESTS & COVERAGE
-# -----------------------------------------------
-/coverage/
-.nyc_output/
-test-results/
-junit.xml
-coverage.xml
-
-# Test screenshots/videos
-screenshots/
-videos/
-
-# -----------------------------------------------
-# LOGS & DEBUGGING
-# -----------------------------------------------
-# Logs généraux
-*.log
-logs/
-*.log.*
-
-# Debug
-debug/
-.debug/
-
-# Crash reports
-crash-*.log
-
-# -----------------------------------------------
-# TYPESCRIPT & BUILD CACHE
-# -----------------------------------------------
-*.tsbuildinfo
-next-env.d.ts
-.turbo/
-.swc/
-
-# Type checking cache
-.tsc-cache/
-
-# -----------------------------------------------
-# SYSTEMES D'EXPLOITATION
-# -----------------------------------------------
-# macOS
+# misc
 .DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
-Thumbs.db
-
-# Windows
-Thumbs.db
-ehthumbs.db
-Desktop.ini
-$RECYCLE.BIN/
-
-# Linux
-*~
-.nfs*
-
-# -----------------------------------------------
-# CERTIFICATS & SECURITE
-# -----------------------------------------------
 *.pem
-*.key
-*.cert
-*.crt
-*.p12
-*.pfx
 
-# Clés SSH
-id_rsa
-id_dsa
-id_ecdsa
-id_ed25519
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
 
-# -----------------------------------------------
-# PLATEFORMES DE DEPLOIEMENT
-# -----------------------------------------------
-# Vercel
-.vercel/
+# env files (can opt-in for committing if needed)
+.env*
+
+# vercel
 .vercel
 
-# Docker
-.dockerignore
-docker-compose.override.yml
-
-# -----------------------------------------------
-# OUTILS & EDITEURS
-# -----------------------------------------------
-# Cursor IDE
-.cursor/
-.cursor-logs/
-
-# GitHub & Git
-.github/instructions/
-.github/private/
-
-# ESLint cache
-.eslintcache
-
-# Prettier cache
-.prettiercache
-
-# Stylelint cache
-.stylelintcache
-
-# -----------------------------------------------
-# CONTENU TEMPORAIRE & DEVELOPPEMENT
-# -----------------------------------------------
-# Fichiers TODO et notes de développement
-TODO.md
-TODO.txt
-NOTES.md
-dev-notes.md
-
-# Scripts de seeding temporaires
-prisma/seed-users.*
-prisma/temp-seeds/
-
-# Tests de cookies et sessions
-cookies.txt
-session-cookies.txt
-*session-cookies*
-test-session.*
-test-*.json
-
-# Scripts d'extraction sensibles
-scripts/auth/extract-*-session.*
-*extract*session*
-
-# Cache et fichiers temporaires
-.cache/
-.temp/
-.tmp/
-
-# -----------------------------------------------
-# MONITORING & ANALYTICS
-# -----------------------------------------------
-# Sentry
-.sentryclirc
-
-# Analytics
-analytics/
-metrics/
-
-# -----------------------------------------------
-# APIS & WEBHOOKS EXTERNES
-# -----------------------------------------------
-# Webhook test files
-webhook-test.*
-api-test.*
-
-# API Test environment files
-scripts/api-test/.env.test
-
-# Fichiers de configuration d'API locaux
-stripe-local.*
-onesignal-local.*
-
-# -----------------------------------------------
-# BACKUP & ARCHIVES
-# -----------------------------------------------
-*.backup
-*.bak
-*.tar.gz
-*.zip
-*.rar
-backups/
-archives/
-
-# -----------------------------------------------
-# IGNORE SPECIFIQUE AU PROJET ECODELI
-# -----------------------------------------------
-# Documentation privée
-docs/private/
-docs/internal/
-
-# Données de test sensibles
-test-data/sensitive/
-mock-data/personal/
-
-# Configuration locale des services
-config/local/
-config/dev-only/
-mobile/.gradle/
+# typescript
+*.tsbuildinfo
+next-env.d.ts

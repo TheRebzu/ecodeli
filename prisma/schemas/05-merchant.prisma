@@ -1,0 +1,40 @@
+// Modèles commerçant
+
+model Merchant {
+  id                String              @id @default(cuid())
+  userId            String              @unique
+  companyName       String
+  siret             String              @unique
+  vatNumber         String?
+  contractStatus    String              @default("PENDING")
+  contractStartDate DateTime?
+  contractEndDate   DateTime?
+  commissionRate    Float               @default(0.15)
+  rating            Float               @default(0)
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  // Relations
+  user              User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  contract          Contract?
+  announcements     Announcement[]
+  orders            Order[]
+  cartDropConfig    CartDropConfig?
+  payments          Payment[]           @relation("MerchantPayments")
+  
+  @@index([userId])
+  @@index([siret])
+}
+
+model CartDropConfig {
+  id                String              @id @default(cuid())
+  merchantId        String              @unique
+  isActive          Boolean             @default(false)
+  deliveryZones     Json[]              // [{postalCode, deliveryFee}]
+  timeSlots         Json[]              // [{day, startTime, endTime}]
+  maxOrdersPerSlot  Int                 @default(10)
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  merchant          Merchant            @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+}

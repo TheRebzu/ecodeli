@@ -1,0 +1,86 @@
+// Modèles prestataire
+
+model Provider {
+  id                String              @id @default(cuid())
+  userId            String              @unique
+  validationStatus  ValidationStatus    @default(PENDING)
+  validatedAt       DateTime?
+  validatedBy       String?
+  businessName      String?
+  siret             String?
+  rating            Float               @default(0)
+  totalInterventions Int                @default(0)
+  monthlyInvoiceDay Int                 @default(25) // Jour de facturation mensuelle
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  // Relations
+  user              User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  services          Service[]
+  certifications    Certification[]
+  availabilities    Availability[]
+  bookings          Booking[]
+  interventions     Intervention[]
+  invoices          Invoice[]           @relation("ProviderInvoices")
+  rates             ProviderRate[]
+  
+  @@index([userId])
+  @@index([validationStatus])
+}
+
+model Service {
+  id                String              @id @default(cuid())
+  providerId        String
+  serviceType       ServiceType
+  name              String
+  description       String
+  basePrice         Float
+  priceType         String              // "HOURLY", "FIXED", "CUSTOM"
+  duration          Int?                // En minutes
+  maxDistance       Float?              // En km
+  isActive          Boolean             @default(true)
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  // Relations
+  provider          Provider            @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  bookings          Booking[]
+  
+  @@index([providerId])
+  @@index([serviceType])
+}
+
+model Certification {
+  id                String              @id @default(cuid())
+  providerId        String
+  name              String
+  issuingBody       String
+  documentId        String?
+  issueDate         DateTime
+  expiryDate        DateTime?
+  isVerified        Boolean             @default(false)
+  verifiedAt        DateTime?
+  verifiedBy        String?
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  // Relations
+  provider          Provider            @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  
+  @@index([providerId])
+}
+
+model ProviderRate {
+  id                String              @id @default(cuid())
+  providerId        String
+  serviceType       ServiceType
+  negotiatedRate    Float               // Tarif négocié avec EcoDeli
+  validFrom         DateTime
+  validUntil        DateTime?
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  provider          Provider            @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  
+  @@unique([providerId, serviceType])
+}

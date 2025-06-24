@@ -1,0 +1,89 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# EcoDeli - Restrictions de Développement
+
+## Interdictions de Nommage de Fichiers
+
+**INTERDICTION ABSOLUE** de créer des fichiers avec les suffixes suivants :
+- `*-enhanced.*` (ex: `user-enhanced.ts`)
+- `*-fix.*` (ex: `auth-fix.js`)
+- `*-simple.*` (ex: `payment-simple.tsx`)
+- `*-improved.*` (ex: `delivery-improved.service.ts`)
+- `*-updated.*` (ex: `schema-updated.prisma`)
+- `*-new.*` (ex: `component-new.tsx`)
+- `*-refactored.*` (ex: `api-refactored.ts`)
+- `*-optimized.*` (ex: `query-optimized.sql`)
+
+## Règles de Nommage Obligatoires
+
+### Fichiers de Services
+- Format : `[feature].service.ts`
+- Exemple : `delivery-validation.service.ts`, `invoice-generator.service.ts`
+
+### Fichiers de Schémas
+- Format : `[feature].schema.ts`
+- Exemple : `announcement.schema.ts`, `payment.schema.ts`
+
+### Fichiers de Types
+- Format : `[feature].types.ts`
+- Exemple : `delivery.types.ts`, `user.types.ts`
+
+### Composants React
+- Format : `[ComponentName].tsx` (PascalCase)
+- Exemple : `DeliveryForm.tsx`, `UserProfile.tsx`
+
+### API Routes
+- Format : `route.ts` dans le dossier approprié
+- Structure : `src/app/api/[feature]/route.ts`
+
+## Conventions de Code
+
+### Variables et Fonctions
+- **camelCase** pour variables et fonctions
+- **PascalCase** pour composants et classes
+- **UPPER_SNAKE_CASE** pour constantes
+
+### Dossiers
+- **kebab-case** pour tous les dossiers
+- Structure modulaire dans `src/features/`
+
+## Gestion des Versions
+- **JAMAIS** de suffixes de version dans les noms de fichiers
+- Utiliser Git pour la gestion des versions
+- Noms de fichiers descriptifs et explicites
+
+## Exemples CORRECTS vs INCORRECTS
+
+### ✅ CORRECT
+```
+src/features/deliveries/services/validation.service.ts
+src/features/payments/schemas/stripe.schema.ts
+src/components/ui/DeliveryCard.tsx
+src/app/api/deliveries/[id]/validate/route.ts
+```
+
+### ❌ INCORRECT
+```
+src/features/deliveries/services/validation-enhanced.service.ts
+src/features/payments/schemas/stripe-fix.schema.ts
+src/components/ui/DeliveryCard-improved.tsx
+src/app/api/deliveries/[id]/validate-new/route.ts
+```
+
+## Justification
+
+Ces restrictions permettent de :
+1. **Maintenir la cohérence** du codebase
+2. **Éviter la confusion** entre versions de fichiers
+3. **Faciliter la navigation** et la compréhension
+4. **Respecter les standards** de l'industrie
+5. **Simplifier la maintenance** à long terme
+
+## Sanctions
+- Refus systématique des PR contenant ces nommages
+- Demande de refactoring immédiate
+- Documentation de l'erreur dans le rapport de développement
+

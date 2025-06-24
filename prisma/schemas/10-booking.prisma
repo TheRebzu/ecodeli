@@ -1,0 +1,52 @@
+// Modèles réservations
+
+model Booking {
+  id                String              @id @default(cuid())
+  clientId          String
+  providerId        String
+  serviceId         String
+  status            String              @default("PENDING") // PENDING, CONFIRMED, IN_PROGRESS, COMPLETED, CANCELLED
+  scheduledDate     DateTime
+  scheduledTime     String              // HH:MM
+  duration          Int                 // En minutes
+  address           Json                // {address, city, postalCode, lat, lng}
+  totalPrice        Float
+  notes             String?
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  // Relations
+  client            Client              @relation(fields: [clientId], references: [id])
+  provider          Provider            @relation(fields: [providerId], references: [id])
+  service           Service             @relation(fields: [serviceId], references: [id])
+  intervention      Intervention?
+  payment           Payment?
+  review            Review?
+  
+  @@index([clientId])
+  @@index([providerId])
+  @@index([scheduledDate])
+  @@index([status])
+}
+
+model Intervention {
+  id                String              @id @default(cuid())
+  bookingId         String              @unique
+  providerId        String
+  startTime         DateTime?
+  endTime           DateTime?
+  actualDuration    Int?                // En minutes
+  report            String?
+  photos            String[]            // URLs
+  clientSignature   String?             // Base64
+  isCompleted       Boolean             @default(false)
+  completedAt       DateTime?
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  // Relations
+  booking           Booking             @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  provider          Provider            @relation(fields: [providerId], references: [id])
+  
+  @@index([providerId])
+}

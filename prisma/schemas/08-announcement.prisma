@@ -1,0 +1,82 @@
+// Modèles annonces
+
+model Announcement {
+  id                String              @id @default(cuid())
+  clientId          String?
+  merchantId        String?
+  type              AnnouncementType
+  title             String
+  description       String
+  startLocation     Json                // {address, city, postalCode, lat, lng}
+  endLocation       Json                // {address, city, postalCode, lat, lng}
+  desiredDate       DateTime
+  flexibleDates     Boolean             @default(false)
+  dateRangeStart    DateTime?
+  dateRangeEnd      DateTime?
+  price             Float
+  currency          String              @default("EUR")
+  status            AnnouncementStatus  @default(DRAFT)
+  viewCount         Int                 @default(0)
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  publishedAt       DateTime?
+
+  // Relations
+  client            Client?             @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  merchant          Merchant?           @relation(fields: [merchantId], references: [id], onDelete: SetNull)
+  packageDetails    PackageAnnouncement?
+  serviceDetails    ServiceAnnouncement?
+  delivery          Delivery?
+  routeMatches      RouteAnnouncementMatch[]
+  
+  @@index([clientId])
+  @@index([merchantId])
+  @@index([status])
+  @@index([type])
+  @@index([desiredDate])
+}
+
+model PackageAnnouncement {
+  id                String              @id @default(cuid())
+  announcementId    String              @unique
+  weight            Float               // En kg
+  length            Float               // En cm
+  width             Float               // En cm
+  height            Float               // En cm
+  fragile           Boolean             @default(false)
+  requiresInsurance Boolean             @default(false)
+  insuredValue      Float?
+  specialInstructions String?
+
+  announcement      Announcement        @relation(fields: [announcementId], references: [id], onDelete: Cascade)
+}
+
+model ServiceAnnouncement {
+  id                String              @id @default(cuid())
+  announcementId    String              @unique
+  serviceType       ServiceType
+  numberOfPeople    Int?
+  duration          Int?                // En minutes
+  recurringService  Boolean             @default(false)
+  recurringPattern  String?             // "DAILY", "WEEKLY", "MONTHLY"
+  specialRequirements String?
+  preferredProviderId String?
+
+  announcement      Announcement        @relation(fields: [announcementId], references: [id], onDelete: Cascade)
+}
+
+model RouteAnnouncementMatch {
+  id                String              @id @default(cuid())
+  routeId           String
+  announcementId    String
+  matchScore        Float               // Score de correspondance 0-100
+  isNotified        Boolean             @default(false)
+  notifiedAt        DateTime?
+  createdAt         DateTime            @default(now())
+
+  route             Route               @relation(fields: [routeId], references: [id], onDelete: Cascade)
+  announcement      Announcement        @relation(fields: [announcementId], references: [id], onDelete: Cascade)
+  
+  @@unique([routeId, announcementId])
+  @@index([matchScore])
+}

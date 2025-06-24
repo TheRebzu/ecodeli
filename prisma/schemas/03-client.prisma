@@ -1,0 +1,23 @@
+// Modèles client
+
+model Client {
+  id                String              @id @default(cuid())
+  userId            String              @unique
+  subscriptionPlan  SubscriptionPlan    @default(FREE)
+  subscriptionStart DateTime            @default(now())
+  subscriptionEnd   DateTime?
+  tutorialCompleted Boolean             @default(false)
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  // Relations
+  user              User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  announcements     Announcement[]
+  bookings          Booking[]
+  deliveries        Delivery[]          @relation("ClientDeliveries")
+  payments          Payment[]           @relation("ClientPayments")
+  storageBoxes      StorageBoxRental[]
+  reviews           Review[]
+  
+  @@index([userId])
+}

@@ -1,0 +1,35 @@
+// Modèle pour la validation des livraisons avec codes à 6 chiffres
+
+model DeliveryValidation {
+  id          String    @id @default(cuid())
+  deliveryId  String
+  code        String    @unique   // Code à 6 chiffres
+  isUsed      Boolean   @default(false)
+  usedAt      DateTime?
+  expiresAt   DateTime  // Expire après 2 heures
+  createdAt   DateTime  @default(now())
+
+  // Relations
+  delivery    Delivery  @relation(fields: [deliveryId], references: [id], onDelete: Cascade)
+
+  @@index([deliveryId])
+  @@index([code])
+  @@index([expiresAt])
+}
+
+model DeliveryHistory {
+  id          String        @id @default(cuid())
+  deliveryId  String
+  status      DeliveryStatus
+  notes       String?
+  latitude    Float?
+  longitude   Float?
+  createdBy   String?       // ID du user qui a fait le changement
+  createdAt   DateTime      @default(now())
+
+  // Relations
+  delivery    Delivery      @relation(fields: [deliveryId], references: [id], onDelete: Cascade)
+
+  @@index([deliveryId])
+  @@index([createdAt])
+}

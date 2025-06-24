@@ -1,40 +1,58 @@
-import { NextIntlClientProvider, hasLocale } from "next-intl";
-import { notFound } from "next/navigation";
-import { getMessages, setRequestLocale } from "next-intl/server";
-import { routing } from "@/i18n/routing";
-import { TRPCProvider } from "@/components/providers/trpc-provider";
-import ThemeProvider from "@/components/providers/theme-provider";
-import { ThemeInitializer } from "@/components/providers/theme-initializer";
+// Layout principal pour EcoDeli avec internationalisation
+import type { Metadata } from "next"
+import { GeistSans } from "geist/font"
+import { NextIntlClientProvider } from "next-intl"
+import { getMessages } from "next-intl/server"
+import { notFound } from "next/navigation"
+import "../globals.css"
 
-interface LayoutProps {
-  children: React.ReactNode;
-  params: Promise<{ locale }>;
+export const metadata: Metadata = {
+  title: "EcoDeli - Plateforme de Crowdshipping",
+  description: "La plateforme éco-responsable de livraison collaborative et services à la personne",
+  keywords: ["livraison", "crowdshipping", "écologique", "transport", "services"],
+  authors: [{ name: "EcoDeli" }],
+  openGraph: {
+    title: "EcoDeli",
+    description: "Plateforme de crowdshipping éco-responsable",
+    type: "website",
+    locale: "fr_FR",
+  },
 }
 
-export default async function LocaleLayout({ children, params }: LayoutProps) {
-  // Vérifiez que la locale entrante est valide
-  const { locale } = await params;
-
-  if (!hasLocale(routing.locales, locale)) {
-    notFound();
-  }
-
-  // Activer le rendu statique
-  setRequestLocale(locale);
-
-  const messages = await getMessages();
-
-  return (
-    <ThemeProvider>
-      {/* Composant qui initialise le thème côté client uniquement */}
-      <ThemeInitializer />
-      <NextIntlClientProvider locale={locale} messages={messages}>
-        <TRPCProvider>{children}</TRPCProvider>
-      </NextIntlClientProvider>
-    </ThemeProvider>
-  );
-}
+// Locales supportées
+const locales = ['fr', 'en']
 
 export function generateStaticParams() {
-  return routing.locales.map((locale) => ({ locale  }));
+  return locales.map((locale) => ({ locale }))
+}
+
+interface LocaleLayoutProps {
+  children: React.ReactNode
+  params: Promise<{ locale: string }>
+}
+
+export default async function LocaleLayout({
+  children,
+  params
+}: LocaleLayoutProps) {
+  // Await les params conformément à Next.js 15
+  const { locale } = await params
+  
+  // Valider la locale
+  if (!locales.includes(locale)) {
+    notFound()
+  }
+
+  // Charger les messages de traduction
+  const messages = await getMessages()
+
+  return (
+    <html lang={locale} suppressHydrationWarning>
+      <body className={`${GeistSans.className} antialiased`} suppressHydrationWarning>
+        <NextIntlClientProvider messages={messages}>
+          {children}
+        </NextIntlClientProvider>
+      </body>
+    </html>
+  )
 }

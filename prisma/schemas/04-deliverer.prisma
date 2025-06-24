@@ -1,0 +1,63 @@
+// Modèles livreur
+
+model Deliverer {
+  id                String              @id @default(cuid())
+  userId            String              @unique
+  validationStatus  ValidationStatus    @default(PENDING)
+  validatedAt       DateTime?
+  validatedBy       String?
+  vehicleType       String?
+  vehiclePlate      String?
+  maxWeight         Float?
+  maxVolume         Float?
+  rating            Float               @default(0)
+  totalDeliveries   Int                 @default(0)
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  // Relations
+  user              User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  routes            Route[]
+  deliveries        Delivery[]          @relation("DelivererDeliveries")
+  wallet            Wallet?
+  nfcCard           NFCCard?
+  availabilities    Availability[]
+  
+  @@index([userId])
+  @@index([validationStatus])
+}
+
+model Route {
+  id                String              @id @default(cuid())
+  delivererId       String
+  startLocation     Json                // {address, city, postalCode, lat, lng}
+  endLocation       Json                // {address, city, postalCode, lat, lng}
+  departureDate     DateTime
+  arrivalDate       DateTime
+  availableWeight   Float?
+  availableVolume   Float?
+  pricePerKg        Float?
+  isActive          Boolean             @default(true)
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  // Relations
+  deliverer         Deliverer           @relation(fields: [delivererId], references: [id], onDelete: Cascade)
+  matchedAnnouncements RouteAnnouncementMatch[]
+  
+  @@index([delivererId])
+  @@index([departureDate])
+}
+
+model NFCCard {
+  id                String              @id @default(cuid())
+  delivererId       String              @unique
+  cardNumber        String              @unique
+  isActive          Boolean             @default(true)
+  issuedAt          DateTime            @default(now())
+  lastUsedAt        DateTime?
+
+  deliverer         Deliverer           @relation(fields: [delivererId], references: [id], onDelete: Cascade)
+  
+  @@index([cardNumber])
+}
