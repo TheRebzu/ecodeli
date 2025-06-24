@@ -100,7 +100,7 @@ model User {
   subscription    Subscription?
   createdAt       DateTime            @default(now())
   updatedAt       DateTime            @updatedAt
-
+  
   @@index([email])
   @@index([role])
 }
@@ -129,7 +129,7 @@ model Session {
   token       String      @unique
   expiresAt   DateTime
   createdAt   DateTime    @default(now())
-
+  
   @@index([token])
   @@index([userId])
 }
@@ -188,7 +188,7 @@ model TrackingUpdate {
   message    String
   location   String?
   createdAt  DateTime @default(now())
-
+  
   @@index([deliveryId])
 }
 
@@ -222,7 +222,7 @@ model Booking {
   payment     Payment?
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
-
+  
   @@index([clientId])
   @@index([serviceId])
 }
@@ -273,7 +273,7 @@ model Document {
   validatedAt DateTime?
   createdAt  DateTime       @default(now())
   updatedAt  DateTime       @updatedAt
-
+  
   @@index([userId])
   @@index([type])
   @@index([status])
@@ -290,7 +290,7 @@ model Notification {
   isRead    Boolean  @default(false)
   readAt    DateTime?
   createdAt DateTime @default(now())
-
+  
   @@index([userId])
   @@index([isRead])
 }

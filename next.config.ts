@@ -2,7 +2,7 @@ import type { NextConfig } from "next";
 import createNextIntlPlugin from 'next-intl/plugin';
 
 // Configuration next-intl
-const withNextIntl = createNextIntlPlugin('./src/i18n.ts');
+const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts');
 
 const nextConfig: NextConfig = {
   // Configuration pour EcoDeli
@@ -46,7 +46,17 @@ const nextConfig: NextConfig = {
     return [
       {
         source: '/dashboard',
-        destination: '/fr/client',
+        destination: '/fr/home',
+        permanent: false,
+      },
+      {
+        source: '/fr/dashboard',
+        destination: '/fr/home',
+        permanent: false,
+      },
+      {
+        source: '/en/dashboard',
+        destination: '/en/home',
         permanent: false,
       },
     ];

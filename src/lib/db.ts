@@ -24,245 +24,260 @@ if (process.env.NODE_ENV !== "production") {
 
 /**
  * Extensions Prisma pour EcoDeli
+ * Conditionnées pour éviter les erreurs Edge Runtime
  */
-export const extendedPrisma = prisma.$extends({
-  model: {
-    user: {
-      /**
-       * Trouver un utilisateur avec son profil complet selon son rôle
-       */
-      async findWithProfile(userId: string) {
-        const user = await prisma.user.findUnique({
-          where: { id: userId },
-          include: {
-            profile: true,
-            clientProfile: true,
-            delivererProfile: true,
-            merchantProfile: true,
-            providerProfile: true,
-            wallet: true
-          }
-        })
-        
-        return user
-      },
-
-      /**
-       * Rechercher des livreurs disponibles dans une zone
-       */
-      async findAvailableDeliverers(latitude: number, longitude: number, maxDistance: number = 50) {
-        // TODO: Implémenter la recherche géographique
-        return await prisma.user.findMany({
-          where: {
-            role: "DELIVERER",
-            status: "ACTIVE",
-            delivererProfile: {
-              isVerified: true,
-              isAvailable: true,
-              maxDistance: {
-                gte: maxDistance
-              }
-            }
-          },
-          include: {
-            delivererProfile: true,
-            profile: true
-          }
-        })
-      },
-
-      /**
-       * Rechercher des prestataires par spécialisation
-       */
-      async findProvidersBySpecialization(specialization: string, city?: string) {
-        return await prisma.user.findMany({
-          where: {
-            role: "PROVIDER",
-            status: "ACTIVE",
-            providerProfile: {
-              specializations: {
-                has: specialization
-              }
-            }
-          },
-          include: {
-            providerProfile: {
+function createExtendedPrisma() {
+  // Vérifier si on est dans l'Edge Runtime ou un environnement incompatible
+  try {
+    // Test si Prisma peut être étendu (échoue dans Edge Runtime)
+    const testExtension = prisma.$extends({})
+    
+    // Si ça passe, on peut créer les extensions complètes
+    return prisma.$extends({
+      model: {
+        user: {
+          /**
+           * Trouver un utilisateur avec son profil complet selon son rôle
+           */
+          async findWithProfile(userId: string) {
+            const user = await prisma.user.findUnique({
+              where: { id: userId },
               include: {
-                availabilities: true,
-                skills: true
+                profile: true,
+                clientProfile: true,
+                delivererProfile: true,
+                merchantProfile: true,
+                providerProfile: true,
+                wallet: true
               }
-            },
-            profile: true
-          }
-        })
-      }
-    },
-
-    announcement: {
-      /**
-       * Rechercher des annonces avec matching pour un livreur
-       */
-      async findMatchingForDeliverer(delivererId: string) {
-        const deliverer = await prisma.user.findUnique({
-          where: { id: delivererId },
-          include: {
-            delivererProfile: {
-              include: {
-                plannedRoutes: true
-              }
-            }
-          }
-        })
-
-        if (!deliverer?.delivererProfile) return []
-
-        // TODO: Implémenter l'algorithme de matching basé sur les trajets planifiés
-        return await prisma.announcement.findMany({
-          where: {
-            status: "PUBLISHED",
-            type: "PACKAGE" // Pour l'instant, seulement les colis
+            })
+            
+            return user
           },
-          include: {
-            user: {
+
+          /**
+           * Rechercher des livreurs disponibles dans une zone
+           */
+          async findAvailableDeliverers(latitude: number, longitude: number, maxDistance: number = 50) {
+            // TODO: Implémenter la recherche géographique
+            return await prisma.user.findMany({
+              where: {
+                role: "DELIVERER",
+                status: "ACTIVE",
+                delivererProfile: {
+                  isVerified: true,
+                  isAvailable: true,
+                  maxDistance: {
+                    gte: maxDistance
+                  }
+                }
+              },
               include: {
+                delivererProfile: true,
                 profile: true
               }
-            },
-            pickupAddress: true,
-            deliveryAddress: true
+            })
+          },
+
+          /**
+           * Rechercher des prestataires par spécialisation
+           */
+          async findProvidersBySpecialization(specialization: string, city?: string) {
+            return await prisma.user.findMany({
+              where: {
+                role: "PROVIDER",
+                status: "ACTIVE",
+                providerProfile: {
+                  specializations: {
+                    has: specialization
+                  }
+                }
+              },
+              include: {
+                providerProfile: {
+                  include: {
+                    availabilities: true,
+                    skills: true
+                  }
+                },
+                profile: true
+              }
+            })
           }
-        })
-      },
+        },
 
-      /**
-       * Obtenir les statistiques d'une annonce
-       */
-      async getAnnouncementStats(announcementId: string) {
-        const applications = await prisma.deliveryApplication.count({
-          where: { announcementId }
-        })
+        announcement: {
+          /**
+           * Rechercher des annonces avec matching pour un livreur
+           */
+          async findMatchingForDeliverer(delivererId: string) {
+            const deliverer = await prisma.user.findUnique({
+              where: { id: delivererId },
+              include: {
+                delivererProfile: {
+                  include: {
+                    plannedRoutes: true
+                  }
+                }
+              }
+            })
 
-        const announcement = await prisma.announcement.findUnique({
-          where: { id: announcementId },
-          include: {
-            delivery: true,
-            booking: true
-          }
-        })
+            if (!deliverer?.delivererProfile) return []
 
-        return {
-          applicationsCount: applications,
-          isMatched: !!announcement?.delivery || !!announcement?.booking,
-          status: announcement?.status
-        }
-      }
-    },
+            // TODO: Implémenter l'algorithme de matching basé sur les trajets planifiés
+            return await prisma.announcement.findMany({
+              where: {
+                status: "PUBLISHED",
+                type: "PACKAGE" // Pour l'instant, seulement les colis
+              },
+              include: {
+                user: {
+                  include: {
+                    profile: true
+                  }
+                },
+                pickupAddress: true,
+                deliveryAddress: true
+              }
+            })
+          },
 
-    delivery: {
-      /**
-       * Mettre à jour la position du livreur
-       */
-      async updateDelivererPosition(deliveryId: string, latitude: number, longitude: number) {
-        // Mettre à jour la livraison
-        const delivery = await prisma.delivery.update({
-          where: { id: deliveryId },
-          data: {
-            currentLatitude: latitude,
-            currentLongitude: longitude,
-            updatedAt: new Date()
-          }
-        })
+          /**
+           * Obtenir les statistiques d'une annonce
+           */
+          async getAnnouncementStats(announcementId: string) {
+            const applications = await prisma.deliveryApplication.count({
+              where: { announcementId }
+            })
 
-        // Créer un événement de tracking
-        await prisma.trackingEvent.create({
-          data: {
-            deliveryId,
-            event: "position_update",
-            description: "Position mise à jour",
-            latitude,
-            longitude
-          }
-        })
+            const announcement = await prisma.announcement.findUnique({
+              where: { id: announcementId },
+              include: {
+                delivery: true,
+                booking: true
+              }
+            })
 
-        return delivery
-      },
-
-      /**
-       * Valider une livraison avec code
-       */
-      async validateWithCode(deliveryId: string, validationCode: string) {
-        const delivery = await prisma.delivery.findUnique({
-          where: { id: deliveryId }
-        })
-
-        if (!delivery) {
-          throw new Error("Livraison non trouvée")
-        }
-
-        if (delivery.validationCode !== validationCode) {
-          throw new Error("Code de validation incorrect")
-        }
-
-        return await prisma.delivery.update({
-          where: { id: deliveryId },
-          data: {
-            status: "DELIVERED",
-            deliveredAt: new Date()
-          }
-        })
-      }
-    },
-
-    wallet: {
-      /**
-       * Effectuer une transaction wallet
-       */
-      async processTransaction(walletId: string, amount: number, type: "credit" | "debit", description: string, reference?: string) {
-        return await prisma.$transaction(async (tx) => {
-          // Récupérer le wallet actuel
-          const wallet = await tx.wallet.findUnique({
-            where: { id: walletId }
-          })
-
-          if (!wallet) {
-            throw new Error("Wallet non trouvé")
-          }
-
-          const balanceBefore = wallet.balance
-          const balanceAfter = type === "credit" 
-            ? balanceBefore + amount 
-            : balanceBefore - amount
-
-          // Vérifier les fonds suffisants pour un débit
-          if (type === "debit" && balanceAfter < 0) {
-            throw new Error("Fonds insuffisants")
-          }
-
-          // Mettre à jour le wallet
-          const updatedWallet = await tx.wallet.update({
-            where: { id: walletId },
-            data: { balance: balanceAfter }
-          })
-
-          // Créer la transaction
-          await tx.walletTransaction.create({
-            data: {
-              walletId,
-              type,
-              amount,
-              description,
-              reference,
-              balanceBefore,
-              balanceAfter
+            return {
+              applicationsCount: applications,
+              isMatched: !!announcement?.delivery || !!announcement?.booking,
+              status: announcement?.status
             }
-          })
+          }
+        },
 
-          return updatedWallet
-        })
+        delivery: {
+          /**
+           * Mettre à jour la position du livreur
+           */
+          async updateDelivererPosition(deliveryId: string, latitude: number, longitude: number) {
+            // Mettre à jour la livraison
+            const delivery = await prisma.delivery.update({
+              where: { id: deliveryId },
+              data: {
+                currentLatitude: latitude,
+                currentLongitude: longitude,
+                updatedAt: new Date()
+              }
+            })
+
+            // Créer un événement de tracking
+            await prisma.trackingEvent.create({
+              data: {
+                deliveryId,
+                event: "position_update",
+                description: "Position mise à jour",
+                latitude,
+                longitude
+              }
+            })
+
+            return delivery
+          },
+
+          /**
+           * Valider une livraison avec code
+           */
+          async validateWithCode(deliveryId: string, validationCode: string) {
+            const delivery = await prisma.delivery.findUnique({
+              where: { id: deliveryId }
+            })
+
+            if (!delivery) {
+              throw new Error("Livraison non trouvée")
+            }
+
+            if (delivery.validationCode !== validationCode) {
+              throw new Error("Code de validation incorrect")
+            }
+
+            // Mettre à jour le statut
+            return await prisma.delivery.update({
+              where: { id: deliveryId },
+              data: {
+                status: "DELIVERED",
+                completedAt: new Date()
+              }
+            })
+          }
+        },
+
+        wallet: {
+          /**
+           * Effectuer une transaction sur le portefeuille
+           */
+          async processTransaction(walletId: string, amount: number, type: "credit" | "debit", description: string, reference?: string) {
+            return await prisma.$transaction(async (tx) => {
+              // Récupérer le portefeuille
+              const wallet = await tx.wallet.findUnique({
+                where: { id: walletId }
+              })
+
+              if (!wallet) {
+                throw new Error("Portefeuille non trouvé")
+              }
+
+              // Calculer le nouveau solde
+              const newBalance = type === "credit" 
+                ? wallet.balance + amount 
+                : wallet.balance - amount
+
+              if (newBalance < 0) {
+                throw new Error("Solde insuffisant")
+              }
+
+              // Mettre à jour le portefeuille
+              const updatedWallet = await tx.wallet.update({
+                where: { id: walletId },
+                data: { balance: newBalance }
+              })
+
+              // Créer l'historique de transaction
+              await tx.walletTransaction.create({
+                data: {
+                  walletId,
+                  amount: type === "debit" ? -amount : amount,
+                  type,
+                  description,
+                  reference,
+                  balanceAfter: newBalance
+                }
+              })
+
+              return updatedWallet
+            })
+          }
+        }
       }
-    }
+    })
+  } catch (error) {
+    // En cas d'erreur (Edge Runtime), retourner Prisma basique
+    console.warn('Extensions Prisma désactivées (Edge Runtime)')
+    return prisma as any
   }
-})
+}
+
+export const extendedPrisma = createExtendedPrisma()
 
 /**
  * Types utilitaires pour les requêtes courantes

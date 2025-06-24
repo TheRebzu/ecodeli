@@ -1,6 +1,12 @@
 import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { AuthService } from "@/features/auth/services/auth.service"
+import { z } from 'zod'
+
+const verifyRoleSchema = z.object({
+  requiredRole: z.enum(['CLIENT', 'DELIVERER', 'MERCHANT', 'PROVIDER', 'ADMIN']),
+  action: z.string().optional()
+})
 
 /**
  * GET - Vérifier le rôle et les permissions de l'utilisateur connecté
@@ -147,4 +153,73 @@ function getNextSteps(user: any): string[] {
   }
   
   return steps
+}
+
+export async function POST(request: NextRequest) {
+  try {
+    const session = await auth.api.getSession({
+      headers: request.headers
+    })
+
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const body = await request.json()
+    const { requiredRole, action } = verifyRoleSchema.parse(body)
+
+    const user = session.user
+    const userRole = user.role
+
+    // Vérification du rôle de base
+    if (userRole !== requiredRole && userRole !== 'ADMIN') {
+      return NextResponse.json({ 
+        error: 'Insufficient permissions',
+        userRole,
+        requiredRole 
+      }, { status: 403 })
+    }
+
+    // Vérifications supplémentaires selon le rôle
+    const permissions = await checkRolePermissions(user.id, userRole, action)
+
+    return NextResponse.json({
+      authorized: true,
+      userRole,
+      permissions,
+      user: {
+        id: user.id,
+        email: user.email,
+        role: userRole,
+        status: user.status
+      }
+    })
+
+  } catch (error) {
+    console.error('Error verifying role:', error)
+    
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        { error: 'Invalid request data', details: error.errors },
+        { status: 400 }
+      )
+    }
+
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    )
+  }
+}
+
+async function checkRolePermissions(userId: string, role: string, action?: string) {
+  const basePermissions = {
+    CLIENT: ['view_dashboard', 'create_announcement', 'manage_bookings', 'manage_payments'],
+    DELIVERER: ['view_dashboard', 'manage_deliveries', 'view_opportunities', 'manage_wallet'],
+    MERCHANT: ['view_dashboard', 'manage_announcements', 'manage_contracts', 'cart_drop'],
+    PROVIDER: ['view_dashboard', 'manage_services', 'manage_calendar', 'view_earnings'],
+    ADMIN: ['*'] // Tous les droits
+  }
+
+  return basePermissions[role as keyof typeof basePermissions] || []
 }

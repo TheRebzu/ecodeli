@@ -1,294 +1,295 @@
+
 {
   "common": {
-    "loading": "Chargement...",
-    "error": "Une erreur est survenue",
-    "success": "Succès",
-    "cancel": "Annuler",
-    "confirm": "Confirmer",
-    "save": "Enregistrer",
-    "edit": "Modifier",
-    "delete": "Supprimer",
-    "add": "Ajouter",
-    "search": "Rechercher",
-    "filter": "Filtrer",
-    "reset": "Réinitialiser",
-    "back": "Retour",
-    "next": "Suivant",
-    "previous": "Précédent",
-    "close": "Fermer",
-    "open": "Ouvrir",
-    "view": "Voir",
-    "download": "Télécharger",
-    "upload": "Uploader",
-    "send": "Envoyer",
-    "submit": "Soumettre",
-    "create": "Créer",
-    "update": "Mettre à jour",
-    "refresh": "Actualiser",
-    "logout": "Déconnexion",
-    "profile": "Profil",
-    "settings": "Paramètres",
-    "help": "Aide",
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "success": "Success",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "save": "Save",
+    "edit": "Edit",
+    "delete": "Delete",
+    "add": "Add",
+    "search": "Search",
+    "filter": "Filter",
+    "reset": "Reset",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "close": "Close",
+    "open": "Open",
+    "view": "View",
+    "download": "Download",
+    "upload": "Upload",
+    "send": "Send",
+    "submit": "Submit",
+    "create": "Create",
+    "update": "Update",
+    "refresh": "Refresh",
+    "logout": "Logout",
+    "profile": "Profile",
+    "settings": "Settings",
+    "help": "Help",
     "contact": "Contact",
-    "about": "À propos"
+    "about": "About"
   },
   
   "auth": {
     "login": {
-      "title": "Connexion à EcoDeli",
-      "subtitle": "Connectez-vous à votre compte",
-      "email": "Adresse email",
-      "password": "Mot de passe", 
-      "rememberMe": "Se souvenir de moi",
-      "forgotPassword": "Mot de passe oublié ?",
-      "loginButton": "Se connecter",
-      "noAccount": "Pas encore de compte ?",
-      "signUp": "S'inscrire",
+      "title": "Login to EcoDeli",
+      "subtitle": "Sign in to your account",
+      "email": "Email address",
+      "password": "Password", 
+      "rememberMe": "Remember me",
+      "forgotPassword": "Forgot password?",
+      "loginButton": "Sign in",
+      "noAccount": "Don't have an account?",
+      "signUp": "Sign up",
       "errors": {
-        "invalidCredentials": "Email ou mot de passe incorrect",
-        "accountSuspended": "Votre compte a été suspendu",
-        "emailNotVerified": "Veuillez vérifier votre email",
-        "generic": "Erreur de connexion"
+        "invalidCredentials": "Invalid email or password",
+        "accountSuspended": "Your account has been suspended",
+        "emailNotVerified": "Please verify your email",
+        "generic": "Login error"
       }
     },
     "register": {
-      "title": "Inscription à EcoDeli",
-      "subtitle": "Créez votre compte EcoDeli",
-      "chooseRole": "Choisissez votre rôle",
+      "title": "Sign up to EcoDeli",
+      "subtitle": "Create your EcoDeli account",
+      "chooseRole": "Choose your role",
       "roles": {
         "client": {
           "title": "Client",
-          "description": "Je veux envoyer des colis ou réserver des services"
+          "description": "I want to send packages or book services"
         },
         "deliverer": {
-          "title": "Livreur",
-          "description": "Je veux livrer des colis et transporter des personnes"
+          "title": "Deliverer",
+          "description": "I want to deliver packages and transport people"
         },
         "merchant": {
-          "title": "Commerçant",
-          "description": "Je veux proposer mes produits en livraison"
+          "title": "Merchant",
+          "description": "I want to offer my products for delivery"
         },
         "provider": {
-          "title": "Prestataire",
-          "description": "Je veux offrir des services à la personne"
+          "title": "Service Provider",
+          "description": "I want to offer personal services"
         }
       },
       "form": {
-        "firstName": "Prénom",
-        "lastName": "Nom",
-        "email": "Adresse email",
-        "phone": "Téléphone",
-        "password": "Mot de passe",
-        "confirmPassword": "Confirmer le mot de passe",
-        "terms": "J'accepte les conditions d'utilisation",
-        "newsletter": "Je souhaite recevoir la newsletter",
-        "createAccount": "Créer mon compte"
+        "firstName": "First name",
+        "lastName": "Last name",
+        "email": "Email address",
+        "phone": "Phone",
+        "password": "Password",
+        "confirmPassword": "Confirm password",
+        "terms": "I accept the terms and conditions",
+        "newsletter": "I want to receive the newsletter",
+        "createAccount": "Create my account"
       },
       "success": {
-        "title": "Compte créé avec succès !",
-        "subtitle": "Un email de vérification a été envoyé à votre adresse",
-        "checkEmail": "Vérifiez votre boîte email"
+        "title": "Account created successfully!",
+        "subtitle": "A verification email has been sent to your address",
+        "checkEmail": "Check your email inbox"
       }
     },
     "verification": {
-      "title": "Vérification de votre compte",
-      "pending": "Votre compte est en cours de vérification",
-      "approved": "Votre compte a été approuvé",
-      "rejected": "Votre demande a été rejetée"
+      "title": "Account verification",
+      "pending": "Your account is being verified",
+      "approved": "Your account has been approved",
+      "rejected": "Your application has been rejected"
     }
   },
   
   "navigation": {
-    "home": "Accueil",
+    "home": "Home",
     "services": "Services",
-    "pricing": "Tarifs",
-    "about": "À propos",
+    "pricing": "Pricing",
+    "about": "About",
     "contact": "Contact",
-    "dashboard": "Tableau de bord",
-    "announcements": "Annonces",
-    "deliveries": "Livraisons",
-    "bookings": "Réservations",
-    "payments": "Paiements",
-    "wallet": "Portefeuille",
+    "dashboard": "Dashboard",
+    "announcements": "Announcements",
+    "deliveries": "Deliveries",
+    "bookings": "Bookings",
+    "payments": "Payments",
+    "wallet": "Wallet",
     "messages": "Messages",
     "notifications": "Notifications",
     "support": "Support"
   },
   
   "dashboard": {
-    "welcome": "Bienvenue sur EcoDeli",
+    "welcome": "Welcome to EcoDeli",
     "client": {
-      "title": "Tableau de bord Client",
-      "quickActions": "Actions rapides",
-      "createAnnouncement": "Créer une annonce",
-      "bookService": "Réserver un service",
-      "trackDelivery": "Suivre une livraison"
+      "title": "Client Dashboard",
+      "quickActions": "Quick actions",
+      "createAnnouncement": "Create announcement",
+      "bookService": "Book service",
+      "trackDelivery": "Track delivery"
     },
     "deliverer": {
-      "title": "Tableau de bord Livreur",
-      "availableAnnouncements": "Annonces disponibles",
-      "activeDeliveries": "Livraisons en cours",
-      "earnings": "Gains"
+      "title": "Deliverer Dashboard",
+      "availableAnnouncements": "Available announcements",
+      "activeDeliveries": "Active deliveries",
+      "earnings": "Earnings"
     },
     "merchant": {
-      "title": "Tableau de bord Commerçant",
-      "orders": "Commandes",
-      "products": "Produits",
-      "analytics": "Statistiques"
+      "title": "Merchant Dashboard",
+      "orders": "Orders",
+      "products": "Products",
+      "analytics": "Analytics"
     },
     "provider": {
-      "title": "Tableau de bord Prestataire",
-      "nextBookings": "Prochains rendez-vous",
-      "calendar": "Calendrier",
-      "reviews": "Avis clients"
+      "title": "Service Provider Dashboard",
+      "nextBookings": "Next appointments",
+      "calendar": "Calendar",
+      "reviews": "Customer reviews"
     },
     "admin": {
-      "title": "Administration EcoDeli",
-      "users": "Utilisateurs",
-      "moderation": "Modération",
+      "title": "EcoDeli Administration",
+      "users": "Users",
+      "moderation": "Moderation",
       "analytics": "Analytics"
     }
   },
   
   "announcements": {
-    "title": "Annonces",
-    "create": "Créer une annonce",
+    "title": "Announcements",
+    "create": "Create announcement",
     "types": {
-      "package": "Livraison de colis",
-      "transport": "Transport de personne",
-      "shopping": "Courses",
-      "petCare": "Garde d'animaux",
-      "homeService": "Service à domicile"
+      "package": "Package delivery",
+      "transport": "Person transport",
+      "shopping": "Shopping",
+      "petCare": "Pet care",
+      "homeService": "Home service"
     },
     "status": {
-      "draft": "Brouillon",
-      "published": "Publiée",
-      "matched": "Attribuée",
-      "inProgress": "En cours",
-      "completed": "Terminée",
-      "cancelled": "Annulée"
+      "draft": "Draft",
+      "published": "Published",
+      "matched": "Matched",
+      "inProgress": "In progress",
+      "completed": "Completed",
+      "cancelled": "Cancelled"
     },
     "form": {
-      "title": "Titre de l'annonce",
+      "title": "Announcement title",
       "description": "Description",
-      "pickupAddress": "Adresse de récupération",
-      "deliveryAddress": "Adresse de livraison",
-      "proposedPrice": "Prix proposé",
-      "pickupDate": "Date de récupération",
-      "deliveryDate": "Date de livraison souhaitée"
+      "pickupAddress": "Pickup address",
+      "deliveryAddress": "Delivery address",
+      "proposedPrice": "Proposed price",
+      "pickupDate": "Pickup date",
+      "deliveryDate": "Desired delivery date"
     }
   },
   
   "deliveries": {
-    "title": "Livraisons",
-    "tracking": "Suivi",
+    "title": "Deliveries",
+    "tracking": "Tracking",
     "status": {
-      "pending": "En attente",
-      "accepted": "Acceptée",
-      "inTransit": "En transit",
-      "delivered": "Livrée",
-      "cancelled": "Annulée"
+      "pending": "Pending",
+      "accepted": "Accepted",
+      "inTransit": "In transit",
+      "delivered": "Delivered",
+      "cancelled": "Cancelled"
     },
     "validation": {
-      "title": "Validation de livraison",
-      "enterCode": "Saisissez le code de validation",
-      "scanQR": "Scanner le QR code",
-      "success": "Livraison validée avec succès"
+      "title": "Delivery validation",
+      "enterCode": "Enter validation code",
+      "scanQR": "Scan QR code",
+      "success": "Delivery validated successfully"
     }
   },
   
   "payments": {
-    "title": "Paiements",
-    "wallet": "Portefeuille",
-    "balance": "Solde",
+    "title": "Payments",
+    "wallet": "Wallet",
+    "balance": "Balance",
     "transactions": "Transactions",
-    "subscription": "Abonnement",
+    "subscription": "Subscription",
     "plans": {
       "free": {
-        "name": "Gratuit",
-        "price": "0€/mois"
+        "name": "Free",
+        "price": "�0/month"
       },
       "starter": {
         "name": "Starter",
-        "price": "9,90€/mois"
+        "price": "�9.90/month"
       },
       "premium": {
         "name": "Premium", 
-        "price": "19,99€/mois"
+        "price": "�19.99/month"
       }
     }
   },
   
   "bookings": {
-    "title": "Réservations",
-    "book": "Réserver",
+    "title": "Bookings",
+    "book": "Book",
     "services": "Services",
-    "providers": "Prestataires",
-    "calendar": "Calendrier",
+    "providers": "Service providers",
+    "calendar": "Calendar",
     "status": {
-      "pending": "En attente",
-      "confirmed": "Confirmée",
-      "inProgress": "En cours",
-      "completed": "Terminée",
-      "cancelled": "Annulée"
+      "pending": "Pending",
+      "confirmed": "Confirmed",
+      "inProgress": "In progress",
+      "completed": "Completed",
+      "cancelled": "Cancelled"
     }
   },
   
   "storage": {
-    "title": "Stockage",
-    "boxes": "Box de stockage",
-    "warehouses": "Entrepôts",
-    "search": "Rechercher une box",
-    "reserve": "Réserver",
-    "availability": "Disponibilité"
+    "title": "Storage",
+    "boxes": "Storage boxes",
+    "warehouses": "Warehouses",
+    "search": "Search for a box",
+    "reserve": "Reserve",
+    "availability": "Availability"
   },
   
   "tutorial": {
     "welcome": {
-      "title": "Bienvenue sur EcoDeli !",
-      "subtitle": "Découvrez comment utiliser notre plateforme"
+      "title": "Welcome to EcoDeli!",
+      "subtitle": "Discover how to use our platform"
     },
     "steps": {
       "navigation": "Navigation",
-      "announcements": "Créer une annonce",
-      "services": "Réserver un service",
-      "payments": "Gestion des paiements"
+      "announcements": "Create announcement",
+      "services": "Book service",
+      "payments": "Payment management"
     },
-    "skip": "Passer le tutoriel",
-    "next": "Suivant",
-    "finish": "Terminer"
+    "skip": "Skip tutorial",
+    "next": "Next",
+    "finish": "Finish"
   },
   
   "errors": {
     "page": {
-      "title": "Une erreur est survenue",
-      "subtitle": "Nous nous excusons pour la gêne occasionnée",
-      "backHome": "Retour à l'accueil"
+      "title": "An error occurred",
+      "subtitle": "We apologize for the inconvenience",
+      "backHome": "Back to home"
     },
     "notFound": {
-      "title": "Page non trouvée",
-      "subtitle": "La page que vous cherchez n'existe pas",
-      "backHome": "Retour à l'accueil"
+      "title": "Page not found",
+      "subtitle": "The page you're looking for doesn't exist",
+      "backHome": "Back to home"
     },
     "validation": {
-      "required": "Ce champ est requis",
-      "email": "Email invalide",
-      "phone": "Numéro de téléphone invalide",
-      "password": "Mot de passe trop faible",
-      "passwordMatch": "Les mots de passe ne correspondent pas"
+      "required": "This field is required",
+      "email": "Invalid email",
+      "phone": "Invalid phone number",
+      "password": "Password too weak",
+      "passwordMatch": "Passwords don't match"
     }
   },
   
   "footer": {
-    "description": "EcoDeli - La plateforme de crowdshipping éco-responsable",
+    "description": "EcoDeli - The eco-responsible crowdshipping platform",
     "links": {
-      "about": "À propos",
+      "about": "About",
       "services": "Services",
-      "pricing": "Tarifs",
+      "pricing": "Pricing",
       "contact": "Contact",
-      "legal": "Mentions légales",
-      "privacy": "Politique de confidentialité",
-      "terms": "Conditions d'utilisation"
+      "legal": "Legal notice",
+      "privacy": "Privacy policy",
+      "terms": "Terms of service"
     },
     "social": {
       "facebook": "Facebook",
@@ -296,6 +297,6 @@
       "linkedin": "LinkedIn",
       "instagram": "Instagram"
     },
-    "copyright": "© 2024 EcoDeli. Tous droits réservés."
+    "copyright": "� 2024 EcoDeli. All rights reserved."
   }
 }

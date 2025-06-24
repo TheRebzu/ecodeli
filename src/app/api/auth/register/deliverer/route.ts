@@ -1,99 +1,140 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { z } from 'zod'
 import { auth } from '@/lib/auth'
+import { z } from 'zod'
 import { prisma } from '@/lib/db'
-import { delivererRegisterSchema } from '@/features/auth/schemas/auth.schema'
+
+const delivererRegisterSchema = z.object({
+  email: z.string().email('Email invalide'),
+  password: z.string().min(8, 'Le mot de passe doit contenir au moins 8 caractères'),
+  firstName: z.string().min(2, 'Le prénom doit contenir au moins 2 caractères'),
+  lastName: z.string().min(2, 'Le nom doit contenir au moins 2 caractères'),
+  phone: z.string().min(10, 'Numéro de téléphone invalide'),
+  address: z.string().min(10, 'Adresse complète requise'),
+  city: z.string().min(2, 'Ville requise'),
+  postalCode: z.string().min(5, 'Code postal requis'),
+  country: z.string().default('FR'),
+  language: z.enum(['fr', 'en']).default('fr'),
+  vehicleType: z.string().min(2, 'Type de véhicule requis'),
+  vehiclePlate: z.string().min(5, 'Plaque d\'immatriculation requise'),
+  maxWeight: z.number().positive('Poids maximum doit être positif').optional(),
+  maxVolume: z.number().positive('Volume maximum doit être positif').optional(),
+  termsAccepted: z.boolean().refine(val => val === true, 'Vous devez accepter les conditions')
+})
 
 /**
- * POST - Inscription Livreur avec profil spécialisé
+ * POST - Inscription Livreur avec validation documents obligatoire
  */
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    
-    // Validation des données
-    const validatedData = delivererRegisterSchema.parse(body)
-    
+    const userData = delivererRegisterSchema.parse(body)
+
     // Vérifier si l'email existe déjà
     const existingUser = await prisma.user.findUnique({
-      where: { email: validatedData.email }
+      where: { email: userData.email }
     })
-    
+
     if (existingUser) {
       return NextResponse.json(
         { error: 'Un compte avec cet email existe déjà' },
         { status: 409 }
       )
     }
-    
-    // Créer l'utilisateur avec Better-Auth
-    const signUpResult = await auth.api.signUp({
+
+    // Créer l'utilisateur livreur
+    const result = await auth.api.signUp({
       body: {
-        email: validatedData.email,
-        password: validatedData.password,
-        name: validatedData.name,
-        phone: validatedData.phone,
+        email: userData.email,
+        password: userData.password,
         role: 'DELIVERER',
-        status: 'PENDING' // En attente de validation documents
+        firstName: userData.firstName,
+        lastName: userData.lastName,
+        phone: userData.phone,
+        language: userData.language
       }
     })
-    
-    if (!signUpResult.user) {
+
+    if (result.error) {
+      return NextResponse.json(
+        { error: result.error.message },
+        { status: 400 }
+      )
+    }
+
+    const user = result.data?.user
+    if (!user) {
       return NextResponse.json(
         { error: 'Erreur lors de la création du compte' },
         { status: 500 }
       )
     }
-    
-    // Créer le profil livreur
-    await prisma.delivererProfile.create({
+
+    // Créer le profil complet du livreur
+    await prisma.profile.create({
       data: {
-        userId: signUpResult.user.id,
-        vehicleType: validatedData.vehicleType,
-        maxWeight: validatedData.maxWeight,
-        maxDistance: validatedData.maxDistance,
-        isVerified: false,
-        isAvailable: false, // Indisponible tant que non vérifié
-        documentsRequired: ['IDENTITY', 'DRIVING_LICENSE', 'INSURANCE']
+        userId: user.id,
+        firstName: userData.firstName,
+        lastName: userData.lastName,
+        phone: userData.phone,
+        address: userData.address,
+        city: userData.city,
+        postalCode: userData.postalCode,
+        country: userData.country
       }
     })
-    
-    // Créer le wallet du livreur
+
+    // Créer le profil livreur spécialisé (PENDING par défaut)
+    await prisma.deliverer.create({
+      data: {
+        userId: user.id,
+        validationStatus: 'PENDING',
+        vehicleType: userData.vehicleType,
+        vehiclePlate: userData.vehiclePlate,
+        maxWeight: userData.maxWeight,
+        maxVolume: userData.maxVolume
+      }
+    })
+
+    // Créer portefeuille livreur
     await prisma.wallet.create({
       data: {
-        userId: signUpResult.user.id,
+        delivererId: user.id,
         balance: 0,
-        pendingAmount: 0,
-        currency: 'EUR'
+        totalEarnings: 0
       }
     })
-    
+
+    // Log d'activité
+    console.log(`Nouveau livreur inscrit (PENDING): ${user.email} (${user.id})`)
+
     return NextResponse.json({
-      message: 'Demande d\'inscription livreur créée avec succès',
+      success: true,
+      message: 'Compte livreur créé avec succès. Validation de documents requise.',
       user: {
-        id: signUpResult.user.id,
-        email: signUpResult.user.email,
-        role: signUpResult.user.role,
-        status: 'PENDING'
-      },
-      nextSteps: [
-        'Télécharger votre pièce d\'identité',
-        'Télécharger votre permis de conduire',
-        'Télécharger votre assurance véhicule',
-        'Attendre la validation par notre équipe'
-      ],
-      documentsRequired: ['IDENTITY', 'DRIVING_LICENSE', 'INSURANCE']
+        id: user.id,
+        email: user.email,
+        role: user.role,
+        validationStatus: 'PENDING',
+        documentsRequired: ['IDENTITY', 'DRIVING_LICENSE', 'INSURANCE']
+      }
     }, { status: 201 })
-    
+
   } catch (error) {
+    console.error('Error creating deliverer account:', error)
+
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: 'Données invalides', details: error.errors },
+        { 
+          error: 'Données invalides', 
+          details: error.errors.map(e => ({ 
+            field: e.path.join('.'), 
+            message: e.message 
+          }))
+        },
         { status: 400 }
       )
     }
-    
-    console.error('Erreur inscription livreur:', error)
+
     return NextResponse.json(
       { error: 'Erreur interne du serveur' },
       { status: 500 }

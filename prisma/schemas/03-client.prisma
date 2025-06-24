@@ -7,6 +7,10 @@ model Client {
   subscriptionStart DateTime            @default(now())
   subscriptionEnd   DateTime?
   tutorialCompleted Boolean             @default(false)
+  termsAcceptedAt   DateTime            @default(now())
+  emailNotifications Boolean            @default(true)
+  pushNotifications Boolean             @default(true)
+  smsNotifications  Boolean             @default(false)
   createdAt         DateTime            @default(now())
   updatedAt         DateTime            @updatedAt
 
@@ -20,4 +24,5 @@ model Client {
   reviews           Review[]
   
   @@index([userId])
+  @@index([subscriptionPlan])
 }

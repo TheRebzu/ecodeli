@@ -1,179 +1,200 @@
-// Middleware Next.js pour EcoDeli - Gestion Auth + i18n
-import { NextRequest, NextResponse } from "next/server"
-import createIntlMiddleware from "next-intl/middleware"
+import { NextRequest, NextResponse } from 'next/server'
+import createIntlMiddleware from 'next-intl/middleware'
+import { getSessionFromRequest } from '@/lib/auth/middleware'
+import { routing } from '@/i18n/routing'
 
-/**
- * Configuration des locales supportées par EcoDeli
- */
-export const locales = ["fr", "en"] as const
-export const defaultLocale = "fr" as const
+// Configuration du middleware i18n avec la nouvelle structure
+const intlMiddleware = createIntlMiddleware(routing)
 
-/**
- * Middleware internationalization
- */
-const intlMiddleware = createIntlMiddleware({
-  locales,
-  defaultLocale,
-  localePrefix: "always", // URLs toujours préfixées (/fr/dashboard, /en/dashboard)
-  localeDetection: true
-})
-
-/**
- * Routes publiques accessibles sans authentification
- */
+// Routes publiques qui ne nécessitent pas d'authentification
 const publicRoutes = [
-  "/",
-  "/about",
-  "/services", 
-  "/pricing",
-  "/contact",
-  "/legal",
-  "/privacy",
-  "/terms",
-  "/faq",
-  "/become-delivery",
-  "/partners",
-  "/blog"
+  '/',
+  '/home',
+  '/about',
+  '/services',
+  '/pricing',
+  '/contact',
+  '/blog',
+  '/faq',
+  '/legal',
+  '/privacy',
+  '/terms',
+  '/partners',
+  '/developers',
+  '/shipping',
+  '/tracking',
+  '/become-delivery',
+  '/login',
+  '/register',
+  '/forgot-password',
+  '/reset-password',
+  '/verify-email',
+  '/onboarding',
+  '/test',
+  '/test-simple'
 ]
 
-/**
- * Routes d'authentification
- */
-const authRoutes = [
-  "/login",
-  "/register",
-  "/forgot-password", 
-  "/reset-password",
-  "/verify-email",
-  "/two-factor"
+// Routes d'API publiques
+const publicApiRoutes = [
+  '/api/auth',
+  '/api/public',
+  '/api/health',
+  '/api/upload',
+  '/api/webhooks'
 ]
 
-/**
- * Routes d'administration (rôle ADMIN requis)
- */
-const adminRoutes = [
-  "/admin"
-]
-
-/**
- * Routes protégées par rôle
- */
+// Routes par rôle
 const roleRoutes = {
-  "/client": ["CLIENT"],
-  "/deliverer": ["DELIVERER"], 
-  "/merchant": ["MERCHANT"],
-  "/provider": ["PROVIDER"],
-  "/admin": ["ADMIN"]
+  CLIENT: ['/client'],
+  DELIVERER: ['/deliverer'],
+  MERCHANT: ['/merchant'],
+  PROVIDER: ['/provider'],
+  ADMIN: ['/admin']
 }
 
-/**
- * Vérifier si une route est publique
- */
+// Fonction pour vérifier si une route est publique
 function isPublicRoute(pathname: string): boolean {
-  // Retirer le préfixe locale pour vérifier
-  const pathnameWithoutLocale = pathname.replace(/^\/[a-z]{2}/, "") || "/"
+  // Retirer la locale du pathname pour la vérification
+  const pathWithoutLocale = pathname.replace(new RegExp(`^/(${routing.locales.join('|')})`), '') || '/'
   
   return publicRoutes.some(route => {
-    if (route === "/") return pathnameWithoutLocale === "/"
-    return pathnameWithoutLocale.startsWith(route)
+    if (route === '/') {
+      return pathWithoutLocale === '/' || pathWithoutLocale === ''
+    }
+    return pathWithoutLocale.startsWith(route)
   })
 }
 
-/**
- * Vérifier si une route est d'authentification
- */
-function isAuthRoute(pathname: string): boolean {
-  const pathnameWithoutLocale = pathname.replace(/^\/[a-z]{2}/, "") || "/"
-  
-  return authRoutes.some(route => pathnameWithoutLocale.startsWith(route))
+// Fonction pour vérifier si une route d'API est publique
+function isPublicApiRoute(pathname: string): boolean {
+  return publicApiRoutes.some(route => pathname.startsWith(route))
 }
 
-/**
- * Obtenir le rôle requis pour une route
- */
-function getRequiredRole(pathname: string): string[] | null {
-  const pathnameWithoutLocale = pathname.replace(/^\/[a-z]{2}/, "") || "/"
+// Fonction pour extraire la locale du pathname
+function getLocaleFromPathname(pathname: string): string | null {
+  const segments = pathname.split('/')
+  const potentialLocale = segments[1]
+  return routing.locales.includes(potentialLocale as any) ? potentialLocale : null
+}
+
+// Fonction pour vérifier les permissions de rôle
+function hasRolePermission(userRole: string, pathname: string): boolean {
+  const pathWithoutLocale = pathname.replace(new RegExp(`^/(${routing.locales.join('|')})`), '') || '/'
   
-  for (const [route, roles] of Object.entries(roleRoutes)) {
-    if (pathnameWithoutLocale.startsWith(route)) {
-      return roles
+  // L'admin a accès à tout
+  if (userRole === 'ADMIN') {
+    return true
+  }
+  
+  // Vérifier les routes spécifiques au rôle
+  const allowedRoutes = roleRoutes[userRole as keyof typeof roleRoutes] || []
+  return allowedRoutes.some(route => pathWithoutLocale.startsWith(route))
+}
+
+export async function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl
+  
+  // 1. Gérer les routes d'API publiques d'abord
+  if (isPublicApiRoute(pathname)) {
+    return NextResponse.next()
+  }
+  
+  // 2. Gérer les routes d'API protégées
+  if (pathname.startsWith('/api/')) {
+    try {
+      const session = await getSessionFromRequest(request)
+      
+      if (!session) {
+        return NextResponse.json(
+          { error: 'Unauthorized', message: 'Authentication required' },
+          { status: 401 }
+        )
+      }
+      
+      // Vérifier les permissions pour les routes admin
+      if (pathname.startsWith('/api/admin/') && session.user.role !== 'ADMIN') {
+        return NextResponse.json(
+          { error: 'Forbidden', message: 'Admin access required' },
+          { status: 403 }
+        )
+      }
+      
+      // Vérifier les permissions pour les routes par rôle
+      const roleApiPatterns = {
+        '/api/client/': 'CLIENT',
+        '/api/deliverer/': 'DELIVERER', 
+        '/api/merchant/': 'MERCHANT',
+        '/api/provider/': 'PROVIDER'
+      }
+      
+      for (const [pattern, requiredRole] of Object.entries(roleApiPatterns)) {
+        if (pathname.startsWith(pattern) && session.user.role !== requiredRole && session.user.role !== 'ADMIN') {
+          return NextResponse.json(
+            { error: 'Forbidden', message: `${requiredRole} access required` },
+            { status: 403 }
+          )
+        }
+      }
+      
+      return NextResponse.next()
+    } catch (error) {
+      console.error('Auth middleware error:', error)
+      return NextResponse.json(
+        { error: 'Internal Server Error', message: 'Authentication service unavailable' },
+        { status: 500 }
+      )
     }
   }
   
-  return null
-}
-
-/**
- * Middleware principal combinant auth + i18n
- */
-export default async function middleware(request: NextRequest) {
-  const pathname = request.nextUrl.pathname
-  
-  // 1. Appliquer d'abord le middleware i18n
-  const intlResponse = intlMiddleware(request)
-  
-  // Si intl retourne une réponse (redirection), on l'utilise
-  if (intlResponse.status !== 200) {
-    return intlResponse
-  }
-  
-  // 2. Gestion basique de l'authentification via cookies
-  const authToken = request.cookies.get('better-auth.session_token')?.value
-  
-  // Route publique -> Continuer
+  // 3. Gérer les routes publiques avec i18n
   if (isPublicRoute(pathname)) {
-    return intlResponse
+    return intlMiddleware(request)
   }
   
-  // Route d'auth + utilisateur connecté -> Rediriger vers dashboard par défaut
-  if (isAuthRoute(pathname) && authToken) {
-    const locale = pathname.split("/")[1]
-    // Redirection par défaut vers client, sera ajustée côté serveur
-    return NextResponse.redirect(new URL(`/${locale}/client`, request.url))
+  // 4. Gérer l'authentification pour les routes protégées
+  try {
+    const session = await getSessionFromRequest(request)
+    
+    if (!session) {
+      // Obtenir la locale pour la redirection
+      const locale = getLocaleFromPathname(pathname) || routing.defaultLocale
+      
+      // Rediriger vers la page de login avec la locale
+      const loginUrl = new URL(`/${locale}/login`, request.url)
+      loginUrl.searchParams.set('callbackUrl', pathname)
+      return NextResponse.redirect(loginUrl)
+    }
+    
+    // Vérifier les permissions de rôle pour les routes protégées
+    if (!hasRolePermission(session.user.role, pathname)) {
+      // Obtenir la locale pour la redirection
+      const locale = getLocaleFromPathname(pathname) || routing.defaultLocale
+      
+      // Rediriger vers le dashboard approprié selon le rôle
+      const dashboardUrl = new URL(`/${locale}/${session.user.role.toLowerCase()}`, request.url)
+      return NextResponse.redirect(dashboardUrl)
+    }
+    
+    // Appliquer l'internationalisation
+    return intlMiddleware(request)
+    
+  } catch (error) {
+    console.error('Auth middleware error:', error)
+    
+    // En cas d'erreur d'auth, rediriger vers login
+    const locale = getLocaleFromPathname(pathname) || routing.defaultLocale
+    const loginUrl = new URL(`/${locale}/login`, request.url)
+    loginUrl.searchParams.set('error', 'auth_error')
+    return NextResponse.redirect(loginUrl)
   }
-  
-  // Route d'auth + pas connecté -> Continuer
-  if (isAuthRoute(pathname)) {
-    return intlResponse
-  }
-  
-  // Route protégée + pas connecté -> Rediriger vers login
-  if (!authToken) {
-    const locale = pathname.split("/")[1] || defaultLocale
-    const loginUrl = `/${locale}/login`
-    const callbackUrl = encodeURIComponent(pathname)
-    return NextResponse.redirect(new URL(`${loginUrl}?callbackUrl=${callbackUrl}`, request.url))
-  }
-  
-  // Pour les routes protégées avec token, on laisse le serveur gérer les permissions
-  // Les vérifications de rôle seront faites côté serveur avec accès à la DB
-  
-  return intlResponse
 }
 
-/**
- * Obtenir l'URL du dashboard selon le rôle
- */
-function getDashboardUrl(role: string, locale: string): string {
-  const baseDashboards = {
-    CLIENT: "client",
-    DELIVERER: "deliverer", 
-    MERCHANT: "merchant",
-    PROVIDER: "provider",
-    ADMIN: "admin"
-  }
-  
-  const dashboard = baseDashboards[role as keyof typeof baseDashboards] || "client"
-  return `/${locale}/${dashboard}`
-}
-
-/**
- * Configuration du matcher pour Next.js
- * Exclut les fichiers statiques et API routes
- */
 export const config = {
+  // Matcher pour appliquer le middleware
   matcher: [
-    // Inclure toutes les routes sauf :
-    "/((?!api|_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml|.*\\.).*)"
+    // Inclure toutes les routes sauf les fichiers statiques
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    // Inclure toutes les routes API
+    '/api/(.*)'
   ]
-}
+} 

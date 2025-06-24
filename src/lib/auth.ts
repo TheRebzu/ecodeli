@@ -138,7 +138,7 @@ async function createUserProfile(userId: string, role: UserRole) {
   try {
     switch (role) {
       case USER_ROLES.CLIENT:
-        await prisma.clientProfile.create({
+        await prisma.client.create({
           data: {
             userId,
             subscriptionPlan: "FREE",
@@ -148,32 +148,33 @@ async function createUserProfile(userId: string, role: UserRole) {
         break
 
       case USER_ROLES.DELIVERER:
-        await prisma.delivererProfile.create({
+        await prisma.deliverer.create({
           data: {
             userId,
-            isVerified: false,
-            isAvailable: false, // En attente de vérification
-            maxDistance: 50
+            validationStatus: "PENDING",
+            maxWeight: 30.0,
+            maxVolume: 50.0
           }
         })
         break
 
       case USER_ROLES.MERCHANT:
-        await prisma.merchantProfile.create({
+        await prisma.merchant.create({
           data: {
             userId,
-            businessName: "", // À compléter lors de l'onboarding
-            cartDropEnabled: false
+            companyName: "", // À compléter lors de l'onboarding
+            siret: "", // À compléter lors de l'onboarding
+            contractStatus: "PENDING"
           }
         })
         break
 
       case USER_ROLES.PROVIDER:
-        await prisma.providerProfile.create({
+        await prisma.provider.create({
           data: {
             userId,
-            specializations: [],
-            autoInvoicing: true
+            validationStatus: "PENDING",
+            monthlyInvoiceDay: 30
           }
         })
         break
@@ -186,10 +187,7 @@ async function createUserProfile(userId: string, role: UserRole) {
     // Créer le profil général
     await prisma.profile.create({
       data: {
-        userId,
-        emailNotifications: true,
-        pushNotifications: true,
-        smsNotifications: false
+        userId
       }
     })
 
