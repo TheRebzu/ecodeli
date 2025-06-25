@@ -120,7 +120,8 @@
       "Bash(npm install:*)",
       "Bash(pnpm add:*)",
       "Bash(chmod:*)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(ip route:*)"
     ]
   },
   "allowed_tools": [

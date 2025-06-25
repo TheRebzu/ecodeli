@@ -3,7 +3,7 @@ import { getTranslations } from 'next-intl/server'
 import { auth } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import { USER_ROLES } from '@/lib/auth'
-import { DelivererOpportunitiesPage } from '@/features/deliverer/components/opportunities/DelivererOpportunitiesPage'
+import { DelivererOpportunitiesPage } from '@/features/deliverer/components/opportunities/deliverer-opportunities-page'
 
 export async function generateMetadata({
   params: { locale }

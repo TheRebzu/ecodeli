@@ -3,7 +3,7 @@ import { getTranslations } from 'next-intl/server'
 import { auth } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import { USER_ROLES } from '@/lib/auth'
-import { MonthlyBillingDashboard } from '@/features/admin/components/billing/MonthlyBillingDashboard'
+import { MonthlyBillingDashboard } from '@/features/admin/components/billing/monthly-billing-dashboard'
 
 export async function generateMetadata({
   params: { locale }

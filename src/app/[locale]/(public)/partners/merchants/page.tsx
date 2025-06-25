@@ -3,7 +3,7 @@
 import { useTranslations } from "next-intl";
 import { PageHeader } from "@/components/layout/page-header";
 import { Card } from "@/components/ui/card";
-import MerchantRegisterForm from "@/components/auth/register/merchant-register-form";
+import MerchantRegisterForm from "@/features/auth/components/merchant-register-form";
 
 export default function BecomeMerchantPage() {
   const t = useTranslations();
