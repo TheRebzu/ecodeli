@@ -15,7 +15,17 @@ export {
 // Server-side auth function for layouts
 export async function auth() {
   const { getCurrentUser } = await import("./auth-simple")
-  return await getCurrentUser()
+  const user = await getCurrentUser()
+  
+  if (!user) {
+    return null
+  }
+  
+  // Retourner une structure de session compatible
+  return {
+    user,
+    expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() // 7 jours
+  }
 }
 
 export type {

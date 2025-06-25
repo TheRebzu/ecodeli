@@ -31,20 +31,31 @@ export const metadata: Metadata = {
 
 async function getProviderData(userId: string) {
   try {
-    const providerProfile = await prisma.providerProfile.findUnique({
+    console.log('🔍 getProviderData - userId:', userId);
+    
+    const providerProfile = await prisma.provider.findUnique({
       where: { userId },
       include: {
         user: true
       }
     })
 
+    console.log('🔍 getProviderData - providerProfile trouvé:', !!providerProfile);
+    if (providerProfile) {
+      console.log('🔍 getProviderData - providerProfile.id:', providerProfile.id);
+      console.log('🔍 getProviderData - providerProfile.businessName:', providerProfile.businessName);
+    }
+
     if (!providerProfile) {
+      console.log('❌ getProviderData - Aucun profil provider trouvé pour userId:', userId);
       return null
     }
 
     const now = new Date()
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
     const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1)
+
+    console.log('🔍 getProviderData - Récupération des statistiques...');
 
     const [
       totalServices,
@@ -159,6 +170,8 @@ async function getProviderData(userId: string) {
       Promise.resolve(new Date(now.getFullYear(), now.getMonth() + 1, providerProfile.monthlyInvoiceDay || 30))
     ])
 
+    console.log('✅ getProviderData - Données récupérées avec succès');
+
     return {
       provider: providerProfile,
       stats: {
@@ -180,7 +193,7 @@ async function getProviderData(userId: string) {
       nextBillingDate
     }
   } catch (error) {
-    console.error('Error fetching provider data:', error)
+    console.error('❌ getProviderData - Erreur:', error)
     return {
       provider: null,
       stats: {

@@ -10,7 +10,6 @@ import { MerchantHeader } from './merchant-header';
 import { ProviderHeader } from './provider-header';
 import { Footer } from './footer';
 import { Sidebar } from '@/components/ui/sidebar';
-import { useAuth } from '@/hooks/use-auth';
 
 /**
  * Layout principal pour les espaces utilisateur (dashboard)
@@ -22,7 +21,16 @@ export function DashboardLayout({
   sidebar,
   className
 }: DashboardLayoutProps) {
-  const { logout } = useAuth();
+  // Fonction de déconnexion simple
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/auth/simple-logout', { method: 'POST' });
+      window.location.href = '/fr/login';
+    } catch (error) {
+      console.error('Erreur lors de la déconnexion:', error);
+      window.location.href = '/fr/login';
+    }
+  };
 
   // Sélection du header approprié selon le rôle
   const getHeaderByRole = () => {
@@ -30,7 +38,7 @@ export function DashboardLayout({
 
     const baseProps = {
       user,
-      onLogout: logout
+      onLogout: handleLogout
     };
 
     switch (user.role) {
@@ -41,9 +49,9 @@ export function DashboardLayout({
       case 'DELIVERER':
         return <DelivererHeader {...baseProps} />;
       case 'MERCHANT':
-        return <MerchantHeader {...baseProps} />;
+        return <MerchantHeader {...baseProps} user={user as any} />;
       case 'PROVIDER':
-        return <ProviderHeader {...baseProps} />;
+        return <ProviderHeader {...baseProps} user={user as any} />;
       default:
         return null;
     }

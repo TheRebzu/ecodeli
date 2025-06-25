@@ -3,6 +3,7 @@ import type { Metadata } from "next"
 import { NextIntlClientProvider } from "next-intl"
 import { getMessages } from "next-intl/server"
 import { notFound } from "next/navigation"
+import { AuthProvider } from "@/lib/auth-client-simple"
 import "../globals.css"
 
 export const metadata: Metadata = {
@@ -49,7 +50,9 @@ export default async function LocaleLayout({
     <html lang={locale} suppressHydrationWarning>
       <body className="font-sans antialiased" suppressHydrationWarning>
         <NextIntlClientProvider messages={messages}>
-          {children}
+          <AuthProvider>
+            {children}
+          </AuthProvider>
         </NextIntlClientProvider>
       </body>
     </html>
