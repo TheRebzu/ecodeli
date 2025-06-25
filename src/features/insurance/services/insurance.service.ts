@@ -35,6 +35,266 @@ export interface WarrantyClaimData {
 
 export class InsuranceService {
   /**
+   * Créer une nouvelle police d'assurance
+   */
+  static async createPolicy(data: {
+    name: string
+    description: string
+    category: string
+    provider: string
+    coverageAmount: number
+    deductible: number
+    premiumAmount: number
+    startDate: Date
+    endDate: Date
+    terms: any
+    coverageDetails: any
+    exclusions?: any[]
+  }) {
+    try {
+      // Générer un numéro de police unique
+      const policyNumber = await this.generatePolicyNumber()
+
+      const policy = await prisma.insurancePolicy.create({
+        data: {
+          ...data,
+          policyNumber,
+          category: data.category as any,
+          exclusions: data.exclusions || []
+        }
+      })
+
+      // Audit
+      await this.createAuditLog({
+        entityType: 'policy',
+        entityId: policy.id,
+        action: 'CREATED',
+        details: { 
+          name: data.name,
+          category: data.category,
+          coverageAmount: data.coverageAmount
+        }
+      })
+
+      return policy
+
+    } catch (error) {
+      console.error('Erreur lors de la création de la police:', error)
+      throw error
+    }
+  }
+
+  /**
+   * Calculer la prime d'assurance
+   */
+  static async calculatePremium(data: {
+    entityType: 'delivery' | 'service' | 'user'
+    entityId: string
+    coverageType: string
+    basePremium: number
+    duration: number // en jours
+  }) {
+    try {
+      let premium = data.basePremium
+      let multiplier = 1
+
+      // Évaluer le risque
+      const riskAssessment = await this.assessRisk(data.entityType, data.entityId)
+      
+      // Ajuster selon le niveau de risque
+      switch (riskAssessment.riskLevel) {
+        case 'LOW':
+          multiplier = 0.8
+          break
+        case 'MEDIUM':
+          multiplier = 1.0
+          break
+        case 'HIGH':
+          multiplier = 1.5
+          break
+        case 'CRITICAL':
+          multiplier = 2.0
+          break
+      }
+
+      // Ajuster selon la durée
+      const durationMultiplier = Math.max(1, data.duration / 365)
+      
+      premium = premium * multiplier * durationMultiplier
+
+      return {
+        basePremium: data.basePremium,
+        riskMultiplier: multiplier,
+        durationMultiplier,
+        finalPremium: Math.round(premium * 100) / 100,
+        riskLevel: riskAssessment.riskLevel,
+        riskFactors: riskAssessment.riskFactors
+      }
+
+    } catch (error) {
+      console.error('Erreur lors du calcul de la prime:', error)
+      throw error
+    }
+  }
+
+  /**
+   * Créer une couverture automatique pour une livraison
+   */
+  static async createDeliveryCoverage(deliveryId: string, announcementData: any) {
+    try {
+      // Déterminer le type de couverture selon le service
+      const coverageTypes = []
+      const baseAmount = announcementData.budget || 100
+
+      // Couverture de base pour tous les services
+      coverageTypes.push({
+        type: 'DAMAGE_COVERAGE',
+        amount: Math.min(baseAmount * 2, 1000)
+      })
+
+      if (announcementData.serviceType === 'PACKAGE_DELIVERY') {
+        coverageTypes.push({
+          type: 'LOSS_COVERAGE',
+          amount: Math.min(baseAmount * 1.5, 500)
+        })
+      }
+
+      // Trouver la police active appropriée
+      const policy = await prisma.insurancePolicy.findFirst({
+        where: {
+          category: 'GOODS_TRANSPORT',
+          isActive: true,
+          startDate: { lte: new Date() },
+          endDate: { gte: new Date() }
+        }
+      })
+
+      if (!policy) {
+        throw new Error('Aucune police d\'assurance active disponible')
+      }
+
+      const coverages = []
+      for (const coverage of coverageTypes) {
+        const newCoverage = await prisma.insuranceCoverage.create({
+          data: {
+            policyId: policy.id,
+            entityType: 'delivery',
+            entityId: deliveryId,
+            coverageType: coverage.type as any,
+            maxCoverage: coverage.amount,
+            endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // 30 jours
+          }
+        })
+        coverages.push(newCoverage)
+      }
+
+      return coverages
+
+    } catch (error) {
+      console.error('Erreur lors de la création de la couverture livraison:', error)
+      throw error
+    }
+  }
+
+  /**
+   * Créer une couverture automatique pour un service
+   */
+  static async createServiceCoverage(serviceId: string, serviceData: any) {
+    try {
+      const policy = await prisma.insurancePolicy.findFirst({
+        where: {
+          category: 'PROFESSIONAL_LIABILITY',
+          isActive: true,
+          startDate: { lte: new Date() },
+          endDate: { gte: new Date() }
+        }
+      })
+
+      if (!policy) {
+        throw new Error('Aucune police d\'assurance professionnelle active')
+      }
+
+      const coverage = await prisma.insuranceCoverage.create({
+        data: {
+          policyId: policy.id,
+          entityType: 'service',
+          entityId: serviceId,
+          coverageType: 'LIABILITY_COVERAGE',
+          maxCoverage: Math.min(serviceData.budget * 3 || 1000, 5000),
+          endDate: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000) // 90 jours
+        }
+      })
+
+      return coverage
+
+    } catch (error) {
+      console.error('Erreur lors de la création de la couverture service:', error)
+      throw error
+    }
+  }
+
+  /**
+   * Vérifier la couverture d'assurance
+   */
+  static async verifyCoverage(entityType: string, entityId: string) {
+    try {
+      const coverages = await prisma.insuranceCoverage.findMany({
+        where: {
+          entityType,
+          entityId,
+          isActive: true,
+          endDate: { gte: new Date() }
+        },
+        include: {
+          policy: true,
+          claims: {
+            where: { status: { in: ['APPROVED', 'SETTLED'] } }
+          }
+        }
+      })
+
+      const verification = {
+        isActive: coverages.length > 0,
+        coverages: coverages.map(coverage => ({
+          id: coverage.id,
+          type: coverage.coverageType,
+          maxCoverage: coverage.maxCoverage,
+          remainingCoverage: coverage.maxCoverage - coverage.currentUsage,
+          endDate: coverage.endDate,
+          policyName: coverage.policy.name
+        })),
+        totalCoverage: coverages.reduce((sum, c) => sum + (c.maxCoverage - c.currentUsage), 0)
+      }
+
+      return verification
+
+    } catch (error) {
+      console.error('Erreur lors de la vérification de couverture:', error)
+      throw error
+    }
+  }
+
+  /**
+   * Générer un numéro de police unique
+   */
+  private static async generatePolicyNumber(): Promise<string> {
+    const today = new Date()
+    const year = today.getFullYear()
+    
+    const count = await prisma.insurancePolicy.count({
+      where: {
+        createdAt: {
+          gte: new Date(year, 0, 1),
+          lt: new Date(year + 1, 0, 1)
+        }
+      }
+    })
+
+    const sequence = (count + 1).toString().padStart(6, '0')
+    return `POL${year}${sequence}`
+  }
+
+  /**
    * Créer une déclaration de sinistre
    */
   static async createClaim(data: CreateClaimData) {
