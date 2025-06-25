@@ -22,14 +22,14 @@ async function main() {
   await prisma.account.deleteMany()
   await prisma.user.deleteMany()
 
-  // Mot de passe par défaut pour tous les comptes de test (sera hashé par Better-Auth)
+  // Mot de passe par défaut pour tous les comptes de test (sera hashé par bcryptjs)
   const defaultPassword = 'Test123!'
 
   // 1. ADMIN - Administrateur plateforme
   const admin = await prisma.user.create({
     data: {
       email: 'admin@ecodeli.com',
-      // Le mot de passe sera géré via Better-Auth lors de l'inscription
+      // Le mot de passe sera géré via JWT auth lors de l'inscription
       emailVerified: new Date(),
       role: 'ADMIN',
       name: 'Admin EcoDeli',
@@ -46,7 +46,7 @@ async function main() {
   const client = await prisma.user.create({
     data: {
       email: 'client@ecodeli.com',
-      // Le mot de passe sera géré via Better-Auth lors de l'inscription
+      // Le mot de passe sera géré via JWT auth lors de l'inscription
       emailVerified: new Date(),
       role: 'CLIENT',
       name: 'Marie Dupont',
@@ -66,7 +66,7 @@ async function main() {
   const deliverer = await prisma.user.create({
     data: {
       email: 'deliverer@ecodeli.com',
-      // Le mot de passe sera géré via Better-Auth lors de l'inscription
+      // Le mot de passe sera géré via JWT auth lors de l'inscription
       emailVerified: new Date(),
       role: 'DELIVERER',
       name: 'Pierre Martin',
@@ -96,7 +96,7 @@ async function main() {
   const merchant = await prisma.user.create({
     data: {
       email: 'merchant@ecodeli.com',
-      // Le mot de passe sera géré via Better-Auth lors de l'inscription
+      // Le mot de passe sera géré via JWT auth lors de l'inscription
       emailVerified: new Date(),
       role: 'MERCHANT',
       name: 'Sophie Leblanc',
@@ -118,7 +118,7 @@ async function main() {
   const provider = await prisma.user.create({
     data: {
       email: 'provider@ecodeli.com',
-      // Le mot de passe sera géré via Better-Auth lors de l'inscription
+      // Le mot de passe sera géré via JWT auth lors de l'inscription
       emailVerified: new Date(),
       role: 'PROVIDER',
       name: 'Thomas Rousseau',

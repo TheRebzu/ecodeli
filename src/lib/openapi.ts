@@ -42,7 +42,7 @@ EcoDeli est une plateforme innovante qui connecte clients, livreurs, commerçant
 
 ## Authentification
 
-L'API utilise un système d'authentification basé sur des tokens JWT avec Better-Auth.
+L'API utilise un système d'authentification basé sur des tokens JWT avec une solution custom sécurisée.
 
 \`\`\`http
 Authorization: Bearer YOUR_JWT_TOKEN

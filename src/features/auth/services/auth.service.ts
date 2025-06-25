@@ -1,5 +1,4 @@
 import { prisma } from "@/lib/db"
-import { auth } from "@/lib/auth"
 import { UserRole } from "@prisma/client"
 import bcrypt from "bcryptjs"
 import { 
