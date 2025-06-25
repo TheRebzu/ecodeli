@@ -281,6 +281,17 @@
     }
   },
   
+  "admin": {
+    "dashboard": "Dashboard",
+    "users": "Users",
+    "deliveries": "Deliveries",
+    "finance": "Finance",
+    "monitoring": "Monitoring",
+    "admin_panel": "Admin Panel",
+    "system_settings": "System Settings",
+    "system_logs": "System Logs"
+  },
+
   "footer": {
     "description": "EcoDeli - The eco-responsible crowdshipping platform",
     "links": {

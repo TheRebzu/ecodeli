@@ -4,7 +4,7 @@ import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useTranslations } from "next-intl"
-import { authClient } from "@/lib/auth-client"
+import { useAuth } from "@/lib/auth-client-simple"
 import { loginSchema, type LoginData } from "@/features/auth/schemas/auth.schema"
 import { Link, useRouter } from "@/i18n/navigation"
 
@@ -79,7 +79,6 @@ export function LoginForm() {
     setCurrentEmail(data.email)
 
     try {
-<<<<<<< Updated upstream
       // D'abord vérifier le statut de l'utilisateur
       const userStatus = await checkUserStatus(data.email)
 
@@ -90,11 +89,8 @@ export function LoginForm() {
         return
       }
 
-      // Essayer de se connecter avec notre API personnalisée
-      const response = await fetch('/api/auth/login', {
-=======
-      const response = await fetch('/api/auth/login-simple', {
->>>>>>> Stashed changes
+      // Essayer de se connecter avec notre API simple JWT
+      const response = await fetch('/api/auth/simple-login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -124,7 +120,6 @@ export function LoginForm() {
         return
       }
 
-<<<<<<< Updated upstream
       // Redirection selon le rôle utilisateur
       const user = result.user
       
@@ -150,26 +145,13 @@ export function LoginForm() {
           }
           
           callbackUrl = cleanParts.join('/')
-=======
-      // Redirection selon le rôle ou callback URL
-      if (callbackUrl && callbackUrl !== '/') {
-        router.push(callbackUrl)
-      } else if (result.redirectTo) {
-        router.push(result.redirectTo)
-      } else {
-        // Fallback selon le rôle
-        const roleRoutes = {
-          'CLIENT': '/client',
-          'DELIVERER': '/deliverer',
-          'MERCHANT': '/merchant',
-          'PROVIDER': '/provider',
-          'ADMIN': '/admin'
->>>>>>> Stashed changes
         }
         
         console.log('🔄 Redirection vers callbackUrl:', callbackUrl)
         // Utiliser window.location pour s'assurer que les cookies sont envoyés
         window.location.href = callbackUrl
+      } else if (result.redirectTo) {
+        window.location.href = result.redirectTo
       } else if (user?.role) {
         // Sinon, rediriger selon le rôle
         const roleRoutes = {

@@ -1,6 +1,6 @@
 import { useTranslations } from 'next-intl';
 import { Link } from '@/i18n/navigation';
-import { LanguageSwitcher } from '@/components/ui/language-switcher';
+import { LanguageSwitcher } from '@/components/common/language-switcher';
 import { Button } from '@/components/ui/button';
 import { 
   DropdownMenu,

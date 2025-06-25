@@ -288,6 +288,17 @@
     }
   },
   
+  "admin": {
+    "dashboard": "Tableau de bord",
+    "users": "Utilisateurs",
+    "deliveries": "Livraisons",
+    "finance": "Finance",
+    "monitoring": "Surveillance",
+    "admin_panel": "Panel Admin",
+    "system_settings": "Paramètres Système",
+    "system_logs": "Logs Système"
+  },
+
   "footer": {
     "description": "EcoDeli - La plateforme de crowdshipping éco-responsable",
     "links": {

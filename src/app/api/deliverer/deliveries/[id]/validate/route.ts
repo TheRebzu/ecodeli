@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
-import { auth } from '@/lib/auth'
+import { getUser } from '@/lib/auth-simple'
 import { prisma } from '@/lib/db'
 import { handleApiError } from '@/lib/utils/api-response'
 
@@ -23,15 +23,15 @@ const validateDeliverySchema = z.object({
   })).optional()
 })
 
-// POST - Valider une livraison avec le code à 6 chiffres
+// POST - Valider une livraison avec le code ï¿½ 6 chiffres
 export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
   try {
-    const session = await auth()
-    if (!session) {
+    const user = await getUser(request)
+    if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    if (session.user.role !== 'DELIVERER') {
+    if (user.role !== 'DELIVERER') {
       return NextResponse.json({ error: 'Forbidden - Deliverer only' }, { status: 403 })
     }
 
@@ -39,7 +39,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
     const body = await request.json()
     const validatedData = validateDeliverySchema.parse(body)
 
-    // Récupérer la livraison avec toutes les informations nécessaires
+    // Rï¿½cupï¿½rer la livraison avec toutes les informations nï¿½cessaires
     const delivery = await prisma.delivery.findUnique({
       where: { id: deliveryId },
       include: {
@@ -68,14 +68,14 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
       return NextResponse.json({ error: 'Delivery not found' }, { status: 404 })
     }
 
-    // Vérifier que le livreur est bien assigné à cette livraison
-    if (delivery.deliverer.userId !== session.user.id) {
+    // Vï¿½rifier que le livreur est bien assignï¿½ ï¿½ cette livraison
+    if (delivery.deliverer.userId !== user.id) {
       return NextResponse.json({ 
         error: 'You are not assigned to this delivery' 
       }, { status: 403 })
     }
 
-    // Vérifier le statut de la livraison
+    // Vï¿½rifier le statut de la livraison
     if (delivery.status !== 'IN_TRANSIT') {
       return NextResponse.json({
         error: 'Delivery cannot be validated',
@@ -84,20 +84,20 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
       }, { status: 409 })
     }
 
-    // Vérifier le code de validation
+    // Vï¿½rifier le code de validation
     if (delivery.validationCode !== validatedData.validationCode) {
-      // Enregistrer la tentative échouée
+      // Enregistrer la tentative ï¿½chouï¿½e
       await prisma.deliveryValidationAttempt.create({
         data: {
           deliveryId: delivery.id,
           attemptedCode: validatedData.validationCode,
           success: false,
           attemptedAt: new Date(),
-          attemptedBy: session.user.id
+          attemptedBy: user.id
         }
       })
 
-      // Compter les tentatives échouées récentes (dernières 30 minutes)
+      // Compter les tentatives ï¿½chouï¿½es rï¿½centes (derniï¿½res 30 minutes)
       const recentFailedAttempts = await prisma.deliveryValidationAttempt.count({
         where: {
           deliveryId: delivery.id,
@@ -108,7 +108,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
         }
       })
 
-      // Bloquer temporairement après 3 tentatives échouées
+      // Bloquer temporairement aprï¿½s 3 tentatives ï¿½chouï¿½es
       if (recentFailedAttempts >= 3) {
         return NextResponse.json({
           error: 'Too many failed attempts',
@@ -125,22 +125,22 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
       }, { status: 400 })
     }
 
-    // Code correct - enregistrer la tentative réussie
+    // Code correct - enregistrer la tentative rï¿½ussie
     await prisma.deliveryValidationAttempt.create({
       data: {
         deliveryId: delivery.id,
         attemptedCode: validatedData.validationCode,
         success: true,
         attemptedAt: new Date(),
-        attemptedBy: session.user.id
+        attemptedBy: user.id
       }
     })
 
-    // Déterminer le statut final
+    // Dï¿½terminer le statut final
     const hasIssues = validatedData.issues && validatedData.issues.length > 0
     const finalStatus = hasIssues ? 'DELIVERED_WITH_ISSUES' : 'DELIVERED'
 
-    // Mettre à jour la livraison
+    // Mettre ï¿½ jour la livraison
     const updatedDelivery = await prisma.delivery.update({
       where: { id: deliveryId },
       data: {
@@ -155,7 +155,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
     // Calculer la commission du livreur (10% du prix)
     const delivererCommission = Math.round(delivery.price * 0.10 * 100) / 100
 
-    // Créer la transaction de paiement pour le livreur
+    // Crï¿½er la transaction de paiement pour le livreur
     const delivererPayment = await prisma.payment.create({
       data: {
         userId: delivery.deliverer.userId,
@@ -171,7 +171,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
       }
     })
 
-    // Mettre à jour le portefeuille du livreur
+    // Mettre ï¿½ jour le portefeuille du livreur
     await prisma.wallet.upsert({
       where: { userId: delivery.deliverer.userId },
       update: {
@@ -189,7 +189,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
       }
     })
 
-    // Créer les notifications
+    // Crï¿½er les notifications
     const notifications = []
 
     // Notification pour le client
@@ -197,10 +197,10 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
       data: {
         userId: delivery.announcement.client.userId,
         type: hasIssues ? 'DELIVERY_COMPLETED_WITH_ISSUES' : 'DELIVERY_COMPLETED',
-        title: hasIssues ? 'Livraison terminée avec signalements' : 'Livraison terminée',
+        title: hasIssues ? 'Livraison terminï¿½e avec signalements' : 'Livraison terminï¿½e',
         message: hasIssues 
-          ? `Votre livraison a été effectuée avec quelques signalements. Consultez les détails.`
-          : `Votre livraison a été effectuée avec succès par ${delivery.deliverer.user.profile?.firstName}.`,
+          ? `Votre livraison a ï¿½tï¿½ effectuï¿½e avec quelques signalements. Consultez les dï¿½tails.`
+          : `Votre livraison a ï¿½tï¿½ effectuï¿½e avec succï¿½s par ${delivery.deliverer.user.profile?.firstName}.`,
         data: {
           deliveryId: delivery.id,
           delivererId: delivery.deliverer.userId,
@@ -215,8 +215,8 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
       data: {
         userId: delivery.deliverer.userId,
         type: 'DELIVERY_PAYMENT_RECEIVED',
-        title: 'Paiement reçu',
-        message: `Vous avez reçu ${delivererCommission}¬ pour la livraison terminée.`,
+        title: 'Paiement reï¿½u',
+        message: `Vous avez reï¿½u ${delivererCommission}ï¿½ pour la livraison terminï¿½e.`,
         data: {
           deliveryId: delivery.id,
           amount: delivererCommission,
@@ -230,7 +230,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
     // Log de l'action pour audit
     await prisma.auditLog.create({
       data: {
-        userId: session.user.id,
+        userId: user.id,
         action: 'DELIVERY_VALIDATED',
         entity: 'Delivery',
         entityId: delivery.id,
@@ -248,8 +248,8 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
     return NextResponse.json({
       success: true,
       message: hasIssues 
-        ? 'Livraison validée avec signalements'
-        : 'Livraison validée avec succès',
+        ? 'Livraison validï¿½e avec signalements'
+        : 'Livraison validï¿½e avec succï¿½s',
       delivery: {
         id: updatedDelivery.id,
         status: updatedDelivery.status,
@@ -263,8 +263,8 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
         currency: 'EUR'
       },
       nextSteps: hasIssues 
-        ? ['Client notifié des signalements', 'Résolution en cours']
-        : ['Livraison terminée', 'Évaluation disponible']
+        ? ['Client notifiï¿½ des signalements', 'Rï¿½solution en cours']
+        : ['Livraison terminï¿½e', 'ï¿½valuation disponible']
     })
 
   } catch (error) {
@@ -281,14 +281,14 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
 // GET - Obtenir les informations de validation d'une livraison
 export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
   try {
-    const session = await auth()
-    if (!session) {
+    const user = await getUser(request)
+    if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     const deliveryId = params.id
 
-    // Récupérer la livraison avec les informations de validation
+    // Rï¿½cupï¿½rer la livraison avec les informations de validation
     const delivery = await prisma.delivery.findUnique({
       where: { id: deliveryId },
       include: {
@@ -321,16 +321,16 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
       return NextResponse.json({ error: 'Delivery not found' }, { status: 404 })
     }
 
-    // Vérifier les permissions
-    const canView = session.user.role === 'ADMIN' || 
-                   delivery.deliverer.userId === session.user.id ||
-                   delivery.announcement.client.userId === session.user.id
+    // Vï¿½rifier les permissions
+    const canView = user.role === 'ADMIN' || 
+                   delivery.deliverer.userId === user.id ||
+                   delivery.announcement.client.userId === user.id
 
     if (!canView) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
-    // Compter les tentatives échouées récentes
+    // Compter les tentatives ï¿½chouï¿½es rï¿½centes
     const recentFailedAttempts = delivery.validationAttempts.filter(
       attempt => !attempt.success && 
       attempt.attemptedAt > new Date(Date.now() - 30 * 60 * 1000)
@@ -358,12 +358,12 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
         lastAttempt: delivery.validationAttempts[0] || null
       },
       permissions: {
-        canValidate: session.user.role === 'DELIVERER' && delivery.deliverer.userId === session.user.id,
-        canViewCode: session.user.role === 'ADMIN' || delivery.announcement.client.userId === session.user.id,
-        canViewAttempts: session.user.role === 'ADMIN'
+        canValidate: user.role === 'DELIVERER' && delivery.deliverer.userId === user.id,
+        canViewCode: user.role === 'ADMIN' || delivery.announcement.client.userId === user.id,
+        canViewAttempts: user.role === 'ADMIN'
       },
       // Code visible seulement pour le client et admin
-      ...(session.user.role === 'ADMIN' || delivery.announcement.client.userId === session.user.id ? {
+      ...(user.role === 'ADMIN' || delivery.announcement.client.userId === user.id ? {
         validationCode: delivery.validationCode
       } : {})
     })
