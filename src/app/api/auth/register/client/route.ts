@@ -5,10 +5,18 @@ import bcrypt from 'bcryptjs'
 
 const clientRegisterSchema = z.object({
   email: z.string().email('Email invalide'),
-  password: z.string().min(8, 'Le mot de passe doit contenir au moins 8 caractères'),
+  password: z
+    .string()
+    .min(8, 'Le mot de passe doit contenir au moins 8 caractères')
+    .regex(
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,}$/,
+      "Le mot de passe doit contenir: minuscule, majuscule, chiffre et caractère spécial"
+    ),
   firstName: z.string().min(2, 'Le prénom doit contenir au moins 2 caractères'),
   lastName: z.string().min(2, 'Le nom doit contenir au moins 2 caractères'),
-  phone: z.string().min(10, 'Numéro de téléphone invalide'),
+  phone: z
+    .string()
+    .regex(/^(\+33|0)[1-9]([0-9]{8})$/, 'Format de téléphone invalide (ex: 0651168619 ou +33651168619)'),
   address: z.string().min(10, 'Adresse complète requise'),
   city: z.string().min(2, 'Ville requise'),
   postalCode: z.string().min(5, 'Code postal requis'),
@@ -18,7 +26,7 @@ const clientRegisterSchema = z.object({
 })
 
 /**
- * POST - Inscription Client directe
+ * POST - Inscription Client avec bcryptjs (cohérent avec login)
  */
 export async function POST(request: NextRequest) {
   try {
@@ -40,15 +48,15 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Hasher le mot de passe
+    // Hasher le mot de passe avec bcryptjs (cohérent avec l'API de login)
     const hashedPassword = await bcrypt.hash(userData.password, 12)
-    console.log('🔐 Mot de passe hashé')
+    console.log('🔐 Mot de passe hashé avec bcryptjs')
 
     // Transaction pour créer l'utilisateur et ses profils
     const result = await prisma.$transaction(async (tx) => {
       console.log('🚀 Début transaction...')
       
-      // Créer l'utilisateur principal (sans firstName/lastName qui sont dans Profile)
+      // Créer l'utilisateur principal
       const user = await tx.user.create({
         data: {
           email: userData.email,
@@ -89,32 +97,49 @@ export async function POST(request: NextRequest) {
       })
       console.log('🛍️ Profil client créé:', client.id)
 
-      // Créer l'enregistrement Account pour Better Auth (credentials provider)
-      const account = await tx.account.create({
+      // Créer le token de vérification d'email
+      const verificationToken = require('@paralleldrive/cuid2').createId()
+      const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 heures
+
+      await tx.verificationToken.create({
         data: {
-          userId: user.id,
-          type: 'credentials',
-          provider: 'credentials',
-          providerAccountId: user.id // Utiliser l'ID user comme providerAccountId
+          identifier: user.email,
+          token: verificationToken,
+          expires: expiresAt,
+          type: 'email_verification'
         }
       })
-      console.log('🔐 Account Better Auth créé:', account.id)
+      console.log('🔑 Token de vérification créé')
 
-      return { user, profile, client, account }
+      return { user, profile, client, verificationToken }
     })
 
     console.log('✅ Transaction terminée avec succès')
 
+    // Envoyer l'email de vérification
+    try {
+      const { EmailService } = await import('@/lib/email')
+      const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000'
+      const verificationUrl = `${baseUrl}/api/auth/verify-email?token=${result.verificationToken}&email=${encodeURIComponent(result.user.email)}`
+      
+      await EmailService.sendVerificationEmail(result.user.email, verificationUrl, userData.language || 'fr')
+      console.log('📧 Email de vérification envoyé')
+    } catch (emailError) {
+      console.error('❌ Erreur envoi email:', emailError)
+      // Continue même si l'email échoue
+    }
+
     return NextResponse.json({
       success: true,
-      message: 'Compte client créé avec succès',
+      message: 'Compte client créé avec succès. Un email de vérification a été envoyé.',
       user: {
         id: result.user.id,
         email: result.user.email,
         role: result.user.role,
         tutorialRequired: !result.client.tutorialCompleted,
         firstName: result.profile.firstName,
-        lastName: result.profile.lastName
+        lastName: result.profile.lastName,
+        emailVerified: result.user.emailVerified
       }
     }, { status: 201 })
 

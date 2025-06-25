@@ -21,7 +21,8 @@ export function ClientRegisterForm() {
     resolver: zodResolver(clientRegisterSchema),
     defaultValues: {
       subscriptionPlan: 'FREE',
-      acceptsMarketing: false
+      acceptsMarketing: false,
+      termsAccepted: false
     }
   })
 
@@ -30,22 +31,41 @@ export function ClientRegisterForm() {
     setError(null)
 
     try {
+      // Préparer les données pour l'API backend (qui attend firstName/lastName séparés)
+      const apiData = {
+        email: data.email,
+        password: data.password,
+        firstName: data.firstName,
+        lastName: data.lastName,
+        phone: data.phone || '',
+        address: data.address,
+        city: data.city,
+        postalCode: data.postalCode,
+        country: 'FR',
+        language: 'fr',
+        termsAccepted: data.termsAccepted
+      }
+
+      console.log('📤 Envoi des données:', apiData)
+
       const response = await fetch('/api/auth/register/client', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
+        body: JSON.stringify(apiData)
       })
 
       const result = await response.json()
+      console.log('📥 Réponse API:', result)
 
       if (!response.ok) {
         setError(result.error || 'Une erreur est survenue')
         return
       }
 
-      // Redirection vers la page de vérification email
-      router.push('/verify-email?email=' + encodeURIComponent(data.email))
+      // Redirection vers la page de connexion avec message de succès
+      router.push('/fr/login?message=Compte créé avec succès. Vous pouvez maintenant vous connecter.')
     } catch (err) {
+      console.error('❌ Erreur catch:', err)
       setError('Une erreur est survenue lors de l\'inscription')
     } finally {
       setIsLoading(false)
@@ -60,20 +80,38 @@ export function ClientRegisterForm() {
         </div>
       )}
 
-      <div>
-        <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
-          Nom complet *
-        </label>
-        <input
-          {...register("name")}
-          type="text"
-          id="name"
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-          placeholder="Votre nom complet"
-        />
-        {errors.name && (
-          <p className="mt-1 text-sm text-red-600">{errors.name.message}</p>
-        )}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-1">
+            Prénom *
+          </label>
+          <input
+            {...register("firstName")}
+            type="text"
+            id="firstName"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+            placeholder="Votre prénom"
+          />
+          {errors.firstName && (
+            <p className="mt-1 text-sm text-red-600">{errors.firstName.message}</p>
+          )}
+        </div>
+
+        <div>
+          <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 mb-1">
+            Nom *
+          </label>
+          <input
+            {...register("lastName")}
+            type="text"
+            id="lastName"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+            placeholder="Votre nom"
+          />
+          {errors.lastName && (
+            <p className="mt-1 text-sm text-red-600">{errors.lastName.message}</p>
+          )}
+        </div>
       </div>
 
       <div>
@@ -106,6 +144,56 @@ export function ClientRegisterForm() {
         {errors.phone && (
           <p className="mt-1 text-sm text-red-600">{errors.phone.message}</p>
         )}
+      </div>
+
+      <div>
+        <label htmlFor="address" className="block text-sm font-medium text-gray-700 mb-1">
+          Adresse complète *
+        </label>
+        <input
+          {...register("address")}
+          type="text"
+          id="address"
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+          placeholder="123 rue de la Paix"
+        />
+        {errors.address && (
+          <p className="mt-1 text-sm text-red-600">{errors.address.message}</p>
+        )}
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label htmlFor="city" className="block text-sm font-medium text-gray-700 mb-1">
+            Ville *
+          </label>
+          <input
+            {...register("city")}
+            type="text"
+            id="city"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+            placeholder="Paris"
+          />
+          {errors.city && (
+            <p className="mt-1 text-sm text-red-600">{errors.city.message}</p>
+          )}
+        </div>
+
+        <div>
+          <label htmlFor="postalCode" className="block text-sm font-medium text-gray-700 mb-1">
+            Code postal *
+          </label>
+          <input
+            {...register("postalCode")}
+            type="text"
+            id="postalCode"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+            placeholder="75001"
+          />
+          {errors.postalCode && (
+            <p className="mt-1 text-sm text-red-600">{errors.postalCode.message}</p>
+          )}
+        </div>
       </div>
 
       <div>
@@ -150,35 +238,49 @@ export function ClientRegisterForm() {
           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
         >
           <option value="FREE">Gratuit - 3 colis/mois</option>
-          <option value="STARTER">Starter - 15€/mois - 20 colis/mois</option>
-          <option value="PREMIUM">Premium - 35€/mois - Illimité</option>
+          <option value="STARTER">Starter - 9,90€/mois - 20 colis/mois</option>
+          <option value="PREMIUM">Premium - 19,99€/mois - Illimité</option>
         </select>
         {errors.subscriptionPlan && (
           <p className="mt-1 text-sm text-red-600">{errors.subscriptionPlan.message}</p>
         )}
       </div>
 
-      <div className="flex items-center">
-        <input
-          {...register("acceptsMarketing")}
-          type="checkbox"
-          id="acceptsMarketing"
-          className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
-        />
-        <label htmlFor="acceptsMarketing" className="ml-2 text-sm text-gray-700">
-          J'accepte de recevoir les actualités et offres d'EcoDeli
-        </label>
-      </div>
+      <div className="space-y-3">
+        <div className="flex items-start">
+          <input
+            {...register("termsAccepted")}
+            type="checkbox"
+            id="termsAccepted"
+            className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded mt-1"
+          />
+          <label htmlFor="termsAccepted" className="ml-2 text-sm text-gray-700">
+            J'accepte les{' '}
+            <a href="/fr/terms" target="_blank" className="text-green-600 hover:underline">
+              Conditions d'utilisation
+            </a>{' '}
+            et la{' '}
+            <a href="/fr/privacy" target="_blank" className="text-green-600 hover:underline">
+              Politique de confidentialité
+            </a>{' '}
+            d'EcoDeli *
+          </label>
+        </div>
+        {errors.termsAccepted && (
+          <p className="text-sm text-red-600">{errors.termsAccepted.message}</p>
+        )}
 
-      <div className="text-xs text-gray-500">
-        En créant un compte, vous acceptez nos{' '}
-        <a href="/terms" className="text-green-600 hover:underline">
-          Conditions d'utilisation
-        </a>{' '}
-        et notre{' '}
-        <a href="/privacy" className="text-green-600 hover:underline">
-          Politique de confidentialité
-        </a>
+        <div className="flex items-center">
+          <input
+            {...register("acceptsMarketing")}
+            type="checkbox"
+            id="acceptsMarketing"
+            className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
+          />
+          <label htmlFor="acceptsMarketing" className="ml-2 text-sm text-gray-700">
+            J'accepte de recevoir les actualités et offres d'EcoDeli par email
+          </label>
+        </div>
       </div>
 
       <button

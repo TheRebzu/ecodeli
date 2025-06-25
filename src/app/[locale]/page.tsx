@@ -1,9 +1,9 @@
 // Page d'accueil EcoDeli
-import { useTranslations } from "next-intl"
+import { getTranslations } from "next-intl/server"
 import Link from "next/link"
 
-export default function HomePage() {
-  const t = useTranslations()
+export default async function HomePage() {
+  const t = await getTranslations()
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50">

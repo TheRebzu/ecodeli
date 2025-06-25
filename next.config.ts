@@ -1,20 +1,12 @@
 import type { NextConfig } from "next";
 import createNextIntlPlugin from 'next-intl/plugin';
 
-// Configuration next-intl avec le bon chemin
-const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts');
+// Configuration next-intl
+const withNextIntl = createNextIntlPlugin('./src/i18n.ts');
 
 const nextConfig: NextConfig = {
-  // Configuration pour EcoDeli - packages externes pour éviter les erreurs de bundling
-  serverExternalPackages: ['@prisma/client', 'better-auth', 'bcryptjs'],
-  
-  // Webpack config pour éviter les erreurs de bundling
-  webpack: (config, { isServer }) => {
-    if (isServer) {
-      config.externals.push('@prisma/client', 'bcryptjs');
-    }
-    return config;
-  },
+  // Configuration pour EcoDeli
+  serverExternalPackages: ['@prisma/client'],
   
   // Images optimization
   images: {
@@ -41,21 +33,23 @@ const nextConfig: NextConfig = {
             value: 'nosniff',
           },
           {
-            key: 'Referrer-Policy',
-            value: 'origin-when-cross-origin',
+            key: 'X-XSS-Protection',
+            value: '1; mode=block',
           },
         ],
       },
     ];
   },
   
-  // Réactiver lorsque le code sera stable
-  typescript: {
-    ignoreBuildErrors: false,
-  },
-  
-  eslint: {
-    ignoreDuringBuilds: false,
+  // Redirections
+  async redirects() {
+    return [
+      {
+        source: '/dashboard',
+        destination: '/fr/client',
+        permanent: false,
+      },
+    ];
   },
 };
 

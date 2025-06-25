@@ -1,6 +1,5 @@
 // Layout principal pour EcoDeli avec internationalisation
 import type { Metadata } from "next"
-import { GeistSans } from "geist/font"
 import { NextIntlClientProvider } from "next-intl"
 import { getMessages } from "next-intl/server"
 import { notFound } from "next/navigation"
@@ -19,10 +18,11 @@ export const metadata: Metadata = {
   },
 }
 
-import { routing } from "@/i18n/routing"
+// Locales supportées
+const locales = ['fr', 'en']
 
 export function generateStaticParams() {
-  return routing.locales.map((locale) => ({ locale }))
+  return locales.map((locale) => ({ locale }))
 }
 
 interface LocaleLayoutProps {
@@ -38,7 +38,7 @@ export default async function LocaleLayout({
   const { locale } = await params
   
   // Valider la locale
-  if (!routing.locales.includes(locale as any)) {
+  if (!locales.includes(locale)) {
     notFound()
   }
 
@@ -47,7 +47,7 @@ export default async function LocaleLayout({
 
   return (
     <html lang={locale} suppressHydrationWarning>
-      <body className={`${GeistSans.className} antialiased`} suppressHydrationWarning>
+      <body className="font-sans antialiased" suppressHydrationWarning>
         <NextIntlClientProvider messages={messages}>
           {children}
         </NextIntlClientProvider>

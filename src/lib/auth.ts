@@ -38,14 +38,26 @@ export const auth = betterAuth({
   
   emailAndPassword: {
     enabled: true,
-    requireEmailVerification: false, // Désactivé pour le développement
+    requireEmailVerification: true, // Activé avec Mailgun
     sendResetPassword: async ({ email, url }) => {
-      // TODO: Implémenter l'envoi d'email de reset
-      console.log(`Reset password for ${email}: ${url}`)
+      try {
+        const { EmailService } = await import('@/lib/email')
+        await EmailService.sendPasswordResetEmail(email, url)
+        console.log(`✅ Email de reset envoyé à ${email}`)
+      } catch (error) {
+        console.error(`❌ Erreur envoi email reset à ${email}:`, error)
+        throw error
+      }
     },
     sendVerificationEmail: async ({ email, url }) => {
-      // TODO: Implémenter l'envoi d'email de vérification
-      console.log(`Verify email for ${email}: ${url}`)
+      try {
+        const { EmailService } = await import('@/lib/email')
+        await EmailService.sendVerificationEmail(email, url)
+        console.log(`✅ Email de vérification envoyé à ${email}`)
+      } catch (error) {
+        console.error(`❌ Erreur envoi email vérification à ${email}:`, error)
+        throw error
+      }
     }
   },
 

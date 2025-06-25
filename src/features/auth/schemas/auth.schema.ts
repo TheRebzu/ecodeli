@@ -24,7 +24,7 @@ const baseRegisterFields = z.object({
     .string()
     .min(8, "Le mot de passe doit contenir au moins 8 caractères")
     .regex(
-      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/,
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,}$/,
       "Le mot de passe doit contenir: minuscule, majuscule, chiffre et caractère spécial"
     ),
   confirmPassword: z.string(),
@@ -35,8 +35,8 @@ const baseRegisterFields = z.object({
   phone: z
     .string()
     .optional()
-    .refine((val) => !val || /^\+?[1-9]\d{1,14}$/.test(val), {
-      message: "Format de téléphone invalide"
+    .refine((val) => !val || /^(\+33|0)[1-9]([0-9]{8})$/.test(val), {
+      message: "Format de téléphone invalide (ex: 0651168619 ou +33651168619)"
     })
 })
 
@@ -179,7 +179,7 @@ export const resetPasswordSchema = z.object({
     .string()
     .min(8, "Le mot de passe doit contenir au moins 8 caractères")
     .regex(
-      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/,
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,}$/,
       "Le mot de passe doit contenir: minuscule, majuscule, chiffre et caractère spécial"
     ),
   confirmPassword: z.string()

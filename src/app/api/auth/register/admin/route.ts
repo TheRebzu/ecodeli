@@ -5,10 +5,18 @@ import { prisma } from '@/lib/db'
 
 const adminRegisterSchema = z.object({
   email: z.string().email('Email invalide'),
-  password: z.string().min(8, 'Le mot de passe doit contenir au moins 8 caractères'),
+  password: z
+    .string()
+    .min(8, 'Le mot de passe doit contenir au moins 8 caractères')
+    .regex(
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,}$/,
+      "Le mot de passe doit contenir: minuscule, majuscule, chiffre et caractère spécial"
+    ),
   firstName: z.string().min(2, 'Le prénom doit contenir au moins 2 caractères'),
   lastName: z.string().min(2, 'Le nom doit contenir au moins 2 caractères'),
-  phone: z.string().min(10, 'Numéro de téléphone invalide'),
+  phone: z
+    .string()
+    .regex(/^(\+33|0)[1-9]([0-9]{8})$/, 'Format de téléphone invalide (ex: 0651168619 ou +33651168619)'),
   department: z.enum(['OPERATIONS', 'FINANCE', 'SUPPORT', 'MARKETING', 'IT']),
   permissions: z.array(z.string()).default([]),
   language: z.enum(['fr', 'en']).default('fr'),
