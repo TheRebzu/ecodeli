@@ -1,0 +1,8 @@
+{
+  "email": "test-client@ecodeli.com",
+  "password": "Password123!",
+  "firstName": "Jean",
+  "lastName": "Dupont",
+  "role": "CLIENT",
+  "termsAccepted": true
+} 

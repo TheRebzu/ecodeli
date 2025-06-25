@@ -1,117 +1,193 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { z } from 'zod'
 import { auth } from '@/lib/auth'
+import { z } from 'zod'
 import { prisma } from '@/lib/db'
 import { ContractService } from '@/features/contracts/services/contract.service'
 
-const createContractSchema = z.object({
-  merchantId: z.string().cuid('ID merchant invalide'),
-  templateId: z.string().cuid().optional(),
-  customTerms: z.object({
-    commissionRate: z.number().min(0).max(1).optional(),
-    minCommissionFee: z.number().min(0).optional(),
-    paymentTerms: z.number().min(1).max(90).optional(),
-    cancellationPolicy: z.string().optional(),
-    deliveryZones: z.array(z.string()).optional(),
-    serviceLevel: z.string().optional(),
-    supportHours: z.string().optional(),
-    additionalServices: z.array(z.string()).optional()
-  }).optional(),
-  startDate: z.string().datetime(),
-  endDate: z.string().datetime().optional(),
-  signedBy: z.string().optional()
+const contractCreationSchema = z.object({
+  merchantId: z.string().cuid(),
+  type: z.enum(['STANDARD', 'PREMIUM', 'ENTERPRISE', 'CUSTOM']),
+  title: z.string().min(1),
+  description: z.string().optional(),
+  commissionRate: z.number().min(0).max(100),
+  minCommissionAmount: z.number().min(0).optional(),
+  setupFee: z.number().min(0).optional(),
+  monthlyFee: z.number().min(0).optional(),
+  validFrom: z.string().datetime(),
+  validUntil: z.string().datetime().optional(),
+  maxOrdersPerMonth: z.number().min(0).optional(),
+  maxOrderValue: z.number().min(0).optional(),
+  deliveryZones: z.array(z.string()),
+  allowedServices: z.array(z.string()),
+  notes: z.string().optional(),
+  tags: z.array(z.string()).optional()
 })
 
-// GET - Liste des contrats avec filtres
+/**
+ * GET - R√©cup√©rer les contrats avec filtres
+ */
 export async function GET(request: NextRequest) {
   try {
-    const session = await auth.api.getSession({
-      headers: request.headers
-    })
-
+    const session = await auth.api.getSession({ headers: request.headers })
+    
     if (!session?.user || session.user.role !== 'ADMIN') {
-      return NextResponse.json({ error: 'AccËs non autorisÈ' }, { status: 401 })
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     const { searchParams } = new URL(request.url)
+    
+    // Param√®tres de filtrage
+    const status = searchParams.get('status')?.split(',') as any[]
+    const type = searchParams.get('type')?.split(',') as any[]
     const merchantId = searchParams.get('merchantId')
-    const status = searchParams.get('status')
-    const stats = searchParams.get('stats') === 'true'
+    const validFrom = searchParams.get('validFrom') ? new Date(searchParams.get('validFrom')!) : undefined
+    const validUntil = searchParams.get('validUntil') ? new Date(searchParams.get('validUntil')!) : undefined
+    const page = parseInt(searchParams.get('page') || '1')
+    const limit = parseInt(searchParams.get('limit') || '20')
+    
+    // Si stats=true, retourner les statistiques
+    if (searchParams.get('stats') === 'true') {
+      const [total, active, pending, terminated] = await Promise.all([
+        prisma.contract.count(),
+        prisma.contract.count({ where: { status: 'ACTIVE' } }),
+        prisma.contract.count({ where: { status: 'PENDING' } }),
+        prisma.contract.count({ where: { status: 'TERMINATED' } })
+      ])
 
-    if (stats) {
-      const contractStats = await ContractService.getContractStats()
-      return NextResponse.json(contractStats)
-    }
-
-    if (merchantId) {
-      const contracts = await ContractService.getMerchantContracts(merchantId)
-      return NextResponse.json(contracts)
-    }
-
-    // RÈcupÈrer tous les contrats avec filtres
-    const contracts = await prisma.contract.findMany({
-      where: status ? { status } : undefined,
-      include: {
-        merchant: {
-          include: {
-            user: {
-              include: {
-                profile: true
+      const recentContracts = await prisma.contract.findMany({
+        take: 5,
+        orderBy: { createdAt: 'desc' },
+        include: {
+          merchant: {
+            include: {
+              user: {
+                include: { profile: true }
               }
             }
           }
         }
-      },
-      orderBy: { createdAt: 'desc' }
+      })
+
+      return NextResponse.json({
+        total,
+        active,
+        pending,
+        terminated,
+        recentContracts
+      })
+    }
+
+    // R√©cup√©rer les contrats avec filtres
+    const result = await ContractService.getContracts({
+      status,
+      type,
+      merchantId,
+      validFrom,
+      validUntil,
+      page,
+      limit
     })
 
-    return NextResponse.json(contracts)
+    return NextResponse.json(result)
 
   } catch (error) {
-    console.error('Erreur rÈcupÈration contrats:', error)
-    return NextResponse.json({ error: 'Erreur interne du serveur' }, { status: 500 })
+    console.error('Error in contracts API:', error)
+    return NextResponse.json(
+      { error: 'Erreur lors de la r√©cup√©ration des contrats' },
+      { status: 500 }
+    )
   }
 }
 
-// POST - CrÈer un nouveau contrat
+/**
+ * POST - Cr√©er un nouveau contrat
+ */
 export async function POST(request: NextRequest) {
   try {
-    const session = await auth.api.getSession({
-      headers: request.headers
-    })
-
+    const session = await auth.api.getSession({ headers: request.headers })
+    
     if (!session?.user || session.user.role !== 'ADMIN') {
-      return NextResponse.json({ error: 'AccËs non autorisÈ' }, { status: 401 })
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     const body = await request.json()
-    const validatedData = createContractSchema.parse(body)
+    
+    // Validation des donn√©es
+    const validatedData = contractCreationSchema.parse({
+      ...body,
+      validFrom: new Date(body.validFrom).toISOString(),
+      validUntil: body.validUntil ? new Date(body.validUntil).toISOString() : undefined
+    })
 
+    // V√©rifier que le commer√ßant existe
+    const merchant = await prisma.merchant.findUnique({
+      where: { id: validatedData.merchantId },
+      include: {
+        user: {
+          include: { profile: true }
+        }
+      }
+    })
+
+    if (!merchant) {
+      return NextResponse.json(
+        { error: 'Commer√ßant non trouv√©' },
+        { status: 404 }
+      )
+    }
+
+    // Cr√©er le contrat
     const contract = await ContractService.createContract({
-      ...validatedData,
-      startDate: new Date(validatedData.startDate),
-      endDate: validatedData.endDate ? new Date(validatedData.endDate) : undefined
+      merchantId: validatedData.merchantId,
+      type: validatedData.type,
+      title: validatedData.title,
+      description: validatedData.description,
+      commissionRate: validatedData.commissionRate,
+      minCommissionAmount: validatedData.minCommissionAmount,
+      setupFee: validatedData.setupFee,
+      monthlyFee: validatedData.monthlyFee,
+      validFrom: new Date(validatedData.validFrom),
+      validUntil: validatedData.validUntil ? new Date(validatedData.validUntil) : undefined,
+      maxOrdersPerMonth: validatedData.maxOrdersPerMonth,
+      maxOrderValue: validatedData.maxOrderValue,
+      deliveryZones: validatedData.deliveryZones,
+      allowedServices: validatedData.allowedServices,
+      notes: validatedData.notes,
+      tags: validatedData.tags
     })
 
     return NextResponse.json({
       success: true,
-      message: 'Contrat crÈÈ avec succËs',
+      message: 'Contrat cr√©√© avec succ√®s',
       contract
-    }, { status: 201 })
+    })
 
   } catch (error) {
+    console.error('Error creating contract:', error)
+    
     if (error instanceof z.ZodError) {
-      return NextResponse.json({
-        success: false,
-        message: 'DonnÈes invalides',
-        errors: error.errors
-      }, { status: 400 })
+      return NextResponse.json(
+        { 
+          error: 'Donn√©es invalides',
+          details: error.errors.map(e => ({
+            field: e.path.join('.'),
+            message: e.message
+          }))
+        },
+        { status: 400 }
+      )
     }
 
-    console.error('Erreur crÈation contrat:', error)
-    return NextResponse.json({
-      success: false,
-      message: 'Erreur lors de la crÈation du contrat'
-    }, { status: 500 })
+    if (error instanceof Error && error.message.includes('existe d√©j√†')) {
+      return NextResponse.json(
+        { error: error.message },
+        { status: 409 }
+      )
+    }
+
+    return NextResponse.json(
+      { error: 'Erreur lors de la cr√©ation du contrat' },
+      { status: 500 }
+    )
   }
 }

@@ -3,7 +3,7 @@ import { getTranslations } from 'next-intl/server'
 import { auth } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import { USER_ROLES } from '@/lib/auth'
-import { ContractManagement } from '@/features/admin/components/contracts/ContractManagement'
+import { ContractManagement } from '@/features/admin/components/contracts/contract-management'
 
 export async function generateMetadata({
   params: { locale }

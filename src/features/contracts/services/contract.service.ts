@@ -1,223 +1,341 @@
 import { prisma } from '@/lib/db'
-import { generateInvoiceNumber } from '@/lib/utils/invoice'
-import { generatePDF } from '@/lib/utils/pdf'
+import { ecoLogger } from '@/lib/logger'
+import { ContractType, ContractStatus } from '@prisma/client'
 
 export interface ContractTemplate {
-  id: string
-  name: string
-  type: 'STANDARD' | 'PREMIUM' | 'CUSTOM'
-  terms: {
-    commissionRate: number
-    minCommissionFee: number
-    paymentTerms: number // jours
-    cancellationPolicy: string
-    deliveryZones: string[]
-    serviceLevel: string
-    supportHours: string
-    additionalServices?: string[]
-  }
-  isActive: boolean
+  type: ContractType
+  title: string
+  description: string
+  commissionRate: number
+  minCommissionAmount?: number
+  setupFee?: number
+  monthlyFee?: number
+  maxOrdersPerMonth?: number
+  maxOrderValue?: number
+  deliveryZones: string[]
+  allowedServices: string[]
+  templatePath?: string
 }
 
-export interface ContractData {
+export interface ContractCreationData {
   merchantId: string
-  templateId?: string
-  customTerms?: Partial<ContractTemplate['terms']>
-  startDate: Date
-  endDate?: Date
-  signedBy?: string
+  type: ContractType
+  title: string
+  description?: string
+  commissionRate: number
+  minCommissionAmount?: number
+  setupFee?: number
+  monthlyFee?: number
+  validFrom: Date
+  validUntil?: Date
+  maxOrdersPerMonth?: number
+  maxOrderValue?: number
+  deliveryZones: string[]
+  allowedServices: string[]
+  notes?: string
+  tags?: string[]
+}
+
+export interface SignatureData {
+  signature: string
+  signedBy: string
+  ipAddress?: string
+  userAgent?: string
 }
 
 export class ContractService {
-  /**
-   * Créer un nouveau contrat pour un commerçant
-   */
-  static async createContract(data: ContractData): Promise<any> {
-    try {
-      const contractNumber = await this.generateContractNumber()
-      
-      // Récupérer le template si spécifié
-      let terms = {}
-      if (data.templateId) {
-        const template = await prisma.contractTemplate.findUnique({
-          where: { id: data.templateId }
-        })
-        
-        if (template) {
-          terms = template.terms as any
-        }
-      }
+  private static readonly CONTRACT_TEMPLATES: Record<ContractType, ContractTemplate> = {
+    STANDARD: {
+      type: 'STANDARD',
+      title: 'Contrat Standard EcoDeli',
+      description: 'Contrat standard pour commerçants avec conditions de base',
+      commissionRate: 15.0, // 15%
+      setupFee: 0,
+      monthlyFee: 29.99,
+      maxOrdersPerMonth: 500,
+      maxOrderValue: 1000,
+      deliveryZones: ['75', '92', '93', '94'], // Paris et petite couronne
+      allowedServices: ['CART_DROP', 'PACKAGE_DELIVERY'],
+      templatePath: '/templates/contracts/standard.pdf'
+    },
+    PREMIUM: {
+      type: 'PREMIUM',
+      title: 'Contrat Premium EcoDeli',
+      description: 'Contrat premium avec conditions avantageuses',
+      commissionRate: 12.0, // 12%
+      setupFee: 99.99,
+      monthlyFee: 79.99,
+      maxOrdersPerMonth: 2000,
+      maxOrderValue: 5000,
+      deliveryZones: ['75', '92', '93', '94', '95', '77', '78', '91'], // IDF complète
+      allowedServices: ['CART_DROP', 'PACKAGE_DELIVERY', 'INTERNATIONAL_PURCHASE'],
+      templatePath: '/templates/contracts/premium.pdf'
+    },
+    ENTERPRISE: {
+      type: 'ENTERPRISE',
+      title: 'Contrat Enterprise EcoDeli',
+      description: 'Contrat sur mesure pour grandes entreprises',
+      commissionRate: 8.0, // 8%
+      setupFee: 499.99,
+      monthlyFee: 199.99,
+      deliveryZones: [], // Zones négociables
+      allowedServices: [], // Services négociables
+      templatePath: '/templates/contracts/enterprise.pdf'
+    },
+    CUSTOM: {
+      type: 'CUSTOM',
+      title: 'Contrat Personnalisé',
+      description: 'Contrat entièrement personnalisé',
+      commissionRate: 10.0,
+      deliveryZones: [],
+      allowedServices: []
+    }
+  }
 
-      // Appliquer les termes personnalisés
-      if (data.customTerms) {
-        terms = { ...terms, ...data.customTerms }
+  /**
+   * Crée un nouveau contrat pour un commerçant
+   */
+  static async createContract(data: ContractCreationData) {
+    try {
+      // Vérifier qu'aucun contrat actif n'existe
+      const existingContract = await prisma.contract.findFirst({
+        where: {
+          merchantId: data.merchantId,
+          status: { in: ['ACTIVE', 'PENDING'] }
+        }
+      })
+
+      if (existingContract) {
+        throw new Error('Un contrat actif ou en attente existe déjà pour ce commerçant')
       }
 
       // Créer le contrat
       const contract = await prisma.contract.create({
         data: {
           merchantId: data.merchantId,
-          contractNumber,
-          type: data.templateId ? 'STANDARD' : 'CUSTOM',
-          terms,
-          commissionRate: (terms as any).commissionRate || 0.15,
-          startDate: data.startDate,
-          endDate: data.endDate,
-          status: 'DRAFT',
-          signedBy: data.signedBy
+          type: data.type,
+          title: data.title,
+          description: data.description,
+          commissionRate: data.commissionRate,
+          minCommissionAmount: data.minCommissionAmount,
+          setupFee: data.setupFee || 0,
+          monthlyFee: data.monthlyFee || 0,
+          validFrom: data.validFrom,
+          validUntil: data.validUntil,
+          maxOrdersPerMonth: data.maxOrdersPerMonth,
+          maxOrderValue: data.maxOrderValue,
+          deliveryZones: data.deliveryZones,
+          allowedServices: data.allowedServices,
+          notes: data.notes,
+          tags: data.tags || [],
+          status: 'DRAFT'
         },
         include: {
           merchant: {
             include: {
               user: {
-                include: {
-                  profile: true
-                }
+                include: { profile: true }
               }
             }
           }
         }
       })
 
-      // Générer le PDF du contrat
-      const pdfUrl = await this.generateContractPDF(contract)
-      
-      // Mettre à jour avec l'URL du PDF
-      await prisma.contract.update({
-        where: { id: contract.id },
-        data: { pdfUrl }
-      })
+      ecoLogger.contract.contractCreated(contract.id, data.merchantId, data.type)
 
-      return { ...contract, pdfUrl }
-
+      return contract
     } catch (error) {
-      console.error('Erreur création contrat:', error)
-      throw new Error('Impossible de créer le contrat')
+      ecoLogger.contract.error('Error creating contract', {
+        merchantId: data.merchantId,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      })
+      throw error
     }
   }
 
   /**
-   * Signer un contrat
+   * Crée un contrat à partir d'un template
    */
-  static async signContract(
-    contractId: string, 
-    signedBy: string, 
-    signature?: string
-  ): Promise<any> {
+  static async createFromTemplate(
+    merchantId: string, 
+    templateType: ContractType,
+    customData?: Partial<ContractCreationData>
+  ) {
+    const template = this.CONTRACT_TEMPLATES[templateType]
+    
+    if (!template) {
+      throw new Error(`Template de contrat ${templateType} non trouvé`)
+    }
+
+    const contractData: ContractCreationData = {
+      merchantId,
+      type: templateType,
+      title: template.title,
+      description: template.description,
+      commissionRate: template.commissionRate,
+      minCommissionAmount: template.minCommissionAmount,
+      setupFee: template.setupFee,
+      monthlyFee: template.monthlyFee,
+      validFrom: new Date(),
+      validUntil: customData?.validUntil,
+      maxOrdersPerMonth: template.maxOrdersPerMonth,
+      maxOrderValue: template.maxOrderValue,
+      deliveryZones: [...template.deliveryZones],
+      allowedServices: [...template.allowedServices],
+      ...customData
+    }
+
+    return await this.createContract(contractData)
+  }
+
+  /**
+   * Signature du contrat par le commerçant
+   */
+  static async signByMerchant(contractId: string, signatureData: SignatureData) {
     try {
       const contract = await prisma.contract.findUnique({
         where: { id: contractId },
-        include: {
-          merchant: {
-            include: {
-              user: {
-                include: {
-                  profile: true
-                }
-              }
-            }
-          }
-        }
+        include: { merchant: true }
       })
 
       if (!contract) {
         throw new Error('Contrat non trouvé')
       }
 
-      if (contract.status !== 'DRAFT') {
-        throw new Error('Ce contrat ne peut plus être signé')
+      if (contract.status !== 'PENDING') {
+        throw new Error('Ce contrat ne peut pas être signé dans son état actuel')
       }
 
-      // Mettre à jour le contrat
-      const signedContract = await prisma.$transaction(async (tx) => {
-        // 1. Signer le contrat
-        const updated = await tx.contract.update({
-          where: { id: contractId },
-          data: {
-            status: 'ACTIVE',
-            signedAt: new Date(),
-            signedBy,
-            signature
-          }
-        })
+      if (contract.merchantSignedAt) {
+        throw new Error('Ce contrat a déjà été signé par le commerçant')
+      }
 
-        // 2. Mettre à jour le statut du merchant
-        await tx.merchant.update({
-          where: { id: contract.merchantId },
-          data: {
-            contractStatus: 'ACTIVE',
-            contractStartDate: contract.startDate,
-            contractEndDate: contract.endDate,
-            commissionRate: contract.commissionRate
-          }
-        })
+      // Générer le hash de signature
+      const signatureHash = await this.generateSignatureHash(
+        signatureData.signature,
+        contractId,
+        signatureData.signedBy
+      )
 
-        // 3. Créer une notification
-        await tx.notification.create({
-          data: {
-            userId: contract.merchant.userId,
-            type: 'CONTRACT_SIGNED',
-            title: 'Contrat signé avec succès !',
-            message: `Votre contrat ${contract.contractNumber} est maintenant actif.`,
-            data: {
-              contractId: contract.id,
-              contractNumber: contract.contractNumber
-            }
-          }
-        })
-
-        return updated
-      })
-
-      return signedContract
-
-    } catch (error) {
-      console.error('Erreur signature contrat:', error)
-      throw error
-    }
-  }
-
-  /**
-   * Récupérer les contrats d'un commerçant
-   */
-  static async getMerchantContracts(merchantId: string): Promise<any[]> {
-    try {
-      return await prisma.contract.findMany({
-        where: { merchantId },
-        orderBy: { createdAt: 'desc' },
+      const updatedContract = await prisma.contract.update({
+        where: { id: contractId },
+        data: {
+          merchantSignedAt: new Date(),
+          merchantSignature: signatureHash,
+          status: contract.adminSignedAt ? 'ACTIVE' : 'PENDING'
+        },
         include: {
           merchant: {
             include: {
               user: {
-                select: {
-                  email: true,
-                  profile: {
-                    select: {
-                      firstName: true,
-                      lastName: true
-                    }
-                  }
-                }
+                include: { profile: true }
               }
             }
           }
         }
       })
 
+      // Mettre à jour le statut du commerçant si contrat activé
+      if (updatedContract.status === 'ACTIVE') {
+        await prisma.merchant.update({
+          where: { id: contract.merchantId },
+          data: {
+            contractStatus: 'ACTIVE',
+            contractStartDate: new Date(),
+            commissionRate: contract.commissionRate
+          }
+        })
+      }
+
+      ecoLogger.contract.contractSignedByMerchant(contractId, contract.merchantId)
+
+      return updatedContract
     } catch (error) {
-      console.error('Erreur récupération contrats:', error)
-      throw new Error('Impossible de récupérer les contrats')
+      ecoLogger.contract.error('Error signing contract by merchant', {
+        contractId,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      })
+      throw error
     }
   }
 
   /**
-   * Résilier un contrat
+   * Signature du contrat par l'admin
+   */
+  static async signByAdmin(contractId: string, adminUserId: string, signatureData: SignatureData) {
+    try {
+      const contract = await prisma.contract.findUnique({
+        where: { id: contractId },
+        include: { merchant: true }
+      })
+
+      if (!contract) {
+        throw new Error('Contrat non trouvé')
+      }
+
+      if (contract.adminSignedAt) {
+        throw new Error('Ce contrat a déjà été signé par un administrateur')
+      }
+
+      const signatureHash = await this.generateSignatureHash(
+        signatureData.signature,
+        contractId,
+        adminUserId
+      )
+
+      const updatedContract = await prisma.contract.update({
+        where: { id: contractId },
+        data: {
+          adminSignedAt: new Date(),
+          adminSignedBy: adminUserId,
+          adminSignature: signatureHash,
+          status: contract.merchantSignedAt ? 'ACTIVE' : 'PENDING'
+        },
+        include: {
+          merchant: {
+            include: {
+              user: {
+                include: { profile: true }
+              }
+            }
+          }
+        }
+      })
+
+      // Mettre à jour le statut du commerçant si contrat activé
+      if (updatedContract.status === 'ACTIVE') {
+        await prisma.merchant.update({
+          where: { id: contract.merchantId },
+          data: {
+            contractStatus: 'ACTIVE',
+            contractStartDate: new Date(),
+            commissionRate: contract.commissionRate
+          }
+        })
+      }
+
+      ecoLogger.contract.contractSignedByAdmin(contractId, adminUserId)
+
+      return updatedContract
+    } catch (error) {
+      ecoLogger.contract.error('Error signing contract by admin', {
+        contractId,
+        adminUserId,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      })
+      throw error
+    }
+  }
+
+  /**
+   * Terminer un contrat
    */
   static async terminateContract(
     contractId: string, 
+    terminatedBy: string, 
     reason: string,
-    terminatedBy: string
-  ): Promise<any> {
+    effectiveDate?: Date
+  ) {
     try {
       const contract = await prisma.contract.findUnique({
         where: { id: contractId },
@@ -229,279 +347,243 @@ export class ContractService {
       }
 
       if (contract.status !== 'ACTIVE') {
-        throw new Error('Ce contrat ne peut pas être résilié')
+        throw new Error('Seuls les contrats actifs peuvent être terminés')
       }
 
-      // Mettre à jour le contrat et le merchant
-      const terminatedContract = await prisma.$transaction(async (tx) => {
-        // 1. Marquer le contrat comme terminé
-        const updated = await tx.contract.update({
-          where: { id: contractId },
-          data: {
-            status: 'TERMINATED',
-            endDate: new Date(),
-            terminationReason: reason,
-            terminatedBy
-          }
-        })
+      const terminationDate = effectiveDate || new Date()
 
-        // 2. Mettre à jour le statut du merchant
-        await tx.merchant.update({
-          where: { id: contract.merchantId },
-          data: {
-            contractStatus: 'TERMINATED',
-            contractEndDate: new Date()
-          }
-        })
-
-        // 3. Désactiver les annonces actives du merchant
-        await tx.announcement.updateMany({
-          where: {
-            merchantId: contract.merchantId,
-            status: 'PUBLISHED'
-          },
-          data: {
-            status: 'CANCELLED'
-          }
-        })
-
-        // 4. Créer une notification
-        await tx.notification.create({
-          data: {
-            userId: contract.merchant.userId,
-            type: 'CONTRACT_TERMINATED',
-            title: 'Contrat résilié',
-            message: `Votre contrat ${contract.contractNumber} a été résilié. Raison: ${reason}`,
-            data: {
-              contractId: contract.id,
-              reason
-            }
-          }
-        })
-
-        return updated
-      })
-
-      return terminatedContract
-
-    } catch (error) {
-      console.error('Erreur résiliation contrat:', error)
-      throw error
-    }
-  }
-
-  /**
-   * Renouveler un contrat
-   */
-  static async renewContract(
-    contractId: string,
-    newEndDate: Date,
-    updatedTerms?: Partial<ContractTemplate['terms']>
-  ): Promise<any> {
-    try {
-      const existingContract = await prisma.contract.findUnique({
-        where: { id: contractId }
-      })
-
-      if (!existingContract) {
-        throw new Error('Contrat non trouvé')
-      }
-
-      // Préparer les nouveaux termes
-      const currentTerms = existingContract.terms as any
-      const newTerms = updatedTerms ? { ...currentTerms, ...updatedTerms } : currentTerms
-
-      // Créer un nouveau contrat pour le renouvellement
-      const renewedContract = await this.createContract({
-        merchantId: existingContract.merchantId,
-        customTerms: newTerms,
-        startDate: existingContract.endDate || new Date(),
-        endDate: newEndDate
-      })
-
-      // Marquer l'ancien contrat comme expiré
       await prisma.contract.update({
         where: { id: contractId },
         data: {
-          status: 'EXPIRED',
-          renewalContractId: renewedContract.id
+          status: 'TERMINATED',
+          validUntil: terminationDate,
+          notes: contract.notes 
+            ? `${contract.notes}\n\nTerminé le ${terminationDate.toISOString()} par ${terminatedBy}. Raison: ${reason}`
+            : `Terminé le ${terminationDate.toISOString()} par ${terminatedBy}. Raison: ${reason}`
         }
       })
 
-      return renewedContract
+      // Mettre à jour le statut du commerçant
+      await prisma.merchant.update({
+        where: { id: contract.merchantId },
+        data: {
+          contractStatus: 'TERMINATED',
+          contractEndDate: terminationDate
+        }
+      })
+
+      ecoLogger.contract.contractTerminated(contractId, terminatedBy, reason)
 
     } catch (error) {
-      console.error('Erreur renouvellement contrat:', error)
+      ecoLogger.contract.error('Error terminating contract', {
+        contractId,
+        terminatedBy,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      })
       throw error
     }
   }
 
   /**
-   * Générer un numéro de contrat unique
+   * Obtenir tous les contrats avec filtres
    */
-  private static async generateContractNumber(): Promise<string> {
-    const year = new Date().getFullYear()
-    const month = String(new Date().getMonth() + 1).padStart(2, '0')
-    
-    const count = await prisma.contract.count({
-      where: {
-        contractNumber: {
-          startsWith: `CT-${year}${month}`
+  static async getContracts(filters: {
+    status?: ContractStatus[]
+    type?: ContractType[]
+    merchantId?: string
+    validFrom?: Date
+    validUntil?: Date
+    page?: number
+    limit?: number
+  } = {}) {
+    try {
+      const {
+        status,
+        type,
+        merchantId,
+        validFrom,
+        validUntil,
+        page = 1,
+        limit = 20
+      } = filters
+
+      const where: any = {}
+
+      if (status?.length) {
+        where.status = { in: status }
+      }
+
+      if (type?.length) {
+        where.type = { in: type }
+      }
+
+      if (merchantId) {
+        where.merchantId = merchantId
+      }
+
+      if (validFrom) {
+        where.validFrom = { gte: validFrom }
+      }
+
+      if (validUntil) {
+        where.validUntil = { lte: validUntil }
+      }
+
+      const [contracts, total] = await Promise.all([
+        prisma.contract.findMany({
+          where,
+          include: {
+            merchant: {
+              include: {
+                user: {
+                  include: { profile: true }
+                }
+              }
+            },
+            amendments: {
+              orderBy: { createdAt: 'desc' },
+              take: 5
+            }
+          },
+          orderBy: { createdAt: 'desc' },
+          skip: (page - 1) * limit,
+          take: limit
+        }),
+        prisma.contract.count({ where })
+      ])
+
+      return {
+        contracts,
+        pagination: {
+          page,
+          limit,
+          total,
+          pages: Math.ceil(total / limit)
         }
       }
-    })
-
-    return `CT-${year}${month}-${String(count + 1).padStart(4, '0')}`
-  }
-
-  /**
-   * Générer le PDF du contrat
-   */
-  private static async generateContractPDF(contract: any): Promise<string> {
-    try {
-      const htmlContent = `
-        <html>
-          <head>
-            <meta charset="utf-8">
-            <title>Contrat EcoDeli - ${contract.contractNumber}</title>
-            <style>
-              body { font-family: Arial, sans-serif; margin: 40px; }
-              .header { text-align: center; margin-bottom: 40px; }
-              .logo { font-size: 24px; font-weight: bold; color: #2563eb; }
-              .contract-info { margin-bottom: 30px; }
-              .section { margin-bottom: 25px; }
-              .terms { margin-left: 20px; }
-              .signature-zone { margin-top: 50px; border-top: 1px solid #ccc; padding-top: 30px; }
-            </style>
-          </head>
-          <body>
-            <div class="header">
-              <div class="logo">🌱 EcoDeli</div>
-              <h1>Contrat de Partenariat Commercial</h1>
-            </div>
-
-            <div class="contract-info">
-              <p><strong>Numéro de contrat:</strong> ${contract.contractNumber}</p>
-              <p><strong>Date de création:</strong> ${new Date(contract.createdAt).toLocaleDateString('fr-FR')}</p>
-              <p><strong>Type:</strong> ${contract.type}</p>
-              <p><strong>Commerçant:</strong> ${contract.merchant.companyName}</p>
-              <p><strong>SIRET:</strong> ${contract.merchant.siret}</p>
-            </div>
-
-            <div class="section">
-              <h2>Article 1 - Objet du contrat</h2>
-              <p>Le présent contrat définit les conditions de partenariat entre EcoDeli et le commerçant pour la fourniture de services de livraison éco-responsable.</p>
-            </div>
-
-            <div class="section">
-              <h2>Article 2 - Conditions tarifaires</h2>
-              <div class="terms">
-                <p><strong>Taux de commission:</strong> ${(contract.commissionRate * 100).toFixed(2)}%</p>
-                <p><strong>Commission minimale:</strong> ${contract.terms?.minCommissionFee || 'N/A'}€</p>
-                <p><strong>Délai de paiement:</strong> ${contract.terms?.paymentTerms || 30} jours</p>
-              </div>
-            </div>
-
-            <div class="section">
-              <h2>Article 3 - Zones de livraison</h2>
-              <div class="terms">
-                ${contract.terms?.deliveryZones ? 
-                  contract.terms.deliveryZones.map((zone: string) => `<p>• ${zone}</p>`).join('') : 
-                  '<p>Selon accord commercial</p>'
-                }
-              </div>
-            </div>
-
-            <div class="section">
-              <h2>Article 4 - Durée du contrat</h2>
-              <div class="terms">
-                <p><strong>Date de début:</strong> ${new Date(contract.startDate).toLocaleDateString('fr-FR')}</p>
-                ${contract.endDate ? 
-                  `<p><strong>Date de fin:</strong> ${new Date(contract.endDate).toLocaleDateString('fr-FR')}</p>` : 
-                  '<p><strong>Durée:</strong> Indéterminée</p>'
-                }
-              </div>
-            </div>
-
-            <div class="signature-zone">
-              <div style="display: flex; justify-content: space-between;">
-                <div>
-                  <p><strong>EcoDeli</strong></p>
-                  <p>Signature:</p>
-                  <div style="height: 60px; border-bottom: 1px solid #000; width: 200px; margin-top: 20px;"></div>
-                  <p>Date: ${new Date().toLocaleDateString('fr-FR')}</p>
-                </div>
-                <div>
-                  <p><strong>${contract.merchant.companyName}</strong></p>
-                  <p>Signature:</p>
-                  <div style="height: 60px; border-bottom: 1px solid #000; width: 200px; margin-top: 20px;"></div>
-                  <p>Date: _______________</p>
-                </div>
-              </div>
-            </div>
-
-            <div style="margin-top: 40px; font-size: 12px; color: #666;">
-              <p>Ce document a été généré automatiquement par la plateforme EcoDeli le ${new Date().toLocaleString('fr-FR')}.</p>
-            </div>
-          </body>
-        </html>
-      `
-
-      const fileName = `contract-${contract.contractNumber}.pdf`
-      const pdfUrl = await generatePDF(htmlContent, fileName)
-      
-      return pdfUrl
-
     } catch (error) {
-      console.error('Erreur génération PDF contrat:', error)
-      return ''
+      ecoLogger.contract.error('Error getting contracts', {
+        filters,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      })
+      throw error
     }
   }
 
   /**
-   * Obtenir les statistiques des contrats
+   * Obtenir un contrat par ID
    */
-  static async getContractStats(): Promise<any> {
-    try {
-      const [total, active, pending, terminated] = await Promise.all([
-        prisma.contract.count(),
-        prisma.contract.count({ where: { status: 'ACTIVE' } }),
-        prisma.contract.count({ where: { status: 'DRAFT' } }),
-        prisma.contract.count({ where: { status: 'TERMINATED' } })
-      ])
-
-      const recentContracts = await prisma.contract.findMany({
-        take: 5,
-        orderBy: { createdAt: 'desc' },
-        include: {
-          merchant: {
-            include: {
-              user: {
-                select: {
-                  profile: {
-                    select: {
-                      firstName: true,
-                      lastName: true
-                    }
-                  }
-                }
-              }
+  static async getContractById(contractId: string) {
+    return await prisma.contract.findUnique({
+      where: { id: contractId },
+      include: {
+        merchant: {
+          include: {
+            user: {
+              include: { profile: true }
             }
           }
+        },
+        amendments: {
+          orderBy: { createdAt: 'desc' }
+        },
+        billingCycles: {
+          orderBy: { periodStart: 'desc' },
+          take: 12 // Derniers 12 mois
         }
-      })
+      }
+    })
+  }
 
-      return {
-        total,
-        active,
-        pending,
-        terminated,
-        recentContracts
+  /**
+   * Templates de contrats disponibles
+   */
+  static getContractTemplates() {
+    return Object.values(this.CONTRACT_TEMPLATES)
+  }
+
+  /**
+   * Génère un hash sécurisé pour la signature
+   */
+  private static async generateSignatureHash(
+    signature: string,
+    contractId: string,
+    signedBy: string
+  ): Promise<string> {
+    const crypto = await import('crypto')
+    const data = `${signature}:${contractId}:${signedBy}:${Date.now()}`
+    return crypto.createHash('sha256').update(data).digest('hex')
+  }
+
+  /**
+   * Vérifier la validité d'un contrat
+   */
+  static async validateContract(contractId: string): Promise<{
+    isValid: boolean
+    errors: string[]
+    warnings: string[]
+  }> {
+    try {
+      const contract = await this.getContractById(contractId)
+      
+      if (!contract) {
+        return {
+          isValid: false,
+          errors: ['Contrat non trouvé'],
+          warnings: []
+        }
       }
 
+      const errors: string[] = []
+      const warnings: string[] = []
+
+      // Vérifications obligatoires
+      if (!contract.merchantSignedAt) {
+        errors.push('Signature du commerçant manquante')
+      }
+
+      if (!contract.adminSignedAt) {
+        errors.push('Signature de l\'administrateur manquante')
+      }
+
+      if (contract.validUntil && contract.validUntil < new Date()) {
+        errors.push('Contrat expiré')
+      }
+
+      if (contract.status === 'TERMINATED') {
+        errors.push('Contrat terminé')
+      }
+
+      // Vérifications d'avertissement
+      if (contract.validUntil) {
+        const daysUntilExpiry = Math.ceil(
+          (contract.validUntil.getTime() - Date.now()) / (1000 * 60 * 60 * 24)
+        )
+        
+        if (daysUntilExpiry <= 30) {
+          warnings.push(`Contrat expire dans ${daysUntilExpiry} jours`)
+        }
+      }
+
+      if (!contract.deliveryZones.length) {
+        warnings.push('Aucune zone de livraison définie')
+      }
+
+      if (!contract.allowedServices.length) {
+        warnings.push('Aucun service autorisé défini')
+      }
+
+      return {
+        isValid: errors.length === 0,
+        errors,
+        warnings
+      }
     } catch (error) {
-      console.error('Erreur statistiques contrats:', error)
-      throw new Error('Impossible de récupérer les statistiques')
+      return {
+        isValid: false,
+        errors: ['Erreur lors de la validation du contrat'],
+        warnings: []
+      }
     }
   }
 }

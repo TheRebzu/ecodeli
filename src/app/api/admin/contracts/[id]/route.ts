@@ -4,37 +4,65 @@ import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/db'
 import { ContractService } from '@/features/contracts/services/contract.service'
 
-const signContractSchema = z.object({
-  signedBy: z.string().min(1, 'Nom du signataire requis'),
-  signature: z.string().optional()
+const signatureSchema = z.object({
+  signature: z.string().min(1),
+  signedBy: z.string().min(1),
+  ipAddress: z.string().optional(),
+  userAgent: z.string().optional()
 })
 
-const terminateContractSchema = z.object({
-  reason: z.string().min(1, 'Raison de r�siliation requise'),
-  terminatedBy: z.string().min(1, 'Nom du responsable requis')
+const terminationSchema = z.object({
+  reason: z.string().min(1),
+  terminatedBy: z.string().min(1),
+  effectiveDate: z.string().datetime().optional()
 })
 
-const renewContractSchema = z.object({
-  newEndDate: z.string().datetime(),
-  updatedTerms: z.object({
-    commissionRate: z.number().min(0).max(1).optional(),
-    minCommissionFee: z.number().min(0).optional(),
-    paymentTerms: z.number().min(1).max(90).optional()
-  }).optional()
-})
+/**
+ * GET - Récupérer un contrat par ID
+ */
+export async function GET(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const session = await auth.api.getSession({ headers: request.headers })
+    
+    if (!session?.user || session.user.role !== 'ADMIN') {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
 
-// PUT - Mettre � jour un contrat (signature, r�siliation, renouvellement)
+    const contract = await ContractService.getContractById(params.id)
+
+    if (!contract) {
+      return NextResponse.json(
+        { error: 'Contrat non trouvé' },
+        { status: 404 }
+      )
+    }
+
+    return NextResponse.json({ contract })
+
+  } catch (error) {
+    console.error('Error getting contract:', error)
+    return NextResponse.json(
+      { error: 'Erreur lors de la récupération du contrat' },
+      { status: 500 }
+    )
+  }
+}
+
+/**
+ * PUT - Mettre à jour un contrat (signature, résiliation, etc.)
+ */
 export async function PUT(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
-    const session = await auth.api.getSession({
-      headers: request.headers
-    })
-
+    const session = await auth.api.getSession({ headers: request.headers })
+    
     if (!session?.user || session.user.role !== 'ADMIN') {
-      return NextResponse.json({ error: 'Acc�s non autoris�' }, { status: 401 })
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     const { searchParams } = new URL(request.url)
@@ -42,66 +70,89 @@ export async function PUT(
     const body = await request.json()
 
     switch (action) {
-      case 'sign':
-        const signData = signContractSchema.parse(body)
-        const signedContract = await ContractService.signContract(
+      case 'sign': {
+        const validatedData = signatureSchema.parse(body)
+        
+        const contract = await ContractService.signByAdmin(
           params.id,
-          signData.signedBy,
-          signData.signature
+          session.user.id,
+          {
+            signature: validatedData.signature,
+            signedBy: validatedData.signedBy,
+            ipAddress: validatedData.ipAddress,
+            userAgent: validatedData.userAgent
+          }
         )
-        return NextResponse.json({
-          success: true,
-          message: 'Contrat sign� avec succ�s',
-          contract: signedContract
-        })
 
-      case 'terminate':
-        const terminateData = terminateContractSchema.parse(body)
-        const terminatedContract = await ContractService.terminateContract(
-          params.id,
-          terminateData.reason,
-          terminateData.terminatedBy
-        )
         return NextResponse.json({
           success: true,
-          message: 'Contrat r�sili� avec succ�s',
-          contract: terminatedContract
+          message: 'Contrat signé avec succès',
+          contract
         })
+      }
 
-      case 'renew':
-        const renewData = renewContractSchema.parse(body)
-        const renewedContract = await ContractService.renewContract(
+      case 'terminate': {
+        const validatedData = terminationSchema.parse({
+          ...body,
+          effectiveDate: body.effectiveDate ? new Date(body.effectiveDate).toISOString() : undefined
+        })
+        
+        await ContractService.terminateContract(
           params.id,
-          new Date(renewData.newEndDate),
-          renewData.updatedTerms
+          validatedData.terminatedBy,
+          validatedData.reason,
+          validatedData.effectiveDate ? new Date(validatedData.effectiveDate) : undefined
         )
+
         return NextResponse.json({
           success: true,
-          message: 'Contrat renouvel� avec succ�s',
-          contract: renewedContract
+          message: 'Contrat résilié avec succès'
         })
+      }
+
+      case 'validate': {
+        const validation = await ContractService.validateContract(params.id)
+        
+        return NextResponse.json({
+          success: true,
+          validation
+        })
+      }
 
       default:
-        return NextResponse.json({
-          success: false,
-          message: 'Action non support�e'
-        }, { status: 400 })
+        return NextResponse.json(
+          { error: 'Action non reconnue' },
+          { status: 400 }
+        )
     }
 
   } catch (error) {
+    console.error('Error updating contract:', error)
+    
     if (error instanceof z.ZodError) {
-      return NextResponse.json({
-        success: false,
-        message: 'Donn�es invalides',
-        errors: error.errors
-      }, { status: 400 })
+      return NextResponse.json(
+        { 
+          error: 'Données invalides',
+          details: error.errors.map(e => ({
+            field: e.path.join('.'),
+            message: e.message
+          }))
+        },
+        { status: 400 }
+      )
     }
 
-    console.error('Erreur mise � jour contrat:', error)
-    return NextResponse.json({
-      success: false,
-      message: error instanceof Error ? error.message : 'Erreur lors de la mise � jour du contrat'
-    }, { status: 500 })
+    if (error instanceof Error) {
+      return NextResponse.json(
+        { error: error.message },
+        { status: 400 }
+      )
+    }
+
+    return NextResponse.json(
+      { error: 'Erreur lors de la mise à jour du contrat' },
+      { status: 500 }
+    )
   }
 }
 

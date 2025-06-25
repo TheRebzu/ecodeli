@@ -1,35 +1,39 @@
 // Dashboard
-export { DelivererDashboard } from './DelivererDashboard'
+export { DelivererDashboard } from './deliverer-dashboard'
 
 // Documents
-export { DocumentManager } from './documents/DocumentManager'
-export { DocumentUploadDialog } from './documents/DocumentUploadDialog'
+export { DocumentManager } from './documents/document-manager'
+export { DocumentUploadDialog } from './documents/document-upload-dialog'
 
 // Deliveries
-export { DeliveryManager } from './deliveries/DeliveryManager'
-export { DeliveryValidationDialog } from './deliveries/DeliveryValidationDialog'
-export { DeliveryDetailsDialog } from './deliveries/DeliveryDetailsDialog'
-
-// Wallet
-export { WalletManager } from './wallet/WalletManager'
-export { WithdrawalRequestDialog } from './wallet/WithdrawalRequestDialog'
+export { DeliveryManager } from './deliveries/delivery-manager'
+export { DeliveryValidationDialog } from './deliveries/delivery-validation-dialog'
 
 // Opportunities
-export { OpportunityManager } from './opportunities/OpportunityManager'
-export { OpportunityDetailsDialog } from './opportunities/OpportunityDetailsDialog'
+export { OpportunityManager } from './opportunities/opportunity-manager'
+export { DelivererOpportunitiesPage } from './opportunities/deliverer-opportunities-page'
 
 // Planning
-export { PlanningManager } from './planning/PlanningManager'
-export { AvailabilityDialog } from './planning/AvailabilityDialog'
+export { PlanningManager } from './planning/planning-manager'
 
-// Routes
-export { RouteManager } from './routes/RouteManager'
-export { RouteFormDialog } from './routes/RouteFormDialog'
+// Wallet
+export { WalletManager } from './wallet/wallet-manager'
+export { WithdrawalRequestDialog } from './wallet/withdrawal-request-dialog'
+
+// Details
+export { DeliveryDetailsDialog } from './deliveries/delivery-details-dialog'
 
 // Profile
-export { DelivererProfileForm } from './profile/DelivererProfileForm'
-export { NFCCardManager } from './profile/NFCCardManager'
+export { DelivererProfileForm } from './profile/deliverer-profile-form'
+export { NFCCardManager } from './profile/nfc-card-manager'
 
 // Earnings
-export { EarningsChart } from './earnings/EarningsChart'
-export { EarningsStats } from './earnings/EarningsStats' 
+export { EarningsChart } from './earnings/earnings-chart'
+export { EarningsStats } from './earnings/earnings-stats'
+
+// Routes
+export { RouteManager } from './routes/route-manager'
+export { RouteFormDialog } from './routes/route-form-dialog'
+
+// Availability
+export { AvailabilityDialog } from './planning/availability-dialog' 
