@@ -32,8 +32,8 @@ export async function POST(request: NextRequest) {
     // Récupérer tous les prestataires actifs ayant des interventions le mois précédent
     const activeProviders = await prisma.provider.findMany({
       where: {
-        status: 'APPROVED',
-        interventions: {
+        validationStatus: 'APPROVED',
+        Intervention: {
           some: {
             completedAt: {
               gte: previousMonth,
@@ -46,10 +46,10 @@ export async function POST(request: NextRequest) {
       include: {
         user: {
           include: {
-            profile: true
+            Profile: true
           }
         },
-        interventions: {
+        Intervention: {
           where: {
             completedAt: {
               gte: previousMonth,
@@ -63,7 +63,11 @@ export async function POST(request: NextRequest) {
               include: {
                 client: {
                   include: {
-                    profile: true
+                    user: {
+                      include: {
+                        Profile: true
+                      }
+                    }
                   }
                 }
               }
@@ -85,12 +89,12 @@ export async function POST(request: NextRequest) {
     // Traitement des prestataires
     for (const provider of activeProviders) {
       try {
-        console.log(`📋 Traitement prestataire: ${provider.user.profile?.firstName} ${provider.user.profile?.lastName}`)
+        console.log(`📋 Traitement prestataire: ${provider.user.Profile?.firstName} ${provider.user.Profile?.lastName}`)
 
         // Calculer les totaux pour le mois
         let totalHours = 0
         let totalRevenue = 0
-        const interventions = provider.interventions
+        const interventions = provider.Intervention
 
         for (const intervention of interventions) {
           const hours = intervention.duration / 60 // durée en minutes -> heures
@@ -101,7 +105,7 @@ export async function POST(request: NextRequest) {
         }
 
         // Commission EcoDeli (15% par défaut)
-        const commissionRate = provider.commissionRate || 0.15
+        const commissionRate = 0.15 // Valeur par défaut fixe
         const commission = totalRevenue * commissionRate
         const netAmount = totalRevenue - commission
 

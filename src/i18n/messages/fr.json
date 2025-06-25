@@ -78,6 +78,7 @@
     },
     "register": {
       "title": "Inscription",
+      "chooseType": "Choisissez le type de compte qui vous correspond",
       "firstName": "Prénom",
       "lastName": "Nom",
       "email": "Adresse e-mail",

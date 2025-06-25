@@ -18,12 +18,15 @@ const clientRegisterSchema = z.object({
 })
 
 /**
- * POST - Inscription Client avec abonnement
+ * POST - Inscription Client directe
  */
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
+    console.log('📝 Données reçues:', body)
+    
     const userData = clientRegisterSchema.parse(body)
+    console.log('✅ Validation réussie')
 
     // Vérifier si l'email existe déjà
     const existingUser = await prisma.user.findUnique({
@@ -39,69 +42,84 @@ export async function POST(request: NextRequest) {
 
     // Hasher le mot de passe
     const hashedPassword = await bcrypt.hash(userData.password, 12)
+    console.log('🔐 Mot de passe hashé')
 
     // Transaction pour créer l'utilisateur et ses profils
     const result = await prisma.$transaction(async (tx) => {
-      // Créer l'utilisateur principal
+      console.log('🚀 Début transaction...')
+      
+      // Créer l'utilisateur principal (sans firstName/lastName qui sont dans Profile)
       const user = await tx.user.create({
         data: {
           email: userData.email,
           password: hashedPassword,
-          firstName: userData.firstName,
-          lastName: userData.lastName,
-          phoneNumber: userData.phone,
           role: 'CLIENT',
-          isVerified: false,
-          isFirstLogin: true
+          emailVerified: false,
+          language: userData.language || 'fr'
         }
       })
+      console.log('👤 Utilisateur créé:', user.id)
 
-      // Créer le profil général
-      await tx.profile.create({
+      // Créer le profil général avec firstName/lastName/phone
+      const profile = await tx.profile.create({
         data: {
           userId: user.id,
+          firstName: userData.firstName,
+          lastName: userData.lastName,
+          phone: userData.phone,
           address: userData.address,
           city: userData.city,
           postalCode: userData.postalCode,
           country: userData.country,
-          locale: userData.language
+          language: userData.language || 'fr'
         }
       })
+      console.log('📋 Profil créé:', profile.id)
 
       // Créer le profil client spécialisé
-      await tx.client.create({
+      const client = await tx.client.create({
         data: {
           userId: user.id,
           subscriptionPlan: 'FREE',
-          tutorialCompleted: false, // Tutoriel obligatoire première connexion
-          termsAcceptedAt: new Date(),
+          tutorialCompleted: false,
           emailNotifications: true,
           pushNotifications: true,
           smsNotifications: false
         }
       })
+      console.log('🛍️ Profil client créé:', client.id)
 
-      return user
+      // Créer l'enregistrement Account pour Better Auth (credentials provider)
+      const account = await tx.account.create({
+        data: {
+          userId: user.id,
+          type: 'credentials',
+          provider: 'credentials',
+          providerAccountId: user.id // Utiliser l'ID user comme providerAccountId
+        }
+      })
+      console.log('🔐 Account Better Auth créé:', account.id)
+
+      return { user, profile, client, account }
     })
 
-    // Log d'activité
-    console.log(`Nouveau client inscrit: ${result.email} (${result.id})`)
+    console.log('✅ Transaction terminée avec succès')
 
     return NextResponse.json({
       success: true,
       message: 'Compte client créé avec succès',
       user: {
-        id: result.id,
-        email: result.email,
-        role: result.role,
-        tutorialRequired: true,
-        firstName: result.firstName,
-        lastName: result.lastName
+        id: result.user.id,
+        email: result.user.email,
+        role: result.user.role,
+        tutorialRequired: !result.client.tutorialCompleted,
+        firstName: result.profile.firstName,
+        lastName: result.profile.lastName
       }
     }, { status: 201 })
 
   } catch (error) {
-    console.error('Error creating client account:', error)
+    console.error('❌ Erreur lors de la création du compte client:', error)
 
     if (error instanceof z.ZodError) {
       return NextResponse.json(
@@ -116,8 +134,12 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Error plus détaillé pour le debug
     return NextResponse.json(
-      { error: 'Erreur interne du serveur' },
+      { 
+        error: 'Erreur interne du serveur',
+        details: error instanceof Error ? error.message : 'Erreur inconnue'
+      },
       { status: 500 }
     )
   }

@@ -93,40 +93,8 @@ export const auth = betterAuth({
     }
   },
 
-  // Hooks pour la gestion des événements
-  hooks: {
-    after: {
-      signUp: async ({ user }) => {
-        try {
-          // Créer le profil spécialisé selon le rôle
-          await createUserProfile(user.id, user.role as UserRole)
-          
-          // Créer le wallet pour certains rôles
-          if ([USER_ROLES.DELIVERER, USER_ROLES.PROVIDER].includes(user.role as UserRole)) {
-            await createUserWallet(user.id)
-          }
-          
-          // Créer le profil client avec abonnement gratuit
-          if (user.role === USER_ROLES.CLIENT) {
-            await createClientSubscription(user.id)
-          }
-        } catch (error) {
-          console.error("Erreur lors de la création du profil utilisateur:", error)
-        }
-      },
-      signIn: async ({ user }) => {
-        try {
-          // Mettre à jour la dernière connexion
-          await prisma.user.update({
-            where: { id: user.id },
-            data: { lastLoginAt: new Date() }
-          })
-        } catch (error) {
-          console.error("Erreur lors de la mise à jour de la dernière connexion:", error)
-        }
-      }
-    }
-  }
+  // Supprimer les hooks pour éviter l'erreur handler
+  // Les profils seront créés directement lors de l'inscription via les API routes
 })
 
 /**
