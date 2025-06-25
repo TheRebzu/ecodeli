@@ -1,30 +1,16 @@
-'use client'
-
+import { redirect } from 'next/navigation'
+import { auth } from '@/lib/auth'
 import { DashboardLayout } from '@/components/layout/dashboard-layout'
-import { useAuth } from '@/hooks/use-auth'
-import { useRouter } from 'next/navigation'
-import { useEffect } from 'react'
 
-export default function MerchantLayout({
+export default async function MerchantLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
-  const { user, loading } = useAuth()
-  const router = useRouter()
+  const session = await auth()
   
-  useEffect(() => {
-    if (!loading && (!user || user.role !== 'MERCHANT')) {
-      router.push('/login')
-    }
-  }, [user, loading, router])
-  
-  if (loading) {
-    return <div className="flex items-center justify-center min-h-screen">Chargement...</div>
-  }
-  
-  if (!user || user.role !== 'MERCHANT') {
-    return null
+  if (!session || session.user.role !== 'MERCHANT') {
+    redirect('/login')
   }
 
   const navigationItems = [
@@ -61,7 +47,11 @@ export default function MerchantLayout({
   ]
 
   return (
-    <DashboardLayout>
+    <DashboardLayout
+      user={session.user}
+      navigationItems={navigationItems}
+      title="Espace Commerçant"
+    >
       {children}
     </DashboardLayout>
   )

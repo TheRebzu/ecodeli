@@ -161,6 +161,124 @@ export const NOTIFICATION_TEMPLATES: Record<string, NotificationTemplate> = {
       fr: 'Import de {count} annonces terminé. {success} réussies, {failed} échecs.',
       en: 'Import of {count} announcements completed. {success} successful, {failed} failed.'
     }
+  },
+
+  // Notifications système de parrainage
+  REFERRAL_CODE_GENERATED: {
+    id: 'referral_code_generated',
+    type: 'PUSH',
+    title: {
+      fr: '🎁 Code de parrainage créé',
+      en: '🎁 Referral code created'
+    },
+    body: {
+      fr: 'Votre code de parrainage {code} est prêt ! Partagez-le avec vos amis.',
+      en: 'Your referral code {code} is ready! Share it with your friends.'
+    }
+  },
+
+  REFERRAL_SUCCESS: {
+    id: 'referral_success',
+    type: 'PUSH',
+    title: {
+      fr: '🎉 Parrainage réussi !',
+      en: '🎉 Referral successful!'
+    },
+    body: {
+      fr: '{referredUser} s\'est inscrit avec votre code ! Vous gagnez {reward}€.',
+      en: '{referredUser} signed up with your code! You earn {reward}€.'
+    }
+  },
+
+  REFERRAL_WELCOME: {
+    id: 'referral_welcome',
+    type: 'EMAIL',
+    title: {
+      fr: '👋 Bienvenue chez EcoDeli !',
+      en: '👋 Welcome to EcoDeli!'
+    },
+    body: {
+      fr: 'Bienvenue ! Vous avez été parrainé par {referrerName}. Bonus de bienvenue: {bonus}€.',
+      en: 'Welcome! You were referred by {referrerName}. Welcome bonus: {bonus}€.'
+    }
+  },
+
+  REFERRAL_REWARD_EARNED: {
+    id: 'referral_reward_earned',
+    type: 'PUSH',
+    title: {
+      fr: '💰 Récompense de parrainage',
+      en: '💰 Referral reward'
+    },
+    body: {
+      fr: 'Vous avez gagné {amount}€ grâce à vos parrainages ! Total: {totalEarned}€.',
+      en: 'You earned {amount}€ from your referrals! Total: {totalEarned}€.'
+    }
+  },
+
+  REFERRAL_LEVEL_UP: {
+    id: 'referral_level_up',
+    type: 'PUSH',
+    title: {
+      fr: '⭐ Nouveau niveau de parrainage',
+      en: '⭐ New referral level'
+    },
+    body: {
+      fr: 'Félicitations ! Vous atteignez le niveau {level}. Bonus: {bonus}€.',
+      en: 'Congratulations! You reached level {level}. Bonus: {bonus}€.'
+    }
+  },
+
+  INFLUENCER_APPLICATION_APPROVED: {
+    id: 'influencer_application_approved',
+    type: 'EMAIL',
+    title: {
+      fr: '🌟 Candidature influenceur approuvée',
+      en: '🌟 Influencer application approved'
+    },
+    body: {
+      fr: 'Votre candidature influenceur a été approuvée ! Commission: {commission}%.',
+      en: 'Your influencer application has been approved! Commission: {commission}%.'
+    }
+  },
+
+  INFLUENCER_APPLICATION_REJECTED: {
+    id: 'influencer_application_rejected',
+    type: 'EMAIL',
+    title: {
+      fr: '❌ Candidature influenceur non retenue',
+      en: '❌ Influencer application rejected'
+    },
+    body: {
+      fr: 'Votre candidature influenceur n\'a pas été retenue. Raison: {reason}.',
+      en: 'Your influencer application was not approved. Reason: {reason}.'
+    }
+  },
+
+  INFLUENCER_PAYOUT: {
+    id: 'influencer_payout',
+    type: 'EMAIL',
+    title: {
+      fr: '💸 Paiement influenceur',
+      en: '💸 Influencer payout'
+    },
+    body: {
+      fr: 'Paiement de {amount}€ effectué pour vos performances du mois.',
+      en: 'Payment of {amount}€ processed for your monthly performance.'
+    }
+  },
+
+  CAMPAIGN_LAUNCHED: {
+    id: 'campaign_launched',
+    type: 'PUSH',
+    title: {
+      fr: '🚀 Campagne lancée',
+      en: '🚀 Campaign launched'
+    },
+    body: {
+      fr: 'Votre campagne "{campaignName}" est maintenant active !',
+      en: 'Your campaign "{campaignName}" is now active!'
+    }
   }
 }
 

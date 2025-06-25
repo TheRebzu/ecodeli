@@ -12,6 +12,12 @@ export {
   requireRole
 } from "./auth-simple"
 
+// Server-side auth function for layouts
+export async function auth() {
+  const { getCurrentUser } = await import("./auth-simple")
+  return await getCurrentUser()
+}
+
 export type {
   AuthUser,
   JWTPayload

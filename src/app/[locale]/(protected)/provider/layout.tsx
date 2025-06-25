@@ -1,30 +1,16 @@
-'use client'
-
+import { redirect } from 'next/navigation'
+import { auth } from '@/lib/auth'
 import { DashboardLayout } from '@/components/layout/dashboard-layout'
-import { useAuth } from '@/hooks/use-auth'
-import { useRouter } from 'next/navigation'
-import { useEffect } from 'react'
 
-export default function ProviderLayout({
+export default async function ProviderLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
-  const { user, loading } = useAuth()
-  const router = useRouter()
+  const session = await auth()
   
-  useEffect(() => {
-    if (!loading && (!user || user.role !== 'PROVIDER')) {
-      router.push('/login')
-    }
-  }, [user, loading, router])
-  
-  if (loading) {
-    return <div className="flex items-center justify-center min-h-screen">Chargement...</div>
-  }
-  
-  if (!user || user.role !== 'PROVIDER') {
-    return null
+  if (!session || session.user.role !== 'PROVIDER') {
+    redirect('/login')
   }
 
   const navigationItems = [

@@ -36,6 +36,14 @@ model User {
   activityLogs      ActivityLog[]
   tutorialProgress  ClientTutorialProgress?
   
+  // Referral system relations
+  referrerCodes     ReferralCode[]      @relation("ReferrerCodes")
+  asReferrer        Referral[]          @relation("UserAsReferrer")
+  asReferee         Referral[]          @relation("UserAsReferee")
+  referralRewards   ReferralReward[]
+  referralStats     ReferralStats[]
+  influencerProgram InfluencerProgram?
+  
   @@index([email])
   @@index([role])
 }
