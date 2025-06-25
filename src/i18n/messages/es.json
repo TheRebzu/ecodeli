@@ -1,0 +1,167 @@
+{
+  "common": {
+    "loading": "Cargando...",
+    "error": "Error",
+    "success": "Éxito",
+    "cancel": "Cancelar",
+    "confirm": "Confirmar",
+    "save": "Guardar",
+    "edit": "Editar",
+    "delete": "Eliminar",
+    "create": "Crear",
+    "update": "Actualizar",
+    "search": "Buscar",
+    "filter": "Filtrar",
+    "reset": "Reiniciar",
+    "next": "Siguiente",
+    "previous": "Anterior",
+    "close": "Cerrar",
+    "view": "Ver",
+    "download": "Descargar",
+    "upload": "Subir",
+    "share": "Compartir",
+    "copy": "Copiar",
+    "email": "Correo electrónico",
+    "password": "Contraseña",
+    "firstName": "Nombre",
+    "lastName": "Apellido",
+    "phoneNumber": "Teléfono",
+    "address": "Dirección",
+    "city": "Ciudad",
+    "postalCode": "Código postal",
+    "country": "País",
+    "description": "Descripción",
+    "price": "Precio",
+    "date": "Fecha",
+    "time": "Hora",
+    "status": "Estado",
+    "actions": "Acciones"
+  },
+  "navigation": {
+    "home": "Inicio",
+    "dashboard": "Panel de control",
+    "services": "Servicios",
+    "announcements": "Anuncios",
+    "deliveries": "Entregas",
+    "bookings": "Reservas",
+    "payments": "Pagos",
+    "profile": "Perfil",
+    "settings": "Configuración",
+    "help": "Ayuda",
+    "logout": "Cerrar sesión",
+    "login": "Iniciar sesión",
+    "register": "Registrarse"
+  },
+  "auth": {
+    "login": {
+      "title": "Iniciar sesión en EcoDeli",
+      "subtitle": "Accede a tu cuenta",
+      "emailPlaceholder": "Introduce tu correo",
+      "passwordPlaceholder": "Introduce tu contraseña",
+      "submitButton": "Iniciar sesión",
+      "forgotPassword": "¿Olvidaste la contraseña?",
+      "noAccount": "¿No tienes cuenta?",
+      "registerLink": "Crear cuenta",
+      "errors": {
+        "invalidCredentials": "Correo o contraseña incorrectos",
+        "accountInactive": "Tu cuenta está inactiva",
+        "accountSuspended": "Tu cuenta está suspendida",
+        "emailNotVerified": "Por favor verifica tu correo"
+      }
+    },
+    "register": {
+      "title": "Únete a EcoDeli",
+      "subtitle": "Crea tu cuenta",
+      "chooseRole": "Elige tu rol",
+      "roles": {
+        "client": {
+          "title": "Cliente",
+          "description": "Quiero solicitar entregas y servicios"
+        },
+        "deliverer": {
+          "title": "Repartidor",
+          "description": "Quiero realizar entregas"
+        },
+        "merchant": {
+          "title": "Comerciante",
+          "description": "Quiero ofrecer mis productos"
+        },
+        "provider": {
+          "title": "Proveedor de servicios",
+          "description": "Quiero ofrecer mis servicios"
+        }
+      },
+      "submitButton": "Crear cuenta",
+      "hasAccount": "¿Ya tienes cuenta?",
+      "loginLink": "Iniciar sesión",
+      "terms": "Al crear una cuenta, aceptas nuestros",
+      "termsLink": "términos de servicio",
+      "privacy": "y nuestra",
+      "privacyLink": "política de privacidad"
+    }
+  },
+  "roles": {
+    "client": {
+      "dashboard": {
+        "title": "Panel de Cliente",
+        "welcome": "Bienvenido {name}",
+        "quickActions": "Acciones rápidas",
+        "createAnnouncement": "Crear anuncio",
+        "bookService": "Reservar servicio",
+        "viewDeliveries": "Mis entregas",
+        "viewBookings": "Mis reservas",
+        "stats": {
+          "activeDeliveries": "Entregas activas",
+          "completedDeliveries": "Entregas completadas",
+          "totalSpent": "Total gastado",
+          "savedMoney": "Dinero ahorrado"
+        }
+      }
+    },
+    "deliverer": {
+      "dashboard": {
+        "title": "Panel de Repartidor",
+        "welcome": "Bienvenido {name}",
+        "validationStatus": "Estado de validación",
+        "earnings": "Ganancias del mes",
+        "activeDeliveries": "Entregas activas",
+        "totalDeliveries": "Total entregas",
+        "rating": "Calificación promedio"
+      }
+    }
+  },
+  "notifications": {
+    "title": "Notificaciones",
+    "markAllRead": "Marcar todo como leído",
+    "noNotifications": "Sin notificaciones"
+  },
+  "payments": {
+    "title": "Pagos",
+    "card": {
+      "title": "Pago con tarjeta",
+      "securePayment": "Pago seguro",
+      "amount": "Cantidad",
+      "processingPayment": "Procesando...",
+      "payButton": "Pagar {amount}"
+    }
+  },
+  "errors": {
+    "400": "Solicitud incorrecta",
+    "401": "No autorizado - Por favor inicia sesión",
+    "403": "Acceso prohibido",
+    "404": "Página no encontrada",
+    "500": "Error interno del servidor",
+    "networkError": "Error de red",
+    "unknownError": "Error desconocido"
+  },
+  "validation": {
+    "required": "Este campo es obligatorio",
+    "email": "Por favor introduce un correo válido",
+    "minLength": "Mínimo {min} caracteres",
+    "maxLength": "Máximo {max} caracteres",
+    "pattern": "Formato inválido",
+    "numeric": "Por favor introduce un número",
+    "positive": "El valor debe ser positivo",
+    "phone": "Número de teléfono inválido"
+  }
+}

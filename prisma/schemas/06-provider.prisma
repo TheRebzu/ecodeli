@@ -4,50 +4,54 @@ model Provider {
   id                String              @id @default(cuid())
   userId            String              @unique
   validationStatus  ValidationStatus    @default(PENDING)
-  validatedAt       DateTime?
-  validatedBy       String?
   businessName      String?
-  siret             String?
-  rating            Float               @default(0)
-  totalInterventions Int                @default(0)
-  monthlyInvoiceDay Int                 @default(25) // Jour de facturation mensuelle
+  siret             String?             @unique
+  specialties       String[]            // ["TRANSPORT", "HOME_CLEANING", etc.]
+  hourlyRate        Float?
+  description       String?
+  averageRating     Float?              @default(0)
+  totalBookings     Int                 @default(0)
+  isActive          Boolean             @default(true)
+  monthlyInvoiceDay Int                 @default(30)
+  activatedAt       DateTime?
+  lastActiveAt      DateTime?
+  zone              Json?               // Zone de service {coordinates: [], radius: km}
   createdAt         DateTime            @default(now())
   updatedAt         DateTime            @updatedAt
 
   // Relations
   user              User                @relation(fields: [userId], references: [id], onDelete: Cascade)
   services          Service[]
-  certifications    Certification[]
-  availabilities    Availability[]
   bookings          Booking[]
-  interventions     Intervention[]
-  invoices          Invoice[]           @relation("ProviderInvoices")
-  rates             ProviderRate[]
-  
+  reviews           Review[]            @relation("ProviderReviews")
+
   @@index([userId])
-  @@index([validationStatus])
 }
 
 model Service {
   id                String              @id @default(cuid())
   providerId        String
-  serviceType       ServiceType
   name              String
   description       String
+  type              ServiceType
   basePrice         Float
-  priceType         String              // "HOURLY", "FIXED", "CUSTOM"
-  duration          Int?                // En minutes
-  maxDistance       Float?              // En km
+  priceUnit         String              @default("HOUR") // HOUR, FLAT, KM
+  duration          Int?                // en minutes
   isActive          Boolean             @default(true)
+  minAdvanceBooking Int                 @default(24)    // heures
+  maxAdvanceBooking Int                 @default(720)   // heures (30 jours)
+  cancellationPolicy String?
+  requirements      String[]            // ["CAR_LICENSE", "INSURANCE"]
   createdAt         DateTime            @default(now())
   updatedAt         DateTime            @updatedAt
 
   // Relations
   provider          Provider            @relation(fields: [providerId], references: [id], onDelete: Cascade)
   bookings          Booking[]
-  
+
   @@index([providerId])
-  @@index([serviceType])
+  @@index([type])
+  @@index([isActive])
 }
 
 model Certification {
@@ -55,32 +59,51 @@ model Certification {
   providerId        String
   name              String
   issuingBody       String
-  documentId        String?
   issueDate         DateTime
   expiryDate        DateTime?
+  documentUrl       String?
   isVerified        Boolean             @default(false)
   verifiedAt        DateTime?
-  verifiedBy        String?
   createdAt         DateTime            @default(now())
   updatedAt         DateTime            @updatedAt
 
   // Relations
   provider          Provider            @relation(fields: [providerId], references: [id], onDelete: Cascade)
-  
+
   @@index([providerId])
+  @@index([expiryDate])
+}
+
+model ProviderAvailability {
+  id                String              @id @default(cuid())
+  providerId        String
+  dayOfWeek         Int                 // 0 = dimanche, 1 = lundi, etc.
+  startTime         String              // "09:00"
+  endTime           String              // "18:00"
+  isActive          Boolean             @default(true)
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  // Relations
+  provider          Provider            @relation(fields: [providerId], references: [id], onDelete: Cascade)
+
+  @@index([providerId])
+  @@index([dayOfWeek])
 }
 
 model ProviderRate {
   id                String              @id @default(cuid())
   providerId        String
   serviceType       ServiceType
-  negotiatedRate    Float               // Tarif négocié avec EcoDeli
-  validFrom         DateTime
-  validUntil        DateTime?
+  baseRate          Float
+  unitType          String              @default("HOUR") // HOUR, FLAT, KM
+  minimumCharge     Float?
   createdAt         DateTime            @default(now())
   updatedAt         DateTime            @updatedAt
 
+  // Relations
   provider          Provider            @relation(fields: [providerId], references: [id], onDelete: Cascade)
-  
-  @@unique([providerId, serviceType])
+
+  @@index([providerId])
+  @@index([serviceType])
 }

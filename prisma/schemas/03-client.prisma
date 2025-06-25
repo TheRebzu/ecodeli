@@ -18,7 +18,6 @@ model Client {
   user              User                @relation(fields: [userId], references: [id], onDelete: Cascade)
   announcements     Announcement[]
   bookings          Booking[]
-  deliveries        Delivery[]          @relation("ClientDeliveries")
   payments          Payment[]           @relation("ClientPayments")
   storageBoxes      StorageBoxRental[]
   reviews           Review[]

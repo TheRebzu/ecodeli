@@ -1,7 +1,7 @@
 ﻿"use client";
 
 import { useTranslations } from "next-intl";
-import { PageHeader } from "@/components/ui/page-header";
+import { PageHeader } from "@/components/layout/page-header";
 import { Card } from "@/components/ui/card";
 
 export default function APIKeysPage() {

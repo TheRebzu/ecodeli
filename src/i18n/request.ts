@@ -1,16 +1,22 @@
 import { getRequestConfig } from "next-intl/server";
-import { hasLocale } from "next-intl";
-import { routing } from "@/i18n/routing";
+import { routing } from './routing';
 
-export default getRequestConfig(async ({ requestLocale  }) => {
-  // Correspondant généralement au segment `[locale]`
-  const requested = await requestLocale;
-  const locale = hasLocale(routing.locales, requested)
-    ? requested
-    : routing.defaultLocale;
+export default getRequestConfig(async ({ locale }) => {
+  // Utiliser la locale par défaut si invalide ou undefined
+  const validLocale = routing.locales.includes(locale as any) ? locale : routing.defaultLocale;
 
-  return {
-    locale,
-    // Chargez les messages correspondant à la locale
-    messages: (await import(`../messages/${locale}.json`)).default};
+  try {
+    return {
+      locale: validLocale,
+      messages: (await import(`./messages/${validLocale}.json`)).default
+    };
+  } catch (error) {
+    console.error(`Erreur lors du chargement des messages pour ${validLocale}:`, error);
+    
+    // Fallback vers la locale par défaut
+    return {
+      locale: routing.defaultLocale,
+      messages: (await import(`./messages/${routing.defaultLocale}.json`)).default
+    };
+  }
 });

@@ -1,43 +1,75 @@
 // Modèles livraisons
 
 model Delivery {
-  id                String              @id @default(cuid())
-  announcementId    String              @unique
-  clientId          String
-  delivererId       String
-  status            DeliveryStatus      @default(PENDING)
-  trackingNumber    String              @unique @default(cuid())
-  validationCode    String?             // Code à 6 chiffres
-  pickupDate        DateTime?
-  deliveryDate      DateTime?
+  id                 String              @id @default(cuid())
+  announcementId     String              @unique
+  clientId           String
+  delivererId        String
+  status             DeliveryStatus      @default(PENDING)
+  trackingNumber     String              @unique @default(cuid())
+  validationCode     String?             // Code à 6 chiffres
+  pickupDate         DateTime?
+  deliveryDate       DateTime?
   actualDeliveryDate DateTime?
-  isPartial         Boolean             @default(false)
-  currentLocation   Json?               // {address, lat, lng, updatedAt}
-  price             Float
-  delivererFee      Float               // Part du livreur
-  platformFee       Float               // Commission plateforme
-  insuranceFee      Float?
-  createdAt         DateTime            @default(now())
-  updatedAt         DateTime            @updatedAt
+  isPartial          Boolean             @default(false)
+  currentLocation    Json?               // {address, lat, lng, updatedAt}
+  price              Float
+  delivererFee       Float               // Part du livreur
+  platformFee        Float               // Commission plateforme
+  insuranceFee       Float?
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
 
   // Relations
-  announcement      Announcement          @relation(fields: [announcementId], references: [id])
-  client            Client                @relation("ClientDeliveries", fields: [clientId], references: [id])
-  deliverer         Deliverer             @relation("DelivererDeliveries", fields: [delivererId], references: [id])
-  statusHistory     DeliveryStatus[]
-  handovers         Handover[]
-  proofOfDelivery   ProofOfDelivery?
-  payment           Payment?
-  validationCodes   DeliveryValidation[]
-  history           DeliveryHistory[]
-  
-  @@index([trackingNumber])
+  announcement       Announcement        @relation(fields: [announcementId], references: [id])
+  client             User                @relation("ClientDeliveries", fields: [clientId], references: [id])
+  deliverer          User                @relation("DelivererDeliveries", fields: [delivererId], references: [id])
+  payment            Payment?
+  tracking           TrackingUpdate[]
+  history            DeliveryHistory[]
+  validations        DeliveryValidation[]
+
   @@index([clientId])
   @@index([delivererId])
   @@index([status])
+  @@index([trackingNumber])
+  @@index([createdAt])
 }
 
-model DeliveryStatus {
+model TrackingUpdate {
+  id           String         @id @default(cuid())
+  deliveryId   String
+  status       DeliveryStatus
+  message      String
+  location     String?
+  coordinates  Json?          // {lat, lng}
+  timestamp    DateTime       @default(now())
+  isAutomatic  Boolean        @default(false)
+
+  // Relations
+  delivery     Delivery       @relation(fields: [deliveryId], references: [id], onDelete: Cascade)
+
+  @@index([deliveryId])
+  @@index([timestamp])
+}
+
+model DeliveryHistory {
+  id          String    @id @default(cuid())
+  deliveryId  String
+  action      String    // "CREATED", "ACCEPTED", "PICKED_UP", etc.
+  description String
+  metadata    Json?
+  createdAt   DateTime  @default(now())
+  createdBy   String?   // User ID qui a fait l'action
+
+  // Relations
+  delivery    Delivery  @relation(fields: [deliveryId], references: [id], onDelete: Cascade)
+
+  @@index([deliveryId])
+  @@index([createdAt])
+}
+
+model DeliveryStatusHistory {
   id                String              @id @default(cuid())
   deliveryId        String
   status            DeliveryStatus

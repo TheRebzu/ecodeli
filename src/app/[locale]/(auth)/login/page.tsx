@@ -47,19 +47,17 @@ export default function LoginPage() {
           </div>
         </div>
 
-        {/* Comptes de test */}
-        <div className="mt-6 bg-blue-50 rounded-lg p-4">
-          <h3 className="text-sm font-medium text-blue-900 mb-2">
-            🧪 Comptes de test (mot de passe: Test123!)
-          </h3>
-          <div className="space-y-1 text-xs text-blue-800">
-            <div>👨‍💼 Admin: admin@ecodeli.com</div>
-            <div>👤 Client: client@ecodeli.com</div>
-            <div>🚚 Livreur: deliverer@ecodeli.com</div>
-            <div>🏪 Commerçant: merchant@ecodeli.com</div>
-            <div>🔧 Prestataire: provider@ecodeli.com</div>
+        {/* Note de développement (visible seulement en dev) */}
+        {process.env.NODE_ENV === 'development' && (
+          <div className="mt-6 bg-blue-50 rounded-lg p-4">
+            <h3 className="text-sm font-medium text-blue-900 mb-2">
+              🧪 Mode développement
+            </h3>
+            <p className="text-xs text-blue-800">
+              Comptes de test disponibles pour les développeurs
+            </p>
           </div>
-        </div>
+        )}
       </div>
     </div>
   )

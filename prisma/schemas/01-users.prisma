@@ -3,46 +3,63 @@
 model User {
   id                String              @id @default(cuid())
   email             String              @unique
+  emailVerified     Boolean             @default(false)
+  emailVerifiedAt   DateTime?
   password          String
-  firstName         String
-  lastName          String
-  phoneNumber       String?
   role              UserRole
-  isVerified        Boolean             @default(false)
-  isActive          Boolean             @default(true)
-  isFirstLogin      Boolean             @default(true)
+  language          String              @default("fr")
   lastLoginAt       DateTime?
   createdAt         DateTime            @default(now())
   updatedAt         DateTime            @updatedAt
 
   // Relations
   profile           Profile?
+  sessions          Session[]
+  passwordResets    PasswordReset[]
+  accounts          Account[]
   client            Client?
   deliverer         Deliverer?
   merchant          Merchant?
   provider          Provider?
   admin             Admin?
-  sessions          Session[]
-  notifications     Notification[]
+  announcements     Announcement[]
+  clientDeliveries  Delivery[]          @relation("ClientDeliveries")
+  delivererDeliveries Delivery[]        @relation("DelivererDeliveries")
+  bookings          Booking[]
   documents         Document[]
+  payments          Payment[]           @relation("UserPayments")
+  notifications     Notification[]
+  walletOperations  WalletOperation[]
+  storageBoxRentals StorageBoxRental[]
+  wallet            Wallet?
+  globalAvailabilities GlobalAvailability[]
+  activityLogs      ActivityLog[]
   
   @@index([email])
   @@index([role])
 }
 
 model Profile {
-  id                String              @id @default(cuid())
-  userId            String              @unique
-  avatar            String?
-  bio               String?
-  address           String?
-  city              String?
-  postalCode        String?
-  country           String              @default("FR")
-  locale            String              @default("fr")
-  timezone          String              @default("Europe/Paris")
-  createdAt         DateTime            @default(now())
-  updatedAt         DateTime            @updatedAt
+  id              String              @id @default(cuid())
+  userId          String              @unique
+  firstName       String?
+  lastName        String?
+  phone           String?
+  avatar          String?
+  dateOfBirth     DateTime?
+  address         String?
+  city            String?
+  postalCode      String?
+  country         String              @default("FR")
+  isVerified      Boolean             @default(false)
+  verifiedAt      DateTime?
+  language        String              @default("fr")
+  timezone        String              @default("Europe/Paris")
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
 
-  user              User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  // Relations
+  user            User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }

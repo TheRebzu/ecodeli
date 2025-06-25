@@ -4,27 +4,67 @@ model Deliverer {
   id                String              @id @default(cuid())
   userId            String              @unique
   validationStatus  ValidationStatus    @default(PENDING)
-  validatedAt       DateTime?
-  validatedBy       String?
   vehicleType       String?
-  vehiclePlate      String?
-  maxWeight         Float?
-  maxVolume         Float?
-  rating            Float               @default(0)
+  licensePlate      String?
+  maxWeight         Float?              // en kg
+  maxVolume         Float?              // en litres
+  averageRating     Float?              @default(0)
   totalDeliveries   Int                 @default(0)
+  isActive          Boolean             @default(true)
+  nfcCardId         String?             @unique
+  activatedAt       DateTime?
+  lastActiveAt      DateTime?
+  coordinates       Json?               // {lat, lng, updatedAt}
   createdAt         DateTime            @default(now())
   updatedAt         DateTime            @updatedAt
 
   // Relations
-  user              User                @relation(fields: [userId], references: [id], onDelete: Cascade)
-  routes            Route[]
-  deliveries        Delivery[]          @relation("DelivererDeliveries")
-  wallet            Wallet?
-  nfcCard           NFCCard?
-  availabilities    Availability[]
-  
+  user                 User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  routes               DeliveryRoute[]
+  delivererAvailabilities DelivererAvailability[]
+
   @@index([userId])
-  @@index([validationStatus])
+  @@index([isActive])
+  @@index([averageRating])
+}
+
+model DeliveryRoute {
+  id                String              @id @default(cuid())
+  delivererId       String
+  name              String              // ex: "Paris - Lyon quotidien"
+  fromAddress       String
+  toAddress         String
+  fromCoordinates   Json                // {lat, lng}
+  toCoordinates     Json                // {lat, lng}
+  schedule          Json                // {days: ['monday', 'wednesday'], time: '08:00'}
+  isActive          Boolean             @default(true)
+  maxCapacity       Int                 @default(1)
+  estimatedDuration Int                 // en minutes
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  // Relations
+  deliverer         Deliverer           @relation(fields: [delivererId], references: [id], onDelete: Cascade)
+
+  @@index([delivererId])
+  @@index([isActive])
+}
+
+model DelivererAvailability {
+  id                String              @id @default(cuid())
+  delivererId       String
+  dayOfWeek         Int                 // 0 = dimanche, 1 = lundi, etc.
+  startTime         String              // "09:00"
+  endTime           String              // "18:00"
+  isActive          Boolean             @default(true)
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  // Relations
+  deliverer         Deliverer           @relation(fields: [delivererId], references: [id], onDelete: Cascade)
+
+  @@index([delivererId])
+  @@index([dayOfWeek])
 }
 
 model Route {

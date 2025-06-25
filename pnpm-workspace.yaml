@@ -4,6 +4,7 @@ onlyBuiltDependencies:
   - bcrypt
   - core-js
   - esbuild
+  - node-base64
   - prisma
   - sharp
   - unrs-resolver

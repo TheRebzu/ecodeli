@@ -1,0 +1,370 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "save": "Save",
+    "edit": "Edit",
+    "delete": "Delete",
+    "create": "Create",
+    "update": "Update",
+    "search": "Search",
+    "filter": "Filter",
+    "reset": "Reset",
+    "next": "Next",
+    "previous": "Previous",
+    "close": "Close",
+    "view": "View",
+    "download": "Download",
+    "upload": "Upload",
+    "share": "Share",
+    "copy": "Copy",
+    "email": "Email",
+    "password": "Password",
+    "firstName": "First Name",
+    "lastName": "Last Name",
+    "phoneNumber": "Phone Number",
+    "address": "Address",
+    "city": "City",
+    "postalCode": "Postal Code",
+    "country": "Country",
+    "description": "Description",
+    "price": "Price",
+    "date": "Date",
+    "time": "Time",
+    "status": "Status",
+    "actions": "Actions",
+    "back": "Back"
+  },
+  "navigation": {
+    "home": "Home",
+    "dashboard": "Dashboard",
+    "services": "Services",
+    "announcements": "Announcements",
+    "deliveries": "Deliveries",
+    "bookings": "Bookings",
+    "payments": "Payments",
+    "profile": "Profile",
+    "settings": "Settings",
+    "help": "Help",
+    "logout": "Logout",
+    "login": "Login",
+    "register": "Register",
+    "about": "About",
+    "pricing": "Pricing",
+    "contact": "Contact",
+    "blog": "Blog",
+    "faq": "FAQ"
+  },
+  "auth": {
+    "login": {
+      "title": "Login",
+      "email": "Email address",
+      "password": "Password",
+      "submit": "Sign in",
+      "forgotPassword": "Forgot password?",
+      "noAccount": "No account?",
+      "createAccount": "Create account"
+    },
+    "register": {
+      "title": "Register",
+      "firstName": "First name",
+      "lastName": "Last name",
+      "email": "Email address",
+      "password": "Password",
+      "confirmPassword": "Confirm password",
+      "submit": "Sign up",
+      "hasAccount": "Already have an account?",
+      "signIn": "Sign in"
+    }
+  },
+  "roles": {
+    "client": {
+      "dashboard": {
+        "title": "Client Dashboard",
+        "welcome": "Welcome {name}",
+        "quickActions": "Quick Actions",
+        "createAnnouncement": "Create Announcement",
+        "bookService": "Book Service",
+        "viewDeliveries": "My Deliveries",
+        "viewBookings": "My Bookings",
+        "stats": {
+          "activeDeliveries": "Active Deliveries",
+          "completedDeliveries": "Completed Deliveries",
+          "totalSpent": "Total Spent",
+          "savedMoney": "Money Saved"
+        }
+      },
+      "announcements": {
+        "title": "My Announcements",
+        "create": "Create Announcement",
+        "edit": "Edit Announcement",
+        "delete": "Delete Announcement",
+        "publish": "Publish",
+        "types": {
+          "package": "Package Delivery",
+          "service": "Personal Service"
+        },
+        "form": {
+          "title": "Announcement Title",
+          "description": "Detailed Description",
+          "pickupLocation": "Pickup Location",
+          "deliveryLocation": "Delivery Location",
+          "desiredDate": "Desired Date",
+          "price": "Offered Price",
+          "weight": "Weight (kg)",
+          "dimensions": "Dimensions (L x W x H)",
+          "fragile": "Fragile",
+          "insurance": "Insurance Required"
+        }
+      }
+    },
+    "deliverer": {
+      "dashboard": {
+        "title": "Deliverer Dashboard",
+        "welcome": "Welcome {name}",
+        "validationStatus": "Validation Status",
+        "earnings": "Monthly Earnings",
+        "activeDeliveries": "Active Deliveries",
+        "totalDeliveries": "Total Deliveries",
+        "rating": "Average Rating",
+        "quickActions": {
+          "viewOpportunities": "View Opportunities",
+          "declareRoute": "Declare Route",
+          "viewDeliveries": "My Deliveries",
+          "viewEarnings": "My Earnings"
+        },
+        "validation": {
+          "pending": "Validation Pending",
+          "approved": "Account Approved",
+          "rejected": "Validation Rejected",
+          "documents": "Required Documents",
+          "identity": "Identity Document",
+          "license": "Driving License",
+          "insurance": "Vehicle Insurance",
+          "registration": "Vehicle Registration"
+        }
+      },
+      "opportunities": {
+        "title": "Delivery Opportunities",
+        "filters": {
+          "distance": "Maximum Distance",
+          "price": "Minimum Price",
+          "weight": "Maximum Weight",
+          "date": "Delivery Date"
+        },
+        "card": {
+          "from": "From",
+          "to": "To",
+          "distance": "Distance",
+          "price": "Price",
+          "weight": "Weight",
+          "date": "Desired Date",
+          "apply": "Apply",
+          "viewDetails": "View Details"
+        }
+      }
+    },
+    "merchant": {
+      "dashboard": {
+        "title": "Merchant Dashboard",
+        "contract": {
+          "title": "EcoDeli Contract",
+          "status": "Contract Status",
+          "active": "Active",
+          "pending": "Pending",
+          "expired": "Expired",
+          "viewContract": "View Contract",
+          "renewContract": "Renew Contract"
+        },
+        "orders": {
+          "title": "Recent Orders",
+          "pending": "Pending",
+          "processing": "Processing",
+          "delivered": "Delivered",
+          "cancelled": "Cancelled"
+        },
+        "stats": {
+          "monthlyRevenue": "Monthly Revenue",
+          "totalOrders": "Total Orders",
+          "averageOrderValue": "Average Order Value",
+          "deliveryRate": "Delivery Rate"
+        }
+      }
+    },
+    "provider": {
+      "dashboard": {
+        "title": "Provider Dashboard",
+        "validationStatus": "Validation Status",
+        "monthlyEarnings": "Monthly Earnings",
+        "activeBookings": "Active Bookings",
+        "rating": "Average Rating",
+        "completedServices": "Completed Services",
+        "nextInvoice": "Next Invoice",
+        "services": {
+          "title": "My Services",
+          "create": "Create Service",
+          "edit": "Edit",
+          "activate": "Activate",
+          "deactivate": "Deactivate"
+        },
+        "availability": {
+          "title": "My Availability",
+          "update": "Update",
+          "calendar": "View Calendar"
+        }
+      }
+    },
+    "admin": {
+      "dashboard": {
+        "title": "EcoDeli Administration",
+        "stats": {
+          "totalUsers": "Total Users",
+          "pendingValidations": "Pending Validations",
+          "activeDeliveries": "Active Deliveries",
+          "monthlyRevenue": "Monthly Revenue"
+        },
+        "quickActions": {
+          "validateDocuments": "Validate Documents",
+          "manageUsers": "Manage Users",
+          "viewReports": "View Reports",
+          "systemSettings": "System Settings"
+        }
+      },
+      "documents": {
+        "validation": {
+          "title": "Document Validation",
+          "pending": "Pending",
+          "approved": "Approved",
+          "rejected": "Rejected",
+          "filters": {
+            "status": "Status",
+            "type": "Document Type",
+            "userRole": "User Role",
+            "dateRange": "Date Range"
+          },
+          "actions": {
+            "approve": "Approve",
+            "reject": "Reject",
+            "viewDocument": "View Document",
+            "addNote": "Add Note"
+          }
+        }
+      }
+    }
+  },
+  "notifications": {
+    "title": "Notifications",
+    "markAllRead": "Mark All as Read",
+    "noNotifications": "No notifications",
+    "types": {
+      "deliveryOpportunity": "New Opportunity",
+      "deliveryUpdate": "Delivery Update",
+      "paymentReceived": "Payment Received",
+      "documentValidation": "Document Validation",
+      "bookingConfirmed": "Booking Confirmed"
+    }
+  },
+  "payments": {
+    "title": "Payments",
+    "card": {
+      "title": "Card Payment",
+      "securePayment": "Secure Payment",
+      "amount": "Amount",
+      "processingPayment": "Processing...",
+      "payButton": "Pay {amount}",
+      "success": {
+        "title": "Payment Confirmed!",
+        "message": "Your payment has been processed successfully",
+        "downloadReceipt": "Download Receipt",
+        "backToDashboard": "Back to Dashboard"
+      },
+      "error": {
+        "title": "Payment Error",
+        "message": "An error occurred during payment",
+        "retry": "Retry",
+        "contactSupport": "Contact Support"
+      }
+    }
+  },
+  "errors": {
+    "400": "Bad Request",
+    "401": "Unauthorized - Please log in",
+    "403": "Access Forbidden",
+    "404": "Page Not Found",
+    "500": "Internal Server Error",
+    "networkError": "Network Error",
+    "unknownError": "Unknown Error",
+    "notFound": {
+      "title": "Page not found",
+      "message": "Sorry, the page you are looking for does not exist or has been moved.",
+      "backHome": "Back to home"
+    },
+    "forbidden": {
+      "title": "Access forbidden",
+      "message": "You do not have the necessary permissions to access this page.",
+      "backHome": "Back to home"
+    },
+    "unauthorized": {
+      "title": "Authentication required",
+      "message": "You must be logged in to access this page.",
+      "signIn": "Sign in"
+    }
+  },
+  "validation": {
+    "required": "This field is required",
+    "email": "Please enter a valid email",
+    "minLength": "Minimum {min} characters",
+    "maxLength": "Maximum {max} characters",
+    "pattern": "Invalid format",
+    "numeric": "Please enter a number",
+    "positive": "Value must be positive",
+    "phone": "Invalid phone number",
+    "password": {
+      "weak": "Password too weak",
+      "requirements": "Password must contain at least 8 characters, one uppercase, one lowercase and one number"
+    }
+  },
+  "tutorial": {
+    "welcome": {
+      "title": "Welcome to EcoDeli!",
+      "subtitle": "Discover how to use our platform in 6 simple steps",
+      "start": "Start Tutorial",
+      "skip": "Skip Tutorial"
+    },
+    "steps": {
+      "profile": {
+        "title": "Complete Your Profile",
+        "description": "Add your personal information for a personalized experience"
+      },
+      "announcements": {
+        "title": "Create Your First Announcement",
+        "description": "Post a delivery or service request"
+      },
+      "search": {
+        "title": "Explore Services",
+        "description": "Discover all available services on EcoDeli"
+      },
+      "booking": {
+        "title": "Book a Service",
+        "description": "Easily book a service from our providers"
+      },
+      "tracking": {
+        "title": "Track Your Deliveries",
+        "description": "Stay informed in real-time about your delivery status"
+      },
+      "payment": {
+        "title": "Manage Your Payments",
+        "description": "Pay securely and manage your history"
+      }
+    },
+    "navigation": {
+      "next": "Next",
+      "previous": "Previous",
+      "finish": "Finish",
+      "stepOf": "Step {current} of {total}"
+    }
+  }
+}

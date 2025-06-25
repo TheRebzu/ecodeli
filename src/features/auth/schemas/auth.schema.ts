@@ -14,8 +14,8 @@ export const loginSchema = z.object({
 
 export type LoginData = z.infer<typeof loginSchema>
 
-// Schema d'inscription générique
-export const baseRegisterSchema = z.object({
+// Schema d'inscription de base (sans la validation confirmPassword)
+const baseRegisterFields = z.object({
   email: z
     .string()
     .min(1, "L'email est requis")
@@ -38,23 +38,59 @@ export const baseRegisterSchema = z.object({
     .refine((val) => !val || /^\+?[1-9]\d{1,14}$/.test(val), {
       message: "Format de téléphone invalide"
     })
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "Les mots de passe ne correspondent pas",
-  path: ["confirmPassword"]
 })
+
+// Schema d'inscription générique avec validation
+export const baseRegisterSchema = baseRegisterFields.refine(
+  (data) => data.password === data.confirmPassword,
+  {
+    message: "Les mots de passe ne correspondent pas",
+    path: ["confirmPassword"]
+  }
+)
 
 export type BaseRegisterData = z.infer<typeof baseRegisterSchema>
 
 // Schema d'inscription client
-export const clientRegisterSchema = baseRegisterSchema.extend({
+export const clientRegisterSchema = baseRegisterFields.extend({
+  firstName: z
+    .string()
+    .min(2, "Le prénom doit contenir au moins 2 caractères")
+    .max(50, "Le prénom ne peut pas dépasser 50 caractères"),
+  lastName: z
+    .string()
+    .min(2, "Le nom doit contenir au moins 2 caractères")
+    .max(50, "Le nom ne peut pas dépasser 50 caractères"),
+  address: z
+    .string()
+    .min(10, "L'adresse doit contenir au moins 10 caractères")
+    .max(200, "L'adresse ne peut pas dépasser 200 caractères"),
+  city: z
+    .string()
+    .min(2, "La ville doit contenir au moins 2 caractères")
+    .max(50, "La ville ne peut pas dépasser 50 caractères"),
+  postalCode: z
+    .string()
+    .regex(/^[0-9]{5}$/, "Le code postal doit contenir exactement 5 chiffres"),
+  termsAccepted: z
+    .boolean()
+    .refine((val) => val === true, {
+      message: "Vous devez accepter les conditions d'utilisation"
+    }),
   subscriptionPlan: z.enum(['FREE', 'STARTER', 'PREMIUM']).default('FREE'),
   acceptsMarketing: z.boolean().default(false)
-})
+}).refine(
+  (data) => data.password === data.confirmPassword,
+  {
+    message: "Les mots de passe ne correspondent pas",
+    path: ["confirmPassword"]
+  }
+)
 
 export type ClientRegisterData = z.infer<typeof clientRegisterSchema>
 
 // Schema d'inscription livreur
-export const delivererRegisterSchema = baseRegisterSchema.extend({
+export const delivererRegisterSchema = baseRegisterFields.extend({
   vehicleType: z.enum(['WALKING', 'BIKE', 'SCOOTER', 'CAR', 'TRUCK']),
   maxWeight: z
     .number()
@@ -64,12 +100,18 @@ export const delivererRegisterSchema = baseRegisterSchema.extend({
     .number()
     .min(1, "La distance maximum doit être supérieure à 0")
     .max(500, "La distance maximum ne peut pas dépasser 500km")
-})
+}).refine(
+  (data) => data.password === data.confirmPassword,
+  {
+    message: "Les mots de passe ne correspondent pas",
+    path: ["confirmPassword"]
+  }
+)
 
 export type DelivererRegisterData = z.infer<typeof delivererRegisterSchema>
 
 // Schema d'inscription commerçant
-export const merchantRegisterSchema = baseRegisterSchema.extend({
+export const merchantRegisterSchema = baseRegisterFields.extend({
   businessName: z
     .string()
     .min(2, "Le nom de l'entreprise doit contenir au moins 2 caractères")
@@ -82,12 +124,18 @@ export const merchantRegisterSchema = baseRegisterSchema.extend({
     .string()
     .min(10, "L'adresse doit contenir au moins 10 caractères")
     .max(200, "L'adresse ne peut pas dépasser 200 caractères")
-})
+}).refine(
+  (data) => data.password === data.confirmPassword,
+  {
+    message: "Les mots de passe ne correspondent pas",
+    path: ["confirmPassword"]
+  }
+)
 
 export type MerchantRegisterData = z.infer<typeof merchantRegisterSchema>
 
 // Schema d'inscription prestataire
-export const providerRegisterSchema = baseRegisterSchema.extend({
+export const providerRegisterSchema = baseRegisterFields.extend({
   businessName: z
     .string()
     .min(2, "Le nom de l'entreprise doit contenir au moins 2 caractères")
@@ -104,7 +152,13 @@ export const providerRegisterSchema = baseRegisterSchema.extend({
     .string()
     .min(50, "La description doit contenir au moins 50 caractères")
     .max(500, "La description ne peut pas dépasser 500 caractères")
-})
+}).refine(
+  (data) => data.password === data.confirmPassword,
+  {
+    message: "Les mots de passe ne correspondent pas",
+    path: ["confirmPassword"]
+  }
+)
 
 export type ProviderRegisterData = z.infer<typeof providerRegisterSchema>
 

@@ -1,5 +1,69 @@
-// Types des entités métier EcoDeli basés sur Prisma
-import type { User, Profile, ClientProfile, DelivererProfile, MerchantProfile, ProviderProfile, Announcement, Delivery, Payment, Wallet, Document, Notification, Message, Review } from "@prisma/client"
+// Types d'entités EcoDeli basés sur le schéma Prisma
+import type { 
+  User, 
+  Profile,
+  Client,
+  Deliverer, 
+  Merchant, 
+  Provider,
+  Announcement, 
+  Delivery, 
+  Payment, 
+  Wallet, 
+  Document, 
+  Notification, 
+  Review 
+} from "@prisma/client"
+
+// Alias pour la compatibilité avec l'ancien code
+export type ClientProfile = Client
+export type DelivererProfile = Deliverer  
+export type MerchantProfile = Merchant
+export type ProviderProfile = Provider
+
+// Re-export des types Prisma
+export type {
+  User,
+  Profile,
+  Client,
+  Deliverer,
+  Merchant, 
+  Provider,
+  Announcement,
+  Delivery,
+  Payment,
+  Wallet,
+  Document,
+  Notification,
+  Review
+}
+
+// Types avec relations
+export type UserWithProfile = User & {
+  profile?: Profile | null
+  client?: Client | null
+  deliverer?: Deliverer | null
+  merchant?: Merchant | null
+  provider?: Provider | null
+}
+
+export type DeliveryWithDetails = Delivery & {
+  announcement?: Announcement | null
+  client?: Client | null
+  deliverer?: Deliverer | null
+  payment?: Payment | null
+}
+
+export type AnnouncementWithUser = Announcement & {
+  user?: User | null
+  client?: Client | null
+}
+
+export type PaymentWithDetails = Payment & {
+  user?: User | null
+  delivery?: Delivery | null
+  booking?: any | null // À définir selon les besoins
+}
 
 // Types de rôles et statuts
 export type UserRole = "CLIENT" | "DELIVERER" | "MERCHANT" | "PROVIDER" | "ADMIN"
@@ -16,16 +80,6 @@ export type BookingStatus = "PENDING" | "CONFIRMED" | "IN_PROGRESS" | "COMPLETED
 export type DocumentType = "IDENTITY_CARD" | "DRIVER_LICENSE" | "VEHICLE_REGISTRATION" | "INSURANCE" | "PROOF_OF_ADDRESS" | "CERTIFICATION" | "CONTRACT"
 export type SubscriptionPlan = "FREE" | "STARTER" | "PREMIUM"
 export type NotificationType = "ANNOUNCEMENT_MATCH" | "DELIVERY_UPDATE" | "PAYMENT_RECEIVED" | "BOOKING_CONFIRMED" | "DOCUMENT_VALIDATED" | "SYSTEM_MESSAGE"
-
-// Utilisateur avec profil complet
-export interface UserWithProfile extends User {
-  profile?: Profile
-  clientProfile?: ClientProfile
-  delivererProfile?: DelivererProfile
-  merchantProfile?: MerchantProfile
-  providerProfile?: ProviderProfile
-  wallet?: Wallet
-}
 
 // Annonce avec détails complets
 export interface AnnouncementWithDetails extends Announcement {
@@ -58,21 +112,6 @@ export interface AnnouncementWithDetails extends Announcement {
     deliverer: UserWithProfile
   }[]
   delivery?: DeliveryWithDetails
-}
-
-// Livraison avec détails complets
-export interface DeliveryWithDetails extends Delivery {
-  announcement: AnnouncementWithDetails
-  deliverer: UserWithProfile
-  client: UserWithProfile
-  trackingEvents: {
-    id: string
-    event: string
-    description?: string
-    latitude?: number
-    longitude?: number
-    createdAt: Date
-  }[]
 }
 
 // Document avec détails

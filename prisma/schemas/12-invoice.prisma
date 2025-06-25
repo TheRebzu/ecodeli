@@ -22,7 +22,6 @@ model Invoice {
   updatedAt         DateTime            @updatedAt
 
   // Relations
-  provider          Provider?           @relation("ProviderInvoices", fields: [providerId], references: [id])
   items             InvoiceItem[]
   
   @@index([invoiceNumber])

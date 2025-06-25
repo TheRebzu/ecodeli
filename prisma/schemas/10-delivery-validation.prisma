@@ -16,20 +16,3 @@ model DeliveryValidation {
   @@index([code])
   @@index([expiresAt])
 }
-
-model DeliveryHistory {
-  id          String        @id @default(cuid())
-  deliveryId  String
-  status      DeliveryStatus
-  notes       String?
-  latitude    Float?
-  longitude   Float?
-  createdBy   String?       // ID du user qui a fait le changement
-  createdAt   DateTime      @default(now())
-
-  // Relations
-  delivery    Delivery      @relation(fields: [deliveryId], references: [id], onDelete: Cascade)
-
-  @@index([deliveryId])
-  @@index([createdAt])
-}

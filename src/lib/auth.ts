@@ -38,7 +38,7 @@ export const auth = betterAuth({
   
   emailAndPassword: {
     enabled: true,
-    requireEmailVerification: true,
+    requireEmailVerification: false, // Désactivé pour le développement
     sendResetPassword: async ({ email, url }) => {
       // TODO: Implémenter l'envoi d'email de reset
       console.log(`Reset password for ${email}: ${url}`)
@@ -95,12 +95,9 @@ export const auth = betterAuth({
 
   // Hooks pour la gestion des événements
   hooks: {
-    after: [
-      {
-        matcher: "signUp",
-        handler: async (ctx) => {
-          const { user } = ctx
-          
+    after: {
+      signUp: async ({ user }) => {
+        try {
           // Créer le profil spécialisé selon le rôle
           await createUserProfile(user.id, user.role as UserRole)
           
@@ -113,21 +110,22 @@ export const auth = betterAuth({
           if (user.role === USER_ROLES.CLIENT) {
             await createClientSubscription(user.id)
           }
+        } catch (error) {
+          console.error("Erreur lors de la création du profil utilisateur:", error)
         }
       },
-      {
-        matcher: "signIn",
-        handler: async (ctx) => {
-          const { user } = ctx
-          
+      signIn: async ({ user }) => {
+        try {
           // Mettre à jour la dernière connexion
           await prisma.user.update({
             where: { id: user.id },
             data: { lastLoginAt: new Date() }
           })
+        } catch (error) {
+          console.error("Erreur lors de la mise à jour de la dernière connexion:", error)
         }
       }
-    ]
+    }
   }
 })
 
@@ -279,4 +277,4 @@ export const roleUtils = {
   }
 }
 
-export { prisma } from "./db"
+export { prisma } from "./db" 

@@ -1,302 +1,364 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { z } from 'zod'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/db'
-import { z } from 'zod'
-import Stripe from 'stripe'
+import { handleApiError } from '@/lib/utils/api-response'
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2024-12-18.acacia'
+// Schema pour recherche de paiements
+const searchPaymentsSchema = z.object({
+  page: z.string().transform(Number).pipe(z.number().min(1)).default('1'),
+  limit: z.string().transform(Number).pipe(z.number().min(1).max(50)).default('20'),
+  type: z.enum(['DELIVERY', 'SERVICE_BOOKING', 'STORAGE_RENTAL', 'SUBSCRIPTION', 'REFUND']).optional(),
+  status: z.enum(['PENDING', 'COMPLETED', 'FAILED', 'CANCELLED', 'REFUNDED']).optional(),
+  dateFrom: z.string().datetime().optional(),
+  dateTo: z.string().datetime().optional(),
+  amountMin: z.string().transform(Number).pipe(z.number().positive()).optional(),
+  amountMax: z.string().transform(Number).pipe(z.number().positive()).optional(),
+  sortBy: z.enum(['createdAt', 'amount', 'status']).default('createdAt'),
+  sortOrder: z.enum(['asc', 'desc']).default('desc')
 })
 
-// Schema pour créer un paiement
-const createPaymentSchema = z.object({
-  type: z.enum(['DELIVERY', 'SUBSCRIPTION', 'SERVICE', 'STORAGE']),
-  announcementId: z.string().optional(),
-  bookingId: z.string().optional(),
-  storageBoxId: z.string().optional(),
-  subscriptionPlan: z.enum(['STARTER', 'PREMIUM']).optional(),
-  amount: z.number().positive('Le montant doit être positif'),
-  currency: z.string().default('EUR'),
-  description: z.string().optional()
+// Schema pour ajouter une méthode de paiement
+const addPaymentMethodSchema = z.object({
+  type: z.enum(['CARD', 'PAYPAL', 'BANK_TRANSFER', 'APPLE_PAY', 'GOOGLE_PAY']),
+  cardToken: z.string().optional(), // Token Stripe pour les cartes
+  paypalEmail: z.string().email().optional(),
+  bankAccount: z.object({
+    iban: z.string().min(15),
+    bic: z.string().min(8),
+    holderName: z.string().min(2)
+  }).optional(),
+  isDefault: z.boolean().default(false),
+  nickname: z.string().max(50).optional()
 })
 
-// GET - Historique des paiements du client
+// Schema pour demande de remboursement
+const refundRequestSchema = z.object({
+  paymentId: z.string().cuid(),
+  reason: z.enum(['SERVICE_NOT_PROVIDED', 'POOR_QUALITY', 'CANCELLED_BY_PROVIDER', 'TECHNICAL_ISSUE', 'OTHER']),
+  description: z.string().min(10).max(500),
+  amount: z.number().positive().optional(), // Pour remboursement partiel
+  evidence: z.array(z.string().url()).max(5).optional() // Photos/documents
+})
+
+// GET - Historique des paiements
 export async function GET(request: NextRequest) {
   try {
     const session = await auth()
-    if (!session?.user) {
-      return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     if (session.user.role !== 'CLIENT') {
-      return NextResponse.json({ error: 'Accès refusé' }, { status: 403 })
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
     const { searchParams } = new URL(request.url)
-    const page = parseInt(searchParams.get('page') || '1')
-    const limit = parseInt(searchParams.get('limit') || '10')
-    const type = searchParams.get('type')
-    const status = searchParams.get('status')
+    const validatedParams = searchPaymentsSchema.parse(Object.fromEntries(searchParams))
 
-    const skip = (page - 1) * limit
+    const client = await prisma.client.findUnique({
+      where: { userId: session.user.id }
+    })
+
+    if (!client) {
+      return NextResponse.json({ error: 'Client not found' }, { status: 404 })
+    }
 
     // Construire les filtres
     const where: any = {
       userId: session.user.id
     }
 
-    if (type && ['DELIVERY', 'SUBSCRIPTION', 'SERVICE', 'STORAGE'].includes(type)) {
-      where.type = type
+    if (validatedParams.type) {
+      where.type = validatedParams.type
     }
 
-    if (status && ['PENDING', 'PROCESSING', 'COMPLETED', 'FAILED', 'CANCELLED', 'REFUNDED'].includes(status)) {
-      where.status = status
+    if (validatedParams.status) {
+      where.status = validatedParams.status
     }
+
+    if (validatedParams.dateFrom || validatedParams.dateTo) {
+      where.createdAt = {}
+      if (validatedParams.dateFrom) where.createdAt.gte = new Date(validatedParams.dateFrom)
+      if (validatedParams.dateTo) where.createdAt.lte = new Date(validatedParams.dateTo)
+    }
+
+    if (validatedParams.amountMin || validatedParams.amountMax) {
+      where.amount = {}
+      if (validatedParams.amountMin) where.amount.gte = validatedParams.amountMin
+      if (validatedParams.amountMax) where.amount.lte = validatedParams.amountMax
+    }
+
+    const skip = (validatedParams.page - 1) * validatedParams.limit
+    const orderBy: any = {}
+    orderBy[validatedParams.sortBy] = validatedParams.sortOrder
 
     // Récupérer les paiements
-    const [payments, total] = await Promise.all([
+    const [payments, totalCount] = await Promise.all([
       prisma.payment.findMany({
         where,
         skip,
-        take: limit,
-        orderBy: { createdAt: 'desc' },
+        take: validatedParams.limit,
+        orderBy,
         include: {
-          announcement: {
-            select: {
-              id: true,
-              title: true,
-              serviceType: true
-            }
-          },
-          booking: {
-            select: {
-              id: true,
-              service: {
-                select: {
-                  name: true,
-                  category: true
-                }
-              }
-            }
-          },
-          storageBox: {
-            select: {
-              id: true,
-              number: true,
-              warehouse: {
-                select: {
-                  name: true,
-                  city: true
-                }
-              }
-            }
-          }
+          refunds: true
         }
       }),
       prisma.payment.count({ where })
     ])
 
-    // Récupérer les informations d'abonnement actuel
-    const subscription = await prisma.subscription.findUnique({
-      where: { userId: session.user.id }
+    // Calculer les statistiques
+    const stats = await calculatePaymentStats(session.user.id)
+
+    // Récupérer les méthodes de paiement
+    const paymentMethods = await prisma.paymentMethod.findMany({
+      where: { userId: session.user.id },
+      orderBy: [
+        { isDefault: 'desc' },
+        { createdAt: 'desc' }
+      ]
     })
 
     return NextResponse.json({
       payments: payments.map(payment => ({
-        id: payment.id,
-        type: payment.type,
-        amount: payment.amount,
-        currency: payment.currency,
-        status: payment.status,
-        description: payment.description,
-        stripePaymentIntentId: payment.stripePaymentIntentId,
-        createdAt: payment.createdAt,
-        updatedAt: payment.updatedAt,
-        relatedItem: getRelatedItemInfo(payment)
+        ...payment,
+        canRefund: canRequestRefund(payment),
+        refundAmount: payment.refunds.reduce((sum, refund) => sum + refund.amount, 0),
+        netAmount: payment.amount - payment.refunds.reduce((sum, refund) => sum + refund.amount, 0)
       })),
-      subscription: subscription ? {
-        plan: subscription.plan,
-        status: subscription.status,
-        currentPeriodStart: subscription.currentPeriodStart,
-        currentPeriodEnd: subscription.currentPeriodEnd,
-        cancelAtPeriodEnd: subscription.cancelAtPeriodEnd
-      } : null,
       pagination: {
-        page,
-        limit,
-        total,
-        pages: Math.ceil(total / limit)
+        page: validatedParams.page,
+        limit: validatedParams.limit,
+        total: totalCount,
+        pages: Math.ceil(totalCount / validatedParams.limit)
+      },
+      stats,
+      paymentMethods: paymentMethods.map(method => ({
+        ...method,
+        // Masquer les données sensibles
+        cardLast4: method.cardLast4,
+        cardBrand: method.cardBrand,
+        expiryMonth: method.expiryMonth,
+        expiryYear: method.expiryYear
+      })),
+      summary: {
+        totalSpent: stats.totalAmount,
+        averageTransaction: stats.averageAmount,
+        monthlySpending: stats.monthlyAmount,
+        savedWithSubscription: stats.totalSavings
       }
     })
 
   } catch (error) {
-    console.error('Error fetching client payments:', error)
-    return NextResponse.json(
-      { error: 'Erreur interne du serveur' },
-      { status: 500 }
-    )
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        { error: 'Validation error', details: error.errors },
+        { status: 400 }
+      )
+    }
+    return handleApiError(error, 'fetching payments')
   }
 }
 
-// POST - Créer un nouveau paiement
+// POST - Ajouter une méthode de paiement
 export async function POST(request: NextRequest) {
   try {
     const session = await auth()
-    if (!session?.user) {
-      return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     if (session.user.role !== 'CLIENT') {
-      return NextResponse.json({ error: 'Accès refusé' }, { status: 403 })
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
     const body = await request.json()
-    const validatedData = createPaymentSchema.parse(body)
+    const validatedData = addPaymentMethodSchema.parse(body)
 
-    // Vérifier le client Stripe ou le créer
-    let stripeCustomerId = session.user.stripeCustomerId
+    const client = await prisma.client.findUnique({
+      where: { userId: session.user.id }
+    })
 
-    if (!stripeCustomerId) {
-      const customer = await stripe.customers.create({
-        email: session.user.email,
-        metadata: {
-          userId: session.user.id
-        }
-      })
-
-      // Mettre à jour l'utilisateur avec l'ID Stripe
-      await prisma.user.update({
-        where: { id: session.user.id },
-        data: { stripeCustomerId: customer.id }
-      })
-
-      stripeCustomerId = customer.id
+    if (!client) {
+      return NextResponse.json({ error: 'Client not found' }, { status: 404 })
     }
 
-    // Calculer le montant final avec réductions d'abonnement si applicable
-    let finalAmount = validatedData.amount
-    let discountApplied = 0
+    // Si c'est la méthode par défaut, désactiver les autres
+    if (validatedData.isDefault) {
+      await prisma.paymentMethod.updateMany({
+        where: { userId: session.user.id },
+        data: { isDefault: false }
+      })
+    }
 
-    if (validatedData.type === 'DELIVERY') {
-      const userSubscription = await prisma.subscription.findUnique({
+    // Créer la méthode de paiement selon le type
+    let paymentMethodData: any = {
+      userId: session.user.id,
+      type: validatedData.type,
+      isDefault: validatedData.isDefault,
+      nickname: validatedData.nickname
+    }
+
+    switch (validatedData.type) {
+      case 'CARD':
+        if (!validatedData.cardToken) {
+          return NextResponse.json({ error: 'Card token required' }, { status: 400 })
+        }
+        
+        // TODO: Traiter le token Stripe et récupérer les infos de carte
+        // const cardInfo = await stripe.paymentMethods.retrieve(validatedData.cardToken)
+        
+        // Simulation pour le développement
+        paymentMethodData = {
+          ...paymentMethodData,
+          stripePaymentMethodId: validatedData.cardToken,
+          cardLast4: '4242',
+          cardBrand: 'visa',
+          expiryMonth: 12,
+          expiryYear: 2025
+        }
+        break
+
+      case 'PAYPAL':
+        if (!validatedData.paypalEmail) {
+          return NextResponse.json({ error: 'PayPal email required' }, { status: 400 })
+        }
+        paymentMethodData.paypalEmail = validatedData.paypalEmail
+        break
+
+      case 'BANK_TRANSFER':
+        if (!validatedData.bankAccount) {
+          return NextResponse.json({ error: 'Bank account details required' }, { status: 400 })
+        }
+        paymentMethodData = {
+          ...paymentMethodData,
+          iban: validatedData.bankAccount.iban,
+          bic: validatedData.bankAccount.bic,
+          accountHolderName: validatedData.bankAccount.holderName
+        }
+        break
+    }
+
+    const paymentMethod = await prisma.paymentMethod.create({
+      data: paymentMethodData
+    })
+
+    // Si c'est la première méthode, la rendre par défaut
+    if (!validatedData.isDefault) {
+      const methodCount = await prisma.paymentMethod.count({
         where: { userId: session.user.id }
       })
-
-      if (userSubscription && userSubscription.status === 'ACTIVE') {
-        if (userSubscription.plan === 'STARTER') {
-          discountApplied = finalAmount * 0.05 // 5% réduction
-          finalAmount = finalAmount * 0.95
-        } else if (userSubscription.plan === 'PREMIUM') {
-          discountApplied = finalAmount * 0.09 // 9% réduction
-          finalAmount = finalAmount * 0.91
-        }
+      
+      if (methodCount === 1) {
+        await prisma.paymentMethod.update({
+          where: { id: paymentMethod.id },
+          data: { isDefault: true }
+        })
       }
     }
-
-    // Créer le PaymentIntent Stripe
-    const paymentIntent = await stripe.paymentIntents.create({
-      amount: Math.round(finalAmount * 100), // Stripe utilise les centimes
-      currency: validatedData.currency.toLowerCase(),
-      customer: stripeCustomerId,
-      metadata: {
-        userId: session.user.id,
-        type: validatedData.type,
-        ...(validatedData.announcementId && { announcementId: validatedData.announcementId }),
-        ...(validatedData.bookingId && { bookingId: validatedData.bookingId }),
-        ...(validatedData.storageBoxId && { storageBoxId: validatedData.storageBoxId }),
-        ...(discountApplied > 0 && { discountApplied: discountApplied.toString() })
-      },
-      description: validatedData.description || `Paiement ${validatedData.type}`
-    })
-
-    // Créer l'enregistrement de paiement dans la base
-    const payment = await prisma.payment.create({
-      data: {
-        userId: session.user.id,
-        type: validatedData.type,
-        amount: finalAmount,
-        currency: validatedData.currency,
-        status: 'PENDING',
-        stripePaymentIntentId: paymentIntent.id,
-        description: validatedData.description,
-        announcementId: validatedData.announcementId,
-        bookingId: validatedData.bookingId,
-        storageBoxId: validatedData.storageBoxId,
-        metadata: discountApplied > 0 ? {
-          originalAmount: validatedData.amount,
-          discountApplied,
-          subscriptionDiscount: true
-        } : undefined
-      }
-    })
 
     return NextResponse.json({
-      payment: {
-        id: payment.id,
-        clientSecret: paymentIntent.client_secret,
-        amount: finalAmount,
-        originalAmount: validatedData.amount,
-        discountApplied,
-        currency: validatedData.currency,
-        status: payment.status
+      success: true,
+      message: 'Méthode de paiement ajoutée avec succès',
+      paymentMethod: {
+        id: paymentMethod.id,
+        type: paymentMethod.type,
+        nickname: paymentMethod.nickname,
+        isDefault: paymentMethod.isDefault,
+        ...(paymentMethod.type === 'CARD' && {
+          cardLast4: paymentMethod.cardLast4,
+          cardBrand: paymentMethod.cardBrand,
+          expiryMonth: paymentMethod.expiryMonth,
+          expiryYear: paymentMethod.expiryYear
+        })
       }
-    })
+    }, { status: 201 })
 
   } catch (error) {
-    console.error('Error creating payment:', error)
-
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { 
-          error: 'Données invalides', 
-          details: error.errors.map(e => ({ 
-            field: e.path.join('.'), 
-            message: e.message 
-          }))
-        },
+        { error: 'Validation error', details: error.errors },
         { status: 400 }
       )
     }
-
-    if (error instanceof Stripe.errors.StripeError) {
-      return NextResponse.json(
-        { error: 'Erreur de paiement', details: error.message },
-        { status: 400 }
-      )
-    }
-
-    return NextResponse.json(
-      { error: 'Erreur interne du serveur' },
-      { status: 500 }
-    )
+    return handleApiError(error, 'adding payment method')
   }
 }
 
-// Helper function pour obtenir les informations de l'élément lié
-function getRelatedItemInfo(payment: any) {
-  if (payment.announcement) {
-    return {
-      type: 'announcement',
-      title: payment.announcement.title,
-      serviceType: payment.announcement.serviceType
+// Fonctions utilitaires
+async function calculatePaymentStats(userId: string) {
+  const payments = await prisma.payment.findMany({
+    where: { 
+      userId,
+      status: 'COMPLETED'
     }
-  }
-  
-  if (payment.booking) {
-    return {
-      type: 'booking',
-      title: payment.booking.service.name,
-      category: payment.booking.service.category
-    }
-  }
-  
-  if (payment.storageBox) {
-    return {
-      type: 'storage',
-      title: `Box ${payment.storageBox.number}`,
-      location: `${payment.storageBox.warehouse.name} - ${payment.storageBox.warehouse.city}`
-    }
-  }
+  })
 
-  return null
+  const currentMonth = new Date()
+  currentMonth.setDate(1)
+  currentMonth.setHours(0, 0, 0, 0)
+
+  const monthlyPayments = payments.filter(p => p.createdAt >= currentMonth)
+
+  // Calculer les économies grâce à l'abonnement
+  const client = await prisma.client.findUnique({
+    where: { userId },
+    include: { subscription: true }
+  })
+
+  const totalSavings = calculateSubscriptionSavings(client?.subscriptionPlan || 'FREE', payments)
+
+  return {
+    totalCount: payments.length,
+    totalAmount: payments.reduce((sum, p) => sum + p.amount, 0),
+    averageAmount: payments.length > 0 ? payments.reduce((sum, p) => sum + p.amount, 0) / payments.length : 0,
+    monthlyCount: monthlyPayments.length,
+    monthlyAmount: monthlyPayments.reduce((sum, p) => sum + p.amount, 0),
+    totalSavings,
+    byType: groupPaymentsByType(payments),
+    byStatus: groupPaymentsByStatus(payments)
+  }
+}
+
+function calculateSubscriptionSavings(plan: string, payments: any[]): number {
+  const discounts = { FREE: 0, STARTER: 5, PREMIUM: 8 }
+  const discount = discounts[plan as keyof typeof discounts] || 0
+  
+  if (discount === 0) return 0
+  
+  const totalSpent = payments.reduce((sum, p) => sum + p.amount, 0)
+  return Math.round(totalSpent * (discount / 100) * 100) / 100
+}
+
+function groupPaymentsByType(payments: any[]) {
+  return payments.reduce((acc, payment) => {
+    acc[payment.type] = (acc[payment.type] || 0) + payment.amount
+    return acc
+  }, {})
+}
+
+function groupPaymentsByStatus(payments: any[]) {
+  return payments.reduce((acc, payment) => {
+    acc[payment.status] = (acc[payment.status] || 0) + 1
+    return acc
+  }, {})
+}
+
+function canRequestRefund(payment: any): boolean {
+  // Règles de remboursement
+  if (payment.status !== 'COMPLETED') return false
+  
+  const daysSincePayment = (Date.now() - payment.createdAt.getTime()) / (1000 * 60 * 60 * 24)
+  
+  // Délai de remboursement selon le type
+  const refundDeadlines = {
+    DELIVERY: 7,
+    SERVICE_BOOKING: 24, // 24 heures
+    STORAGE_RENTAL: 48, // 48 heures
+    SUBSCRIPTION: 14
+  }
+  
+  const deadline = refundDeadlines[payment.type as keyof typeof refundDeadlines] || 7
+  
+  return daysSincePayment <= deadline
 }

@@ -10,9 +10,6 @@ model Admin {
 
   // Relations
   user              User                @relation(fields: [userId], references: [id], onDelete: Cascade)
-  validatedDocuments Document[]         @relation("ValidatedDocuments")
-  validatedDeliverers Deliverer[]       @relation("ValidatedDeliverers")
-  validatedProviders Provider[]         @relation("ValidatedProviders")
   
   @@index([userId])
 }

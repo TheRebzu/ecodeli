@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { z } from 'zod';
 
 export class ApiResponse {
   static success(data: any, status = 200) {
@@ -21,4 +22,34 @@ export class ApiResponse {
       }
     });
   }
+}
+
+export function handleApiError(error: any, operation: string) {
+  console.error(`Error in ${operation}:`, error)
+  
+  if (error instanceof z.ZodError) {
+    return NextResponse.json(
+      { error: 'Validation error', details: error.errors },
+      { status: 400 }
+    )
+  }
+  
+  if (error.code === 'P2002') { // Prisma unique constraint
+    return NextResponse.json(
+      { error: 'Resource already exists' },
+      { status: 409 }
+    )
+  }
+  
+  if (error.code === 'P2025') { // Prisma record not found
+    return NextResponse.json(
+      { error: 'Resource not found' },
+      { status: 404 }
+    )
+  }
+  
+  return NextResponse.json(
+    { error: 'Internal server error' },
+    { status: 500 }
+  )
 }

@@ -1,25 +1,111 @@
 // Modèles évaluations et autres
 
 model Review {
-  id                String              @id @default(cuid())
-  clientId          String
-  targetType        String              // "DELIVERER", "PROVIDER", "MERCHANT"
-  targetId          String
-  bookingId         String?             @unique
-  deliveryId        String?             @unique
-  rating            Int                 // 1-5
-  comment           String?
-  isPublic          Boolean             @default(true)
-  createdAt         DateTime            @default(now())
-  updatedAt         DateTime            @updatedAt
+  id          String        @id @default(cuid())
+  bookingId   String?       @unique
+  clientId    String?
+  rating      Int           // 1 à 5
+  comment     String?
+  isVerified  Boolean       @default(false)
+  response    String?       // Réponse du prestataire
+  respondedAt DateTime?
+  providerId  String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
 
-  // Relations
-  client            Client              @relation(fields: [clientId], references: [id])
-  booking           Booking?            @relation(fields: [bookingId], references: [id])
-  
-  @@index([clientId])
-  @@index([targetType, targetId])
+  booking     Booking?      @relation(fields: [bookingId], references: [id])
+  client      Client?       @relation(fields: [clientId], references: [id])
+  provider    Provider?     @relation("ProviderReviews", fields: [providerId], references: [id])
+
   @@index([rating])
+  @@index([isVerified])
+  @@index([providerId])
+  @@index([clientId])
+}
+
+model GlobalAvailability {
+  id          String        @id @default(cuid())
+  userId      String
+  date        DateTime      // Date spécifique
+  startTime   String        // "09:00"
+  endTime     String        // "18:00"
+  isBooked    Boolean       @default(false)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([date])
+}
+
+model Analytics {
+  id                String        @id @default(cuid())
+  type              String        // "DELIVERY", "BOOKING", "PAYMENT"
+  entity            String        // "CLIENT", "DELIVERER", "PROVIDER"
+  entityId          String
+  action            String        // "CREATED", "COMPLETED", "CANCELLED"
+  metadata          Json?         // Données spécifiques
+  value             Float?        // Valeur monétaire si applicable
+  date              DateTime      @default(now())
+  period            String        // "DAILY", "WEEKLY", "MONTHLY"
+
+  @@index([type])
+  @@index([entity])
+  @@index([date])
+  @@index([period])
+}
+
+model Settings {
+  id                String        @id @default(cuid())
+  key               String        @unique
+  value             Json          // Valeur flexible
+  description       String?
+  isActive          Boolean       @default(true)
+  updatedBy         String?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  @@index([key])
+  @@index([isActive])
+}
+
+model ActivityLog {
+  id                String        @id @default(cuid())
+  userId            String?
+  action            String        // "LOGIN", "CREATE_DELIVERY", etc.
+  entityType        String?       // "DELIVERY", "BOOKING", etc.
+  entityId          String?
+  metadata          Json?         // Détails de l'action
+  ipAddress         String?
+  userAgent         String?
+  createdAt         DateTime      @default(now())
+
+  user              User?         @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([action])
+  @@index([createdAt])
+}
+
+model SystemNotification {
+  id                String        @id @default(cuid())
+  type              String        // "MAINTENANCE", "UPDATE", "ALERT"
+  title             String
+  message           String
+  priority          String        @default("LOW") // LOW, MEDIUM, HIGH, CRITICAL
+  targetRole        UserRole?     // Si spécifique à un rôle
+  isActive          Boolean       @default(true)
+  startDate         DateTime?
+  endDate           DateTime?
+  createdBy         String
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  @@index([type])
+  @@index([priority])
+  @@index([isActive])
+  @@index([targetRole])
 }
 
 model Availability {

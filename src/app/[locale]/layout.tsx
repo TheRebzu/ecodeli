@@ -19,11 +19,10 @@ export const metadata: Metadata = {
   },
 }
 
-// Locales supportées
-const locales = ['fr', 'en']
+import { routing } from "@/i18n/routing"
 
 export function generateStaticParams() {
-  return locales.map((locale) => ({ locale }))
+  return routing.locales.map((locale) => ({ locale }))
 }
 
 interface LocaleLayoutProps {
@@ -39,7 +38,7 @@ export default async function LocaleLayout({
   const { locale } = await params
   
   // Valider la locale
-  if (!locales.includes(locale)) {
+  if (!routing.locales.includes(locale as any)) {
     notFound()
   }
 

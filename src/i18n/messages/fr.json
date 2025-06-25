@@ -1,0 +1,378 @@
+{
+  "common": {
+    "loading": "Chargement...",
+    "error": "Erreur",
+    "success": "Succès",
+    "cancel": "Annuler",
+    "confirm": "Confirmer",
+    "save": "Enregistrer",
+    "edit": "Modifier",
+    "delete": "Supprimer",
+    "create": "Créer",
+    "update": "Mettre à jour",
+    "search": "Rechercher",
+    "filter": "Filtrer",
+    "reset": "Réinitialiser",
+    "next": "Suivant",
+    "previous": "Précédent",
+    "close": "Fermer",
+    "view": "Voir",
+    "download": "Télécharger",
+    "upload": "Télécharger",
+    "share": "Partager",
+    "copy": "Copier",
+    "email": "Email",
+    "password": "Mot de passe",
+    "firstName": "Prénom",
+    "lastName": "Nom",
+    "phoneNumber": "Téléphone",
+    "address": "Adresse",
+    "city": "Ville",
+    "postalCode": "Code postal",
+    "country": "Pays",
+    "description": "Description",
+    "price": "Prix",
+    "date": "Date",
+    "time": "Heure",
+    "status": "Statut",
+    "actions": "Actions",
+    "back": "Retour"
+  },
+  "navigation": {
+    "home": "Accueil",
+    "dashboard": "Tableau de bord",
+    "services": "Services",
+    "announcements": "Annonces",
+    "deliveries": "Livraisons",
+    "bookings": "Réservations",
+    "payments": "Paiements",
+    "profile": "Profil",
+    "settings": "Paramètres",
+    "help": "Aide",
+    "logout": "Déconnexion",
+    "login": "Connexion",
+    "register": "Inscription",
+    "about": "À propos",
+    "pricing": "Tarifs",
+    "contact": "Contact",
+    "blog": "Blog",
+    "faq": "FAQ"
+  },
+  "auth": {
+    "login": {
+      "title": "Connexion",
+      "subtitle": "Connectez-vous à votre compte EcoDeli",
+      "email": "Adresse e-mail",
+      "emailPlaceholder": "votre@email.com",
+      "password": "Mot de passe",
+      "passwordPlaceholder": "Votre mot de passe",
+      "submit": "Se connecter",
+      "loginButton": "Se connecter",
+      "signing": "Connexion en cours...",
+      "forgotPassword": "Mot de passe oublié ?",
+      "noAccount": "Pas de compte ?",
+      "createAccount": "Créer un compte",
+      "errors": {
+        "generic": "Une erreur est survenue lors de la connexion"
+      }
+    },
+    "register": {
+      "title": "Inscription",
+      "firstName": "Prénom",
+      "lastName": "Nom",
+      "email": "Adresse e-mail",
+      "password": "Mot de passe",
+      "confirmPassword": "Confirmer le mot de passe",
+      "submit": "S'inscrire",
+      "hasAccount": "Déjà un compte ?",
+      "signIn": "Se connecter"
+    }
+  },
+  "roles": {
+    "client": {
+      "dashboard": {
+        "title": "Tableau de bord Client",
+        "welcome": "Bienvenue {name}",
+        "quickActions": "Actions rapides",
+        "createAnnouncement": "Créer une annonce",
+        "bookService": "Réserver un service",
+        "viewDeliveries": "Mes livraisons",
+        "viewBookings": "Mes réservations",
+        "stats": {
+          "activeDeliveries": "Livraisons actives",
+          "completedDeliveries": "Livraisons terminées",
+          "totalSpent": "Total dépensé",
+          "savedMoney": "Économies réalisées"
+        }
+      },
+      "announcements": {
+        "title": "Mes annonces",
+        "create": "Créer une annonce",
+        "edit": "Modifier l'annonce",
+        "delete": "Supprimer l'annonce",
+        "publish": "Publier",
+        "types": {
+          "package": "Livraison de colis",
+          "service": "Service à la personne"
+        },
+        "form": {
+          "title": "Titre de l'annonce",
+          "description": "Description détaillée",
+          "pickupLocation": "Lieu de récupération",
+          "deliveryLocation": "Lieu de livraison",
+          "desiredDate": "Date souhaitée",
+          "price": "Prix proposé",
+          "weight": "Poids (kg)",
+          "dimensions": "Dimensions (L x l x h)",
+          "fragile": "Fragile",
+          "insurance": "Assurance requise"
+        }
+      }
+    },
+    "deliverer": {
+      "dashboard": {
+        "title": "Tableau de bord Livreur",
+        "welcome": "Bienvenue {name}",
+        "validationStatus": "Statut de validation",
+        "earnings": "Gains du mois",
+        "activeDeliveries": "Livraisons en cours",
+        "totalDeliveries": "Total livraisons",
+        "rating": "Note moyenne",
+        "quickActions": {
+          "viewOpportunities": "Voir les opportunités",
+          "declareRoute": "Déclarer un trajet",
+          "viewDeliveries": "Mes livraisons",
+          "viewEarnings": "Mes gains"
+        },
+        "validation": {
+          "pending": "Validation en attente",
+          "approved": "Compte validé",
+          "rejected": "Validation refusée",
+          "documents": "Documents requis",
+          "identity": "Pièce d'identité",
+          "license": "Permis de conduire",
+          "insurance": "Assurance véhicule",
+          "registration": "Carte grise"
+        }
+      },
+      "opportunities": {
+        "title": "Opportunités de livraison",
+        "filters": {
+          "distance": "Distance maximale",
+          "price": "Prix minimum",
+          "weight": "Poids maximum",
+          "date": "Date de livraison"
+        },
+        "card": {
+          "from": "De",
+          "to": "Vers",
+          "distance": "Distance",
+          "price": "Prix",
+          "weight": "Poids",
+          "date": "Date souhaitée",
+          "apply": "Postuler",
+          "viewDetails": "Voir les détails"
+        }
+      }
+    },
+    "merchant": {
+      "dashboard": {
+        "title": "Tableau de bord Commerçant",
+        "contract": {
+          "title": "Contrat EcoDeli",
+          "status": "Statut du contrat",
+          "active": "Actif",
+          "pending": "En attente",
+          "expired": "Expiré",
+          "viewContract": "Voir le contrat",
+          "renewContract": "Renouveler le contrat"
+        },
+        "orders": {
+          "title": "Commandes récentes",
+          "pending": "En attente",
+          "processing": "En traitement",
+          "delivered": "Livrées",
+          "cancelled": "Annulées"
+        },
+        "stats": {
+          "monthlyRevenue": "CA mensuel",
+          "totalOrders": "Commandes totales",
+          "averageOrderValue": "Panier moyen",
+          "deliveryRate": "Taux de livraison"
+        }
+      }
+    },
+    "provider": {
+      "dashboard": {
+        "title": "Tableau de bord Prestataire",
+        "validationStatus": "Statut de validation",
+        "monthlyEarnings": "Gains du mois",
+        "activeBookings": "Réservations actives",
+        "rating": "Note moyenne",
+        "completedServices": "Services réalisés",
+        "nextInvoice": "Prochaine facture",
+        "services": {
+          "title": "Mes services",
+          "create": "Créer un service",
+          "edit": "Modifier",
+          "activate": "Activer",
+          "deactivate": "Désactiver"
+        },
+        "availability": {
+          "title": "Mes disponibilités",
+          "update": "Mettre à jour",
+          "calendar": "Voir le calendrier"
+        }
+      }
+    },
+    "admin": {
+      "dashboard": {
+        "title": "Administration EcoDeli",
+        "stats": {
+          "totalUsers": "Utilisateurs totaux",
+          "pendingValidations": "Validations en attente",
+          "activeDeliveries": "Livraisons actives",
+          "monthlyRevenue": "CA mensuel"
+        },
+        "quickActions": {
+          "validateDocuments": "Valider des documents",
+          "manageUsers": "Gérer les utilisateurs",
+          "viewReports": "Voir les rapports",
+          "systemSettings": "Paramètres système"
+        }
+      },
+      "documents": {
+        "validation": {
+          "title": "Validation des documents",
+          "pending": "En attente",
+          "approved": "Approuvés",
+          "rejected": "Rejetés",
+          "filters": {
+            "status": "Statut",
+            "type": "Type de document",
+            "userRole": "Rôle utilisateur",
+            "dateRange": "Période"
+          },
+          "actions": {
+            "approve": "Approuver",
+            "reject": "Rejeter",
+            "viewDocument": "Voir le document",
+            "addNote": "Ajouter une note"
+          }
+        }
+      }
+    }
+  },
+  "notifications": {
+    "title": "Notifications",
+    "markAllRead": "Tout marquer comme lu",
+    "noNotifications": "Aucune notification",
+    "types": {
+      "deliveryOpportunity": "Nouvelle opportunité",
+      "deliveryUpdate": "Mise à jour livraison",
+      "paymentReceived": "Paiement reçu",
+      "documentValidation": "Validation document",
+      "bookingConfirmed": "Réservation confirmée"
+    }
+  },
+  "payments": {
+    "title": "Paiements",
+    "card": {
+      "title": "Paiement par carte",
+      "securePayment": "Paiement sécurisé",
+      "amount": "Montant",
+      "processingPayment": "Traitement en cours...",
+      "payButton": "Payer {amount}",
+      "success": {
+        "title": "Paiement confirmé !",
+        "message": "Votre paiement a été traité avec succès",
+        "downloadReceipt": "Télécharger le reçu",
+        "backToDashboard": "Retour au tableau de bord"
+      },
+      "error": {
+        "title": "Erreur de paiement",
+        "message": "Une erreur est survenue lors du paiement",
+        "retry": "Réessayer",
+        "contactSupport": "Contacter le support"
+      }
+    }
+  },
+  "errors": {
+    "400": "Requête invalide",
+    "401": "Non autorisé - Veuillez vous connecter",
+    "403": "Accès interdit",
+    "404": "Page non trouvée",
+    "500": "Erreur serveur interne",
+    "networkError": "Erreur de connexion",
+    "unknownError": "Erreur inconnue",
+    "notFound": {
+      "title": "Page introuvable",
+      "message": "Désolé, la page que vous cherchez n'existe pas ou a été déplacée.",
+      "backHome": "Retour à l'accueil"
+    },
+    "forbidden": {
+      "title": "Accès interdit",
+      "message": "Vous n'avez pas les permissions nécessaires pour accéder à cette page.",
+      "backHome": "Retour à l'accueil"
+    },
+    "unauthorized": {
+      "title": "Authentification requise",
+      "message": "Vous devez être connecté pour accéder à cette page.",
+      "signIn": "Se connecter"
+    }
+  },
+  "validation": {
+    "required": "Ce champ est obligatoire",
+    "email": "Veuillez entrer un email valide",
+    "minLength": "Minimum {min} caractères",
+    "maxLength": "Maximum {max} caractères",
+    "pattern": "Format invalide",
+    "numeric": "Veuillez entrer un nombre",
+    "positive": "La valeur doit être positive",
+    "phone": "Numéro de téléphone invalide",
+    "password": {
+      "weak": "Mot de passe trop faible",
+      "requirements": "Le mot de passe doit contenir au moins 8 caractères, une majuscule, une minuscule et un chiffre"
+    }
+  },
+  "tutorial": {
+    "welcome": {
+      "title": "Bienvenue sur EcoDeli !",
+      "subtitle": "Découvrez comment utiliser notre plateforme en 6 étapes simples",
+      "start": "Commencer le tutoriel",
+      "skip": "Passer le tutoriel"
+    },
+    "steps": {
+      "profile": {
+        "title": "Complétez votre profil",
+        "description": "Ajoutez vos informations personnelles pour une expérience personnalisée"
+      },
+      "announcements": {
+        "title": "Créez votre première annonce",
+        "description": "Publiez une demande de livraison ou de service"
+      },
+      "search": {
+        "title": "Explorez les services",
+        "description": "Découvrez tous les services disponibles sur EcoDeli"
+      },
+      "booking": {
+        "title": "Réservez un service",
+        "description": "Réservez facilement un service auprès de nos prestataires"
+      },
+      "tracking": {
+        "title": "Suivez vos livraisons",
+        "description": "Restez informé en temps réel de l'état de vos livraisons"
+      },
+      "payment": {
+        "title": "Gérez vos paiements",
+        "description": "Payez en toute sécurité et gérez votre historique"
+      }
+    },
+    "navigation": {
+      "next": "Suivant",
+      "previous": "Précédent",
+      "finish": "Terminer",
+      "stepOf": "Étape {current} sur {total}"
+    }
+  }
+}

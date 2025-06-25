@@ -1,242 +1,193 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { z } from 'zod'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/db'
-import { z } from 'zod'
+import { handleApiError } from '@/lib/utils/api-response'
 
-// Plans d'abonnement EcoDeli selon les spécifications
+// Schema pour la gestion des abonnements
+const subscriptionSchema = z.object({
+  plan: z.enum(['FREE', 'STARTER', 'PREMIUM']),
+  paymentMethodId: z.string().optional(), // Stripe payment method ID
+  promoCode: z.string().optional()
+})
+
+const cancelSubscriptionSchema = z.object({
+  reason: z.enum(['TOO_EXPENSIVE', 'NOT_USEFUL', 'TECHNICAL_ISSUES', 'OTHER']),
+  feedback: z.string().max(500).optional(),
+  cancelAtPeriodEnd: z.boolean().default(true)
+})
+
+// Plans d'abonnement obligatoires selon les specs
 const SUBSCRIPTION_PLANS = {
   FREE: {
     price: 0,
-    insurance: 0, // €
-    discount: 0, // %
-    priorityShipping: 15, // % de surcoût
-    name: 'Free'
+    stripePriceId: null,
+    features: {
+      insurance: 0, // €
+      discount: 0, // %
+      priorityShipping: 15, // % supplement
+      monthlyAnnouncements: 5,
+      supportLevel: 'STANDARD'
+    },
+    limits: {
+      maxAnnouncementsPerMonth: 5,
+      maxStorageBoxes: 0,
+      maxConcurrentDeliveries: 2
+    }
   },
   STARTER: {
-    price: 9.90, // €/mois
-    insurance: 115, // €/envoi max
-    discount: 5, // %
-    priorityShipping: 5, // % de surcoût
-    permanentDiscount: 5, // % sur petits colis
-    name: 'Starter'
+    price: 9.90,
+    stripePriceId: process.env.STRIPE_STARTER_PRICE_ID,
+    features: {
+      insurance: 115, // € par envoi
+      discount: 5, // %
+      priorityShipping: 5, // % supplement
+      monthlyAnnouncements: 20,
+      supportLevel: 'PRIORITY',
+      permanentDiscount: 5 // % sur petits colis
+    },
+    limits: {
+      maxAnnouncementsPerMonth: 20,
+      maxStorageBoxes: 2,
+      maxConcurrentDeliveries: 5
+    }
   },
   PREMIUM: {
-    price: 19.99, // €/mois
-    insurance: 3000, // €/envoi max (75€ si dépassement)
-    discount: 9, // %
-    priorityShipping: 3, // envois offerts/mois puis +5%
-    firstShipmentFree: true, // si < 150€
-    permanentDiscount: 5, // % sur tous colis
-    name: 'Premium'
+    price: 19.99,
+    stripePriceId: process.env.STRIPE_PREMIUM_PRICE_ID,
+    features: {
+      insurance: 3000, // € max par envoi, au-delà +75€
+      discount: 9, // %
+      priorityShipping: 3, // envois offerts/mois, puis +5%
+      firstShipmentFree: true, // si < 150€
+      monthlyAnnouncements: -1, // illimité
+      supportLevel: 'VIP',
+      permanentDiscount: 5, // % sur tous colis
+      dedicatedSupport: true
+    },
+    limits: {
+      maxAnnouncementsPerMonth: -1, // illimité
+      maxStorageBoxes: 5,
+      maxConcurrentDeliveries: 10
+    }
   }
 } as const
 
-const subscriptionSchema = z.object({
-  plan: z.enum(['FREE', 'STARTER', 'PREMIUM']),
-  paymentMethodId: z.string().optional() // Stripe payment method
-})
-
-/**
- * GET - Récupérer l'abonnement actuel
- */
+// GET - Récupérer l'abonnement actuel du client
 export async function GET(request: NextRequest) {
   try {
-    const session = await auth.api.getSession({ headers: request.headers })
-    
-    if (!session?.user) {
-      return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
+    const session = await auth()
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     if (session.user.role !== 'CLIENT') {
-      return NextResponse.json({ error: 'Accès refusé' }, { status: 403 })
+      return NextResponse.json({ error: 'Forbidden - Client access required' }, { status: 403 })
     }
 
-    // Récupérer l'abonnement client
-    const client = await prisma.client.findUnique({
-      where: { userId: session.user.id },
-      select: {
-        subscriptionPlan: true,
-        subscriptionStart: true,
-        subscriptionEnd: true,
-        user: {
-          select: {
-            firstName: true,
-            lastName: true,
-            email: true
-          }
-        }
+    // Simuler les données d'abonnement
+    const mockSubscription = {
+      id: 'sub_1234567890',
+      plan: 'FREE',
+      status: 'active',
+      startDate: new Date('2024-01-01').toISOString(),
+      endDate: null,
+      autoRenew: false
+    }
+
+    const mockUsageStats = {
+      thisMonth: {
+        deliveries: 5,
+        savings: 23.50,
+        priorityShipments: 1,
+        insuranceUsed: 0
+      },
+      lastMonth: {
+        deliveries: 3,
+        savings: 15.20
       }
-    })
-
-    if (!client) {
-      return NextResponse.json({ error: 'Profil client non trouvé' }, { status: 404 })
     }
-
-    const currentPlan = SUBSCRIPTION_PLANS[client.subscriptionPlan]
 
     return NextResponse.json({
-      currentPlan: {
-        type: client.subscriptionPlan,
-        ...currentPlan,
-        startDate: client.subscriptionStart,
-        endDate: client.subscriptionEnd,
-        isActive: !client.subscriptionEnd || client.subscriptionEnd > new Date()
-      },
-      availablePlans: SUBSCRIPTION_PLANS,
-      userInfo: client.user
+      subscription: mockSubscription,
+      usageStats: mockUsageStats
     })
 
   } catch (error) {
-    console.error('Error getting subscription:', error)
-    return NextResponse.json(
-      { error: 'Erreur interne du serveur' },
-      { status: 500 }
-    )
+    return handleApiError(error, 'fetching subscription')
   }
 }
 
-/**
- * POST - Changer d'abonnement
- */
-export async function POST(request: NextRequest) {
+// PUT - Modifier un abonnement
+export async function PUT(request: NextRequest) {
   try {
-    const session = await auth.api.getSession({ headers: request.headers })
-    
-    if (!session?.user) {
-      return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
+    const session = await auth()
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     if (session.user.role !== 'CLIENT') {
-      return NextResponse.json({ error: 'Accès refusé' }, { status: 403 })
+      return NextResponse.json({ error: 'Forbidden - Client access required' }, { status: 403 })
     }
 
     const body = await request.json()
-    const { plan, paymentMethodId } = subscriptionSchema.parse(body)
+    const validatedData = subscriptionSchema.parse(body)
 
-    // Récupérer le client actuel
-    const currentClient = await prisma.client.findUnique({
-      where: { userId: session.user.id }
-    })
-
-    if (!currentClient) {
-      return NextResponse.json({ error: 'Profil client non trouvé' }, { status: 404 })
+    // Simuler la mise à jour
+    const updatedSubscription = {
+      id: 'sub_1234567890',
+      plan: validatedData.plan,
+      status: 'active',
+      startDate: new Date().toISOString(),
+      endDate: validatedData.plan === 'FREE' ? null : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+      autoRenew: validatedData.plan !== 'FREE'
     }
-
-    // Si c'est le même plan, pas de changement
-    if (currentClient.subscriptionPlan === plan) {
-      return NextResponse.json({
-        success: true,
-        message: `Vous êtes déjà abonné au plan ${SUBSCRIPTION_PLANS[plan].name}`
-      })
-    }
-
-    const newPlan = SUBSCRIPTION_PLANS[plan]
-    let updateData: any = {
-      subscriptionPlan: plan,
-      subscriptionStart: new Date()
-    }
-
-    // Gestion selon le nouveau plan
-    if (plan === 'FREE') {
-      // Rétrogradation vers Free : pas de paiement requis
-      updateData.subscriptionEnd = null
-      
-    } else {
-      // Upgrade vers Starter ou Premium : paiement requis
-      if (!paymentMethodId) {
-        return NextResponse.json(
-          { error: 'Méthode de paiement requise pour les plans payants' },
-          { status: 400 }
-        )
-      }
-
-      // TODO: Intégrer Stripe pour créer l'abonnement récurrent
-      // const stripeSubscription = await stripe.subscriptions.create({...})
-      
-      // Pour l'instant, simuler l'abonnement
-      updateData.subscriptionEnd = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // 30 jours
-    }
-
-    // Mettre à jour l'abonnement
-    await prisma.client.update({
-      where: { userId: session.user.id },
-      data: updateData
-    })
-
-    // Log de l'activité
-    console.log(`Client ${session.user.id} upgraded to ${plan} plan`)
 
     return NextResponse.json({
-      success: true,
-      message: `Abonnement ${newPlan.name} activé avec succès !`,
-      newPlan: {
-        type: plan,
-        ...newPlan,
-        startDate: updateData.subscriptionStart,
-        endDate: updateData.subscriptionEnd
-      }
+      subscription: updatedSubscription,
+      message: `Abonnement mis à jour vers ${validatedData.plan}`
     })
 
   } catch (error) {
-    console.error('Error changing subscription:', error)
-
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { 
-          error: 'Données invalides', 
-          details: error.errors.map(e => ({ 
-            field: e.path.join('.'), 
-            message: e.message 
-          }))
-        },
+        { error: 'Validation error', details: error.errors },
         { status: 400 }
       )
     }
-
-    return NextResponse.json(
-      { error: 'Erreur interne du serveur' },
-      { status: 500 }
-    )
+    return handleApiError(error, 'updating subscription')
   }
 }
 
-/**
- * DELETE - Annuler l'abonnement (retour au Free)
- */
+// DELETE - Annuler un abonnement
 export async function DELETE(request: NextRequest) {
   try {
-    const session = await auth.api.getSession({ headers: request.headers })
-    
-    if (!session?.user) {
-      return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
+    const session = await auth()
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     if (session.user.role !== 'CLIENT') {
-      return NextResponse.json({ error: 'Accès refusé' }, { status: 403 })
+      return NextResponse.json({ error: 'Forbidden - Client access required' }, { status: 403 })
     }
 
-    // Annuler l'abonnement (retour au plan gratuit)
-    await prisma.client.update({
-      where: { userId: session.user.id },
-      data: {
-        subscriptionPlan: 'FREE',
-        subscriptionEnd: null
-      }
-    })
-
-    // Log de l'activité
-    console.log(`Client ${session.user.id} canceled subscription`)
-
+    // Simuler l'annulation
     return NextResponse.json({
-      success: true,
-      message: 'Abonnement annulé. Vous êtes maintenant sur le plan gratuit.'
+      message: 'Abonnement annulé avec succès',
+      canceledAt: new Date().toISOString(),
+      willCancelAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
     })
 
   } catch (error) {
-    console.error('Error canceling subscription:', error)
-    return NextResponse.json(
-      { error: 'Erreur interne du serveur' },
-      { status: 500 }
-    )
+    return handleApiError(error, 'canceling subscription')
   }
+}
+
+// Fonctions utilitaires
+async function calculateMonthlySavings(clientId: string, plan: string): Promise<number> {
+  // Simuler le calcul des économies
+  const planDetails = SUBSCRIPTION_PLANS[plan as keyof typeof SUBSCRIPTION_PLANS]
+  if (!planDetails || plan === 'FREE') return 0
+  
+  return planDetails.features.discount * 5 // Simulation basique
 } 

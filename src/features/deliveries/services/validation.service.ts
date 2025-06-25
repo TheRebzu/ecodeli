@@ -1,14 +1,29 @@
-// Service de validation des livraisons avec code à 6 chiffres
-import { prisma } from '@/lib/prisma'
+import { prisma } from '@/lib/db'
 
-export interface ValidationCodeData {
-  deliveryId: string
-  code: string
-  expiresAt: Date
-  isUsed: boolean
+export interface ValidationResult {
+  success: boolean
+  message: string
+  delivery?: any
+  earnings?: number
 }
 
+export interface ValidationData {
+  deliveryId: string
+  validationCode: string
+  location?: {
+    address: string
+    lat?: number
+    lng?: number
+  }
+  proofPhotos?: string[]
+  notes?: string
+}
+
+/**
+ * Service de validation des livraisons avec code 6 chiffres
+ */
 export class DeliveryValidationService {
+  
   /**
    * Génère un code de validation unique à 6 chiffres
    */
@@ -17,300 +32,295 @@ export class DeliveryValidationService {
   }
 
   /**
-   * Crée un code de validation pour une livraison
+   * Valide une livraison avec le code 6 chiffres
    */
-  static async createValidationCode(deliveryId: string): Promise<ValidationCodeData> {
-    // Vérifier que la livraison existe et est au bon statut
-    const delivery = await prisma.delivery.findUnique({
-      where: { id: deliveryId },
-      include: { announcement: true }
-    })
-
-    if (!delivery) {
-      throw new Error('Livraison introuvable')
-    }
-
-    if (!['CONFIRMED', 'PICKED_UP', 'IN_TRANSIT'].includes(delivery.status)) {
-      throw new Error('La livraison n\'est pas dans un état valide pour générer un code')
-    }
-
-    // Générer un code unique
-    let code: string
-    let isUnique = false
-    let attempts = 0
-
-    do {
-      code = this.generateValidationCode()
-      const existing = await prisma.deliveryValidation.findUnique({
-        where: { 
-          code,
-          isUsed: false,
-          expiresAt: { gte: new Date() }
-        }
-      })
-      isUnique = !existing
-      attempts++
-    } while (!isUnique && attempts < 10)
-
-    if (!isUnique) {
-      throw new Error('Impossible de générer un code unique. Réessayez.')
-    }
-
-    // Invalider les anciens codes pour cette livraison
-    await prisma.deliveryValidation.updateMany({
-      where: { 
-        deliveryId,
-        isUsed: false 
-      },
-      data: { isUsed: true }
-    })
-
-    // Créer le nouveau code (valide 2 heures)
-    const expiresAt = new Date(Date.now() + 2 * 60 * 60 * 1000)
-    
-    const validationCode = await prisma.deliveryValidation.create({
-      data: {
-        deliveryId,
-        code,
-        expiresAt,
-        isUsed: false
-      }
-    })
-
-    return {
-      deliveryId,
-      code,
-      expiresAt,
-      isUsed: false
-    }
-  }
-
-  /**
-   * Valide un code de validation
-   */
-  static async validateCode(deliveryId: string, code: string, delivererId: string): Promise<{
-    success: boolean
-    message: string
-    delivery?: any
-  }> {
+  static async validateDelivery(
+    delivererId: string, 
+    validationData: ValidationData
+  ): Promise<ValidationResult> {
     try {
       // Vérifier que la livraison existe et appartient au livreur
-      const delivery = await prisma.delivery.findFirst({
-        where: {
-          id: deliveryId,
-          delivererId
-        },
+      const delivery = await prisma.delivery.findUnique({
+        where: { id: validationData.deliveryId },
         include: {
           announcement: {
             include: {
-              client: true
+              client: {
+                include: {
+                  user: {
+                    select: {
+                      id: true,
+                      email: true,
+                      profile: {
+                        select: {
+                          firstName: true,
+                          lastName: true,
+                          phone: true
+                        }
+                      }
+                    }
+                  }
+                }
+              }
             }
           },
-          deliverer: true
+          payment: true
         }
       })
 
       if (!delivery) {
         return {
           success: false,
-          message: 'Livraison introuvable ou vous n\'êtes pas autorisé'
+          message: 'Livraison non trouvée'
         }
       }
 
-      // Vérifier le statut de la livraison
-      if (delivery.status === 'DELIVERED') {
+      if (delivery.delivererId !== delivererId) {
         return {
           success: false,
-          message: 'Cette livraison a déjà été validée'
+          message: 'Cette livraison ne vous est pas assignée'
         }
       }
 
-      if (!['CONFIRMED', 'PICKED_UP', 'IN_TRANSIT'].includes(delivery.status)) {
+      if (delivery.status !== 'IN_TRANSIT') {
         return {
           success: false,
-          message: 'La livraison n\'est pas dans un état valide pour validation'
+          message: `Impossible de valider une livraison avec le statut: ${delivery.status}`
         }
       }
 
       // Vérifier le code de validation
-      const validationCode = await prisma.deliveryValidation.findFirst({
-        where: {
-          deliveryId,
-          code,
-          isUsed: false,
-          expiresAt: { gte: new Date() }
-        }
-      })
-
-      if (!validationCode) {
-        // Vérifier si le code existe mais est expiré ou utilisé
-        const expiredCode = await prisma.deliveryValidation.findFirst({
-          where: {
-            deliveryId,
-            code
+      if (delivery.validationCode !== validationData.validationCode) {
+        // Log tentative invalide
+        await prisma.deliveryLog.create({
+          data: {
+            deliveryId: delivery.id,
+            action: 'VALIDATION_FAILED',
+            details: `Code invalide tenté: ${validationData.validationCode}`,
+            performedBy: delivererId
           }
         })
-
-        if (expiredCode) {
-          if (expiredCode.isUsed) {
-            return {
-              success: false,
-              message: 'Ce code a déjà été utilisé'
-            }
-          }
-          if (expiredCode.expiresAt < new Date()) {
-            return {
-              success: false,
-              message: 'Ce code a expiré. Demandez un nouveau code au client.'
-            }
-          }
-        }
 
         return {
           success: false,
-          message: 'Code de validation incorrect'
+          message: 'Code de validation incorrect. Vérifiez le code à 6 chiffres fourni par le client.'
         }
       }
 
-      // Code valide : marquer la livraison comme terminée dans une transaction
+      // Validation réussie - transaction
       const result = await prisma.$transaction(async (tx) => {
-        // Marquer le code comme utilisé
-        await tx.deliveryValidation.update({
-          where: { id: validationCode.id },
-          data: { 
-            isUsed: true,
-            usedAt: new Date()
-          }
-        })
-
-        // Mettre à jour le statut de la livraison
+        // 1. Mettre à jour la livraison
         const updatedDelivery = await tx.delivery.update({
-          where: { id: deliveryId },
+          where: { id: delivery.id },
           data: {
             status: 'DELIVERED',
-            deliveredAt: new Date()
-          },
-          include: {
-            announcement: {
-              include: {
-                client: true
-              }
-            },
-            deliverer: true
+            completedAt: new Date(),
+            deliveryLocation: validationData.location?.address,
+            deliveryLat: validationData.location?.lat,
+            deliveryLng: validationData.location?.lng,
+            deliveryNotes: validationData.notes
           }
         })
 
-        // Créer l'historique de validation
-        await tx.deliveryHistory.create({
+        // 2. Créer preuve de livraison si photos
+        if (validationData.proofPhotos && validationData.proofPhotos.length > 0) {
+          await tx.proofOfDelivery.create({
+            data: {
+              deliveryId: delivery.id,
+              photos: validationData.proofPhotos,
+              location: validationData.location?.address || '',
+              timestamp: new Date(),
+              validatedBy: delivererId
+            }
+          })
+        }
+
+        // 3. Finaliser le paiement
+        if (delivery.payment) {
+          await tx.payment.update({
+            where: { id: delivery.payment.id },
+            data: {
+              status: 'COMPLETED',
+              completedAt: new Date()
+            }
+          })
+        }
+
+        // 4. Mettre à jour les stats du livreur
+        await tx.deliverer.update({
+          where: { id: delivererId },
           data: {
-            deliveryId,
-            status: 'DELIVERED',
-            notes: `Livraison validée avec le code ${code}`,
-            createdAt: new Date()
+            totalDeliveries: { increment: 1 },
+            totalEarnings: { 
+              increment: delivery.payment?.amount || 0 
+            }
           }
         })
 
-        return updatedDelivery
+        // 5. Log de validation
+        await tx.deliveryLog.create({
+          data: {
+            deliveryId: delivery.id,
+            action: 'VALIDATED',
+            details: `Livraison validée avec succès`,
+            performedBy: delivererId
+          }
+        })
+
+        return {
+          delivery: updatedDelivery,
+          earnings: delivery.payment?.amount || 0
+        }
       })
 
       return {
         success: true,
-        message: 'Livraison validée avec succès !',
-        delivery: result
+        message: 'Livraison validée avec succès',
+        delivery: result.delivery,
+        earnings: result.earnings
       }
 
     } catch (error) {
-      console.error('Erreur validation code:', error)
+      console.error('Erreur lors de la validation:', error)
       return {
         success: false,
-        message: 'Erreur lors de la validation. Réessayez.'
+        message: 'Erreur lors de la validation de la livraison'
       }
     }
   }
 
   /**
-   * Récupère le code de validation actif pour une livraison
+   * Récupère l'historique des validations d'un livreur
    */
-  static async getCurrentValidationCode(deliveryId: string, clientId: string): Promise<ValidationCodeData | null> {
-    // Vérifier que la livraison appartient au client
-    const delivery = await prisma.delivery.findFirst({
-      where: {
-        id: deliveryId,
-        announcement: {
-          clientId
+  static async getValidationHistory(delivererId: string, limit: number = 20) {
+    try {
+      const validations = await prisma.deliveryLog.findMany({
+        where: {
+          performedBy: delivererId,
+          action: { in: ['VALIDATED', 'VALIDATION_FAILED'] }
+        },
+        include: {
+          delivery: {
+            include: {
+              announcement: {
+                select: {
+                  id: true,
+                  title: true,
+                  pickupAddress: true,
+                  deliveryAddress: true
+                }
+              }
+            }
+          }
+        },
+        orderBy: { createdAt: 'desc' },
+        take: limit
+      })
+
+      return validations
+    } catch (error) {
+      console.error('Erreur récupération historique:', error)
+      return []
+    }
+  }
+
+  /**
+   * Vérifie si un code de validation est encore valide (pas expiré)
+   */
+  static async isValidationCodeValid(deliveryId: string): Promise<boolean> {
+    try {
+      const delivery = await prisma.delivery.findUnique({
+        where: { id: deliveryId },
+        select: { 
+          status: true, 
+          scheduledAt: true,
+          validationCode: true 
         }
+      })
+
+      if (!delivery || !delivery.validationCode) {
+        return false
       }
-    })
 
-    if (!delivery) {
-      return null
-    }
+      // Vérifier que la livraison est en cours
+      if (delivery.status !== 'IN_TRANSIT') {
+        return false
+      }
 
-    // Récupérer le code actif
-    const validationCode = await prisma.deliveryValidation.findFirst({
-      where: {
-        deliveryId,
-        isUsed: false,
-        expiresAt: { gte: new Date() }
-      },
-      orderBy: { createdAt: 'desc' }
-    })
+      // Vérifier que la date de livraison n'est pas trop ancienne (24h max)
+      const maxValidationTime = new Date(delivery.scheduledAt)
+      maxValidationTime.setHours(maxValidationTime.getHours() + 24)
 
-    if (!validationCode) {
-      return null
-    }
-
-    return {
-      deliveryId,
-      code: validationCode.code,
-      expiresAt: validationCode.expiresAt,
-      isUsed: validationCode.isUsed
-    }
-  }
-
-  /**
-   * Vérifie si un code de validation est requis pour une livraison
-   */
-  static async isValidationRequired(deliveryId: string): Promise<boolean> {
-    const delivery = await prisma.delivery.findUnique({
-      where: { id: deliveryId },
-      include: { announcement: true }
-    })
-
-    if (!delivery) {
+      return new Date() <= maxValidationTime
+    } catch (error) {
+      console.error('Erreur vérification code:', error)
       return false
     }
-
-    // La validation est requise pour les livraisons en cours
-    return ['CONFIRMED', 'PICKED_UP', 'IN_TRANSIT'].includes(delivery.status)
   }
 
   /**
-   * Génère un nouveau code si l'ancien a expiré
+   * Met à jour le statut d'une livraison (pickup, en transit, etc.)
    */
-  static async refreshValidationCode(deliveryId: string, clientId: string): Promise<ValidationCodeData | null> {
-    // Vérifier que la livraison appartient au client
-    const delivery = await prisma.delivery.findFirst({
-      where: {
-        id: deliveryId,
-        announcement: {
-          clientId
+  static async updateDeliveryStatus(
+    deliveryId: string,
+    delivererId: string,
+    status: 'PICKED_UP' | 'IN_TRANSIT',
+    location?: { address: string; lat?: number; lng?: number }
+  ) {
+    try {
+      const delivery = await prisma.delivery.findUnique({
+        where: { id: deliveryId }
+      })
+
+      if (!delivery || delivery.delivererId !== delivererId) {
+        return {
+          success: false,
+          message: 'Livraison non trouvée ou non autorisée'
         }
       }
-    })
 
-    if (!delivery) {
-      throw new Error('Livraison introuvable')
+      const updatedDelivery = await prisma.$transaction(async (tx) => {
+        // Mettre à jour le statut
+        const updated = await tx.delivery.update({
+          where: { id: deliveryId },
+          data: {
+            status,
+            ...(status === 'PICKED_UP' && { 
+              pickedUpAt: new Date(),
+              pickupLocation: location?.address,
+              pickupLat: location?.lat,
+              pickupLng: location?.lng
+            }),
+            ...(status === 'IN_TRANSIT' && { 
+              inTransitAt: new Date() 
+            })
+          }
+        })
+
+        // Log de l'action
+        await tx.deliveryLog.create({
+          data: {
+            deliveryId,
+            action: status,
+            details: `Status changed to ${status}${location ? ` at ${location.address}` : ''}`,
+            performedBy: delivererId
+          }
+        })
+
+        return updated
+      })
+
+      return {
+        success: true,
+        message: `Statut mis à jour: ${status}`,
+        delivery: updatedDelivery
+      }
+    } catch (error) {
+      console.error('Erreur mise à jour statut:', error)
+      return {
+        success: false,
+        message: 'Erreur lors de la mise à jour du statut'
+      }
     }
-
-    // Vérifier qu'un refresh est nécessaire
-    const currentCode = await this.getCurrentValidationCode(deliveryId, clientId)
-    if (currentCode) {
-      // Un code valide existe déjà
-      return currentCode
-    }
-
-    // Générer un nouveau code
-    return await this.createValidationCode(deliveryId)
   }
 }
