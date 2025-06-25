@@ -22,6 +22,8 @@ model Deliverer {
   user                 User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
   routes               DeliveryRoute[]
   delivererAvailabilities DelivererAvailability[]
+  trackingSessions     TrackingSession[]
+  currentLocation      DelivererLocation?
 
   @@index([userId])
   @@index([isActive])

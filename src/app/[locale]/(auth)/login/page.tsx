@@ -2,6 +2,7 @@
 import { useTranslations } from "next-intl"
 import Link from "next/link"
 import { LoginForm } from "@/features/auth/components/login-form"
+import { TestAccounts } from "@/features/auth/components/test-accounts"
 
 export default function LoginPage() {
   const t = useTranslations()
@@ -47,17 +48,8 @@ export default function LoginPage() {
           </div>
         </div>
 
-        {/* Note de développement (visible seulement en dev) */}
-        {process.env.NODE_ENV === 'development' && (
-          <div className="mt-6 bg-blue-50 rounded-lg p-4">
-            <h3 className="text-sm font-medium text-blue-900 mb-2">
-              🧪 Mode développement
-            </h3>
-            <p className="text-xs text-blue-800">
-              Comptes de test disponibles pour les développeurs
-            </p>
-          </div>
-        )}
+        {/* Comptes de test avec connexion rapide */}
+        <TestAccounts />
       </div>
     </div>
   )

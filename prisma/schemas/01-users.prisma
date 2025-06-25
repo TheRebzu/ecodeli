@@ -34,6 +34,7 @@ model User {
   wallet            Wallet?
   globalAvailabilities GlobalAvailability[]
   activityLogs      ActivityLog[]
+  tutorialProgress  ClientTutorialProgress?
   
   @@index([email])
   @@index([role])

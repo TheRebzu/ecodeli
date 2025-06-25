@@ -340,29 +340,203 @@ export class InvoiceGeneratorService {
   }
 
   /**
-   * Upload simulé du PDF (à remplacer par vraie solution de stockage)
+   * Upload réel du PDF vers le système de fichiers
    */
   private static async uploadPDF(fileName: string, pdfBytes: ArrayBuffer): Promise<string> {
     try {
-      // TODO: Implémenter vraie solution de stockage
-      // - AWS S3
-      // - Google Cloud Storage
-      // - Azure Blob Storage
-      // - Système de fichiers local sécurisé
+      const fs = require('fs').promises
+      const path = require('path')
       
-      // Pour l'instant, on simule juste l'URL
-      const baseUrl = process.env.PDF_STORAGE_URL || '/storage/invoices'
-      const pdfUrl = `${baseUrl}/${fileName}`
+      // Créer le répertoire de stockage
+      const storageDir = path.join(process.cwd(), 'uploads', 'invoices')
+      await fs.mkdir(storageDir, { recursive: true })
       
-      // Simulation d'upload (en réalité, sauvegarder le fichier)
-      console.log(`📄 PDF généré: ${fileName} (${pdfBytes.byteLength} bytes)`)
+      // Chemin complet du fichier
+      const filePath = path.join(storageDir, fileName)
+      
+      // Sauvegarder le fichier PDF
+      const buffer = Buffer.from(pdfBytes)
+      await fs.writeFile(filePath, buffer)
+      
+      // URL relative pour accéder au fichier
+      const pdfUrl = `/uploads/invoices/${fileName}`
+      
+      console.log(`📄 PDF sauvegardé: ${fileName} (${buffer.length} bytes)`)
       
       return pdfUrl
 
     } catch (error) {
-      console.error('Erreur upload PDF:', error)
+      console.error('Erreur sauvegarde PDF:', error)
       throw error
     }
+  }
+
+  /**
+   * Génère un contrat PDF pour un commerçant
+   */
+  static async generateMerchantContract(merchantId: string, contractData: any): Promise<string> {
+    try {
+      const merchant = await prisma.merchant.findUnique({
+        where: { id: merchantId },
+        include: {
+          user: {
+            include: { profile: true }
+          }
+        }
+      })
+
+      if (!merchant) {
+        throw new Error('Commerçant introuvable')
+      }
+
+      const pdf = new jsPDF()
+      
+      // En-tête
+      this.addCompanyHeader(pdf)
+      
+      // Titre du contrat
+      pdf.setFontSize(18)
+      pdf.setFont('helvetica', 'bold')
+      pdf.text('CONTRAT DE PARTENARIAT COMMERÇANT', 20, 70)
+      
+      // Informations du contrat
+      pdf.setFontSize(10)
+      pdf.setFont('helvetica', 'normal')
+      pdf.text(`Numéro: ${contractData.contractNumber}`, 20, 85)
+      pdf.text(`Date: ${new Date().toLocaleDateString('fr-FR')}`, 20, 90)
+      
+      // Parties
+      this.addContractParties(pdf, merchant, contractData)
+      
+      // Clauses du contrat
+      this.addContractClauses(pdf, contractData)
+      
+      // Signature
+      this.addSignatureSection(pdf)
+      
+      // Pied de page
+      this.addFooter(pdf)
+
+      const pdfBytes = pdf.output('arraybuffer')
+      const fileName = `contrat-${contractData.contractNumber}.pdf`
+      const pdfUrl = await this.uploadPDF(fileName, pdfBytes)
+      
+      return pdfUrl
+
+    } catch (error) {
+      console.error('Erreur génération contrat:', error)
+      throw error
+    }
+  }
+
+  private static addContractParties(pdf: jsPDF, merchant: any, contractData: any) {
+    let currentY = 110
+    
+    // EcoDeli
+    pdf.setFontSize(12)
+    pdf.setFont('helvetica', 'bold')
+    pdf.text('ENTRE :', 20, currentY)
+    
+    currentY += 10
+    pdf.setFontSize(10)
+    pdf.setFont('helvetica', 'normal')
+    pdf.text('EcoDeli SAS', 20, currentY)
+    pdf.text('110 rue de Flandre, 75019 Paris', 20, currentY + 5)
+    pdf.text('SIRET: 123 456 789 00012', 20, currentY + 10)
+    pdf.text('Ci-après dénommée "EcoDeli"', 20, currentY + 15)
+    
+    currentY += 30
+    
+    // Commerçant
+    pdf.setFont('helvetica', 'bold')
+    pdf.text('ET :', 20, currentY)
+    
+    currentY += 10
+    pdf.setFont('helvetica', 'normal')
+    const profile = merchant.user.profile
+    pdf.text(`${profile.firstName} ${profile.lastName}`, 20, currentY)
+    if (merchant.companyName) {
+      pdf.text(`Représentant: ${merchant.companyName}`, 20, currentY + 5)
+    }
+    pdf.text(`SIRET: ${merchant.siret}`, 20, currentY + 10)
+    pdf.text(profile.address || 'Adresse à compléter', 20, currentY + 15)
+    pdf.text('Ci-après dénommé "Le Commerçant"', 20, currentY + 20)
+  }
+
+  private static addContractClauses(pdf: jsPDF, contractData: any) {
+    pdf.addPage()
+    let currentY = 30
+    
+    pdf.setFontSize(14)
+    pdf.setFont('helvetica', 'bold')
+    pdf.text('CONDITIONS GÉNÉRALES', 20, currentY)
+    
+    currentY += 20
+    
+    const clauses = [
+      {
+        title: 'Article 1 - Objet du contrat',
+        content: 'Le présent contrat a pour objet de définir les conditions dans lesquelles EcoDeli met à disposition du Commerçant sa plateforme de crowdshipping.'
+      },
+      {
+        title: 'Article 2 - Commission',
+        content: `EcoDeli perçoit une commission de ${(contractData.commissionRate * 100).toFixed(1)}% sur chaque transaction réalisée via la plateforme.`
+      },
+      {
+        title: 'Article 3 - Durée',
+        content: 'Le présent contrat est conclu pour une durée indéterminée à compter de sa signature.'
+      },
+      {
+        title: 'Article 4 - Obligations du Commerçant',
+        content: 'Le Commerçant s\'engage à respecter les conditions générales d\'utilisation d\'EcoDeli et à maintenir un service de qualité.'
+      }
+    ]
+    
+    pdf.setFontSize(10)
+    for (const clause of clauses) {
+      if (currentY > 250) {
+        pdf.addPage()
+        currentY = 30
+      }
+      
+      pdf.setFont('helvetica', 'bold')
+      pdf.text(clause.title, 20, currentY)
+      currentY += 8
+      
+      pdf.setFont('helvetica', 'normal')
+      const lines = pdf.splitTextToSize(clause.content, 170)
+      pdf.text(lines, 20, currentY)
+      currentY += lines.length * 5 + 10
+    }
+  }
+
+  private static addSignatureSection(pdf: jsPDF) {
+    pdf.addPage()
+    let currentY = 30
+    
+    pdf.setFontSize(12)
+    pdf.setFont('helvetica', 'bold')
+    pdf.text('SIGNATURES', 20, currentY)
+    
+    currentY += 30
+    
+    // Signature EcoDeli
+    pdf.setFontSize(10)
+    pdf.setFont('helvetica', 'normal')
+    pdf.text('Pour EcoDeli :', 20, currentY)
+    pdf.text('Date : _______________', 20, currentY + 20)
+    pdf.text('Signature : _______________', 20, currentY + 40)
+    
+    // Signature Commerçant
+    pdf.text('Pour le Commerçant :', 120, currentY)
+    pdf.text('Date : _______________', 120, currentY + 20)
+    pdf.text('Signature : _______________', 120, currentY + 40)
+    
+    // Mention légale
+    currentY += 80
+    pdf.setFontSize(8)
+    pdf.setFont('helvetica', 'italic')
+    pdf.text('Fait en deux exemplaires originaux, à Paris le ' + new Date().toLocaleDateString('fr-FR'), 20, currentY)
   }
 }
 

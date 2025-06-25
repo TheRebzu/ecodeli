@@ -28,6 +28,7 @@ model Delivery {
   tracking           TrackingUpdate[]
   history            DeliveryHistory[]
   validations        DeliveryValidation[]
+  trackingSessions   TrackingSession[]
 
   @@index([clientId])
   @@index([delivererId])

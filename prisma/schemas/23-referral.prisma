@@ -1,0 +1,430 @@
+// Modèles référencement et parrainage
+
+model ReferralProgram {
+  id                String              @id @default(cuid())
+  name              String
+  description       String
+  programType       ReferralType
+  isActive          Boolean             @default(true)
+  startDate         DateTime            @default(now())
+  endDate           DateTime?
+  maxParticipants   Int?                // Limite de participants
+  currentParticipants Int               @default(0)
+  
+  // Conditions d'éligibilité
+  eligibilityRules  Json                // Règles d'éligibilité
+  minimumAge        Int?
+  requiredRole      UserRole?
+  requiredStatus    ValidationStatus?
+  
+  // Récompenses
+  referrerReward    Json                // Récompense pour le parrain
+  refereeReward     Json                // Récompense pour le filleul
+  bonusConditions   Json?               // Conditions pour bonus supplémentaires
+  
+  // Limites
+  maxReferralsPerUser Int               @default(10)
+  maxRewardPerUser  Float?              // Montant max de récompense par utilisateur
+  rewardValidityDays Int                @default(30)
+  
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  // Relations
+  referrals         Referral[]
+  codes             ReferralCode[]
+
+  @@index([programType])
+  @@index([isActive])
+  @@index([startDate])
+}
+
+model ReferralCode {
+  id                String              @id @default(cuid())
+  programId         String
+  referrerId        String              // Utilisateur qui parraine
+  code              String              @unique
+  isActive          Boolean             @default(true)
+  usageLimit        Int                 @default(1)
+  usageCount        Int                 @default(0)
+  expiresAt         DateTime?
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  // Relations
+  program           ReferralProgram     @relation(fields: [programId], references: [id])
+  referrer          User                @relation("ReferrerCodes", fields: [referrerId], references: [id])
+  referrals         Referral[]
+
+  @@index([programId])
+  @@index([referrerId])
+  @@index([code])
+  @@index([isActive])
+}
+
+model Referral {
+  id                String              @id @default(cuid())
+  programId         String
+  codeId            String?
+  referrerId        String              // Parrain
+  refereeId         String              // Filleul
+  status            ReferralStatus      @default(PENDING)
+  referralMethod    ReferralMethod      // Comment le parrainage a été fait
+  
+  // Suivi des conditions
+  conditionsMet     Json                // Conditions remplies
+  completedAt       DateTime?           // Date de complétion des conditions
+  
+  // Récompenses
+  referrerRewardStatus RewardStatus     @default(PENDING)
+  refereeRewardStatus RewardStatus      @default(PENDING)
+  referrerRewardAmount Float?
+  refereeRewardAmount Float?
+  referrerRewardDate DateTime?
+  refereeRewardDate DateTime?
+  
+  // Métadonnées
+  metadata          Json?               // Informations supplémentaires
+  notes             String?
+  
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  // Relations
+  program           ReferralProgram     @relation(fields: [programId], references: [id])
+  code              ReferralCode?       @relation(fields: [codeId], references: [id])
+  referrer          User                @relation("UserAsReferrer", fields: [referrerId], references: [id])
+  referee           User                @relation("UserAsReferee", fields: [refereeId], references: [id])
+  activities        ReferralActivity[]
+
+  @@unique([referrerId, refereeId, programId])
+  @@index([programId])
+  @@index([referrerId])
+  @@index([refereeId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model ReferralActivity {
+  id                String              @id @default(cuid())
+  referralId        String
+  activityType      ActivityType
+  description       String
+  value             Float?              // Valeur associée (montant, points, etc.)
+  metadata          Json?
+  occurredAt        DateTime            @default(now())
+
+  // Relations
+  referral          Referral            @relation(fields: [referralId], references: [id], onDelete: Cascade)
+
+  @@index([referralId])
+  @@index([activityType])
+  @@index([occurredAt])
+}
+
+model ReferralReward {
+  id                String              @id @default(cuid())
+  userId            String
+  referralId        String
+  rewardType        RewardType
+  amount            Float
+  currency          String              @default("EUR")
+  status            RewardStatus        @default(PENDING)
+  description       String
+  expiresAt         DateTime?
+  claimedAt         DateTime?
+  processedAt       DateTime?
+  paymentReference  String?
+  metadata          Json?
+  createdAt         DateTime            @default(now())
+
+  // Relations
+  user              User                @relation(fields: [userId], references: [id])
+  referral          Referral            @relation(fields: [referralId], references: [id])
+
+  @@index([userId])
+  @@index([referralId])
+  @@index([status])
+  @@index([rewardType])
+  @@index([expiresAt])
+}
+
+model ReferralStats {
+  id                String              @id @default(cuid())
+  userId            String
+  programId         String
+  totalReferrals    Int                 @default(0)
+  successfulReferrals Int               @default(0)
+  totalRewards      Float               @default(0)
+  pendingRewards    Float               @default(0)
+  lastReferralDate  DateTime?
+  ranking           Int?                // Classement dans le programme
+  level             String?             // Niveau atteint (Bronze, Silver, Gold, etc.)
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  // Relations
+  user              User                @relation(fields: [userId], references: [id])
+  program           ReferralProgram     @relation(fields: [programId], references: [id])
+
+  @@unique([userId, programId])
+  @@index([userId])
+  @@index([programId])
+  @@index([totalReferrals])
+  @@index([ranking])
+}
+
+model InfluencerProgram {
+  id                String              @id @default(cuid())
+  influencerId      String
+  programName       String
+  description       String
+  status            InfluencerStatus    @default(PENDING)
+  
+  // Conditions
+  minimumFollowers  Int?
+  requiredPlatforms String[]            // ['instagram', 'tiktok', 'youtube', etc.]
+  contentRequirements Json
+  
+  // Commission
+  commissionRate    Float               // Pourcentage de commission
+  fixedReward       Float?              // Récompense fixe par conversion
+  bonusThresholds   Json                // Seuils pour bonus
+  
+  // Suivi
+  totalClicks       Int                 @default(0)
+  totalConversions  Int                 @default(0)
+  totalEarnings     Float               @default(0)
+  conversionRate    Float               @default(0)
+  
+  // Dates
+  startDate         DateTime?
+  endDate           DateTime?
+  approvedAt        DateTime?
+  approvedBy        String?
+  
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  // Relations
+  influencer        User                @relation(fields: [influencerId], references: [id])
+  campaigns         InfluencerCampaign[]
+  links             InfluencerLink[]
+
+  @@index([influencerId])
+  @@index([status])
+  @@index([approvedAt])
+}
+
+model InfluencerCampaign {
+  id                String              @id @default(cuid())
+  programId         String
+  name              String
+  description       String
+  type              CampaignType
+  
+  // Objectifs
+  targetAudience    Json
+  expectedReach     Int?
+  targetConversions Int?
+  
+  // Budget
+  budget            Float?
+  costPerClick      Float?
+  costPerConversion Float?
+  
+  // Contenu
+  contentGuidelines Json
+  requiredHashtags  String[]
+  brandingRequirements Json
+  
+  // Planning
+  startDate         DateTime
+  endDate           DateTime
+  postingSchedule   Json?
+  
+  // Suivi
+  actualReach       Int                 @default(0)
+  actualClicks      Int                 @default(0)
+  actualConversions Int                 @default(0)
+  actualCost        Float               @default(0)
+  
+  status            CampaignStatus      @default(DRAFT)
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  // Relations
+  program           InfluencerProgram   @relation(fields: [programId], references: [id])
+  posts             InfluencerPost[]
+
+  @@index([programId])
+  @@index([status])
+  @@index([startDate])
+}
+
+model InfluencerLink {
+  id                String              @id @default(cuid())
+  programId         String
+  url               String              @unique
+  shortCode         String              @unique
+  description       String?
+  
+  // Suivi
+  clicks            Int                 @default(0)
+  conversions       Int                 @default(0)
+  revenue           Float               @default(0)
+  
+  // Métadonnées
+  utmSource         String?
+  utmMedium         String?
+  utmCampaign       String?
+  
+  isActive          Boolean             @default(true)
+  expiresAt         DateTime?
+  createdAt         DateTime            @default(now())
+
+  // Relations
+  program           InfluencerProgram   @relation(fields: [programId], references: [id])
+  analytics         LinkAnalytics[]
+
+  @@index([programId])
+  @@index([shortCode])
+  @@index([isActive])
+}
+
+model InfluencerPost {
+  id                String              @id @default(cuid())
+  campaignId        String
+  platform          String              // 'instagram', 'tiktok', 'youtube', etc.
+  postUrl           String?
+  postId            String?             // ID du post sur la plateforme
+  content           String
+  hashtags          String[]
+  
+  // Métriques
+  likes             Int                 @default(0)
+  comments          Int                 @default(0)
+  shares            Int                 @default(0)
+  views             Int                 @default(0)
+  reach             Int                 @default(0)
+  engagement        Float               @default(0) // Taux d'engagement
+  
+  // Validation
+  isApproved        Boolean             @default(false)
+  approvedAt        DateTime?
+  approvedBy        String?
+  rejectionReason   String?
+  
+  publishedAt       DateTime?
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  // Relations
+  campaign          InfluencerCampaign  @relation(fields: [campaignId], references: [id])
+
+  @@index([campaignId])
+  @@index([platform])
+  @@index([publishedAt])
+}
+
+model LinkAnalytics {
+  id                String              @id @default(cuid())
+  linkId            String
+  date              DateTime            @db.Date
+  clicks            Int                 @default(0)
+  uniqueClicks      Int                 @default(0)
+  conversions       Int                 @default(0)
+  revenue           Float               @default(0)
+  
+  // Démographie
+  countries         Json                // Répartition par pays
+  devices           Json                // Répartition par appareil
+  referrers         Json                // Sites référents
+  
+  createdAt         DateTime            @default(now())
+
+  // Relations
+  link              InfluencerLink      @relation(fields: [linkId], references: [id])
+
+  @@unique([linkId, date])
+  @@index([linkId])
+  @@index([date])
+}
+
+enum ReferralType {
+  USER_REFERRAL     // Parrainage d'utilisateurs
+  SERVICE_REFERRAL  // Parrainage de services
+  MERCHANT_REFERRAL // Parrainage de commerçants
+  DELIVERER_REFERRAL // Parrainage de livreurs
+  PROVIDER_REFERRAL // Parrainage de prestataires
+}
+
+enum ReferralStatus {
+  PENDING           // En attente
+  ACTIVE            // Actif
+  COMPLETED         // Terminé
+  EXPIRED           // Expiré
+  CANCELLED         // Annulé
+}
+
+enum ReferralMethod {
+  CODE              // Code de parrainage
+  LINK              // Lien de parrainage
+  EMAIL             // Email
+  SOCIAL_MEDIA      // Réseaux sociaux
+  WORD_OF_MOUTH     // Bouche à oreille
+  OTHER             // Autre
+}
+
+enum RewardStatus {
+  PENDING           // En attente
+  APPROVED          // Approuvé
+  PAID              // Payé
+  EXPIRED           // Expiré
+  CANCELLED         // Annulé
+}
+
+enum RewardType {
+  CASH              // Argent
+  CREDIT            // Crédit
+  DISCOUNT          // Réduction
+  POINTS            // Points
+  FREE_SERVICE      // Service gratuit
+  PREMIUM_ACCESS    // Accès premium
+}
+
+enum ActivityType {
+  REGISTRATION      // Inscription
+  FIRST_ORDER       // Première commande
+  FIRST_DELIVERY    // Première livraison
+  MONTHLY_ACTIVITY  // Activité mensuelle
+  SPENDING_THRESHOLD // Seuil de dépense
+  REFERRAL_CHAIN    // Chaîne de parrainage
+}
+
+enum InfluencerStatus {
+  PENDING           // En attente
+  APPROVED          // Approuvé
+  REJECTED          // Rejeté
+  ACTIVE            // Actif
+  SUSPENDED         // Suspendu
+  TERMINATED        // Terminé
+}
+
+enum CampaignType {
+  AWARENESS         // Sensibilisation
+  CONVERSION        // Conversion
+  ENGAGEMENT        // Engagement
+  BRAND_PARTNERSHIP // Partenariat de marque
+  PRODUCT_LAUNCH    // Lancement produit
+}
+
+enum CampaignStatus {
+  DRAFT             // Brouillon
+  PENDING_APPROVAL  // En attente d'approbation
+  APPROVED          // Approuvé
+  ACTIVE            // Actif
+  PAUSED            // En pause
+  COMPLETED         // Terminé
+  CANCELLED         // Annulé
+}

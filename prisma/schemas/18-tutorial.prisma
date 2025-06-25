@@ -1,0 +1,56 @@
+// Modèles tutoriel
+
+model ClientTutorialProgress {
+  id                String              @id @default(cuid())
+  userId            String              @unique
+  isCompleted       Boolean             @default(false)
+  startedAt         DateTime            @default(now())
+  completedAt       DateTime?
+  totalTimeSpent    Int                 @default(0) // en secondes
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  // Relations
+  user              User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  steps             TutorialStep[]
+  feedback          TutorialFeedback?
+
+  @@index([userId])
+  @@index([isCompleted])
+}
+
+model TutorialStep {
+  id                String              @id @default(cuid())
+  userId            String
+  stepId            Int                 // ID de l'étape (1, 2, 3, etc.)
+  isCompleted       Boolean             @default(false)
+  isSkipped         Boolean             @default(false)
+  timeSpent         Int                 @default(0) // en secondes
+  completedAt       DateTime?
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  // Relations
+  progress          ClientTutorialProgress @relation(fields: [userId], references: [userId], onDelete: Cascade)
+
+  @@unique([userId, stepId])
+  @@index([userId])
+  @@index([stepId])
+  @@index([isCompleted])
+}
+
+model TutorialFeedback {
+  id                String              @id @default(cuid())
+  userId            String              @unique
+  feedback          String?
+  rating            Int?                // 1-5 étoiles
+  stepsCompleted    Int                 @default(0)
+  completionTime    Int                 @default(0) // en secondes
+  createdAt         DateTime            @default(now())
+
+  // Relations
+  progress          ClientTutorialProgress @relation(fields: [userId], references: [userId], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([rating])
+}

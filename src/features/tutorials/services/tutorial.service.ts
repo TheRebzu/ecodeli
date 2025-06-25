@@ -1,0 +1,489 @@
+import { prisma } from '@/lib/db'
+
+export interface TutorialStep {
+  id: number
+  title: string
+  description: string
+  type: string
+  mandatory: boolean
+  estimatedTime: number
+  completed: boolean
+  timeSpent: number
+  skipped: boolean
+  order: number
+}
+
+export interface TutorialProgress {
+  userId: string
+  totalSteps: number
+  completedSteps: number
+  mandatorySteps: number
+  completedMandatory: number
+  progressPercentage: number
+  currentStep: number
+  isCompleted: boolean
+  startedAt: Date
+  completedAt?: Date
+  totalTimeSpent: number
+}
+
+export interface TutorialCompletion {
+  totalTimeSpent: number
+  stepsCompleted: number[]
+  feedback?: string
+  rating?: number
+}
+
+export class TutorialService {
+  /**
+   * Vérifier si le tutoriel est requis pour un client
+   */
+  static async isTutorialRequired(userId: string): Promise<boolean> {
+    try {
+      // Vérifier si le client a déjà complété le tutoriel
+      const tutorialProgress = await prisma.clientTutorialProgress.findUnique({
+        where: { userId }
+      })
+
+      // Tutoriel requis si non commencé ou non terminé
+      return !tutorialProgress || !tutorialProgress.isCompleted
+
+    } catch (error) {
+      console.error('Erreur vérification tutoriel requis:', error)
+      return true // Par défaut, requérir le tutoriel en cas d'erreur
+    }
+  }
+
+  /**
+   * Obtenir les étapes du tutoriel client
+   */
+  static async getClientTutorialSteps(userId: string): Promise<TutorialStep[]> {
+    try {
+      // Étapes par défaut du tutoriel client
+      const defaultSteps: Omit<TutorialStep, 'completed' | 'timeSpent' | 'skipped'>[] = [
+        {
+          id: 1,
+          title: 'Bienvenue sur EcoDeli',
+          description: 'Découvrez notre plateforme de crowdshipping éco-responsable',
+          type: 'welcome',
+          mandatory: true,
+          estimatedTime: 30,
+          order: 1
+        },
+        {
+          id: 2,
+          title: 'Complétez votre profil',
+          description: 'Ajoutez vos informations pour une meilleure expérience',
+          type: 'profile',
+          mandatory: true,
+          estimatedTime: 60,
+          order: 2
+        },
+        {
+          id: 3,
+          title: 'Choisissez votre abonnement',
+          description: 'Sélectionnez l\'offre qui correspond à vos besoins',
+          type: 'subscription',
+          mandatory: false,
+          estimatedTime: 45,
+          order: 3
+        },
+        {
+          id: 4,
+          title: 'Créez votre première annonce',
+          description: 'Apprenez à déposer une demande de livraison',
+          type: 'announcement',
+          mandatory: true,
+          estimatedTime: 90,
+          order: 4
+        },
+        {
+          id: 5,
+          title: 'Félicitations !',
+          description: 'Vous maîtrisez maintenant les bases d\'EcoDeli',
+          type: 'completion',
+          mandatory: true,
+          estimatedTime: 15,
+          order: 5
+        }
+      ]
+
+      // Récupérer la progression existante
+      const progressSteps = await prisma.tutorialStep.findMany({
+        where: { userId },
+        orderBy: { stepId: 'asc' }
+      })
+
+      // Combiner avec les étapes par défaut
+      const steps: TutorialStep[] = defaultSteps.map(defaultStep => {
+        const progress = progressSteps.find(p => p.stepId === defaultStep.id)
+        
+        return {
+          ...defaultStep,
+          completed: progress?.isCompleted || false,
+          timeSpent: progress?.timeSpent || 0,
+          skipped: progress?.isSkipped || false
+        }
+      })
+
+      return steps
+
+    } catch (error) {
+      console.error('Erreur récupération étapes tutoriel:', error)
+      throw error
+    }
+  }
+
+  /**
+   * Obtenir la progression du tutoriel
+   */
+  static async getTutorialProgress(userId: string): Promise<TutorialProgress> {
+    try {
+      const [tutorialProgress, steps] = await Promise.all([
+        prisma.clientTutorialProgress.findUnique({
+          where: { userId }
+        }),
+        this.getClientTutorialSteps(userId)
+      ])
+
+      const totalSteps = steps.length
+      const completedSteps = steps.filter(s => s.completed).length
+      const mandatorySteps = steps.filter(s => s.mandatory).length
+      const completedMandatory = steps.filter(s => s.mandatory && s.completed).length
+      
+      const progressPercentage = totalSteps > 0 
+        ? Math.round((completedSteps / totalSteps) * 100) 
+        : 0
+
+      // Trouver l'étape actuelle (première non complétée ou dernière)
+      const currentStepObj = steps.find(s => !s.completed) || steps[steps.length - 1]
+      const currentStep = currentStepObj ? currentStepObj.id : 1
+
+      return {
+        userId,
+        totalSteps,
+        completedSteps,
+        mandatorySteps,
+        completedMandatory,
+        progressPercentage,
+        currentStep,
+        isCompleted: tutorialProgress?.isCompleted || false,
+        startedAt: tutorialProgress?.startedAt || new Date(),
+        completedAt: tutorialProgress?.completedAt,
+        totalTimeSpent: tutorialProgress?.totalTimeSpent || 0
+      }
+
+    } catch (error) {
+      console.error('Erreur récupération progression tutoriel:', error)
+      throw error
+    }
+  }
+
+  /**
+   * Démarrer le tutoriel pour un utilisateur
+   */
+  static async startTutorial(userId: string): Promise<void> {
+    try {
+      await prisma.clientTutorialProgress.upsert({
+        where: { userId },
+        update: {
+          startedAt: new Date(),
+          isCompleted: false
+        },
+        create: {
+          userId,
+          startedAt: new Date(),
+          isCompleted: false,
+          totalTimeSpent: 0
+        }
+      })
+
+    } catch (error) {
+      console.error('Erreur démarrage tutoriel:', error)
+      throw error
+    }
+  }
+
+  /**
+   * Marquer une étape comme complétée
+   */
+  static async completeStep(
+    userId: string,
+    stepId: number,
+    timeSpent: number
+  ): Promise<void> {
+    try {
+      await prisma.$transaction(async (tx) => {
+        // Mettre à jour ou créer l'étape
+        await tx.tutorialStep.upsert({
+          where: {
+            userId_stepId: {
+              userId,
+              stepId
+            }
+          },
+          update: {
+            isCompleted: true,
+            timeSpent,
+            completedAt: new Date()
+          },
+          create: {
+            userId,
+            stepId,
+            isCompleted: true,
+            timeSpent,
+            completedAt: new Date()
+          }
+        })
+
+        // Mettre à jour la progression globale
+        const currentProgress = await tx.clientTutorialProgress.findUnique({
+          where: { userId }
+        })
+
+        if (currentProgress) {
+          await tx.clientTutorialProgress.update({
+            where: { userId },
+            data: {
+              totalTimeSpent: currentProgress.totalTimeSpent + timeSpent
+            }
+          })
+        }
+      })
+
+    } catch (error) {
+      console.error('Erreur complétion étape:', error)
+      throw error
+    }
+  }
+
+  /**
+   * Terminer le tutoriel complet
+   */
+  static async completeTutorial(
+    userId: string,
+    completionData: TutorialCompletion
+  ): Promise<void> {
+    try {
+      await prisma.$transaction(async (tx) => {
+        // Marquer le tutoriel comme terminé
+        await tx.clientTutorialProgress.upsert({
+          where: { userId },
+          update: {
+            isCompleted: true,
+            completedAt: new Date(),
+            totalTimeSpent: completionData.totalTimeSpent
+          },
+          create: {
+            userId,
+            isCompleted: true,
+            completedAt: new Date(),
+            startedAt: new Date(),
+            totalTimeSpent: completionData.totalTimeSpent
+          }
+        })
+
+        // Sauvegarder le feedback si fourni
+        if (completionData.feedback || completionData.rating) {
+          await tx.tutorialFeedback.create({
+            data: {
+              userId,
+              feedback: completionData.feedback,
+              rating: completionData.rating,
+              stepsCompleted: completionData.stepsCompleted.length,
+              completionTime: completionData.totalTimeSpent
+            }
+          })
+        }
+
+        // Activer les fonctionnalités pour le client
+        await tx.client.updateMany({
+          where: { userId },
+          data: {
+            tutorialCompleted: true,
+            tutorialCompletedAt: new Date()
+          }
+        })
+      })
+
+      // Déclencher des actions post-tutoriel
+      await this.postTutorialActions(userId, completionData)
+
+    } catch (error) {
+      console.error('Erreur finalisation tutoriel:', error)
+      throw error
+    }
+  }
+
+  /**
+   * Actions à effectuer après la complétion du tutoriel
+   */
+  private static async postTutorialActions(
+    userId: string,
+    completionData: TutorialCompletion
+  ): Promise<void> {
+    try {
+      // Notifier le client de la completion
+      const { NotificationService } = await import('@/features/notifications/services/notification.service')
+      
+      await NotificationService.createNotification({
+        userId,
+        type: 'TUTORIAL_COMPLETED',
+        title: '🎉 Tutoriel terminé !',
+        message: 'Félicitations ! Vous pouvez maintenant accéder à toutes les fonctionnalités d\'EcoDeli.',
+        data: {
+          completionTime: completionData.totalTimeSpent,
+          rating: completionData.rating
+        },
+        sendPush: true,
+        priority: 'medium'
+      })
+
+      // Créer un crédit de bienvenue (si applicable)
+      const client = await prisma.client.findUnique({
+        where: { userId },
+        include: { user: true }
+      })
+
+      if (client && client.user.subscriptionPlan === 'FREE') {
+        // Offrir un crédit de bienvenue
+        await prisma.walletOperation.create({
+          data: {
+            walletId: client.user.wallet?.id || '',
+            type: 'CREDIT',
+            amount: 5.00, // 5€ de crédit de bienvenue
+            description: 'Crédit de bienvenue - Tutoriel terminé',
+            reference: `WELCOME-${userId}`,
+            status: 'COMPLETED'
+          }
+        })
+
+        await NotificationService.createNotification({
+          userId,
+          type: 'WELCOME_CREDIT',
+          title: '💰 Crédit de bienvenue !',
+          message: 'Vous avez reçu 5€ de crédit pour avoir terminé le tutoriel.',
+          data: {
+            amount: 5.00,
+            type: 'welcome_bonus'
+          },
+          sendPush: true,
+          priority: 'high'
+        })
+      }
+
+    } catch (error) {
+      console.error('Erreur actions post-tutoriel:', error)
+      // Ne pas faire échouer la transaction principale
+    }
+  }
+
+  /**
+   * Passer une étape (si autorisé)
+   */
+  static async skipStep(userId: string, stepId: number): Promise<void> {
+    try {
+      // Vérifier que l'étape n'est pas obligatoire
+      const steps = await this.getClientTutorialSteps(userId)
+      const step = steps.find(s => s.id === stepId)
+
+      if (step?.mandatory) {
+        throw new Error('Cette étape est obligatoire et ne peut pas être passée')
+      }
+
+      await prisma.tutorialStep.upsert({
+        where: {
+          userId_stepId: {
+            userId,
+            stepId
+          }
+        },
+        update: {
+          isSkipped: true,
+          completedAt: new Date()
+        },
+        create: {
+          userId,
+          stepId,
+          isSkipped: true,
+          isCompleted: false,
+          timeSpent: 0,
+          completedAt: new Date()
+        }
+      })
+
+    } catch (error) {
+      console.error('Erreur skip étape:', error)
+      throw error
+    }
+  }
+
+  /**
+   * Réinitialiser le tutoriel
+   */
+  static async resetTutorial(userId: string): Promise<void> {
+    try {
+      await prisma.$transaction(async (tx) => {
+        // Supprimer toutes les étapes
+        await tx.tutorialStep.deleteMany({
+          where: { userId }
+        })
+
+        // Réinitialiser la progression
+        await tx.clientTutorialProgress.deleteMany({
+          where: { userId }
+        })
+
+        // Marquer le client comme non-tutoriel
+        await tx.client.updateMany({
+          where: { userId },
+          data: {
+            tutorialCompleted: false,
+            tutorialCompletedAt: null
+          }
+        })
+      })
+
+    } catch (error) {
+      console.error('Erreur réinitialisation tutoriel:', error)
+      throw error
+    }
+  }
+
+  /**
+   * Obtenir les statistiques du tutoriel
+   */
+  static async getTutorialStats(): Promise<any> {
+    try {
+      const [totalUsers, completedTutorials, averageTime, feedbacks] = await Promise.all([
+        prisma.client.count(),
+        prisma.clientTutorialProgress.count({
+          where: { isCompleted: true }
+        }),
+        prisma.clientTutorialProgress.aggregate({
+          where: { isCompleted: true },
+          _avg: { totalTimeSpent: true }
+        }),
+        prisma.tutorialFeedback.aggregate({
+          _avg: { rating: true },
+          _count: { rating: true }
+        })
+      ])
+
+      const completionRate = totalUsers > 0 ? (completedTutorials / totalUsers) * 100 : 0
+
+      return {
+        totalUsers,
+        completedTutorials,
+        completionRate: Math.round(completionRate * 100) / 100,
+        averageCompletionTime: Math.round((averageTime._avg.totalTimeSpent || 0) / 60), // en minutes
+        averageRating: Math.round((feedbacks._avg.rating || 0) * 100) / 100,
+        totalFeedbacks: feedbacks._count.rating
+      }
+
+    } catch (error) {
+      console.error('Erreur récupération stats tutoriel:', error)
+      throw error
+    }
+  }
+}

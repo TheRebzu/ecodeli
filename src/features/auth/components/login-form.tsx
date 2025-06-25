@@ -79,6 +79,7 @@ export function LoginForm() {
     setCurrentEmail(data.email)
 
     try {
+<<<<<<< Updated upstream
       // D'abord vérifier le statut de l'utilisateur
       const userStatus = await checkUserStatus(data.email)
 
@@ -91,6 +92,9 @@ export function LoginForm() {
 
       // Essayer de se connecter avec notre API personnalisée
       const response = await fetch('/api/auth/login', {
+=======
+      const response = await fetch('/api/auth/login-simple', {
+>>>>>>> Stashed changes
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -120,6 +124,7 @@ export function LoginForm() {
         return
       }
 
+<<<<<<< Updated upstream
       // Redirection selon le rôle utilisateur
       const user = result.user
       
@@ -145,6 +150,21 @@ export function LoginForm() {
           }
           
           callbackUrl = cleanParts.join('/')
+=======
+      // Redirection selon le rôle ou callback URL
+      if (callbackUrl && callbackUrl !== '/') {
+        router.push(callbackUrl)
+      } else if (result.redirectTo) {
+        router.push(result.redirectTo)
+      } else {
+        // Fallback selon le rôle
+        const roleRoutes = {
+          'CLIENT': '/client',
+          'DELIVERER': '/deliverer',
+          'MERCHANT': '/merchant',
+          'PROVIDER': '/provider',
+          'ADMIN': '/admin'
+>>>>>>> Stashed changes
         }
         
         console.log('🔄 Redirection vers callbackUrl:', callbackUrl)

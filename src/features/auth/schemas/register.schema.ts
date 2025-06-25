@@ -6,7 +6,7 @@ export const registerSchema = z.object({
   confirmPassword: z.string(),
   firstName: z.string().min(2, 'Minimum 2 caractères'),
   lastName: z.string().min(2, 'Minimum 2 caractères'),
-  role: z.enum(['CLIENT', 'DELIVERER', 'MERCHANT', 'PROVIDER']),
+  role: z.enum(['CLIENT', 'DELIVERER', 'MERCHANT', 'PROVIDER', 'ADMIN']),
   phone: z.string().optional(),
 }).refine((data) => data.password === data.confirmPassword, {
   message: 'Les mots de passe ne correspondent pas',

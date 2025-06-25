@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/db'
+import { GeolocationService } from '@/features/tracking/services/geolocation.service'
 
-// GET - Historique complet du suivi d'une livraison
+// GET - Historique complet du suivi d'une livraison avec géolocalisation
 export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }
@@ -72,17 +73,52 @@ export async function GET(
     const currentStatusIndex = statusProgression.indexOf(delivery.status)
     const progressPercentage = Math.round(((currentStatusIndex + 1) / statusProgression.length) * 100)
 
-    // Estimer le temps de livraison restant
+    // Récupérer les données de géolocalisation en temps réel
+    let realTimeData = null
+    if (delivery.status === 'IN_TRANSIT' || delivery.status === 'PICKUP') {
+      try {
+        const currentPosition = await GeolocationService.getCurrentDeliveryPosition(delivery.id)
+        if (currentPosition) {
+          realTimeData = {
+            currentPosition,
+            isTracking: true,
+            lastUpdate: currentPosition.timestamp,
+            estimatedArrival: await GeolocationService.calculateEstimatedArrival(
+              delivery.id,
+              delivery.announcement.deliveryAddress
+            )
+          }
+        }
+      } catch (error) {
+        console.warn('Erreur lors de la récupération de la position en temps réel:', error)
+      }
+    }
+
+    // Estimer le temps de livraison restant (utiliser données temps réel si disponibles)
     let estimatedTimeRemaining = null
-    if (delivery.status === 'IN_TRANSIT' && delivery.estimatedDeliveryTime) {
-      const now = new Date()
-      const estimated = new Date(delivery.estimatedDeliveryTime)
-      const diffMs = estimated.getTime() - now.getTime()
-      if (diffMs > 0) {
-        const diffMins = Math.round(diffMs / (1000 * 60))
-        estimatedTimeRemaining = {
-          minutes: diffMins,
-          formatted: diffMins < 60 ? `${diffMins} min` : `${Math.round(diffMins/60)}h ${diffMins%60}min`
+    if (delivery.status === 'IN_TRANSIT') {
+      if (realTimeData?.estimatedArrival) {
+        const now = new Date()
+        const diffMs = realTimeData.estimatedArrival.getTime() - now.getTime()
+        if (diffMs > 0) {
+          const diffMins = Math.round(diffMs / (1000 * 60))
+          estimatedTimeRemaining = {
+            minutes: diffMins,
+            formatted: diffMins < 60 ? `${diffMins} min` : `${Math.round(diffMins/60)}h ${diffMins%60}min`,
+            basedOnRealTime: true
+          }
+        }
+      } else if (delivery.estimatedDeliveryTime) {
+        const now = new Date()
+        const estimated = new Date(delivery.estimatedDeliveryTime)
+        const diffMs = estimated.getTime() - now.getTime()
+        if (diffMs > 0) {
+          const diffMins = Math.round(diffMs / (1000 * 60))
+          estimatedTimeRemaining = {
+            minutes: diffMins,
+            formatted: diffMins < 60 ? `${diffMins} min` : `${Math.round(diffMins/60)}h ${diffMins%60}min`,
+            basedOnRealTime: false
+          }
         }
       }
     }
@@ -125,6 +161,7 @@ export async function GET(
         rating: delivery.deliverer.profile?.rating || 0
       },
       tracking: enrichedTracking,
+      realTimeTracking: realTimeData,
       statusHistory: statusProgression.map((status, index) => ({
         status,
         label: getStatusLabel(status),

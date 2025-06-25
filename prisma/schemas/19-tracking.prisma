@@ -1,0 +1,104 @@
+// Modèles tracking et géolocalisation
+
+model TrackingSession {
+  id                String              @id @default(cuid())
+  deliveryId        String
+  delivererId       String
+  startTime         DateTime            @default(now())
+  endTime           DateTime?
+  isActive          Boolean             @default(true)
+  totalDistance     Float               @default(0) // en mètres
+  averageSpeed      Float               @default(0) // km/h
+  maxSpeed          Float               @default(0) // km/h
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  // Relations
+  delivery          Delivery            @relation(fields: [deliveryId], references: [id], onDelete: Cascade)
+  deliverer         Deliverer           @relation(fields: [delivererId], references: [id], onDelete: Cascade)
+  locationUpdates   LocationUpdate[]
+  geofenceEntries   GeofenceEntry[]
+
+  @@index([deliveryId])
+  @@index([delivererId])
+  @@index([isActive])
+  @@unique([deliveryId, delivererId, startTime])
+}
+
+model LocationUpdate {
+  id                String              @id @default(cuid())
+  trackingSessionId String
+  latitude          Float
+  longitude         Float
+  accuracy          Float
+  speed             Float?              // km/h
+  heading           Float?              // degrés
+  altitude          Float?              // mètres
+  timestamp         DateTime
+  createdAt         DateTime            @default(now())
+
+  // Relations
+  trackingSession   TrackingSession     @relation(fields: [trackingSessionId], references: [id], onDelete: Cascade)
+
+  @@index([trackingSessionId])
+  @@index([timestamp])
+}
+
+model Geofence {
+  id                String              @id @default(cuid())
+  name              String
+  type              String              // PICKUP, DELIVERY, STORAGE, SERVICE_AREA
+  latitude          Float
+  longitude         Float
+  radius            Float               // en mètres
+  isActive          Boolean             @default(true)
+  metadata          Json?               // données additionnelles
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  // Relations
+  entries           GeofenceEntry[]
+
+  @@index([type])
+  @@index([isActive])
+}
+
+model GeofenceEntry {
+  id                String              @id @default(cuid())
+  trackingSessionId String
+  geofenceId        String
+  isInside          Boolean             // true = entrée, false = sortie
+  latitude          Float
+  longitude         Float
+  timestamp         DateTime
+  createdAt         DateTime            @default(now())
+
+  // Relations
+  trackingSession   TrackingSession     @relation(fields: [trackingSessionId], references: [id], onDelete: Cascade)
+  geofence          Geofence            @relation(fields: [geofenceId], references: [id], onDelete: Cascade)
+
+  @@index([trackingSessionId])
+  @@index([geofenceId])
+  @@index([timestamp])
+}
+
+model DelivererLocation {
+  id                String              @id @default(cuid())
+  delivererId       String              @unique
+  latitude          Float
+  longitude         Float
+  accuracy          Float
+  speed             Float?
+  heading           Float?
+  isOnline          Boolean             @default(true)
+  lastUpdateAt      DateTime            @default(now())
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  // Relations
+  deliverer         Deliverer           @relation(fields: [delivererId], references: [id], onDelete: Cascade)
+
+  @@index([delivererId])
+  @@index([isOnline])
+  @@index([lastUpdateAt])
+}

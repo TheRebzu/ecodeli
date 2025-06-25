@@ -44,10 +44,10 @@ function createExtendedPrisma() {
               where: { id: userId },
               include: {
                 profile: true,
-                clientProfile: true,
-                delivererProfile: true,
-                merchantProfile: true,
-                providerProfile: true,
+                client: true,
+                deliverer: true,
+                merchant: true,
+                provider: true,
                 wallet: true
               }
             })
@@ -64,16 +64,15 @@ function createExtendedPrisma() {
               where: {
                 role: "DELIVERER",
                 status: "ACTIVE",
-                delivererProfile: {
-                  isVerified: true,
-                  isAvailable: true,
-                  maxDistance: {
-                    gte: maxDistance
+                deliverer: {
+                  validationStatus: "APPROVED",
+                  maxWeight: {
+                    gte: 0
                   }
                 }
               },
               include: {
-                delivererProfile: true,
+                deliverer: true,
                 profile: true
               }
             })

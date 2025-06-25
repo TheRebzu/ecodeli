@@ -1,0 +1,335 @@
+// Modèles assurance et garanties
+
+model InsurancePolicy {
+  id                String              @id @default(cuid())
+  name              String
+  description       String
+  category          InsuranceCategory
+  provider          String              // Nom de l'assureur
+  policyNumber      String              @unique
+  coverageAmount    Float               // Montant de couverture
+  deductible        Float               // Franchise
+  premiumAmount     Float               // Prime annuelle
+  startDate         DateTime
+  endDate           DateTime
+  isActive          Boolean             @default(true)
+  terms             Json                // Conditions générales
+  coverageDetails   Json                // Détails de couverture
+  exclusions        Json[]              // Exclusions
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  // Relations
+  coverages         InsuranceCoverage[]
+  claims            InsuranceClaim[]
+
+  @@index([category])
+  @@index([isActive])
+  @@index([endDate])
+}
+
+model InsuranceCoverage {
+  id                String              @id @default(cuid())
+  policyId          String
+  entityType        String              // 'delivery', 'service', 'storage', 'user'
+  entityId          String?             // ID de l'entité couverte
+  coverageType      CoverageType
+  isActive          Boolean             @default(true)
+  startDate         DateTime            @default(now())
+  endDate           DateTime?
+  maxCoverage       Float               // Montant maximum couvert
+  currentUsage      Float               @default(0) // Montant déjà utilisé
+  metadata          Json?               // Métadonnées spécifiques
+
+  // Relations
+  policy            InsurancePolicy     @relation(fields: [policyId], references: [id])
+  claims            InsuranceClaim[]
+
+  @@index([policyId])
+  @@index([entityType, entityId])
+  @@index([coverageType])
+  @@index([isActive])
+}
+
+model InsuranceClaim {
+  id                String              @id @default(cuid())
+  claimNumber       String              @unique
+  policyId          String
+  coverageId        String
+  claimantId        String              // Utilisateur qui déclare le sinistre
+  incidentDate      DateTime
+  reportedDate      DateTime            @default(now())
+  claimType         ClaimType
+  status            ClaimStatus         @default(REPORTED)
+  amount            Float               // Montant réclamé
+  approvedAmount    Float?              // Montant approuvé
+  description       String
+  circumstances     String              // Circonstances du sinistre
+  evidences         Json[]              // Preuves (photos, documents)
+  investigationNotes String?
+  processingNotes   String?
+  rejectionReason   String?
+  settledAt         DateTime?
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  // Relations
+  policy            InsurancePolicy     @relation(fields: [policyId], references: [id])
+  coverage          InsuranceCoverage   @relation(fields: [coverageId], references: [id])
+  claimant          User                @relation(fields: [claimantId], references: [id])
+  assessments       ClaimAssessment[]
+  payments          ClaimPayment[]
+
+  @@index([policyId])
+  @@index([coverageId])
+  @@index([claimantId])
+  @@index([status])
+  @@index([incidentDate])
+}
+
+model ClaimAssessment {
+  id                String              @id @default(cuid())
+  claimId           String
+  assessorId        String              // Expert/assesseur
+  assessmentDate    DateTime            @default(now())
+  findings          String
+  recommendedAmount Float?
+  photos            String[]            // URLs des photos
+  report            String?             // Rapport détaillé
+  status            AssessmentStatus    @default(PENDING)
+  createdAt         DateTime            @default(now())
+
+  // Relations
+  claim             InsuranceClaim      @relation(fields: [claimId], references: [id], onDelete: Cascade)
+  assessor          User                @relation(fields: [assessorId], references: [id])
+
+  @@index([claimId])
+  @@index([assessorId])
+}
+
+model ClaimPayment {
+  id                String              @id @default(cuid())
+  claimId           String
+  amount            Float
+  paymentDate       DateTime            @default(now())
+  paymentMethod     String              // 'bank_transfer', 'check', 'digital'
+  reference         String?             // Référence de paiement
+  status            PaymentStatus       @default(PENDING)
+  notes             String?
+
+  // Relations
+  claim             InsuranceClaim      @relation(fields: [claimId], references: [id], onDelete: Cascade)
+
+  @@index([claimId])
+  @@index([paymentDate])
+}
+
+model Warranty {
+  id                String              @id @default(cuid())
+  name              String
+  description       String
+  warrantyType      WarrantyType
+  duration          Int                 // Durée en jours
+  scope             Json                // Périmètre de la garantie
+  conditions        Json                // Conditions d'application
+  exclusions        Json[]              // Exclusions
+  isActive          Boolean             @default(true)
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  // Relations
+  serviceWarranties ServiceWarranty[]
+  deliveryWarranties DeliveryWarranty[]
+
+  @@index([warrantyType])
+  @@index([isActive])
+}
+
+model ServiceWarranty {
+  id                String              @id @default(cuid())
+  warrantyId        String
+  serviceId         String              // ID du service
+  providerId        String
+  clientId          String
+  startDate         DateTime            @default(now())
+  endDate           DateTime
+  isActive          Boolean             @default(true)
+  claimsCount       Int                 @default(0)
+  maxClaims         Int                 @default(3)
+  totalClaimedAmount Float              @default(0)
+  maxClaimAmount    Float               @default(1000)
+
+  // Relations
+  warranty          Warranty            @relation(fields: [warrantyId], references: [id])
+  provider          Provider            @relation(fields: [providerId], references: [id])
+  client            User                @relation("ClientServiceWarranties", fields: [clientId], references: [id])
+  claims            WarrantyClaim[]
+
+  @@index([warrantyId])
+  @@index([serviceId])
+  @@index([providerId])
+  @@index([clientId])
+  @@index([endDate])
+}
+
+model DeliveryWarranty {
+  id                String              @id @default(cuid())
+  warrantyId        String
+  deliveryId        String              @unique
+  delivererId       String
+  clientId          String
+  startDate         DateTime            @default(now())
+  endDate           DateTime
+  isActive          Boolean             @default(true)
+  maxClaimAmount    Float               @default(500)
+  claimsCount       Int                 @default(0)
+
+  // Relations
+  warranty          Warranty            @relation(fields: [warrantyId], references: [id])
+  delivery          Delivery            @relation(fields: [deliveryId], references: [id])
+  deliverer         User                @relation("DelivererWarranties", fields: [delivererId], references: [id])
+  client            User                @relation("ClientDeliveryWarranties", fields: [clientId], references: [id])
+  claims            WarrantyClaim[]
+
+  @@index([warrantyId])
+  @@index([deliveryId])
+  @@index([delivererId])
+  @@index([clientId])
+  @@index([endDate])
+}
+
+model WarrantyClaim {
+  id                String              @id @default(cuid())
+  claimNumber       String              @unique
+  serviceWarrantyId String?
+  deliveryWarrantyId String?
+  claimantId        String
+  claimType         WarrantyClaimType
+  description       String
+  requestedAmount   Float
+  approvedAmount    Float?
+  status            ClaimStatus         @default(REPORTED)
+  evidences         Json[]              // Preuves
+  processingNotes   String?
+  resolution        String?
+  claimedAt         DateTime            @default(now())
+  processedAt       DateTime?
+  resolvedAt        DateTime?
+
+  // Relations
+  serviceWarranty   ServiceWarranty?    @relation(fields: [serviceWarrantyId], references: [id])
+  deliveryWarranty  DeliveryWarranty?   @relation(fields: [deliveryWarrantyId], references: [id])
+  claimant          User                @relation(fields: [claimantId], references: [id])
+
+  @@index([serviceWarrantyId])
+  @@index([deliveryWarrantyId])
+  @@index([claimantId])
+  @@index([status])
+  @@index([claimedAt])
+}
+
+model RiskAssessment {
+  id                String              @id @default(cuid())
+  entityType        String              // 'user', 'delivery', 'service'
+  entityId          String
+  riskLevel         RiskLevel           @default(LOW)
+  riskFactors       Json[]              // Facteurs de risque identifiés
+  score             Float               // Score de risque (0-100)
+  recommendations   Json[]              // Recommandations
+  lastAssessment    DateTime            @default(now())
+  nextAssessment    DateTime?
+  isActive          Boolean             @default(true)
+
+  @@unique([entityType, entityId])
+  @@index([riskLevel])
+  @@index([lastAssessment])
+}
+
+model InsuranceAudit {
+  id                String              @id @default(cuid())
+  entityType        String              // Type d'entité concernée
+  entityId          String              // ID de l'entité
+  action            String              // Action effectuée
+  details           Json                // Détails de l'action
+  performedBy       String?             // Utilisateur qui a effectué l'action
+  timestamp         DateTime            @default(now())
+
+  @@index([entityType, entityId])
+  @@index([timestamp])
+}
+
+enum InsuranceCategory {
+  PROFESSIONAL_LIABILITY    // Responsabilité civile professionnelle
+  GOODS_TRANSPORT          // Transport de marchandises
+  STORAGE_COVERAGE         // Couverture stockage
+  PERSONAL_ACCIDENT        // Accident personnel
+  CYBER_LIABILITY          // Responsabilité cyber
+  GENERAL_LIABILITY        // Responsabilité civile générale
+}
+
+enum CoverageType {
+  DAMAGE_COVERAGE          // Couverture dommages
+  THEFT_COVERAGE           // Couverture vol
+  LOSS_COVERAGE            // Couverture perte
+  DELAY_COVERAGE           // Couverture retard
+  LIABILITY_COVERAGE       // Couverture responsabilité
+  PERSONAL_INJURY          // Dommages corporels
+}
+
+enum ClaimType {
+  DAMAGE                   // Dommage
+  THEFT                    // Vol
+  LOSS                     // Perte
+  DELAY                    // Retard
+  PERSONAL_INJURY          // Dommage corporel
+  LIABILITY                // Responsabilité
+  OTHER                    // Autre
+}
+
+enum ClaimStatus {
+  REPORTED                 // Déclaré
+  UNDER_INVESTIGATION      // En cours d'enquête
+  BEING_ASSESSED          // En cours d'évaluation
+  APPROVED                // Approuvé
+  REJECTED                // Rejeté
+  SETTLED                 // Réglé
+  CLOSED                  // Fermé
+}
+
+enum AssessmentStatus {
+  PENDING                 // En attente
+  IN_PROGRESS            // En cours
+  COMPLETED              // Terminé
+  CANCELLED              // Annulé
+}
+
+enum PaymentStatus {
+  PENDING                 // En attente
+  PROCESSING             // En cours de traitement
+  COMPLETED              // Terminé
+  FAILED                 // Échoué
+  CANCELLED              // Annulé
+}
+
+enum WarrantyType {
+  SERVICE_QUALITY        // Qualité de service
+  DELIVERY_GUARANTEE     // Garantie livraison
+  SATISFACTION_GUARANTEE // Garantie satisfaction
+  DAMAGE_PROTECTION      // Protection dommages
+  TIME_GUARANTEE         // Garantie délai
+}
+
+enum WarrantyClaimType {
+  SERVICE_DEFECT         // Défaut de service
+  LATE_DELIVERY          // Livraison en retard
+  DAMAGED_GOODS          // Marchandises endommagées
+  INCOMPLETE_SERVICE     // Service incomplet
+  UNSATISFACTORY_QUALITY // Qualité insatisfaisante
+}
+
+enum RiskLevel {
+  LOW                    // Faible
+  MEDIUM                 // Moyen
+  HIGH                   // Élevé
+  CRITICAL               // Critique
+}

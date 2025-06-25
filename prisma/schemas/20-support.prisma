@@ -1,0 +1,214 @@
+// Modèles support client
+
+model SupportTicket {
+  id                String              @id @default(cuid())
+  ticketNumber      String              @unique
+  authorId          String
+  assignedToId      String?
+  title             String
+  description       String
+  category          TicketCategory
+  priority          TicketPriority      @default(MEDIUM)
+  status            TicketStatus        @default(OPEN)
+  deliveryId        String?             // Ticket lié à une livraison
+  orderId           String?             // Ticket lié à une commande
+  isUrgent          Boolean             @default(false)
+  estimatedResolution DateTime?
+  resolvedAt        DateTime?
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  // Relations
+  author            User                @relation("TicketAuthor", fields: [authorId], references: [id])
+  assignedTo        User?               @relation("TicketAssignee", fields: [assignedToId], references: [id])
+  delivery          Delivery?           @relation(fields: [deliveryId], references: [id])
+  messages          TicketMessage[]
+  attachments       TicketAttachment[]
+  escalations       TicketEscalation[]
+  satisfactionSurvey TicketSatisfaction?
+
+  @@index([authorId])
+  @@index([assignedToId])
+  @@index([status])
+  @@index([category])
+  @@index([priority])
+  @@index([createdAt])
+}
+
+model TicketMessage {
+  id                String              @id @default(cuid())
+  ticketId          String
+  authorId          String
+  content           String
+  isInternal        Boolean             @default(false) // Message interne (entre agents)
+  isSystemMessage   Boolean             @default(false) // Message automatique
+  createdAt         DateTime            @default(now())
+
+  // Relations
+  ticket            SupportTicket       @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  author            User                @relation(fields: [authorId], references: [id])
+  attachments       MessageAttachment[]
+
+  @@index([ticketId])
+  @@index([authorId])
+  @@index([createdAt])
+}
+
+model TicketAttachment {
+  id                String              @id @default(cuid())
+  ticketId          String
+  uploadedById      String
+  fileName          String
+  originalName      String
+  mimeType          String
+  fileSize          Int                 // en bytes
+  filePath          String
+  createdAt         DateTime            @default(now())
+
+  // Relations
+  ticket            SupportTicket       @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  uploadedBy        User                @relation(fields: [uploadedById], references: [id])
+
+  @@index([ticketId])
+}
+
+model MessageAttachment {
+  id                String              @id @default(cuid())
+  messageId         String
+  fileName          String
+  originalName      String
+  mimeType          String
+  fileSize          Int
+  filePath          String
+  createdAt         DateTime            @default(now())
+
+  // Relations
+  message           TicketMessage       @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+  @@index([messageId])
+}
+
+model TicketEscalation {
+  id                String              @id @default(cuid())
+  ticketId          String
+  fromUserId        String?
+  toUserId          String
+  reason            String
+  escalatedAt       DateTime            @default(now())
+  resolvedAt        DateTime?
+
+  // Relations
+  ticket            SupportTicket       @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  fromUser          User?               @relation("EscalationFrom", fields: [fromUserId], references: [id])
+  toUser            User                @relation("EscalationTo", fields: [toUserId], references: [id])
+
+  @@index([ticketId])
+  @@index([escalatedAt])
+}
+
+model TicketSatisfaction {
+  id                String              @id @default(cuid())
+  ticketId          String              @unique
+  rating            Int                 // 1-5
+  feedback          String?
+  wouldRecommend    Boolean?
+  responseTime      Int?                // Note de 1-5
+  resolutionQuality Int?                // Note de 1-5
+  agentHelpfulness  Int?                // Note de 1-5
+  submittedAt       DateTime            @default(now())
+
+  // Relations
+  ticket            SupportTicket       @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+
+  @@index([rating])
+  @@index([submittedAt])
+}
+
+model SupportKnowledgeBase {
+  id                String              @id @default(cuid())
+  title             String
+  content           String
+  category          String
+  tags              String[]
+  isPublic          Boolean             @default(true)
+  isActive          Boolean             @default(true)
+  viewCount         Int                 @default(0)
+  helpfulCount      Int                 @default(0)
+  createdById       String
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  // Relations
+  createdBy         User                @relation(fields: [createdById], references: [id])
+
+  @@index([category])
+  @@index([isPublic])
+  @@index([isActive])
+  @@fulltext([title, content])
+}
+
+model SupportTemplate {
+  id                String              @id @default(cuid())
+  name              String
+  subject           String
+  content           String
+  category          TicketCategory
+  isActive          Boolean             @default(true)
+  usageCount        Int                 @default(0)
+  createdById       String
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  // Relations
+  createdBy         User                @relation(fields: [createdById], references: [id])
+
+  @@index([category])
+  @@index([isActive])
+}
+
+model SupportMetrics {
+  id                String              @id @default(cuid())
+  date              DateTime            @db.Date
+  totalTickets      Int                 @default(0)
+  openTickets       Int                 @default(0)
+  resolvedTickets   Int                 @default(0)
+  avgResponseTime   Float               @default(0) // en heures
+  avgResolutionTime Float               @default(0) // en heures
+  customerSatisfaction Float            @default(0) // moyenne des notes
+  firstContactResolution Float          @default(0) // pourcentage
+  createdAt         DateTime            @default(now())
+
+  @@unique([date])
+  @@index([date])
+}
+
+enum TicketCategory {
+  DELIVERY_ISSUE
+  PAYMENT_PROBLEM
+  ACCOUNT_ACCESS
+  TECHNICAL_SUPPORT
+  BILLING_INQUIRY
+  FEATURE_REQUEST
+  COMPLAINT
+  PARTNERSHIP
+  GENERAL_INQUIRY
+  BUG_REPORT
+}
+
+enum TicketPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+  CRITICAL
+}
+
+enum TicketStatus {
+  OPEN
+  IN_PROGRESS
+  WAITING_CUSTOMER
+  ESCALATED
+  RESOLVED
+  CLOSED
+  REOPENED
+}
