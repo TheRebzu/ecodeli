@@ -4,12 +4,12 @@ import { prisma } from '@/lib/db'
 export async function GET(request: NextRequest) {
   try {
     // Récupérer tous les entrepôts avec leurs box de stockage
-    const warehouses = await prisma.location.findMany({
+    const locations = await prisma.location.findMany({
       where: {
         type: 'WAREHOUSE'
       },
       include: {
-        warehouse: true,
+        warehouses: true,
         storageBoxes: {
           orderBy: {
             boxNumber: 'asc'
@@ -22,17 +22,17 @@ export async function GET(request: NextRequest) {
     })
 
     // Calculer les statistiques globales
-    const totalWarehouses = warehouses.length
-    const totalBoxes = warehouses.reduce((total, warehouse) => total + warehouse.storageBoxes.length, 0)
-    const availableBoxes = warehouses.reduce((total, warehouse) => 
-      total + warehouse.storageBoxes.filter(box => box.isAvailable).length, 0
+    const totalWarehouses = locations.length
+    const totalBoxes = locations.reduce((total, location) => total + location.storageBoxes.length, 0)
+    const availableBoxes = locations.reduce((total, location) => 
+      total + location.storageBoxes.filter(box => box.isAvailable).length, 0
     )
-    const occupiedBoxes = warehouses.reduce((total, warehouse) => 
-      total + warehouse.storageBoxes.filter(box => !box.isAvailable).length, 0
+    const occupiedBoxes = locations.reduce((total, location) => 
+      total + location.storageBoxes.filter(box => !box.isAvailable).length, 0
     )
 
     return NextResponse.json({
-      warehouses,
+      warehouses: locations,
       statistics: {
         totalWarehouses,
         totalBoxes,
@@ -64,7 +64,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Créer une nouvelle location
+    // Créer une nouvelle location avec son warehouse
     const location = await prisma.location.create({
       data: {
         name,
@@ -75,7 +75,7 @@ export async function POST(request: NextRequest) {
         country: 'FR',
         lat: 0, // À définir selon l'adresse
         lng: 0, // À définir selon l'adresse
-        warehouse: {
+        warehouses: {
           create: {
             capacity: parseInt(capacity),
             currentOccupancy: 0,
@@ -85,7 +85,7 @@ export async function POST(request: NextRequest) {
         }
       },
       include: {
-        warehouse: true,
+        warehouses: true,
         storageBoxes: true
       }
     })

@@ -282,8 +282,47 @@ export async function getCurrentUser(request?: Request) {
       const headersList = await headers()
       session = await auth.api.getSession({ headers: headersList })
     }
-    return session?.user || null
+
+    if (!session?.user) {
+      return null
+    }
+
+    // Récupérer l'utilisateur complet depuis la base avec les relations
+    const includeRelations: any = {
+      profile: true
+    }
+    
+    // Inclure la relation spécifique selon le rôle
+    switch (session.user.role) {
+      case 'CLIENT':
+        includeRelations.client = true
+        break
+      case 'DELIVERER':
+        includeRelations.deliverer = true
+        break
+      case 'MERCHANT':
+        includeRelations.merchant = true
+        break
+      case 'PROVIDER':
+        includeRelations.provider = true
+        break
+      case 'ADMIN':
+        includeRelations.admin = true
+        break
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      include: includeRelations
+    })
+
+    if (!user) {
+      return null
+    }
+
+    return user
   } catch (error) {
+    console.error('Error in getCurrentUser:', error)
     return null
   }
 } 

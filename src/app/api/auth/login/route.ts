@@ -27,16 +27,19 @@ export async function POST(request: NextRequest) {
       headers: request.headers,
     })
 
-    if (result.error) {
+    // Better Auth signInEmail retourne un objet avec redirect, token, url, user
+    // Pas d'erreur directe, on vérifie si on a un user
+    if (!result.user) {
       return NextResponse.json(
-        { error: result.error.message || "Identifiants invalides" },
+        { error: "Identifiants invalides" },
         { status: 401 }
       )
     }
 
     // Récupérer le user complet (avec le rôle) depuis la base
     let user = result.user
-    if (user && !user.role) {
+    // Vérifier si le user a déjà un rôle (extended user)
+    if (user && !('role' in user)) {
       // On va chercher le user complet
       const dbUser = await db.user.findUnique({
         where: { email: user.email },
@@ -52,7 +55,13 @@ export async function POST(request: NextRequest) {
           updatedAt: true
         }
       })
-      if (dbUser) user = { ...user, ...dbUser }
+      if (dbUser) {
+        // Fusionner les données en gérant les types avec assertion
+        user = { 
+          ...user, 
+          ...dbUser
+        } as any // Type assertion pour éviter l'erreur TypeScript
+      }
     }
 
     // Succès de l'authentification
@@ -60,11 +69,10 @@ export async function POST(request: NextRequest) {
       { 
         success: true,
         user,
-        session: result.session 
+        token: result.token
       },
       { 
-        status: 200,
-        headers: result.headers || {}
+        status: 200
       }
     )
 

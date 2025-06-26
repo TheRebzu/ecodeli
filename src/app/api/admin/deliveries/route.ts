@@ -1,12 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
-import { auth } from '@/lib/auth'
+import { requireRole } from '@/lib/auth'
 
 // GET /api/admin/deliveries?status=&page=&limit=
 export async function GET(request: NextRequest) {
   try {
-    const session = await auth()
-    if (!session?.user || session.user.role !== 'ADMIN') {
+    // Utiliser requireRole pour vérifier l'authentification et les permissions
+    const user = await requireRole('ADMIN', request)
+    console.log('SESSION ADMIN DELIVERIES:', user)
+    
+    if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
