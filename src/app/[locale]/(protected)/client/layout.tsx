@@ -1,19 +1,22 @@
 "use client"
 
-import { DashboardLayout } from '@/components/layout/core/dashboard-layout'
-import { useAuth } from '@/hooks/use-auth'
-import { type NavigationItem } from '@/components/layout/types/layout.types'
 import { useState, useEffect } from 'react'
-import { ClientTutorialOverlay } from '@/features/tutorials/components/client-tutorial-overlay'
+import { useAuth } from '@/hooks/use-auth'
+import { ClientHeader } from '@/components/layout/client-header'
+import { ClientSidebar } from '@/components/layout/sidebars/client-sidebar'
+// Tutorial overlay temporairement désactivé
 import { useClientTutorial } from '@/features/client/hooks/useClientData'
+import { Toaster } from '@/components/ui/toaster'
+import { cn } from '@/lib/utils'
 
 interface ClientLayoutProps {
   children: React.ReactNode
 }
 
 export default function ClientLayout({ children }: ClientLayoutProps) {
-  const { user, isLoading, isAuthenticated } = useAuth()
+  const { user, isLoading, isAuthenticated, signOut } = useAuth()
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   
   // Tutorial state
   const {
@@ -21,247 +24,163 @@ export default function ClientLayout({ children }: ClientLayoutProps) {
     loading: tutorialLoading,
     error: tutorialError,
     updateTutorialStep,
-    completeTutorial
+    completeTutorial,
+    fetchTutorial
   } = useClientTutorial()
   
   const [showTutorial, setShowTutorial] = useState(false)
+  const [tutorialCompleted, setTutorialCompleted] = useState(false)
 
   // Check if tutorial is required on component mount
   useEffect(() => {
-    if (user && tutorial && !tutorialLoading) {
+    if (user && !tutorialLoading && !tutorial) {
+      fetchTutorial().catch(err => {
+        console.error('Error fetching tutorial:', err)
+      })
+    }
+  }, [user, tutorialLoading, tutorial])
+  
+  useEffect(() => {
+    if (user && tutorial && !tutorialLoading && !tutorialCompleted) {
       // Show tutorial if user hasn't completed it yet
       setShowTutorial(!tutorial.completed)
     }
-  }, [user, tutorial, tutorialLoading])
+  }, [user, tutorial, tutorialLoading, tutorialCompleted])
 
-  // Navigation client
-  const navigationItems: NavigationItem[] = [
-    {
-      key: 'dashboard',
-      label: 'Tableau de bord',
-      href: '/client',
-      icon: 'LayoutDashboard',
-      category: 'main'
-    },
-    {
-      key: 'announcements',
-      label: 'Mes annonces',
-      href: '/client/announcements',
-      icon: 'FileText',
-      category: 'main'
-    },
-    {
-      key: 'deliveries',
-      label: 'Mes livraisons',
-      href: '/client/deliveries',
-      icon: 'Truck',
-      category: 'main'
-    },
-    {
-      key: 'services',
-      label: 'Services',
-      href: '/client/services',
-      icon: 'Briefcase',
-      category: 'main'
-    },
-    {
-      key: 'storage',
-      label: 'Stockage',
-      href: '/client/storage',
-      icon: 'Package',
-      category: 'main'
-    },
-    {
-      key: 'subscription',
-      label: 'Mon abonnement',
-      href: '/client/subscription',
-      icon: 'Crown',
-      category: 'account'
-    },
-    {
-      key: 'settings',
-      label: 'Paramètres',
-      href: '/client/settings',
-      icon: 'Settings',
-      category: 'account'
+  // Close mobile menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = () => {
+      if (mobileMenuOpen) {
+        setMobileMenuOpen(false)
+      }
     }
-  ]
 
-  // Actions rapides pour les clients
-  const quickActions = [
-    {
-      key: 'new-announcement',
-      label: 'Nouvelle annonce',
-      icon: 'Plus',
-      href: '/client/announcements/create',
-      variant: 'primary' as const
-    },
-    {
-      key: 'track-delivery',
-      label: 'Suivi livraison',
-      icon: 'MapPin',
-      href: '/client/tracking'
-    }
-  ]
+    document.addEventListener('click', handleClickOutside)
+    return () => document.removeEventListener('click', handleClickOutside)
+  }, [mobileMenuOpen])
 
-  // Notifications mockées (remplacer par vraies notifications)
-  const notifications = [
-    {
-      id: '1',
-      title: 'Livraison en cours',
-      message: 'Votre commande sera livrée dans 30 minutes',
-      type: 'info' as const,
-      timestamp: new Date(),
-      read: false,
-      actionUrl: '/client/tracking'
-    }
-  ]
+  // Tutorial handlers - Version simplifiée
 
-  // Tutorial handlers
-  const handleStepComplete = async (stepId: number, timeSpent: number) => {
+  const handleLogout = async () => {
     try {
-      await updateTutorialStep(stepId.toString(), true)
+      await signOut()
     } catch (error) {
-      console.error('Error completing tutorial step:', error)
+      console.error('Error during logout:', error)
     }
   }
 
-  const handleTutorialComplete = async (data: {
-    totalTimeSpent: number
-    stepsCompleted: number[]
-    feedback?: string
-    rating?: number
-  }) => {
-    try {
-      await completeTutorial()
-      setShowTutorial(false)
-    } catch (error) {
-      console.error('Error completing tutorial:', error)
-    }
+  const toggleSidebar = () => {
+    setSidebarCollapsed(!sidebarCollapsed)
   }
 
-  // Tutorial steps definition
-  const tutorialSteps = [
-    {
-      id: 1,
-      title: 'Bienvenue sur EcoDeli',
-      description: 'Découvrez la plateforme éco-responsable qui révolutionne la livraison',
-      type: 'welcome',
-      mandatory: true,
-      estimatedTime: 30,
-      completed: tutorial?.progress?.welcome || false,
-      timeSpent: 0,
-      skipped: false
-    },
-    {
-      id: 2,
-      title: 'Votre profil',
-      description: 'Complétez votre profil pour optimiser votre expérience',
-      type: 'profile',
-      mandatory: true,
-      estimatedTime: 45,
-      completed: tutorial?.progress?.profile || false,
-      timeSpent: 0,
-      skipped: false
-    },
-    {
-      id: 3,
-      title: 'Abonnements EcoDeli',
-      description: 'Découvrez nos plans tarifaires et leurs avantages',
-      type: 'subscription',
-      mandatory: true,
-      estimatedTime: 60,
-      completed: tutorial?.progress?.subscription || false,
-      timeSpent: 0,
-      skipped: false
-    },
-    {
-      id: 4,
-      title: 'Créer une annonce',
-      description: 'Apprenez à publier votre première demande de livraison',
-      type: 'announcement',
-      mandatory: true,
-      estimatedTime: 90,
-      completed: tutorial?.progress?.announcement || false,
-      timeSpent: 0,
-      skipped: false
-    },
-    {
-      id: 5,
-      title: 'Félicitations !',
-      description: 'Vous êtes maintenant prêt à utiliser EcoDeli',
-      type: 'completion',
-      mandatory: true,
-      estimatedTime: 15,
-      completed: tutorial?.progress?.completion || false,
-      timeSpent: 0,
-      skipped: false
-    }
-  ]
-
-  const currentStep = tutorialSteps.find(step => !step.completed)?.id || 1
-  const completedSteps = tutorialSteps.filter(step => step.completed).length
-  const progressPercentage = Math.round((completedSteps / tutorialSteps.length) * 100)
-
-  // Redirection si pas authentifié
-  if (!isAuthenticated && !isLoading) {
-    if (typeof window !== 'undefined') {
-      window.location.href = '/login'
-    }
-    return null
+  const toggleMobileMenu = () => {
+    setMobileMenuOpen(!mobileMenuOpen)
   }
 
-  // État de chargement
+  // Simulated notification count (replace with real data)
+  const notificationCount = 3
+
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center space-y-4">
-          <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full mx-auto" />
-          <p className="text-muted-foreground">Chargement...</p>
-        </div>
+      <div className="flex h-screen items-center justify-center">
+        <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full" />
       </div>
     )
   }
 
-  return (
-    <>
-      <DashboardLayout
-        role="CLIENT"
-        user={user}
-        navigationItems={navigationItems}
-        quickActions={quickActions}
-        notifications={notifications}
-        showBreadcrumbs={true}
-        sidebarCollapsed={sidebarCollapsed}
-        onSidebarToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
-      >
-        {children}
-      </DashboardLayout>
+  if (!isAuthenticated || !user) {
+    return null // Redirect handled by auth guard
+  }
 
-      {/* Tutorial Overlay - MANDATORY for first connection */}
-      {user && !tutorialLoading && (
-        <ClientTutorialOverlay
-          isOpen={showTutorial}
-          tutorialRequired={!tutorial?.completed}
-          currentStep={currentStep}
-          steps={tutorialSteps}
-          settings={{
-            blockingOverlay: true, // BLOCK all interactions until completion
-            allowSkip: false, // MANDATORY completion
-            autoSave: true,
-            showProgress: true
-          }}
-          progressPercentage={progressPercentage}
-          user={{
-            name: user.name || user.email,
-            email: user.email,
-            subscriptionPlan: user.profileData?.subscriptionPlan || 'FREE'
-          }}
-          onStepComplete={handleStepComplete}
-          onTutorialComplete={handleTutorialComplete}
-          onClose={tutorial?.completed ? () => setShowTutorial(false) : undefined}
+  return (
+    <div className="flex h-screen bg-background">
+      {/* Desktop Sidebar */}
+      <aside className={cn(
+        "hidden md:flex transition-all duration-300 ease-in-out",
+        sidebarCollapsed ? "w-16" : "w-64"
+      )}>
+        <ClientSidebar 
+          collapsed={sidebarCollapsed}
+          user={user}
         />
+      </aside>
+
+      {/* Mobile Sidebar Overlay */}
+      {mobileMenuOpen && (
+        <div className="fixed inset-0 z-50 md:hidden">
+          <div className="absolute inset-0 bg-black/50" onClick={() => setMobileMenuOpen(false)} />
+          <aside className="absolute left-0 top-0 h-full w-64 bg-background">
+            <ClientSidebar 
+              collapsed={false}
+              user={user}
+            />
+          </aside>
+        </div>
       )}
-    </>
+
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col min-w-0">
+        {/* Header */}
+        <ClientHeader
+          user={{
+            id: user.id,
+            name: user.name || '',
+            email: user.email,
+            avatar: '', // Avatar will be loaded from profile
+            subscription: 'FREE' // Default subscription
+          }}
+          onLogout={handleLogout}
+          onMenuToggle={toggleMobileMenu}
+          notificationCount={notificationCount}
+        />
+
+        {/* Page Content */}
+        <main className="flex-1 overflow-auto p-6">
+          <div className="mx-auto max-w-7xl">
+            {children}
+          </div>
+        </main>
+      </div>
+
+      {/* Tutorial Overlay - Version simplifiée */}
+      {showTutorial && tutorial && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4 shadow-xl">
+            <div className="text-center">
+              <h2 className="text-xl font-bold mb-2">Bienvenue sur EcoDeli !</h2>
+              <p className="text-gray-600 mb-6">
+                Votre tutoriel sera activé dans une future version. 
+                En attendant, explorez librement la plateforme.
+              </p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => {
+                    completeTutorial().then(() => {
+                      setTutorialCompleted(true)
+                      setShowTutorial(false)
+                    }).catch(console.error)
+                  }}
+                  className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
+                >
+                  Commencer
+                </button>
+                <button
+                  onClick={() => {
+                    setTutorialCompleted(true)
+                    setShowTutorial(false)
+                  }}
+                  className="flex-1 bg-gray-200 text-gray-800 px-4 py-2 rounded-md hover:bg-gray-300"
+                >
+                  Plus tard
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Toast Notifications */}
+      <Toaster />
+    </div>
   )
 }

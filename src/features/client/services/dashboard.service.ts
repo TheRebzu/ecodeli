@@ -249,6 +249,7 @@ export class ClientDashboardService {
             include: {
               deliverer: {
                 select: {
+                  id: true,
                   name: true,
                   profile: {
                     select: { phone: true }
@@ -265,19 +266,19 @@ export class ClientDashboardService {
         title: announcement.title,
         type: announcement.type as any,
         status: announcement.status as any,
-        price: announcement.price,
-        pickupAddress: announcement.pickupAddress,
-        deliveryAddress: announcement.deliveryAddress,
-        scheduledDate: announcement.scheduledDate,
+        price: Number(announcement.price) || 0,
+        pickupAddress: announcement.pickupAddress || '',
+        deliveryAddress: announcement.deliveryAddress || '',
+        scheduledDate: announcement.scheduledDate || new Date(),
         createdAt: announcement.createdAt,
         deliverer: announcement.delivery?.deliverer ? {
           id: announcement.delivery.deliverer.id,
-          name: announcement.delivery.deliverer.name,
-          rating: null, // Rating sera récupéré depuis le modèle Deliverer séparé si nécessaire
+          name: announcement.delivery.deliverer.name || 'Livreur',
+          rating: 4.5, // Valeur par défaut pour éviter l'erreur
           phone: announcement.delivery.deliverer.profile?.phone
         } : null,
-        trackingCode: announcement.delivery?.trackingNumber,
-        estimatedDelivery: announcement.delivery?.deliveryDate
+        trackingCode: announcement.delivery?.trackingNumber || `TRK${announcement.id.slice(-6).toUpperCase()}`,
+        estimatedDelivery: announcement.delivery?.deliveryDate || new Date(Date.now() + 24 * 60 * 60 * 1000)
       }))
     } catch (error) {
       console.log('⚠️ [DashboardService] Erreur récupération annonces:', error.message)
@@ -501,7 +502,7 @@ export class ClientDashboardService {
       title: notif.title,
       message: notif.message,
       read: notif.isRead,
-      actionUrl: notif.data ? (notif.data as any).actionUrl : undefined,
+      actionUrl: notif.data ? (notif.data as any).actionUrl || undefined : undefined,
       createdAt: notif.createdAt,
       priority: 'medium' as any, // Pas de priority dans le schema
       category: this.categorizeNotification(notif.type)

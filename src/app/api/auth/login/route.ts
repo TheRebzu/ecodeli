@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Récupérer le user complet (avec le rôle) depuis la base
-    let user = result.data?.user
+    let user = result.user
     if (user && !user.role) {
       // On va chercher le user complet
       const dbUser = await db.user.findUnique({
@@ -60,7 +60,7 @@ export async function POST(request: NextRequest) {
       { 
         success: true,
         user,
-        session: result.data?.session 
+        session: result.session 
       },
       { 
         status: 200,

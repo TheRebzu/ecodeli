@@ -1,24 +1,40 @@
 import { useState } from 'react'
-import axios from 'axios'
 
-export function useApi() {
+export function useApi<T = any>() {
+  const [data, setData] = useState<T | null>(null)
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<Error | null>(null)
+  const [error, setError] = useState<string | null>(null)
   
-  const request = async (url: string, options?: any) => {
+  const execute = async (url: string, options?: RequestInit) => {
     setLoading(true)
     setError(null)
     
     try {
-      const response = await axios(url, options)
-      return response.data
+      const response = await fetch(url, {
+        ...options,
+        headers: {
+          'Content-Type': 'application/json',
+          ...options?.headers,
+        },
+      })
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+      
+      const result = await response.json()
+      setData(result)
+      return result
     } catch (err) {
-      setError(err as Error)
+      const errorMessage = err instanceof Error ? err.message : 'Une erreur est survenue'
+      setError(errorMessage)
       throw err
     } finally {
       setLoading(false)
     }
   }
   
-  return { request, loading, error }
+  const request = execute // Alias pour compatibilité
+  
+  return { data, loading, error, execute, request }
 }

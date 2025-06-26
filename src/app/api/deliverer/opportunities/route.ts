@@ -1,21 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { matchingService } from '@/features/announcements/services/matching.service'
-import { auth } from '@/lib/auth'
+import { getUserFromSession } from '@/lib/auth/utils'
 import { db } from '@/lib/db'
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await auth()
-    if (!session?.user) {
+    const user = await getUserFromSession(request)
+    if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const user = await db.user.findUnique({
-      where: { id: session.user.id },
-      include: { deliverer: true }
-    })
-
-    if (!user || user.role !== 'DELIVERER' || !user.deliverer) {
+    if (user.role !== 'DELIVERER' || !user.deliverer) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
@@ -27,7 +22,7 @@ export async function GET(request: NextRequest) {
     const serviceType = searchParams.get('serviceType')
 
     const opportunities = await matchingService.getMatchesForDeliverer(
-      session.user.id,
+      user.id,
       {
         page,
         limit,

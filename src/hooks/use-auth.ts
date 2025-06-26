@@ -35,7 +35,7 @@ export function useAuth() {
       setLoading(true)
       
       // Utiliser Better-Auth endpoint
-      const response = await fetch('/api/auth/get-session', {
+      const response = await fetch('/api/auth/session', {
         method: 'GET',
         credentials: 'include',
         headers: {
@@ -44,16 +44,21 @@ export function useAuth() {
       })
 
       if (response.ok) {
-        const data = await response.json()
-        
-        // Vérifier que data n'est pas null et contient un user
-        if (data && data.user) {
-          setSession({
-            user: data.user,
-            session: data.session || { id: 'temp', expiresAt: 'unknown' }
-          })
-          setError(null)
-        } else {
+        try {
+          const data = await response.json()
+          
+          // Better-Auth peut retourner directement user et session ou null
+          if (data && data.user) {
+            setSession({
+              user: data.user,
+              session: data.session || { id: 'temp', userId: data.user.id, expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() }
+            })
+            setError(null)
+          } else {
+            setSession(null)
+          }
+        } catch (jsonError) {
+          // Si la réponse n'est pas du JSON valide ou est null
           setSession(null)
         }
       } else {

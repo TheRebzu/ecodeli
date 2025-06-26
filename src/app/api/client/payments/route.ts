@@ -1,14 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '@/lib/auth'
+import { getUserFromSession } from '@/lib/auth/utils'
 import { db } from '@/lib/db'
 
 export async function GET(request: NextRequest) {
-  try {
-    const session = await auth()
-    if (!session?.user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+  const user = await getUserFromSession(request)
+  if (!user) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
 
+  try {
     const { searchParams } = new URL(request.url)
     const page = parseInt(searchParams.get('page') || '1')
     const limit = parseInt(searchParams.get('limit') || '10')
@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
 
     // Construire les filtres
     const where: any = {
-      payerId: session.user.id
+      payerId: user.id
     }
 
     if (status) {
@@ -75,7 +75,7 @@ export async function GET(request: NextRequest) {
     // Calculer les statistiques
     const allPayments = await db.payment.findMany({
       where: {
-        payerId: session.user.id
+        payerId: user.id
       }
     })
 

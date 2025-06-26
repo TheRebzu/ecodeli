@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '@/lib/auth'
+import { getUserFromSession } from '@/lib/auth/utils'
 import { db } from '@/lib/db'
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await auth()
-    if (!session?.user) {
+    const user = await getUserFromSession(request)
+    if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
     const page = parseInt(searchParams.get('page') || '1')
     const limit = parseInt(searchParams.get('limit') || '10')
 
-    const filters: any = { clientId: session.user.id }
+    const filters: any = { clientId: user.id }
     
     if (status) {
       filters.status = status
@@ -95,8 +95,8 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await auth()
-    if (!session?.user) {
+    const user = await getUserFromSession(request)
+    if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -128,7 +128,7 @@ export async function POST(request: NextRequest) {
     // Créer la réservation
     const booking = await db.booking.create({
       data: {
-        clientId: session.user.id,
+        clientId: user.id,
         providerId,
         serviceType,
         scheduledDate: new Date(scheduledDate),
