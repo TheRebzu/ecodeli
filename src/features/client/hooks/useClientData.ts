@@ -41,14 +41,18 @@ export function useClientProfile() {
 }
 
 export function useClientDashboard() {
-  const { data, loading, error, execute } = useApi<ClientDashboardStats>()
+  const { data, loading, error, execute } = useApi<any>() // Type temporaire
 
   const fetchDashboard = async () => {
     await execute('/api/client/dashboard')
   }
 
   return {
-    stats: data,
+    dashboard: data, // Retourne toutes les données du dashboard
+    stats: data?.stats,
+    client: data?.client,
+    tutorial: data?.tutorial,
+    notifications: data?.notifications,
     loading,
     error,
     fetchDashboard,

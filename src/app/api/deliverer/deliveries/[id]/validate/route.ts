@@ -200,7 +200,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
         title: hasIssues ? 'Livraison termin�e avec signalements' : 'Livraison termin�e',
         message: hasIssues 
           ? `Votre livraison a �t� effectu�e avec quelques signalements. Consultez les d�tails.`
-          : `Votre livraison a �t� effectu�e avec succ�s par ${delivery.deliverer.user.profile?.firstName}.`,
+          : `Votre livraison a �t� effectu�e avec succ�s par ${delivery.deliverer?.profile?.firstName || 'votre livreur'}.`,
         data: {
           deliveryId: delivery.id,
           delivererId: delivery.deliverer.userId,

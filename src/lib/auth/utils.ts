@@ -12,7 +12,7 @@ import { headers } from 'next/headers'
  */
 export async function getUserFromSession(request: NextRequest) {
   try {
-    console.log('🔍 [API] Vérification session Better-Auth...')
+    console.log('Vérification session...')
 
     // Convertir les headers NextRequest en format compatible Better-Auth
     const headersMap = new Headers()

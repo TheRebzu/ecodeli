@@ -1,4 +1,4 @@
-// Webhook Stripe pour traiter les événements de paiement EcoDeli
+// Webhook Stripe pour traiter les ï¿½vï¿½nements de paiement EcoDeli
 import { NextRequest, NextResponse } from 'next/server'
 import { headers } from 'next/headers'
 import Stripe from 'stripe'
@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid signature' }, { status: 400 })
     }
 
-    // Traitement des événements Stripe
+    // Traitement des ï¿½vï¿½nements Stripe
     switch (event.type) {
       case 'payment_intent.succeeded':
         await handlePaymentSucceeded(event.data.object as Stripe.PaymentIntent)
@@ -106,7 +106,7 @@ async function handlePaymentSucceeded(paymentIntent: Stripe.PaymentIntent) {
       return
     }
 
-    // Mettre à jour le statut du paiement
+    // Mettre ï¿½ jour le statut du paiement
     await prisma.payment.update({
       where: { id: payment.id },
       data: {
@@ -121,14 +121,14 @@ async function handlePaymentSucceeded(paymentIntent: Stripe.PaymentIntent) {
       }
     })
 
-    // Traitement spécifique selon le type de paiement
+    // Traitement spï¿½cifique selon le type de paiement
     if (payment.delivery) {
       await handleDeliveryPaymentSucceeded(payment, paymentIntent)
     } else if (payment.booking) {
       await handleBookingPaymentSucceeded(payment, paymentIntent)
     }
 
-    // Notification à l'utilisateur
+    // Notification ï¿½ l'utilisateur
     await OneSignalService.notifyPaymentReceived(
       payment.userId,
       paymentIntent.amount / 100,
@@ -136,7 +136,7 @@ async function handlePaymentSucceeded(paymentIntent: Stripe.PaymentIntent) {
       payment.delivery ? 'delivery' : 'booking'
     )
 
-    // Log d'activité
+    // Log d'activitï¿½
     await prisma.activityLog.create({
       data: {
         userId: payment.userId,
@@ -164,7 +164,7 @@ async function handleDeliveryPaymentSucceeded(payment: any, paymentIntent: Strip
   const platformFee = amount * 0.15 // 15% pour la plateforme
   const delivererFee = amount - platformFee
 
-  // Mettre à jour la livraison
+  // Mettre ï¿½ jour la livraison
   await prisma.delivery.update({
     where: { id: delivery.id },
     data: {
@@ -174,11 +174,11 @@ async function handleDeliveryPaymentSucceeded(payment: any, paymentIntent: Strip
     }
   })
 
-  // Créditer le portefeuille du livreur
+  // Crï¿½diter le portefeuille du livreur
   await prisma.walletOperation.create({
     data: {
-      walletId: delivery.deliverer.user.wallet?.id || '',
-      userId: delivery.deliverer.user.id,
+              walletId: delivery.deliverer?.wallet?.id || '',
+        userId: delivery.deliverer?.id || '',
       type: 'CREDIT',
       amount: delivererFee,
       description: `Paiement livraison: ${delivery.announcement.title}`,
@@ -188,9 +188,9 @@ async function handleDeliveryPaymentSucceeded(payment: any, paymentIntent: Strip
     }
   })
 
-  // Mettre à jour le solde du portefeuille
+  // Mettre ï¿½ jour le solde du portefeuille
   await prisma.wallet.update({
-    where: { userId: delivery.deliverer.user.id },
+          where: { userId: delivery.deliverer?.id || '' },
     data: {
       balance: {
         increment: delivererFee
@@ -200,7 +200,7 @@ async function handleDeliveryPaymentSucceeded(payment: any, paymentIntent: Strip
 
   // Notification au livreur
   await OneSignalService.notifyPaymentReceived(
-    delivery.deliverer.user.id,
+          delivery.deliverer?.id || '',
     delivererFee,
     `Livraison: ${delivery.announcement.title}`,
     'delivery'
@@ -211,7 +211,7 @@ async function handleDeliveryPaymentSucceeded(payment: any, paymentIntent: Strip
     delivery.clientId,
     delivery.id,
     'PAYMENT_CONFIRMED',
-    'Votre paiement a été confirmé. Le livreur va maintenant récupérer votre colis.'
+    'Votre paiement a ï¿½tï¿½ confirmï¿½. Le livreur va maintenant rï¿½cupï¿½rer votre colis.'
   )
 }
 
@@ -223,7 +223,7 @@ async function handleBookingPaymentSucceeded(payment: any, paymentIntent: Stripe
   const platformFee = amount * 0.15 // 15% pour la plateforme
   const providerFee = amount - platformFee
 
-  // Mettre à jour la réservation
+  // Mettre ï¿½ jour la rï¿½servation
   await prisma.booking.update({
     where: { id: booking.id },
     data: {
@@ -231,17 +231,17 @@ async function handleBookingPaymentSucceeded(payment: any, paymentIntent: Stripe
     }
   })
 
-  // Le paiement du prestataire sera traité lors de la facturation mensuelle
-  // On crée juste un record pour le tracking
+  // Le paiement du prestataire sera traitï¿½ lors de la facturation mensuelle
+  // On crï¿½e juste un record pour le tracking
   await prisma.walletOperation.create({
     data: {
       walletId: booking.provider.user.wallet?.id || '',
       userId: booking.provider.user.id,
       type: 'CREDIT',
       amount: providerFee,
-      description: `Réservation: ${booking.service.name}`,
+      description: `Rï¿½servation: ${booking.service.name}`,
       reference: booking.id,
-      status: 'PENDING', // Sera payé en fin de mois
+      status: 'PENDING', // Sera payï¿½ en fin de mois
     }
   })
 
@@ -278,11 +278,11 @@ async function handlePaymentFailed(paymentIntent: Stripe.PaymentIntent) {
       }
     })
 
-    // Notification à l'utilisateur
+    // Notification ï¿½ l'utilisateur
     await OneSignalService.sendToUser(
       payment.userId,
-      'Paiement échoué',
-      `Votre paiement de ${paymentIntent.amount / 100}¬ a échoué. Veuillez réessayer.`,
+      'Paiement ï¿½chouï¿½',
+      `Votre paiement de ${paymentIntent.amount / 100}ï¿½ a ï¿½chouï¿½. Veuillez rï¿½essayer.`,
       {
         type: 'payment_failed',
         paymentId: payment.id,
@@ -311,10 +311,10 @@ async function handleSubscriptionCreated(subscription: Stripe.Subscription) {
 
     if (!user || !user.client) return
 
-    // Déterminer le plan d'abonnement
+    // Dï¿½terminer le plan d'abonnement
     const plan = subscription.items.data[0]?.price.lookup_key || 'STARTER'
 
-    // Mettre à jour l'abonnement client
+    // Mettre ï¿½ jour l'abonnement client
     await prisma.client.update({
       where: { id: user.client.id },
       data: {
@@ -327,7 +327,7 @@ async function handleSubscriptionCreated(subscription: Stripe.Subscription) {
     // Notification de bienvenue
     await OneSignalService.sendToUser(
       user.id,
-      '<‰ Abonnement activé',
+      '<ï¿½ Abonnement activï¿½',
       `Votre abonnement ${plan} est maintenant actif !`,
       {
         type: 'subscription_activated',
@@ -395,8 +395,8 @@ async function handleSubscriptionCancelled(subscription: Stripe.Subscription) {
 
     await OneSignalService.sendToUser(
       user.id,
-      'Abonnement annulé',
-      'Votre abonnement a été annulé. Vous avez été rétrogradé au plan gratuit.',
+      'Abonnement annulï¿½',
+      'Votre abonnement a ï¿½tï¿½ annulï¿½. Vous avez ï¿½tï¿½ rï¿½trogradï¿½ au plan gratuit.',
       {
         type: 'subscription_cancelled'
       }
@@ -408,12 +408,12 @@ async function handleSubscriptionCancelled(subscription: Stripe.Subscription) {
 }
 
 async function handleInvoicePaymentSucceeded(invoice: Stripe.Invoice) {
-  // Traitement des factures payées (abonnements, etc.)
+  // Traitement des factures payï¿½es (abonnements, etc.)
   console.log('Invoice payment succeeded:', invoice.id)
 }
 
 async function handleInvoicePaymentFailed(invoice: Stripe.Invoice) {
-  // Traitement des échecs de paiement de factures
+  // Traitement des ï¿½checs de paiement de factures
   console.log('Invoice payment failed:', invoice.id)
 }
 
@@ -421,8 +421,8 @@ async function handleChargeDispute(dispute: Stripe.Dispute) {
   // Notifier les admins d'un litige
   await OneSignalService.sendWithFilters(
     [{ field: 'tag', key: 'role', relation: '=', value: 'ADMIN' }],
-    '  Nouveau litige',
-    `Un litige de ${dispute.amount / 100}¬ a été ouvert (${dispute.reason})`,
+    'ï¿½ Nouveau litige',
+    `Un litige de ${dispute.amount / 100}ï¿½ a ï¿½tï¿½ ouvert (${dispute.reason})`,
     {
       type: 'charge_dispute',
       disputeId: dispute.id,
@@ -433,11 +433,11 @@ async function handleChargeDispute(dispute: Stripe.Dispute) {
 }
 
 async function handleTransferCreated(transfer: Stripe.Transfer) {
-  // Log des transferts vers les comptes connectés
+  // Log des transferts vers les comptes connectï¿½s
   console.log('Transfer created:', transfer.id, transfer.amount / 100)
 }
 
 async function handlePayoutPaid(payout: Stripe.Payout) {
-  // Traitement des virements effectués
+  // Traitement des virements effectuï¿½s
   console.log('Payout paid:', payout.id, payout.amount / 100)
 }

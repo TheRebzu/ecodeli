@@ -777,10 +777,7 @@
     "_fragile": "[TO_TRANSLATE] 🔺 Fragile",
     "titre_description_adresse": "[TO_TRANSLATE] Titre, description, adresse...",
     "min": "[TO_TRANSLATE] Min",
-    "max": "[TO_TRANSLATE] Max",
-    "erreur_2": "Error",
-    "description_2": "[TO_TRANSLATE] Description",
-    "prix_1": "[TO_TRANSLATE] Prix"
+    "max": "[TO_TRANSLATE] Max"
   },
   "deliveries": {
     "title": "Deliveries",
@@ -841,8 +838,7 @@
     "gestion_des_livraisons": "Gestion des Deliverys",
     "composant_deliverymanager_en_cours": "Composant DeliveryManager In Progress de développement",
     "validation_de_livraison": "Validation de Delivery",
-    "composant_de_validation_en": "Composant de validation In Progress de développement",
-    "tous_les_statuts": "[TO_TRANSLATE] Tous les statuts"
+    "composant_de_validation_en": "Composant de validation In Progress de développement"
   },
   "payments": {
     "title": "Payments",
@@ -894,9 +890,7 @@
     "destinataire": "[TO_TRANSLATE] Destinataire",
     "rsum": "[TO_TRANSLATE] R�sum�",
     "service_1": "[TO_TRANSLATE] Service",
-    "rfrence": "[TO_TRANSLATE] Référence",
-    "date_1": "[TO_TRANSLATE] Date",
-    "tous_les_statuts_2": "[TO_TRANSLATE] Tous les statuts"
+    "rfrence": "[TO_TRANSLATE] Référence"
   },
   "bookings": {
     "title": "Bookings",
@@ -1500,15 +1494,7 @@
     "incomplets": "[TO_TRANSLATE] Incomplets",
     "dernire_soumission": "[TO_TRANSLATE] Dernière soumission",
     "aucun": "[TO_TRANSLATE] Aucun",
-    "rechercher_par_email_ou": "Search par email ou nom...",
-    "date": "[TO_TRANSLATE] Date:",
-    "email_1": "[TO_TRANSLATE] Email:",
-    "adresse_1": "[TO_TRANSLATE] Adresse",
-    "ville": "[TO_TRANSLATE] Ville",
-    "code_postal": "[TO_TRANSLATE] Code postal",
-    "annuler": "Cancel",
-    "tous_les_statuts_1": "[TO_TRANSLATE] Tous les statuts",
-    "erreur": "Error"
+    "rechercher_par_email_ou": "Search par email ou nom..."
   },
   "footer": {
     "description": "EcoDeli - The eco-responsible crowdshipping platform",
@@ -1722,15 +1708,7 @@
     "prix_total_": "[TO_TRANSLATE] Prix total :",
     "paris_4": "[TO_TRANSLATE] Paris...",
     "nombre_de_jours": "[TO_TRANSLATE] Nombre de jours",
-    "qr_code_d": "[TO_TRANSLATE] QR Code d",
-    "email_2": "[TO_TRANSLATE] Email",
-    "adresse_3": "[TO_TRANSLATE] Adresse",
-    "ville_2": "[TO_TRANSLATE] Ville",
-    "code_postal_2": "[TO_TRANSLATE] Code postal",
-    "date_2": "[TO_TRANSLATE] Date",
-    "annuler_4": "Cancel",
-    "prix": "[TO_TRANSLATE] Prix",
-    "description_1": "[TO_TRANSLATE] Description"
+    "qr_code_d": "[TO_TRANSLATE] QR Code d"
   },
   "deliverer": {
     "tableau_de_bord_livreur": "Dashboard Deliverer",

@@ -1,126 +1,200 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/db'
 import { getUserFromSession } from '@/lib/auth/utils'
+import { ClientDashboardService } from '@/features/client/services/dashboard.service'
+import { ClientDashboardResponseSchema } from '@/features/client/schemas/dashboard.schema'
+import { prisma } from '@/lib/db'
+
+/**
+ * API Dashboard Client EcoDeli
+ * 
+ * Implémente les exigences Mission 1 - Partie dédiée aux clients :
+ * - Dépôt d'annonces et suivi des livraisons
+ * - Réservation de services et RDV avec prestataires
+ * - Gestion des paiements
+ * - Accès aux box de stockage temporaire
+ * - Tutoriel obligatoire à la première connexion
+ * 
+ * AUCUNE DONNÉE MOCK - Toutes les données viennent de PostgreSQL
+ */
+
+const dashboardService = new ClientDashboardService()
 
 /**
  * GET /api/client/dashboard
- * Dashboard client avec vérification tutoriel obligatoire
+ * Récupérer toutes les données du dashboard client
  */
 export async function GET(request: NextRequest) {
+  try {
+    // Vérification de l'authentification et du rôle
+    const user = await getUserFromSession(request)
+    
+    if (!user || user.role !== 'CLIENT') {
+      return NextResponse.json(
+        { error: 'Accès refusé - Rôle CLIENT requis' }, 
+        { status: 403 }
+      )
+    }
+
+    // Récupération des données complètes du dashboard
+    const dashboardData = await dashboardService.getDashboardData(user.id)
+    
+    // Formatage de la réponse selon le schéma
+    const response = {
+      client: {
+        id: dashboardData.client.id,
+        subscriptionPlan: dashboardData.client.subscriptionPlan,
+        subscriptionExpiry: dashboardData.client.subscriptionEnd,
+        tutorialCompleted: dashboardData.client.tutorialCompleted,
+        emailVerified: dashboardData.client.user.emailVerified,
+        profileComplete: !!(dashboardData.client.user.profile?.firstName && dashboardData.client.user.profile?.lastName),
+        user: {
+          id: dashboardData.client.user.id,
+          name: dashboardData.client.user.name,
+          email: dashboardData.client.user.email,
+          phone: dashboardData.client.user.profile?.phone,
+          avatar: dashboardData.client.user.profile?.avatar
+        }
+      },
+      stats: dashboardData.stats,
+      recentAnnouncements: dashboardData.recentActivity.announcements,
+      recentBookings: dashboardData.recentActivity.bookings,
+      activeStorageBoxes: dashboardData.recentActivity.storageBoxes,
+      notifications: dashboardData.notifications,
+      tutorial: dashboardData.tutorial,
+      quickActions: dashboardData.quickActions
+    }
+
+    // Validation de la réponse avec Zod
+    const validatedResponse = ClientDashboardResponseSchema.parse(response)
+
+    return NextResponse.json(validatedResponse)
+
+  } catch (error) {
+    console.error('❌ [API Dashboard] Erreur:', error)
+    
+    // Gestion des erreurs de validation Zod
+    if (error instanceof Error && error.name === 'ZodError') {
+      return NextResponse.json({
+        error: 'Erreur de validation des données',
+        details: error.message
+      }, { status: 400 })
+    }
+
+    // Erreurs métier
+    if (error instanceof Error && error.message.includes('introuvable')) {
+      return NextResponse.json({
+        error: 'Profil client introuvable'
+      }, { status: 404 })
+    }
+
+    // Erreur générique
+    return NextResponse.json({
+      error: 'Erreur serveur lors de la récupération du dashboard',
+      details: process.env.NODE_ENV === 'development' ? (error as Error).message : undefined
+    }, { status: 500 })
+  }
+}
+
+/**
+ * POST /api/client/dashboard/refresh
+ * Rafraîchir les données du dashboard (cache bust)
+ */
+export async function POST(request: NextRequest) {
   try {
     const user = await getUserFromSession(request)
     
     if (!user || user.role !== 'CLIENT') {
-      return NextResponse.json({ error: 'Accès refusé' }, { status: 403 })
+      return NextResponse.json(
+        { error: 'Accès refusé' }, 
+        { status: 403 }
+      )
     }
 
-    // Récupérer profil client complet
-    const client = await prisma.client.findUnique({
-      where: { userId: user.id },
-      include: {
-        user: {
-          include: {
-            profile: true
-          }
-        },
-        announcements: {
-          orderBy: { createdAt: 'desc' },
-          take: 5,
-          include: {
-            author: true
-          }
-        },
-        bookings: {
-          orderBy: { createdAt: 'desc' },
-          take: 5,
-          include: {
-            service: true
-          }
-        },
-        storageBoxes: {
-          take: 5
-        }
-      }
-    })
+    // Rafraîchissement des données
 
-    if (!client) {
-      return NextResponse.json({ error: 'Profil client introuvable' }, { status: 404 })
-    }
-
-    // Vérifier si tutoriel complété (OBLIGATOIRE selon cahier des charges)
-    const tutorialStatus = {
-      completed: client.tutorialCompleted,
-      steps: {
-        createAnnouncement: false,
-        makeBooking: false,
-        viewPayments: false,
-        trackDelivery: false
-      }
-    }
-
-    // Statistiques du tableau de bord
-    const stats = await getClientStats(user.id)
-
-    return NextResponse.json({
+    // Re-récupération des données (peut inclure un cache bust)
+    const dashboardData = await dashboardService.getDashboardData(user.id)
+    
+    const response = {
       client: {
-        id: client.id,
-        subscriptionPlan: client.subscriptionPlan,
-        tutorialCompleted: client.tutorialCompleted,
-        profile: client.user.profile
+        id: dashboardData.client.id,
+        subscriptionPlan: dashboardData.client.subscriptionPlan,
+        subscriptionExpiry: dashboardData.client.subscriptionEnd,
+        tutorialCompleted: dashboardData.client.tutorialCompleted,
+        emailVerified: dashboardData.client.user.emailVerified,
+        profileComplete: !!(dashboardData.client.user.profile?.firstName && dashboardData.client.user.profile?.lastName),
+        user: {
+          id: dashboardData.client.user.id,
+          name: dashboardData.client.user.name,
+          email: dashboardData.client.user.email,
+          phone: dashboardData.client.user.profile?.phone,
+          avatar: dashboardData.client.user.profile?.avatar
+        }
       },
-      tutorial: tutorialStatus,
-      stats,
-      recentAnnouncements: client.announcements,
-      recentBookings: client.bookings,
-      storageBoxes: client.storageBoxes,
-      notifications: await getUnreadNotifications(user.id)
-    })
+      stats: dashboardData.stats,
+      recentAnnouncements: dashboardData.recentActivity.announcements,
+      recentBookings: dashboardData.recentActivity.bookings,
+      activeStorageBoxes: dashboardData.recentActivity.storageBoxes,
+      notifications: dashboardData.notifications,
+      tutorial: dashboardData.tutorial,
+      quickActions: dashboardData.quickActions,
+      refreshedAt: new Date().toISOString()
+    }
+
+    return NextResponse.json(response)
 
   } catch (error) {
-    console.error('Erreur dashboard client:', error)
-    return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 })
+    console.error('❌ [API Dashboard] Erreur refresh:', error)
+    return NextResponse.json({
+      error: 'Erreur lors du rafraîchissement'
+    }, { status: 500 })
   }
 }
 
 /**
- * Statistiques client pour dashboard
+ * PUT /api/client/dashboard/tutorial
+ * Marquer le tutoriel comme terminé
  */
-async function getClientStats(userId: string) {
-  const [announcementsCount, bookingsCount, deliveriesCount, totalSpent] = await Promise.all([
-    prisma.announcement.count({ where: { authorId: userId } }),
-    prisma.booking.count({ where: { clientId: userId } }),
-    prisma.delivery.count({ 
-      where: { 
-        announcement: { authorId: userId }
-      }
-    }),
-    prisma.payment.aggregate({
-      where: { 
-        userId,
-        status: 'COMPLETED'
-      },
-      _sum: { amount: true }
-    })
-  ])
+export async function PUT(request: NextRequest) {
+  try {
+    const user = await getUserFromSession(request)
+    
+    if (!user || user.role !== 'CLIENT') {
+      return NextResponse.json(
+        { error: 'Accès refusé' }, 
+        { status: 403 }
+      )
+    }
 
-  return {
-    announcements: announcementsCount,
-    bookings: bookingsCount,
-    deliveries: deliveriesCount,
-    totalSpent: totalSpent._sum.amount || 0
+    const body = await request.json()
+    const { completed, timeSpent, feedback } = body
+
+    if (completed) {
+      // Marquer le tutoriel comme terminé
+      await prisma.client.update({
+        where: { userId: user.id },
+        data: {
+          tutorialCompleted: true,
+          tutorialCompletedAt: new Date()
+        }
+      })
+
+      // Tutoriel marqué comme terminé
+
+      return NextResponse.json({
+        success: true,
+        message: 'Tutoriel marqué comme terminé'
+      })
+    }
+
+    return NextResponse.json({
+      error: 'Paramètre completed requis'
+    }, { status: 400 })
+
+  } catch (error) {
+    console.error('❌ [API Dashboard] Erreur tutoriel:', error)
+    return NextResponse.json({
+      error: 'Erreur lors de la mise à jour du tutoriel'
+    }, { status: 500 })
   }
 }
-
-/**
- * Notifications non lues
- */
-async function getUnreadNotifications(userId: string) {
-  return prisma.notification.findMany({
-    where: {
-      userId,
-      status: 'UNREAD'
-    },
-    orderBy: { createdAt: 'desc' },
-    take: 10
-  })
-} 

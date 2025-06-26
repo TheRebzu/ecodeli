@@ -295,8 +295,12 @@ export class InvoiceGeneratorService {
     pdf.text('Livreur:', 120, 110)
     
     pdf.setFont('helvetica', 'normal')
-    const deliverer = delivery.deliverer.user.profile
-    pdf.text(`${deliverer.firstName} ${deliverer.lastName}`, 120, 120)
+    const deliverer = delivery.deliverer?.profile
+    if (deliverer) {
+      pdf.text(`${deliverer.firstName || ''} ${deliverer.lastName || ''}`.trim(), 120, 120)
+    } else {
+      pdf.text('Livreur non assigné', 120, 120)
+    }
     
     // Adresses
     pdf.setFont('helvetica', 'bold')

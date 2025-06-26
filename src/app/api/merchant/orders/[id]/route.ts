@@ -217,9 +217,9 @@ export async function GET(
         validationCode: order.delivery.validationCode,
         deliverer: order.delivery.deliverer ? {
           id: order.delivery.deliverer.id,
-          name: `${order.delivery.deliverer.user.profile?.firstName || ''} ${order.delivery.deliverer.user.profile?.lastName || ''}`.trim(),
-          phone: order.delivery.deliverer.user.profile?.phone,
-          avatar: order.delivery.deliverer.user.profile?.avatar,
+          name: `${order.delivery.deliverer?.profile?.firstName || ''} ${order.delivery.deliverer?.profile?.lastName || ''}`.trim(),
+          phone: order.delivery.deliverer?.profile?.phone,
+          avatar: order.delivery.deliverer?.profile?.avatar,
           vehicle: order.delivery.deliverer.vehicle,
           currentLocation: order.delivery.deliverer.currentLocation
         } : null,

@@ -790,10 +790,7 @@
     "_fragile": "🔺 Fragile",
     "titre_description_adresse": "Titre, description, adresse...",
     "min": "Min",
-    "max": "Max",
-    "erreur_2": "Erreur",
-    "description_2": "Description",
-    "prix_1": "Prix"
+    "max": "Max"
   },
   "deliveries": {
     "title": "Livraisons",
@@ -854,8 +851,7 @@
     "gestion_des_livraisons": "Gestion des Livraisons",
     "composant_deliverymanager_en_cours": "Composant DeliveryManager en cours de développement",
     "validation_de_livraison": "Validation de Livraison",
-    "composant_de_validation_en": "Composant de validation en cours de développement",
-    "tous_les_statuts": "Tous les statuts"
+    "composant_de_validation_en": "Composant de validation en cours de développement"
   },
   "payments": {
     "title": "Paiements",
@@ -907,9 +903,7 @@
     "destinataire": "Destinataire",
     "rsum": "R�sum�",
     "service_1": "Service",
-    "rfrence": "Référence",
-    "date_1": "Date",
-    "tous_les_statuts_2": "Tous les statuts"
+    "rfrence": "Référence"
   },
   "bookings": {
     "title": "Réservations",
@@ -1513,15 +1507,7 @@
     "incomplets": "Incomplets",
     "dernire_soumission": "Dernière soumission",
     "aucun": "Aucun",
-    "rechercher_par_email_ou": "Rechercher par email ou nom...",
-    "date": "Date:",
-    "email_1": "Email:",
-    "adresse_1": "Adresse",
-    "ville": "Ville",
-    "code_postal": "Code postal",
-    "annuler": "Annuler",
-    "tous_les_statuts_1": "Tous les statuts",
-    "erreur": "Erreur"
+    "rechercher_par_email_ou": "Rechercher par email ou nom..."
   },
   "footer": {
     "description": "EcoDeli - La plateforme de crowdshipping éco-responsable",
@@ -1738,15 +1724,7 @@
     "prix_total_": "Prix total :",
     "paris_4": "Paris...",
     "nombre_de_jours": "Nombre de jours",
-    "qr_code_d": "QR Code d",
-    "email_2": "Email",
-    "adresse_3": "Adresse",
-    "ville_2": "Ville",
-    "code_postal_2": "Code postal",
-    "date_2": "Date",
-    "annuler_4": "Annuler",
-    "prix": "Prix",
-    "description_1": "Description"
+    "qr_code_d": "QR Code d"
   },
   "deliverer": {
     "tableau_de_bord_livreur": "Tableau de Bord Livreur",

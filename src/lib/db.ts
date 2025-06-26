@@ -9,7 +9,7 @@ const globalForPrisma = globalThis as unknown as {
 }
 
 export const prisma = globalForPrisma.prisma ?? new PrismaClient({
-  log: ["query", "error", "warn"],
+  log: ["error", "warn"], // Supprimé "query" pour nettoyer la console
   datasources: {
     db: {
       url: process.env.DATABASE_URL
