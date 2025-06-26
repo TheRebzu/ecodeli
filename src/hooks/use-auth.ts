@@ -46,8 +46,8 @@ export function useAuth() {
       if (response.ok) {
         const data = await response.json()
         
-        // Better-Auth peut retourner directement user et session
-        if (data.user) {
+        // Vérifier que data n'est pas null et contient un user
+        if (data && data.user) {
           setSession({
             user: data.user,
             session: data.session || { id: 'temp', expiresAt: 'unknown' }
@@ -117,8 +117,7 @@ export function useAuth() {
         credentials: 'include',
         body: JSON.stringify({
           ...userData,
-          isActive: true,
-          validationStatus: 'VALIDATED'
+          emailVerified: false
         }),
       })
 
@@ -175,6 +174,7 @@ export function useAuth() {
     refetch: checkSession,
     role: session?.user?.role,
     isActive: session?.user?.isActive ?? false,
-    validationStatus: session?.user?.validationStatus
+    validationStatus: session?.user?.validationStatus,
+    emailVerified: session?.user?.emailVerified ?? false
   }
 } 

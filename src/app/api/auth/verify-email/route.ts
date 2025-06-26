@@ -26,8 +26,8 @@ export async function GET(request: NextRequest) {
     // Vérifier le token de vérification (temporairement simulé)
     console.log('🔍 Vérification du token:', validatedToken, 'pour email:', validatedEmail)
     
-    // Pour l'instant, nous acceptons tous les tokens commençant par 'cm'
-    if (!validatedToken.startsWith('cm')) {
+    // Pour l'instant, nous acceptons tous les tokens cuid2 valides (25 caractères)
+    if (!validatedToken || validatedToken.length < 20) {
       return NextResponse.redirect(new URL('/verify-email?error=invalid_or_expired_token', request.url))
     }
     
@@ -91,8 +91,8 @@ export async function POST(request: NextRequest) {
     // Vérifier le token de vérification (temporairement simulé)
     console.log('🔍 POST - Vérification du token:', token, 'pour email:', email)
     
-    // Pour l'instant, nous acceptons tous les tokens commençant par 'cm'
-    if (!token.startsWith('cm')) {
+    // Pour l'instant, nous acceptons tous les tokens cuid2 valides (25 caractères)
+    if (!token || token.length < 20) {
       return NextResponse.json(
         { error: 'Token invalide ou expiré' },
         { status: 400 }

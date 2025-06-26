@@ -29,10 +29,18 @@ export default function ProviderRegisterForm() {
     setError(null)
 
     try {
-      const response = await fetch('/api/auth/register/provider', {
+      const response = await fetch('/api/auth/sign-up/email', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
+        body: JSON.stringify({
+          email: data.email,
+          password: data.password,
+          name: data.businessName,
+          role: 'PROVIDER',
+          // Propriétés additionnelles pour Better Auth
+          isActive: false,
+          validationStatus: 'PENDING'
+        })
       })
 
       const result = await response.json()

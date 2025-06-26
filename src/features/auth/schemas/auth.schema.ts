@@ -52,7 +52,19 @@ export const baseRegisterSchema = baseRegisterFields.refine(
 export type BaseRegisterData = z.infer<typeof baseRegisterSchema>
 
 // Schema d'inscription client
-export const clientRegisterSchema = baseRegisterFields.extend({
+export const clientRegisterSchema = z.object({
+  email: z
+    .string()
+    .min(1, "L'email est requis")
+    .email("Format d'email invalide"),
+  password: z
+    .string()
+    .min(8, "Le mot de passe doit contenir au moins 8 caractères")
+    .regex(
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,}$/,
+      "Le mot de passe doit contenir: minuscule, majuscule, chiffre et caractère spécial"
+    ),
+  confirmPassword: z.string(),
   firstName: z
     .string()
     .min(2, "Le prénom doit contenir au moins 2 caractères")
@@ -78,7 +90,13 @@ export const clientRegisterSchema = baseRegisterFields.extend({
       message: "Vous devez accepter les conditions d'utilisation"
     }),
   subscriptionPlan: z.enum(['FREE', 'STARTER', 'PREMIUM']).default('FREE'),
-  acceptsMarketing: z.boolean().default(false)
+  acceptsMarketing: z.boolean().default(false),
+  phone: z
+    .string()
+    .optional()
+    .refine((val) => !val || /^(\+33|0)[1-9]([0-9]{8})$/.test(val), {
+      message: "Format de téléphone invalide (ex: 0651168619 ou +33651168619)"
+    })
 }).refine(
   (data) => data.password === data.confirmPassword,
   {

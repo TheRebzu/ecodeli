@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
-import { prisma } from "@/lib/db"
 import { forgotPasswordSchema } from "@/features/auth/schemas/auth.schema"
+import { db } from "@/lib/db"
 import { EmailServiceAlternative } from "@/lib/email-alternative"
-import { createId } from "@paralleldrive/cuid2"
+import crypto from "crypto"
 
 export async function POST(request: NextRequest) {
   try {
@@ -13,7 +13,7 @@ export async function POST(request: NextRequest) {
     const { email } = forgotPasswordSchema.parse(body)
 
     // Vérifier si l'utilisateur existe
-    const user = await prisma.user.findUnique({
+    const user = await db.user.findUnique({
       where: { email }
     })
 
@@ -21,38 +21,44 @@ export async function POST(request: NextRequest) {
     // même si l'utilisateur n'existe pas
     if (!user) {
       console.log(`❌ Tentative de reset pour email inexistant: ${email}`)
-      return NextResponse.json(
-        { message: "Si cet email existe, un lien de réinitialisation a été envoyé" },
-        { status: 200 }
-      )
+      return NextResponse.json({
+        message: "Si cet email existe, un lien de réinitialisation a été envoyé"
+      })
     }
 
-    // Générer un token de reset unique
-    const resetToken = createId()
-    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 heures
+    // Générer un token sécurisé
+    const token = crypto.randomBytes(32).toString('hex')
+    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000) // 24h
 
-    // Supprimer les anciens tokens de reset pour cet email
-    await prisma.passwordReset.deleteMany({
-      where: { email: user.email }
+    // Supprimer les anciens tokens pour cet email
+    await db.verification.deleteMany({
+      where: {
+        identifier: email,
+        value: { startsWith: 'password-reset:' }
+      }
     })
 
-    // Créer un nouveau token de reset
-    await prisma.passwordReset.create({
+    // Créer un nouveau token dans la table Verification de Better Auth
+    await db.verification.create({
       data: {
-        email: user.email,
-        token: resetToken,
-        expiresAt,
-        used: false
+        identifier: email,
+        value: `password-reset:${token}`,
+        expiresAt
       }
     })
 
     // Construire l'URL de reset
-    const resetUrl = `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/reset-password?token=${resetToken}`
+    const baseUrl = process.env.BETTER_AUTH_URL || "http://localhost:3000"
+    const resetUrl = `${baseUrl}/reset-password?token=${token}&email=${encodeURIComponent(email)}`
 
-    // Envoyer l'email de reset
-    await EmailServiceAlternative.sendPasswordResetEmail(email, resetUrl, user.language || 'fr')
-
-    console.log(`✅ Email de reset envoyé à ${email}`)
+    // Envoyer l'email
+    try {
+      await EmailServiceAlternative.sendPasswordResetEmail(email, resetUrl, 'fr')
+      console.log(`✅ Email de reset envoyé à ${email}`)
+    } catch (emailError) {
+      console.error('❌ Erreur envoi email:', emailError)
+      // On continue même si l'email échoue
+    }
 
     return NextResponse.json({
       message: "Si cet email existe, un lien de réinitialisation a été envoyé"
@@ -68,9 +74,9 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    return NextResponse.json(
-      { error: "Erreur interne du serveur" },
-      { status: 500 }
-    )
+    // Pour des raisons de sécurité, on renvoie toujours la même réponse
+    return NextResponse.json({
+      message: "Si cet email existe, un lien de réinitialisation a été envoyé"
+    })
   }
 } 

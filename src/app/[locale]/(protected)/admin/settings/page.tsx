@@ -1,6 +1,6 @@
 import { Metadata } from 'next'
 import { redirect } from 'next/navigation'
-import { getCurrentUser } from '@/lib/auth-simple'
+import { getCurrentUser } from '@/lib/auth/utils'
 import { SettingsDashboard } from '@/features/admin/components/settings/settings-dashboard'
 
 interface SettingsPageProps {

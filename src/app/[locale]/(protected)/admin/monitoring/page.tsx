@@ -1,6 +1,6 @@
 import { Metadata } from 'next'
 import { redirect } from 'next/navigation'
-import { getCurrentUser } from '@/lib/auth-simple'
+import { getCurrentUser } from '@/lib/auth/utils'
 import { MonitoringDashboard } from '@/features/admin/components/monitoring/monitoring-dashboard'
 
 interface MonitoringPageProps {

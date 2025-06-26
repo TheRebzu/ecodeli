@@ -547,33 +547,6 @@ Authorization: Bearer YOUR_JWT_TOKEN
       }
     },
 
-    '/api/auth/register': {
-      post: {
-        tags: ['Auth'],
-        summary: 'Inscription utilisateur',
-        description: 'Crée un nouveau compte utilisateur selon le rôle spécifié',
-        requestBody: {
-          required: true,
-          content: {
-            'application/json': {
-              schema: { $ref: '#/components/schemas/RegisterRequest' }
-            }
-          }
-        },
-        responses: {
-          '201': {
-            description: 'Compte créé avec succès',
-            content: {
-              'application/json': {
-                schema: { $ref: '#/components/schemas/LoginResponse' }
-              }
-            }
-          },
-          '422': { $ref: '#/components/responses/ValidationError' }
-        }
-      }
-    },
-
     '/api/auth/logout': {
       post: {
         tags: ['Auth'],

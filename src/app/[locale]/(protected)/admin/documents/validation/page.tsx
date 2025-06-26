@@ -1,7 +1,7 @@
 import { Metadata } from 'next'
 import { redirect } from 'next/navigation'
 import { DocumentValidationDashboard } from '@/features/admin/components/documents/document-validation-dashboard'
-import { getCurrentUser } from '@/lib/auth-simple'
+import { getCurrentUser } from '@/lib/auth/utils'
 
 interface DocumentValidationPageProps {
   params: Promise<{

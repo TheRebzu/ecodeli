@@ -20,7 +20,7 @@ export function ClientRegisterForm() {
   } = useForm<ClientRegisterData>({
     resolver: zodResolver(clientRegisterSchema),
     defaultValues: {
-      subscriptionPlan: 'FREE',
+      subscriptionPlan: 'FREE' as const,
       acceptsMarketing: false,
       termsAccepted: false
     }
@@ -31,7 +31,7 @@ export function ClientRegisterForm() {
     setError(null)
 
     try {
-      // Préparer les données pour l'API backend (qui attend firstName/lastName séparés)
+      // Préparer les données pour l'API backend
       const apiData = {
         email: data.email,
         password: data.password,
@@ -43,20 +43,23 @@ export function ClientRegisterForm() {
         postalCode: data.postalCode,
         country: 'FR',
         language: 'fr',
-        termsAccepted: data.termsAccepted
+        termsAccepted: data.termsAccepted,
+        role: 'CLIENT' as const
       }
 
       console.log('📤 Envoi des données:', apiData)
 
-      const response = await fetch('/api/auth/sign-up', {
+      const response = await fetch('/api/auth/sign-up/email', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          email: data.email,
-          password: data.password,
-          name: `${data.firstName} ${data.lastName}`,
-          role: 'CLIENT',
-          ...apiData
+          email: apiData.email,
+          password: apiData.password,
+          name: `${apiData.firstName} ${apiData.lastName}`,
+          role: apiData.role,
+          // Propriétés additionnelles pour Better Auth
+          isActive: true,
+          validationStatus: 'APPROVED'
         })
       })
 

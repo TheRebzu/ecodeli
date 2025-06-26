@@ -31,10 +31,18 @@ export function DelivererRegisterForm() {
     setError(null)
 
     try {
-      const response = await fetch('/api/auth/register/deliverer', {
+      const response = await fetch('/api/auth/sign-up/email', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
+        body: JSON.stringify({
+          email: data.email,
+          password: data.password,
+          name: data.name,
+          role: 'DELIVERER',
+          // Propriétés additionnelles pour Better Auth
+          isActive: false,
+          validationStatus: 'PENDING'
+        })
       })
 
       const result = await response.json()

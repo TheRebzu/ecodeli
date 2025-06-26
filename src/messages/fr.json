@@ -399,69 +399,33 @@
   },
   "auth": {
     "login": {
-      "title": "Connexion à EcoDeli",
-      "subtitle": "Connectez-vous à votre compte",
-      "email": "Adresse email",
-      "emailPlaceholder": "Entrez votre adresse email",
+      "title": "Connexion",
+      "subtitle": "Connectez-vous à votre compte EcoDeli",
+      "email": "Adresse e-mail",
+      "emailPlaceholder": "votre@email.com",
       "password": "Mot de passe",
-      "passwordPlaceholder": "Entrez votre mot de passe",
-      "rememberMe": "Se souvenir de moi",
-      "forgotPassword": "Mot de passe oublié ?",
+      "passwordPlaceholder": "Votre mot de passe",
+      "submit": "Se connecter",
       "loginButton": "Se connecter",
-      "noAccount": "Pas encore de compte ?",
-      "signUp": "S'inscrire",
+      "signing": "Connexion en cours...",
+      "forgotPassword": "Mot de passe oublié ?",
+      "noAccount": "Pas de compte ?",
+      "createAccount": "Créer un compte",
       "errors": {
-        "invalidCredentials": "Email ou mot de passe incorrect",
-        "accountSuspended": "Votre compte a été suspendu",
-        "emailNotVerified": "Veuillez vérifier votre email",
-        "generic": "Erreur de connexion"
-      },
-      "emailVerification": {
-        "notVerified": "⚠️ Votre email n'est pas encore vérifié. Veuillez vérifier votre boîte de réception ou cliquer sur le bouton ci-dessous pour renvoyer l'email de vérification.",
-        "resendButton": "📧 Renvoyer l'email de vérification",
-        "resending": "📧 Envoi en cours...",
-        "resendSuccess": "📧 Email de vérification renvoyé ! Vérifiez votre boîte de réception.",
-        "resendError": "Erreur lors du renvoi de l'email de vérification"
+        "generic": "Une erreur est survenue lors de la connexion"
       }
     },
     "register": {
-      "title": "Inscription à EcoDeli",
-      "subtitle": "Créez votre compte EcoDeli",
-      "chooseRole": "Choisissez votre rôle",
-      "roles": {
-        "client": {
-          "title": "Client",
-          "description": "Je veux envoyer des colis ou réserver des services"
-        },
-        "deliverer": {
-          "title": "Livreur",
-          "description": "Je veux livrer des colis et transporter des personnes"
-        },
-        "merchant": {
-          "title": "Commerçant",
-          "description": "Je veux proposer mes produits en livraison"
-        },
-        "provider": {
-          "title": "Prestataire",
-          "description": "Je veux offrir des services à la personne"
-        }
-      },
-      "form": {
-        "firstName": "Prénom",
-        "lastName": "Nom",
-        "email": "Adresse email",
-        "phone": "Téléphone",
-        "password": "Mot de passe",
-        "confirmPassword": "Confirmer le mot de passe",
-        "terms": "J'accepte les conditions d'utilisation",
-        "newsletter": "Je souhaite recevoir la newsletter",
-        "createAccount": "Créer mon compte"
-      },
-      "success": {
-        "title": "Compte créé avec succès !",
-        "subtitle": "Un email de vérification a été envoyé à votre adresse",
-        "checkEmail": "Vérifiez votre boîte email"
-      }
+      "title": "Inscription",
+      "chooseType": "Choisissez le type de compte qui vous correspond",
+      "firstName": "Prénom",
+      "lastName": "Nom",
+      "email": "Adresse e-mail",
+      "password": "Mot de passe",
+      "confirmPassword": "Confirmer le mot de passe",
+      "submit": "S'inscrire",
+      "hasAccount": "Déjà un compte ?",
+      "signIn": "Se connecter"
     },
     "verification": {
       "title": "Vérification de votre compte",

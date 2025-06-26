@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useRouter, useSearchParams } from "next/navigation"
@@ -16,7 +16,6 @@ export function ResetPasswordForm() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
-  const [tokenValid, setTokenValid] = useState<boolean | null>(null)
   const router = useRouter()
   const searchParams = useSearchParams()
   const token = searchParams.get('token')
@@ -30,41 +29,8 @@ export function ResetPasswordForm() {
     resolver: zodResolver(resetPasswordSchema)
   })
 
-  // Vérifier la validité du token au chargement
-  useEffect(() => {
-    if (!token) {
-      setTokenValid(false)
-      setError('Token manquant. Veuillez demander un nouveau lien de réinitialisation.')
-      return
-    }
-
-    setValue('token', token)
-    
-    // Vérifier la validité du token
-    const verifyToken = async () => {
-      try {
-        const response = await fetch('/api/auth/verify-reset-token', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ token })
-        })
-
-        const result = await response.json()
-        
-        if (response.ok && result.valid) {
-          setTokenValid(true)
-        } else {
-          setTokenValid(false)
-          setError(result.error || 'Token invalide ou expiré')
-        }
-      } catch (err) {
-        setTokenValid(false)
-        setError('Erreur de vérification du token')
-      }
-    }
-
-    verifyToken()
-  }, [token, setValue])
+  // Pré-remplir le token dans le form
+  if (token) setValue('token', token)
 
   const onSubmit = async (data: ResetPasswordData) => {
     setIsLoading(true)
@@ -81,7 +47,6 @@ export function ResetPasswordForm() {
 
       if (response.ok) {
         setSuccess(true)
-        // Rediriger vers la page de connexion après 3 secondes
         setTimeout(() => {
           router.push('/login')
         }, 3000)
@@ -95,15 +60,15 @@ export function ResetPasswordForm() {
     }
   }
 
-  // Token invalide ou manquant
-  if (tokenValid === false) {
+  // Pas de token dans l'URL
+  if (!token) {
     return (
       <Card className="w-full max-w-md mx-auto">
         <CardHeader className="text-center">
           <div className="mx-auto w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-4">
             <AlertTriangle className="w-8 h-8 text-red-600" />
           </div>
-          <CardTitle className="text-xl text-red-700">Token invalide</CardTitle>
+          <CardTitle className="text-xl text-red-700">Lien invalide</CardTitle>
           <CardDescription>
             Ce lien de réinitialisation est invalide ou a expiré
           </CardDescription>
@@ -111,10 +76,9 @@ export function ResetPasswordForm() {
         <CardContent className="space-y-4">
           <Alert variant="destructive">
             <AlertDescription>
-              {error || 'Le lien de réinitialisation est invalide, expiré ou a déjà été utilisé.'}
+              Le lien de réinitialisation est invalide ou manquant.
             </AlertDescription>
           </Alert>
-          
           <div className="flex flex-col gap-2">
             <Link 
               href="/forgot-password"
@@ -154,7 +118,6 @@ export function ResetPasswordForm() {
               Vous allez être redirigé vers la page de connexion dans quelques secondes...
             </AlertDescription>
           </Alert>
-          
           <div className="flex justify-center">
             <Link 
               href="/login"
@@ -163,20 +126,6 @@ export function ResetPasswordForm() {
               <ArrowLeft className="w-4 h-4" />
               Aller à la connexion maintenant
             </Link>
-          </div>
-        </CardContent>
-      </Card>
-    )
-  }
-
-  // Token en cours de vérification
-  if (tokenValid === null) {
-    return (
-      <Card className="w-full max-w-md mx-auto">
-        <CardContent className="flex items-center justify-center p-8">
-          <div className="text-center">
-            <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4" />
-            <p>Vérification du lien...</p>
           </div>
         </CardContent>
       </Card>
@@ -195,7 +144,6 @@ export function ResetPasswordForm() {
           Choisissez un nouveau mot de passe sécurisé
         </CardDescription>
       </CardHeader>
-      
       <CardContent>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           {error && (
@@ -203,9 +151,7 @@ export function ResetPasswordForm() {
               <AlertDescription>{error}</AlertDescription>
             </Alert>
           )}
-
-          <input type="hidden" {...register("token")} />
-
+          <input type="hidden" {...register("token")}/>
           <div className="space-y-2">
             <label htmlFor="password" className="text-sm font-medium">
               Nouveau mot de passe
@@ -221,7 +167,6 @@ export function ResetPasswordForm() {
               <p className="text-sm text-red-600">{errors.password.message}</p>
             )}
           </div>
-
           <div className="space-y-2">
             <label htmlFor="confirmPassword" className="text-sm font-medium">
               Confirmer le mot de passe
@@ -237,7 +182,6 @@ export function ResetPasswordForm() {
               <p className="text-sm text-red-600">{errors.confirmPassword.message}</p>
             )}
           </div>
-
           <Button
             type="submit"
             disabled={isLoading}
@@ -246,7 +190,6 @@ export function ResetPasswordForm() {
             {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             {isLoading ? 'Mise à jour...' : 'Mettre à jour le mot de passe'}
           </Button>
-
           <div className="text-center">
             <Link 
               href="/login"

@@ -61,12 +61,14 @@ export async function POST(request: NextRequest) {
     console.log('📧 Simulation d\'envoi d\'email de vérification pour:', email)
     console.log('🔗 Token généré:', verificationToken)
 
-    // Construire l'URL de vérification
+    // Construire l'URL de vérification (corrigée pour les groupes de routes)
     const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000'
-    const verificationUrl = `${baseUrl}/auth/verify-email?token=${verificationToken}&email=${encodeURIComponent(email)}`
+    const verificationUrl = `${baseUrl}/verify-email?token=${verificationToken}&email=${encodeURIComponent(email)}`
+
+    console.log('🔗 URL de vérification générée:', verificationUrl)
 
     // Envoyer l'email de vérification
-    await EmailService.sendVerificationEmail(email, verificationUrl, user.language || 'fr')
+    await EmailService.sendVerificationEmail(email, verificationUrl, 'fr')
 
     return NextResponse.json({
       success: true,
