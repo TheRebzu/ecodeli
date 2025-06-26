@@ -16,7 +16,8 @@ import {
   CreditCard,
   MapPin,
   UserCheck,
-  Building
+  Building,
+  TestTube
 } from "lucide-react"
 import { Link } from "@/i18n/navigation"
 
@@ -76,6 +77,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       items: [
         { href: "/admin/monitoring", label: "Surveillance", icon: Activity },
         { href: "/admin/settings", label: "Paramètres", icon: Settings },
+        { href: "/admin/tests", label: "Tests", icon: TestTube },
         { href: "/admin/contracts", label: "Contrats", icon: Building },
       ]
     }

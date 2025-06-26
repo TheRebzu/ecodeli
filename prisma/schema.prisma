@@ -1499,59 +1499,6 @@ model Order {
 // From 17-contract.prisma
 // Modèles contrats
 
-model Contract {
-  id                    String              @id @default(cuid())
-  merchantId            String              @unique
-  type                  ContractType        @default(STANDARD)
-  status                ContractStatus      @default(DRAFT)
-  version               String              @default("1.0")
-  title                 String
-  description           String?
-  
-  // Conditions financières
-  commissionRate        Float               // Taux de commission en %
-  minCommissionAmount   Float?              // Commission minimum en €
-  setupFee             Float               @default(0)
-  monthlyFee           Float               @default(0)
-  
-  // Conditions générales
-  validFrom            DateTime
-  validUntil           DateTime?
-  autoRenewal          Boolean             @default(true)
-  renewalPeriod        Int                 @default(12) // mois
-  
-  // Limites et conditions
-  maxOrdersPerMonth    Int?                // Limite commandes/mois
-  maxOrderValue        Float?              // Valeur max par commande
-  deliveryZones        Json[]              // Zones de livraison autorisées
-  allowedServices      String[]            // Services autorisés
-  
-  // Signature électronique
-  merchantSignedAt     DateTime?
-  merchantSignature    String?             // Hash de signature
-  adminSignedAt        DateTime?
-  adminSignedBy        String?             // Admin user ID
-  adminSignature       String?
-  
-  // Documents
-  templatePath         String?             // Chemin vers template PDF
-  signedDocumentPath   String?             // Document signé
-  
-  // Métadonnées
-  notes                String?
-  tags                 String[]            @default([])
-  createdAt            DateTime            @default(now())
-  updatedAt            DateTime            @updatedAt
-  
-  // Relations
-  merchant             Merchant            @relation(fields: [merchantId], references: [id], onDelete: Cascade)
-  amendments           ContractAmendment[]
-  billingCycles        MerchantBilling[]
-  
-  @@index([merchantId])
-  @@index([status])
-  @@index([validFrom])
-}
 
 model ContractAmendment {
   id                   String              @id @default(cuid())
@@ -1997,32 +1944,6 @@ enum TicketStatus {
 // From 21-certifications.prisma
 // Modèles certifications et habilitations
 
-model Certification {
-  id                String              @id @default(cuid())
-  name              String
-  description       String
-  category          CertificationCategory
-  level             CertificationLevel  @default(BASIC)
-  isRequired        Boolean             @default(false)
-  validityDuration  Int?                // Durée en mois (null = permanent)
-  price             Float?              // Prix de la certification
-  requirements      Json                // Prérequis pour obtenir la certification
-  maxAttempts       Int                 @default(3)
-  passScore         Float               @default(80) // Score minimum pour réussir (%)
-  isActive          Boolean             @default(true)
-  createdAt         DateTime            @default(now())
-  updatedAt         DateTime            @updatedAt
-
-  // Relations
-  providerCertifications ProviderCertification[]
-  delivererCertifications DelivererCertification[]
-  examSessions      ExamSession[]
-  modules           CertificationModule[]
-
-  @@index([category])
-  @@index([isRequired])
-  @@index([isActive])
-}
 
 model CertificationModule {
   id                String              @id @default(cuid())
@@ -2538,13 +2459,6 @@ enum AssessmentStatus {
   CANCELLED              // Annulé
 }
 
-enum PaymentStatus {
-  PENDING                 // En attente
-  PROCESSING             // En cours de traitement
-  COMPLETED              // Terminé
-  FAILED                 // Échoué
-  CANCELLED              // Annulé
-}
 
 enum WarrantyType {
   SERVICE_QUALITY        // Qualité de service
