@@ -122,7 +122,7 @@ export function LoginForm() {
       }
 
       // Redirection selon le rôle utilisateur
-      const user = result.user
+      let user = result.user
       
       // Vérifier s'il y a un callbackUrl dans l'URL
       const urlParams = new URLSearchParams(window.location.search)
@@ -165,6 +165,27 @@ export function LoginForm() {
         }
         window.location.href = roleRoutes[user.role as keyof typeof roleRoutes] || `/${locale}/client`
       } else {
+        // PATCH: Si le rôle n'est pas dans la réponse, on va le chercher via la session
+        try {
+          const sessionRes = await fetch('/api/auth/me', { credentials: 'include' })
+          if (sessionRes.ok) {
+            const sessionData = await sessionRes.json()
+            const sessionUser = sessionData?.user
+            if (sessionUser?.role) {
+              const locale = window.location.pathname.split('/')[1] || 'fr'
+              const roleRoutes = {
+                'CLIENT': `/${locale}/client`,
+                'DELIVERER': `/${locale}/deliverer`, 
+                'MERCHANT': `/${locale}/merchant`,
+                'PROVIDER': `/${locale}/provider`,
+                'ADMIN': `/${locale}/admin`
+              }
+              window.location.href = roleRoutes[sessionUser.role as keyof typeof roleRoutes] || `/${locale}/client`
+              return
+            }
+          }
+        } catch (e) { /* ignore */ }
+        // Fallback
         const locale = window.location.pathname.split('/')[1] || 'fr'
         window.location.href = `/${locale}/client`
       }

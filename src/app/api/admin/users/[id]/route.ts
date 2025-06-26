@@ -1,18 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/db'
 import { requireRole } from '@/lib/auth'
+import { prisma } from '@/lib/db'
 
 /**
- * GET - Récupérer un utilisateur spécifique par ID
+ * GET - Récupérer un utilisateur spécifique
  */
 export async function GET(
-  request: NextRequest, 
+  request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
+    console.log('🔍 Vérification authentification admin (user/[id])...')
+    
     // Vérifier que l'utilisateur est admin
-    await requireRole('ADMIN')
+    const user = await requireRole('ADMIN', request)
+    console.log('✅ Utilisateur admin authentifié (user/[id]):', user.email)
   } catch (error) {
+    console.error('❌ Erreur authentification admin (user/[id]):', error)
     return NextResponse.json(
       { error: 'Accès refusé - rôle admin requis', success: false },
       { status: 403 }
@@ -22,25 +26,15 @@ export async function GET(
   try {
     const userId = params.id
 
-    if (!userId) {
-      return NextResponse.json(
-        { error: 'ID utilisateur requis', success: false },
-        { status: 400 }
-      )
-    }
-
-    console.log('🔍 Fetching user by ID:', userId)
-
     const user = await prisma.user.findUnique({
       where: { id: userId },
       include: {
         profile: true,
-        // Inclure les données spécialisées selon le rôle
-        client: true,
-        deliverer: true,
-        merchant: true,
-        provider: true,
-        admin: true
+        documents: {
+          orderBy: {
+            createdAt: 'desc'
+          }
+        }
       }
     })
 
@@ -51,7 +45,7 @@ export async function GET(
       )
     }
 
-    // Formatage des données pour l'affichage
+    // Formater les données pour l'affichage
     const formattedUser = {
       id: user.id,
       email: user.email,
@@ -64,48 +58,19 @@ export async function GET(
       postalCode: user.profile?.postalCode || null,
       country: user.profile?.country || null,
       emailVerified: user.emailVerified,
-      isActive: true, // Pas de champ isActive dans le schéma actuel
+      isActive: true,
       createdAt: user.createdAt.toISOString(),
       lastLoginAt: user.lastLoginAt?.toISOString() || null,
-      
-      // Données spécialisées selon le rôle
-      ...(user.role === 'CLIENT' && user.client && {
-        client: {
-          subscriptionPlan: user.client.subscriptionPlan || 'FREE',
-          totalOrders: 0, // À calculer depuis les commandes
-          totalSpent: 0 // À calculer depuis les paiements
-        }
-      }),
-      
-      ...(user.role === 'DELIVERER' && user.deliverer && {
-        deliverer: {
-          deliveryCount: 0, // À calculer depuis les livraisons
-          rating: user.deliverer.rating || 0,
-          isValidated: user.deliverer.isValidated || false,
-          documentsStatus: 'PENDING' // À récupérer depuis les documents
-        }
-      }),
-      
-      ...(user.role === 'MERCHANT' && user.merchant && {
-        merchant: {
-          companyName: user.merchant.companyName,
-          siret: user.merchant.siret,
-          contractStatus: user.merchant.contractStatus,
-          commissionRate: user.merchant.commissionRate
-        }
-      }),
-      
-      ...(user.role === 'PROVIDER' && user.provider && {
-        provider: {
-          businessType: user.provider.businessType || 'OTHER',
-          serviceCount: 0, // À calculer depuis les services
-          rating: user.provider.rating || 0,
-          isValidated: user.provider.isValidated || false
-        }
-      })
+      documents: user.documents.map(doc => ({
+        id: doc.id,
+        type: doc.type,
+        status: doc.status,
+        filename: doc.filename,
+        url: doc.url,
+        createdAt: doc.createdAt.toISOString(),
+        validatedAt: doc.validatedAt?.toISOString() || null
+      }))
     }
-
-    console.log('✅ User found:', formattedUser.email)
 
     return NextResponse.json({
       success: true,
@@ -113,28 +78,29 @@ export async function GET(
     })
 
   } catch (error) {
-    console.error('Error fetching user by ID:', error)
+    console.error('Error fetching user:', error)
     return NextResponse.json(
-      { 
-        error: 'Erreur lors de la récupération de l\'utilisateur',
-        success: false 
-      },
+      { error: 'Erreur lors de la récupération de l\'utilisateur', success: false },
       { status: 500 }
     )
   }
 }
 
 /**
- * PUT - Mettre à jour un utilisateur spécifique
+ * PUT - Mettre à jour un utilisateur
  */
 export async function PUT(
-  request: NextRequest, 
+  request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
+    console.log('🔍 Vérification authentification admin (PUT user/[id])...')
+    
     // Vérifier que l'utilisateur est admin
-    await requireRole('ADMIN')
+    const user = await requireRole('ADMIN', request)
+    console.log('✅ Utilisateur admin authentifié (PUT user/[id]):', user.email)
   } catch (error) {
+    console.error('❌ Erreur authentification admin (PUT user/[id]):', error)
     return NextResponse.json(
       { error: 'Accès refusé - rôle admin requis', success: false },
       { status: 403 }
@@ -145,39 +111,18 @@ export async function PUT(
     const userId = params.id
     const body = await request.json()
 
-    console.log('💾 Updating user:', userId, body)
-
-    const {
-      firstName,
-      lastName,
-      email,
-      phone,
-      address,
-      city,
-      postalCode,
-      country,
-      role,
-      emailVerified,
-      isActive
-    } = body
-
-    // Mettre à jour l'utilisateur et son profil
     const updatedUser = await prisma.user.update({
       where: { id: userId },
       data: {
-        email,
-        role,
-        emailVerified,
-        emailVerifiedAt: emailVerified ? new Date() : null,
         profile: {
           update: {
-            firstName,
-            lastName,
-            phone,
-            address,
-            city,
-            postalCode,
-            country
+            firstName: body.firstName,
+            lastName: body.lastName,
+            phone: body.phone,
+            address: body.address,
+            city: body.city,
+            postalCode: body.postalCode,
+            country: body.country
           }
         }
       },
@@ -185,8 +130,6 @@ export async function PUT(
         profile: true
       }
     })
-
-    console.log('✅ User updated:', updatedUser.email)
 
     return NextResponse.json({
       success: true,
@@ -209,12 +152,9 @@ export async function PUT(
     })
 
   } catch (error) {
-    console.error('Error updating user by ID:', error)
+    console.error('Error updating user:', error)
     return NextResponse.json(
-      { 
-        error: 'Erreur lors de la mise à jour de l\'utilisateur',
-        success: false 
-      },
+      { error: 'Erreur lors de la mise à jour de l\'utilisateur', success: false },
       { status: 500 }
     )
   }

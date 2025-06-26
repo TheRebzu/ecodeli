@@ -7,19 +7,26 @@ import { requireRole } from '@/lib/auth'
  */
 export async function GET(request: NextRequest) {
   try {
+    console.log('🔍 Vérification authentification admin...')
+    
     // Vérifier que l'utilisateur est admin
-    await requireRole('ADMIN')
+    const user = await requireRole('ADMIN', request)
+    console.log('✅ Utilisateur admin authentifié:', user.email, user.role)
   } catch (error) {
+    console.error('❌ Erreur authentification admin:', error)
     return NextResponse.json(
       { error: 'Accès refusé - rôle admin requis', success: false },
       { status: 403 }
     )
   }
+  
   try {
     const { searchParams } = new URL(request.url)
     const search = searchParams.get('search') || ''
     const role = searchParams.get('role') || 'all'
     const status = searchParams.get('status') || 'all'
+
+    console.log('🔍 Filtres de recherche:', { search, role, status })
 
     // Construction de la requête avec filtres
     const whereConditions: any = {}
@@ -45,6 +52,8 @@ export async function GET(request: NextRequest) {
       whereConditions.emailVerified = false
     }
 
+    console.log('🔍 Conditions de recherche Prisma:', JSON.stringify(whereConditions, null, 2))
+
     const users = await prisma.user.findMany({
       where: whereConditions,
       include: {
@@ -54,6 +63,8 @@ export async function GET(request: NextRequest) {
         createdAt: 'desc'
       }
     })
+
+    console.log(`✅ ${users.length} utilisateurs trouvés`)
 
     // Transformation des données pour l'affichage
     const formattedUsers = users.map(user => ({
@@ -92,14 +103,19 @@ export async function GET(request: NextRequest) {
  */
 export async function PUT(request: NextRequest) {
   try {
+    console.log('🔍 Vérification authentification admin (PUT)...')
+    
     // Vérifier que l'utilisateur est admin
-    await requireRole('ADMIN')
+    const user = await requireRole('ADMIN', request)
+    console.log('✅ Utilisateur admin authentifié (PUT):', user.email)
   } catch (error) {
+    console.error('❌ Erreur authentification admin (PUT):', error)
     return NextResponse.json(
       { error: 'Accès refusé - rôle admin requis', success: false },
       { status: 403 }
     )
   }
+  
   try {
     const body = await request.json()
     const { userId, action, data } = body
@@ -181,14 +197,19 @@ export async function PUT(request: NextRequest) {
  */
 export async function DELETE(request: NextRequest) {
   try {
+    console.log('🔍 Vérification authentification admin (DELETE)...')
+    
     // Vérifier que l'utilisateur est admin
-    await requireRole('ADMIN')
+    const user = await requireRole('ADMIN', request)
+    console.log('✅ Utilisateur admin authentifié (DELETE):', user.email)
   } catch (error) {
+    console.error('❌ Erreur authentification admin (DELETE):', error)
     return NextResponse.json(
       { error: 'Accès refusé - rôle admin requis', success: false },
       { status: 403 }
     )
   }
+  
   try {
     const { searchParams } = new URL(request.url)
     const userId = searchParams.get('userId')
@@ -200,7 +221,7 @@ export async function DELETE(request: NextRequest) {
       )
     }
 
-    // Supprimer l'utilisateur (cascade supprimera le profil)
+    // Supprimer l'utilisateur et ses données associées
     await prisma.user.delete({
       where: { id: userId }
     })

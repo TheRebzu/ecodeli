@@ -1,5 +1,6 @@
 import { auth } from "@/lib/auth"
 import { NextRequest, NextResponse } from "next/server"
+import { db } from "@/lib/db"
 
 /**
  * Route login compatible avec Better-Auth
@@ -33,11 +34,32 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Récupérer le user complet (avec le rôle) depuis la base
+    let user = result.data?.user
+    if (user && !user.role) {
+      // On va chercher le user complet
+      const dbUser = await db.user.findUnique({
+        where: { email: user.email },
+        select: {
+          id: true,
+          email: true,
+          role: true,
+          name: true,
+          emailVerified: true,
+          isActive: true,
+          validationStatus: true,
+          createdAt: true,
+          updatedAt: true
+        }
+      })
+      if (dbUser) user = { ...user, ...dbUser }
+    }
+
     // Succès de l'authentification
     return NextResponse.json(
       { 
         success: true,
-        user: result.data?.user,
+        user,
         session: result.data?.session 
       },
       { 

@@ -1,15 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/db'
 import { requireRole } from '@/lib/auth'
+import { prisma } from '@/lib/db'
 
 /**
  * GET - Récupérer les statistiques des vérifications
  */
 export async function GET(request: NextRequest) {
   try {
+    console.log('🔍 Vérification authentification admin (stats)...')
+    
     // Vérifier que l'utilisateur est admin
-    await requireRole('ADMIN')
+    const user = await requireRole('ADMIN', request)
+    console.log('✅ Utilisateur admin authentifié (stats):', user.email)
   } catch (error) {
+    console.error('❌ Erreur authentification admin (stats):', error)
     return NextResponse.json(
       { error: 'Accès refusé - rôle admin requis', success: false },
       { status: 403 }
@@ -17,112 +21,48 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    // Récupérer tous les utilisateurs avec documents par rôle
-    const [deliverers, providers, merchants] = await Promise.all([
-      prisma.user.findMany({
-        where: {
-          role: 'DELIVERER',
-          documents: { some: {} }
-        },
-        include: {
-          documents: {
-            select: {
-              validationStatus: true
-            }
-          }
-        }
-      }),
-      prisma.user.findMany({
-        where: {
-          role: 'PROVIDER',
-          documents: { some: {} }
-        },
-        include: {
-          documents: {
-            select: {
-              validationStatus: true
-            }
-          }
-        }
-      }),
-      prisma.user.findMany({
-        where: {
-          role: 'MERCHANT',
-          documents: { some: {} }
-        },
-        include: {
-          documents: {
-            select: {
-              validationStatus: true
-            }
-          }
-        }
-      })
-    ])
-
-    // Fonction pour calculer le statut de vérification d'un utilisateur
-    const getUserVerificationStatus = (user: any) => {
-      const documents = user.documents
-      const pendingCount = documents.filter((doc: any) => doc.validationStatus === 'PENDING').length
-      const approvedCount = documents.filter((doc: any) => doc.validationStatus === 'APPROVED').length
-      const rejectedCount = documents.filter((doc: any) => doc.validationStatus === 'REJECTED').length
-
-      if (rejectedCount > 0) return 'REJECTED'
-      if (pendingCount > 0) return 'PENDING'
-      if (approvedCount === documents.length && documents.length > 0) {
-        // Vérifier si tous les documents requis sont présents
-        const requiredDocs = getRequiredDocuments(user.role)
-        const submittedTypes = documents.map((doc: any) => doc.type)
-        const hasAllRequired = requiredDocs.every(type => submittedTypes.includes(type))
-        return hasAllRequired ? 'APPROVED' : 'INCOMPLETE'
-      }
-      return 'INCOMPLETE'
-    }
-
-    // Combiner tous les utilisateurs
-    const allUsers = [...deliverers, ...providers, ...merchants]
-
-    // Calculer les statistiques globales
-    let pending = 0
-    let approved = 0
-    let rejected = 0
-    let incomplete = 0
-
-    allUsers.forEach(user => {
-      const status = getUserVerificationStatus(user)
-      switch (status) {
-        case 'PENDING': pending++; break
-        case 'APPROVED': approved++; break
-        case 'REJECTED': rejected++; break
-        case 'INCOMPLETE': incomplete++; break
+    // Statistiques des vérifications par statut
+    const stats = await prisma.document.groupBy({
+      by: ['status'],
+      _count: {
+        status: true
       }
     })
 
-    const stats = {
-      total: allUsers.length,
-      pending,
-      approved,
-      rejected,
-      incomplete,
-      byRole: {
-        DELIVERER: deliverers.length,
-        PROVIDER: providers.length,
-        MERCHANT: merchants.length
+    // Statistiques par rôle utilisateur
+    const roleStats = await prisma.user.groupBy({
+      by: ['role'],
+      _count: {
+        role: true
+      },
+      where: {
+        documents: {
+          some: {}
+        }
       }
+    })
+
+    const formattedStats = {
+      total: stats.reduce((acc, stat) => acc + stat._count.status, 0),
+      byStatus: stats.reduce((acc, stat) => {
+        acc[stat.status] = stat._count.status
+        return acc
+      }, {} as Record<string, number>),
+      byRole: roleStats.reduce((acc, stat) => {
+        acc[stat.role] = stat._count.role
+        return acc
+      }, {} as Record<string, number>)
     }
 
     return NextResponse.json({
       success: true,
-      stats
+      stats: formattedStats
     })
 
   } catch (error) {
     console.error('Error fetching verification stats:', error)
     return NextResponse.json(
-      { 
-        error: 'Erreur lors de la récupération des statistiques',
-        success: false 
-      },
+      { error: 'Erreur lors de la récupération des statistiques', success: false },
       { status: 500 }
     )
   }

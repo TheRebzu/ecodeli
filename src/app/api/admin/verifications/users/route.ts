@@ -1,15 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/db'
 import { requireRole } from '@/lib/auth'
+import { prisma } from '@/lib/db'
 
 /**
  * GET - Récupérer les utilisateurs avec leurs statuts de vérification
  */
 export async function GET(request: NextRequest) {
   try {
+    console.log('🔍 Vérification authentification admin (verifications/users)...')
+    
     // Vérifier que l'utilisateur est admin
-    await requireRole('ADMIN')
+    const user = await requireRole('ADMIN', request)
+    console.log('✅ Utilisateur admin authentifié (verifications/users):', user.email)
   } catch (error) {
+    console.error('❌ Erreur authentification admin (verifications/users):', error)
     return NextResponse.json(
       { error: 'Accès refusé - rôle admin requis', success: false },
       { status: 403 }
@@ -21,6 +25,8 @@ export async function GET(request: NextRequest) {
     const search = searchParams.get('search') || ''
     const role = searchParams.get('role') || 'all'
     const status = searchParams.get('status') || 'all'
+
+    console.log('🔍 Filtres vérifications:', { role, status })
 
     // Construction de la requête avec filtres
     const whereConditions: any = {
@@ -69,6 +75,8 @@ export async function GET(request: NextRequest) {
         createdAt: 'desc'
       }
     })
+
+    console.log(`✅ ${users.length} utilisateurs avec documents trouvés`)
 
     // Traitement des données pour le frontend
     const processedUsers = users.map(user => {
@@ -130,12 +138,9 @@ export async function GET(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Error fetching user verifications:', error)
+    console.error('Error fetching verification users:', error)
     return NextResponse.json(
-      { 
-        error: 'Erreur lors de la récupération des vérifications',
-        success: false 
-      },
+      { error: 'Erreur lors de la récupération des utilisateurs', success: false },
       { status: 500 }
     )
   }

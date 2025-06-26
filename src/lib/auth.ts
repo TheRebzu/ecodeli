@@ -72,7 +72,7 @@ export const auth = betterAuth({
   // Callbacks personnalisés pour EcoDeli
   callbacks: {
     user: {
-      create: async ({ user }) => {
+      create: async ({ user }: { user: any }) => {
         console.log("Création utilisateur EcoDeli:", user.email, "- Rôle:", user.role)
         
         // Créer le profil selon le rôle
@@ -137,8 +137,7 @@ export const auth = betterAuth({
                   specialties: [],
                   hourlyRate: 0,
                   isActive: false,
-                  averageRating: 0,
-                  certificationsVerified: false
+                  averageRating: 0
                 }
               })
               // Créer aussi le wallet
@@ -172,7 +171,7 @@ export const auth = betterAuth({
     },
     
     session: {
-      create: async ({ session, user }) => {
+      create: async ({ session, user }: { session: any; user: any }) => {
         // Enrichir la session avec les données EcoDeli
         let profileData = null
         
@@ -232,7 +231,7 @@ export const auth = betterAuth({
       },
     },
     
-    signIn: async ({ user, session }) => {
+    signIn: async ({ user, session }: { user: any; session: any }) => {
       console.log("Connexion EcoDeli:", user.email, "- Rôle:", user.role, "- Actif:", user.isActive)
       
       // Vérifier si l'utilisateur est actif
@@ -246,21 +245,104 @@ export const auth = betterAuth({
 })
 
 export type Session = typeof auth.$Infer.Session
-export type User = typeof auth.$Infer.User
 
 /**
- * Fonction helper pour vérifier les rôles utilisateur
+ * Fonction helper pour vérifier les rôles utilisateur (version API route)
  */
-export async function requireRole(requiredRole: string) {
-  const session = await auth()
-  
-  if (!session?.user) {
+export async function requireRole(requiredRole: string, request?: Request) {
+  try {
+    let session;
+    
+    if (request) {
+      // Version pour API routes avec contexte HTTP
+      // Utiliser la méthode correcte pour récupérer la session
+      const response = await auth.api.getSession({
+        headers: request.headers
+      })
+      
+      console.log('🔍 Response getSession:', response)
+      
+      if (response && response.user) {
+        session = response
+        console.log('✅ Session trouvée via response directe')
+      } else {
+        // Essayer une approche alternative avec les cookies
+        const cookies = request.headers.get('cookie')
+        console.log('🔍 Cookies reçus:', cookies ? 'Oui' : 'Non')
+        
+        if (cookies) {
+          // Essayer de récupérer la session via une requête interne
+          try {
+            const sessionResponse = await fetch(`${process.env.BETTER_AUTH_URL || 'http://localhost:3000'}/api/auth/get-session`, {
+              headers: {
+                cookie: cookies
+              }
+            })
+            
+            if (sessionResponse.ok) {
+              session = await sessionResponse.json()
+              console.log('✅ Session récupérée via fetch interne')
+            }
+          } catch (e) {
+            console.log('❌ Erreur fetch interne:', e)
+          }
+        }
+        
+        if (!session) {
+          console.log('❌ Aucune session trouvée')
+          throw new Error('Unauthorized')
+        }
+      }
+    } else {
+      // Version pour contexte serveur (sans headers)
+      const response = await auth.api.getSession()
+      
+      if (response && response.user) {
+        session = response
+      } else {
+        throw new Error('Unauthorized')
+      }
+    }
+    
+    console.log('Session récupérée:', session ? 'Oui' : 'Non')
+    
+    if (!session?.user) {
+      console.log('Aucun utilisateur dans la session')
+      throw new Error('Unauthorized')
+    }
+    
+    console.log('Utilisateur trouvé:', session.user.email, session.user.role)
+    
+    if (session.user.role !== requiredRole) {
+      console.log(`Rôle requis: ${requiredRole}, rôle actuel: ${session.user.role}`)
+      throw new Error(`Forbidden - ${requiredRole} role required`)
+    }
+    
+    return session.user
+  } catch (error) {
+    console.error('Erreur requireRole:', error)
     throw new Error('Unauthorized')
   }
-  
-  if (session.user.role !== requiredRole) {
-    throw new Error(`Forbidden - ${requiredRole} role required`)
+}
+
+/**
+ * Fonction helper pour vérifier les rôles utilisateur (version simple)
+ */
+export async function requireRoleSimple(requiredRole: string) {
+  try {
+    const session = await auth.api.getSession()
+    
+    if (!session?.user) {
+      throw new Error('Unauthorized')
+    }
+    
+    if (session.user.role !== requiredRole) {
+      throw new Error(`Forbidden - ${requiredRole} role required`)
+    }
+    
+    return session.user
+  } catch (error) {
+    console.error('Erreur requireRoleSimple:', error)
+    throw new Error('Unauthorized')
   }
-  
-  return session.user
 } 
