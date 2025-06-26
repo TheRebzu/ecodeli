@@ -64,7 +64,11 @@ interface ValidationStats {
   byType: Record<string, any>
 }
 
-export function DocumentValidationDashboard() {
+interface DocumentValidationDashboardProps {
+  initialUserId?: string
+}
+
+export function DocumentValidationDashboard({ initialUserId }: DocumentValidationDashboardProps) {
   const [documents, setDocuments] = useState<Document[]>([])
   const [stats, setStats] = useState<ValidationStats | null>(null)
   const [loading, setLoading] = useState(true)
@@ -73,7 +77,8 @@ export function DocumentValidationDashboard() {
     status: 'ALL',
     type: 'ALL',
     userRole: 'ALL',
-    search: ''
+    search: '',
+    userId: initialUserId || ''
   })
 
   const fetchDocuments = async () => {
@@ -82,6 +87,7 @@ export function DocumentValidationDashboard() {
       if (filters.status && filters.status !== 'ALL') params.append('status', filters.status)
       if (filters.type && filters.type !== 'ALL') params.append('type', filters.type)
       if (filters.userRole && filters.userRole !== 'ALL') params.append('userRole', filters.userRole)
+      if (filters.userId) params.append('userId', filters.userId)
 
       const response = await fetch(`/api/admin/documents/pending?${params}`)
       const data = await response.json()
@@ -127,7 +133,7 @@ export function DocumentValidationDashboard() {
     }
     
     loadData()
-  }, [filters.status, filters.type, filters.userRole])
+  }, [filters.status, filters.type, filters.userRole, filters.userId])
 
   useEffect(() => {
     // Recherche avec délai
@@ -260,6 +266,23 @@ export function DocumentValidationDashboard() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Indicateur de filtrage par utilisateur */}
+      {filters.userId && (
+        <Alert>
+          <Users className="h-4 w-4" />
+          <AlertDescription>
+            Documents filtrés pour l'utilisateur spécifique (ID: {filters.userId})
+            <Button
+              variant="link"
+              className="p-0 h-auto ml-2"
+              onClick={() => setFilters({ ...filters, userId: '' })}
+            >
+              Voir tous les documents
+            </Button>
+          </AlertDescription>
+        </Alert>
+      )}
 
       {/* Filtres */}
       <Card>

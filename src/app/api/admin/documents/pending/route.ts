@@ -14,6 +14,7 @@ export async function GET(request: NextRequest) {
     const status = searchParams.get('status') || 'PENDING'
     const type = searchParams.get('type')
     const userRole = searchParams.get('userRole')
+    const userId = searchParams.get('userId')
 
     const whereConditions: any = {
       validationStatus: status as any
@@ -27,6 +28,10 @@ export async function GET(request: NextRequest) {
       whereConditions.user = {
         role: userRole
       }
+    }
+
+    if (userId) {
+      whereConditions.userId = userId
     }
 
     const documents = await prisma.document.findMany({

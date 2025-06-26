@@ -7,6 +7,9 @@ interface DocumentValidationPageProps {
   params: Promise<{
     locale: string
   }>
+  searchParams: Promise<{
+    userId?: string
+  }>
 }
 
 export async function generateMetadata({
@@ -21,9 +24,11 @@ export async function generateMetadata({
 }
 
 export default async function DocumentValidationPage({
-  params
+  params,
+  searchParams
 }: DocumentValidationPageProps) {
   const { locale } = await params
+  const { userId } = await searchParams
   
   const user = await getCurrentUser()
 
@@ -42,7 +47,7 @@ export default async function DocumentValidationPage({
         </p>
       </div>
 
-      <DocumentValidationDashboard />
+      <DocumentValidationDashboard initialUserId={userId} />
     </div>
   )
 }

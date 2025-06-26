@@ -26,13 +26,10 @@ export async function GET(request: NextRequest) {
       }
     })
 
-    // Statistiques par rôle utilisateur
-    const byUserRole = await prisma.document.groupBy({
-      by: ['userId'],
-      _count: {
-        id: true
-      },
-      include: {
+    // Statistiques par rôle utilisateur - approche corrigée
+    const documentsWithUsers = await prisma.document.findMany({
+      select: {
+        userId: true,
         user: {
           select: {
             role: true
@@ -40,6 +37,16 @@ export async function GET(request: NextRequest) {
         }
       }
     })
+
+    // Calculer les statistiques par rôle manuellement
+    const roleStats = documentsWithUsers.reduce((acc, doc) => {
+      const role = doc.user.role
+      if (!acc[role]) {
+        acc[role] = 0
+      }
+      acc[role] += 1
+      return acc
+    }, {} as Record<string, number>)
 
     // Calculer le taux d'approbation
     const approvalRate = total > 0 ? ((approved / total) * 100).toFixed(1) : '0.0'
@@ -52,16 +59,6 @@ export async function GET(request: NextRequest) {
       }
       return acc
     }, {} as Record<string, any>)
-
-    // Formater les statistiques par rôle
-    const roleStats = byUserRole.reduce((acc, item) => {
-      const role = item.user.role
-      if (!acc[role]) {
-        acc[role] = 0
-      }
-      acc[role] += item._count.id
-      return acc
-    }, {} as Record<string, number>)
 
     return NextResponse.json({
       success: true,
