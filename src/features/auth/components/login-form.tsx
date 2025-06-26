@@ -4,7 +4,7 @@ import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useTranslations } from "next-intl"
-import { useSession } from "@/lib/auth-client"
+// Removed unused import
 import { loginSchema, type LoginData } from "@/features/auth/schemas/auth.schema"
 import { Link, useRouter } from "@/i18n/navigation"
 
@@ -84,15 +84,16 @@ export function LoginForm() {
 
       // Si l'utilisateur existe mais l'email n'est pas vérifié
       if (userStatus.exists && userStatus.needsVerification) {
-        setError('⚠️ Votre email n\'est pas encore vérifié. Veuillez vérifier votre boîte de réception ou cliquer sur le bouton ci-dessous pour renvoyer l\'email de vérification.')
+        setError('Votre email n\'est pas encore vérifié. Veuillez vérifier votre boîte de réception ou cliquer sur le bouton ci-dessous pour renvoyer l\'email de vérification.')
         setShowResendButton(true)
         return
       }
 
               // Connexion avec Better-Auth
-      const response = await fetch('/api/auth/sign-in', {
+      const response = await fetch('/api/auth/sign-in/email', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({
           email: data.email,
           password: data.password
@@ -107,12 +108,12 @@ export function LoginForm() {
           const statusRecheck = await checkUserStatus(data.email)
           
           if (statusRecheck.exists && statusRecheck.needsVerification) {
-            setError('⚠️ Votre email n\'est pas encore vérifié. Veuillez vérifier votre boîte de réception ou renvoyer l\'email de vérification.')
+            setError('Votre email n\'est pas encore vérifié. Veuillez vérifier votre boîte de réception ou renvoyer l\'email de vérification.')
             setShowResendButton(true)
           } else if (statusRecheck.exists) {
-            setError('❌ Mot de passe incorrect')
+            setError('Mot de passe incorrect')
           } else {
-            setError('❌ Aucun compte trouvé avec cet email')
+                          setError('Aucun compte trouvé avec cet email')
           }
         } else {
           setError(result.error || 'Erreur de connexion')
@@ -153,17 +154,19 @@ export function LoginForm() {
       } else if (result.redirectTo) {
         window.location.href = result.redirectTo
       } else if (user?.role) {
-        // Sinon, rediriger selon le rôle
+        // Sinon, rediriger selon le rôle avec locale
+        const locale = window.location.pathname.split('/')[1] || 'fr'
         const roleRoutes = {
-          'CLIENT': '/client',
-          'DELIVERER': '/deliverer', 
-          'MERCHANT': '/merchant',
-          'PROVIDER': '/provider',
-          'ADMIN': '/admin'
+          'CLIENT': `/${locale}/client`,
+          'DELIVERER': `/${locale}/deliverer`, 
+          'MERCHANT': `/${locale}/merchant`,
+          'PROVIDER': `/${locale}/provider`,
+          'ADMIN': `/${locale}/admin`
         }
-        window.location.href = roleRoutes[user.role as keyof typeof roleRoutes] || '/dashboard'
+        window.location.href = roleRoutes[user.role as keyof typeof roleRoutes] || `/${locale}/client`
       } else {
-        window.location.href = '/dashboard'
+        const locale = window.location.pathname.split('/')[1] || 'fr'
+        window.location.href = `/${locale}/client`
       }
     } catch (err) {
       setError(t('auth.login.errors.generic'))

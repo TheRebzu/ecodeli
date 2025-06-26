@@ -358,34 +358,40 @@ export function CartDropSettings({ merchantId, onConfigUpdate }: CartDropSetting
             <div>
               <h3 className="text-lg font-medium text-gray-900 mb-4">Horaires d'ouverture</h3>
               <div className="space-y-3">
-                {daysOfWeek.map((day) => (
-                  <div key={day.key} className="flex items-center space-x-4">
-                    <div className="w-20">
-                      <input
-                        {...register(`operatingHours.${day.key as keyof typeof getValues().operatingHours}.enabled`)}
-                        type="checkbox"
-                        id={`${day.key}-enabled`}
-                        className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
-                      />
-                      <label htmlFor={`${day.key}-enabled`} className="ml-2 text-sm text-gray-700">
-                        {day.label}
-                      </label>
+                {daysOfWeek.map((day) => {
+                  const enabledField = `operatingHours.${day.key}.enabled` as const
+                  const startField = `operatingHours.${day.key}.start` as const
+                  const endField = `operatingHours.${day.key}.end` as const
+                  
+                  return (
+                    <div key={day.key} className="flex items-center space-x-4">
+                      <div className="w-20">
+                        <input
+                          {...register(enabledField)}
+                          type="checkbox"
+                          id={`${day.key}-enabled`}
+                          className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
+                        />
+                        <label htmlFor={`${day.key}-enabled`} className="ml-2 text-sm text-gray-700">
+                          {day.label}
+                        </label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <input
+                          {...register(startField)}
+                          type="time"
+                          className="px-3 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                        />
+                        <span className="text-gray-500">à</span>
+                        <input
+                          {...register(endField)}
+                          type="time"
+                          className="px-3 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                        />
+                      </div>
                     </div>
-                    <div className="flex items-center space-x-2">
-                      <input
-                        {...register(`operatingHours.${day.key as keyof typeof getValues().operatingHours}.start`)}
-                        type="time"
-                        className="px-3 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                      />
-                      <span className="text-gray-500">à</span>
-                      <input
-                        {...register(`operatingHours.${day.key as keyof typeof getValues().operatingHours}.end`)}
-                        type="time"
-                        className="px-3 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                      />
-                    </div>
-                  </div>
-                ))}
+                  )
+                })}
               </div>
             </div>
 

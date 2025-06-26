@@ -165,7 +165,7 @@ export const internationalPurchaseDetailsSchema = z.object({
   confirmsLegalCompliance: z.boolean(),
   confirmsNoProhibitedItems: z.boolean(),
   acceptsCustomsRisk: z.boolean(),
-  understands ImportRegulations: z.boolean()
+  understandsImportRegulations: z.boolean()
 })
 
 // Schéma complet pour une annonce d'achat international

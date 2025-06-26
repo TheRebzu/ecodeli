@@ -86,40 +86,42 @@ export default function ClientDashboardPage() {
   }
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
+    <div className="max-w-7xl mx-auto space-y-4 lg:space-y-6">
       {/* En-tête */}
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold">{t('dashboard.title', 'Tableau de Bord')}</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-2xl lg:text-3xl font-bold">{t('dashboard.title', 'Tableau de Bord')}</h1>
+          <p className="text-sm lg:text-base text-muted-foreground">
             {t('dashboard.subtitle', 'Bienvenue sur votre espace client EcoDeli')}
           </p>
         </div>
-        <div className="space-x-2">
-          <Button variant="outline" asChild>
+        <div className="flex flex-col sm:flex-row gap-2">
+          <Button variant="outline" asChild className="w-full sm:w-auto">
             <Link href="/client/support">
               <Bell className="mr-2 h-4 w-4" />
-              {t('dashboard.support', 'Support')}
+              <span className="sm:inline hidden">{t('dashboard.support', 'Support')}</span>
+              <span className="sm:hidden">Support</span>
             </Link>
           </Button>
-          <Button asChild>
+          <Button asChild className="w-full sm:w-auto">
             <Link href="/client/announcements/create">
               <Plus className="mr-2 h-4 w-4" />
-              {t('dashboard.newAnnouncement', 'Nouvelle Annonce')}
+              <span className="sm:inline hidden">{t('dashboard.newAnnouncement', 'Nouvelle Annonce')}</span>
+              <span className="sm:hidden">Annonce</span>
             </Link>
           </Button>
         </div>
       </div>
 
       {/* Statistiques */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-6">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{t('dashboard.stats.announcements', 'Annonces')}</CardTitle>
+            <CardTitle className="text-xs lg:text-sm font-medium">{t('dashboard.stats.announcements', 'Annonces')}</CardTitle>
             <Package className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.totalAnnouncements}</div>
+            <div className="text-xl lg:text-2xl font-bold">{stats.totalAnnouncements}</div>
             <p className="text-xs text-muted-foreground">
               {stats.activeDeliveries} {t('dashboard.stats.active', 'actives')}
             </p>
@@ -128,11 +130,11 @@ export default function ClientDashboardPage() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{t('dashboard.stats.deliveries', 'Livraisons')}</CardTitle>
+            <CardTitle className="text-xs lg:text-sm font-medium">{t('dashboard.stats.deliveries', 'Livraisons')}</CardTitle>
             <Truck className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.completedDeliveries}</div>
+            <div className="text-xl lg:text-2xl font-bold">{stats.completedDeliveries}</div>
             <p className="text-xs text-muted-foreground">
               {t('dashboard.stats.completed', 'Terminées avec succès')}
             </p>
@@ -141,11 +143,11 @@ export default function ClientDashboardPage() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{t('dashboard.stats.savings', 'Économies')}</CardTitle>
+            <CardTitle className="text-xs lg:text-sm font-medium">{t('dashboard.stats.savings', 'Économies')}</CardTitle>
             <CreditCard className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.savedAmount}€</div>
+            <div className="text-xl lg:text-2xl font-bold">{stats.savedAmount}€</div>
             <p className="text-xs text-green-600">
               {t('dashboard.stats.vsTradition', 'vs solutions traditionnelles')}
             </p>
@@ -154,11 +156,11 @@ export default function ClientDashboardPage() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{t('dashboard.stats.rating', 'Note Moyenne')}</CardTitle>
+            <CardTitle className="text-xs lg:text-sm font-medium">{t('dashboard.stats.rating', 'Note Moyenne')}</CardTitle>
             <Star className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.averageRating}/5</div>
+            <div className="text-xl lg:text-2xl font-bold">{stats.averageRating}/5</div>
             <p className="text-xs text-muted-foreground">
               {t('dashboard.stats.satisfaction', 'Satisfaction générale')}
             </p>
@@ -169,34 +171,37 @@ export default function ClientDashboardPage() {
       {/* Actions rapides */}
       <Card>
         <CardHeader>
-          <CardTitle>Actions Rapides</CardTitle>
-          <CardDescription>
+          <CardTitle className="text-lg lg:text-xl">Actions Rapides</CardTitle>
+          <CardDescription className="text-xs lg:text-sm">
             Accédez rapidement aux fonctionnalités principales
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <Button asChild className="h-20 flex-col">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
+            <Button asChild className="h-16 lg:h-20 flex-col text-xs lg:text-sm">
               <Link href="/client/announcements/create">
-                <Plus className="h-6 w-6 mb-2" />
-                Créer Annonce
+                <Plus className="h-5 w-5 lg:h-6 lg:w-6 mb-1 lg:mb-2" />
+                <span className="hidden sm:inline">Créer Annonce</span>
+                <span className="sm:hidden">Annonce</span>
               </Link>
             </Button>
-            <Button asChild variant="outline" className="h-20 flex-col">
+            <Button asChild variant="outline" className="h-16 lg:h-20 flex-col text-xs lg:text-sm">
               <Link href="/client/services">
-                <Calendar className="h-6 w-6 mb-2" />
-                Réserver Service
+                <Calendar className="h-5 w-5 lg:h-6 lg:w-6 mb-1 lg:mb-2" />
+                <span className="hidden sm:inline">Réserver Service</span>
+                <span className="sm:hidden">Service</span>
               </Link>
             </Button>
-            <Button asChild variant="outline" className="h-20 flex-col">
+            <Button asChild variant="outline" className="h-16 lg:h-20 flex-col text-xs lg:text-sm">
               <Link href="/client/storage">
-                <Box className="h-6 w-6 mb-2" />
-                Louer Box
+                <Box className="h-5 w-5 lg:h-6 lg:w-6 mb-1 lg:mb-2" />
+                <span className="hidden sm:inline">Louer Box</span>
+                <span className="sm:hidden">Box</span>
               </Link>
             </Button>
-            <Button asChild variant="outline" className="h-20 flex-col">
+            <Button asChild variant="outline" className="h-16 lg:h-20 flex-col text-xs lg:text-sm">
               <Link href="/client/payments">
-                <CreditCard className="h-6 w-6 mb-2" />
+                <CreditCard className="h-5 w-5 lg:h-6 lg:w-6 mb-1 lg:mb-2" />
                 Paiements
               </Link>
             </Button>

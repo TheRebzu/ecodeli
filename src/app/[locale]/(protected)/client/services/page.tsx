@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { useTranslations } from "next-intl"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -19,61 +19,16 @@ import {
   MapPin, 
   User, 
   Calendar as CalendarIcon,
-  Euro,
   Phone,
   MessageCircle,
   Search,
   Filter,
   CheckCircle,
-  XCircle,
   AlertCircle
 } from "lucide-react"
 import { format } from "date-fns"
 import { fr } from "date-fns/locale"
-
-interface Service {
-  id: string
-  name: string
-  description: string
-  category: string
-  pricePerHour: number
-  duration: number
-  isActive: boolean
-  provider: {
-    id: string
-    name: string
-    businessName?: string
-    rating: number
-    completedBookings: number
-    location: string
-    phone?: string
-  }
-}
-
-interface Booking {
-  id: string
-  status: string
-  scheduledAt: string
-  duration: number
-  totalPrice: number
-  address: string
-  notes?: string
-  rating?: number
-  review?: string
-  createdAt: string
-  service: {
-    id: string
-    name: string
-    category: string
-    pricePerHour: number
-  }
-  provider: {
-    id: string
-    name: string
-    businessName?: string
-    rating: number
-  }
-}
+import { useClientServices, BookingRequest } from "@/features/services/hooks/useClientServices"
 
 const categoryLabels = {
   CLEANING: '🧹 Ménage',
@@ -102,14 +57,27 @@ const statusColors = {
 }
 
 export default function ClientServicesPage() {
-  const [services, setServices] = useState<Service[]>([])
-  const [bookings, setBookings] = useState<Booking[]>([])
-  const [isLoading, setIsLoading] = useState(true)
+  const { 
+    services, 
+    bookings, 
+    isLoading, 
+    error, 
+    createBooking, 
+    rateBooking, 
+    cancelBooking,
+    getAvailableSlots 
+  } = useClientServices()
+
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('all')
-  const [selectedService, setSelectedService] = useState<Service | null>(null)
+  const [selectedService, setSelectedService] = useState<any>(null)
   const [bookingDialog, setBookingDialog] = useState(false)
+  const [ratingDialog, setRatingDialog] = useState(false)
+  const [cancelDialog, setCancelDialog] = useState(false)
+  const [selectedBooking, setSelectedBooking] = useState<any>(null)
   const [bookingDate, setBookingDate] = useState<Date | undefined>(undefined)
+  const [availableSlots, setAvailableSlots] = useState<string[]>([])
+  const [loadingSlots, setLoadingSlots] = useState(false)
   
   // Formulaire de réservation
   const [bookingForm, setBookingForm] = useState({
@@ -120,38 +88,33 @@ export default function ClientServicesPage() {
     scheduledTime: '09:00'
   })
 
+  // Formulaires pour évaluation et annulation
+  const [rating, setRating] = useState(5)
+  const [review, setReview] = useState('')
+  const [cancelReason, setCancelReason] = useState('')
+
   const t = useTranslations()
 
-  useEffect(() => {
-    fetchServices()
-    fetchBookings()
-  }, [])
+  // Charger les créneaux disponibles quand date et service changent
+  const loadAvailableSlots = async () => {
+    if (!selectedService || !bookingDate) return
 
-  const fetchServices = async () => {
+    setLoadingSlots(true)
     try {
-      const response = await fetch('/api/provider/services')
-      
-      if (response.ok) {
-        const data = await response.json()
-        setServices(data.services || [])
+      const slots = await getAvailableSlots(
+        selectedService.provider.id, 
+        bookingDate.toISOString().split('T')[0]
+      )
+      setAvailableSlots(slots)
+      // Réinitialiser l'heure sélectionnée si elle n'est plus disponible
+      if (slots.length > 0 && !slots.includes(bookingForm.scheduledTime)) {
+        setBookingForm(prev => ({ ...prev, scheduledTime: slots[0] }))
       }
     } catch (error) {
-      console.error('Erreur récupération services:', error)
-    }
-  }
-
-  const fetchBookings = async () => {
-    try {
-      const response = await fetch('/api/client/bookings')
-      
-      if (response.ok) {
-        const data = await response.json()
-        setBookings(data.bookings || [])
-      }
-    } catch (error) {
-      console.error('Erreur récupération réservations:', error)
+      console.error('Erreur chargement créneaux:', error)
+      setAvailableSlots([])
     } finally {
-      setIsLoading(false)
+      setLoadingSlots(false)
     }
   }
 
@@ -170,42 +133,66 @@ export default function ClientServicesPage() {
     const [hours, minutes] = bookingForm.scheduledTime.split(':')
     scheduledAt.setHours(parseInt(hours), parseInt(minutes))
 
-    try {
-      const response = await fetch('/api/client/bookings', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          serviceId: selectedService.id,
-          providerId: selectedService.provider.id,
-          scheduledAt: scheduledAt.toISOString(),
-          duration: bookingForm.duration,
-          address: bookingForm.address,
-          phone: bookingForm.phone,
-          notes: bookingForm.notes
-        })
-      })
-
-      if (response.ok) {
-        alert('Réservation créée avec succès !')
-        setBookingDialog(false)
-        setBookingForm({
-          duration: 60,
-          address: '',
-          phone: '',
-          notes: '',
-          scheduledTime: '09:00'
-        })
-        setBookingDate(undefined)
-        setSelectedService(null)
-        fetchBookings()
-      } else {
-        const error = await response.json()
-        alert(`Erreur: ${error.error}`)
-      }
-    } catch (error) {
-      console.error('Erreur réservation:', error)
-      alert('Erreur lors de la réservation')
+    const bookingData: BookingRequest = {
+      serviceId: selectedService.id,
+      providerId: selectedService.provider.id,
+      scheduledAt: scheduledAt.toISOString(),
+      duration: bookingForm.duration,
+      address: bookingForm.address,
+      phone: bookingForm.phone,
+      notes: bookingForm.notes
     }
+
+    try {
+      await createBooking(bookingData)
+      alert('Réservation créée avec succès !')
+      setBookingDialog(false)
+      resetBookingForm()
+    } catch (error) {
+      alert(error instanceof Error ? error.message : 'Erreur lors de la réservation')
+    }
+  }
+
+  const handleRateBooking = async () => {
+    if (!selectedBooking) return
+
+    try {
+      await rateBooking(selectedBooking.id, rating, review)
+      alert('Évaluation enregistrée avec succès !')
+      setRatingDialog(false)
+      setRating(5)
+      setReview('')
+      setSelectedBooking(null)
+    } catch (error) {
+      alert(error instanceof Error ? error.message : 'Erreur lors de l\'évaluation')
+    }
+  }
+
+  const handleCancelBooking = async () => {
+    if (!selectedBooking || !cancelReason.trim()) return
+
+    try {
+      await cancelBooking(selectedBooking.id, cancelReason)
+      alert('Réservation annulée avec succès')
+      setCancelDialog(false)
+      setCancelReason('')
+      setSelectedBooking(null)
+    } catch (error) {
+      alert(error instanceof Error ? error.message : 'Erreur lors de l\'annulation')
+    }
+  }
+
+  const resetBookingForm = () => {
+    setBookingForm({
+      duration: 60,
+      address: '',
+      phone: '',
+      notes: '',
+      scheduledTime: '09:00'
+    })
+    setBookingDate(undefined)
+    setSelectedService(null)
+    setAvailableSlots([])
   }
 
   const filteredServices = services.filter(service => {
@@ -228,7 +215,31 @@ export default function ClientServicesPage() {
           <div className="animate-pulse space-y-4">
             <div className="h-8 bg-gray-200 rounded w-1/3"></div>
             <div className="h-32 bg-gray-200 rounded"></div>
+            <div className="h-32 bg-gray-200 rounded"></div>
           </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50 p-6">
+        <div className="max-w-6xl mx-auto">
+          <Card className="border-red-200 bg-red-50">
+            <CardContent className="p-6 text-center">
+              <AlertCircle className="h-12 w-12 text-red-600 mx-auto mb-4" />
+              <div className="text-red-600 mb-4">Erreur de chargement</div>
+              <p className="text-red-800">{error}</p>
+              <Button 
+                onClick={() => window.location.reload()} 
+                className="mt-4"
+                variant="outline"
+              >
+                Réessayer
+              </Button>
+            </CardContent>
+          </Card>
         </div>
       </div>
     )
@@ -394,7 +405,14 @@ export default function ClientServicesPage() {
                       open={bookingDialog && selectedService?.id === service.id}
                       onOpenChange={(open) => {
                         setBookingDialog(open)
-                        if (open) setSelectedService(service)
+                        if (open) {
+                          setSelectedService(service)
+                          if (bookingDate) {
+                            loadAvailableSlots()
+                          }
+                        } else {
+                          resetBookingForm()
+                        }
                       }}
                     >
                       <DialogTrigger asChild>
@@ -422,7 +440,12 @@ export default function ClientServicesPage() {
                                   <Calendar
                                     mode="single"
                                     selected={bookingDate}
-                                    onSelect={setBookingDate}
+                                    onSelect={(date) => {
+                                      setBookingDate(date)
+                                      if (date && selectedService) {
+                                        loadAvailableSlots()
+                                      }
+                                    }}
                                     disabled={(date) => date < new Date()}
                                   />
                                 </PopoverContent>
@@ -430,22 +453,33 @@ export default function ClientServicesPage() {
                             </div>
                             <div>
                               <Label htmlFor="time">Heure</Label>
-                              <Select value={bookingForm.scheduledTime} onValueChange={(value) => 
-                                setBookingForm({...bookingForm, scheduledTime: value})
-                              }>
+                              <Select 
+                                value={bookingForm.scheduledTime} 
+                                onValueChange={(value) => setBookingForm({...bookingForm, scheduledTime: value})}
+                                disabled={loadingSlots || availableSlots.length === 0}
+                              >
                                 <SelectTrigger>
-                                  <SelectValue />
+                                  <SelectValue placeholder={loadingSlots ? "Chargement..." : "Choisir une heure"} />
                                 </SelectTrigger>
                                 <SelectContent>
-                                  {Array.from({length: 12}, (_, i) => i + 8).map(hour => (
-                                    ['00', '30'].map(minutes => (
-                                      <SelectItem key={`${hour}:${minutes}`} value={`${hour.toString().padStart(2, '0')}:${minutes}`}>
-                                        {hour.toString().padStart(2, '0')}:{minutes}
+                                  {availableSlots.length > 0 ? (
+                                    availableSlots.map(slot => (
+                                      <SelectItem key={slot} value={slot}>
+                                        {slot}
                                       </SelectItem>
                                     ))
-                                  )).flat()}
+                                  ) : (
+                                    <SelectItem value="" disabled>
+                                      {loadingSlots ? "Chargement des créneaux..." : "Aucun créneau disponible"}
+                                    </SelectItem>
+                                  )}
                                 </SelectContent>
                               </Select>
+                              {bookingDate && selectedService && !loadingSlots && availableSlots.length === 0 && (
+                                <p className="text-sm text-red-600 mt-1">
+                                  Aucun créneau disponible pour cette date
+                                </p>
+                              )}
                             </div>
                           </div>
 
@@ -599,16 +633,31 @@ export default function ClientServicesPage() {
 
                   <div className="flex space-x-2">
                     {booking.status === 'PENDING' && (
-                      <Button variant="outline" size="sm">
-                        Modifier
-                      </Button>
+                      <Dialog open={cancelDialog} onOpenChange={setCancelDialog}>
+                        <DialogTrigger asChild>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => setSelectedBooking(booking)}
+                          >
+                            Annuler
+                          </Button>
+                        </DialogTrigger>
+                      </Dialog>
                     )}
                     
                     {booking.status === 'COMPLETED' && !booking.rating && (
-                      <Button size="sm">
-                        <Star className="w-4 h-4 mr-2" />
-                        Évaluer
-                      </Button>
+                      <Dialog open={ratingDialog} onOpenChange={setRatingDialog}>
+                        <DialogTrigger asChild>
+                          <Button 
+                            size="sm"
+                            onClick={() => setSelectedBooking(booking)}
+                          >
+                            <Star className="w-4 h-4 mr-2" />
+                            Évaluer
+                          </Button>
+                        </DialogTrigger>
+                      </Dialog>
                     )}
                     
                     <Button variant="outline" size="sm">
@@ -633,6 +682,98 @@ export default function ClientServicesPage() {
             )}
           </TabsContent>
         </Tabs>
+
+        {/* Dialogue d'évaluation */}
+        <Dialog open={ratingDialog} onOpenChange={setRatingDialog}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Évaluer la prestation</DialogTitle>
+            </DialogHeader>
+            {selectedBooking && (
+              <div className="space-y-4">
+                <div>
+                  <h4 className="font-medium">{selectedBooking.service.name}</h4>
+                  <p className="text-sm text-gray-600">
+                    Prestation du {format(new Date(selectedBooking.scheduledAt), 'PPP', { locale: fr })}
+                  </p>
+                </div>
+                
+                <div>
+                  <Label>Note sur 5</Label>
+                  <div className="flex items-center gap-1 mt-2">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <button
+                        key={star}
+                        type="button"
+                        onClick={() => setRating(star)}
+                        className={`text-2xl ${star <= rating ? 'text-yellow-400' : 'text-gray-300'}`}
+                      >
+                        ⭐
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                
+                <div>
+                  <Label htmlFor="review">Commentaire (optionnel)</Label>
+                  <Textarea
+                    id="review"
+                    placeholder="Partagez votre expérience..."
+                    value={review}
+                    onChange={(e) => setReview(e.target.value)}
+                  />
+                </div>
+                
+                <Button onClick={handleRateBooking} className="w-full">
+                  ⭐ Publier l'évaluation
+                </Button>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
+
+        {/* Dialogue d'annulation */}
+        <Dialog open={cancelDialog} onOpenChange={setCancelDialog}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Annuler la réservation</DialogTitle>
+            </DialogHeader>
+            {selectedBooking && (
+              <div className="space-y-4">
+                <div>
+                  <h4 className="font-medium">{selectedBooking.service.name}</h4>
+                  <p className="text-sm text-gray-600">
+                    Prestation prévue le {format(new Date(selectedBooking.scheduledAt), 'PPP à HH:mm', { locale: fr })}
+                  </p>
+                </div>
+                
+                <div>
+                  <Label htmlFor="cancelReason">Raison de l'annulation</Label>
+                  <Textarea
+                    id="cancelReason"
+                    placeholder="Expliquez pourquoi vous annulez cette réservation..."
+                    value={cancelReason}
+                    onChange={(e) => setCancelReason(e.target.value)}
+                  />
+                </div>
+                
+                <div className="bg-yellow-50 p-3 rounded-lg">
+                  <p className="text-sm text-yellow-800">
+                    ⚠️ Les frais d'annulation peuvent s'appliquer selon le délai de préavis.
+                  </p>
+                </div>
+                
+                <Button 
+                  onClick={handleCancelBooking}
+                  className="w-full bg-red-600 hover:bg-red-700"
+                  disabled={!cancelReason.trim()}
+                >
+                  ❌ Confirmer l'annulation
+                </Button>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   )

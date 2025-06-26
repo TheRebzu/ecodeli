@@ -1,7 +1,18 @@
 'use client'
 
 import { createContext, useContext, ReactNode } from 'react'
-import { useAuth, type EcoDeliUser, type UserRole } from './auth-client'
+import { useAuth } from '@/hooks/use-auth'
+import { type UserRole } from './auth-client'
+
+interface EcoDeliUser {
+  id: string
+  email: string
+  name?: string
+  role: string
+  emailVerified: boolean
+  isActive: boolean
+  validationStatus: string
+}
 
 // Context pour l'authentification EcoDeli
 interface AuthContextType {

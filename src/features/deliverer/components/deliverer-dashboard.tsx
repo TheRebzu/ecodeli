@@ -240,7 +240,7 @@ export function DelivererDashboard() {
                   📄 Mes documents
                 </Link>
                 <Link href="/deliverer/stats" className="block text-sm text-green-600 hover:text-green-700">
-                  📊 Statistiques détaillées
+                  Statistiques détaillées
                 </Link>
                 <Link href="/deliverer/support" className="block text-sm text-green-600 hover:text-green-700">
                   💬 Support livreur

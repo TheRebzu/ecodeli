@@ -109,9 +109,9 @@ export default async function middleware(request: NextRequest) {
       
       for (const check of roleChecks) {
         if (pathname.includes(check.path) && !check.allowedRoles.includes(user.role)) {
-          const locale = pathname.split('/')[1] || 'fr'
-          return NextResponse.redirect(new URL(`/${locale}/403`, request.url))
-        }
+        const locale = pathname.split('/')[1] || 'fr'
+        return NextResponse.redirect(new URL(`/${locale}/403`, request.url))
+      }
       }
       
       // Vérifier si le compte est actif (Mission 1)

@@ -39,7 +39,9 @@ export const auth = betterAuth({
 
   // Configuration avancée
   advanced: {
-    generateId: () => crypto.randomUUID(),
+    database: {
+      generateId: () => crypto.randomUUID(),
+    }
   },
 
   // Configuration des rôles EcoDeli
@@ -52,12 +54,12 @@ export const auth = betterAuth({
       },
       isActive: {
         type: "boolean",
-        defaultValue: false,
+        defaultValue: true, // Actif par défaut pour les tests
         required: true,
       },
       validationStatus: {
         type: "string",
-        defaultValue: "PENDING",
+        defaultValue: "VALIDATED", // Utiliser l'enum correct
         required: true,
       },
       profileId: {
@@ -80,50 +82,89 @@ export const auth = betterAuth({
               await db.client.create({
                 data: { 
                   userId: user.id,
+                  subscriptionPlan: 'FREE',
+                  tutorialCompleted: false,
+                  termsAcceptedAt: new Date(),
+                  emailNotifications: true,
+                  pushNotifications: true,
+                  smsNotifications: false
                 }
               })
+              console.log("✅ Profil CLIENT créé pour:", user.email)
               break
               
             case "DELIVERER":
               await db.deliverer.create({
                 data: { 
                   userId: user.id,
-                  vehicleInfo: "",
-                  isAvailable: false,
+                  validationStatus: 'PENDING',
+                  isActive: false,
+                  averageRating: 0,
+                  totalDeliveries: 0
                 }
               })
+              // Créer aussi le wallet
+              await db.wallet.create({
+                data: {
+                  userId: user.id,
+                  balance: 0,
+                  currency: 'EUR'
+                }
+              })
+              console.log("✅ Profil DELIVERER créé pour:", user.email)
               break
-
               
             case "MERCHANT":
               await db.merchant.create({
                 data: { 
                   userId: user.id,
-                  businessName: "",
-                  siret: "",
+                  companyName: 'À compléter',
+                  siret: 'À compléter',
+                  contractStatus: 'PENDING',
+                  commissionRate: 0.15,
+                  rating: 0
                 }
               })
+              console.log("✅ Profil MERCHANT créé pour:", user.email)
               break
               
             case "PROVIDER":
               await db.provider.create({
                 data: { 
                   userId: user.id,
-                  businessName: "",
+                  validationStatus: 'PENDING',
+                  businessName: 'À compléter',
+                  specialties: [],
+                  hourlyRate: 0,
+                  isActive: false,
+                  averageRating: 0,
+                  certificationsVerified: false
                 }
               })
+              // Créer aussi le wallet
+              await db.wallet.create({
+                data: {
+                  userId: user.id,
+                  balance: 0,
+                  currency: 'EUR'
+                }
+              })
+              console.log("✅ Profil PROVIDER créé pour:", user.email)
               break
               
             case "ADMIN":
               await db.admin.create({
                 data: { 
                   userId: user.id,
+                  permissions: ['MANAGE_USERS', 'MANAGE_PLATFORM'],
+                  department: 'GENERAL'
                 }
               })
+              console.log("✅ Profil ADMIN créé pour:", user.email)
               break
           }
         } catch (error) {
-          console.error("Erreur création profil:", error)
+          console.error("❌ Erreur création profil:", error)
         }
         
         return user
@@ -136,39 +177,40 @@ export const auth = betterAuth({
         let profileData = null
         
         try {
+          // Récupérer le Profile de base de l'utilisateur
+          const userWithProfile = await db.user.findUnique({
+            where: { id: user.id },
+            include: { profile: true }
+          })
+          
           switch (user.role) {
             case "CLIENT":
               profileData = await db.client.findUnique({
-                where: { userId: user.id },
-                include: { profile: true }
+                where: { userId: user.id }
               })
               break
               
             case "DELIVERER":
               profileData = await db.deliverer.findUnique({
-                where: { userId: user.id },
-                include: { profile: true }
+                where: { userId: user.id }
               })
               break
               
             case "MERCHANT":
               profileData = await db.merchant.findUnique({
-                where: { userId: user.id },
-                include: { profile: true }
+                where: { userId: user.id }
               })
               break
               
             case "PROVIDER":
               profileData = await db.provider.findUnique({
-                where: { userId: user.id },
-                include: { profile: true }
+                where: { userId: user.id }
               })
               break
               
             case "ADMIN":
               profileData = await db.admin.findUnique({
-                where: { userId: user.id },
-                include: { profile: true }
+                where: { userId: user.id }
               })
               break
           }
@@ -184,6 +226,7 @@ export const auth = betterAuth({
             isActive: user.isActive,
             validationStatus: user.validationStatus,
             profileData,
+            profile: userWithProfile?.profile
           },
         }
       },

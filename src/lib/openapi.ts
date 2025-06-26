@@ -166,7 +166,7 @@ Authorization: Bearer YOUR_JWT_TOKEN
         required: ['id', 'email', 'role']
       },
       
-      Profile: {
+      profile: {
         type: 'object',
         properties: {
           id: { type: 'string' },

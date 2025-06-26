@@ -33,8 +33,8 @@ export const NOTIFICATION_TEMPLATES: Record<string, NotificationTemplate> = {
     id: 'delivery_accepted',
     type: 'PUSH',
     title: {
-      fr: '✅ Livraison acceptée',
-      en: '✅ Delivery accepted'
+          fr: 'Livraison acceptée',
+    en: 'Delivery accepted'
     },
     body: {
       fr: 'Votre proposition a été acceptée pour la livraison #{deliveryId}',
@@ -100,8 +100,8 @@ export const NOTIFICATION_TEMPLATES: Record<string, NotificationTemplate> = {
     id: 'admin_payment_issue',
     type: 'EMAIL',
     title: {
-      fr: '⚠️ Problème de paiement',
-      en: '⚠️ Payment issue'
+          fr: 'Problème de paiement',
+    en: 'Payment issue'
     },
     body: {
       fr: 'Problème détecté sur le paiement #{paymentId}. Intervention requise.',
@@ -114,8 +114,8 @@ export const NOTIFICATION_TEMPLATES: Record<string, NotificationTemplate> = {
     id: 'provider_monthly_invoice_generated',
     type: 'EMAIL',
     title: {
-      fr: '📋 Facture mensuelle générée',
-      en: '📋 Monthly invoice generated'
+          fr: 'Facture mensuelle générée',
+    en: 'Monthly invoice generated'
     },
     body: {
       fr: 'Votre facture pour {month} est disponible. Montant: {amount}€',
@@ -246,8 +246,8 @@ export const NOTIFICATION_TEMPLATES: Record<string, NotificationTemplate> = {
     id: 'influencer_application_rejected',
     type: 'EMAIL',
     title: {
-      fr: '❌ Candidature influenceur non retenue',
-      en: '❌ Influencer application rejected'
+          fr: 'Candidature influenceur non retenue',
+    en: 'Influencer application rejected'
     },
     body: {
       fr: 'Votre candidature influenceur n\'a pas été retenue. Raison: {reason}.',

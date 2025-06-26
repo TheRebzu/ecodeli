@@ -2,7 +2,7 @@
 import { useTranslations } from "next-intl"
 import Link from "next/link"
 import { LoginForm } from "@/features/auth/components/login-form"
-import { TestAccounts } from "@/features/auth/components/test-accounts"
+import { TestAccountsWithForm } from "@/features/auth/components/test-accounts-with-form"
 
 export default function LoginPage() {
   const t = useTranslations()
@@ -49,7 +49,7 @@ export default function LoginPage() {
         </div>
 
         {/* Comptes de test avec connexion rapide */}
-        <TestAccounts />
+        <TestAccountsWithForm />
       </div>
     </div>
   )

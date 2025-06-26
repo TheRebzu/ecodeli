@@ -1,67 +1,33 @@
-# Script de test d'authentification EcoDeli
-Write-Host "🧪 Test d'authentification EcoDeli" -ForegroundColor Cyan
+# Test de l'authentification EcoDeli avec comptes seeds
+Write-Host "🔄 Test de l'authentification EcoDeli..." -ForegroundColor Green
 
-# Test 1: Santé de l'API
-Write-Host "`n1. Test de santé de l'API..." -ForegroundColor Yellow
-try {
-    $healthResponse = Invoke-RestMethod -Uri "http://localhost:3000/api/health" -Method GET
-    Write-Host "✅ API Status: $($healthResponse.status)" -ForegroundColor Green
-} catch {
-    Write-Host "❌ Erreur API Health: $($_.Exception.Message)" -ForegroundColor Red
-    exit 1
-}
+# 1. Test de connexion client
+Write-Host "`n1. Connexion client-complete@test.com..." -ForegroundColor Yellow
+$loginResponse = Invoke-RestMethod -Uri "http://localhost:3000/api/auth/sign-in/email" `
+    -Method POST `
+    -ContentType "application/json" `
+    -Body '{"email":"client-complete@test.com","password":"Test123!"}' `
+    -SessionVariable session
 
-# Test 2: Connexion client test
-Write-Host "`n2. Test de connexion client..." -ForegroundColor Yellow
-$loginData = @{
-    email = "client-complete@test.com"
-    password = "Test123!"
-} | ConvertTo-Json
+Write-Host "Réponse connexion:" -ForegroundColor Blue
+$loginResponse | ConvertTo-Json -Depth 3
 
-try {
-    $loginResponse = Invoke-RestMethod -Uri "http://localhost:3000/api/auth/sign-in/email" -Method POST -Body $loginData -ContentType "application/json"
-    Write-Host "✅ Connexion réussie!" -ForegroundColor Green
-    Write-Host "User: $($loginResponse.user.email)" -ForegroundColor Green
-} catch {
-    Write-Host "❌ Erreur de connexion: $($_.Exception.Message)" -ForegroundColor Red
-    
-    # Si compte n'existe pas, exécuter les seeds
-    if ($_.Exception.Message -like "*user*not*found*" -or $_.Exception.Message -like "*404*") {
-        Write-Host "`n🌱 Exécution des seeds..." -ForegroundColor Yellow
-        npx prisma db seed
-        
-        # Retry connexion
-        Write-Host "`n🔄 Retry connexion..." -ForegroundColor Yellow
-        try {
-            $retryResponse = Invoke-RestMethod -Uri "http://localhost:3000/api/auth/sign-in/email" -Method POST -Body $loginData -ContentType "application/json"
-            Write-Host "✅ Connexion réussie après seed!" -ForegroundColor Green
-        } catch {
-            Write-Host "❌ Échec après seeds: $($_.Exception.Message)" -ForegroundColor Red
-        }
-    }
-}
+# 2. Test de récupération de session
+Write-Host "`n2. Récupération de la session..." -ForegroundColor Yellow
+$sessionResponse = Invoke-RestMethod -Uri "http://localhost:3000/api/auth/get-session" `
+    -Method GET `
+    -WebSession $session
 
-# Test 3: Test des autres comptes
-$testAccounts = @(
-    @{ email = "deliverer-complete@test.com"; password = "Test123!"; role = "DELIVERER" },
-    @{ email = "merchant-complete@test.com"; password = "Test123!"; role = "MERCHANT" },
-    @{ email = "provider-complete@test.com"; password = "Test123!"; role = "PROVIDER" },
-    @{ email = "admin-complete@test.com"; password = "Test123!"; role = "ADMIN" }
-)
+Write-Host "Session récupérée:" -ForegroundColor Blue
+$sessionResponse | ConvertTo-Json -Depth 3
 
-Write-Host "`n3. Test des autres comptes..." -ForegroundColor Yellow
-foreach ($account in $testAccounts) {
-    $accountData = @{
-        email = $account.email
-        password = $account.password
-    } | ConvertTo-Json
-    
-    try {
-        $response = Invoke-RestMethod -Uri "http://localhost:3000/api/auth/sign-in/email" -Method POST -Body $accountData -ContentType "application/json"
-        Write-Host "✅ $($account.role): $($account.email)" -ForegroundColor Green
-    } catch {
-        Write-Host "❌ $($account.role): $($account.email) - $($_.Exception.Message)" -ForegroundColor Red
-    }
-}
+# 3. Test API client dashboard
+Write-Host "`n3. Test API client dashboard..." -ForegroundColor Yellow
+$dashboardResponse = Invoke-RestMethod -Uri "http://localhost:3000/api/client/dashboard" `
+    -Method GET `
+    -WebSession $session
 
-Write-Host "`n🏁 Tests terminés!" -ForegroundColor Cyan 
+Write-Host "Dashboard client:" -ForegroundColor Blue
+$dashboardResponse | ConvertTo-Json -Depth 3
+
+Write-Host "`n✅ Tests terminés" -ForegroundColor Green 

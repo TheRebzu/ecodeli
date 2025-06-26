@@ -192,17 +192,17 @@ export class OneSignalService {
     status: string,
     message: string
   ): Promise<OneSignalResponse> {
-    const statusEmojis: Record<string, string> = {
-      'ACCEPTED': '✅',
-      'PICKED_UP': '📦',
-      'IN_TRANSIT': '🚛',
-      'DELIVERED': '🎉',
-      'CANCELLED': '❌'
+    const statusLabels: Record<string, string> = {
+      'ACCEPTED': 'ACCEPTÉ',
+      'PICKED_UP': 'RÉCUPÉRÉ',
+      'IN_TRANSIT': 'EN TRANSIT',
+      'DELIVERED': 'LIVRÉ',
+      'CANCELLED': 'ANNULÉ'
     }
 
     return this.sendToUser(
       clientId,
-      `${statusEmojis[status] || '📋'} Mise à jour de livraison`,
+              `${statusLabels[status] || 'STATUT'} - Mise à jour de livraison`,
       message,
       {
         type: 'delivery_update',
@@ -308,7 +308,7 @@ export class OneSignalService {
     
     return this.sendToUser(
       userId,
-      `${isApproved ? '✅' : '❌'} Document ${isApproved ? 'approuvé' : 'rejeté'}`,
+              `Document ${isApproved ? 'approuvé' : 'rejeté'}`,
       `Votre document "${documentName}" a été ${isApproved ? 'approuvé' : 'rejeté'}${notes ? '. ' + notes : '.'}`,
       {
         type: 'document_validation',

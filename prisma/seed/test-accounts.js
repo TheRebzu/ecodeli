@@ -41,7 +41,7 @@ async function createTestAccounts() {
         lastName: 'Dupont',
         phoneNumber: '+33612345678',
         language: 'fr',
-        Profile: {
+        profile: {
           create: {
             address: '123 Rue de la Paix',
             city: 'Paris',
@@ -49,7 +49,7 @@ async function createTestAccounts() {
             country: 'FR'
           }
         },
-        Client: {
+        client: {
           create: {
             subscriptionPlan: 'FREE',
             tutorialCompleted: false, // Tutoriel pas encore fait
@@ -70,7 +70,7 @@ async function createTestAccounts() {
         lastName: 'Martin',
         phoneNumber: '+33698765432',
         language: 'fr',
-        Profile: {
+        profile: {
           create: {
             address: '456 Avenue de la République',
             city: 'Lyon',
@@ -78,7 +78,7 @@ async function createTestAccounts() {
             country: 'FR'
           }
         },
-        Deliverer: {
+        deliverer: {
           create: {
             validationStatus: 'PENDING', // Documents en attente de validation
             vehicleType: 'CAR',
@@ -88,7 +88,7 @@ async function createTestAccounts() {
             nfcCardGenerated: false
           }
         },
-        Wallet: {
+        wallet: {
           create: {
             balance: 0.0,
             currency: 'EUR'
@@ -108,7 +108,7 @@ async function createTestAccounts() {
         lastName: 'Rousseau',
         phoneNumber: '+33634567890',
         language: 'fr',
-        Profile: {
+        profile: {
           create: {
             address: '321 Rue du Commerce',
             city: 'Toulouse',
@@ -116,7 +116,7 @@ async function createTestAccounts() {
             country: 'FR'
           }
         },
-        Merchant: {
+        merchant: {
           create: {
             companyName: 'Boutique Thomas',
             siret: '12345678901234',
@@ -139,7 +139,7 @@ async function createTestAccounts() {
         lastName: 'Leblanc',
         phoneNumber: '+33623456789',
         language: 'fr',
-        Profile: {
+        profile: {
           create: {
             address: '789 Cours Lafayette',
             city: 'Marseille',
@@ -147,7 +147,7 @@ async function createTestAccounts() {
             country: 'FR'
           }
         },
-        Provider: {
+        provider: {
           create: {
             validationStatus: 'PENDING', // Profil en attente de validation
             businessName: 'Services Sophie',
@@ -157,7 +157,7 @@ async function createTestAccounts() {
             certificationsVerified: false
           }
         },
-        Wallet: {
+        wallet: {
           create: {
             balance: 0.0,
             currency: 'EUR'
@@ -177,7 +177,7 @@ async function createTestAccounts() {
         lastName: 'EcoDeli',
         phoneNumber: '+33612345678',
         language: 'fr',
-        Profile: {
+        profile: {
           create: {
             address: '110 Rue de Flandre',
             city: 'Paris',
@@ -185,7 +185,7 @@ async function createTestAccounts() {
             country: 'FR'
           }
         },
-        Admin: {
+        admin: {
           create: {
             permissions: [
               'MANAGE_USERS', 

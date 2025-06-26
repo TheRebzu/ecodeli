@@ -50,7 +50,7 @@ const TUTORIAL_STEPS: TutorialStep[] = [
     id: 'storage',
     title: 'Box de stockage',
     description: 'Stockez temporairement vos affaires',
-    content: 'Louez des box de stockage sécurisés dans nos 6 entrepôts pour stocker temporairement vos affaires.',
+    content: 'Louez des box de stockage sécurisés dans nos entrepôts pour stocker temporairement vos affaires.',
     action: {
       label: 'Voir les box disponibles',
       href: '/client/storage'

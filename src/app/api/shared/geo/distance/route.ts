@@ -1,45 +1,34 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 
+// Schemas de validation
+const coordinateSchema = z.object({
+  latitude: z.number().min(-90).max(90),
+  longitude: z.number().min(-180).max(180),
+  name: z.string().optional()
+})
+
 const distanceRequestSchema = z.object({
-  origins: z.array(z.object({
-    latitude: z.number().min(-90).max(90),
-    longitude: z.number().min(-180).max(180),
-    name: z.string().optional()
-  })).min(1).max(25),
-  destinations: z.array(z.object({
-    latitude: z.number().min(-90).max(90),
-    longitude: z.number().min(-180).max(180),
-    name: z.string().optional()
-  })).min(1).max(25),
-  mode: z.enum(['driving', 'walking', 'bicycling', 'transit']).optional().default('driving'),
-  units: z.enum(['metric', 'imperial']).optional().default('metric'),
-  language: z.enum(['fr', 'en']).optional().default('fr'),
-  avoidTolls: z.boolean().optional().default(false),
-  avoidHighways: z.boolean().optional().default(false)
+  action: z.literal('matrix'),
+  origins: z.array(coordinateSchema).min(1).max(25),
+  destinations: z.array(coordinateSchema).min(1).max(25),
+  mode: z.enum(['driving', 'walking', 'bicycling', 'transit']).default('driving'),
+  units: z.enum(['metric', 'imperial']).default('metric'),
+  language: z.string().default('fr'),
+  avoidTolls: z.boolean().default(false),
+  avoidHighways: z.boolean().default(false)
 })
 
 const routeOptimizationSchema = z.object({
-  depot: z.object({
-    latitude: z.number(),
-    longitude: z.number(),
-    name: z.string().optional()
-  }),
-  waypoints: z.array(z.object({
-    latitude: z.number(),
-    longitude: z.number(),
-    name: z.string().optional(),
-    priority: z.number().min(1).max(5).optional().default(3),
-    timeWindow: z.object({
-      start: z.string(),
-      end: z.string()
-    }).optional()
-  })).min(1).max(20),
-  vehicleCapacity: z.number().optional(),
-  maxDistance: z.number().optional(),
-  optimize: z.enum(['distance', 'time', 'fuel']).optional().default('distance')
+  action: z.literal('optimize'),
+  depot: coordinateSchema,
+  waypoints: z.array(coordinateSchema).min(1).max(20),
+  vehicleCapacity: z.number().positive().optional(),
+  maxDistance: z.number().positive().optional(),
+  optimize: z.enum(['distance', 'duration']).default('distance')
 })
 
+// Types
 interface DistanceResult {
   origin: {
     latitude: number
@@ -53,7 +42,7 @@ interface DistanceResult {
   }
   distance: {
     text: string
-    value: number // en m�tres
+    value: number // en metres
   }
   duration: {
     text: string
@@ -95,11 +84,12 @@ class DistanceService {
       if (this.GOOGLE_MAPS_API_KEY) {
         return await this.calculateWithGoogle(origins, destinations, mode, units, language, avoidTolls, avoidHighways)
       } else {
+        console.warn('Google Maps API key not found, using Haversine fallback')
         return await this.calculateWithHaversine(origins, destinations)
       }
     } catch (error) {
       console.error('Distance calculation error:', error)
-      throw new Error('Erreur lors du calcul de distance')
+      return await this.calculateWithHaversine(origins, destinations)
     }
   }
 
@@ -109,14 +99,14 @@ class DistanceService {
     options: any = {}
   ): Promise<OptimizedRoute> {
     try {
-      if (this.GOOGLE_MAPS_API_KEY && waypoints.length <= 8) {
+      if (this.GOOGLE_MAPS_API_KEY && waypoints.length <= 10) {
         return await this.optimizeWithGoogle(depot, waypoints, options)
       } else {
         return await this.optimizeWithHeuristic(depot, waypoints, options)
       }
     } catch (error) {
       console.error('Route optimization error:', error)
-      throw new Error('Erreur lors de l\'optimisation de route')
+      return await this.optimizeWithHeuristic(depot, waypoints, options)
     }
   }
 
@@ -129,42 +119,41 @@ class DistanceService {
     avoidTolls: boolean,
     avoidHighways: boolean
   ): Promise<DistanceResult[]> {
-    const originCoords = origins.map(o => `${o.latitude},${o.longitude}`).join('|')
-    const destCoords = destinations.map(d => `${d.latitude},${d.longitude}`).join('|')
-
-    const url = new URL('https://maps.googleapis.com/maps/api/distancematrix/json')
-    url.searchParams.append('origins', originCoords)
-    url.searchParams.append('destinations', destCoords)
-    url.searchParams.append('mode', mode)
-    url.searchParams.append('units', units)
-    url.searchParams.append('language', language)
-    url.searchParams.append('key', this.GOOGLE_MAPS_API_KEY!)
+    const originsStr = origins.map(o => `${o.latitude},${o.longitude}`).join('|')
+    const destinationsStr = destinations.map(d => `${d.latitude},${d.longitude}`).join('|')
     
-    if (avoidTolls) url.searchParams.append('avoid', 'tolls')
-    if (avoidHighways) url.searchParams.append('avoid', 'highways')
+    const url = new URL('https://maps.googleapis.com/maps/api/distancematrix/json')
+    url.searchParams.set('origins', originsStr)
+    url.searchParams.set('destinations', destinationsStr)
+    url.searchParams.set('mode', mode)
+    url.searchParams.set('units', units)
+    url.searchParams.set('language', language)
+    url.searchParams.set('avoid', [
+      ...(avoidTolls ? ['tolls'] : []),
+      ...(avoidHighways ? ['highways'] : [])
+    ].join('|'))
+    url.searchParams.set('key', this.GOOGLE_MAPS_API_KEY!)
 
     const response = await fetch(url.toString())
     const data = await response.json()
 
     if (data.status !== 'OK') {
-      throw new Error(`Google Distance Matrix API error: ${data.status}`)
+      throw new Error(`Google Maps API error: ${data.status}`)
     }
 
     const results: DistanceResult[] = []
-    
-    for (let i = 0; i < origins.length; i++) {
-      for (let j = 0; j < destinations.length; j++) {
-        const element = data.rows[i].elements[j]
-        
+
+    data.rows.forEach((row: any, originIndex: number) => {
+      row.elements.forEach((element: any, destIndex: number) => {
         results.push({
-          origin: origins[i],
-          destination: destinations[j],
+          origin: origins[originIndex],
+          destination: destinations[destIndex],
           distance: element.distance || { text: 'N/A', value: 0 },
           duration: element.duration || { text: 'N/A', value: 0 },
-          status: element.status || 'NOT_FOUND'
+          status: element.status
         })
-      }
-    }
+      })
+    })
 
     return results
   }
@@ -182,8 +171,7 @@ class DistanceService {
           destination.latitude, destination.longitude
         )
 
-        // Estimation dur�e bas�e sur vitesse moyenne 50 km/h
-        const duration = (distance / 1000) * 60 * 60 / 50
+        const duration = (distance / 1000) * 60 * 60 / 50 // 50 km/h moyenne
 
         results.push({
           origin,
@@ -209,14 +197,14 @@ class DistanceService {
     waypoints: Array<any>,
     options: any
   ): Promise<OptimizedRoute> {
-    const waypointsCoords = waypoints.map(w => `${w.latitude},${w.longitude}`).join('|')
+    // Implementation Google Routes API
+    const waypointsStr = waypoints.map(w => `${w.latitude},${w.longitude}`).join('|')
     
     const url = new URL('https://maps.googleapis.com/maps/api/directions/json')
-    url.searchParams.append('origin', `${depot.latitude},${depot.longitude}`)
-    url.searchParams.append('destination', `${depot.latitude},${depot.longitude}`)
-    url.searchParams.append('waypoints', `optimize:true|${waypointsCoords}`)
-    url.searchParams.append('mode', 'driving')
-    url.searchParams.append('key', this.GOOGLE_MAPS_API_KEY!)
+    url.searchParams.set('origin', `${depot.latitude},${depot.longitude}`)
+    url.searchParams.set('destination', `${depot.latitude},${depot.longitude}`)
+    url.searchParams.set('waypoints', `optimize:true|${waypointsStr}`)
+    url.searchParams.set('key', this.GOOGLE_MAPS_API_KEY!)
 
     const response = await fetch(url.toString())
     const data = await response.json()
@@ -226,9 +214,7 @@ class DistanceService {
     }
 
     const route = data.routes[0]
-    const waypointOrder = route.waypoint_order
-
-    const orderedWaypoints = waypointOrder.map((index: number, i: number) => ({
+    const orderedWaypoints = route.waypoint_order.map((index: number, i: number) => ({
       originalIndex: index,
       waypoint: waypoints[index],
       arrivalTime: this.estimateArrivalTime(route.legs, i),
@@ -256,9 +242,9 @@ class DistanceService {
     waypoints: Array<any>,
     options: any
   ): Promise<OptimizedRoute> {
-    // Algorithme du plus proche voisin simple
+    // Algorithme du plus proche voisin
     const unvisited = [...waypoints]
-    const orderedWaypoints: Array<any> = []
+    const orderedWaypoints: Array<{originalIndex: number, waypoint: any}> = []
     let currentPosition = depot
 
     while (unvisited.length > 0) {
@@ -298,7 +284,7 @@ class DistanceService {
       currentPos = stop.waypoint
     }
 
-    // Retour au d�p�t
+    // Retour au depot
     totalDistance += this.haversineDistance(
       currentPos.latitude, currentPos.longitude,
       depot.latitude, depot.longitude
@@ -320,22 +306,22 @@ class DistanceService {
   }
 
   private haversineDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
-    const R = 6371000 // Rayon de la Terre en m�tres
-    const �1 = lat1 * Math.PI/180
-    const �2 = lat2 * Math.PI/180
-    const �� = (lat2-lat1) * Math.PI/180
-    const �� = (lon2-lon1) * Math.PI/180
+    const R = 6371000 // Rayon de la Terre en metres
+    const phi1 = lat1 * Math.PI/180
+    const phi2 = lat2 * Math.PI/180
+    const deltaPhi = (lat2-lat1) * Math.PI/180
+    const deltaLambda = (lon2-lon1) * Math.PI/180
 
-    const a = Math.sin(��/2) * Math.sin(��/2) +
-              Math.cos(�1) * Math.cos(�2) *
-              Math.sin(��/2) * Math.sin(��/2)
+    const a = Math.sin(deltaPhi/2) * Math.sin(deltaPhi/2) +
+              Math.cos(phi1) * Math.cos(phi2) *
+              Math.sin(deltaLambda/2) * Math.sin(deltaLambda/2)
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a))
 
     return R * c
   }
 
   private estimateArrivalTime(legs: any[], index: number): string {
-    // Simulation - dans une vraie impl�mentation, utiliser les donn�es Google
+    // Simulation - dans une vraie implementation, utiliser les donnees Google
     const now = new Date()
     now.setMinutes(now.getMinutes() + index * 30)
     return now.toISOString()
@@ -343,7 +329,7 @@ class DistanceService {
 
   private estimateDepartureTime(legs: any[], index: number): string {
     const now = new Date()
-    now.setMinutes(now.getMinutes() + index * 30 + 15) // 15 min d'arr�t
+    now.setMinutes(now.getMinutes() + index * 30 + 15) // 15 min d'arret
     return now.toISOString()
   }
 
@@ -353,16 +339,16 @@ class DistanceService {
   }
 
   private calculateEfficiencyScore(stops: number, distance: number): number {
-    // Score bas� sur distance/arr�t
+    // Score base sur distance/arret
     const avgDistancePerStop = distance / stops
     return Math.min(100, Math.max(0, 100 - (avgDistancePerStop - 5000) / 100))
   }
 
   private calculateCostSaving(stops: number, distance: number): number {
-    // Estimation �conomies vs trajets individuels
+    // Estimation economies vs trajets individuels
     const individualDistance = stops * 15000 // 15km par trajet moyen
     const saving = Math.max(0, individualDistance - distance)
-    return (saving / 1000) * 0.50 // 0.50�/km �conomis�
+    return (saving / 1000) * 0.50 // 0.50€/km economise
   }
 }
 
@@ -413,7 +399,7 @@ export async function POST(request: NextRequest) {
 
       default:
         return NextResponse.json(
-          { error: 'Action non support�e. Actions disponibles: matrix, optimize' },
+          { error: 'Action non supportee. Actions disponibles: matrix, optimize' },
           { status: 400 }
         )
     }
@@ -423,7 +409,7 @@ export async function POST(request: NextRequest) {
     
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: 'Donn�es invalides', details: error.errors },
+        { error: 'Donnees invalides', details: error.errors },
         { status: 400 }
       )
     }
@@ -445,7 +431,7 @@ export async function GET() {
         parameters: ['origins[]', 'destinations[]', 'mode?', 'units?', 'language?', 'avoidTolls?', 'avoidHighways?']
       },
       optimize: {
-        description: 'Optimiser un itin�raire avec multiple arr�ts',
+        description: 'Optimiser un itineraire avec multiple arrets',
         parameters: ['depot', 'waypoints[]', 'vehicleCapacity?', 'maxDistance?', 'optimize?']
       }
     },

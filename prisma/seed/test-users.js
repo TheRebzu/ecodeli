@@ -21,7 +21,7 @@ async function createTestUsers() {
         lastName: 'Dupont',
         phoneNumber: '+33612345678',
         language: 'fr',
-        Profile: {
+        profile: {
           create: {
             address: '123 Rue de la Paix',
             city: 'Paris',
@@ -29,7 +29,7 @@ async function createTestUsers() {
             country: 'FR'
           }
         },
-        Client: {
+        client: {
           create: {
             subscriptionPlan: 'FREE',
             tutorialCompleted: false
@@ -49,7 +49,7 @@ async function createTestUsers() {
         lastName: 'Martin',
         phoneNumber: '+33698765432',
         language: 'fr',
-        Profile: {
+        profile: {
           create: {
             address: '456 Avenue de la République',
             city: 'Lyon',
@@ -57,7 +57,7 @@ async function createTestUsers() {
             country: 'FR'
           }
         },
-        Deliverer: {
+        deliverer: {
           create: {
             validationStatus: 'APPROVED',
             vehicleType: 'CAR',
@@ -66,7 +66,7 @@ async function createTestUsers() {
             isActive: true
           }
         },
-        Wallet: {
+        wallet: {
           create: {
             balance: 0.0,
             currency: 'EUR'
@@ -86,7 +86,7 @@ async function createTestUsers() {
         lastName: 'Leblanc',
         phoneNumber: '+33623456789',
         language: 'fr',
-        Profile: {
+        profile: {
           create: {
             address: '789 Cours Lafayette',
             city: 'Marseille',
@@ -94,7 +94,7 @@ async function createTestUsers() {
             country: 'FR'
           }
         },
-        Provider: {
+        provider: {
           create: {
             validationStatus: 'APPROVED',
             businessName: 'Services Sophie',
@@ -103,7 +103,7 @@ async function createTestUsers() {
             isActive: true
           }
         },
-        Wallet: {
+        wallet: {
           create: {
             balance: 150.0,
             currency: 'EUR'
@@ -123,7 +123,7 @@ async function createTestUsers() {
         lastName: 'Rousseau',
         phoneNumber: '+33634567890',
         language: 'fr',
-        Profile: {
+        profile: {
           create: {
             address: '321 Rue du Commerce',
             city: 'Toulouse',
@@ -131,7 +131,7 @@ async function createTestUsers() {
             country: 'FR'
           }
         },
-        Merchant: {
+        merchant: {
           create: {
             companyName: 'Boutique Thomas',
             siret: '12345678901234',
@@ -153,7 +153,7 @@ async function createTestUsers() {
         lastName: 'EcoDeli',
         phoneNumber: '+33612345678',
         language: 'fr',
-        Profile: {
+        profile: {
           create: {
             address: '110 Rue de Flandre',
             city: 'Paris',
@@ -161,7 +161,7 @@ async function createTestUsers() {
             country: 'FR'
           }
         },
-        Admin: {
+        admin: {
           create: {
             permissions: ['MANAGE_USERS', 'MANAGE_PLATFORM'],
             department: 'OPERATIONS'

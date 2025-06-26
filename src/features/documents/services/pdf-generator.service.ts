@@ -436,7 +436,7 @@ class PDFGeneratorService {
       </div>
 
       <div class="section">
-        <div class="section-title">📋 Détails du Colis</div>
+        <div class="section-title">DÉTAILS DU COLIS</div>
         <div class="info-grid">
           <div class="info-item">
             <div class="info-label">Description</div>
@@ -452,7 +452,7 @@ class PDFGeneratorService {
           </div>
           <div class="info-item">
             <div class="info-label">Fragile</div>
-            <div class="info-value">${data.packageDetails.fragile ? '⚠️ OUI' : 'Non'}</div>
+                          <div class="info-value">${data.packageDetails.fragile ? 'OUI' : 'Non'}</div>
           </div>
         </div>
       </div>
@@ -600,7 +600,7 @@ class PDFGeneratorService {
       </div>
 
       <div class="section">
-        <div class="section-title">🔧 Détails du Service</div>
+        <div class="section-title">DÉTAILS DU SERVICE</div>
         <div class="info-grid">
           <div class="info-item">
             <div class="info-label">Type de service</div>
@@ -648,7 +648,7 @@ class PDFGeneratorService {
       </div>
 
       <div class="section">
-        <div class="section-title">📋 Conditions Générales</div>
+        <div class="section-title">CONDITIONS GÉNÉRALES</div>
         <ol style="padding-left: 20px; line-height: 1.8;">
           ${data.terms.map(term => `<li>${term}</li>`).join('')}
         </ol>
@@ -715,7 +715,7 @@ class PDFGeneratorService {
       </div>
 
       <div class="section">
-        <div class="section-title">📋 Détail des Prestations</div>
+                  <div class="section-title">DÉTAIL DES PRESTATIONS</div>
         <table class="table">
           <thead>
             <tr>
@@ -790,7 +790,7 @@ class PDFGeneratorService {
     const content = `
       <div style="text-align: center; margin: 40px 0;">
         <div style="font-size: 32px; font-weight: bold; color: #059669; margin-bottom: 20px;">
-          ✅ CERTIFICAT DE LIVRAISON
+          CERTIFICAT DE LIVRAISON
         </div>
         <div style="font-size: 18px; color: #64748b;">
           Nous certifions que la livraison suivante a été effectuée avec succès
@@ -814,13 +814,13 @@ class PDFGeneratorService {
           </div>
           <div class="info-item">
             <div class="info-label">Statut</div>
-            <div class="info-value" style="color: #059669; font-weight: bold;">✅ LIVRÉ</div>
+            <div class="info-value" style="color: #059669; font-weight: bold;">LIVRÉ</div>
           </div>
         </div>
       </div>
 
       <div class="section">
-        <div class="section-title">📋 Description</div>
+                  <div class="section-title">DESCRIPTION</div>
         <div class="info-value" style="padding: 15px; background-color: #f8fafc; border-radius: 4px;">
           ${data.announcementTitle}
         </div>

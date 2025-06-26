@@ -151,7 +151,7 @@ export function ResetPasswordForm() {
         <CardContent className="space-y-4">
           <Alert>
             <AlertDescription>
-              ✅ Vous allez être redirigé vers la page de connexion dans quelques secondes...
+              Vous allez être redirigé vers la page de connexion dans quelques secondes...
             </AlertDescription>
           </Alert>
           

@@ -1,7 +1,7 @@
 ./
-├── BETTER_AUTH_COMMANDS.md*
 ├── components.json*
 ├── cookies.txt*
+├── create-test-users.ts*
 ├── DEVELOPMENT_REPORT.md*
 ├── docker-compose.yml*
 ├── Dockerfile*
@@ -14,14 +14,6 @@
 ├── postcss.config.mjs*
 ├── prisma/
 │   ├── merge-schemas.js*
-│   ├── migrations/
-│   │   ├── 20250624230515_init/
-│   │   │   └── migration.sql*
-│   │   ├── 20250625121454_add_default_role/
-│   │   │   └── migration.sql*
-│   │   ├── 20250625194324_schema_fix/
-│   │   │   └── migration.sql*
-│   │   └── migration_lock.toml*
 │   ├── schema.prisma*
 │   ├── schemas/
 │   │   ├── 00-enums.prisma*
@@ -69,6 +61,7 @@
 │   ├── ecodeli-architecture.mdc*
 │   ├── ecodeli-bonnes-pratiques.mdc*
 │   ├── ecodeli-features-critiques.mdc*
+│   ├── ecodeli-global-rules.mdc*
 │   ├── ecodeli-no-mock-data.mdc*
 │   ├── ecodeli-projet-annuel-specifications.mdc*
 │   ├── ecodeli-rapport-fonctionnalites.mdc*
@@ -76,8 +69,9 @@
 │   ├── ecodeli-schemas-prisma.mdc*
 │   └── ecodeli-stack-technique.mdc*
 ├── scripts/
-│   ├── fix-auth-users.js*
-│   ├── fix-better-auth.sh*
+│   ├── create-test-users-api.js*
+│   ├── create-user-direct.js*
+│   ├── diagnose-auth.js*
 │   ├── i18n/
 │   │   ├── auto-fix-missing.js*
 │   │   ├── extract-labels.js*
@@ -85,7 +79,7 @@
 │   │   ├── README.md*
 │   │   ├── replace-labels.js*
 │   │   └── validate-translations.js*
-│   └── test-better-auth.ps1*
+│   └── test-endpoints.sh*
 ├── src/
 │   ├── app/
 │   │   ├── api/
@@ -174,9 +168,15 @@
 │   │   │   │   │   └── route.ts*
 │   │   │   │   ├── forgot-password/
 │   │   │   │   │   └── route.ts*
+│   │   │   │   ├── login/
+│   │   │   │   │   └── route.ts*
+│   │   │   │   ├── logout/
+│   │   │   │   │   └── route.ts*
 │   │   │   │   ├── me/
 │   │   │   │   │   └── route.ts*
 │   │   │   │   ├── refresh/
+│   │   │   │   │   └── route.ts*
+│   │   │   │   ├── register/
 │   │   │   │   │   └── route.ts*
 │   │   │   │   ├── resend-verification/
 │   │   │   │   │   └── route.ts*
@@ -191,29 +191,56 @@
 │   │   │   ├── client/
 │   │   │   │   ├── announcements/
 │   │   │   │   │   ├── [id]/
-│   │   │   │   │   │   └── route.ts*
-│   │   │   │   │   └── route.ts*
+│   │   │   │   │   │   ├── create-payment-intent/
+│   │   │   │   │   │   │   └── route.ts*
+│   │   │   │   │   │   ├── pay-from-wallet/
+│   │   │   │   │   │   │   └── route.ts*
+│   │   │   │   │   │   ├── route.ts*
+│   │   │   │   │   │   └── tracking/
+│   │   │   │   │   │       └── route.ts*
+│   │   │   │   │   ├── route.ts*
+│   │   │   │   │   └── stats/
+│   │   │   │   │       └── route.ts*
 │   │   │   │   ├── bookings/
 │   │   │   │   │   ├── available-providers/
 │   │   │   │   │   │   └── route.ts*
 │   │   │   │   │   ├── available-slots/
 │   │   │   │   │   │   └── route.ts*
-│   │   │   │   │   └── [id]/
-│   │   │   │   │       └── route.ts*
+│   │   │   │   │   ├── [id]/
+│   │   │   │   │   │   ├── cancel/
+│   │   │   │   │   │   │   └── route.ts*
+│   │   │   │   │   │   ├── messages/
+│   │   │   │   │   │   │   └── route.ts*
+│   │   │   │   │   │   ├── rate/
+│   │   │   │   │   │   │   └── route.ts*
+│   │   │   │   │   │   └── route.ts*
+│   │   │   │   │   └── route.ts*
 │   │   │   │   ├── dashboard/
 │   │   │   │   │   └── route.ts*
 │   │   │   │   ├── deliveries/
-│   │   │   │   │   └── [id]/
-│   │   │   │   │       ├── rate/
-│   │   │   │   │       │   └── route.ts*
-│   │   │   │   │       └── tracking/
-│   │   │   │   │           └── route.ts*
+│   │   │   │   │   ├── [id]/
+│   │   │   │   │   │   ├── cancel/
+│   │   │   │   │   │   │   └── route.ts*
+│   │   │   │   │   │   ├── confirm/
+│   │   │   │   │   │   │   └── route.ts*
+│   │   │   │   │   │   ├── rate/
+│   │   │   │   │   │   │   └── route.ts*
+│   │   │   │   │   │   └── tracking/
+│   │   │   │   │   │       └── route.ts*
+│   │   │   │   │   └── route.ts*
 │   │   │   │   ├── orders/
 │   │   │   │   │   └── route.ts*
 │   │   │   │   ├── payments/
+│   │   │   │   │   ├── export/
+│   │   │   │   │   │   └── route.ts*
+│   │   │   │   │   ├── route.ts*
 │   │   │   │   │   └── subscription/
 │   │   │   │   │       └── route.ts*
+│   │   │   │   ├── profile/
+│   │   │   │   │   └── route.ts*
 │   │   │   │   ├── reviews/
+│   │   │   │   │   └── route.ts*
+│   │   │   │   ├── services/
 │   │   │   │   │   └── route.ts*
 │   │   │   │   ├── storage-boxes/
 │   │   │   │   │   ├── [id]/
@@ -230,6 +257,8 @@
 │   │   │   │   │   │   │       └── route.ts*
 │   │   │   │   │   │   └── route.ts*
 │   │   │   │   │   └── route.ts*
+│   │   │   │   ├── subscription/
+│   │   │   │   │   └── route.ts*
 │   │   │   │   └── tutorial/
 │   │   │   │       ├── check/
 │   │   │   │       │   └── route.ts*
@@ -238,6 +267,8 @@
 │   │   │   │       ├── progress/
 │   │   │   │       │   └── route.ts*
 │   │   │   │       └── route.ts*
+│   │   │   ├── create-test-user/
+│   │   │   │   └── route.ts*
 │   │   │   ├── cron/
 │   │   │   │   ├── analytics/
 │   │   │   │   │   └── route.ts*
@@ -355,6 +386,8 @@
 │   │   │   │   │       └── route.ts*
 │   │   │   │   ├── invoices/
 │   │   │   │   │   └── route.ts*
+│   │   │   │   ├── onboarding/
+│   │   │   │   │   └── route.ts*
 │   │   │   │   ├── ratings/
 │   │   │   │   │   ├── response/
 │   │   │   │   │   │   └── route.ts*
@@ -469,6 +502,8 @@
 │   │   │   │       ├── [id]/
 │   │   │   │       │   └── route.ts*
 │   │   │   │       └── route.ts*
+│   │   │   ├── test-auth/
+│   │   │   │   └── route.ts*
 │   │   │   ├── upload/
 │   │   │   │   └── route.ts*
 │   │   │   ├── warehouses/
@@ -565,25 +600,36 @@
 │   │   │   │   │   │   ├── create/
 │   │   │   │   │   │   │   └── page.tsx*
 │   │   │   │   │   │   ├── [id]/
+│   │   │   │   │   │   │   ├── edit/
+│   │   │   │   │   │   │   │   └── page.tsx*
+│   │   │   │   │   │   │   ├── page.tsx*
+│   │   │   │   │   │   │   ├── payment/
+│   │   │   │   │   │   │   │   └── page.tsx*
+│   │   │   │   │   │   │   └── tracking/
+│   │   │   │   │   │   │       └── page.tsx*
 │   │   │   │   │   │   ├── new/
 │   │   │   │   │   │   └── page.tsx*
 │   │   │   │   │   ├── bookings/
 │   │   │   │   │   │   ├── [id]/
+│   │   │   │   │   │   │   └── page.tsx*
 │   │   │   │   │   │   ├── new/
 │   │   │   │   │   │   │   └── [serviceType]/
 │   │   │   │   │   │   └── page.tsx*
 │   │   │   │   │   ├── deliveries/
-│   │   │   │   │   │   └── [id]/
-│   │   │   │   │   │       ├── payment-success/
-│   │   │   │   │   │       │   └── page.tsx*
-│   │   │   │   │   │       └── tracking/
+│   │   │   │   │   │   ├── [id]/
+│   │   │   │   │   │   │   ├── payment-success/
+│   │   │   │   │   │   │   │   └── page.tsx*
+│   │   │   │   │   │   │   └── tracking/
+│   │   │   │   │   │   └── page.tsx*
 │   │   │   │   │   ├── layout.tsx*
 │   │   │   │   │   ├── page.tsx*
 │   │   │   │   │   ├── payments/
 │   │   │   │   │   │   ├── [deliveryId]/
 │   │   │   │   │   │   │   └── page.tsx*
+│   │   │   │   │   │   ├── page.tsx*
 │   │   │   │   │   │   └── subscription/
 │   │   │   │   │   ├── profile/
+│   │   │   │   │   │   └── page.tsx*
 │   │   │   │   │   ├── services/
 │   │   │   │   │   │   └── page.tsx*
 │   │   │   │   │   ├── storage/
@@ -594,7 +640,6 @@
 │   │   │   │   │   │   └── page.tsx*
 │   │   │   │   │   └── tutorial/
 │   │   │   │   ├── deliverer/
-│   │   │   │   │   ├── dashboard/
 │   │   │   │   │   ├── deliveries/
 │   │   │   │   │   │   ├── active/
 │   │   │   │   │   │   ├── history/
@@ -624,7 +669,6 @@
 │   │   │   │   │   ├── billing/
 │   │   │   │   │   │   └── invoices/
 │   │   │   │   │   ├── contract/
-│   │   │   │   │   ├── dashboard/
 │   │   │   │   │   ├── layout.tsx*
 │   │   │   │   │   ├── orders/
 │   │   │   │   │   │   └── [id]/
@@ -635,11 +679,11 @@
 │   │   │   │       │   └── [id]/
 │   │   │   │       ├── calendar/
 │   │   │   │       ├── certifications/
-│   │   │   │       ├── dashboard/
 │   │   │   │       ├── earnings/
 │   │   │   │       │   └── invoices/
 │   │   │   │       ├── layout.tsx*
 │   │   │   │       ├── onboarding/
+│   │   │   │       │   └── page.tsx*
 │   │   │   │       ├── page.tsx*
 │   │   │   │       ├── profile/
 │   │   │   │       ├── ratings/
@@ -659,6 +703,7 @@
 │   │   │       │       └── page.tsx*
 │   │   │       ├── contact/
 │   │   │       │   └── page.tsx*
+│   │   │       ├── debug-auth/
 │   │   │       ├── developers/
 │   │   │       │   ├── api-docs/
 │   │   │       │   │   └── page.tsx*
@@ -699,11 +744,7 @@
 │   │   │       │   └── page.tsx*
 │   │   │       └── tracking/
 │   │   │           └── [code]/
-│   │   ├── page.tsx*
-│   │   ├── test-auth/
-│   │   │   └── page.tsx*
-│   │   └── test-auth-better/
-│   │       └── page.tsx*
+│   │   └── page.tsx*
 │   ├── components/
 │   │   ├── auth/
 │   │   │   └── authorization-guard.tsx*
@@ -714,20 +755,43 @@
 │   │   ├── layout/
 │   │   │   ├── admin-header.tsx*
 │   │   │   ├── client-header.tsx*
+│   │   │   ├── core/
+│   │   │   │   ├── auth-layout.tsx*
+│   │   │   │   ├── base-layout.tsx*
+│   │   │   │   ├── dashboard-layout.tsx*
+│   │   │   │   └── public-layout.tsx*
 │   │   │   ├── dashboard-layout.tsx*
 │   │   │   ├── deliverer-header.tsx*
+│   │   │   ├── footers/
+│   │   │   │   ├── dashboard-footer.tsx*
+│   │   │   │   └── public-footer.tsx*
 │   │   │   ├── footer.tsx*
+│   │   │   ├── headers/
+│   │   │   │   ├── base-header.tsx*
+│   │   │   │   └── public-header.tsx*
 │   │   │   ├── index.ts*
 │   │   │   ├── merchant-header.tsx*
 │   │   │   ├── page-header.tsx*
 │   │   │   ├── provider-header.tsx*
+│   │   │   ├── providers/
+│   │   │   │   └── layout-provider.tsx*
 │   │   │   ├── public-header.tsx*
 │   │   │   ├── public-layout.tsx*
-│   │   │   └── types.ts*
+│   │   │   ├── sidebars/
+│   │   │   │   ├── base-sidebar.tsx*
+│   │   │   │   └── client-sidebar.tsx*
+│   │   │   ├── types/
+│   │   │   │   └── layout.types.ts*
+│   │   │   ├── types.ts*
+│   │   │   └── utils/
+│   │   │       ├── accessibility.ts*
+│   │   │       └── performance.ts*
 │   │   ├── payments/
 │   │   │   ├── payment-form.tsx*
 │   │   │   ├── payment-provider.tsx*
 │   │   │   └── payment-success.tsx*
+│   │   ├── tracking/
+│   │   │   └── map-component.tsx*
 │   │   └── ui/
 │   │       ├── accordion.tsx*
 │   │       ├── alert-dialog.tsx*
@@ -735,6 +799,7 @@
 │   │       ├── aspect-ratio.tsx*
 │   │       ├── avatar.tsx*
 │   │       ├── badge.tsx*
+│   │       ├── breadcrumbs.tsx*
 │   │       ├── breadcrumb.tsx*
 │   │       ├── button.tsx*
 │   │       ├── calendar.tsx*
@@ -756,12 +821,14 @@
 │   │       ├── language-switcher.tsx*
 │   │       ├── menubar.tsx*
 │   │       ├── navigation-menu.tsx*
+│   │       ├── notification-bell.tsx*
 │   │       ├── pagination.tsx*
 │   │       ├── popover.tsx*
 │   │       ├── progress.tsx*
 │   │       ├── radio-group.tsx*
 │   │       ├── resizable.tsx*
 │   │       ├── scroll-area.tsx*
+│   │       ├── search-bar.tsx*
 │   │       ├── select.tsx*
 │   │       ├── separator.tsx*
 │   │       ├── sheet.tsx*
@@ -774,9 +841,11 @@
 │   │       ├── table.tsx*
 │   │       ├── tabs.tsx*
 │   │       ├── textarea.tsx*
+│   │       ├── theme-toggle.tsx*
 │   │       ├── toggle-group.tsx*
 │   │       ├── toggle.tsx*
 │   │       ├── tooltip.tsx*
+│   │       ├── user-menu.tsx*
 │   │       └── use-toast.ts*
 │   ├── config/
 │   │   └── constants.ts*
@@ -831,6 +900,7 @@
 │   │   │   │       └── announcement-status.tsx*
 │   │   │   ├── constants/
 │   │   │   ├── hooks/
+│   │   │   │   ├── useAnnouncementStats.ts*
 │   │   │   │   ├── useAnnouncements.ts*
 │   │   │   │   ├── useAnnouncementTracking.ts*
 │   │   │   │   └── useOpportunities.ts*
@@ -872,7 +942,8 @@
 │   │   │   │   │   ├── auth-layout.tsx*
 │   │   │   │   │   ├── login-form.tsx*
 │   │   │   │   │   └── role-selector.tsx*
-│   │   │   │   └── test-accounts.tsx*
+│   │   │   │   ├── test-accounts.tsx*
+│   │   │   │   └── test-accounts-with-form.tsx*
 │   │   │   ├── constants/
 │   │   │   ├── guards/
 │   │   │   │   ├── auth-guard.tsx*
@@ -901,6 +972,7 @@
 │   │   │   │   ├── provider/
 │   │   │   │   └── shared/
 │   │   │   ├── hooks/
+│   │   │   │   └── useClientBookings.ts*
 │   │   │   ├── schemas/
 │   │   │   ├── services/
 │   │   │   └── types/
@@ -924,7 +996,9 @@
 │   │   │   │   └── storage/
 │   │   │   │       └── storage-box-manager.tsx*
 │   │   │   ├── hooks/
-│   │   │   │   └── useClientData.ts*
+│   │   │   │   ├── useClientDashboard.ts*
+│   │   │   │   ├── useClientData.ts*
+│   │   │   │   └── useClientProfile.ts*
 │   │   │   ├── schemas/
 │   │   │   │   └── index.ts*
 │   │   │   └── types/
@@ -976,6 +1050,7 @@
 │   │   │   │   ├── validation/
 │   │   │   │   └── validation-code-display.tsx*
 │   │   │   ├── hooks/
+│   │   │   │   └── useClientDeliveries.ts*
 │   │   │   ├── schemas/
 │   │   │   │   ├── delivery.schema.ts*
 │   │   │   │   └── delivery-validation.schema.ts*
@@ -1070,6 +1145,9 @@
 │   │   ├── security/
 │   │   │   └── services/
 │   │   │       └── identity-validation.service.ts*
+│   │   ├── services/
+│   │   │   └── hooks/
+│   │   │       └── useClientServices.ts*
 │   │   ├── storage/
 │   │   │   ├── components/
 │   │   │   │   ├── admin/
@@ -1113,6 +1191,7 @@
 │   ├── hooks/
 │   │   ├── use-api.ts*
 │   │   ├── use-auth.ts*
+│   │   ├── use-media-query.ts*
 │   │   └── use-mobile.ts*
 │   ├── i18n/
 │   │   ├── client.ts*
@@ -1132,7 +1211,6 @@
 │   │   │   ├── errors.ts*
 │   │   │   ├── permissions.ts*
 │   │   │   └── utils.ts*
-│   │   ├── auth-client-better.tsx*
 │   │   ├── auth-client.ts*
 │   │   ├── auth-provider.tsx*
 │   │   ├── auth.ts*
@@ -1169,8 +1247,12 @@
 │   │   ├── entities.ts*
 │   │   └── global.d.ts*
 │   └── utils/
+├── test-auth.ps1*
+├── test-debug-api.ps1*
+├── test-direct-api.ps1*
+├── test-new-user.ps1*
 ├── tree.txt*
 ├── tsconfig.json*
 └── tsconfig.tsbuildinfo*
 
-592 directories, 582 files
+616 directories, 640 files

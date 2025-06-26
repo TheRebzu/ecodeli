@@ -1,6 +1,7 @@
 import { useTranslations } from 'next-intl';
 import { Link } from '@/i18n/navigation';
-import { LanguageSwitcher } from '@/components/common/language-switcher';
+import { LanguageSwitcher } from '@/components/ui/language-switcher';
+import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { Button } from '@/components/ui/button';
 import { 
   DropdownMenu,
@@ -101,6 +102,7 @@ export function AdminHeader({ user, onLogout, pendingValidations = 0, systemAler
 
           {/* Actions */}
           <div className="flex items-center space-x-4">
+            <ThemeToggle />
             <LanguageSwitcher />
             
             {/* System Status */}

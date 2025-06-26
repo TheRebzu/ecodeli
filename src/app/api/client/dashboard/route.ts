@@ -25,20 +25,20 @@ export async function GET(request: NextRequest) {
         },
         announcements: {
           orderBy: { createdAt: 'desc' },
-          take: 5
+          take: 5,
+          include: {
+            author: true
+          }
         },
         bookings: {
           orderBy: { createdAt: 'desc' },
-          take: 5
+          take: 5,
+          include: {
+            service: true
+          }
         },
         storageBoxes: {
-          include: {
-            box: {
-              include: {
-                warehouse: true
-              }
-            }
-          }
+          take: 5
         }
       }
     })

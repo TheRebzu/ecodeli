@@ -65,11 +65,14 @@ export function TestAccounts({ onAccountSelect }: TestAccountsProps) {
     setLoadingAccount(account.role)
     
     try {
-      const response = await fetch('/api/auth/login', {
+      console.log('🔐 Connexion rapide:', account.email)
+      
+      const response = await fetch('/api/auth/sign-in/email', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
+        credentials: 'include',
         body: JSON.stringify({
           email: account.email,
           password: account.password
@@ -78,24 +81,66 @@ export function TestAccounts({ onAccountSelect }: TestAccountsProps) {
 
       if (response.ok) {
         const result = await response.json()
+        console.log('✅ Connexion réussie:', result)
         
-        // Redirection selon le rôle
+        // Redirection selon le rôle avec locale
+        const locale = window.location.pathname.split('/')[1] || 'fr'
         const roleRoutes = {
-          'CLIENT': '/client',
-          'DELIVERER': '/deliverer',
-          'MERCHANT': '/merchant',
-          'PROVIDER': '/provider',
-          'ADMIN': '/admin'
+          'CLIENT': `/${locale}/client`,
+          'DELIVERER': `/${locale}/deliverer`,
+          'MERCHANT': `/${locale}/merchant`,
+          'PROVIDER': `/${locale}/provider`,
+          'ADMIN': `/${locale}/admin`
         }
         
-        window.location.href = roleRoutes[account.role as keyof typeof roleRoutes] || '/dashboard'
+        window.location.href = roleRoutes[account.role as keyof typeof roleRoutes] || `/${locale}/client`
       } else {
-        console.error('Erreur de connexion:', await response.text())
+        const errorData = await response.json()
+        console.error('❌ Erreur de connexion:', errorData)
+        
+        // Si l'utilisateur n'existe pas, essayer de le créer
+        if (response.status === 401) {
+          console.log('🌱 Utilisateur introuvable, création en cours...')
+          await createTestUser(account)
+        }
       }
     } catch (error) {
-      console.error('Erreur:', error)
+      console.error('❌ Erreur:', error)
     } finally {
       setLoadingAccount(null)
+    }
+  }
+
+  const createTestUser = async (account: typeof TEST_ACCOUNTS[0]) => {
+    try {
+      console.log('🌱 Création utilisateur:', account.email)
+      
+      const response = await fetch('/api/auth/sign-up/email', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          email: account.email,
+          password: account.password,
+          name: `${account.role} Test`,
+          role: account.role,
+          isActive: true,
+          validationStatus: 'VALIDATED'
+        })
+      })
+
+      if (response.ok) {
+        console.log('✅ Utilisateur créé, connexion automatique...')
+        // Essayer de se connecter après création
+        await handleQuickLogin(account)
+      } else {
+        const errorData = await response.json()
+        console.error('❌ Erreur création utilisateur:', errorData)
+      }
+    } catch (error) {
+      console.error('❌ Erreur création:', error)
     }
   }
 
