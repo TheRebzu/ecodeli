@@ -164,7 +164,7 @@ async function getProviderData(userId: string) {
       }),
       prisma.certification.findMany({
         where: { providerId: providerProfile.id },
-        orderBy: { issuedAt: 'desc' },
+        orderBy: { issueDate: 'desc' },
         take: 3
       }),
       Promise.resolve(new Date(now.getFullYear(), now.getMonth() + 1, providerProfile.monthlyInvoiceDay || 30))
@@ -551,7 +551,7 @@ export default async function ProviderDashboardPage() {
                   </p>
                   <div className="flex items-center justify-between">
                     <span className="text-xs text-muted-foreground">
-                      {new Date(cert.issuedAt).toLocaleDateString('fr-FR')}
+                      {new Date(cert.issueDate).toLocaleDateString('fr-FR')}
                     </span>
                     {getStatusBadge('VALIDATED')}
                   </div>

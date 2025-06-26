@@ -55,7 +55,7 @@ export function verifyToken(token: string): JWTPayload | null {
  */
 export async function getCurrentUser(): Promise<AuthUser | null> {
   try {
-    const cookieStore = cookies()
+    const cookieStore = await cookies()
     const token = cookieStore.get(COOKIE_NAME)?.value
 
     if (!token) {
@@ -233,7 +233,7 @@ export async function signUp(data: {
  * Déconnecter l'utilisateur (côté serveur)
  */
 export async function signOut(): Promise<void> {
-  const cookieStore = cookies()
+  const cookieStore = await cookies()
   cookieStore.delete(COOKIE_NAME)
 }
 

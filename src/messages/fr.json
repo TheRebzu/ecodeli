@@ -30,7 +30,11 @@
     "settings": "Paramètres",
     "help": "Aide",
     "contact": "Contact",
-    "about": "À propos"
+    "about": "À propos",
+    "provider": "Prestataire",
+    "certifications": "Certifications",
+    "earnings": "Gains",
+    "support": "Support"
   },
   
   "auth": {
@@ -121,7 +125,9 @@
     "wallet": "Portefeuille",
     "messages": "Messages",
     "notifications": "Notifications",
-    "support": "Support"
+    "support": "Support",
+    "availability": "Disponibilités",
+    "earnings": "Gains"
   },
   
   "dashboard": {
@@ -316,6 +322,9 @@
       "linkedin": "LinkedIn",
       "instagram": "Instagram"
     },
-    "copyright": "© 2024 EcoDeli. Tous droits réservés."
+    "copyright": "© 2024 EcoDeli. Tous droits réservés.",
+    "rights_reserved": "Tous droits réservés.",
+    "privacy": "Confidentialité",
+    "terms": "Conditions d'utilisation"
   }
 }
