@@ -96,6 +96,9 @@ export function useClientDashboard(): ClientDashboardData {
       const response = await fetch('/api/client/dashboard')
       
       if (!response.ok) {
+        if (response.status === 403) {
+          throw new Error('Accès non autorisé')
+        }
         throw new Error('Erreur lors du chargement du dashboard')
       }
 
@@ -113,10 +116,44 @@ export function useClientDashboard(): ClientDashboardData {
           storageBoxes: dashboardData.stats?.storageBoxesActive || 0,
           pendingPayments: 0
         },
-        recentAnnouncements: dashboardData.recentAnnouncements || [],
-        activeServices: dashboardData.recentBookings || [],
-        storageBoxes: dashboardData.activeStorageBoxes || [],
-        notifications: dashboardData.notifications || [],
+        recentAnnouncements: (dashboardData.recentAnnouncements || []).map((ann: any) => ({
+          id: ann.id,
+          title: ann.title,
+          type: ann.type,
+          status: ann.status,
+          price: ann.price,
+          createdAt: ann.createdAt,
+          interestedDeliverers: ann.interestedDeliverers,
+          delivererName: ann.deliverer?.name,
+          estimatedCompletion: ann.estimatedDelivery,
+          rating: ann.rating
+        })),
+        activeServices: (dashboardData.recentBookings || []).map((booking: any) => ({
+          id: booking.id,
+          providerName: booking.provider?.name || 'Prestataire',
+          serviceType: booking.serviceType,
+          nextAppointment: booking.scheduledDate,
+          status: booking.status,
+          price: booking.totalPrice,
+          frequency: 'Ponctuel'
+        })),
+        storageBoxes: (dashboardData.activeStorageBoxes || []).map((box: any) => ({
+          id: box.id,
+          location: `${box.warehouse?.name || ''} - ${box.warehouse?.address || ''}`,
+          size: box.size,
+          status: 'ACTIVE',
+          rentedUntil: box.endDate,
+          monthlyPrice: box.monthlyPrice,
+          accessCode: box.accessCode
+        })),
+        notifications: (dashboardData.notifications || []).map((notif: any) => ({
+          id: notif.id,
+          type: notif.category || 'info',
+          title: notif.title,
+          message: notif.message,
+          timestamp: notif.createdAt,
+          read: notif.read
+        })),
         isLoading: false,
         error: null
       })

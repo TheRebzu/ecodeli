@@ -3,9 +3,19 @@
 ├── cookies.txt*
 ├── create-test-users.ts*
 ├── DEVELOPMENT_REPORT.md*
+├── deve.txt*
+├── dev.txt*
 ├── docker-compose.yml*
 ├── Dockerfile*
+├── docs/
+│   ├── ADMIN_SETTINGS.md*
+│   └── ADMIN_TESTS.md*
 ├── eslint.config.mjs*
+├── extract-labels.js*
+├── generate-tokens.js*
+├── i18n.sh*
+├── i18n-workflow.js*
+├── merge-translations.js*
 ├── next.config.ts*
 ├── next-env.d.ts*
 ├── package.json*
@@ -56,6 +66,7 @@
 │   ├── vercel.svg*
 │   └── window.svg*
 ├── README.md*
+├── replace-labels.js*
 ├── rules/
 │   ├── ecodeli-api-routes.mdc*
 │   ├── ecodeli-architecture.mdc*
@@ -69,17 +80,13 @@
 │   ├── ecodeli-schemas-prisma.mdc*
 │   └── ecodeli-stack-technique.mdc*
 ├── scripts/
-│   ├── create-test-users-api.js*
-│   ├── create-user-direct.js*
-│   ├── diagnose-auth.js*
-│   ├── i18n/
-│   │   ├── auto-fix-missing.js*
-│   │   ├── extract-labels.js*
-│   │   ├── fix-missing-labels.js*
-│   │   ├── README.md*
-│   │   ├── replace-labels.js*
-│   │   └── validate-translations.js*
-│   └── test-endpoints.sh*
+│   └── i18n/
+│       ├── extracted-labels.json*
+│       ├── extraction-report.md*
+│       ├── merged-en.json*
+│       ├── merged-fr.json*
+│       ├── translations-en.json*
+│       └── translations-fr.json*
 ├── src/
 │   ├── app/
 │   │   ├── api/
@@ -97,13 +104,18 @@
 │   │   │   │   │   └── templates/
 │   │   │   │   │       └── route.ts*
 │   │   │   │   ├── dashboard/
-│   │   │   │   │   └── kpi/
-│   │   │   │   │       └── route.ts*
+│   │   │   │   │   ├── kpi/
+│   │   │   │   │   │   └── route.ts*
+│   │   │   │   │   └── route.ts*
 │   │   │   │   ├── deliveries/
 │   │   │   │   │   ├── issues/
 │   │   │   │   │   │   └── route.ts*
 │   │   │   │   │   └── route.ts*
 │   │   │   │   ├── documents/
+│   │   │   │   │   ├── pending/
+│   │   │   │   │   │   └── route.ts*
+│   │   │   │   │   ├── stats/
+│   │   │   │   │   │   └── route.ts*
 │   │   │   │   │   └── validate/
 │   │   │   │   │       └── route.ts*
 │   │   │   │   ├── finance/
@@ -127,7 +139,11 @@
 │   │   │   │   │   │   └── route.ts*
 │   │   │   │   │   ├── logs/
 │   │   │   │   │   │   └── route.ts*
-│   │   │   │   │   └── route.ts*
+│   │   │   │   │   ├── metrics/
+│   │   │   │   │   │   └── route.ts*
+│   │   │   │   │   ├── route.ts*
+│   │   │   │   │   └── services/
+│   │   │   │   │       └── route.ts*
 │   │   │   │   ├── payments/
 │   │   │   │   │   ├── refunds/
 │   │   │   │   │   │   └── route.ts*
@@ -141,7 +157,14 @@
 │   │   │   │   │   ├── integrations/
 │   │   │   │   │   │   └── route.ts*
 │   │   │   │   │   ├── route.ts*
+│   │   │   │   │   ├── test-smtp/
+│   │   │   │   │   │   └── route.ts*
 │   │   │   │   │   └── translations/
+│   │   │   │   │       └── route.ts*
+│   │   │   │   ├── tests/
+│   │   │   │   │   ├── email/
+│   │   │   │   │   │   └── route.ts*
+│   │   │   │   │   └── notification/
 │   │   │   │   │       └── route.ts*
 │   │   │   │   ├── users/
 │   │   │   │   │   ├── export/
@@ -163,8 +186,6 @@
 │   │   │   │       └── route.ts*
 │   │   │   ├── auth/
 │   │   │   │   ├── [...all]/
-│   │   │   │   │   └── route.ts*
-│   │   │   │   ├── check-user-status/
 │   │   │   │   │   └── route.ts*
 │   │   │   │   ├── forgot-password/
 │   │   │   │   │   └── route.ts*
@@ -267,8 +288,6 @@
 │   │   │   │       ├── progress/
 │   │   │   │       │   └── route.ts*
 │   │   │   │       └── route.ts*
-│   │   │   ├── create-test-user/
-│   │   │   │   └── route.ts*
 │   │   │   ├── cron/
 │   │   │   │   ├── analytics/
 │   │   │   │   │   └── route.ts*
@@ -375,6 +394,10 @@
 │   │   │   │   │   │   └── route.ts*
 │   │   │   │   │   └── verify/
 │   │   │   │   │       └── route.ts*
+│   │   │   │   ├── documents/
+│   │   │   │   │   ├── [id]/
+│   │   │   │   │   │   └── route.ts*
+│   │   │   │   │   └── route.ts*
 │   │   │   │   ├── earnings/
 │   │   │   │   │   └── route.ts*
 │   │   │   │   ├── interventions/
@@ -502,8 +525,6 @@
 │   │   │   │       ├── [id]/
 │   │   │   │       │   └── route.ts*
 │   │   │   │       └── route.ts*
-│   │   │   ├── test-auth/
-│   │   │   │   └── route.ts*
 │   │   │   ├── upload/
 │   │   │   │   └── route.ts*
 │   │   │   ├── warehouses/
@@ -560,7 +581,8 @@
 │   │   │   │   │   │   └── page.tsx*
 │   │   │   │   │   ├── dashboard/
 │   │   │   │   │   ├── deliveries/
-│   │   │   │   │   │   └── issues/
+│   │   │   │   │   │   ├── issues/
+│   │   │   │   │   │   └── page.tsx*
 │   │   │   │   │   ├── documents/
 │   │   │   │   │   │   └── validation/
 │   │   │   │   │   │       └── page.tsx*
@@ -571,9 +593,11 @@
 │   │   │   │   │   │   └── page.tsx*
 │   │   │   │   │   ├── layout.tsx*
 │   │   │   │   │   ├── locations/
-│   │   │   │   │   │   └── [locationId]/
+│   │   │   │   │   │   ├── [locationId]/
+│   │   │   │   │   │   └── page.tsx*
 │   │   │   │   │   ├── monitoring/
-│   │   │   │   │   │   └── logs/
+│   │   │   │   │   │   ├── logs/
+│   │   │   │   │   │   └── page.tsx*
 │   │   │   │   │   ├── page.tsx*
 │   │   │   │   │   ├── payments/
 │   │   │   │   │   │   └── transactions/
@@ -584,7 +608,10 @@
 │   │   │   │   │   │   └── pricing/
 │   │   │   │   │   ├── settings/
 │   │   │   │   │   │   ├── integrations/
-│   │   │   │   │   │   └── notifications/
+│   │   │   │   │   │   ├── notifications/
+│   │   │   │   │   │   └── page.tsx*
+│   │   │   │   │   ├── tests/
+│   │   │   │   │   │   └── page.tsx*
 │   │   │   │   │   ├── users/
 │   │   │   │   │   │   ├── [id]/
 │   │   │   │   │   │   │   ├── edit/
@@ -679,6 +706,8 @@
 │   │   │   │       │   └── [id]/
 │   │   │   │       ├── calendar/
 │   │   │   │       ├── certifications/
+│   │   │   │       ├── documents/
+│   │   │   │       │   └── page.tsx*
 │   │   │   │       ├── earnings/
 │   │   │   │       │   └── invoices/
 │   │   │   │       ├── layout.tsx*
@@ -785,7 +814,7 @@
 │   │   │   ├── types.ts*
 │   │   │   └── utils/
 │   │   │       ├── accessibility.ts*
-│   │   │       └── performance.ts*
+│   │   │       └── performance.tsx*
 │   │   ├── payments/
 │   │   │   ├── payment-form.tsx*
 │   │   │   ├── payment-provider.tsx*
@@ -820,6 +849,7 @@
 │   │       ├── label.tsx*
 │   │       ├── language-switcher.tsx*
 │   │       ├── menubar.tsx*
+│   │       ├── mobile-menu.tsx*
 │   │       ├── navigation-menu.tsx*
 │   │       ├── notification-bell.tsx*
 │   │       ├── pagination.tsx*
@@ -863,10 +893,28 @@
 │   │   │   │   │   └── document-viewer.tsx*
 │   │   │   │   ├── moderation/
 │   │   │   │   │   └── moderation-dashboard.tsx*
+│   │   │   │   ├── monitoring/
+│   │   │   │   │   └── monitoring-dashboard.tsx*
+│   │   │   │   ├── settings/
+│   │   │   │   │   ├── general-settings.tsx*
+│   │   │   │   │   ├── index.ts*
+│   │   │   │   │   ├── notification-settings.tsx*
+│   │   │   │   │   ├── payment-settings.tsx*
+│   │   │   │   │   ├── security-settings.tsx*
+│   │   │   │   │   ├── settings-dashboard.tsx*
+│   │   │   │   │   └── system-settings.tsx*
+│   │   │   │   ├── tests/
+│   │   │   │   │   ├── api-tests.tsx*
+│   │   │   │   │   ├── email-tests.tsx*
+│   │   │   │   │   ├── index.ts*
+│   │   │   │   │   ├── notification-tests.tsx*
+│   │   │   │   │   └── tests-dashboard.tsx*
 │   │   │   │   └── verifications/
 │   │   │   │       └── user-verifications-dashboard.tsx*
 │   │   │   └── services/
-│   │   │       └── document-validation.service.ts*
+│   │   │       ├── document-validation.service.ts*
+│   │   │       ├── settings.service.ts*
+│   │   │       └── tests.service.ts*
 │   │   ├── analytics/
 │   │   │   ├── components/
 │   │   │   │   ├── admin/
@@ -998,10 +1046,15 @@
 │   │   │   ├── hooks/
 │   │   │   │   ├── useClientDashboard.ts*
 │   │   │   │   ├── useClientData.ts*
-│   │   │   │   └── useClientProfile.ts*
+│   │   │   │   ├── useClientProfile.ts*
+│   │   │   │   └── useDashboard.ts*
 │   │   │   ├── schemas/
+│   │   │   │   ├── dashboard.schema.ts*
 │   │   │   │   └── index.ts*
+│   │   │   ├── services/
+│   │   │   │   └── dashboard.service.ts*
 │   │   │   └── types/
+│   │   │       ├── dashboard.types.ts*
 │   │   │       └── index.ts*
 │   │   ├── contracts/
 │   │   │   ├── components/
@@ -1128,8 +1181,16 @@
 │   │   │   ├── types/
 │   │   │   └── utils/
 │   │   ├── provider/
-│   │   │   └── components/
-│   │   │       └── availability-calendar.tsx*
+│   │   │   ├── components/
+│   │   │   │   ├── availability-calendar.tsx*
+│   │   │   │   ├── documents/
+│   │   │   │   │   ├── document-upload-dialog.tsx*
+│   │   │   │   │   └── provider-documents-manager.tsx*
+│   │   │   │   └── index.ts*
+│   │   │   ├── hooks/
+│   │   │   │   └── useProviderDocuments.ts*
+│   │   │   └── types/
+│   │   │       └── index.ts*
 │   │   ├── referral/
 │   │   │   ├── components/
 │   │   │   │   └── referral-dashboard.tsx*
@@ -1213,6 +1274,7 @@
 │   │   │   └── utils.ts*
 │   │   ├── auth-client.ts*
 │   │   ├── auth-provider.tsx*
+│   │   ├── auth-simple.ts*
 │   │   ├── auth.ts*
 │   │   ├── cache.ts*
 │   │   ├── config/
@@ -1238,7 +1300,11 @@
 │   │   └── utils.ts*
 │   ├── messages/
 │   │   ├── en.json*
-│   │   └── fr.json*
+│   │   ├── en.json.backup-2025-06-26T14-09-11-270Z*
+│   │   ├── en.json.backup-2025-06-26T14-09-21-895Z*
+│   │   ├── fr.json*
+│   │   ├── fr.json.backup-2025-06-26T14-09-11-248Z*
+│   │   └── fr.json.backup-2025-06-26T14-09-21-884Z*
 │   ├── middleware.ts*
 │   ├── store/
 │   ├── types/
@@ -1247,12 +1313,15 @@
 │   │   ├── entities.ts*
 │   │   └── global.d.ts*
 │   └── utils/
-├── test-auth.ps1*
-├── test-debug-api.ps1*
-├── test-direct-api.ps1*
-├── test-new-user.ps1*
+├── test-api-fixed.ts*
+├── test-client-page.js*
+├── test-ecodeli-api.ts*
+├── tests/
+│   └── api/
+│       └── client-dashboard.md*
 ├── tree.txt*
 ├── tsconfig.json*
-└── tsconfig.tsbuildinfo*
+├── tsconfig.tsbuildinfo*
+└── typecheck.txt*
 
-616 directories, 640 files
+635 directories, 690 files

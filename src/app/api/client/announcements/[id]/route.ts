@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '@/lib/auth'
+import { getUserFromSession } from '@/lib/auth/utils'
 import { prisma } from '@/lib/db'
 import { z } from 'zod'
 
@@ -23,53 +23,36 @@ const updateAnnouncementSchema = z.object({
 // GET - Détails d'une annonce spécifique
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await auth()
-    if (!session?.user) {
-      return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
-    }
-
-    if (session.user.role !== 'CLIENT') {
-      return NextResponse.json({ error: 'Accès refusé' }, { status: 403 })
+    const { id } = await params
+    const user = await getUserFromSession(request)
+    if (!user || user.role !== 'CLIENT') {
+      return NextResponse.json({ error: 'Accès refusé - Rôle CLIENT requis' }, { status: 403 })
     }
 
     const announcement = await prisma.announcement.findFirst({
       where: {
-        id: params.id,
-        authorId: session.user.id
+        id,
+        authorId: user.id
       },
       include: {
         _count: {
           select: { 
-            applications: true,
-            deliveries: true
+            reviews: true,
+            matches: true,
+            attachments: true,
+            notifications: true,
+            tracking: true
           }
         },
-        applications: {
+        delivery: {
           include: {
             deliverer: {
               select: {
                 id: true,
-                profile: {
-                  select: {
-                    firstName: true,
-                    lastName: true,
-                    avatar: true,
-                    rating: true
-                  }
-                }
-              }
-            }
-          },
-          orderBy: { createdAt: 'desc' }
-        },
-        deliveries: {
-          include: {
-            deliverer: {
-              select: {
-                id: true,
+                name: true,
                 profile: {
                   select: {
                     firstName: true,
@@ -81,11 +64,30 @@ export async function GET(
               }
             },
             tracking: {
-              orderBy: { createdAt: 'desc' },
+              orderBy: { timestamp: 'desc' },
               take: 10
             }
           }
-        }
+        },
+        reviews: {
+          include: {
+            reviewer: {
+              select: {
+                id: true,
+                name: true,
+                profile: {
+                  select: {
+                    firstName: true,
+                    lastName: true,
+                    avatar: true
+                  }
+                }
+              }
+            }
+          },
+          orderBy: { id: 'desc' }
+        },
+        attachments: true
       }
     })
 
@@ -110,30 +112,23 @@ export async function GET(
 // PUT - Modifier une annonce
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await auth()
-    if (!session?.user) {
-      return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
-    }
-
-    if (session.user.role !== 'CLIENT') {
-      return NextResponse.json({ error: 'Accès refusé' }, { status: 403 })
+    const { id } = await params
+    const user = await getUserFromSession(request)
+    if (!user || user.role !== 'CLIENT') {
+      return NextResponse.json({ error: 'Accès refusé - Rôle CLIENT requis' }, { status: 403 })
     }
 
     // Vérifier que l'annonce existe et appartient au client
     const existingAnnouncement = await prisma.announcement.findFirst({
       where: {
-        id: params.id,
-        authorId: session.user.id
+        id,
+        authorId: user.id
       },
       include: {
-        deliveries: {
-          where: {
-            status: { in: ['ACCEPTED', 'IN_TRANSIT'] }
-          }
-        }
+        delivery: true
       }
     })
 
@@ -145,7 +140,7 @@ export async function PUT(
     }
 
     // Vérifier qu'on peut modifier (pas de livraison en cours)
-    if (existingAnnouncement.deliveries.length > 0) {
+    if (existingAnnouncement.delivery && ['ACCEPTED', 'IN_TRANSIT'].includes(existingAnnouncement.delivery.status)) {
       return NextResponse.json(
         { error: 'Impossible de modifier une annonce avec livraison en cours' },
         { status: 400 }
@@ -178,7 +173,7 @@ export async function PUT(
 
     // Mettre à jour l'annonce
     const updatedAnnouncement = await prisma.announcement.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         ...validatedData,
         updatedAt: new Date()
@@ -211,30 +206,23 @@ export async function PUT(
 // DELETE - Supprimer une annonce
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await auth()
-    if (!session?.user) {
-      return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
-    }
-
-    if (session.user.role !== 'CLIENT') {
-      return NextResponse.json({ error: 'Accès refusé' }, { status: 403 })
+    const { id } = await params
+    const user = await getUserFromSession(request)
+    if (!user || user.role !== 'CLIENT') {
+      return NextResponse.json({ error: 'Accès refusé - Rôle CLIENT requis' }, { status: 403 })
     }
 
     // Vérifier que l'annonce existe et appartient au client
     const announcement = await prisma.announcement.findFirst({
       where: {
-        id: params.id,
-        authorId: session.user.id
+        id,
+        authorId: user.id
       },
       include: {
-        deliveries: {
-          where: {
-            status: { in: ['ACCEPTED', 'IN_TRANSIT'] }
-          }
-        }
+        delivery: true
       }
     })
 
@@ -246,7 +234,7 @@ export async function DELETE(
     }
 
     // Vérifier qu'on peut supprimer (pas de livraison en cours)
-    if (announcement.deliveries.length > 0) {
+    if (announcement.delivery && ['ACCEPTED', 'IN_TRANSIT'].includes(announcement.delivery.status)) {
       return NextResponse.json(
         { error: 'Impossible de supprimer une annonce avec livraison en cours' },
         { status: 400 }
@@ -254,23 +242,9 @@ export async function DELETE(
     }
 
     // Supprimer l'annonce et toutes ses relations
-    await prisma.$transaction([
-      // Supprimer les candidatures
-      prisma.deliveryApplication.deleteMany({
-        where: { announcementId: params.id }
-      }),
-      // Supprimer les livraisons terminées/annulées
-      prisma.delivery.deleteMany({
-        where: {
-          announcementId: params.id,
-          status: { in: ['COMPLETED', 'CANCELLED'] }
-        }
-      }),
-      // Supprimer l'annonce
-      prisma.announcement.delete({
-        where: { id: params.id }
-      })
-    ])
+    await prisma.announcement.delete({
+      where: { id }
+    })
 
     return NextResponse.json({ message: 'Annonce supprimée avec succès' })
 

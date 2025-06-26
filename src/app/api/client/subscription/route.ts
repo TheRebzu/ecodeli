@@ -1,17 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '@/lib/auth'
+import { getUserFromSession } from '@/lib/auth/utils'
 import { db } from '@/lib/db'
 
 export async function GET(request: NextRequest) {
-  try {
-    const session = await auth()
-    if (!session?.user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+  const user = await getUserFromSession(request)
+  if (!user) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
 
+  try {
     // Récupérer l'abonnement client
     const clientProfile = await db.client.findUnique({
-      where: { userId: session.user.id },
+      where: { userId: user.id },
       include: {
         subscription: true
       }
@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
       db.delivery.findMany({
         where: {
           announcement: {
-            clientId: session.user.id
+            clientId: user.id
           },
           createdAt: {
             gte: currentMonth
@@ -49,7 +49,7 @@ export async function GET(request: NextRequest) {
       db.delivery.findMany({
         where: {
           announcement: {
-            clientId: session.user.id
+            clientId: user.id
           },
           createdAt: {
             gte: lastMonth,
@@ -136,8 +136,8 @@ export async function GET(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
-    const session = await auth()
-    if (!session?.user) {
+    const user = await getUserFromSession(request)
+    if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -148,7 +148,7 @@ export async function PUT(request: NextRequest) {
     }
 
     const clientProfile = await db.client.findUnique({
-      where: { userId: session.user.id },
+      where: { userId: user.id },
       include: {
         subscription: true
       }
@@ -229,7 +229,7 @@ export async function PUT(request: NextRequest) {
       // Créer un paiement pour l'abonnement
       await db.payment.create({
         data: {
-          payerId: session.user.id,
+          payerId: user.id,
           recipientId: 'system',
           amount: price,
           currency: 'EUR',
@@ -252,13 +252,13 @@ export async function PUT(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
-    const session = await auth()
-    if (!session?.user) {
+    const user = await getUserFromSession(request)
+    if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     const clientProfile = await db.client.findUnique({
-      where: { userId: session.user.id },
+      where: { userId: user.id },
       include: {
         subscription: true
       }

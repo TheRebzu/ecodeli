@@ -5,6 +5,15 @@ import { db } from "@/lib/db"
 export const auth = betterAuth({
   database: prismaAdapter(db, {
     provider: "postgresql",
+    // Configuration du mapping des champs pour correspondre au schéma Prisma
+    schema: {
+      session: {
+        modelName: "session",
+        fields: {
+          token: "sessionToken", // Better-Auth utilise 'token' mais Prisma a 'sessionToken'
+        }
+      }
+    }
   }),
   
   // Configuration des méthodes d'authentification

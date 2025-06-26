@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { GeistSans, GeistMono } from "geist/font";
+import { ThemeProvider } from "@/components/layout/providers/theme-provider";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -54,9 +55,16 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="fr" className={`${GeistSans.variable} ${GeistMono.variable}`}>
+    <html lang="fr" className={`${GeistSans.variable} ${GeistMono.variable}`} suppressHydrationWarning>
       <body className="font-sans antialiased bg-background text-foreground">
-        {children}
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          {children}
+        </ThemeProvider>
       </body>
     </html>
   );

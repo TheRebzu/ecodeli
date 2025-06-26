@@ -1,3 +1,5 @@
+'use client'
+
 import { useTranslations } from 'next-intl';
 import { Link } from '@/i18n/navigation';
 import { LanguageSwitcher } from '@/components/ui/language-switcher';
@@ -12,6 +14,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { 
   Package, 
   Bell, 
@@ -21,142 +24,185 @@ import {
   CreditCard,
   Truck,
   Calendar,
-  Box
+  Box,
+  Menu,
+  Search,
+  Plus
 } from 'lucide-react';
 
 interface ClientHeaderProps {
   user: {
+    id?: string;
     name?: string;
     email: string;
+    avatar?: string;
     subscription?: 'FREE' | 'STARTER' | 'PREMIUM';
   };
   onLogout: () => void;
+  onMenuToggle?: () => void;
+  notificationCount?: number;
 }
 
-/**
- * Header pour les clients connectés
- */
-export function ClientHeader({ user, onLogout }: ClientHeaderProps) {
-  const t = useTranslations('navigation');
-  const common = useTranslations('common');
-  const dashboard = useTranslations('dashboard');
+export function ClientHeader({ 
+  user, 
+  onLogout, 
+  onMenuToggle,
+  notificationCount = 0 
+}: ClientHeaderProps) {
+  const t = useTranslations();
 
-  const getSubscriptionColor = (plan?: string) => {
-    switch (plan) {
-      case 'PREMIUM': return 'bg-purple-500';
-      case 'STARTER': return 'bg-blue-500';
-      default: return 'bg-gray-500';
-    }
+  const subscriptionColors = {
+    FREE: 'bg-gray-100 text-gray-800',
+    STARTER: 'bg-blue-100 text-blue-800',
+    PREMIUM: 'bg-yellow-100 text-yellow-800'
   };
 
   return (
-    <header className="border-b bg-white">
-      <div className="container mx-auto px-4">
-        <div className="flex h-16 items-center justify-between">
-          {/* Logo + Navigation */}
-          <div className="flex items-center space-x-8">
-            <Link href="/client" className="flex items-center space-x-2">
-              <Package className="h-6 w-6 text-green-600" />
-              <span className="text-xl font-bold">EcoDeli</span>
+    <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="flex h-16 items-center justify-between px-4 md:px-6">
+        {/* Mobile menu toggle */}
+        <div className="flex items-center gap-3">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="md:hidden"
+            onClick={onMenuToggle}
+          >
+            <Menu className="h-5 w-5" />
+          </Button>
+          
+          {/* Logo/Title */}
+          <div className="flex items-center gap-2">
+            <Package className="h-6 w-6 text-primary" />
+            <span className="font-semibold text-lg hidden sm:inline">EcoDeli</span>
+          </div>
+        </div>
+
+        {/* Search bar - hidden on mobile */}
+        <div className="hidden md:flex flex-1 max-w-md mx-6">
+          <div className="relative w-full">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <input
+              className="flex h-10 w-full rounded-md border border-input bg-background px-10 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              placeholder={t('common.search', 'Rechercher...')}
+            />
+          </div>
+        </div>
+
+        {/* Right side actions */}
+        <div className="flex items-center gap-3">
+          {/* Quick action - New announcement */}
+          <Button size="sm" className="hidden sm:flex" asChild>
+            <Link href="/client/announcements/create">
+              <Plus className="h-4 w-4 mr-2" />
+              {t('dashboard.newAnnouncement', 'Nouvelle Annonce')}
             </Link>
+          </Button>
 
-            <nav className="hidden md:flex items-center space-x-6">
-              <Link 
-                href="/client" 
-                className="text-sm font-medium hover:text-green-600 transition-colors"
-              >
-                {dashboard('overview')}
-              </Link>
-              <Link 
-                href="/client/announcements" 
-                className="text-sm font-medium hover:text-green-600 transition-colors"
-              >
-                {t('announcements')}
-              </Link>
-              <Link 
-                href="/client/deliveries" 
-                className="text-sm font-medium hover:text-green-600 transition-colors"
-              >
-                {t('deliveries')}
-              </Link>
-              <Link 
-                href="/client/bookings" 
-                className="text-sm font-medium hover:text-green-600 transition-colors"
-              >
-                {t('bookings')}
-              </Link>
-              <Link 
-                href="/client/storage" 
-                className="text-sm font-medium hover:text-green-600 transition-colors"
-              >
-                <Box className="h-4 w-4 inline mr-1" />
-                {t('storage')}
-              </Link>
-            </nav>
-          </div>
+          {/* Notifications */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="relative">
+                <Bell className="h-5 w-5" />
+                {notificationCount > 0 && (
+                  <Badge 
+                    variant="destructive" 
+                    className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center text-xs p-0"
+                  >
+                    {notificationCount > 9 ? '9+' : notificationCount}
+                  </Badge>
+                )}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-64">
+              <DropdownMenuLabel>Notifications</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              {notificationCount > 0 ? (
+                <>
+                  <DropdownMenuItem>
+                    <div className="flex flex-col space-y-1">
+                      <p className="text-sm font-medium">Nouvelle livraison acceptée</p>
+                      <p className="text-xs text-muted-foreground">Il y a 5 minutes</p>
+                    </div>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>
+                    <div className="flex flex-col space-y-1">
+                      <p className="text-sm font-medium">Service programmé demain</p>
+                      <p className="text-xs text-muted-foreground">Il y a 1 heure</p>
+                    </div>
+                  </DropdownMenuItem>
+                </>
+              ) : (
+                <DropdownMenuItem disabled>
+                  <p className="text-sm text-muted-foreground">Aucune notification</p>
+                </DropdownMenuItem>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
 
-          {/* Actions */}
-          <div className="flex items-center space-x-4">
-            <ThemeToggle />
-            <LanguageSwitcher />
-            
-            {/* Notifications */}
-            <Button variant="ghost" size="icon">
-              <Bell className="h-4 w-4" />
-            </Button>
+          {/* Theme toggle */}
+          <ThemeToggle />
 
-            {/* User Menu */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="flex items-center space-x-2">
-                  <User className="h-4 w-4" />
-                  <span className="hidden md:block">{user.name || user.email}</span>
-                  {user.subscription && (
+          {/* Language switcher */}
+          <LanguageSwitcher />
+
+          {/* User menu */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="relative h-10 w-10 rounded-full">
+                <Avatar className="h-10 w-10">
+                  <AvatarImage src={user.avatar} alt={user.name} />
+                  <AvatarFallback>
+                    {user.name?.charAt(0)?.toUpperCase() || user.email.charAt(0).toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-56" align="end" forceMount>
+              <DropdownMenuLabel className="font-normal">
+                <div className="flex flex-col space-y-2">
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm font-medium leading-none">{user.name || 'Client'}</p>
                     <Badge 
-                      variant="secondary" 
-                      className={`text-white ${getSubscriptionColor(user.subscription)}`}
+                      variant="outline" 
+                      className={subscriptionColors[user.subscription || 'FREE']}
                     >
-                      {user.subscription}
+                      {user.subscription || 'FREE'}
                     </Badge>
-                  )}
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuLabel>{common('my_account')}</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                
-                <DropdownMenuItem asChild>
-                  <Link href="/client/profile" className="flex items-center">
-                    <User className="mr-2 h-4 w-4" />
-                    {common('profile')}
-                  </Link>
-                </DropdownMenuItem>
-                
-                <DropdownMenuItem asChild>
-                  <Link href="/client/subscription" className="flex items-center">
-                    <CreditCard className="mr-2 h-4 w-4" />
-                    {t('subscription')}
-                  </Link>
-                </DropdownMenuItem>
-                
-                <DropdownMenuItem asChild>
-                  <Link href="/client/tracking" className="flex items-center">
-                    <Truck className="mr-2 h-4 w-4" />
-                    {t('tracking')}
-                  </Link>
-                </DropdownMenuItem>
-                
-                <DropdownMenuSeparator />
-                
-                <DropdownMenuItem onClick={onLogout} className="text-red-600">
-                  <LogOut className="mr-2 h-4 w-4" />
-                  {common('logout')}
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
+                  </div>
+                  <p className="text-xs leading-none text-muted-foreground">
+                    {user.email}
+                  </p>
+                </div>
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem asChild>
+                <Link href="/client/profile">
+                  <User className="mr-2 h-4 w-4" />
+                  <span>Profil</span>
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href="/client/subscription">
+                  <CreditCard className="mr-2 h-4 w-4" />
+                  <span>Abonnement</span>
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href="/client/settings">
+                  <Settings className="mr-2 h-4 w-4" />
+                  <span>Paramètres</span>
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={onLogout} className="text-red-600">
+                <LogOut className="mr-2 h-4 w-4" />
+                <span>Déconnexion</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
     </header>
   );
-} 
+}

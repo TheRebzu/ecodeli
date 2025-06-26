@@ -23,19 +23,19 @@ export const ClientAnnouncementSummarySchema = z.object({
   title: z.string(),
   type: z.string(), // Allow any string for type
   status: z.string(), // Allow any string for status
-  price: z.number().positive(),
+  price: z.number().min(0), // Allow 0 for free services
   pickupAddress: z.string(),
   deliveryAddress: z.string(),
-  scheduledDate: z.date().nullable(),
+  scheduledDate: z.date(),
   createdAt: z.date(),
   deliverer: z.object({
     id: z.string(),
     name: z.string(),
-    rating: z.number().min(0).max(5).nullable(),
+    rating: z.number().min(0).max(5),
     phone: z.string().nullable()
   }).nullable(),
-  trackingCode: z.string().nullable(),
-  estimatedDelivery: z.date().nullable()
+  trackingCode: z.string(),
+  estimatedDelivery: z.date()
 })
 
 export const ClientBookingSummarySchema = z.object({
@@ -82,7 +82,7 @@ export const ClientNotificationSchema = z.object({
   title: z.string(),
   message: z.string(),
   read: z.boolean(),
-  actionUrl: z.string().nullable(),
+  actionUrl: z.string().optional(),
   createdAt: z.date(),
   priority: z.string(),
   category: z.enum(['delivery', 'booking', 'payment', 'storage', 'system'])

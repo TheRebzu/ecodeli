@@ -214,6 +214,16 @@ export class TutorialService {
   ): Promise<void> {
     try {
       await prisma.$transaction(async (tx) => {
+        // S'assurer que ClientTutorialProgress existe
+        await tx.clientTutorialProgress.upsert({
+          where: { userId },
+          update: {},
+          create: {
+            userId,
+            startedAt: new Date()
+          }
+        })
+
         // Mettre à jour ou créer l'étape
         await tx.tutorialStep.upsert({
           where: {
@@ -285,8 +295,15 @@ export class TutorialService {
 
         // Sauvegarder le feedback si fourni
         if (completionData.feedback || completionData.rating) {
-          await tx.tutorialFeedback.create({
-            data: {
+          await tx.tutorialFeedback.upsert({
+            where: { userId },
+            update: {
+              feedback: completionData.feedback,
+              rating: completionData.rating,
+              stepsCompleted: completionData.stepsCompleted.length,
+              completionTime: completionData.totalTimeSpent
+            },
+            create: {
               userId,
               feedback: completionData.feedback,
               rating: completionData.rating,
@@ -391,25 +408,37 @@ export class TutorialService {
         throw new Error('Cette étape est obligatoire et ne peut pas être passée')
       }
 
-      await prisma.tutorialStep.upsert({
-        where: {
-          userId_stepId: {
+      await prisma.$transaction(async (tx) => {
+        // S'assurer que ClientTutorialProgress existe
+        await tx.clientTutorialProgress.upsert({
+          where: { userId },
+          update: {},
+          create: {
             userId,
-            stepId
+            startedAt: new Date()
           }
-        },
-        update: {
-          isSkipped: true,
-          completedAt: new Date()
-        },
-        create: {
-          userId,
-          stepId,
-          isSkipped: true,
-          isCompleted: false,
-          timeSpent: 0,
-          completedAt: new Date()
-        }
+        })
+
+        await tx.tutorialStep.upsert({
+          where: {
+            userId_stepId: {
+              userId,
+              stepId
+            }
+          },
+          update: {
+            isSkipped: true,
+            completedAt: new Date()
+          },
+          create: {
+            userId,
+            stepId,
+            isSkipped: true,
+            isCompleted: false,
+            timeSpent: 0,
+            completedAt: new Date()
+          }
+        })
       })
 
     } catch (error) {

@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import { Moon, Sun, Monitor } from "lucide-react"
+import { useTheme } from "next-themes"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -9,7 +10,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { useTheme } from "@/components/layout/providers/layout-provider"
 import { cn } from "@/lib/utils"
 
 interface ThemeToggleProps {
@@ -18,7 +18,25 @@ interface ThemeToggleProps {
 }
 
 export function ThemeToggle({ variant = "icon-only", className }: ThemeToggleProps) {
-  const { theme, setTheme } = useTheme()
+  const { theme, setTheme, systemTheme } = useTheme()
+  const [mounted, setMounted] = React.useState(false)
+
+  React.useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  if (!mounted) {
+    return (
+      <Button 
+        variant="ghost" 
+        size={variant === "with-text" ? "default" : "icon"} 
+        className={cn("relative", className)}
+        disabled
+      >
+        <Sun className="h-[1.2rem] w-[1.2rem]" />
+      </Button>
+    )
+  }
 
   if (variant === "minimal") {
     return (
@@ -35,6 +53,8 @@ export function ThemeToggle({ variant = "icon-only", className }: ThemeTogglePro
       </button>
     )
   }
+
+  const currentTheme = theme === "system" ? systemTheme : theme
 
   return (
     <DropdownMenu>
@@ -94,7 +114,18 @@ export function ThemeToggle({ variant = "icon-only", className }: ThemeTogglePro
  * Version compacte pour mobile
  */
 export function MobileThemeToggle({ className }: { className?: string }) {
-  const { theme, toggleTheme, isDark } = useTheme()
+  const { theme, setTheme } = useTheme()
+  const [mounted, setMounted] = React.useState(false)
+
+  React.useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  if (!mounted) return null
+  
+  const toggleTheme = () => {
+    setTheme(theme === "light" ? "dark" : "light")
+  }
   
   return (
     <button
@@ -105,13 +136,13 @@ export function MobileThemeToggle({ className }: { className?: string }) {
         className
       )}
     >
-      {isDark ? (
+      {theme === "dark" ? (
         <Sun className="h-5 w-5 text-yellow-500" />
       ) : (
-        <Moon className="h-5 w-5 text-slate-700" />
+        <Moon className="h-5 w-5 text-slate-700 dark:text-slate-300" />
       )}
       <span className="font-medium">
-        {isDark ? 'Mode clair' : 'Mode sombre'}
+        {theme === "dark" ? 'Mode clair' : 'Mode sombre'}
       </span>
     </button>
   )
@@ -121,9 +152,14 @@ export function MobileThemeToggle({ className }: { className?: string }) {
  * Indicateur de thème système
  */
 export function SystemThemeIndicator() {
-  const { theme, isSystem } = useTheme()
-  
-  if (!isSystem) return null
+  const { theme } = useTheme()
+  const [mounted, setMounted] = React.useState(false)
+
+  React.useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  if (!mounted || theme !== "system") return null
   
   return (
     <div className="flex items-center space-x-1 text-xs text-muted-foreground">

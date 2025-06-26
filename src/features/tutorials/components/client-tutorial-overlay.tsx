@@ -49,6 +49,7 @@ interface ClientTutorialOverlayProps {
     rating?: number
   }) => Promise<void>
   onClose?: () => void
+  onNavigate?: (stepId: number) => void
 }
 
 export function ClientTutorialOverlay({
@@ -61,7 +62,8 @@ export function ClientTutorialOverlay({
   user,
   onStepComplete,
   onTutorialComplete,
-  onClose
+  onClose,
+  onNavigate
 }: ClientTutorialOverlayProps) {
   const t = useTranslations('tutorial')
   

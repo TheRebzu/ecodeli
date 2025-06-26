@@ -427,33 +427,70 @@ export function useClientSubscription() {
 }
 
 export function useClientTutorial() {
-  const { data, loading, error, execute } = useApi<ClientTutorial>()
+  const { data, loading, error, execute } = useApi<any>()
 
   const fetchTutorial = async () => {
-    await execute('/api/client/tutorial')
+    try {
+      // D'abord, démarrer le tutoriel s'il n'existe pas
+      await execute('/api/client/tutorial?action=start', {
+        method: 'POST',
+        body: JSON.stringify({})
+      }).catch(() => {}) // Ignorer l'erreur si déjà démarré
+      
+      // Ensuite récupérer les données
+      const result = await execute('/api/client/tutorial')
+      return result
+    } catch (error) {
+      console.error('Error fetching tutorial:', error)
+      throw error
+    }
   }
 
   const updateTutorialStep = async (stepId: string, completed: boolean) => {
-    await execute('/api/client/tutorial/step', {
-      method: 'PUT',
-      body: JSON.stringify({ stepId, completed })
+    await execute('/api/client/tutorial?action=complete-step', {
+      method: 'POST',
+      body: JSON.stringify({ stepId: Number(stepId), timeSpent: 0 })
     })
   }
 
   const completeTutorial = async () => {
-    await execute('/api/client/tutorial/complete', {
-      method: 'POST'
+    await execute('/api/client/tutorial?action=complete', {
+      method: 'POST',
+      body: JSON.stringify({ 
+        totalTimeSpent: 0,
+        stepsCompleted: [1, 2, 3, 4, 5],
+        feedback: '',
+        rating: 5
+      })
     })
   }
 
   const resetTutorial = async () => {
-    await execute('/api/client/tutorial/reset', {
-      method: 'POST'
+    await execute('/api/client/tutorial?action=reset', {
+      method: 'POST',
+      body: JSON.stringify({})
     })
   }
 
+  // Adapter les données de l'API
+  const tutorial = data ? {
+    completed: data.progress?.completed || false,
+    currentStep: data.progress?.currentStep || 1,
+    stepsCompleted: data.progress?.stepsCompleted || {
+      welcome: false,
+      profile: false,
+      subscription: false,
+      firstAnnouncement: false,
+      completion: false
+    },
+    completedAt: data.progress?.completedAt,
+    timeSpent: data.progress?.totalTimeSpent || 0,
+    skippedSteps: data.progress?.skippedSteps || [],
+    isBlocking: data.tutorialRequired || false
+  } : null
+
   return {
-    tutorial: data,
+    tutorial,
     loading,
     error,
     fetchTutorial,
