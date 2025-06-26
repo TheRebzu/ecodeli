@@ -255,6 +255,9 @@ export const auth = betterAuth({
 
 export type Session = typeof auth.$Infer.Session
 
+// Re-export USER_ROLES from auth utils for convenience
+export { USER_ROLES } from './auth/utils'
+
 /**
  * Fonction helper pour vérifier les rôles utilisateur (version API route)
  */

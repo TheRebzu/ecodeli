@@ -99,7 +99,8 @@ export function ContractManagement() {
       const contractsResponse = await fetch(contractsUrl)
       if (contractsResponse.ok) {
         const contractsData = await contractsResponse.json()
-        setContracts(contractsData)
+        // The API returns { contracts: Contract[], pagination: {...} }
+        setContracts(contractsData.contracts || [])
       }
 
     } catch (error) {
@@ -419,11 +420,11 @@ export function ContractManagement() {
       {/* Liste des contrats */}
       <Card>
         <CardHeader>
-          <CardTitle>Contrats ({contracts.length})</CardTitle>
+          <CardTitle>Contrats ({(contracts || []).length})</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {contracts.map((contract) => (
+            {(contracts || []).map((contract) => (
               <div key={contract.id} className="border rounded-lg p-4 hover:bg-gray-50">
                 <div className="flex items-center justify-between">
                   <div className="flex-1">

@@ -108,42 +108,44 @@ export class FinancialManagementService {
    * Calculer les revenus pour une période
    */
   private static async calculateRevenue(startDate: Date, endDate: Date): Promise<any> {
-    // Revenus des commissions sur livraisons
+    // Revenus des commissions sur livraisons (payments liés aux deliveries)
     const deliveryCommissions = await prisma.payment.aggregate({
       where: {
-        type: 'DELIVERY',
+        deliveryId: { not: null },
         status: 'COMPLETED',
         paidAt: { gte: startDate, lte: endDate }
       },
       _sum: { amount: true }
     })
 
-    // Revenus des commissions sur services
+    // Revenus des commissions sur services (payments liés aux bookings)
     const serviceCommissions = await prisma.payment.aggregate({
       where: {
-        type: 'SERVICE',
+        bookingId: { not: null },
         status: 'COMPLETED',
         paidAt: { gte: startDate, lte: endDate }
       },
       _sum: { amount: true }
     })
 
-    // Revenus des abonnements
+    // Revenus des abonnements (payments avec paymentMethod STRIPE et montants récurrents)
     const subscriptionRevenue = await prisma.payment.aggregate({
       where: {
-        type: 'SUBSCRIPTION',
+        paymentMethod: 'STRIPE',
         status: 'COMPLETED',
-        paidAt: { gte: startDate, lte: endDate }
+        paidAt: { gte: startDate, lte: endDate },
+        amount: { in: [9.90, 19.99] } // Montants des abonnements Starter et Premium
       },
       _sum: { amount: true }
     })
 
-    // Revenus du stockage
+    // Revenus du stockage (payments liés aux storage boxes)
     const storageRevenue = await prisma.payment.aggregate({
       where: {
-        type: 'STORAGE',
+        paymentMethod: 'STRIPE',
         status: 'COMPLETED',
-        paidAt: { gte: startDate, lte: endDate }
+        paidAt: { gte: startDate, lte: endDate },
+        metadata: { path: ['type'], equals: 'STORAGE' }
       },
       _sum: { amount: true }
     })
@@ -168,7 +170,7 @@ export class FinancialManagementService {
    * Calculer les dépenses pour une période
    */
   private static async calculateExpenses(startDate: Date, endDate: Date): Promise<any> {
-    // Paiements aux livreurs
+    // Paiements aux livreurs (wallet operations de type CREDIT)
     const delivererPayouts = await prisma.walletOperation.aggregate({
       where: {
         type: 'CREDIT',
@@ -179,10 +181,10 @@ export class FinancialManagementService {
       _sum: { amount: true }
     })
 
-    // Paiements aux prestataires
+    // Paiements aux prestataires (payments avec paymentMethod BANK_TRANSFER)
     const providerPayouts = await prisma.payment.aggregate({
       where: {
-        type: 'PROVIDER_MONTHLY',
+        paymentMethod: 'BANK_TRANSFER',
         status: 'COMPLETED',
         paidAt: { gte: startDate, lte: endDate }
       },
@@ -199,49 +201,36 @@ export class FinancialManagementService {
       _count: { id: true }
     })
 
-    const stripeFees = ((totalPayments._sum.amount || 0) * 0.029) + (totalPayments._count.id * 0.30)
+    const totalAmount = totalPayments._sum.amount || 0
+    const paymentCount = totalPayments._count.id || 0
+    const stripeFees = (totalAmount * 0.029) + (paymentCount * 0.30)
 
-    // Remboursements
-    const refunds = await prisma.payment.aggregate({
-      where: {
-        status: 'REFUNDED',
-        paidAt: { gte: startDate, lte: endDate }
-      },
-      _sum: { amount: true }
-    })
+    // Frais opérationnels (estimation)
+    const operationalExpenses = totalAmount * 0.05 // 5% des revenus
 
-    // Dépenses opérationnelles fixes (estimation mensuelle)
-    const daysInPeriod = (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)
-    const monthlyOperational = 15000 // 15k€/mois estimation
-    const operationalExpenses = (monthlyOperational / 30) * daysInPeriod
-
-    const delivererCosts = delivererPayouts._sum.amount || 0
-    const providerCosts = providerPayouts._sum.amount || 0
-    const fees = stripeFees
-    const refundCosts = refunds._sum.amount || 0
-    const operational = operationalExpenses
+    const delivererPayoutsAmount = delivererPayouts._sum.amount || 0
+    const providerPayoutsAmount = providerPayouts._sum.amount || 0
 
     return {
-      delivererCosts,
-      providerCosts,
-      fees,
-      refundCosts,
-      operational,
-      total: delivererCosts + providerCosts + fees + refundCosts + operational
+      delivererPayouts: delivererPayoutsAmount,
+      providerPayouts: providerPayoutsAmount,
+      stripeFees,
+      operationalExpenses,
+      total: delivererPayoutsAmount + providerPayoutsAmount + stripeFees + operationalExpenses
     }
   }
 
   /**
-   * Obtenir les données de la période précédente
+   * Obtenir les données de la période précédente pour calculer la croissance
    */
   private static async getPreviousPeriodData(startDate: Date, endDate: Date): Promise<any> {
     const periodDuration = endDate.getTime() - startDate.getTime()
-    const previousStart = new Date(startDate.getTime() - periodDuration)
-    const previousEnd = new Date(endDate.getTime() - periodDuration)
+    const previousStartDate = new Date(startDate.getTime() - periodDuration)
+    const previousEndDate = new Date(startDate.getTime())
 
     const [revenue, expenses] = await Promise.all([
-      this.calculateRevenue(previousStart, previousEnd),
-      this.calculateExpenses(previousStart, previousEnd)
+      this.calculateRevenue(previousStartDate, previousEndDate),
+      this.calculateExpenses(previousStartDate, previousEndDate)
     ])
 
     return {
@@ -259,33 +248,54 @@ export class FinancialManagementService {
     interval: 'daily' | 'weekly' | 'monthly' = 'daily'
   ): Promise<CashFlowData[]> {
     try {
-      const cashFlow: CashFlowData[] = []
+      const dateRange = this.generateDateRange(startDate, endDate, interval)
+      const cashFlowData: CashFlowData[] = []
       let runningBalance = await this.getStartingBalance(startDate)
 
-      const dates = this.generateDateRange(startDate, endDate, interval)
+      for (const date of dateRange) {
+        const nextDate = new Date(date)
+        if (interval === 'daily') {
+          nextDate.setDate(nextDate.getDate() + 1)
+        } else if (interval === 'weekly') {
+          nextDate.setDate(nextDate.getDate() + 7)
+        } else {
+          nextDate.setMonth(nextDate.getMonth() + 1)
+        }
 
-      for (let i = 0; i < dates.length - 1; i++) {
-        const periodStart = dates[i]
-        const periodEnd = dates[i + 1]
+        // Revenus du jour
+        const income = await prisma.payment.aggregate({
+          where: {
+            status: 'COMPLETED',
+            paidAt: { gte: date, lt: nextDate }
+          },
+          _sum: { amount: true }
+        })
 
-        const [income, expenses] = await Promise.all([
-          this.calculateRevenue(periodStart, periodEnd),
-          this.calculateExpenses(periodStart, periodEnd)
-        ])
+        // Dépenses du jour
+        const expenses = await prisma.walletOperation.aggregate({
+          where: {
+            type: 'CREDIT',
+            status: 'COMPLETED',
+            createdAt: { gte: date, lt: nextDate }
+          },
+          _sum: { amount: true }
+        })
 
-        const netFlow = income.total - expenses.total
+        const incomeAmount = income._sum.amount || 0
+        const expensesAmount = expenses._sum.amount || 0
+        const netFlow = incomeAmount - expensesAmount
         runningBalance += netFlow
 
-        cashFlow.push({
-          date: periodStart,
-          income: income.total,
-          expenses: expenses.total,
+        cashFlowData.push({
+          date,
+          income: incomeAmount,
+          expenses: expensesAmount,
           netFlow,
           runningBalance
         })
       }
 
-      return cashFlow
+      return cashFlowData
 
     } catch (error) {
       console.error('Erreur calcul cash flow:', error)
@@ -294,31 +304,23 @@ export class FinancialManagementService {
   }
 
   /**
-   * Calculer les métriques financières
+   * Obtenir les métriques financières
    */
   static async getFinancialMetrics(startDate: Date, endDate: Date): Promise<FinancialMetrics> {
     try {
-      const [
-        cac,
-        ltv,
-        churnRate,
-        arpu,
-        summary
-      ] = await Promise.all([
+      const [cac, ltv, churnRate, arpu] = await Promise.all([
         this.calculateCAC(startDate, endDate),
         this.calculateLTV(),
         this.calculateChurnRate(startDate, endDate),
-        this.calculateARPU(startDate, endDate),
-        this.getFinancialSummary(startDate, endDate)
+        this.calculateARPU(startDate, endDate)
       ])
 
-      const grossMargin = summary.totalRevenue > 0 
-        ? ((summary.totalRevenue - summary.totalExpenses * 0.7) / summary.totalRevenue) * 100 
-        : 0
-
-      const netMargin = summary.totalRevenue > 0 
-        ? (summary.netProfit / summary.totalRevenue) * 100 
-        : 0
+      // Calculer les marges
+      const revenue = await this.calculateRevenue(startDate, endDate)
+      const expenses = await this.calculateExpenses(startDate, endDate)
+      
+      const grossMargin = revenue.total > 0 ? ((revenue.total - expenses.total) / revenue.total) * 100 : 0
+      const netMargin = revenue.total > 0 ? ((revenue.total - expenses.total) / revenue.total) * 100 : 0
 
       return {
         cac,
@@ -336,64 +338,67 @@ export class FinancialManagementService {
   }
 
   /**
-   * Calculer le coût d'acquisition client (CAC)
+   * Calculer le CAC (Customer Acquisition Cost)
    */
   private static async calculateCAC(startDate: Date, endDate: Date): Promise<number> {
-    // Estimation des coûts marketing (à ajuster selon les dépenses réelles)
-    const marketingCosts = 5000 // 5k€ estimation
-
-    const newClients = await prisma.client.count({
+    // Coût marketing estimé
+    const marketingCost = 5000 // Estimation mensuelle
+    
+    // Nouveaux utilisateurs sur la période
+    const newUsers = await prisma.user.count({
       where: {
         createdAt: { gte: startDate, lte: endDate }
       }
     })
 
-    return newClients > 0 ? marketingCosts / newClients : 0
+    return newUsers > 0 ? marketingCost / newUsers : 0
   }
 
   /**
-   * Calculer la valeur vie client (LTV)
+   * Calculer le LTV (Lifetime Value)
    */
   private static async calculateLTV(): Promise<number> {
     // Calcul basé sur l'ARPU moyen et la durée de vie moyenne
     const averageSubscriptionValue = await prisma.payment.aggregate({
       where: {
-        type: 'SUBSCRIPTION',
-        status: 'COMPLETED'
+        paymentMethod: 'STRIPE',
+        status: 'COMPLETED',
+        amount: { in: [9.90, 19.99] }
       },
       _avg: { amount: true }
     })
 
-    const averageLifespanMonths = 24 // 24 mois estimation
-    const monthlyARPU = averageSubscriptionValue._avg.amount || 0
-
-    return monthlyARPU * averageLifespanMonths
+    const avgValue = averageSubscriptionValue._avg.amount || 0
+    const averageLifespan = 12 // mois en moyenne
+    
+    return avgValue * averageLifespan
   }
 
   /**
    * Calculer le taux de churn
    */
   private static async calculateChurnRate(startDate: Date, endDate: Date): Promise<number> {
-    const startOfMonth = new Date(startDate.getFullYear(), startDate.getMonth(), 1)
-    const endOfMonth = new Date(startDate.getFullYear(), startDate.getMonth() + 1, 0)
+    // Utilisateurs actifs au début de la période
+    const activeUsersStart = await prisma.user.count({
+      where: {
+        createdAt: { lt: startDate },
+        updatedAt: { gte: new Date(startDate.getTime() - 30 * 24 * 60 * 60 * 1000) } // Actif dans les 30 derniers jours
+      }
+    })
 
-    const [startingCustomers, churnedCustomers] = await Promise.all([
-      prisma.client.count({
-        where: {
-          createdAt: { lt: startOfMonth }
-        }
-      }),
-      prisma.client.count({
-        where: {
-          user: {
-            isActive: false,
-            updatedAt: { gte: startOfMonth, lte: endOfMonth }
+    // Utilisateurs qui ont fait des paiements dans la période
+    const activeUsersPeriod = await prisma.user.count({
+      where: {
+        payments: {
+          some: {
+            status: 'COMPLETED',
+            paidAt: { gte: startDate, lte: endDate }
           }
         }
-      })
-    ])
+      }
+    })
 
-    return startingCustomers > 0 ? (churnedCustomers / startingCustomers) * 100 : 0
+    return activeUsersStart > 0 ? ((activeUsersStart - activeUsersPeriod) / activeUsersStart) * 100 : 0
   }
 
   /**
@@ -401,24 +406,35 @@ export class FinancialManagementService {
    */
   private static async calculateARPU(startDate: Date, endDate: Date): Promise<number> {
     const [totalRevenue, activeUsers] = await Promise.all([
-      this.calculateRevenue(startDate, endDate),
+      prisma.payment.aggregate({
+        where: {
+          status: 'COMPLETED',
+          paidAt: { gte: startDate, lte: endDate }
+        },
+        _sum: { amount: true }
+      }),
       prisma.user.count({
         where: {
-          isActive: true,
-          role: { in: ['CLIENT', 'DELIVERER', 'PROVIDER'] }
+          payments: {
+            some: {
+              status: 'COMPLETED',
+              paidAt: { gte: startDate, lte: endDate }
+            }
+          }
         }
       })
     ])
 
-    return activeUsers > 0 ? totalRevenue.total / activeUsers : 0
+    const revenue = totalRevenue._sum.amount || 0
+    return activeUsers > 0 ? revenue / activeUsers : 0
   }
 
   /**
-   * Obtenir le solde initial
+   * Obtenir le solde de départ pour le cash flow
    */
   private static async getStartingBalance(date: Date): Promise<number> {
-    // Calcul du solde cumulé jusqu'à la date donnée
-    const balance = await prisma.payment.aggregate({
+    // Calculer le solde cumulé jusqu'à la date de début
+    const totalIncome = await prisma.payment.aggregate({
       where: {
         status: 'COMPLETED',
         paidAt: { lt: date }
@@ -426,11 +442,20 @@ export class FinancialManagementService {
       _sum: { amount: true }
     })
 
-    return balance._sum.amount || 0
+    const totalExpenses = await prisma.walletOperation.aggregate({
+      where: {
+        type: 'CREDIT',
+        status: 'COMPLETED',
+        createdAt: { lt: date }
+      },
+      _sum: { amount: true }
+    })
+
+    return (totalIncome._sum.amount || 0) - (totalExpenses._sum.amount || 0)
   }
 
   /**
-   * Générer une plage de dates
+   * Générer une plage de dates selon l'intervalle
    */
   private static generateDateRange(
     start: Date,
@@ -442,21 +467,16 @@ export class FinancialManagementService {
 
     while (current <= end) {
       dates.push(new Date(current))
-
-      switch (interval) {
-        case 'daily':
-          current.setDate(current.getDate() + 1)
-          break
-        case 'weekly':
-          current.setDate(current.getDate() + 7)
-          break
-        case 'monthly':
-          current.setMonth(current.getMonth() + 1)
-          break
+      
+      if (interval === 'daily') {
+        current.setDate(current.getDate() + 1)
+      } else if (interval === 'weekly') {
+        current.setDate(current.getDate() + 7)
+      } else {
+        current.setMonth(current.getMonth() + 1)
       }
     }
 
-    dates.push(new Date(end))
     return dates
   }
 
@@ -468,35 +488,27 @@ export class FinancialManagementService {
     endDate: Date
   ): Promise<any> {
     try {
-      const [
-        summary,
-        cashFlow,
-        metrics,
-        revenueBreakdown,
-        expenseBreakdown
-      ] = await Promise.all([
+      const [summary, revenueBreakdown, expenseBreakdown, cashFlow] = await Promise.all([
         this.getFinancialSummary(startDate, endDate),
-        this.getCashFlowData(startDate, endDate, 'weekly'),
-        this.getFinancialMetrics(startDate, endDate),
         this.getDetailedRevenueBreakdown(startDate, endDate),
-        this.getDetailedExpenseBreakdown(startDate, endDate)
+        this.getDetailedExpenseBreakdown(startDate, endDate),
+        this.getCashFlowData(startDate, endDate, 'daily')
       ])
 
       return {
         summary,
-        cashFlow,
-        metrics,
         revenueBreakdown,
         expenseBreakdown,
-        generatedAt: new Date(),
+        cashFlow,
         period: {
-          start: startDate,
-          end: endDate
-        }
+          start: startDate.toISOString(),
+          end: endDate.toISOString()
+        },
+        generatedAt: new Date().toISOString()
       }
 
     } catch (error) {
-      console.error('Erreur génération rapport financier:', error)
+      console.error('Erreur génération rapport détaillé:', error)
       throw error
     }
   }
@@ -508,8 +520,7 @@ export class FinancialManagementService {
     startDate: Date,
     endDate: Date
   ): Promise<RevenueBreakdown> {
-    // Implémentation détaillée de la répartition des revenus
-    // (Code simplifié pour la démonstration)
+    // Cette méthode peut être étendue pour plus de détails
     return {
       commissions: {
         deliveries: 0,
@@ -535,8 +546,7 @@ export class FinancialManagementService {
     startDate: Date,
     endDate: Date
   ): Promise<ExpenseBreakdown> {
-    // Implémentation détaillée de la répartition des dépenses
-    // (Code simplifié pour la démonstration)
+    // Cette méthode peut être étendue pour plus de détails
     return {
       operational: {
         salaries: 0,
