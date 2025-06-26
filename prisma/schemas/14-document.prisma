@@ -24,3 +24,24 @@ model Document {
   @@index([type])
   @@index([validationStatus])
 }
+
+// Tracking de génération de documents (PDF, etc.)
+model DocumentGeneration {
+  id            String              @id @default(cuid())
+  userId        String
+  documentType  String              // 'delivery-slip', 'contract', 'invoice', 'certificate'
+  entityId      String              // ID de l'entité liée (announcement, contract, payment, etc.)
+  fileName      String
+  fileUrl       String
+  status        GenerationStatus    @default(SUCCESS)
+  metadata      Json?               // Options utilisées, user agent, etc.
+  createdAt     DateTime            @default(now())
+
+  // Relations
+  user          User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([documentType])
+  @@index([entityId])
+  @@index([createdAt])
+}

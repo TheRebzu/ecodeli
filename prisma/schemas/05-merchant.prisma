@@ -38,3 +38,47 @@ model CartDropConfig {
 
   merchant          Merchant            @relation(fields: [merchantId], references: [id], onDelete: Cascade)
 }
+
+model Order {
+  id                String              @id @default(cuid())
+  merchantId        String
+  clientId          String
+  announcementId    String?             @unique
+  orderNumber       String              @unique
+  status            OrderStatus         @default(PENDING)
+  totalAmount       Float
+  deliveryFee       Float               @default(0)
+  notes             String?
+  deliveryAddress   String
+  scheduledDate     DateTime?
+  completedAt       DateTime?
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  // Relations
+  merchant          Merchant            @relation(fields: [merchantId], references: [id])
+  client            User                @relation("ClientOrders", fields: [clientId], references: [id])
+  announcement      Announcement?       @relation(fields: [announcementId], references: [id])
+  items             OrderItem[]
+  payment           Payment?
+  
+  @@index([merchantId])
+  @@index([clientId])
+  @@index([orderNumber])
+  @@index([status])
+}
+
+model OrderItem {
+  id                String              @id @default(cuid())
+  orderId           String
+  name              String
+  quantity          Int
+  unitPrice         Float
+  totalPrice        Float
+  createdAt         DateTime            @default(now())
+
+  // Relations
+  order             Order               @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  
+  @@index([orderId])
+}

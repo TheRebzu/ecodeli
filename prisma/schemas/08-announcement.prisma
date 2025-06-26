@@ -1,39 +1,90 @@
-// Modèles annonces
+// Modèles annonces et système de matching
 
 model Announcement {
-  id                String              @id @default(cuid())
-  clientId          String?
-  merchantId        String?
-  type              AnnouncementType
-  title             String
-  description       String
-  startLocation     Json                // {address, city, postalCode, lat, lng}
-  endLocation       Json                // {address, city, postalCode, lat, lng}
-  desiredDate       DateTime
-  flexibleDates     Boolean             @default(false)
-  dateRangeStart    DateTime?
-  dateRangeEnd      DateTime?
-  price             Float
-  currency          String              @default("EUR")
-  status            AnnouncementStatus  @default(DRAFT)
-  viewCount         Int                 @default(0)
-  createdAt         DateTime            @default(now())
-  updatedAt         DateTime            @updatedAt
-  publishedAt       DateTime?
+  id                  String              @id @default(cuid())
+  title               String
+  description         String
+  type                AnnouncementType
+  status              AnnouncementStatus  @default(DRAFT)
+  authorId            String
+  delivererId         String?
+  
+  // Localisation
+  pickupAddress       String
+  pickupLatitude      Float?
+  pickupLongitude     Float?
+  deliveryAddress     String
+  deliveryLatitude    Float?
+  deliveryLongitude   Float?
+  distance            Float?              // En kilomètres
+  
+  // Temporalité
+  pickupDate          DateTime?
+  deliveryDate        DateTime?
+  isFlexibleDate      Boolean             @default(false)
+  preferredTimeSlot   String?             // "MORNING", "AFTERNOON", "EVENING"
+  isUrgent            Boolean             @default(false)
+  
+  // Tarification
+  basePrice           Float
+  finalPrice          Float?
+  currency            String              @default("EUR")
+  isPriceNegotiable   Boolean             @default(false)
+  urgencyFee          Float?
+  insuranceFee        Float?
+  platformFee         Float?
+  
+  // Détails spécifiques selon le type
+  packageDetails      Json?               // Poids, dimensions, fragile, etc.
+  personDetails       Json?               // Nombre passagers, besoins spéciaux
+  shoppingDetails     Json?               // Liste courses, budget max, magasins
+  petDetails          Json?               // Type animal, vaccinations, besoins
+  serviceDetails      Json?               // Durée, matériel nécessaire
+  
+  // Configuration
+  requiresValidation  Boolean             @default(true)
+  requiresInsurance   Boolean             @default(false)
+  allowsPartialDelivery Boolean           @default(false)
+  maxDeliverers       Int                 @default(1)
+  recurringConfig     Json?               // Configuration récurrence
+  
+  // Métadonnées
+  estimatedDuration   Int?                // En minutes
+  weight              Float?              // En kg
+  volume              Float?              // En litres
+  specialInstructions String?
+  customerNotes       String?
+  internalNotes       String?
+  
+  // Suivi
+  viewCount           Int                 @default(0)
+  matchCount          Int                 @default(0)
+  expiresAt           DateTime?
+  publishedAt         DateTime?
+  
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
 
   // Relations
-  client            Client?             @relation(fields: [clientId], references: [id], onDelete: SetNull)
-  merchant          Merchant?           @relation(fields: [merchantId], references: [id], onDelete: SetNull)
-  packageDetails    PackageAnnouncement?
-  serviceDetails    ServiceAnnouncement?
-  delivery          Delivery?
-  routeMatches      RouteAnnouncementMatch[]
+  author              User                @relation(fields: [authorId], references: [id])
+  deliverer           User?               @relation("AnnouncementDeliverer", fields: [delivererId], references: [id])
+  delivery            Delivery?
+  payment             Payment?
+  reviews             Review[]
+  matches             RouteMatch[]
+  attachments         AnnouncementAttachment[]
+  notifications       AnnouncementNotification[]
+  tracking            AnnouncementTracking[]
   
-  @@index([clientId])
-  @@index([merchantId])
-  @@index([status])
+  @@index([authorId])
+  @@index([delivererId])
   @@index([type])
-  @@index([desiredDate])
+  @@index([status])
+  @@index([pickupLatitude, pickupLongitude])
+  @@index([deliveryLatitude, deliveryLongitude])
+  @@index([pickupDate])
+  @@index([createdAt])
+  @@index([isUrgent])
 }
 
 model PackageAnnouncement {
@@ -65,18 +116,146 @@ model ServiceAnnouncement {
   announcement      Announcement        @relation(fields: [announcementId], references: [id], onDelete: Cascade)
 }
 
-model RouteAnnouncementMatch {
-  id                String              @id @default(cuid())
-  routeId           String
-  announcementId    String
-  matchScore        Float               // Score de correspondance 0-100
-  isNotified        Boolean             @default(false)
-  notifiedAt        DateTime?
-  createdAt         DateTime            @default(now())
-
-  route             Route               @relation(fields: [routeId], references: [id], onDelete: Cascade)
-  announcement      Announcement        @relation(fields: [announcementId], references: [id], onDelete: Cascade)
+model DelivererRoute {
+  id                  String              @id @default(cuid())
+  delivererId         String
+  title               String?
+  description         String?
   
-  @@unique([routeId, announcementId])
-  @@index([matchScore])
+  // Itinéraire
+  startAddress        String
+  startLatitude       Float
+  startLongitude      Float
+  endAddress          String
+  endLatitude         Float
+  endLongitude        Float
+  waypoints           Json?               // Points intermédiaires
+  
+  // Planning
+  startDate           DateTime
+  endDate             DateTime
+  isRecurring         Boolean             @default(false)
+  recurringPattern    String?             // "DAILY", "WEEKLY", "MONTHLY"
+  
+  // Capacités
+  maxPackages         Int                 @default(5)
+  maxWeight           Float?              // kg
+  maxVolume           Float?              // litres
+  vehicleType         String?             // "CAR", "BIKE", "SCOOTER", "FOOT"
+  
+  // Configuration
+  isActive            Boolean             @default(true)
+  autoAccept          Boolean             @default(false)
+  maxDetour           Float               @default(5.0) // km
+  acceptedTypes       AnnouncementType[]
+  
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+
+  // Relations
+  deliverer           User                @relation("DelivererRoutes", fields: [delivererId], references: [id])
+  matches             RouteMatch[]
+  
+  @@index([delivererId])
+  @@index([startDate])
+  @@index([endDate])
+  @@index([startLatitude, startLongitude])
+  @@index([endLatitude, endLongitude])
+  @@index([isActive])
 }
+
+model RouteMatch {
+  id                  String              @id @default(cuid())
+  announcementId      String
+  routeId             String
+  delivererId         String
+  
+  // Scoring du match
+  distanceScore       Float               // 0-1, plus proche = meilleur
+  timeScore           Float               // 0-1, timing compatible
+  capacityScore       Float               // 0-1, capacité suffisante
+  typeScore           Float               // 0-1, type d'annonce accepté
+  globalScore         Float               // Score global pondéré
+  
+  // Détails du match
+  pickupDetour        Float               // km de détour pour pickup
+  deliveryDetour      Float               // km de détour pour delivery
+  estimatedDuration   Int                 // minutes ajoutées au trajet
+  
+  // Statut
+  status              String              @default("PENDING") // PENDING, SENT, ACCEPTED, REJECTED, EXPIRED
+  notifiedAt          DateTime?
+  respondedAt         DateTime?
+  expiresAt           DateTime
+  
+  createdAt           DateTime            @default(now())
+
+  // Relations
+  announcement        Announcement        @relation(fields: [announcementId], references: [id])
+  route               DelivererRoute      @relation(fields: [routeId], references: [id])
+  deliverer           User                @relation("RouteMatches", fields: [delivererId], references: [id])
+  
+  @@unique([announcementId, routeId])
+  @@index([delivererId])
+  @@index([status])
+  @@index([globalScore])
+  @@index([expiresAt])
+  @@index([createdAt])
+}
+
+model AnnouncementTracking {
+  id                  String              @id @default(cuid())
+  announcementId      String
+  status              AnnouncementStatus
+  message             String
+  metadata            Json?               // Données contextuelles
+  createdBy           String?             // User qui a créé le tracking
+  isPublic            Boolean             @default(true) // Visible par le client
+  createdAt           DateTime            @default(now())
+
+  // Relations
+  announcement        Announcement        @relation(fields: [announcementId], references: [id], onDelete: Cascade)
+  
+  @@index([announcementId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model AnnouncementAttachment {
+  id                  String              @id @default(cuid())
+  announcementId      String
+  filename            String
+  originalName        String
+  mimeType            String
+  size                Int                 // bytes
+  url                 String
+  uploadedBy          String
+  createdAt           DateTime            @default(now())
+
+  // Relations
+  announcement        Announcement        @relation(fields: [announcementId], references: [id], onDelete: Cascade)
+  
+  @@index([announcementId])
+}
+
+model AnnouncementNotification {
+  id                  String              @id @default(cuid())
+  announcementId      String
+  userId              String
+  type                String              // "MATCH_FOUND", "ACCEPTED", "REMINDER", etc.
+  title               String
+  message             String
+  metadata            Json?
+  sentAt              DateTime?
+  readAt              DateTime?
+  createdAt           DateTime            @default(now())
+
+  // Relations
+  announcement        Announcement        @relation(fields: [announcementId], references: [id], onDelete: Cascade)
+  
+  @@index([announcementId])
+  @@index([userId])
+  @@index([sentAt])
+}
+
+

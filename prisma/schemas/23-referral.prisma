@@ -176,7 +176,7 @@ model ReferralStats {
 
 model InfluencerProgram {
   id                String              @id @default(cuid())
-  influencerId      String
+  influencerId      String              @unique
   programName       String
   description       String
   status            InfluencerStatus    @default(PENDING)

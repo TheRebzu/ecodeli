@@ -39,14 +39,14 @@ export function ClientAnnouncementsList() {
       const params = new URLSearchParams()
       if (filter !== 'all') params.append('status', filter.toUpperCase())
       
-      const response = await fetch(`/api/announcements?${params.toString()}`)
+      const response = await fetch(`/api/client/announcements?${params.toString()}`)
       const data = await response.json()
 
       if (!response.ok) {
         throw new Error(data.error || 'Erreur lors du chargement')
       }
 
-      setAnnouncements(data.announcements || [])
+      setAnnouncements(data.data || [])
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erreur inconnue')
     } finally {

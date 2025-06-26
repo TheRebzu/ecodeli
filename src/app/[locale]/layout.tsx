@@ -3,7 +3,7 @@ import type { Metadata } from "next"
 import { NextIntlClientProvider } from "next-intl"
 import { getMessages } from "next-intl/server"
 import { notFound } from "next/navigation"
-import { AuthProvider } from "@/lib/auth-client-simple"
+import { AuthProvider } from "@/lib/auth-provider"
 import "../globals.css"
 
 export const metadata: Metadata = {

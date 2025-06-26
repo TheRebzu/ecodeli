@@ -65,7 +65,7 @@ export function TestAccounts({ onAccountSelect }: TestAccountsProps) {
     setLoadingAccount(account.role)
     
     try {
-      const response = await fetch('/api/auth/login-simple', {
+      const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

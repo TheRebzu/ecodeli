@@ -121,7 +121,14 @@
       "Bash(pnpm add:*)",
       "Bash(chmod:*)",
       "Bash(find:*)",
-      "Bash(ip route:*)"
+      "Bash(ip route:*)",
+      "Bash(./scripts/test-all-endpoints.sh:*)",
+      "Bash(sudo apt:*)",
+      "Bash(sudo apt install:*)",
+      "Bash(/tmp/jq:*)",
+      "Bash(sudo cp:*)",
+      "Bash(export:*)",
+      "Bash(npx @better-auth/cli generate:*)"
     ]
   },
   "allowed_tools": [

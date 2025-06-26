@@ -190,7 +190,7 @@ export default function ClientStoragePage() {
             📦 Stockage Temporaire
           </h1>
           <p className="text-gray-600">
-            Réservez des box de stockage dans nos 6 entrepôts EcoDeli
+            Réservez des box de stockage dans nos {warehouses.length} entrepôts EcoDeli disponibles
           </p>
         </div>
 

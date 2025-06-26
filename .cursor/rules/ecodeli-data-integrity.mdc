@@ -3,3 +3,259 @@ description:
 globs:
 alwaysApply: false
 ---
+# EcoDeli - Intégrité et Sources de Données Légitimes
+
+## Principe Fondamental : Données Réelles Uniquement
+
+**OBLIGATION** : Toutes les données dans EcoDeli doivent provenir de sources légitimes et être générées de manière appropriée pour un environnement professionnel.
+
+## Sources de Données Autorisées
+
+### ✅ Sources Légitimes
+1. **Base de données PostgreSQL** via Prisma ORM
+2. **APIs externes officielles** (Stripe, OneSignal, etc.)
+3. **Saisie utilisateur** via formulaires validés
+4. **Génération dynamique** avec bibliothèques appropriées
+5. **Variables d'environnement** pour la configuration
+6. **Fichiers de configuration** JSON/YAML validés
+
+### ✅ Générateurs Autorisés
+```typescript
+// CORRECT - Génération avec @faker-js/faker
+import { faker } from '@faker-js/faker'
+
+export const generateTestUser = () => ({
+  id: crypto.randomUUID(),
+  email: faker.internet.email(),
+  firstName: faker.person.firstName(),
+  lastName: faker.person.lastName(),
+  phone: faker.phone.number(),
+  createdAt: new Date()
+})
+
+// CORRECT - Génération d'adresses réalistes
+export const generateAddress = () => ({
+  street: faker.location.streetAddress(),
+  city: faker.location.city(),
+  postalCode: faker.location.zipCode(),
+  country: faker.location.country()
+})
+```
+
+## Architecture de Données EcoDeli
+
+### Modèles Prisma Référence
+- [prisma/schema.prisma](mdc:prisma/schema.prisma) - Schéma de base de données
+- Relations et contraintes d'intégrité définies
+- Pas de valeurs par défaut hardcodées inappropriées
+
+### Services de Données
+- [src/features/users/services/user.service.ts](mdc:src/features/users/services/user.service.ts)
+- [src/features/deliveries/services/delivery.service.ts](mdc:src/features/deliveries/services/delivery.service.ts)
+- [src/features/payments/services/payment.service.ts](mdc:src/features/payments/services/payment.service.ts)
+- Tous les services doivent interagir avec des données réelles
+
+### Factories de Test
+```typescript
+// CORRECT - Factory pattern pour tests
+export class DeliveryFactory {
+  static create(overrides: Partial<Delivery> = {}): Delivery {
+    return {
+      id: crypto.randomUUID(),
+      status: DeliveryStatus.PENDING,
+      pickupAddress: faker.location.streetAddress(),
+      deliveryAddress: faker.location.streetAddress(),
+      scheduledAt: faker.date.future(),
+      validationCode: this.generateValidationCode(),
+      ...overrides
+    }
+  }
+  
+  private static generateValidationCode(): string {
+    return Math.floor(100000 + Math.random() * 900000).toString()
+  }
+}
+```
+
+## Seeding et Développement
+
+### Seeder Database
+```typescript
+// CORRECT - Seeder avec données générées
+// [prisma/seed.ts](mdc:prisma/seed.ts)
+import { PrismaClient } from '@prisma/client'
+import { faker } from '@faker-js/faker'
+
+const prisma = new PrismaClient()
+
+async function seedUsers() {
+  const users = Array.from({ length: 50 }, () => ({
+    email: faker.internet.email(),
+    password: await hashPassword(faker.internet.password()),
+    role: faker.helpers.arrayElement(['CLIENT', 'DELIVERER', 'MERCHANT']),
+    profile: {
+      create: {
+        firstName: faker.person.firstName(),
+        lastName: faker.person.lastName(),
+        phone: faker.phone.number(),
+        address: faker.location.streetAddress(),
+        city: faker.location.city(),
+        postalCode: faker.location.zipCode()
+      }
+    }
+  }))
+  
+  await prisma.user.createMany({ data: users })
+}
+```
+
+## Validation des Données
+
+### Schémas Zod
+```typescript
+// CORRECT - Validation avec Zod
+import { z } from 'zod'
+
+export const CreateAnnouncementSchema = z.object({
+  title: z.string().min(5).max(100),
+  description: z.string().min(20).max(1000),
+  type: z.enum(['PACKAGE_DELIVERY', 'PERSON_TRANSPORT', 'AIRPORT_TRANSFER']),
+  price: z.number().positive(),
+  pickupAddress: z.string().min(10),
+  deliveryAddress: z.string().min(10),
+  scheduledAt: z.string().datetime()
+})
+```
+
+### Sanitization
+```typescript
+// CORRECT - Nettoyage des données
+import DOMPurify from 'dompurify'
+
+export const sanitizeUserInput = (input: string): string => {
+  return DOMPurify.sanitize(input.trim())
+}
+```
+
+## Configuration Environnement
+
+### Variables d'Environnement
+```typescript
+// CORRECT - Configuration via .env
+export const config = {
+  database: {
+    url: process.env.DATABASE_URL!,
+  },
+  stripe: {
+    secretKey: process.env.STRIPE_SECRET_KEY!,
+    webhookSecret: process.env.STRIPE_WEBHOOK_SECRET!,
+  },
+  oneSignal: {
+    appId: process.env.ONESIGNAL_APP_ID!,
+    apiKey: process.env.ONESIGNAL_API_KEY!,
+  }
+} as const
+```
+
+## Tests et Qualité
+
+### Tests avec Données Générées
+```typescript
+// CORRECT - Tests avec factories
+import { describe, it, expect, beforeEach } from 'vitest'
+import { UserFactory } from '../factories/user.factory'
+
+describe('User Service', () => {
+  beforeEach(async () => {
+    await cleanupDatabase()
+  })
+  
+  it('should create user successfully', async () => {
+    const userData = UserFactory.create()
+    const user = await userService.create(userData)
+    
+    expect(user.email).toBe(userData.email)
+    expect(user.id).toBeDefined()
+  })
+})
+```
+
+### Mocks Appropriés
+```typescript
+// CORRECT - Mock des services externes
+import { vi } from 'vitest'
+
+const mockStripeService = {
+  createPaymentIntent: vi.fn().mockResolvedValue({
+    id: 'pi_test_' + crypto.randomUUID(),
+    client_secret: 'pi_test_' + crypto.randomUUID() + '_secret_test'
+  })
+}
+```
+
+## Monitoring et Logs
+
+### Logs Structurés
+```typescript
+// CORRECT - Logs sans données sensibles
+import { logger } from '@/lib/logger'
+
+export const logDeliveryCreated = (deliveryId: string, userId: string) => {
+  logger.info('Delivery created', {
+    deliveryId,
+    userId,
+    timestamp: new Date().toISOString(),
+    action: 'DELIVERY_CREATED'
+  })
+}
+```
+
+## Conformité et Sécurité
+
+### Protection Données Personnelles
+- **Chiffrement** des données sensibles en base
+- **Hachage** des mots de passe avec bcrypt
+- **Tokens JWT** pour l'authentification
+- **Validation** systématique des entrées
+
+### Audit Trail
+```typescript
+// CORRECT - Audit des actions
+export const auditLog = {
+  userAction: (userId: string, action: string, details: object) => {
+    return prisma.auditLog.create({
+      data: {
+        userId,
+        action,
+        details: JSON.stringify(details),
+        timestamp: new Date(),
+        ipAddress: getClientIP(),
+        userAgent: getUserAgent()
+      }
+    })
+  }
+}
+```
+
+## Références Architecture
+
+### Structure Données EcoDeli
+- [src/lib/db.ts](mdc:src/lib/db.ts) - Configuration Prisma
+- [src/lib/auth.ts](mdc:src/lib/auth.ts) - Authentification Better-Auth
+- [src/lib/validation.ts](mdc:src/lib/validation.ts) - Schémas de validation
+- [src/lib/logger.ts](mdc:src/lib/logger.ts) - Système de logs
+
+### APIs et Services
+- [src/app/api/](mdc:src/app/api) - Endpoints REST
+- [src/features/](mdc:src/features) - Services métier
+- Intégration avec APIs externes légitimes uniquement
+
+---
+
+**🔒 RÈGLE CRITIQUE : Intégrité des données = Crédibilité d'EcoDeli**
+
+Cette règle assure :
+- **Fiabilité** des données
+- **Conformité** RGPD/sécurité
+- **Professionnalisme** du code
+- **Maintenabilité** long terme

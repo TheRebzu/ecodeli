@@ -21,10 +21,10 @@ export function DashboardLayout({
   sidebar,
   className
 }: DashboardLayoutProps) {
-  // Fonction de déconnexion simple
+  // Fonction de déconnexion Better-Auth
   const handleLogout = async () => {
     try {
-      await fetch('/api/auth/simple-logout', { method: 'POST' });
+      await fetch('/api/auth/logout', { method: 'POST' });
       window.location.href = '/fr/login';
     } catch (error) {
       console.error('Erreur lors de la déconnexion:', error);

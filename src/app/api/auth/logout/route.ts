@@ -1,31 +1,37 @@
+import { auth } from "@/lib/auth"
 import { NextRequest, NextResponse } from "next/server"
 
+/**
+ * Route logout pour Better-Auth selon Mission 1
+ * Gère la déconnexion sécurisée des utilisateurs
+ */
 export async function POST(request: NextRequest) {
   try {
-    // Créer la réponse
-    const response = NextResponse.json({
-      success: true,
-      message: "Déconnexion réussie"
+    // Effectuer la déconnexion via Better-Auth
+    await auth.api.signOut({
+      headers: request.headers
     })
 
-    // Supprimer le cookie en définissant une date d'expiration dans le passé
-    response.cookies.set("auth-token", "", {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      maxAge: 0,
-      path: "/"
-    })
-
-    console.log("User logged out successfully")
-    return response
-
+    // Réponse de succès
+    return NextResponse.json(
+      { 
+        success: true, 
+        message: "Déconnexion réussie" 
+      },
+      { status: 200 }
+    )
   } catch (error) {
-    console.error("Erreur logout API:", error)
+    console.error("Erreur logout:", error)
     
     return NextResponse.json(
-      { error: "Erreur serveur" },
+      { 
+        success: false, 
+        error: "Erreur lors de la déconnexion" 
+      },
       { status: 500 }
     )
   }
-} 
+}
+
+// Méthodes supportées
+export { POST as DELETE } 

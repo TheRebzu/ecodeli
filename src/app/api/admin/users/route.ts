@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
-import { requireRole } from '@/lib/auth-simple'
+import { requireRole } from '@/lib/auth'
 
 /**
  * GET - Récupérer tous les utilisateurs

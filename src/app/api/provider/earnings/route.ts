@@ -4,7 +4,7 @@ import { prisma } from '@/lib/db'
 import { ProviderBillingService } from '@/features/billing/services/provider-billing.service'
 
 /**
- * GET - Récupérer le rapport de gains du prestataire pour une période
+ * GET - Rï¿½cupï¿½rer le rapport de gains du prestataire pour une pï¿½riode
  */
 export async function GET(request: NextRequest) {
   try {
@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Récupérer le profil prestataire
+    // Rï¿½cupï¿½rer le profil prestataire
     const provider = await prisma.provider.findUnique({
       where: { userId: session.user.id },
       include: {
@@ -46,7 +46,7 @@ export async function GET(request: NextRequest) {
 
     if (!provider) {
       return NextResponse.json(
-        { error: 'Profil prestataire non trouvé' },
+        { error: 'Profil prestataire non trouvï¿½' },
         { status: 404 }
       )
     }
@@ -57,7 +57,7 @@ export async function GET(request: NextRequest) {
 
     const billingPeriod = ProviderBillingService.getBillingPeriod(month, year)
     
-    // Filtrer les interventions pour la période demandée
+    // Filtrer les interventions pour la pï¿½riode demandï¿½e
     provider.bookings = provider.bookings.filter(booking => 
       new Date(booking.scheduledDate) >= billingPeriod.startDate &&
       new Date(booking.scheduledDate) <= billingPeriod.endDate
@@ -65,7 +65,7 @@ export async function GET(request: NextRequest) {
 
     const earnings = ProviderBillingService.calculateProviderEarnings(provider, billingPeriod)
 
-    // Récupérer la facture correspondante si elle existe
+    // Rï¿½cupï¿½rer la facture correspondante si elle existe
     const invoice = await prisma.invoice.findFirst({
       where: {
         providerId: provider.id,
@@ -118,7 +118,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('Error getting provider earnings:', error)
     return NextResponse.json(
-      { error: 'Erreur lors de la récupération des gains' },
+      { error: 'Erreur lors de la rï¿½cupï¿½ration des gains' },
       { status: 500 }
     )
   }

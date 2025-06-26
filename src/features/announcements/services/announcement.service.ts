@@ -35,53 +35,55 @@ class AnnouncementService {
         // Créer l'annonce principale
         const newAnnouncement = await tx.announcement.create({
           data: {
-            ...(userRole === 'CLIENT' ? { clientId: userId } : { merchantId: userId }),
+            authorId: userId,
             type: data.type,
             title: data.title,
             description: data.description,
-            startLocation: data.startLocation,
-            endLocation: data.endLocation,
-            desiredDate: new Date(data.desiredDate),
-            flexibleDates: data.flexibleDates,
-            dateRangeStart: data.dateRangeStart ? new Date(data.dateRangeStart) : null,
-            dateRangeEnd: data.dateRangeEnd ? new Date(data.dateRangeEnd) : null,
-            price: data.price,
+            pickupAddress: data.pickupAddress,
+            pickupLatitude: data.pickupLatitude,
+            pickupLongitude: data.pickupLongitude,
+            deliveryAddress: data.deliveryAddress,
+            deliveryLatitude: data.deliveryLatitude,
+            deliveryLongitude: data.deliveryLongitude,
+            pickupDate: data.pickupDate ? new Date(data.pickupDate) : null,
+            deliveryDate: data.deliveryDate ? new Date(data.deliveryDate) : null,
+            isFlexibleDate: data.isFlexibleDate || false,
+            preferredTimeSlot: data.preferredTimeSlot,
+            isUrgent: data.isUrgent || false,
+            basePrice: data.basePrice,
+            finalPrice: data.finalPrice || data.basePrice,
             currency: data.currency || 'EUR',
+            isPriceNegotiable: data.isPriceNegotiable || false,
+            urgencyFee: data.urgencyFee,
+            insuranceFee: data.insuranceFee,
+            platformFee: data.platformFee,
+            packageDetails: data.packageDetails,
+            personDetails: data.personDetails,
+            shoppingDetails: data.shoppingDetails,
+            petDetails: data.petDetails,
+            serviceDetails: data.serviceDetails,
+            requiresValidation: data.requiresValidation !== false,
+            requiresInsurance: data.requiresInsurance || false,
+            allowsPartialDelivery: data.allowsPartialDelivery || false,
+            maxDeliverers: data.maxDeliverers || 1,
+            estimatedDuration: data.estimatedDuration,
+            weight: data.weight,
+            volume: data.volume,
+            specialInstructions: data.specialInstructions,
+            customerNotes: data.customerNotes,
             status: 'ACTIVE',
             publishedAt: new Date()
           },
           include: {
-            client: {
+            author: {
               include: {
                 profile: {
                   select: { firstName: true, lastName: true, avatar: true }
                 }
               }
-            },
-            merchant: {
-              select: { id: true, companyName: true, contactEmail: true }
             }
           }
         })
-
-        // Ajouter les détails spécifiques selon le type
-        if (data.type === 'PACKAGE_DELIVERY' && data.packageDetails) {
-          await tx.packageAnnouncement.create({
-            data: {
-              announcementId: newAnnouncement.id,
-              ...data.packageDetails
-            }
-          })
-        }
-
-        if (['PERSON_TRANSPORT', 'AIRPORT_TRANSFER', 'SHOPPING', 'INTERNATIONAL_PURCHASE', 'PET_SITTING', 'HOME_SERVICE', 'CART_DROP'].includes(data.type) && data.serviceDetails) {
-          await tx.serviceAnnouncement.create({
-            data: {
-              announcementId: newAnnouncement.id,
-              ...data.serviceDetails
-            }
-          })
-        }
 
         return newAnnouncement
       })

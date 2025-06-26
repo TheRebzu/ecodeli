@@ -303,13 +303,7 @@ enum AssessmentStatus {
   CANCELLED              // Annulé
 }
 
-enum PaymentStatus {
-  PENDING                 // En attente
-  PROCESSING             // En cours de traitement
-  COMPLETED              // Terminé
-  FAILED                 // Échoué
-  CANCELLED              // Annulé
-}
+
 
 enum WarrantyType {
   SERVICE_QUALITY        // Qualité de service

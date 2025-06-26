@@ -144,7 +144,6 @@ model SupportKnowledgeBase {
   @@index([category])
   @@index([isPublic])
   @@index([isActive])
-  @@fulltext([title, content])
 }
 
 model SupportTemplate {

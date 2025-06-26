@@ -10,7 +10,9 @@ enum UserRole {
 
 enum ValidationStatus {
   PENDING
-  APPROVED
+  PENDING_DOCUMENTS
+  PENDING_VALIDATION
+  VALIDATED
   REJECTED
   SUSPENDED
 }
@@ -176,4 +178,21 @@ enum ContractStatus {
   ACTIVE
   SUSPENDED
   TERMINATED
+}
+
+enum GenerationStatus {
+  SUCCESS
+  FAILED
+  IN_PROGRESS
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  PREPARING
+  READY_FOR_PICKUP
+  IN_TRANSIT
+  DELIVERED
+  CANCELLED
+  REFUNDED
 } 

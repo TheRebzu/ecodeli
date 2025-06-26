@@ -8,18 +8,19 @@ import { useTranslations } from "next-intl"
 import { z } from "zod"
 
 const createAnnouncementSchema = z.object({
-  title: z.string().min(5, "Le titre doit contenir au moins 5 caractères"),
-  description: z.string().min(10, "La description doit contenir au moins 10 caractères"),
-  pickupAddress: z.string().min(5, "L'adresse de collecte est requise"),
-  deliveryAddress: z.string().min(5, "L'adresse de livraison est requise"),
-  weight: z.number().min(0.1, "Le poids doit être supérieur à 0").max(1000, "Poids maximum: 1000kg"),
+  title: z.string().min(5, 'Le titre doit faire au moins 5 caractères').max(100),
+  description: z.string().min(20, 'La description doit faire au moins 20 caractères').max(1000),
+  serviceType: z.enum(['PACKAGE_DELIVERY', 'HOME_SERVICE', 'CART_DROP', 'SHOPPING', 'PET_CARE']),
+  pickupAddress: z.string().min(10, 'Adresse de collecte requise'),
+  deliveryAddress: z.string().min(10, 'Adresse de livraison requise'),
+  weight: z.number().positive('Le poids doit être positif').max(50, 'Maximum 50kg'),
   dimensions: z.string().optional(),
-  price: z.number().min(1, "Le prix doit être supérieur à 0").max(10000, "Prix maximum: 10000€"),
-  pickupDate: z.string().min(1, "La date de collecte est requise"),
-  deliveryDeadline: z.string().min(1, "L'échéance de livraison est requise"),
-  serviceType: z.enum(['PACKAGE_DELIVERY', 'PERSON_TRANSPORT', 'SHOPPING', 'PET_CARE', 'HOME_SERVICE', 'CART_DROP']),
+  price: z.number().positive('Le prix doit être positif').max(10000, 'Prix maximum 10,000€'),
+  pickupDate: z.string(),
+  deliveryDeadline: z.string(),
   fragile: z.boolean().default(false),
-  urgent: z.boolean().default(false)
+  urgent: z.boolean().default(false),
+  specialInstructions: z.string().max(500).optional()
 })
 
 type CreateAnnouncementData = z.infer<typeof createAnnouncementSchema>
@@ -64,7 +65,7 @@ export function CreateAnnouncementForm() {
     setError(null)
 
     try {
-      const response = await fetch('/api/announcements', {
+      const response = await fetch('/api/client/announcements', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)
@@ -88,11 +89,10 @@ export function CreateAnnouncementForm() {
 
   const serviceTypes = [
     { value: 'PACKAGE_DELIVERY', label: '📦 Livraison de colis', description: 'Envoi de colis, documents, objets' },
-    { value: 'PERSON_TRANSPORT', label: '🚗 Transport de personne', description: 'Covoiturage, transport occasionnel' },
-    { value: 'SHOPPING', label: '🛒 Courses', description: 'Achat et livraison de produits' },
-    { value: 'PET_CARE', label: '🐕 Garde d\'animaux', description: 'Transport ou garde d\'animaux' },
-    { value: 'HOME_SERVICE', label: '🏠 Service à domicile', description: 'Nettoyage, jardinage, bricolage' },
-    { value: 'CART_DROP', label: '🛒 Lâcher de chariot', description: 'Livraison depuis un magasin partenaire' }
+    { value: 'HOME_SERVICE', label: '🛠️ Service à domicile', description: 'Nettoyage, jardinage, bricolage, réparations' },
+    { value: 'CART_DROP', label: '🛒 Lâcher de chariot', description: 'Livraison depuis un magasin partenaire' },
+    { value: 'SHOPPING', label: '🛒 Courses', description: 'Faire les courses pour le client' },
+    { value: 'PET_CARE', label: '🐕 Garde d\'animaux', description: 'Promenade, garde d\'animaux' }
   ]
 
   return (
@@ -215,7 +215,7 @@ export function CreateAnnouncementForm() {
             type="number"
             step="0.1"
             min="0.1"
-            max="1000"
+            max="50"
             id="weight"
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
           />
@@ -292,6 +292,23 @@ export function CreateAnnouncementForm() {
             <p className="mt-1 text-sm text-red-600">{errors.deliveryDeadline.message}</p>
           )}
         </div>
+      </div>
+
+      {/* Instructions spéciales */}
+      <div>
+        <label htmlFor="specialInstructions" className="block text-sm font-medium text-gray-700 mb-1">
+          Instructions spéciales
+        </label>
+        <textarea
+          {...register("specialInstructions")}
+          id="specialInstructions"
+          rows={3}
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+          placeholder="Instructions particulières pour la livraison..."
+        />
+        {errors.specialInstructions && (
+          <p className="mt-1 text-sm text-red-600">{errors.specialInstructions.message}</p>
+        )}
       </div>
 
       {/* Options */}

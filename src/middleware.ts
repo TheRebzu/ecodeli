@@ -1,223 +1,138 @@
-// Middleware Next.js pour EcoDeli - Gestion Auth + i18n
-import { NextRequest, NextResponse } from "next/server"
-import createIntlMiddleware from "next-intl/middleware"
+import { NextRequest, NextResponse } from 'next/server'
+import createIntlMiddleware from 'next-intl/middleware'
+import { auth } from "@/lib/auth"
 
-/**
- * Configuration des locales supportées par EcoDeli
- */
-export const locales = ["fr", "en"] as const
-export const defaultLocale = "fr" as const
-
-/**
- * Middleware internationalization
- */
 const intlMiddleware = createIntlMiddleware({
-  locales,
-  defaultLocale,
-  localePrefix: "always", // URLs toujours préfixées (/fr/dashboard, /en/dashboard)
-  localeDetection: true
+  locales: ['fr', 'en'],
+  defaultLocale: 'fr',
+  localePrefix: 'always'
 })
 
-/**
- * Routes publiques accessibles sans authentification
- */
-const publicRoutes = [
-  "/",
-  "/about",
-  "/services", 
-  "/pricing",
-  "/contact",
-  "/legal",
-  "/privacy",
-  "/terms",
-  "/faq",
-  "/become-delivery",
-  "/partners",
-  "/blog"
-]
-
-/**
- * Routes d'authentification
- */
-const authRoutes = [
-  "/login",
-  "/register",
-  "/forgot-password", 
-  "/reset-password",
-  "/verify-email",
-  "/two-factor"
-]
-
-/**
- * Routes d'administration (rôle ADMIN requis)
- */
-const adminRoutes = [
-  "/admin"
-]
-
-/**
- * Routes protégées par rôle
- */
-const roleRoutes = {
-  "/client": ["CLIENT"],
-  "/deliverer": ["DELIVERER"], 
-  "/merchant": ["MERCHANT"],
-  "/provider": ["PROVIDER"],
-  "/admin": ["ADMIN"]
-}
-
-/**
- * Vérifier si une route est publique
- */
-function isPublicRoute(pathname: string): boolean {
-  // Retirer le préfixe locale pour vérifier
-  const pathnameWithoutLocale = pathname.replace(/^\/[a-z]{2}/, "") || "/"
-  
-  return publicRoutes.some(route => {
-    if (route === "/") return pathnameWithoutLocale === "/"
-    return pathnameWithoutLocale.startsWith(route)
-  })
-}
-
-/**
- * Vérifier si une route est d'authentification
- */
-function isAuthRoute(pathname: string): boolean {
-  const pathnameWithoutLocale = pathname.replace(/^\/[a-z]{2}/, "") || "/"
-  
-  return authRoutes.some(route => pathnameWithoutLocale.startsWith(route))
-}
-
-/**
- * Obtenir le rôle requis pour une route
- */
-function getRequiredRole(pathname: string): string[] | null {
-  const pathnameWithoutLocale = pathname.replace(/^\/[a-z]{2}/, "") || "/"
-  
-  for (const [route, roles] of Object.entries(roleRoutes)) {
-    if (pathnameWithoutLocale.startsWith(route)) {
-      return roles
-    }
-  }
-  
-  return null
-}
-
-/**
- * Middleware principal combinant auth + i18n
- */
 export default async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname
   
-  // 0. Nettoyer les URLs avec des locales en double AVANT tout traitement
-  const pathParts = pathname.split('/')
-  if (pathParts.length >= 2 && locales.includes(pathParts[1] as any)) {
-    const locale = pathParts[1]
-    let hasDoubleLocale = false
+  // Skip middleware pour API routes et fichiers statiques
+  if (
+    pathname.startsWith('/api') ||
+    pathname.startsWith('/_next') ||
+    pathname.includes('.') ||
+    pathname.startsWith('/favicon') ||
+    pathname.startsWith('/robots') ||
+    pathname.startsWith('/sitemap')
+  ) {
+    return NextResponse.next()
+  }
+
+  // Éviter les doublons de locale AVANT l'internationalisation
+  const localePattern = /^\/(fr|en)\/(fr|en)\//
+  if (localePattern.test(pathname)) {
+    const correctedPath = pathname.replace(localePattern, '/$1/')
+    return NextResponse.redirect(new URL(correctedPath, request.url))
+  }
+
+  // Gérer l'internationalisation
+  const intlResponse = intlMiddleware(request)
+  
+  // Si redirection i18n nécessaire, l'appliquer
+  if (intlResponse?.status === 307 || intlResponse?.status === 302) {
+    return intlResponse
+  }
+  
+  // Routes publiques (incluant locales)
+  const publicRoutes = [
+    "/fr",
+    "/en", 
+    "/fr/home",
+    "/en/home",
+    "/fr/partners",
+    "/en/partners",
+    "/fr/login",
+    "/en/login",
+    "/fr/register", 
+    "/en/register",
+    "/fr/forgot-password",
+    "/en/forgot-password",
+    "/fr/reset-password",
+    "/en/reset-password",
+    "/fr/verify-email",
+    "/en/verify-email",
+    "/fr/403",
+    "/en/403",
+    "/fr/about",
+    "/en/about",
+    "/fr/contact",
+    "/en/contact",
+    "/fr/services",
+    "/en/services"
+  ]
+  
+  // Vérifier si c'est une route publique
+  const isPublicRoute = publicRoutes.some(route => 
+    pathname === route || pathname.startsWith(route + '/')
+  )
+  
+  if (isPublicRoute) {
+    return NextResponse.next()
+  }
+  
+  // Routes protégées - vérifier l'authentification
+  if (pathname.includes('/(protected)/') || 
+      pathname.includes('/client/') ||
+      pathname.includes('/admin/') ||
+      pathname.includes('/deliverer/') ||
+      pathname.includes('/merchant/') ||
+      pathname.includes('/provider/')) {
     
-    // Vérifier s'il y a des locales en double
-    for (let i = 2; i < pathParts.length; i++) {
-      if (pathParts[i] === locale) {
-        hasDoubleLocale = true
-        break
-      }
-    }
-    
-    if (hasDoubleLocale) {
-      // Supprimer toutes les occurrences en double de la locale
-      const cleanParts = [pathParts[0], locale]
+    try {
+      const session = await auth.api.getSession({
+        headers: request.headers,
+      })
       
-      for (let i = 2; i < pathParts.length; i++) {
-        if (pathParts[i] !== locale) {
-          cleanParts.push(pathParts[i])
+      if (!session?.user) {
+        // Extraire la locale de l'URL
+        const locale = pathname.split('/')[1] || 'fr'
+        const loginUrl = new URL(`/${locale}/login`, request.url)
+        loginUrl.searchParams.set("redirect", pathname)
+        return NextResponse.redirect(loginUrl)
+      }
+      
+      const user = session.user
+      
+      // Vérifier les permissions selon le rôle (Mission 1)
+      const roleChecks = [
+        { path: '/admin/', allowedRoles: ['ADMIN'] },
+        { path: '/client/', allowedRoles: ['CLIENT', 'ADMIN'] },
+        { path: '/deliverer/', allowedRoles: ['DELIVERER', 'ADMIN'] },
+        { path: '/merchant/', allowedRoles: ['MERCHANT', 'ADMIN'] },
+        { path: '/provider/', allowedRoles: ['PROVIDER', 'ADMIN'] }
+      ]
+      
+      for (const check of roleChecks) {
+        if (pathname.includes(check.path) && !check.allowedRoles.includes(user.role)) {
+          const locale = pathname.split('/')[1] || 'fr'
+          return NextResponse.redirect(new URL(`/${locale}/403`, request.url))
         }
       }
       
-      const cleanPath = cleanParts.join('/')
-      console.log(`🧹 Nettoyage URL: ${pathname} -> ${cleanPath}`)
+      // Vérifier si le compte est actif (Mission 1)
+      if (!user.isActive && user.role !== 'ADMIN') {
+        const locale = pathname.split('/')[1] || 'fr'
+        return NextResponse.redirect(new URL(`/${locale}/onboarding`, request.url))
+      }
       
-      return NextResponse.redirect(new URL(cleanPath + request.nextUrl.search, request.url))
+    } catch (error) {
+      console.error("Erreur middleware auth:", error)
+      const locale = pathname.split('/')[1] || 'fr'
+      return NextResponse.redirect(new URL(`/${locale}/login`, request.url))
     }
   }
-  
-  // 1. Appliquer d'abord le middleware i18n
-  const intlResponse = intlMiddleware(request)
-  
-  // Si intl retourne une réponse (redirection), on l'utilise
-  if (intlResponse.status !== 200) {
-    return intlResponse
-  }
-  
-  // 2. Gestion basique de l'authentification via cookies
-  const authToken = request.cookies.get('auth-token')?.value
-  
-  // Debug: vérifier la présence du token
-  if (authToken) {
-    console.log(`🔑 Token trouvé pour ${pathname}`)
-  } else {
-    console.log(`❌ Pas de token pour ${pathname}`)
-  }
-  
-  // Route publique -> Continuer
-  if (isPublicRoute(pathname)) {
-    return intlResponse
-  }
-  
-  // Route d'auth + utilisateur connecté -> Rediriger vers dashboard par défaut
-  if (isAuthRoute(pathname) && authToken) {
-    const locale = pathname.split("/")[1]
-    // Redirection par défaut vers client, sera ajustée côté serveur
-    return NextResponse.redirect(new URL(`/${locale}/client`, request.url))
-  }
-  
-  // Route d'auth + pas connecté -> Continuer
-  if (isAuthRoute(pathname)) {
-    return intlResponse
-  }
-  
-  // Route protégée + pas connecté -> Rediriger vers login
-  if (!authToken) {
-    const locale = pathname.split("/")[1] || defaultLocale
-    const loginUrl = `/${locale}/login`
-    // Retirer la locale du pathname pour éviter les doubles locales dans callbackUrl
-    const pathnameWithoutLocale = pathname.replace(/^\/[a-z]{2}/, "") || "/"
-    const cleanCallbackUrl = `/${locale}${pathnameWithoutLocale}`
-    const callbackUrl = encodeURIComponent(cleanCallbackUrl)
-    
-    console.log(`🔀 Middleware redirect: ${pathname} -> ${loginUrl}?callbackUrl=${callbackUrl}`)
-    
-    return NextResponse.redirect(new URL(`${loginUrl}?callbackUrl=${callbackUrl}`, request.url))
-  }
-  
-  // Pour les routes protégées avec token, on laisse le serveur gérer les permissions
-  // Les vérifications de rôle seront faites côté serveur avec accès à la DB
-  
-  return intlResponse
+
+  return NextResponse.next()
 }
 
-/**
- * Obtenir l'URL du dashboard selon le rôle
- */
-function getDashboardUrl(role: string, locale: string): string {
-  const baseDashboards = {
-    CLIENT: "client",
-    DELIVERER: "deliverer", 
-    MERCHANT: "merchant",
-    PROVIDER: "provider",
-    ADMIN: "admin"
-  }
-  
-  const dashboard = baseDashboards[role as keyof typeof baseDashboards] || "client"
-  return `/${locale}/${dashboard}`
-}
-
-/**
- * Configuration du matcher pour Next.js
- * Exclut les fichiers statiques et API routes
- */
 export const config = {
   matcher: [
-    // Inclure toutes les routes sauf :
-    "/((?!api|_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml|.*\\.).*)"
+    // Exclure explicitement toutes les API routes
+    '/((?!api|_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml).*)',
   ]
 }

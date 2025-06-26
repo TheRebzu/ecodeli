@@ -16,10 +16,11 @@
     "test:watch": "jest --watch",
     "format": "prettier --write .",
     "type-check": "tsc --noEmit",
-    "prisma:merge": "prisma-merge -b prisma/schema.prisma -s prisma/schemas -o prisma/merged.prisma",
-    "prisma:generate": "pnpm run prisma:merge && prisma generate --schema=prisma/merged.prisma"
+    "prisma:merge": "node prisma/merge-schemas.js",
+    "prisma:generate": "pnpm run prisma:merge && prisma generate"
   },
   "dependencies": {
+    "@better-auth/cli": "^1.2.10",
     "@hookform/resolvers": "^5.1.1",
     "@opentelemetry/auto-instrumentations-node": "^0.60.1",
     "@opentelemetry/instrumentation": "^0.202.0",
@@ -87,7 +88,7 @@
     "next": "15.3.4",
     "next-intl": "^4.3.1",
     "next-themes": "^0.4.6",
-    "node-fetch": "^2.7.0",
+    "node-fetch": "^3.3.2",
     "nodemailer": "^7.0.3",
     "onesignal-node": "^3.4.0",
     "openapi-types": "^12.1.3",

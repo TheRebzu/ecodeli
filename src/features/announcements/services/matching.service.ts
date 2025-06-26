@@ -20,9 +20,7 @@ class MatchingService {
       const announcement = await prisma.announcement.findUnique({
         where: { id: announcementId },
         include: { 
-          routeMatches: true,
-          packageDetails: true,
-          serviceDetails: true 
+          matches: true
         }
       })
 
@@ -32,12 +30,17 @@ class MatchingService {
 
       // Rechercher les trajets compatibles dans la fenêtre temporelle
       const timeWindow = 24 * 60 * 60 * 1000 // 24 heures
-      const compatibleRoutes = await prisma.route.findMany({
+      const pickupDate = announcement.pickupDate || announcement.deliveryDate
+      if (!pickupDate) return []
+
+      const compatibleRoutes = await prisma.delivererRoute.findMany({
         where: {
-          status: 'ACTIVE',
-          departureTime: {
-            gte: new Date(announcement.desiredDate.getTime() - timeWindow),
-            lte: new Date(announcement.desiredDate.getTime() + timeWindow)
+          isActive: true,
+          startDate: {
+            lte: new Date(pickupDate.getTime() + timeWindow)
+          },
+          endDate: {
+            gte: new Date(pickupDate.getTime() - timeWindow)
           }
         },
         include: {
@@ -55,32 +58,41 @@ class MatchingService {
 
       for (const route of compatibleRoutes) {
         // Vérifier si le match existe déjà
-        const existingMatch = announcement.routeMatches.find(m => m.routeId === route.id)
+        const existingMatch = announcement.matches.find(m => m.routeId === route.id)
         if (existingMatch) continue
 
-        const score = this.calculateMatchScore(announcement, route)
+        const scores = this.calculateDetailedMatchScore(announcement, route)
         
-        if (score >= 60) { // Seuil minimum de 60%
+        if (scores.globalScore >= 0.6) { // Seuil minimum de 60%
           const matchResult: MatchingResult = {
             routeId: route.id,
             announcementId: announcementId,
-            score: score,
+            score: scores.globalScore * 100,
             deliverer: route.deliverer
           }
           
           newMatches.push(matchResult)
 
-          // Créer le match en base
-          await prisma.routeAnnouncementMatch.create({
+          // Créer le match en base avec scores détaillés
+          await prisma.routeMatch.create({
             data: {
               routeId: route.id,
               announcementId: announcementId,
-              matchScore: score
+              delivererId: route.delivererId,
+              distanceScore: scores.distanceScore,
+              timeScore: scores.timeScore,
+              capacityScore: scores.capacityScore,
+              typeScore: scores.typeScore,
+              globalScore: scores.globalScore,
+              pickupDetour: scores.pickupDetour,
+              deliveryDetour: scores.deliveryDetour,
+              estimatedDuration: scores.estimatedDuration,
+              expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000) // 24h pour répondre
             }
           })
 
           // Envoyer notification OneSignal au livreur
-          await this.sendMatchNotification(route.deliverer, announcement, score)
+          await this.sendMatchNotification(route.deliverer, announcement, scores.globalScore * 100)
         }
       }
 
@@ -93,50 +105,96 @@ class MatchingService {
   }
 
   /**
-   * Calcule le score de matching entre une annonce et un trajet
-   * Algorithme selon les spécifications EcoDeli
+   * Calcule le score de matching détaillé entre une annonce et un trajet
    */
-  private calculateMatchScore(announcement: any, route: any): number {
-    let score = 0
-    let maxScore = 0
-
+  private calculateDetailedMatchScore(announcement: any, route: any): {
+    distanceScore: number,
+    timeScore: number,
+    capacityScore: number,
+    typeScore: number,
+    globalScore: number,
+    pickupDetour: number,
+    deliveryDetour: number,
+    estimatedDuration: number
+  } {
     // 1. Distance géographique (40% du score)
     const distanceScore = this.calculateDistanceScore(announcement, route)
-    score += distanceScore * 0.4
-    maxScore += 40
-
+    
     // 2. Compatibilité temporelle (30% du score)
     const timeScore = this.calculateTimeScore(announcement, route)
-    score += timeScore * 0.3
-    maxScore += 30
-
+    
     // 3. Compatibilité du type de service (20% du score)
-    const serviceScore = this.calculateServiceCompatibilityScore(announcement, route)
-    score += serviceScore * 0.2
-    maxScore += 20
-
+    const typeScore = this.calculateServiceCompatibilityScore(announcement, route)
+    
     // 4. Capacité disponible (10% du score)
     const capacityScore = this.calculateCapacityScore(announcement, route)
-    score += capacityScore * 0.1
-    maxScore += 10
 
-    return Math.round(score)
+    // Calcul des détours
+    const pickupDetour = this.calculateDetour(announcement, route, 'pickup')
+    const deliveryDetour = this.calculateDetour(announcement, route, 'delivery')
+    
+    // Estimation de la durée ajoutée
+    const estimatedDuration = Math.round((pickupDetour + deliveryDetour) * 3) // 3 min par km
+
+    // Score global pondéré
+    const globalScore = (
+      distanceScore * 0.4 +
+      timeScore * 0.3 +
+      typeScore * 0.2 +
+      capacityScore * 0.1
+    )
+
+    return {
+      distanceScore: distanceScore / 100,
+      timeScore: timeScore / 100,
+      capacityScore: capacityScore / 100,
+      typeScore: typeScore / 100,
+      globalScore: globalScore / 100,
+      pickupDetour,
+      deliveryDetour,
+      estimatedDuration
+    }
+  }
+
+  /**
+   * Calcule le détour nécessaire pour un point donné
+   */
+  private calculateDetour(announcement: any, route: any, point: 'pickup' | 'delivery'): number {
+    const announcementLat = point === 'pickup' ? announcement.pickupLatitude : announcement.deliveryLatitude
+    const announcementLng = point === 'pickup' ? announcement.pickupLongitude : announcement.deliveryLongitude
+    
+    if (!announcementLat || !announcementLng) return 0
+
+    // Distance entre le point de l'annonce et le début du trajet
+    const distanceFromStart = this.calculateDistance(
+      { lat: announcementLat, lng: announcementLng },
+      { lat: route.startLatitude, lng: route.startLongitude }
+    )
+
+    // Distance entre le point de l'annonce et la fin du trajet  
+    const distanceFromEnd = this.calculateDistance(
+      { lat: announcementLat, lng: announcementLng },
+      { lat: route.endLatitude, lng: route.endLongitude }
+    )
+
+    // Le détour est la distance minimale par rapport au trajet direct
+    return Math.min(distanceFromStart, distanceFromEnd)
   }
 
   /**
    * Score basé sur la distance géographique
    */
   private calculateDistanceScore(announcement: any, route: any): number {
-    const startDistance = this.calculateDistance(
-      announcement.startLocation,
-      route.startLocation
+    const pickupDistance = this.calculateDistance(
+      { lat: announcement.pickupLatitude, lng: announcement.pickupLongitude },
+      { lat: route.startLatitude, lng: route.startLongitude }
     )
-    const endDistance = this.calculateDistance(
-      announcement.endLocation,
-      route.endLocation
+    const deliveryDistance = this.calculateDistance(
+      { lat: announcement.deliveryLatitude, lng: announcement.deliveryLongitude },
+      { lat: route.endLatitude, lng: route.endLongitude }
     )
 
-    const avgDistance = (startDistance + endDistance) / 2
+    const avgDistance = (pickupDistance + deliveryDistance) / 2
 
     if (avgDistance <= 5) return 100      // Distance parfaite
     if (avgDistance <= 10) return 80      // Très proche
@@ -150,8 +208,11 @@ class MatchingService {
    * Score basé sur la compatibilité temporelle
    */
   private calculateTimeScore(announcement: any, route: any): number {
+    const announcementDate = announcement.pickupDate || announcement.deliveryDate
+    if (!announcementDate) return 0
+
     const timeDiff = Math.abs(
-      announcement.desiredDate.getTime() - route.departureTime.getTime()
+      announcementDate.getTime() - route.startDate.getTime()
     )
     const hoursDiff = timeDiff / (1000 * 60 * 60)
 
@@ -179,13 +240,17 @@ class MatchingService {
    * Score basé sur la capacité disponible
    */
   private calculateCapacityScore(announcement: any, route: any): number {
-    const requiredCapacity = this.getRequiredCapacity(announcement)
-    const availableCapacity = route.availableCapacity || 100
+    const requiredWeight = announcement.weight || this.getRequiredCapacity(announcement)
+    const requiredVolume = announcement.volume || 1
+    const maxWeight = route.maxWeight || 100
+    const maxVolume = route.maxVolume || 100
 
-    if (availableCapacity >= requiredCapacity * 2) return 100  // Large capacité
-    if (availableCapacity >= requiredCapacity * 1.5) return 80 // Bonne capacité
-    if (availableCapacity >= requiredCapacity) return 60       // Capacité juste
-    return 0                                                   // Capacité insuffisante
+    // Vérifier à la fois le poids et le volume
+    const weightScore = maxWeight >= requiredWeight ? 100 : 0
+    const volumeScore = maxVolume >= requiredVolume ? 100 : 0
+
+    // Retourner le score minimum (capacité limitante)
+    return Math.min(weightScore, volumeScore)
   }
 
   /**
@@ -237,16 +302,31 @@ class MatchingService {
   private getRequiredCapacity(announcement: any): number {
     switch (announcement.type) {
       case 'PACKAGE_DELIVERY':
-        return announcement.packageDetails?.weight || 1
+        if (announcement.packageDetails?.weight) {
+          return announcement.packageDetails.weight
+        }
+        return announcement.weight || 1
       
       case 'PERSON_TRANSPORT':
       case 'AIRPORT_TRANSFER':
-        return announcement.serviceDetails?.numberOfPeople || 1
+        if (announcement.personDetails?.numberOfPeople) {
+          return announcement.personDetails.numberOfPeople
+        }
+        return 1
       
       case 'SHOPPING':
       case 'CART_DROP':
+        if (announcement.shoppingDetails?.estimatedWeight) {
+          return announcement.shoppingDetails.estimatedWeight
+        }
         // Estimation basée sur le prix
-        return Math.ceil(announcement.price / 50) // 1 unité par 50€
+        return Math.ceil((announcement.finalPrice || announcement.basePrice) / 50) // 1 kg par 50€
+      
+      case 'PET_SITTING':
+        if (announcement.petDetails?.weight) {
+          return announcement.petDetails.weight
+        }
+        return 10 // Poids moyen d'un animal
       
       default:
         return 1

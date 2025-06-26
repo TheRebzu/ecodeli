@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import { useRouter } from "@/i18n/navigation"
 import { useTranslations } from "next-intl"
-// Importer notre authentification simple quand disponible
+// Importer notre authentification Better-Auth
 
 interface ClientLayoutProps {
   children: React.ReactNode
@@ -19,7 +19,7 @@ export default function ClientLayout({ children }: ClientLayoutProps) {
   const isAuthenticated = true
 
   useEffect(() => {
-    // Simulation d'une vérification d'auth simple pour l'instant
+    // Vérification d'authentification avec Better-Auth
     const timer = setTimeout(() => {
       setIsLoading(false)
     }, 1000)
@@ -31,8 +31,8 @@ export default function ClientLayout({ children }: ClientLayoutProps) {
     try {
       setIsLoggingOut(true)
       
-      // Déconnexion simple avec fetch
-      await fetch('/api/auth/simple-logout', { method: 'POST' })
+      // Déconnexion avec Better-Auth
+      await fetch('/api/auth/logout', { method: 'POST' })
       
       // Redirection manuelle après déconnexion
       router.push('/fr/login')

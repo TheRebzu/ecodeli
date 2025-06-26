@@ -48,10 +48,16 @@ export function ClientRegisterForm() {
 
       console.log('📤 Envoi des données:', apiData)
 
-      const response = await fetch('/api/auth/register/client', {
+      const response = await fetch('/api/auth/sign-up', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(apiData)
+        body: JSON.stringify({
+          email: data.email,
+          password: data.password,
+          name: `${data.firstName} ${data.lastName}`,
+          role: 'CLIENT',
+          ...apiData
+        })
       })
 
       const result = await response.json()

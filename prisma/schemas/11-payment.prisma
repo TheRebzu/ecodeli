@@ -3,7 +3,7 @@
 model Payment {
   id                String              @id @default(cuid())
   userId            String
-  announcementId    String?
+  announcementId    String?             @unique
   deliveryId        String?             @unique
   bookingId         String?             @unique
   clientId          String?

@@ -4,7 +4,7 @@ import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useTranslations } from "next-intl"
-import { useAuth } from "@/lib/auth-client-simple"
+import { useSession } from "@/lib/auth-client"
 import { loginSchema, type LoginData } from "@/features/auth/schemas/auth.schema"
 import { Link, useRouter } from "@/i18n/navigation"
 
@@ -89,8 +89,8 @@ export function LoginForm() {
         return
       }
 
-      // Essayer de se connecter avec notre API simple JWT
-      const response = await fetch('/api/auth/simple-login', {
+              // Connexion avec Better-Auth
+      const response = await fetch('/api/auth/sign-in', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

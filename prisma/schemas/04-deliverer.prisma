@@ -69,27 +69,7 @@ model DelivererAvailability {
   @@index([dayOfWeek])
 }
 
-model Route {
-  id                String              @id @default(cuid())
-  delivererId       String
-  startLocation     Json                // {address, city, postalCode, lat, lng}
-  endLocation       Json                // {address, city, postalCode, lat, lng}
-  departureDate     DateTime
-  arrivalDate       DateTime
-  availableWeight   Float?
-  availableVolume   Float?
-  pricePerKg        Float?
-  isActive          Boolean             @default(true)
-  createdAt         DateTime            @default(now())
-  updatedAt         DateTime            @updatedAt
 
-  // Relations
-  deliverer         Deliverer           @relation(fields: [delivererId], references: [id], onDelete: Cascade)
-  matchedAnnouncements RouteAnnouncementMatch[]
-  
-  @@index([delivererId])
-  @@index([departureDate])
-}
 
 model NFCCard {
   id                String              @id @default(cuid())

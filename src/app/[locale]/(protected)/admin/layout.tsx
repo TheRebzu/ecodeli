@@ -44,7 +44,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
 
   const handleLogout = async () => {
     try {
-      await fetch('/api/auth/simple-logout', { method: 'POST' })
+      await fetch('/api/auth/logout', { method: 'POST' })
       router.push('/fr/login')
     } catch (error) {
       console.error('Erreur lors de la déconnexion:', error)

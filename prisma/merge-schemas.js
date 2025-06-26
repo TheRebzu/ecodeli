@@ -32,3 +32,14 @@ files.forEach((file) => {
 fs.writeFileSync(outputFile, mergedContent);
 
 console.log("✅ Schemas merged successfully!");
+
+// Formatter le schéma automatiquement pour corriger les relations
+console.log("🔧 Formatting schema...");
+const { execSync } = require('child_process');
+
+try {
+  execSync('npx prisma format', { stdio: 'inherit' });
+  console.log("✅ Schema formatted successfully!");
+} catch (error) {
+  console.error('❌ Error formatting schema:', error.message);
+}

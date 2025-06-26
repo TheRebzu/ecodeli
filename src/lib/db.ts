@@ -17,6 +17,9 @@ export const prisma = globalForPrisma.prisma ?? new PrismaClient({
   }
 })
 
+// Export db comme alias pour Better-Auth
+export const db = prisma
+
 // En développement, on garde l'instance en global pour éviter les reconnexions
 if (process.env.NODE_ENV !== "production") {
   globalForPrisma.prisma = prisma
