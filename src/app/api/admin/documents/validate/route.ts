@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { prisma } from '@/lib/db'
-import { requireRole } from '@/lib/auth/utils'
+import { getCurrentUser } from '@/lib/auth-simple'
 import { EcoDeliNotifications } from '@/features/notifications/services/notification.service'
 
 /**
@@ -9,8 +9,8 @@ import { EcoDeliNotifications } from '@/features/notifications/services/notifica
  */
 const validateDocumentSchema = z.object({
   documentId: z.string().cuid(),
-  action: z.enum(['APPROVE', 'REJECT']),
-  reason: z.string().optional()
+  status: z.enum(['APPROVED', 'REJECTED']),
+  notes: z.string().optional()
 })
 
 /**
@@ -19,23 +19,24 @@ const validateDocumentSchema = z.object({
  */
 export async function POST(request: NextRequest) {
   try {
-    const admin = await requireRole(request, ['ADMIN'])
+    const user = await getCurrentUser()
+    
+    if (!user || user.role !== 'ADMIN') {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
     const body = await request.json()
     
-    const { documentId, action, reason } = validateDocumentSchema.parse(body)
+    const { documentId, status, notes } = validateDocumentSchema.parse(body)
 
     // Récupérer le document avec utilisateur
     const document = await prisma.document.findUnique({
       where: { id: documentId },
       include: {
-        profile: {
+        user: {
           include: {
-            user: {
-              include: {
-                deliverer: true,
-                provider: true
-              }
-            }
+            deliverer: true,
+            provider: true
           }
         }
       }
@@ -49,39 +50,24 @@ export async function POST(request: NextRequest) {
     const updatedDocument = await prisma.document.update({
       where: { id: documentId },
       data: {
-        status: action === 'APPROVE' ? 'APPROVED' : 'REJECTED',
-        validatedBy: admin.id,
+        validationStatus: status,
+        validatedBy: user.id,
         validatedAt: new Date(),
-        rejectionReason: action === 'REJECT' ? reason : null
+        rejectionReason: status === 'REJECTED' ? notes : null
       }
     })
 
-    const user = document.profile.user
-
-    // Notifier l'utilisateur
-    if (action === 'APPROVE') {
-      await EcoDeliNotifications.documentsApproved(user.id, user.role)
-    } else {
-      await EcoDeliNotifications.documentsRejected(user.id, reason || 'Non conforme')
-    }
+    const documentUser = document.user
 
     // Vérifier si tous les documents obligatoires sont approuvés
-    if (action === 'APPROVE') {
-      await checkAllDocumentsValidated(user)
+    if (status === 'APPROVED') {
+      await checkAllDocumentsValidated(documentUser)
     }
-
-    // Logger l'action admin
-    await logAdminAction(admin.id, 'DOCUMENT_VALIDATION', {
-      documentId,
-      action,
-      userId: user.id,
-      userRole: user.role
-    })
 
     return NextResponse.json({
       success: true,
       document: updatedDocument,
-      message: `Document ${action === 'APPROVE' ? 'approuvé' : 'rejeté'} avec succès`
+      message: `Document ${status === 'APPROVED' ? 'approuvé' : 'rejeté'} avec succès`
     })
 
   } catch (error) {
@@ -179,8 +165,8 @@ async function checkAllDocumentsValidated(user: any) {
 
   const approvedDocs = await prisma.document.findMany({
     where: {
-      profile: { userId: user.id },
-      status: 'APPROVED',
+      userId: user.id,
+      validationStatus: 'APPROVED',
       type: { in: requiredDocs }
     }
   })
@@ -198,7 +184,10 @@ async function checkAllDocumentsValidated(user: any) {
     } else if (user.provider) {
       await prisma.provider.update({
         where: { userId: user.id },
-        data: { validationStatus: 'APPROVED' }
+        data: { 
+          validationStatus: 'APPROVED',
+          isAvailable: true
+        }
       })
     }
 
