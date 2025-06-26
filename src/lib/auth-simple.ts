@@ -129,11 +129,11 @@ export async function signIn(email: string, password: string): Promise<{
 
     const token = generateToken(authUser)
 
-    // Mettre à jour la dernière connexion
-    await prisma.user.update({
-      where: { id: user.id },
-      data: { lastLoginAt: new Date() }
-    })
+    // TODO: Mettre à jour la dernière connexion quand le champ lastLoginAt sera ajouté
+    // await prisma.user.update({
+    //   where: { id: user.id },
+    //   data: { lastLoginAt: new Date() }
+    // })
 
     return {
       success: true,
@@ -195,16 +195,16 @@ export async function signUp(data: {
       }
     })
 
-    // Créer le profil spécialisé selon le rôle
-    if (user.role === "CLIENT") {
-      await prisma.client.create({
-        data: {
-          userId: user.id,
-          subscriptionPlan: "FREE",
-          tutorialCompleted: false
-        }
-      })
-    }
+    // TODO: Créer le profil spécialisé selon le rôle quand les modèles seront disponibles
+    // if (user.role === "CLIENT") {
+    //   await prisma.client.create({
+    //     data: {
+    //       userId: user.id,
+    //       subscriptionPlan: "FREE",
+    //       tutorialCompleted: false
+    //     }
+    //   })
+    // }
 
     const authUser: AuthUser = {
       id: user.id,

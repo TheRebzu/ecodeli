@@ -4,3 +4,7 @@ globs:
 alwaysApply: false
 ---
 always use api route if existe create if not and never mock data
+
+do not use linux commands : 
+
+&& while no work as you are on windows

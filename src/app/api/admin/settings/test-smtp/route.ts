@@ -15,7 +15,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Configuration du transporteur de test
-    const transporter = nodemailer.createTransporter({
+    const transporter = nodemailer.createTransport({
       host,
       port: parseInt(port),
       secure: secure === true, // true pour 465, false pour 587
