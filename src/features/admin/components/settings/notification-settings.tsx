@@ -10,6 +10,7 @@ import { Separator } from '@/components/ui/separator'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
+import { useToast } from '@/components/ui/use-toast'
 import { 
   Bell, 
   MessageSquare, 
@@ -18,7 +19,8 @@ import {
   Settings,
   CheckCircle,
   AlertTriangle,
-  Globe
+  Globe,
+  Loader2
 } from 'lucide-react'
 
 interface NotificationSettingsProps {
@@ -26,6 +28,9 @@ interface NotificationSettingsProps {
 }
 
 export function NotificationSettings({ onSettingsChange }: NotificationSettingsProps) {
+  const { toast } = useToast()
+  const [isTestingSMTP, setIsTestingSMTP] = useState(false)
+
   const [settings, setSettings] = useState({
     // Configuration OneSignal
     onesignalEnabled: true,
@@ -48,6 +53,13 @@ export function NotificationSettings({ onSettingsChange }: NotificationSettingsP
     emailFromAddress: 'noreply@ecodeli.fr',
     emailFromName: 'EcoDeli',
     emailReplyTo: 'support@ecodeli.fr',
+    
+    // Configuration SMTP (nouveaux champs)
+    smtpHost: 'mail.celian-vf.fr',
+    smtpPort: 587,
+    smtpUser: '',
+    smtpPassword: '',
+    smtpSecure: false,
     
     // Configuration SMS
     smsEnabled: false,
@@ -98,7 +110,7 @@ export function NotificationSettings({ onSettingsChange }: NotificationSettingsP
     setSettings(prev => ({
       ...prev,
       [parentKey]: {
-        ...prev[parentKey as keyof typeof prev],
+        ...(prev[parentKey as keyof typeof prev] as Record<string, any>),
         [childKey]: value
       }
     }))
@@ -117,6 +129,61 @@ export function NotificationSettings({ onSettingsChange }: NotificationSettingsP
       }
     }))
     onSettingsChange()
+  }
+
+  const testSMTPConfiguration = async () => {
+    if (!settings.smtpHost || !settings.smtpPort || !settings.smtpUser || !settings.smtpPassword || !settings.emailFromAddress) {
+      toast({
+        title: "Configuration incomplète",
+        description: "Veuillez remplir tous les champs SMTP avant de tester.",
+        variant: "destructive"
+      })
+      return
+    }
+
+    setIsTestingSMTP(true)
+    
+    try {
+      const response = await fetch('/api/admin/settings/test-smtp', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          host: settings.smtpHost,
+          port: settings.smtpPort,
+          user: settings.smtpUser,
+          password: settings.smtpPassword,
+          secure: settings.smtpSecure,
+          fromAddress: settings.emailFromAddress
+        })
+      })
+
+      const result = await response.json()
+
+      if (response.ok) {
+        toast({
+          title: "Test SMTP réussi",
+          description: "La configuration SMTP fonctionne correctement. Un email de test a été envoyé.",
+          variant: "default"
+        })
+      } else {
+        toast({
+          title: "Test SMTP échoué",
+          description: result.error || "Erreur lors du test de la configuration SMTP.",
+          variant: "destructive"
+        })
+      }
+    } catch (error) {
+      console.error('Erreur lors du test SMTP:', error)
+      toast({
+        title: "Erreur de connexion",
+        description: "Impossible de contacter le serveur pour tester la configuration SMTP.",
+        variant: "destructive"
+      })
+    } finally {
+      setIsTestingSMTP(false)
+    }
   }
 
   return (
@@ -321,6 +388,122 @@ export function NotificationSettings({ onSettingsChange }: NotificationSettingsP
           </div>
         </CardContent>
       </Card>
+
+      {/* Configuration SMTP */}
+      {settings.emailProvider === 'smtp' && (
+        <>
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2">
+                <Mail className="h-5 w-5" />
+                <span>Configuration SMTP</span>
+                <Badge variant="outline">SMTP</Badge>
+              </CardTitle>
+              <CardDescription>
+                Paramètres pour l'envoi d'emails via SMTP. Configurez votre serveur SMTP personnalisé.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="smtpHost">Serveur SMTP</Label>
+                  <Input
+                    id="smtpHost"
+                    value={settings.smtpHost}
+                    onChange={(e) => handleChange('smtpHost', e.target.value)}
+                    placeholder="mail.celian-vf.fr"
+                  />
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Adresse du serveur SMTP (ex: smtp.gmail.com, mail.votre-domaine.com)
+                  </p>
+                </div>
+                
+                <div>
+                  <Label htmlFor="smtpPort">Port</Label>
+                  <Input
+                    id="smtpPort"
+                    type="number"
+                    value={settings.smtpPort}
+                    onChange={(e) => handleChange('smtpPort', parseInt(e.target.value))}
+                    min="1"
+                    max="65535"
+                  />
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Port SMTP (587 pour STARTTLS, 465 pour SSL, 25 pour non sécurisé)
+                  </p>
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="smtpUser">Utilisateur</Label>
+                  <Input
+                    id="smtpUser"
+                    value={settings.smtpUser}
+                    onChange={(e) => handleChange('smtpUser', e.target.value)}
+                    placeholder="nom_utilisateur"
+                  />
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Nom d'utilisateur pour l'authentification SMTP
+                  </p>
+                </div>
+                
+                <div>
+                  <Label htmlFor="smtpPassword">Mot de passe</Label>
+                  <Input
+                    id="smtpPassword"
+                    value={settings.smtpPassword}
+                    onChange={(e) => handleChange('smtpPassword', e.target.value)}
+                    placeholder="mot_de_passe"
+                    type="password"
+                  />
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Mot de passe pour l'authentification SMTP
+                  </p>
+                </div>
+              </div>
+              
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label>Sécurité SMTP</Label>
+                  <p className="text-sm text-muted-foreground">
+                    Activer la connexion sécurisée (SSL/TLS)
+                  </p>
+                </div>
+                <Switch
+                  checked={settings.smtpSecure}
+                  onCheckedChange={(checked) => handleChange('smtpSecure', checked)}
+                />
+              </div>
+              
+              <div className="bg-blue-50 p-4 rounded-lg">
+                <h4 className="font-medium text-blue-900 mb-2">💡 Conseils de configuration</h4>
+                <ul className="text-sm text-blue-800 space-y-1">
+                  <li>• <strong>Gmail:</strong> smtp.gmail.com, port 587, STARTTLS activé</li>
+                  <li>• <strong>Outlook:</strong> smtp-mail.outlook.com, port 587, STARTTLS activé</li>
+                  <li>• <strong>OVH:</strong> ssl0.ovh.net, port 465, SSL activé</li>
+                  <li>• <strong>Serveur local:</strong> Vérifiez avec votre administrateur</li>
+                </ul>
+              </div>
+              
+              <div className="flex justify-end">
+                <Button 
+                  variant="outline" 
+                  onClick={testSMTPConfiguration}
+                  disabled={isTestingSMTP}
+                >
+                  {isTestingSMTP ? (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <Mail className="h-4 w-4 mr-2" />
+                  )}
+                  {isTestingSMTP ? 'Test en cours...' : 'Tester la configuration SMTP'}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </>
+      )}
 
       {/* Configuration SMS */}
       <Card>
