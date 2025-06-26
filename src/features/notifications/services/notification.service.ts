@@ -487,3 +487,7 @@ export class NotificationService {
     }
   }
 }
+
+// Export par défaut pour l'import simple
+export const notificationService = NotificationService
+export default NotificationService

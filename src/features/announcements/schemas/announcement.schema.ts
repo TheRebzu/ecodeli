@@ -191,9 +191,36 @@ export const createAnnouncementSchema = baseAnnouncementSchema.and(
 )
 
 // Schema pour mise à jour d'annonce
-export const updateAnnouncementSchema = createAnnouncementSchema.partial().extend({
+export const updateAnnouncementSchema = z.object({
   id: z.string().min(1, 'ID requis'),
-  status: announcementStatusSchema.optional()
+  title: z.string().min(5).max(100).optional(),
+  description: z.string().min(20).max(1000).optional(),
+  type: announcementTypeSchema.optional(),
+  startLocation: locationSchema.optional(),
+  endLocation: locationSchema.optional(),
+  desiredDate: z.string().datetime().optional(),
+  flexibleDates: z.boolean().optional(),
+  dateRangeStart: z.string().datetime().optional(),
+  dateRangeEnd: z.string().datetime().optional(),
+  price: z.number().positive().max(10000).optional(),
+  currency: z.string().optional(),
+  urgent: z.boolean().optional(),
+  specialInstructions: z.string().max(500).optional(),
+  status: announcementStatusSchema.optional(),
+  // Détails optionnels selon le type
+  packageDetails: packageDetailsSchema.optional(),
+  serviceDetails: serviceDetailsSchema.optional(),
+  cartDropDetails: cartDropDetailsSchema.optional(),
+  shoppingDetails: z.object({
+    shoppingList: z.array(z.object({
+      item: z.string().min(2),
+      quantity: z.number().positive(),
+      specifications: z.string().optional()
+    })),
+    budget: z.number().positive(),
+    preferredStores: z.array(z.string()).optional(),
+    paymentMethod: z.enum(['CASH', 'CARD', 'TRANSFER']).optional()
+  }).optional()
 })
 
 // Schema pour recherche d'annonces

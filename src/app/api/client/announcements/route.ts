@@ -2,13 +2,13 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createAnnouncementSchema } from '@/features/announcements/schemas/announcement.schema'
 import { announcementService } from '@/features/announcements/services/announcement.service'
 import { matchingService } from '@/features/announcements/services/matching.service'
-import { auth } from '@/lib/auth'
+import { getUserFromSession } from '@/lib/auth/utils'
 import { db } from '@/lib/db'
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await auth()
-    if (!session?.user) {
+    const user = await getUserFromSession(request)
+    if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
     const status = searchParams.get('status')
     const type = searchParams.get('type')
 
-    const filters: any = { authorId: session.user.id }
+    const filters: any = { authorId: user.id }
     if (status) filters.status = status
     if (type) filters.type = type
 
@@ -41,17 +41,17 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await auth()
-    if (!session?.user) {
+    const user = await getUserFromSession(request)
+    if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const user = await db.user.findUnique({
-      where: { id: session.user.id },
+    const userWithSub = await db.user.findUnique({
+      where: { id: user.id },
       include: { subscription: true }
     })
 
-    if (!user || user.role !== 'CLIENT') {
+    if (!userWithSub || userWithSub.role !== 'CLIENT') {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
@@ -60,7 +60,7 @@ export async function POST(request: NextRequest) {
 
     const announcement = await announcementService.createAnnouncement({
       ...validatedData,
-      authorId: session.user.id
+      authorId: user.id
     })
 
     await matchingService.triggerRouteMatching(announcement.id)

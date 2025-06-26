@@ -246,4 +246,21 @@ export const auth = betterAuth({
 })
 
 export type Session = typeof auth.$Infer.Session
-export type User = typeof auth.$Infer.User 
+export type User = typeof auth.$Infer.User
+
+/**
+ * Fonction helper pour vérifier les rôles utilisateur
+ */
+export async function requireRole(requiredRole: string) {
+  const session = await auth()
+  
+  if (!session?.user) {
+    throw new Error('Unauthorized')
+  }
+  
+  if (session.user.role !== requiredRole) {
+    throw new Error(`Forbidden - ${requiredRole} role required`)
+  }
+  
+  return session.user
+} 

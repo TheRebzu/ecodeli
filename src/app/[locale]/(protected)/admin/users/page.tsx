@@ -78,25 +78,19 @@ export default function AdminUsersPage() {
       if (roleFilter !== 'all') params.append('role', roleFilter)
       if (statusFilter !== 'all') params.append('status', statusFilter)
 
-      console.log('🔍 Fetching users with params:', params.toString());
-      
       const response = await fetch(`${API_BASE}?${params}`, {
         credentials: 'include', // Important pour inclure les cookies
       })
       
-      console.log('🌐 Fetch response status:', response.status);
-      
       const data = await response.json()
-      console.log('📊 Fetch response data:', data);
 
       if (data.success) {
         setUsers(data.users)
-        console.log('✅ Users loaded:', data.users.length);
       } else {
-        console.error('❌ Erreur lors de la récupération des utilisateurs:', data.error)
+        console.error('Erreur lors de la récupération des utilisateurs:', data.error)
       }
     } catch (error) {
-      console.error('💥 Erreur réseau fetchUsers:', error)
+      console.error('Erreur réseau fetchUsers:', error)
     } finally {
       setIsLoading(false)
     }
@@ -123,8 +117,6 @@ export default function AdminUsersPage() {
 
   const handleToggleVerification = async (userId: string, currentEmailVerified: boolean) => {
     try {
-      console.log('🔄 Toggle verification:', { userId, currentEmailVerified });
-      
       const response = await fetch(API_BASE, {
         method: 'PUT',
         headers: { 
@@ -138,22 +130,18 @@ export default function AdminUsersPage() {
           data: { currentEmailVerified }
         })
       })
-
-      console.log('🌐 Response status:', response.status);
       
       const data = await response.json()
-      console.log('📝 Response data:', data);
       
       if (data.success) {
         // Rafraîchir les données
-        console.log('✅ Action réussie, rafraîchissement...');
         fetchUsers()
       } else {
-        console.error('❌ Erreur API:', data.error);
+        console.error('Erreur API:', data.error);
         alert('Erreur lors de la mise à jour: ' + data.error)
       }
     } catch (error) {
-      console.error('💥 Erreur réseau:', error)
+      console.error('Erreur réseau:', error)
       alert('Erreur réseau lors de la mise à jour: ' + error.message)
     }
   }
@@ -161,28 +149,22 @@ export default function AdminUsersPage() {
   const handleDeleteUser = async (userId: string) => {
     if (confirm("Êtes-vous sûr de vouloir supprimer cet utilisateur ?")) {
       try {
-        console.log('🗑️ Delete user:', userId);
-        
         const response = await fetch(`${API_BASE}?userId=${userId}`, {
           method: 'DELETE',
           credentials: 'include', // Important pour inclure les cookies
         })
-
-        console.log('🌐 Delete response status:', response.status);
         
         const data = await response.json()
-        console.log('📝 Delete response data:', data);
         
         if (data.success) {
           // Rafraîchir les données
-          console.log('✅ Suppression réussie, rafraîchissement...');
           fetchUsers()
         } else {
-          console.error('❌ Erreur suppression:', data.error);
+          console.error('Erreur suppression:', data.error);
           alert('Erreur lors de la suppression: ' + data.error)
         }
       } catch (error) {
-        console.error('💥 Erreur réseau suppression:', error)
+        console.error('Erreur réseau suppression:', error)
         alert('Erreur réseau lors de la suppression: ' + error.message)
       }
     }

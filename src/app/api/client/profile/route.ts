@@ -1,17 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '@/lib/auth'
+import { getUserFromSession } from '@/lib/auth/utils'
 import { db } from '@/lib/db'
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await auth()
-    if (!session?.user) {
+    const user = await getUserFromSession(request)
+    if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     // Récupérer le profil client complet
     const clientProfile = await db.client.findUnique({
-      where: { userId: session.user.id },
+      where: { userId: user.id },
       include: {
         user: true,
         subscription: true,
@@ -133,8 +133,8 @@ export async function GET(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
-    const session = await auth()
-    if (!session?.user) {
+    const user = await getUserFromSession(request)
+    if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -167,7 +167,7 @@ export async function PUT(request: NextRequest) {
       // Mettre à jour l'utilisateur
       if (Object.keys(userUpdates).length > 0) {
         await tx.user.update({
-          where: { id: session.user.id },
+          where: { id: user.id },
           data: userUpdates
         })
       }
@@ -175,7 +175,7 @@ export async function PUT(request: NextRequest) {
       // Mettre à jour le profil client
       if (Object.keys(clientUpdates).length > 0) {
         await tx.client.update({
-          where: { userId: session.user.id },
+          where: { userId: user.id },
           data: clientUpdates
         })
       }

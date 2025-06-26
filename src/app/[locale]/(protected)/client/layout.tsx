@@ -25,8 +25,6 @@ export default function ClientLayout({ children }: ClientLayoutProps) {
   } = useClientTutorial()
   
   const [showTutorial, setShowTutorial] = useState(false)
-  
-  console.log('🔍 [ClientLayout] Auth state:', { user, isLoading, isAuthenticated })
 
   // Check if tutorial is required on component mount
   useEffect(() => {

@@ -12,7 +12,7 @@ import { headers } from 'next/headers'
  */
 export async function getUserFromSession(request: NextRequest) {
   try {
-    console.log('Vérification session...')
+          // Vérification session
 
     // Convertir les headers NextRequest en format compatible Better-Auth
     const headersMap = new Headers()
@@ -26,34 +26,44 @@ export async function getUserFromSession(request: NextRequest) {
     })
 
     if (!session?.user) {
-      console.log('[API] No valid session found')
       return null
     }
 
-          console.log('[API] Valid session for:', session.user.email, '- Role:', session.user.role)
-
     // Récupérer l'utilisateur complet depuis la base avec les relations
+    const includeRelations: any = {
+      profile: true
+    }
+    
+    // Inclure la relation spécifique selon le rôle
+    switch (session.user.role) {
+      case 'CLIENT':
+        includeRelations.client = true
+        break
+      case 'DELIVERER':
+        includeRelations.deliverer = true
+        break
+      case 'MERCHANT':
+        includeRelations.merchant = true
+        break
+      case 'PROVIDER':
+        includeRelations.provider = true
+        break
+      case 'ADMIN':
+        includeRelations.admin = true
+        break
+    }
+
     const user = await prisma.user.findUnique({
       where: { id: session.user.id },
-      include: {
-        profile: true,
-        // Inclure tous les profils spécialisés
-        client: session.user.role === 'CLIENT',
-        deliverer: session.user.role === 'DELIVERER',
-        merchant: session.user.role === 'MERCHANT', 
-        provider: session.user.role === 'PROVIDER',
-        admin: session.user.role === 'ADMIN'
-      }
+      include: includeRelations
     })
 
     if (!user) {
-              console.log('[API] User not found in database:', session.user.id)
       return null
     }
 
     return user
   } catch (error) {
-          console.error('[API] Session retrieval error:', error)
     return null
   }
 }
@@ -63,23 +73,14 @@ export async function getUserFromSession(request: NextRequest) {
  */
 export async function getServerSession() {
   try {
-    console.log('🔍 [RSC] Récupération session serveur...')
-    
     const headersList = await headers()
     
     const session = await auth.api.getSession({
       headers: headersList
     })
 
-    if (session?.user) {
-      console.log('✅ [RSC] Session valide pour:', session.user.email)
-    } else {
-      console.log('❌ [RSC] Aucune session trouvée')
-    }
-
     return session
   } catch (error) {
-    console.error('❌ [RSC] Erreur récupération session serveur:', error)
     return null
   }
 }
@@ -95,21 +96,36 @@ export async function getServerUser() {
       return null
     }
 
+    const includeRelations: any = {
+      profile: true
+    }
+    
+    // Inclure la relation spécifique selon le rôle
+    switch (session.user.role) {
+      case 'CLIENT':
+        includeRelations.client = true
+        break
+      case 'DELIVERER':
+        includeRelations.deliverer = true
+        break
+      case 'MERCHANT':
+        includeRelations.merchant = true
+        break
+      case 'PROVIDER':
+        includeRelations.provider = true
+        break
+      case 'ADMIN':
+        includeRelations.admin = true
+        break
+    }
+
     const user = await prisma.user.findUnique({
       where: { id: session.user.id },
-      include: {
-        profile: true,
-        client: session.user.role === 'CLIENT',
-        deliverer: session.user.role === 'DELIVERER',
-        merchant: session.user.role === 'MERCHANT',
-        provider: session.user.role === 'PROVIDER',
-        admin: session.user.role === 'ADMIN'
-      }
+      include: includeRelations
     })
 
     return user
   } catch (error) {
-    console.error('❌ [RSC] Erreur récupération utilisateur serveur:', error)
     return null
   }
 }
@@ -157,16 +173,32 @@ export async function requireRole(request: NextRequest, allowedRoles: string[]) 
   
   if (userRole && userId && hasPermission(userRole, allowedRoles)) {
     // Récupérer l'utilisateur complet depuis la base
+    const includeRelations: any = {
+      profile: true
+    }
+    
+    // Inclure la relation spécifique selon le rôle
+    switch (userRole) {
+      case 'CLIENT':
+        includeRelations.client = true
+        break
+      case 'DELIVERER':
+        includeRelations.deliverer = true
+        break
+      case 'MERCHANT':
+        includeRelations.merchant = true
+        break
+      case 'PROVIDER':
+        includeRelations.provider = true
+        break
+      case 'ADMIN':
+        includeRelations.admin = true
+        break
+    }
+
     const user = await prisma.user.findUnique({
       where: { id: userId },
-      include: {
-        profile: true,
-        client: userRole === 'CLIENT',
-        deliverer: userRole === 'DELIVERER',
-        merchant: userRole === 'MERCHANT',
-        provider: userRole === 'PROVIDER',
-        admin: userRole === 'ADMIN'
-      }
+      include: includeRelations
     })
     
     if (user) {

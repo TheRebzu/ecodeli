@@ -45,7 +45,6 @@ export function useAuth() {
 
       if (response.ok) {
         const data = await response.json()
-        console.log('🔍 [useAuth] Response data:', data)
         
         // Better-Auth peut retourner directement user et session
         if (data.user) {
@@ -54,14 +53,11 @@ export function useAuth() {
             session: data.session || { id: 'temp', expiresAt: 'unknown' }
           })
           setError(null)
-          console.log('✅ [useAuth] Session set:', data.user)
         } else {
           setSession(null)
-          console.log('❌ [useAuth] No user in response')
         }
       } else {
         setSession(null)
-        console.log('❌ [useAuth] Response not ok:', response.status)
         if (response.status !== 401 && response.status !== 404) {
           setError(`Erreur ${response.status}`)
         }

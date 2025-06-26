@@ -101,8 +101,22 @@ export function useClientDashboard(): ClientDashboardData {
 
       const dashboardData = await response.json()
       
+      // Adapter les données de l'API vers la structure attendue par le composant
       setData({
-        ...dashboardData,
+        stats: {
+          totalAnnouncements: dashboardData.stats?.totalAnnouncements || 0,
+          activeDeliveries: dashboardData.stats?.activeDeliveries || 0,
+          completedDeliveries: dashboardData.stats?.completedDeliveries || 0,
+          totalSpent: dashboardData.stats?.totalSpent || 0,
+          savedAmount: dashboardData.stats?.subscriptionSavings || 0,
+          averageRating: dashboardData.stats?.averageRating || 0,
+          storageBoxes: dashboardData.stats?.storageBoxesActive || 0,
+          pendingPayments: 0
+        },
+        recentAnnouncements: dashboardData.recentAnnouncements || [],
+        activeServices: dashboardData.recentBookings || [],
+        storageBoxes: dashboardData.activeStorageBoxes || [],
+        notifications: dashboardData.notifications || [],
         isLoading: false,
         error: null
       })
