@@ -41,6 +41,15 @@ export async function GET(request: NextRequest) {
                   select: { firstName: true, lastName: true, avatar: true }
                 }
               }
+            },
+            attachments: {
+              select: {
+                id: true,
+                url: true,
+                filename: true,
+                mimeType: true,
+                size: true
+              }
             }
           },
           orderBy: { createdAt: 'desc' },
@@ -154,6 +163,15 @@ export async function POST(request: NextRequest) {
               profile: {
                 select: { firstName: true, lastName: true, avatar: true }
               }
+            }
+          },
+          attachments: {
+            select: {
+              id: true,
+              url: true,
+              filename: true,
+              mimeType: true,
+              size: true
             }
           }
         }

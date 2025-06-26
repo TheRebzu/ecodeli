@@ -88,13 +88,13 @@ async function main() {
       endLocation: { address: '123 Avenue des Champs-Élysées, 75008 Paris', city: 'Paris', postalCode: '75008', lat: 48.8698, lng: 2.3077 },
       price: 45.0,
       type: 'AIRPORT_TRANSFER'
-        }
+    }
   ]
 
   for (const annData of packageAnnouncements) {
     const announcement = await prisma.announcement.create({
-    data: {
-      clientId: client.id,
+      data: {
+        clientId: client.id,
         type: annData.type as any,
         title: annData.title,
         description: annData.description,
@@ -102,9 +102,32 @@ async function main() {
         endLocation: annData.endLocation,
         desiredDate: new Date(Date.now() + Math.random() * 7 * 24 * 60 * 60 * 1000),
         price: annData.price,
-      status: 'ACTIVE',
+        status: 'ACTIVE',
         publishedAt: new Date()
       }
+    })
+    // Ajout d'images templates à chaque annonce
+    await prisma.announcementAttachment.createMany({
+      data: [
+        {
+          announcementId: announcement.id,
+          filename: 'annonce1.jpg',
+          originalName: 'annonce1.jpg',
+          mimeType: 'image/jpeg',
+          size: 123456,
+          url: '/uploads/templates/annonce1.jpg',
+          uploadedBy: admin.id
+        },
+        {
+          announcementId: announcement.id,
+          filename: 'annonce2.jpg',
+          originalName: 'annonce2.jpg',
+          mimeType: 'image/jpeg',
+          size: 123456,
+          url: '/uploads/templates/annonce2.jpg',
+          uploadedBy: admin.id
+        }
+      ]
     })
     announcements.push(announcement)
   }
@@ -134,7 +157,7 @@ async function main() {
       const location = locations[Math.floor(Math.random() * locations.length)]
       
       const delivery = await prisma.delivery.create({
-    data: {
+        data: {
           announcementId: announcement.id,
           clientId: client.id,
           delivererId: deliverer.id,

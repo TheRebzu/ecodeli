@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
-import { announcementService } from '@/features/announcements/services/announcement.service'
-import { auth } from '@/lib/auth'
+import { getCurrentUser } from '@/lib/auth/utils'
 import { db } from '@/lib/db'
 
 const moderationSchema = z.object({
@@ -13,12 +12,12 @@ const moderationSchema = z.object({
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await auth()
-    if (!session?.user) {
+    const user = await getCurrentUser(request)
+    if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    if (session.user.role !== 'ADMIN') {
+    if (user.role !== 'ADMIN') {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
@@ -29,23 +28,86 @@ export async function GET(request: NextRequest) {
     const type = searchParams.get('type')
     const flagged = searchParams.get('flagged')
     const authorId = searchParams.get('authorId')
+    const search = searchParams.get('search')
 
-    const filters: any = {}
-    if (status) filters.status = status
-    if (type) filters.type = type
-    if (authorId) filters.authorId = authorId
-    if (flagged === 'true') filters.flagged = true
+    // Construction des filtres
+    const where: any = {}
+    
+    if (status && status !== 'ALL') where.status = status
+    if (type && type !== 'ALL') where.type = type
+    if (authorId) where.authorId = authorId
+    if (flagged === 'true') where.flagged = true
+    if (search) {
+      where.OR = [
+        { title: { contains: search, mode: 'insensitive' } },
+        { description: { contains: search, mode: 'insensitive' } }
+      ]
+    }
 
-    const result = await announcementService.listAnnouncements(filters, {
-      page,
-      limit,
-      sortBy: 'createdAt',
-      sortOrder: 'desc',
-      includeAuthor: true,
-      includeDeliverer: true
+    // Calcul de la pagination
+    const skip = (page - 1) * limit
+
+    // Requête principale
+    const [announcements, total] = await Promise.all([
+      db.announcement.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: { createdAt: 'desc' },
+        include: {
+          author: {
+            select: {
+              id: true,
+              email: true,
+              name: true,
+              role: true,
+              profile: {
+                select: {
+                  firstName: true,
+                  lastName: true
+                }
+              }
+            }
+          },
+          deliverer: {
+            select: {
+              id: true,
+              email: true,
+              name: true,
+              role: true,
+              profile: {
+                select: {
+                  firstName: true,
+                  lastName: true
+                }
+              }
+            }
+          },
+          attachments: {
+            select: {
+              id: true,
+              url: true,
+              filename: true,
+              mimeType: true,
+              size: true
+            }
+          }
+        }
+      }),
+      db.announcement.count({ where })
+    ])
+
+    const totalPages = Math.ceil(total / limit)
+
+    return NextResponse.json({
+      announcements,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages
+      }
     })
-
-    return NextResponse.json(result)
   } catch (error) {
     console.error('Error fetching admin announcements:', error)
     return NextResponse.json(
@@ -57,93 +119,166 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await auth()
-    if (!session?.user) {
+    const user = await getCurrentUser(request)
+    if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    if (session.user.role !== 'ADMIN') {
+    if (user.role !== 'ADMIN') {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
     const body = await request.json()
-    const { announcementId, action, reason, notes } = moderationSchema.parse(body)
+    
+    // Si c'est une action de modération
+    if (body.announcementId && body.action) {
+      const { announcementId, action, reason, notes } = moderationSchema.parse(body)
 
-    const announcement = await db.announcement.findUnique({
-      where: { id: announcementId },
-      include: { author: true }
-    })
+      const announcement = await db.announcement.findUnique({
+        where: { id: announcementId },
+        include: { author: true }
+      })
 
-    if (!announcement) {
-      return NextResponse.json(
-        { error: 'Announcement not found' },
-        { status: 404 }
-      )
+      if (!announcement) {
+        return NextResponse.json(
+          { error: 'Announcement not found' },
+          { status: 404 }
+        )
+      }
+
+      let updateData: any = {
+        moderatedAt: new Date(),
+        moderatedBy: user.id,
+        moderationNotes: notes
+      }
+
+      switch (action) {
+        case 'APPROVE':
+          updateData.status = 'ACTIVE'
+          updateData.flagged = false
+          break
+        case 'REJECT':
+          updateData.status = 'CANCELLED'
+          updateData.rejectionReason = reason
+          break
+        case 'FLAG':
+          updateData.flagged = true
+          updateData.flagReason = reason
+          break
+        case 'SUSPEND':
+          updateData.status = 'SUSPENDED'
+          updateData.suspensionReason = reason
+          break
+      }
+
+      const updatedAnnouncement = await db.announcement.update({
+        where: { id: announcementId },
+        data: updateData,
+        include: {
+          author: {
+            select: {
+              id: true,
+              email: true,
+              name: true,
+              role: true,
+              profile: {
+                select: {
+                  firstName: true,
+                  lastName: true
+                }
+              }
+            }
+          },
+          attachments: {
+            select: {
+              id: true,
+              url: true,
+              filename: true,
+              mimeType: true,
+              size: true
+            }
+          }
+        }
+      })
+
+      return NextResponse.json({
+        message: `Announcement ${action.toLowerCase()}ed successfully`,
+        announcement: updatedAnnouncement
+      })
     }
+    
+    // Sinon, c'est une création d'annonce
+    const {
+      title,
+      description,
+      type,
+      basePrice,
+      pickupAddress,
+      deliveryAddress,
+      pickupDate,
+      deliveryDate,
+      isUrgent,
+      isFlexibleDate,
+      preferredTimeSlot,
+      specialInstructions,
+      internalNotes
+    } = body
 
-    let updateData: any = {
-      moderatedAt: new Date(),
-      moderatedBy: session.user.id,
-      moderationNotes: notes
-    }
-
-    switch (action) {
-      case 'APPROVE':
-        updateData.status = 'ACTIVE'
-        updateData.flagged = false
-        break
-      case 'REJECT':
-        updateData.status = 'CANCELLED'
-        updateData.rejectionReason = reason
-        break
-      case 'FLAG':
-        updateData.flagged = true
-        updateData.flagReason = reason
-        break
-      case 'SUSPEND':
-        updateData.status = 'SUSPENDED'
-        updateData.suspensionReason = reason
-        break
-    }
-
-    const updatedAnnouncement = await db.announcement.update({
-      where: { id: announcementId },
-      data: updateData,
+    const announcement = await db.announcement.create({
+      data: {
+        title,
+        description,
+        type,
+        basePrice: parseFloat(basePrice),
+        pickupAddress,
+        deliveryAddress,
+        pickupDate: pickupDate ? new Date(pickupDate) : null,
+        deliveryDate: deliveryDate ? new Date(deliveryDate) : null,
+        isUrgent: isUrgent || false,
+        isFlexibleDate: isFlexibleDate || false,
+        preferredTimeSlot,
+        specialInstructions,
+        internalNotes,
+        status: 'ACTIVE', // Annonces admin créées directement actives
+        authorId: user.id, // L'admin devient l'auteur
+        publishedAt: new Date()
+      },
       include: {
         author: {
           select: {
             id: true,
             email: true,
-            firstName: true,
-            lastName: true
+            name: true,
+            role: true,
+            profile: {
+              select: {
+                firstName: true,
+                lastName: true
+              }
+            }
+          }
+        },
+        attachments: {
+          select: {
+            id: true,
+            url: true,
+            filename: true,
+            mimeType: true,
+            size: true
           }
         }
       }
     })
 
-    await db.announcementActivity.create({
-      data: {
-        announcementId,
-        actorId: session.user.id,
-        actorType: 'ADMIN',
-        action: `MODERATION_${action}`,
-        details: {
-          reason,
-          notes,
-          previousStatus: announcement.status
-        }
-      }
-    })
-
     return NextResponse.json({
-      message: `Announcement ${action.toLowerCase()}ed successfully`,
-      announcement: updatedAnnouncement
-    })
+      message: 'Announcement created successfully',
+      announcement
+    }, { status: 201 })
   } catch (error) {
-    console.error('Error moderating announcement:', error)
+    console.error('Error creating/moderating announcement:', error)
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: 'Invalid moderation data', details: error.errors },
+        { error: 'Invalid data', details: error.errors },
         { status: 400 }
       )
     }

@@ -1,15 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '@/lib/auth'
+import { getCurrentUser } from '@/lib/auth/utils'
 import { db } from '@/lib/db'
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await auth()
-    if (!session?.user) {
+    const user = await getCurrentUser(request)
+    if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    if (session.user.role !== 'ADMIN') {
+    if (user.role !== 'ADMIN') {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
@@ -37,9 +37,12 @@ export async function GET(request: NextRequest) {
         dateFrom = new Date(now.getTime() - (30 * 24 * 60 * 60 * 1000))
     }
 
-    const baseFilter = {
-      createdAt: { gte: dateFrom },
-      ...(type && { type })
+    const baseFilter: any = {
+      createdAt: { gte: dateFrom }
+    }
+    
+    if (type) {
+      baseFilter.type = type
     }
 
     const [
@@ -49,7 +52,6 @@ export async function GET(request: NextRequest) {
       averagePrice,
       announcementsByStatus,
       announcementsByType,
-      dailyStats,
       topClients
     ] = await Promise.all([
       db.announcement.count({ where: baseFilter }),
@@ -64,7 +66,7 @@ export async function GET(request: NextRequest) {
       
       db.announcement.aggregate({
         where: baseFilter,
-        _avg: { price: true }
+        _avg: { basePrice: true }
       }),
       
       db.announcement.groupBy({
@@ -78,18 +80,6 @@ export async function GET(request: NextRequest) {
         where: baseFilter,
         _count: { _all: true }
       }),
-      
-      db.$queryRaw`
-        SELECT 
-          DATE(created_at) as date,
-          COUNT(*) as count,
-          AVG(price) as avg_price
-        FROM announcement 
-        WHERE created_at >= ${dateFrom}
-        ${type ? `AND type = ${type}` : ''}
-        GROUP BY DATE(created_at)
-        ORDER BY date ASC
-      `,
       
       db.announcement.groupBy({
         by: ['authorId'],
@@ -125,12 +115,20 @@ export async function GET(request: NextRequest) {
       announcementCount: tc._count._all
     }))
 
+    // Statistiques quotidiennes simplifiées
+    const dailyStats = await db.announcement.groupBy({
+      by: ['createdAt'],
+      where: baseFilter,
+      _count: { _all: true },
+      orderBy: { createdAt: 'asc' }
+    })
+
     return NextResponse.json({
       summary: {
         totalAnnouncements,
         completedAnnouncements,
         cancelledAnnouncements,
-        averagePrice: averagePrice._avg.price || 0,
+        averagePrice: averagePrice._avg.basePrice || 0,
         completionRate: Math.round(completionRate * 100) / 100,
         cancellationRate: Math.round(cancellationRate * 100) / 100
       },
@@ -142,7 +140,10 @@ export async function GET(request: NextRequest) {
         type: item.type,
         count: item._count._all
       })),
-      dailyStats,
+      dailyStats: dailyStats.map(item => ({
+        date: item.createdAt.toISOString().split('T')[0],
+        count: item._count._all
+      })),
       topClients: topClientsData,
       period,
       dateRange: {
