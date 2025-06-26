@@ -1,21 +1,32 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getCurrentUser } from '@/lib/auth-simple'
+import { getCurrentUser } from '@/lib/auth/utils'
 import { prisma } from '@/lib/db'
 
 export async function GET(request: NextRequest) {
   try {
-    const user = await getCurrentUser()
+    const user = await getCurrentUser(request)
     
     if (!user || user.role !== 'ADMIN') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return NextResponse.json(
+        { error: 'Accès refusé - rôle admin requis' },
+        { status: 403 }
+      )
     }
 
-    const alerts = await getSystemAlerts()
+    // Récupérer les notifications système actives
+    const alerts = await prisma.systemNotification.findMany({
+      where: {
+        isActive: true
+      },
+      orderBy: {
+        createdAt: 'desc'
+      },
+      take: 50
+    })
 
     return NextResponse.json({
       success: true,
-      alerts,
-      timestamp: new Date().toISOString()
+      alerts
     })
 
   } catch (error) {
@@ -34,7 +45,7 @@ async function getSystemAlerts() {
     // Vérifier les documents en attente depuis plus de 24h
     const pendingDocuments = await prisma.document.count({
       where: {
-        validationStatus: 'PENDING',
+        status: 'PENDING',
         createdAt: {
           lt: new Date(Date.now() - 24 * 60 * 60 * 1000) // Plus de 24h
         }
@@ -52,10 +63,10 @@ async function getSystemAlerts() {
       })
     }
 
-    // Vérifier les livraisons en transit depuis plus de 48h
+    // Vérifier les livraisons en cours depuis plus de 48h
     const stuckDeliveries = await prisma.delivery.count({
       where: {
-        status: 'IN_TRANSIT',
+        status: 'IN_PROGRESS',
         updatedAt: {
           lt: new Date(Date.now() - 48 * 60 * 60 * 1000) // Plus de 48h
         }
@@ -67,7 +78,7 @@ async function getSystemAlerts() {
         id: 'stuck-deliveries',
         type: 'warning',
         title: 'Livraisons bloquées',
-        message: `${stuckDeliveries} livraison(s) en transit depuis plus de 48h`,
+        message: `${stuckDeliveries} livraison(s) en cours depuis plus de 48h`,
         timestamp: new Date().toISOString(),
         severity: 'high'
       })
@@ -100,9 +111,7 @@ async function getSystemAlerts() {
         role: {
           in: ['DELIVERER', 'PROVIDER']
         },
-        profile: {
-          verified: false
-        },
+        validationStatus: 'PENDING',
         createdAt: {
           lt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) // Plus de 7 jours
         }

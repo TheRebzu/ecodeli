@@ -1,21 +1,50 @@
+import { getCurrentUser } from '@/lib/auth/utils'
 import { NextRequest, NextResponse } from 'next/server'
-import { getCurrentUser } from '@/lib/auth-simple'
 import { prisma } from '@/lib/db'
 
 export async function GET(request: NextRequest) {
   try {
-    const user = await getCurrentUser()
+    const user = await getCurrentUser(request)
     
     if (!user || user.role !== 'ADMIN') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return NextResponse.json(
+        { error: 'Accès refusé - rôle admin requis' },
+        { status: 403 }
+      )
     }
 
-    const services = await getServicesStatus()
+    // Récupérer les services système
+    const services = await prisma.service.findMany({
+      where: {
+        isActive: true
+      },
+      include: {
+        provider: {
+          select: {
+            id: true,
+            user: {
+              select: {
+                email: true,
+                profile: {
+                  select: {
+                    firstName: true,
+                    lastName: true
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      orderBy: {
+        createdAt: 'desc'
+      },
+      take: 50
+    })
 
     return NextResponse.json({
       success: true,
-      services,
-      timestamp: new Date().toISOString()
+      services
     })
 
   } catch (error) {

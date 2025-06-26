@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getCurrentUser } from '@/lib/auth-simple'
+import { getCurrentUser } from '@/lib/auth/utils'
 import { SettingsService } from '@/features/admin/services/settings.service'
 import { z } from 'zod'
+import { prisma } from '@/lib/db'
 
 // Schéma de validation pour la création/mise à jour de paramètres
 const settingSchema = z.object({
@@ -24,12 +25,12 @@ const batchUpdateSchema = z.object({
  */
 export async function GET(request: NextRequest) {
   try {
-    // Vérifier l'authentification
-    const user = await getCurrentUser()
+    const user = await getCurrentUser(request)
+    
     if (!user || user.role !== 'ADMIN') {
       return NextResponse.json(
-        { error: 'Accès non autorisé' },
-        { status: 401 }
+        { error: 'Accès refusé - rôle admin requis' },
+        { status: 403 }
       )
     }
 
@@ -60,9 +61,9 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(settings)
 
   } catch (error) {
-    console.error('Error in GET /api/admin/settings:', error)
+    console.error('Erreur récupération paramètres:', error)
     return NextResponse.json(
-      { error: 'Erreur interne du serveur' },
+      { error: 'Erreur serveur' },
       { status: 500 }
     )
   }
@@ -74,8 +75,7 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
-    // Vérifier l'authentification
-    const user = await getCurrentUser()
+    const user = await getCurrentUser(request)
     if (!user || user.role !== 'ADMIN') {
       return NextResponse.json(
         { error: 'Accès non autorisé' },
@@ -161,50 +161,36 @@ export async function POST(request: NextRequest) {
  */
 export async function PUT(request: NextRequest) {
   try {
-    // Vérifier l'authentification
-    const user = await getCurrentUser()
+    const user = await getCurrentUser(request)
+    
     if (!user || user.role !== 'ADMIN') {
       return NextResponse.json(
-        { error: 'Accès non autorisé' },
-        { status: 401 }
+        { error: 'Accès refusé - rôle admin requis' },
+        { status: 403 }
       )
     }
 
     const body = await request.json()
-    const { searchParams } = new URL(request.url)
-    const key = searchParams.get('key')
 
-    if (!key) {
-      return NextResponse.json(
-        { error: 'Clé du paramètre requise' },
-        { status: 400 }
-      )
-    }
-
-    const validatedData = settingSchema.partial().parse(body)
-    
-    const setting = await SettingsService.updateSetting(key, {
-      ...validatedData,
-      updatedBy: user.id
+    // Mettre à jour les paramètres système
+    const settings = await prisma.settings.upsert({
+      where: { id: 1 },
+      update: body,
+      create: {
+        id: 1,
+        ...body
+      }
     })
 
-    return NextResponse.json(setting)
+    return NextResponse.json({
+      success: true,
+      settings
+    })
 
   } catch (error) {
-    console.error('Error in PUT /api/admin/settings:', error)
-    
-    if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { 
-          error: 'Données invalides',
-          details: error.errors 
-        },
-        { status: 400 }
-      )
-    }
-
+    console.error('Erreur mise à jour paramètres:', error)
     return NextResponse.json(
-      { error: 'Erreur interne du serveur' },
+      { error: 'Erreur serveur' },
       { status: 500 }
     )
   }
@@ -216,8 +202,7 @@ export async function PUT(request: NextRequest) {
  */
 export async function DELETE(request: NextRequest) {
   try {
-    // Vérifier l'authentification
-    const user = await getCurrentUser()
+    const user = await getCurrentUser(request)
     if (!user || user.role !== 'ADMIN') {
       return NextResponse.json(
         { error: 'Accès non autorisé' },

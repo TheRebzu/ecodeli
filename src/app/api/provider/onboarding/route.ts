@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { prisma } from '@/lib/db'
-import { getCurrentUser } from '@/lib/auth-simple'
+import { getCurrentUser } from '@/lib/auth/utils'
 
 const providerOnboardingSchema = z.object({
   businessName: z.string().min(2, "Le nom de l'entreprise doit faire au moins 2 caractères"),
@@ -18,148 +18,129 @@ const providerOnboardingSchema = z.object({
   acceptTerms: z.boolean().refine(val => val === true, "Vous devez accepter les conditions")
 })
 
-export async function POST(request: NextRequest) {
+export async function GET(request: NextRequest) {
   try {
-    // Vérifier l'authentification
-    const user = await getCurrentUser()
+    const user = await getCurrentUser(request)
+    
     if (!user || user.role !== 'PROVIDER') {
       return NextResponse.json(
-        { error: 'Non autorisé' },
-        { status: 401 }
+        { error: 'Accès refusé - rôle prestataire requis' },
+        { status: 403 }
       )
     }
 
-    // Parser et valider les données
-    const body = await request.json()
-    const validatedData = providerOnboardingSchema.parse(body)
-
-    // Vérifier si un profil provider existe déjà
-    const existingProvider = await prisma.provider.findUnique({
-      where: { userId: user.id }
-    })
-
-    if (existingProvider) {
-      return NextResponse.json(
-        { error: 'Un profil prestataire existe déjà pour cet utilisateur' },
-        { status: 409 }
-      )
-    }
-
-    // Mettre à jour le profil utilisateur
-    await prisma.profile.update({
+    // Récupérer les informations d'onboarding du prestataire
+    const provider = await prisma.provider.findUnique({
       where: { userId: user.id },
-      data: {
-        phone: validatedData.phone,
-        address: validatedData.address,
-        city: validatedData.city,
-        postalCode: validatedData.postalCode,
-        country: 'France' // Par défaut
-      }
-    })
-
-    // Créer le profil provider
-    const provider = await prisma.provider.create({
-      data: {
-        userId: user.id,
-        businessName: validatedData.businessName,
-        description: validatedData.description,
-        hourlyRate: validatedData.hourlyRate,
-        specialties: validatedData.serviceCategories, // Utiliser specialties au lieu de serviceCategories
-        validationStatus: 'PENDING',
-        isActive: false, // Inactif jusqu'à validation admin
-        zone: {
-          address: validatedData.address,
-          city: validatedData.city,
-          postalCode: validatedData.postalCode
-        }
-      }
-    })
-
-    // Créer des services par défaut basés sur les catégories sélectionnées
-    for (const category of validatedData.serviceCategories) {
-      // Mapper les catégories front-end vers les types ServiceType
-      let serviceType = 'OTHER' as any
-      switch (category) {
-        case 'CLEANING':
-          serviceType = 'HOME_SERVICE'
-          break
-        case 'GARDENING':
-          serviceType = 'HOME_SERVICE'
-          break
-        case 'HANDYMAN':
-          serviceType = 'HOME_SERVICE'
-          break
-        case 'TUTORING':
-          serviceType = 'OTHER'
-          break
-        case 'HEALTHCARE':
-          serviceType = 'OTHER'
-          break
-        case 'BEAUTY':
-          serviceType = 'OTHER'
-          break
-        case 'PET_SITTING':
-          serviceType = 'PET_CARE'
-          break
-        default:
-          serviceType = 'OTHER'
-      }
-
-      await prisma.service.create({
-        data: {
-          providerId: provider.id,
-          name: `Service ${category.toLowerCase()}`,
-          description: `Service de ${category.toLowerCase()} proposé par ${validatedData.businessName}`,
-          type: serviceType,
-          basePrice: validatedData.hourlyRate,
-          duration: 60, // 1 heure par défaut
-          isActive: true
-        }
-      })
-    }
-
-    // Créer les certifications si fournies
-    if (validatedData.certifications && validatedData.certifications.length > 0) {
-      for (const certName of validatedData.certifications) {
-        await prisma.certification.create({
-          data: {
-            providerId: provider.id,
-            name: certName,
-            issuingBody: 'Auto-déclaré',
-            issueDate: new Date(),
-            isVerified: false
+      include: {
+        user: {
+          include: {
+            profile: true
           }
-        })
+        },
+        services: true,
+        certifications: true
       }
-    }
+    })
 
-    console.log(`✅ Profil provider créé pour ${user.email}:`, provider.id)
+    if (!provider) {
+      return NextResponse.json(
+        { error: 'Profil prestataire introuvable' },
+        { status: 404 }
+      )
+    }
 
     return NextResponse.json({
       success: true,
-      message: 'Profil prestataire créé avec succès',
-      provider: {
-        id: provider.id,
-        businessName: provider.businessName,
-        validationStatus: provider.validationStatus
-      }
+      provider
     })
 
   } catch (error) {
-    console.error('❌ Erreur onboarding provider:', error)
+    console.error('Erreur récupération onboarding:', error)
+    return NextResponse.json(
+      { error: 'Erreur serveur' },
+      { status: 500 }
+    )
+  }
+}
 
-    if (error instanceof z.ZodError) {
+export async function POST(request: NextRequest) {
+  try {
+    const user = await getCurrentUser(request)
+    
+    if (!user || user.role !== 'PROVIDER') {
       return NextResponse.json(
-        { 
-          error: 'Données invalides',
-          details: error.errors 
-        },
-        { status: 400 }
+        { error: 'Accès refusé - rôle prestataire requis' },
+        { status: 403 }
       )
     }
 
+    const body = await request.json()
+    const { 
+      businessName, 
+      description, 
+      services, 
+      certifications,
+      availability,
+      pricing 
+    } = body
+
+    // Mettre à jour ou créer le profil prestataire
+    const provider = await prisma.provider.upsert({
+      where: { userId: user.id },
+      update: {
+        businessName,
+        description,
+        availability,
+        pricing,
+        onboardingCompleted: true
+      },
+      create: {
+        userId: user.id,
+        businessName,
+        description,
+        availability,
+        pricing,
+        onboardingCompleted: true
+      }
+    })
+
+    // Ajouter les services
+    if (services && services.length > 0) {
+      await prisma.service.createMany({
+        data: services.map((service: any) => ({
+          providerId: provider.id,
+          name: service.name,
+          description: service.description,
+          category: service.category,
+          price: service.price,
+          duration: service.duration
+        }))
+      })
+    }
+
+    // Ajouter les certifications
+    if (certifications && certifications.length > 0) {
+      await prisma.certification.createMany({
+        data: certifications.map((cert: any) => ({
+          providerId: provider.id,
+          name: cert.name,
+          issuer: cert.issuer,
+          issueDate: new Date(cert.issueDate),
+          expiryDate: cert.expiryDate ? new Date(cert.expiryDate) : null
+        }))
+      })
+    }
+
+    return NextResponse.json({
+      success: true,
+      provider
+    })
+
+  } catch (error) {
+    console.error('Erreur mise à jour onboarding:', error)
     return NextResponse.json(
-      { error: 'Erreur lors de la création du profil prestataire' },
+      { error: 'Erreur serveur' },
       { status: 500 }
     )
   }

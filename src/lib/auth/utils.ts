@@ -265,3 +265,25 @@ export const VALIDATION_STATUS = {
   VALIDATED: 'VALIDATED', 
   REJECTED: 'REJECTED'
 } as const 
+
+/**
+ * Récupère l'utilisateur courant (compatible API route et RSC)
+ * - Si request est fourni (API route), utilise les headers pour Better-Auth
+ * - Sinon, utilise les headers du contexte serveur (RSC)
+ */
+export async function getCurrentUser(request?: Request) {
+  try {
+    let session
+    if (request) {
+      // API route
+      session = await auth.api.getSession({ headers: request.headers })
+    } else {
+      // RSC/server
+      const headersList = await headers()
+      session = await auth.api.getSession({ headers: headersList })
+    }
+    return session?.user || null
+  } catch (error) {
+    return null
+  }
+} 

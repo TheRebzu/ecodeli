@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { prisma } from '@/lib/db'
-import { getCurrentUser } from '@/lib/auth-simple'
+import { getCurrentUser } from '@/lib/auth/utils'
 import { EcoDeliNotifications } from '@/features/notifications/services/notification.service'
 
 /**
@@ -19,65 +19,110 @@ const validateDocumentSchema = z.object({
  */
 export async function POST(request: NextRequest) {
   try {
-    const user = await getCurrentUser()
+    const user = await getCurrentUser(request)
     
     if (!user || user.role !== 'ADMIN') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return NextResponse.json(
+        { error: 'Accès refusé - rôle admin requis' },
+        { status: 403 }
+      )
     }
 
     const body = await request.json()
-    
-    const { documentId, status, notes } = validateDocumentSchema.parse(body)
+    const { documentId, action, reason } = body
 
-    // Récupérer le document avec utilisateur
-    const document = await prisma.document.findUnique({
-      where: { id: documentId },
-      include: {
-        user: {
-          include: {
-            deliverer: true,
-            provider: true
-          }
-        }
-      }
-    })
+    if (!documentId || !action) {
+      return NextResponse.json(
+        { error: 'documentId et action requis' },
+        { status: 400 }
+      )
+    }
 
-    if (!document) {
-      return NextResponse.json({ error: 'Document introuvable' }, { status: 404 })
+    if (!['APPROVED', 'REJECTED'].includes(action)) {
+      return NextResponse.json(
+        { error: 'Action invalide. Utilisez APPROVED ou REJECTED' },
+        { status: 400 }
+      )
     }
 
     // Mettre à jour le statut du document
     const updatedDocument = await prisma.document.update({
       where: { id: documentId },
       data: {
-        validationStatus: status,
+        status: action,
         validatedBy: user.id,
         validatedAt: new Date(),
-        rejectionReason: status === 'REJECTED' ? notes : null
+        rejectionReason: action === 'REJECTED' ? reason : null
+      },
+      include: {
+        profile: {
+          include: {
+            user: {
+              select: {
+                email: true,
+                role: true
+              }
+            }
+          }
+        }
       }
     })
 
-    const documentUser = document.user
+    // Si le document est approuvé, vérifier si tous les documents de l'utilisateur sont approuvés
+    if (action === 'APPROVED') {
+      const userDocuments = await prisma.document.findMany({
+        where: {
+          profileId: updatedDocument.profileId
+        }
+      })
 
-    // Vérifier si tous les documents obligatoires sont approuvés
-    if (status === 'APPROVED') {
-      await checkAllDocumentsValidated(documentUser)
+      const allApproved = userDocuments.every(doc => doc.status === 'APPROVED')
+      
+      if (allApproved) {
+        // Activer l'utilisateur selon son rôle
+        const userRole = updatedDocument.profile.user.role
+        
+        switch (userRole) {
+          case 'DELIVERER':
+            await prisma.deliverer.update({
+              where: { userId: updatedDocument.profile.userId },
+              data: { 
+                isActive: true,
+                validationStatus: 'VALIDATED'
+              }
+            })
+            break
+            
+          case 'PROVIDER':
+            await prisma.provider.update({
+              where: { userId: updatedDocument.profile.userId },
+              data: { 
+                isActive: true,
+                validationStatus: 'VALIDATED'
+              }
+            })
+            break
+        }
+
+        // Mettre à jour le statut de validation de l'utilisateur
+        await prisma.user.update({
+          where: { id: updatedDocument.profile.userId },
+          data: { validationStatus: 'VALIDATED' }
+        })
+      }
     }
 
     return NextResponse.json({
       success: true,
-      document: updatedDocument,
-      message: `Document ${status === 'APPROVED' ? 'approuvé' : 'rejeté'} avec succès`
+      document: updatedDocument
     })
 
   } catch (error) {
     console.error('Erreur validation document:', error)
-    
-    if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: 'Données invalides', details: error.errors }, { status: 422 })
-    }
-    
-    return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 })
+    return NextResponse.json(
+      { error: 'Erreur serveur' },
+      { status: 500 }
+    )
   }
 }
 
