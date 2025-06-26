@@ -41,11 +41,11 @@ export async function POST(request: NextRequest) {
       where: { id: session.user.id },
       include: { 
         subscription: true,
-        merchantProfile: true
+        merchant: true
       }
     })
 
-    if (!user || user.role !== 'MERCHANT' || !user.merchantProfile) {
+    if (!user || user.role !== 'MERCHANT' || !user.merchant) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 

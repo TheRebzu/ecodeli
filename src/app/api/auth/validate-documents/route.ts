@@ -34,9 +34,9 @@ export async function POST(request: NextRequest) {
     const user = await prisma.user.findUnique({
       where: { id: userId },
       include: {
-        delivererProfile: true,
-        providerProfile: true,
-        merchantProfile: true,
+        deliverer: true,
+        provider: true,
+        merchant: true,
         documents: {
           where: { type: documentType }
         }

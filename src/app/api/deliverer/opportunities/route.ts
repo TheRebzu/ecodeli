@@ -12,10 +12,10 @@ export async function GET(request: NextRequest) {
 
     const user = await db.user.findUnique({
       where: { id: session.user.id },
-      include: { delivererProfile: true }
+      include: { deliverer: true }
     })
 
-    if (!user || user.role !== 'DELIVERER' || !user.delivererProfile) {
+    if (!user || user.role !== 'DELIVERER' || !user.deliverer) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
