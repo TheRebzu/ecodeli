@@ -64,24 +64,30 @@ interface ValidationStats {
   byType: Record<string, any>
 }
 
-export function DocumentValidationDashboard() {
+interface DocumentValidationDashboardProps {
+  initialUserId?: string
+}
+
+export function DocumentValidationDashboard({ initialUserId }: DocumentValidationDashboardProps) {
   const [documents, setDocuments] = useState<Document[]>([])
   const [stats, setStats] = useState<ValidationStats | null>(null)
   const [loading, setLoading] = useState(true)
   const [selectedDocument, setSelectedDocument] = useState<Document | null>(null)
   const [filters, setFilters] = useState({
-    status: 'PENDING',
-    type: '',
-    userRole: '',
-    search: ''
+    status: 'ALL',
+    type: 'ALL',
+    userRole: 'ALL',
+    search: '',
+    userId: initialUserId || ''
   })
 
   const fetchDocuments = async () => {
     try {
       const params = new URLSearchParams()
-      if (filters.status) params.append('status', filters.status)
-      if (filters.type) params.append('type', filters.type)
-      if (filters.userRole) params.append('userRole', filters.userRole)
+      if (filters.status && filters.status !== 'ALL') params.append('status', filters.status)
+      if (filters.type && filters.type !== 'ALL') params.append('type', filters.type)
+      if (filters.userRole && filters.userRole !== 'ALL') params.append('userRole', filters.userRole)
+      if (filters.userId) params.append('userId', filters.userId)
 
       const response = await fetch(`/api/admin/documents/pending?${params}`)
       const data = await response.json()
@@ -127,7 +133,7 @@ export function DocumentValidationDashboard() {
     }
     
     loadData()
-  }, [filters.status, filters.type, filters.userRole])
+  }, [filters.status, filters.type, filters.userRole, filters.userId])
 
   useEffect(() => {
     // Recherche avec délai
@@ -261,6 +267,23 @@ export function DocumentValidationDashboard() {
         </Card>
       </div>
 
+      {/* Indicateur de filtrage par utilisateur */}
+      {filters.userId && (
+        <Alert>
+          <Users className="h-4 w-4" />
+          <AlertDescription>
+            Documents filtrés pour l'utilisateur spécifique (ID: {filters.userId})
+            <Button
+              variant="link"
+              className="p-0 h-auto ml-2"
+              onClick={() => setFilters({ ...filters, userId: '' })}
+            >
+              Voir tous les documents
+            </Button>
+          </AlertDescription>
+        </Alert>
+      )}
+
       {/* Filtres */}
       <Card>
         <CardHeader>
@@ -289,7 +312,7 @@ export function DocumentValidationDashboard() {
                 <SelectValue placeholder="Statut" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Tous les statuts</SelectItem>
+                <SelectItem value="ALL">Tous les statuts</SelectItem>
                 <SelectItem value="PENDING">En attente</SelectItem>
                 <SelectItem value="APPROVED">Approuvés</SelectItem>
                 <SelectItem value="REJECTED">Rejetés</SelectItem>
@@ -304,7 +327,7 @@ export function DocumentValidationDashboard() {
                 <SelectValue placeholder="Type de document" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Tous les types</SelectItem>
+                <SelectItem value="ALL">Tous les types</SelectItem>
                 <SelectItem value="IDENTITY">Pièce d'identité</SelectItem>
                 <SelectItem value="DRIVING_LICENSE">Permis de conduire</SelectItem>
                 <SelectItem value="INSURANCE">Assurance</SelectItem>
@@ -322,7 +345,7 @@ export function DocumentValidationDashboard() {
                 <SelectValue placeholder="Rôle utilisateur" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Tous les rôles</SelectItem>
+                <SelectItem value="ALL">Tous les rôles</SelectItem>
                 <SelectItem value="DELIVERER">Livreurs</SelectItem>
                 <SelectItem value="PROVIDER">Prestataires</SelectItem>
                 <SelectItem value="MERCHANT">Commerçants</SelectItem>

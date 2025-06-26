@@ -78,7 +78,7 @@ export function DocumentViewer({
 
   return (
     <Dialog open={true} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-5xl sm:max-w-5xl md:max-w-5xl lg:max-w-5xl xl:max-w-5xl max-h-[95vh] overflow-y-auto w-[90vw]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <FileText className="w-5 h-5" />
@@ -86,7 +86,7 @@ export function DocumentViewer({
           </DialogTitle>
         </DialogHeader>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
           {/* Informations du document */}
           <div className="space-y-4">
             <Card>
@@ -307,12 +307,12 @@ export function DocumentViewer({
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-2">
-                <div className="border rounded-lg overflow-hidden bg-gray-50 min-h-[400px] flex items-center justify-center">
+                <div className="border rounded-lg overflow-hidden bg-gray-50 min-h-[500px] max-h-[600px] flex items-center justify-center">
                   {isImage(document.url) ? (
                     <img
                       src={document.url}
                       alt={document.name}
-                      className="max-w-full max-h-[400px] object-contain"
+                      className="max-w-full max-h-full object-contain"
                       onError={(e) => {
                         (e.target as HTMLImageElement).style.display = 'none'
                         const parent = (e.target as HTMLImageElement).parentElement!
@@ -326,11 +326,40 @@ export function DocumentViewer({
                       }}
                     />
                   ) : isPdf(document.url) ? (
-                    <iframe
-                      src={`${document.url}#toolbar=0`}
-                      className="w-full h-[400px] border-0"
+                    <object
+                      data={document.url}
+                      type="application/pdf"
+                      className="w-full h-[500px]"
                       title={document.name}
-                    />
+                    >
+                      <div className="text-center p-8">
+                        <FileText className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                        <p className="text-muted-foreground mb-2">Impossible d'afficher le PDF</p>
+                        <p className="text-sm text-muted-foreground mb-4">
+                          {document.name}
+                        </p>
+                        <div className="flex gap-2 justify-center">
+                          <Button
+                            onClick={() => window.open(document.url, '_blank')}
+                          >
+                            <ExternalLink className="w-4 h-4 mr-2" />
+                            Ouvrir le PDF
+                          </Button>
+                          <Button
+                            variant="outline"
+                            onClick={() => {
+                              const link = document.createElement('a')
+                              link.href = document.url
+                              link.download = document.name
+                              link.click()
+                            }}
+                          >
+                            <Download className="w-4 h-4 mr-2" />
+                            Télécharger
+                          </Button>
+                        </div>
+                      </div>
+                    </object>
                   ) : (
                     <div className="text-center p-8">
                       <FileText className="w-12 h-12 text-muted-foreground mx-auto mb-4" />

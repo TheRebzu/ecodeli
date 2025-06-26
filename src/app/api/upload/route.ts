@@ -1,4 +1,4 @@
-// API Upload de fichiers sécurisé EcoDeli
+// API Upload de fichiers sÃ©curisÃ© EcoDeli
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/db'
@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
   try {
     const session = await auth()
     if (!session) {
-      return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
+      return NextResponse.json({ error: 'Non autorisÃ©' }, { status: 401 })
     }
 
     const formData = await request.formData()
@@ -42,25 +42,25 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Aucun fichier fourni' }, { status: 400 })
     }
 
-    // Validation du schéma
+    // Validation du schÃ©ma
     const validation = uploadSchema.safeParse({ type, category })
     if (!validation.success) {
       return NextResponse.json(
-        { error: 'Paramètres invalides', details: validation.error.errors },
+        { error: 'ParamÃ¨tres invalides', details: validation.error.errors },
         { status: 400 }
       )
     }
 
-    // Vérification du type MIME
+    // VÃ©rification du type MIME
     const allowedTypes = ALLOWED_MIME_TYPES[category as keyof typeof ALLOWED_MIME_TYPES]
     if (!allowedTypes.includes(file.type)) {
       return NextResponse.json(
-        { error: `Type de fichier non autorisé. Types acceptés: ${allowedTypes.join(', ')}` },
+        { error: `Type de fichier non autorisÃ©. Types acceptÃ©s: ${allowedTypes.join(', ')}` },
         { status: 400 }
       )
     }
 
-    // Vérification de la taille
+    // VÃ©rification de la taille
     const maxSize = MAX_FILE_SIZES[category as keyof typeof MAX_FILE_SIZES]
     if (file.size > maxSize) {
       return NextResponse.json(
@@ -69,14 +69,14 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Génération du nom de fichier unique
+    // GÃ©nÃ©ration du nom de fichier unique
     const timestamp = Date.now()
     const randomId = Math.random().toString(36).substring(2, 15)
     const extension = file.name.split('.').pop()
     const filename = `${session.user.id}_${timestamp}_${randomId}.${extension}`
 
-    // Création du répertoire de destination
-    const uploadDir = join(process.cwd(), 'uploads', category, session.user.role.toLowerCase())
+    // Correction : upload dans public/uploads
+    const uploadDir = join(process.cwd(), 'public', 'uploads', category, session.user.role.toLowerCase())
     if (!existsSync(uploadDir)) {
       await mkdir(uploadDir, { recursive: true })
     }
@@ -90,7 +90,7 @@ export async function POST(request: NextRequest) {
     // URL relative pour servir le fichier
     const url = `/uploads/${category}/${session.user.role.toLowerCase()}/${filename}`
 
-    // Enregistrement en base de données
+    // Enregistrement en base de donnÃ©es
     const document = await prisma.document.create({
       data: {
         userId: session.user.id,
@@ -104,7 +104,7 @@ export async function POST(request: NextRequest) {
       }
     })
 
-    // Log de l'activité
+    // Log de l'activitÃ©
     await prisma.activityLog.create({
       data: {
         userId: session.user.id,
@@ -122,14 +122,14 @@ export async function POST(request: NextRequest) {
       }
     })
 
-    // Notification pour validation admin (si document nécessite validation)
+    // Notification pour validation admin (si document nÃ©cessite validation)
     if (['IDENTITY', 'DRIVING_LICENSE', 'INSURANCE', 'CERTIFICATION'].includes(type)) {
       await prisma.notification.create({
         data: {
           userId: session.user.id,
           type: 'DOCUMENT_UPLOADED',
           title: 'Document en attente de validation',
-          message: `Votre document ${file.name} a été téléchargé et est en attente de validation par notre équipe.`,
+          message: `Votre document ${file.name} a Ã©tÃ© tÃ©lÃ©chargÃ© et est en attente de validation par notre Ã©quipe.`,
           data: {
             documentId: document.id,
             documentType: type,
@@ -149,8 +149,8 @@ export async function POST(request: NextRequest) {
           data: {
             userId: admin.id,
             type: 'DOCUMENT_PENDING_VALIDATION',
-            title: 'Nouveau document à valider',
-            message: `Un nouveau document ${type} de ${session.user.email} nécessite une validation.`,
+            title: 'Nouveau document Ã  valider',
+            message: `Un nouveau document ${type} de ${session.user.email} nÃ©cessite une validation.`,
             data: {
               documentId: document.id,
               userId: session.user.id,
@@ -179,7 +179,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Erreur upload:', error)
     return NextResponse.json(
-      { error: 'Erreur lors du téléchargement' },
+      { error: 'Erreur lors du tÃ©lÃ©chargement' },
       { status: 500 }
     )
   }
@@ -189,14 +189,14 @@ export async function GET(request: NextRequest) {
   try {
     const session = await auth()
     if (!session) {
-      return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
+      return NextResponse.json({ error: 'Non autorisÃ©' }, { status: 401 })
     }
 
     const { searchParams } = new URL(request.url)
     const type = searchParams.get('type')
     const status = searchParams.get('status')
 
-    // Récupérer les documents de l'utilisateur
+    // RÃ©cupÃ©rer les documents de l'utilisateur
     const where: any = { userId: session.user.id }
     
     if (type) {
@@ -232,9 +232,9 @@ export async function GET(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Erreur récupération documents:', error)
+    console.error('Erreur rÃ©cupÃ©ration documents:', error)
     return NextResponse.json(
-      { error: 'Erreur lors de la récupération des documents' },
+      { error: 'Erreur lors de la rÃ©cupÃ©ration des documents' },
       { status: 500 }
     )
   }
@@ -244,7 +244,7 @@ export async function DELETE(request: NextRequest) {
   try {
     const session = await auth()
     if (!session) {
-      return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
+      return NextResponse.json({ error: 'Non autorisÃ©' }, { status: 401 })
     }
 
     const { searchParams } = new URL(request.url)
@@ -254,7 +254,7 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: 'ID du document requis' }, { status: 400 })
     }
 
-    // Vérifier que le document appartient à l'utilisateur
+    // VÃ©rifier que le document appartient Ã  l'utilisateur
     const document = await prisma.document.findFirst({
       where: {
         id: documentId,
@@ -266,10 +266,10 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: 'Document introuvable' }, { status: 404 })
     }
 
-    // Ne pas permettre la suppression de documents validés (sauf admin)
+    // Ne pas permettre la suppression de documents validÃ©s (sauf admin)
     if (document.validationStatus === 'APPROVED' && session.user.role !== 'ADMIN') {
       return NextResponse.json(
-        { error: 'Impossible de supprimer un document validé' },
+        { error: 'Impossible de supprimer un document validÃ©' },
         { status: 403 }
       )
     }
@@ -282,7 +282,7 @@ export async function DELETE(request: NextRequest) {
     // TODO: Supprimer aussi le fichier physique
     // unlink(join(process.cwd(), document.url))
 
-    // Log de l'activité
+    // Log de l'activitÃ©
     await prisma.activityLog.create({
       data: {
         userId: session.user.id,
@@ -298,7 +298,7 @@ export async function DELETE(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: 'Document supprimé avec succès'
+      message: 'Document supprimÃ© avec succÃ¨s'
     })
 
   } catch (error) {

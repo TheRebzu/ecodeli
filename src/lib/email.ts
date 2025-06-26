@@ -1,17 +1,25 @@
-import Mailgun from 'mailgun.js'
-import formData from 'form-data'
+import nodemailer from 'nodemailer'
 
 /**
- * Configuration Mailgun
+ * Configuration Nodemailer pour SMTP
  */
-const mailgun = new Mailgun(formData)
-const mg = mailgun.client({
-  username: 'api',
-  key: process.env.MAILGUN_API_KEY || '',
+const transporter = nodemailer.createTransport({
+  host: process.env.SMTP_HOST || 'mail.celian-vf.fr',
+  port: parseInt(process.env.SMTP_PORT || '587'),
+  secure: process.env.SMTP_SECURE === 'true', // true pour 465, false pour 587 (STARTTLS)
+  requireTLS: true, // Force TLS
+  auth: {
+    user: process.env.GMAIL_USER || '',
+    pass: process.env.GMAIL_APP_PASSWORD || ''
+  },
+  tls: {
+    // Ne pas échouer sur les certificats invalides en dev
+    rejectUnauthorized: process.env.NODE_ENV === 'production'
+  }
 })
 
 /**
- * Service d'envoi d'emails
+ * Service d'envoi d'emails SMTP
  */
 export class EmailService {
   /**
@@ -75,17 +83,17 @@ export class EmailService {
       </html>
     `
 
-    const messageData = {
-      from: process.env.MAILGUN_FROM_EMAIL || 'noreply@ecodeli.me',
+    const mailOptions = {
+      from: process.env.GMAIL_USER || 'noreply@ecodeli.com',
       to: email,
       subject,
       html
     }
 
     try {
-      const result = await mg.messages.create(process.env.MAILGUN_DOMAIN || '', messageData)
-      console.log('✅ Email de vérification envoyé:', result)
-      return { success: true, messageId: result.id }
+      const result = await transporter.sendMail(mailOptions)
+      console.log('✅ Email de vérification envoyé:', result.messageId)
+      return { success: true, messageId: result.messageId }
     } catch (error) {
       console.error('❌ Erreur envoi email:', error)
       throw error
@@ -152,19 +160,54 @@ export class EmailService {
       </html>
     `
 
-    const messageData = {
-      from: process.env.MAILGUN_FROM_EMAIL || 'noreply@ecodeli.me',
+    const mailOptions = {
+      from: process.env.GMAIL_USER || 'noreply@ecodeli.com',
       to: email,
       subject,
       html
     }
 
     try {
-      const result = await mg.messages.create(process.env.MAILGUN_DOMAIN || '', messageData)
-      console.log('✅ Email de reset envoyé:', result)
-      return { success: true, messageId: result.id }
+      const result = await transporter.sendMail(mailOptions)
+      console.log('✅ Email de reset envoyé:', result.messageId)
+      return { success: true, messageId: result.messageId }
     } catch (error) {
       console.error('❌ Erreur envoi email:', error)
+      throw error
+    }
+  }
+
+  /**
+   * Envoyer un email générique (sujet + html)
+   */
+  static async sendGenericEmail(email: string, subject: string, html: string) {
+    const mailOptions = {
+      from: process.env.GMAIL_USER || 'noreply@ecodeli.com',
+      to: email,
+      subject,
+      html
+    }
+    
+    try {
+      const result = await transporter.sendMail(mailOptions)
+      console.log('✅ Email générique envoyé:', result.messageId)
+      return { success: true, messageId: result.messageId }
+    } catch (error) {
+      console.error('❌ Erreur envoi email générique:', error)
+      throw error
+    }
+  }
+
+  /**
+   * Tester la connexion SMTP
+   */
+  static async testConnection() {
+    try {
+      await transporter.verify()
+      console.log('✅ Connexion SMTP réussie')
+      return { success: true }
+    } catch (error) {
+      console.error('❌ Erreur connexion SMTP:', error)
       throw error
     }
   }

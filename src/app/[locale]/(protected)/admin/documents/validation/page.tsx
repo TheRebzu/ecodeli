@@ -1,17 +1,22 @@
 import { Metadata } from 'next'
-import { auth } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import { DocumentValidationDashboard } from '@/features/admin/components/documents/document-validation-dashboard'
+import { getCurrentUser } from '@/lib/auth-simple'
 
 interface DocumentValidationPageProps {
-  params: {
+  params: Promise<{
     locale: string
-  }
+  }>
+  searchParams: Promise<{
+    userId?: string
+  }>
 }
 
 export async function generateMetadata({
-  params: { locale }
+  params
 }: DocumentValidationPageProps): Promise<Metadata> {
+  const { locale } = await params
+  
   return {
     title: 'Validation des documents - Admin EcoDeli',
     description: 'Interface de validation des documents soumis par les utilisateurs'
@@ -19,13 +24,15 @@ export async function generateMetadata({
 }
 
 export default async function DocumentValidationPage({
-  params: { locale }
+  params,
+  searchParams
 }: DocumentValidationPageProps) {
-  const session = await auth.api.getSession({
-    headers: await import('next/headers').then(mod => mod.headers())
-  })
+  const { locale } = await params
+  const { userId } = await searchParams
+  
+  const user = await getCurrentUser()
 
-  if (!session?.user || session.user.role !== 'ADMIN') {
+  if (!user || user.role !== 'ADMIN') {
     redirect(`/${locale}/login`)
   }
 
@@ -40,7 +47,7 @@ export default async function DocumentValidationPage({
         </p>
       </div>
 
-      <DocumentValidationDashboard />
+      <DocumentValidationDashboard initialUserId={userId} />
     </div>
   )
 }
