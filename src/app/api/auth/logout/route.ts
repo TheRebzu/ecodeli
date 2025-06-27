@@ -1,16 +1,15 @@
-import { auth } from "@/lib/auth"
+import { signOut } from "@/lib/auth"
 import { NextRequest, NextResponse } from "next/server"
+import { redirect } from "next/navigation"
 
 /**
- * Route logout pour Better-Auth selon Mission 1
+ * Route logout pour NextAuth
  * Gère la déconnexion sécurisée des utilisateurs
  */
 export async function POST(request: NextRequest) {
   try {
-    // Effectuer la déconnexion via Better-Auth
-    await auth.api.signOut({
-      headers: request.headers
-    })
+    // Effectuer la déconnexion via NextAuth
+    await signOut({ redirect: false })
 
     // Réponse de succès
     return NextResponse.json(

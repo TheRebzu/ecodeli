@@ -77,23 +77,19 @@ export function TestAccountsWithForm() {
     setLoadingAccount(account.role)
     
     try {
-      console.log('🔐 Connexion rapide:', account.email)
+      console.log('🔐 Connexion rapide NextAuth:', account.email)
       
-      const response = await fetch('/api/auth/sign-in/email', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        credentials: 'include',
-        body: JSON.stringify({
-          email: account.email,
-          password: account.password
-        })
+      // Utiliser NextAuth signIn
+      const { signIn } = await import('next-auth/react')
+      
+      const result = await signIn('credentials', {
+        email: account.email,
+        password: account.password,
+        redirect: false
       })
 
-      if (response.ok) {
-        const result = await response.json()
-        console.log('✅ Connexion réussie:', result)
+      if (result?.ok && !result?.error) {
+        console.log('✅ Connexion NextAuth réussie')
         
         // Redirection selon le rôle avec locale
         const locale = window.location.pathname.split('/')[1] || 'fr'
@@ -107,11 +103,10 @@ export function TestAccountsWithForm() {
         
         window.location.href = roleRoutes[account.role as keyof typeof roleRoutes] || `/${locale}/client`
       } else {
-        const errorData = await response.json()
-        console.error('❌ Erreur de connexion:', errorData)
+        console.error('❌ Erreur de connexion NextAuth:', result?.error)
         
         // Si l'utilisateur n'existe pas, essayer de le créer
-        if (response.status === 401) {
+        if (result?.error === 'CredentialsSignin') {
           console.log('🌱 Utilisateur introuvable, création en cours...')
           await createTestUser(account)
         }
@@ -127,20 +122,33 @@ export function TestAccountsWithForm() {
     try {
       console.log('🌱 Création utilisateur:', account.email)
       
-      const response = await fetch('/api/auth/sign-up/email', {
+      // Préparer les données selon le rôle
+      const userData: any = {
+        email: account.email,
+        password: account.password,
+        firstName: account.role === 'ADMIN' ? 'Admin' : account.role.charAt(0) + account.role.slice(1).toLowerCase(),
+        lastName: 'Test',
+        phone: '0123456789',
+        role: account.role,
+        address: '123 Rue de Test',
+        city: 'Paris',
+        postalCode: '75001'
+      }
+
+      // Ajouter les champs spécifiques selon le rôle
+      if (account.role === 'MERCHANT') {
+        userData.companyName = 'Test Company'
+        userData.siret = `SIRET_${Date.now()}`
+      } else if (account.role === 'PROVIDER') {
+        userData.businessName = 'Test Business'
+      }
+      
+      const response = await fetch('/api/auth/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
-        credentials: 'include',
-        body: JSON.stringify({
-          email: account.email,
-          password: account.password,
-          name: `${account.role} Test`,
-          role: account.role,
-          isActive: true,
-          validationStatus: 'VALIDATED'
-        })
+        body: JSON.stringify(userData)
       })
 
       if (response.ok) {

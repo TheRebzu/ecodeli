@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '@/lib/auth'
-import { prisma } from '@/lib/db'
+import { requireRole } from '@/lib/auth'
+import { db } from '@/lib/db'
 import { z } from 'zod'
 
 const validateDocumentsSchema = z.object({
@@ -16,22 +16,13 @@ const validateDocumentsSchema = z.object({
  */
 export async function POST(request: NextRequest) {
   try {
-    const session = await auth.api.getSession({
-      headers: request.headers
-    })
-
-    if (!session || session.user.role !== 'ADMIN') {
-      return NextResponse.json(
-        { error: "Accès non autorisé - Admin uniquement" },
-        { status: 403 }
-      )
-    }
+    const user = await requireRole('ADMIN')
 
     const body = await request.json()
     const { userId, documentType, status, reason } = validateDocumentsSchema.parse(body)
 
     // Récupérer l'utilisateur et son profil
-    const user = await prisma.user.findUnique({
+    const user = await db.user.findUnique({
       where: { id: userId },
       include: {
         deliverer: true,
@@ -59,11 +50,11 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    await prisma.document.update({
+    await db.document.update({
       where: { id: document.id },
       data: {
         status,
-        validatedBy: session.user.id,
+        validatedBy: user.id,
         validatedAt: new Date(),
         ...(reason && { rejectionReason: reason })
       }
@@ -78,7 +69,7 @@ export async function POST(request: NextRequest) {
       case 'DELIVERER':
         if (documentType === 'IDENTITY' || documentType === 'DRIVING_LICENSE' || documentType === 'INSURANCE') {
           // Vérifier si tous les documents obligatoires sont approuvés
-          const allDocuments = await prisma.document.findMany({
+          const allDocuments = await db.document.findMany({
             where: {
               profileId: user.delivererProfile?.id,
               type: { in: ['IDENTITY', 'DRIVING_LICENSE', 'INSURANCE'] }
@@ -149,13 +140,13 @@ export async function POST(request: NextRequest) {
     }
 
     // Mettre à jour l'utilisateur et son profil
-    const updatedUser = await prisma.user.update({
+    const updatedUser = await db.user.update({
       where: { id: userId },
       data: userUpdateData
     })
 
     if (profileTable && Object.keys(profileUpdateData).length > 0) {
-      await prisma[profileTable].update({
+      await db[profileTable].update({
         where: { userId },
         data: profileUpdateData
       })
@@ -165,7 +156,7 @@ export async function POST(request: NextRequest) {
     console.log(`📧 Notification à envoyer à ${user.email}: Document ${documentType} ${status.toLowerCase()}`)
 
     // Log d'audit
-    console.log(`🔍 AUDIT: Admin ${session.user.email} a ${status.toLowerCase()} le document ${documentType} de ${user.email}`)
+    console.log(`🔍 AUDIT: Admin ${user.email} a ${status.toLowerCase()} le document ${documentType} de ${user.email}`)
 
     return NextResponse.json({
       success: true,
@@ -180,11 +171,18 @@ export async function POST(request: NextRequest) {
         type: documentType,
         status,
         validatedAt: new Date(),
-        validatedBy: session.user.email
+        validatedBy: user.email
       }
     })
 
   } catch (error) {
+    if (error instanceof Error && (error.message === "Unauthorized" || error.message.includes("Forbidden"))) {
+      return NextResponse.json(
+        { error: "Accès non autorisé - Admin uniquement" },
+        { status: 403 }
+      )
+    }
+
     console.error('❌ Erreur validation documents:', error)
 
     if (error instanceof z.ZodError) {
@@ -213,18 +211,9 @@ export async function POST(request: NextRequest) {
  */
 export async function GET(request: NextRequest) {
   try {
-    const session = await auth.api.getSession({
-      headers: request.headers
-    })
+    await requireRole('ADMIN')
 
-    if (!session || session.user.role !== 'ADMIN') {
-      return NextResponse.json(
-        { error: "Accès non autorisé - Admin uniquement" },
-        { status: 403 }
-      )
-    }
-
-    const pendingDocuments = await prisma.document.findMany({
+    const pendingDocuments = await db.document.findMany({
       where: { status: 'PENDING' },
       include: {
         profile: {
@@ -259,6 +248,13 @@ export async function GET(request: NextRequest) {
     })
 
   } catch (error) {
+    if (error instanceof Error && (error.message === "Unauthorized" || error.message.includes("Forbidden"))) {
+      return NextResponse.json(
+        { error: "Accès non autorisé - Admin uniquement" },
+        { status: 403 }
+      )
+    }
+
     console.error('❌ Erreur récupération documents:', error)
     return NextResponse.json(
       { error: 'Erreur serveur' },

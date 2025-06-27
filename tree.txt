@@ -1,4 +1,5 @@
 ./
+├── check-users.ts*
 ├── components.json*
 ├── cookies.txt*
 ├── create-test-users.ts*
@@ -82,9 +83,6 @@
 ├── scripts/
 │   └── i18n/
 │       ├── extracted-labels.json*
-│       ├── extraction-report.md*
-│       ├── merged-en.json*
-│       ├── merged-fr.json*
 │       ├── translations-en.json*
 │       └── translations-fr.json*
 ├── src/
@@ -93,6 +91,8 @@
 │   │   │   ├── admin/
 │   │   │   │   ├── announcements/
 │   │   │   │   │   ├── analytics/
+│   │   │   │   │   │   └── route.ts*
+│   │   │   │   │   ├── [id]/
 │   │   │   │   │   │   └── route.ts*
 │   │   │   │   │   └── route.ts*
 │   │   │   │   ├── contracts/
@@ -187,7 +187,11 @@
 │   │   │   ├── auth/
 │   │   │   │   ├── [...all]/
 │   │   │   │   │   └── route.ts*
+│   │   │   │   ├── check-user-status/
+│   │   │   │   │   └── route.ts*
 │   │   │   │   ├── forgot-password/
+│   │   │   │   │   └── route.ts*
+│   │   │   │   ├── get-session/
 │   │   │   │   │   └── route.ts*
 │   │   │   │   ├── login/
 │   │   │   │   │   └── route.ts*
@@ -197,17 +201,19 @@
 │   │   │   │   │   └── route.ts*
 │   │   │   │   ├── refresh/
 │   │   │   │   │   └── route.ts*
-│   │   │   │   ├── register/
-│   │   │   │   │   └── route.ts*
 │   │   │   │   ├── resend-verification/
 │   │   │   │   │   └── route.ts*
 │   │   │   │   ├── reset-password/
 │   │   │   │   │   └── route.ts*
+│   │   │   │   ├── session/
+│   │   │   │   │   └── route.ts*
 │   │   │   │   ├── validate-documents/
 │   │   │   │   │   └── route.ts*
-│   │   │   │   ├── verify-email/
+│   │   │   │   ├── validate-user/
 │   │   │   │   │   └── route.ts*
-│   │   │   │   └── verify-reset-token/
+│   │   │   │   ├── validation-status/
+│   │   │   │   │   └── route.ts*
+│   │   │   │   └── verify-email/
 │   │   │   │       └── route.ts*
 │   │   │   ├── client/
 │   │   │   │   ├── announcements/
@@ -381,6 +387,8 @@
 │   │   │   │           │   └── route.ts*
 │   │   │   │           └── route.ts*
 │   │   │   ├── provider/
+│   │   │   │   ├── announcements/
+│   │   │   │   │   └── route.ts*
 │   │   │   │   ├── availability/
 │   │   │   │   │   ├── route.ts*
 │   │   │   │   │   └── sync/
@@ -525,6 +533,7 @@
 │   │   │   │       ├── [id]/
 │   │   │   │       │   └── route.ts*
 │   │   │   │       └── route.ts*
+│   │   │   ├── test-direct-db/
 │   │   │   ├── upload/
 │   │   │   │   └── route.ts*
 │   │   │   ├── warehouses/
@@ -565,6 +574,8 @@
 │   │   │   │   │   └── page.tsx*
 │   │   │   │   ├── reset-password/
 │   │   │   │   │   └── page.tsx*
+│   │   │   │   ├── validate-user/
+│   │   │   │   │   └── page.tsx*
 │   │   │   │   └── verify-email/
 │   │   │   │       └── page.tsx*
 │   │   │   ├── layout.tsx*
@@ -573,7 +584,12 @@
 │   │   │   ├── (protected)/
 │   │   │   │   ├── admin/
 │   │   │   │   │   ├── announcements/
-│   │   │   │   │   │   └── moderation/
+│   │   │   │   │   │   ├── components/
+│   │   │   │   │   │   │   ├── announcement-analytics.tsx*
+│   │   │   │   │   │   │   ├── announcement-details.tsx*
+│   │   │   │   │   │   │   └── announcement-form.tsx*
+│   │   │   │   │   │   ├── moderation/
+│   │   │   │   │   │   └── page.tsx*
 │   │   │   │   │   ├── billing/
 │   │   │   │   │   │   └── monthly/
 │   │   │   │   │   │       └── page.tsx*
@@ -588,6 +604,7 @@
 │   │   │   │   │   │       └── page.tsx*
 │   │   │   │   │   ├── finance/
 │   │   │   │   │   │   ├── overview/
+│   │   │   │   │   │   ├── page.tsx*
 │   │   │   │   │   │   └── reports/
 │   │   │   │   │   ├── insurance/
 │   │   │   │   │   │   └── page.tsx*
@@ -803,7 +820,8 @@
 │   │   │   ├── page-header.tsx*
 │   │   │   ├── provider-header.tsx*
 │   │   │   ├── providers/
-│   │   │   │   └── layout-provider.tsx*
+│   │   │   │   ├── layout-provider.tsx*
+│   │   │   │   └── theme-provider.tsx*
 │   │   │   ├── public-header.tsx*
 │   │   │   ├── public-layout.tsx*
 │   │   │   ├── sidebars/
@@ -872,6 +890,8 @@
 │   │       ├── tabs.tsx*
 │   │       ├── textarea.tsx*
 │   │       ├── theme-toggle.tsx*
+│   │       ├── toaster.tsx*
+│   │       ├── toast.tsx*
 │   │       ├── toggle-group.tsx*
 │   │       ├── toggle.tsx*
 │   │       ├── tooltip.tsx*
@@ -981,6 +1001,7 @@
 │   │   │   │   ├── client-register-form.tsx*
 │   │   │   │   ├── deliverer-register-form.tsx*
 │   │   │   │   ├── forgot-password-form.tsx*
+│   │   │   │   ├── index.ts*
 │   │   │   │   ├── login-form.tsx*
 │   │   │   │   ├── merchant-register-form.tsx*
 │   │   │   │   ├── provider-register-form.tsx*
@@ -991,7 +1012,10 @@
 │   │   │   │   │   ├── login-form.tsx*
 │   │   │   │   │   └── role-selector.tsx*
 │   │   │   │   ├── test-accounts.tsx*
-│   │   │   │   └── test-accounts-with-form.tsx*
+│   │   │   │   ├── test-accounts-with-form.tsx*
+│   │   │   │   ├── user-validation-form.tsx*
+│   │   │   │   ├── validation-guard.tsx*
+│   │   │   │   └── validation-status.tsx*
 │   │   │   ├── constants/
 │   │   │   ├── guards/
 │   │   │   │   ├── auth-guard.tsx*
@@ -1001,6 +1025,7 @@
 │   │   │   │   ├── useAuthBetter.ts*
 │   │   │   │   ├── useAuth.ts*
 │   │   │   │   ├── usePermissions.ts*
+│   │   │   │   ├── use-user-validation.ts*
 │   │   │   │   └── useValidation.ts*
 │   │   │   ├── schemas/
 │   │   │   │   ├── auth.schema.ts*
@@ -1274,7 +1299,6 @@
 │   │   │   └── utils.ts*
 │   │   ├── auth-client.ts*
 │   │   ├── auth-provider.tsx*
-│   │   ├── auth-simple.ts*
 │   │   ├── auth.ts*
 │   │   ├── cache.ts*
 │   │   ├── config/
@@ -1314,14 +1338,19 @@
 │   │   └── global.d.ts*
 │   └── utils/
 ├── test-api-fixed.ts*
+├── test-api-powershell.ps1*
 ├── test-client-page.js*
+├── test-dashboard-api.js*
+├── test-dashboard.js*
 ├── test-ecodeli-api.ts*
 ├── tests/
 │   └── api/
 │       └── client-dashboard.md*
+├── test-simple-api.js*
+├── test-simple.js*
 ├── tree.txt*
 ├── tsconfig.json*
 ├── tsconfig.tsbuildinfo*
 └── typecheck.txt*
 
-635 directories, 690 files
+643 directories, 711 files

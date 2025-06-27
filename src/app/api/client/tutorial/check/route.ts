@@ -8,7 +8,7 @@ import { TutorialService } from '@/features/tutorials/services/tutorial.service'
  */
 export async function GET(request: NextRequest) {
   try {
-    const session = await auth.api.getSession({ headers: request.headers })
+    const session = await auth()
     
     if (!session?.user || session.user.role !== 'CLIENT') {
       return NextResponse.json({

@@ -84,9 +84,7 @@ export default async function middleware(request: NextRequest) {
       pathname.includes('/provider/')) {
     
     try {
-      const session = await auth.api.getSession({
-        headers: request.headers,
-      })
+      const session = await auth()
       
       if (!session?.user) {
         // Extraire la locale de l'URL

@@ -92,7 +92,7 @@ export class EmailService {
 
     try {
       const result = await transporter.sendMail(mailOptions)
-      console.log('✅ Email de vérification envoyé:', result.messageId)
+      // Email de vérification envoyé
       return { success: true, messageId: result.messageId }
     } catch (error) {
       console.error('❌ Erreur envoi email:', error)
@@ -169,7 +169,7 @@ export class EmailService {
 
     try {
       const result = await transporter.sendMail(mailOptions)
-      console.log('✅ Email de reset envoyé:', result.messageId)
+      // Email de reset envoyé
       return { success: true, messageId: result.messageId }
     } catch (error) {
       console.error('❌ Erreur envoi email:', error)
@@ -190,7 +190,7 @@ export class EmailService {
     
     try {
       const result = await transporter.sendMail(mailOptions)
-      console.log('✅ Email générique envoyé:', result.messageId)
+      // Email générique envoyé
       return { success: true, messageId: result.messageId }
     } catch (error) {
       console.error('❌ Erreur envoi email générique:', error)
@@ -204,7 +204,7 @@ export class EmailService {
   static async testConnection() {
     try {
       await transporter.verify()
-      console.log('✅ Connexion SMTP réussie')
+      // Connexion SMTP réussie
       return { success: true }
     } catch (error) {
       console.error('❌ Erreur connexion SMTP:', error)

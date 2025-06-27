@@ -114,81 +114,60 @@ export const cartDropDetailsSchema = z.object({
 
 export type CartDropDetails = z.infer<typeof cartDropDetailsSchema>
 
-// Schema pour création d'annonce avec validation conditionnelle
-export const createAnnouncementSchema = baseAnnouncementSchema.and(
-  z.discriminatedUnion('type', [
-    // Colis et livraisons
-    z.object({
-      type: z.literal('PACKAGE_DELIVERY'),
-      packageDetails: packageDetailsSchema
-    }),
-    z.object({
-      type: z.literal('INTERNATIONAL_PURCHASE'),
-      packageDetails: packageDetailsSchema.extend({
-        customsValue: z.number().positive().optional(),
-        customsDescription: z.string().min(10).optional()
-      })
-    }),
-    // Transport de personnes
-    z.object({
-      type: z.literal('PERSON_TRANSPORT'),
-      serviceDetails: serviceDetailsSchema.extend({
-        serviceType: z.literal('TRANSPORT'),
-        numberOfPeople: z.number().positive().max(8)
-      })
-    }),
-    z.object({
-      type: z.literal('AIRPORT_TRANSFER'),
-      serviceDetails: serviceDetailsSchema.extend({
-        serviceType: z.literal('TRANSPORT'),
-        flightNumber: z.string().optional(),
-        terminal: z.string().optional(),
-        luggage: z.boolean().default(false)
-      }).extend({
-        flightNumber: z.string().optional(),
-        terminal: z.string().optional(),
-        luggage: z.boolean().default(false)
-      })
-    }),
-    // Services à domicile
-    z.object({
-      type: z.literal('HOME_SERVICE'),
-      serviceDetails: serviceDetailsSchema
-    }),
-    z.object({
-      type: z.literal('PET_SITTING'),
-      serviceDetails: serviceDetailsSchema.extend({
-        serviceType: z.literal('PET_CARE'),
-        petType: z.enum(['DOG', 'CAT', 'BIRD', 'OTHER']),
-        petSize: z.enum(['SMALL', 'MEDIUM', 'LARGE']).optional(),
-        specialNeeds: z.string().max(200).optional()
-      }).extend({
-        petType: z.enum(['DOG', 'CAT', 'BIRD', 'OTHER']),
-        petSize: z.enum(['SMALL', 'MEDIUM', 'LARGE']).optional(),
-        specialNeeds: z.string().max(200).optional()
-      })
-    }),
-    // Courses
-    z.object({
-      type: z.literal('SHOPPING'),
-      shoppingDetails: z.object({
-        shoppingList: z.array(z.object({
-          item: z.string().min(2),
-          quantity: z.number().positive(),
-          specifications: z.string().optional()
-        })).min(1, 'Liste de courses requise'),
-        budget: z.number().positive('Budget requis'),
-        preferredStores: z.array(z.string()).optional(),
-        paymentMethod: z.enum(['CASH', 'CARD', 'TRANSFER']).default('CARD')
-      })
-    }),
-    // Lâcher de chariot (service phare)
-    z.object({
-      type: z.literal('CART_DROP'),
-      cartDropDetails: cartDropDetailsSchema
-    })
-  ])
-)
+// Schema simplifié pour création d'annonce conforme au cahier des charges
+export const createAnnouncementSchema = z.object({
+  title: z.string()
+    .min(5, 'Le titre doit faire au moins 5 caractères')
+    .max(100, 'Le titre ne peut dépasser 100 caractères'),
+  description: z.string()
+    .min(20, 'La description doit faire au moins 20 caractères')
+    .max(1000, 'La description ne peut dépasser 1000 caractères'),
+  type: z.enum(['PACKAGE', 'TRANSPORT', 'SHOPPING', 'PET_CARE', 'HOME_SERVICE']),
+  
+  // Adresses
+  pickupAddress: z.string().min(10, 'Adresse de récupération requise'),
+  deliveryAddress: z.string().min(10, 'Adresse de livraison requise'),
+  pickupLatitude: z.number().optional(),
+  pickupLongitude: z.number().optional(),
+  deliveryLatitude: z.number().optional(),
+  deliveryLongitude: z.number().optional(),
+  
+  // Dates
+  pickupDate: z.string().datetime('Date de récupération invalide').optional(),
+  deliveryDate: z.string().datetime('Date limite de livraison invalide').optional(),
+  
+  // Tarification
+  basePrice: z.number().positive('Le prix doit être positif').max(10000, 'Prix maximum 10,000€'),
+  price: z.number().positive('Le prix doit être positif').max(10000, 'Prix maximum 10,000€').optional(),
+  currency: z.string().default('EUR'),
+  
+  // Options
+  urgent: z.boolean().default(false),
+  isUrgent: z.boolean().default(false),
+  requiresInsurance: z.boolean().default(false),
+  
+  // Détails spécifiques
+  packageDetails: z.object({
+    weight: z.number().positive().optional(),
+    dimensions: z.string().optional(),
+    fragile: z.boolean().default(false),
+    description: z.string().optional()
+  }).optional(),
+  
+  specialInstructions: z.string().max(500).optional(),
+  
+  // Compatibilité avec l'ancien format
+  startLocation: z.object({
+    address: z.string(),
+    city: z.string().optional()
+  }).optional(),
+  endLocation: z.object({
+    address: z.string(),
+    city: z.string().optional()
+  }).optional(),
+  desiredDate: z.string().datetime().optional(),
+  serviceType: z.string().optional()
+})
 
 // Schema pour mise à jour d'annonce
 export const updateAnnouncementSchema = z.object({

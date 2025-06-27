@@ -23,39 +23,44 @@ interface Announcement {
   description: string
   type: string
   status: 'DRAFT' | 'ACTIVE' | 'MATCHED' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED'
-  price: number
+  basePrice: number
+  finalPrice: number
   currency: string
-  startLocation: {
-    city: string
-    address: string
-  }
-  endLocation: {
-    city: string
-    address: string
-  }
+  pickupAddress: string
+  deliveryAddress: string
   createdAt: string
-  desiredDate?: string
-  urgent: boolean
-  matchCount?: number
-  deliveries?: Array<{
+  pickupDate?: string
+  deliveryDate?: string
+  isUrgent: boolean
+  packageDetails?: {
+    fragile?: boolean
+    weight?: number
+    dimensions?: string
+  }
+  _count?: {
+    matches: number
+    reviews: number
+    attachments: number
+    tracking: number
+  }
+  delivery?: {
     id: string
     status: string
     deliverer: {
       name: string
-      rating: number
+      profile?: {
+        rating: number
+      }
     }
-  }>
+  }
 }
 
 const announcementTypes = [
-  { value: 'PACKAGE_DELIVERY', label: 'Transport de colis', icon: Package, color: 'bg-blue-500' },
-  { value: 'PERSON_TRANSPORT', label: 'Transport de personnes', icon: Users, color: 'bg-green-500' },
-  { value: 'AIRPORT_TRANSFER', label: 'Transfert aéroport', icon: Plane, color: 'bg-purple-500' },
+  { value: 'PACKAGE', label: 'Transport de colis', icon: Package, color: 'bg-blue-500' },
+  { value: 'TRANSPORT', label: 'Transport de personnes', icon: Users, color: 'bg-green-500' },
   { value: 'SHOPPING', label: 'Courses', icon: ShoppingCart, color: 'bg-orange-500' },
-  { value: 'INTERNATIONAL_PURCHASE', label: 'Achats internationaux', icon: Globe, color: 'bg-red-500' },
-  { value: 'HOME_SERVICE', label: 'Services à domicile', icon: Home, color: 'bg-yellow-500' },
-  { value: 'PET_SITTING', label: 'Garde d\'animaux', icon: Heart, color: 'bg-pink-500' },
-  { value: 'CART_DROP', label: 'Lâcher de chariot', icon: ShoppingCartIcon, color: 'bg-indigo-500' }
+  { value: 'PET_CARE', label: 'Garde d\'animaux', icon: Heart, color: 'bg-pink-500' },
+  { value: 'HOME_SERVICE', label: 'Services à domicile', icon: Home, color: 'bg-yellow-500' }
 ]
 
 const statusConfig = {
@@ -107,8 +112,8 @@ export default function ClientAnnouncementsPage() {
       filtered = filtered.filter(a => 
         a.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
         a.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        a.startLocation.city.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        a.endLocation.city.toLowerCase().includes(searchTerm.toLowerCase())
+        a.pickupAddress.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        a.deliveryAddress.toLowerCase().includes(searchTerm.toLowerCase())
       )
     }
 
@@ -189,7 +194,7 @@ export default function ClientAnnouncementsPage() {
               <div>
                 <CardTitle className="text-lg leading-6">{announcement.title}</CardTitle>
                 <p className="text-sm text-gray-600 mt-1">
-                  {announcement.startLocation.city} → {announcement.endLocation.city}
+                  {announcement.pickupAddress.split(',')[0]} → {announcement.deliveryAddress.split(',')[0]}
                 </p>
               </div>
             </div>
@@ -197,7 +202,7 @@ export default function ClientAnnouncementsPage() {
               <Badge className={statusInfo.color}>
                 {statusInfo.label}
               </Badge>
-              {announcement.urgent && (
+              {announcement.isUrgent && (
                 <Badge variant="destructive" className="ml-2">🚨 Urgent</Badge>
               )}
             </div>
@@ -208,34 +213,34 @@ export default function ClientAnnouncementsPage() {
           <p className="text-gray-700 mb-4 line-clamp-2">{announcement.description}</p>
           
           <div className="flex items-center justify-between text-sm text-gray-600 mb-4">
-            <span>Prix: <strong>{announcement.price}€</strong></span>
-            {announcement.desiredDate && (
-              <span>Souhaité: {new Date(announcement.desiredDate).toLocaleDateString()}</span>
+            <span>Prix: <strong>{announcement.finalPrice || announcement.basePrice}€</strong></span>
+            {announcement.deliveryDate && (
+              <span>Échéance: {new Date(announcement.deliveryDate).toLocaleDateString()}</span>
             )}
           </div>
 
-          {announcement.matchCount !== undefined && announcement.matchCount > 0 && (
+          {announcement._count?.matches && announcement._count.matches > 0 && (
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
               <p className="text-blue-800 text-sm font-medium">
-                🎯 {announcement.matchCount} livreur{announcement.matchCount > 1 ? 's' : ''} intéressé{announcement.matchCount > 1 ? 's' : ''}
+                🎯 {announcement._count.matches} livreur{announcement._count.matches > 1 ? 's' : ''} intéressé{announcement._count.matches > 1 ? 's' : ''}
               </p>
             </div>
           )}
 
-          {announcement.deliveries && announcement.deliveries.length > 0 && (
+          {announcement.delivery && (
             <div className="border-t pt-3 mb-3">
-              <h4 className="font-medium text-sm mb-2">Livraisons assignées:</h4>
-              {announcement.deliveries.map(delivery => (
-                <div key={delivery.id} className="flex items-center justify-between text-sm">
-                  <span>{delivery.deliverer.name}</span>
-                  <div className="flex items-center gap-2">
-                    <span>⭐ {delivery.deliverer.rating}</span>
-                    <Badge variant="outline" className="text-xs">
-                      {delivery.status}
-                    </Badge>
-                  </div>
+              <h4 className="font-medium text-sm mb-2">Livraison assignée:</h4>
+              <div className="flex items-center justify-between text-sm">
+                <span>{announcement.delivery.deliverer.name}</span>
+                <div className="flex items-center gap-2">
+                  {announcement.delivery.deliverer.profile?.rating && (
+                    <span>⭐ {announcement.delivery.deliverer.profile.rating}</span>
+                  )}
+                  <Badge variant="outline" className="text-xs">
+                    {announcement.delivery.status}
+                  </Badge>
                 </div>
-              ))}
+              </div>
             </div>
           )}
           

@@ -19,7 +19,7 @@ const useCodeSchema = z.object({
  */
 export async function POST(request: NextRequest) {
   try {
-    const session = await auth.api.getSession({ headers: request.headers })
+    const session = await auth()
     
     if (!session?.user) {
       return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
@@ -113,7 +113,7 @@ export async function POST(request: NextRequest) {
  */
 export async function GET(request: NextRequest) {
   try {
-    const session = await auth.api.getSession({ headers: request.headers })
+    const session = await auth()
     
     if (!session?.user) {
       return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })

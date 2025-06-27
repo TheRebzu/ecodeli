@@ -11,11 +11,11 @@ export async function POST(request: NextRequest) {
     // Validation du schema
     const { token, password } = resetPasswordSchema.parse(body)
 
-    // Vérifier le token dans la table Verification de Better Auth
-    const verification = await db.verification.findFirst({
+    // Vérifier le token dans la table VerificationToken de NextAuth
+    const verification = await db.verificationToken.findFirst({
       where: {
-        value: `password-reset:${token}`,
-        expiresAt: { gt: new Date() } // Token non expiré
+        token: `password-reset:${token}`,
+        expires: { gt: new Date() } // Token non expiré
       }
     })
 
@@ -42,8 +42,11 @@ export async function POST(request: NextRequest) {
     })
 
     // Supprimer le token utilisé
-    await db.verification.delete({
-      where: { id: verification.id }
+    await db.verificationToken.deleteMany({
+      where: { 
+        identifier: verification.identifier,
+        token: verification.token
+      }
     })
 
     console.log(`✅ Mot de passe réinitialisé pour: ${user.email}`)

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/db'
+import { db } from '@/lib/db'
 import { EmailService } from '@/lib/email'
 import { z } from 'zod'
 
@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
     const { email } = resendVerificationSchema.parse(body)
 
     // Vérifier que l'utilisateur existe
-    const user = await prisma.user.findUnique({
+    const user = await db.user.findUnique({
       where: { email }
     })
 
@@ -39,23 +39,22 @@ export async function POST(request: NextRequest) {
     const verificationToken = require('@paralleldrive/cuid2').createId()
     const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 heures
 
-    // Supprimer les anciens tokens de vérification pour cet utilisateur (temporairement désactivé)
-    // await prisma.verificationToken.deleteMany({
-    //   where: { 
-    //     identifier: email,
-    //     type: 'email_verification'
-    //   }
-    // })
+    // Supprimer les anciens tokens de vérification pour cet utilisateur
+    await db.verificationToken.deleteMany({
+      where: { 
+        identifier: email,
+        token: { startsWith: 'email-verification:' }
+      }
+    })
 
-    // Créer un nouveau token de vérification (temporairement désactivé)
-    // await prisma.verificationToken.create({
-    //   data: {
-    //     identifier: email,
-    //     token: verificationToken,
-    //     expires: expiresAt,
-    //     type: 'email_verification'
-    //   }
-    // })
+    // Créer un nouveau token de vérification
+    await db.verificationToken.create({
+      data: {
+        identifier: email,
+        token: `email-verification:${verificationToken}`,
+        expires: expiresAt
+      }
+    })
 
     // Pour l'instant, nous simulons l'envoi d'email
     console.log('📧 Simulation d\'envoi d\'email de vérification pour:', email)

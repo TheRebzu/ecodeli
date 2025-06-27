@@ -13,11 +13,15 @@ import {
   RouteMatch
 } from '../types/announcement.types'
 import { notificationService } from '@/features/notifications/services/notification.service'
+import { geocodingService } from './geocoding.service'
+import { announcementPaymentService } from './announcement-payment.service'
+import { ValidationCodeService } from '@/features/deliveries/services/validation-code.service'
+import { logger } from '@/lib/logger'
 
 class AnnouncementService {
   
   /**
-   * Crée une nouvelle annonce
+   * Crée une nouvelle annonce avec géocodage automatique
    */
   async createAnnouncement(
     userId: string, 
@@ -25,10 +29,62 @@ class AnnouncementService {
     userRole: 'CLIENT' | 'MERCHANT' = 'CLIENT'
   ): Promise<AnnouncementWithDetails> {
     try {
+      logger.info(`Création d'annonce pour utilisateur ${userId}`)
+
       // Vérifier les limites d'abonnement pour les clients
       if (userRole === 'CLIENT') {
         await this.checkSubscriptionLimits(userId)
       }
+
+      // Géocoder les adresses si coordonnées manquantes
+      let pickupCoords = { lat: data.pickupLatitude, lng: data.pickupLongitude }
+      let deliveryCoords = { lat: data.deliveryLatitude, lng: data.deliveryLongitude }
+
+      if (!pickupCoords.lat || !pickupCoords.lng) {
+        logger.info(`Géocodage adresse pickup: ${data.pickupAddress}`)
+        const pickupGeocode = await geocodingService.geocodeAddressWithCache(data.pickupAddress)
+        if (pickupGeocode) {
+          pickupCoords = { lat: pickupGeocode.lat, lng: pickupGeocode.lng }
+        }
+      }
+
+      if (!deliveryCoords.lat || !deliveryCoords.lng) {
+        logger.info(`Géocodage adresse livraison: ${data.deliveryAddress}`)
+        const deliveryGeocode = await geocodingService.geocodeAddressWithCache(data.deliveryAddress)
+        if (deliveryGeocode) {
+          deliveryCoords = { lat: deliveryGeocode.lat, lng: deliveryGeocode.lng }
+        }
+      }
+
+      // Calculer la distance réelle et le prix
+      let distance = 0
+      let finalPrice = data.basePrice
+
+      if (pickupCoords.lat && pickupCoords.lng && deliveryCoords.lat && deliveryCoords.lng) {
+        const routeResult = await geocodingService.calculateRoute(
+          pickupCoords.lat, pickupCoords.lng,
+          deliveryCoords.lat, deliveryCoords.lng
+        )
+        
+        if (routeResult) {
+          distance = routeResult.distance
+          // Calculer prix basé sur distance réelle
+          finalPrice = geocodingService.calculateDistanceBasedPrice(distance, data.basePrice)
+        }
+      }
+
+      // Récupérer l'abonnement pour calcul des tarifs
+      const subscription = await prisma.subscription.findUnique({
+        where: { userId }
+      })
+
+      // Calculer le prix final avec abonnement et urgence
+      finalPrice = this.calculateFinalPriceWithSubscription(
+        finalPrice, 
+        subscription?.plan || 'FREE', 
+        data.isUrgent || false,
+        data.requiresInsurance || false
+      )
 
       // Créer l'annonce avec ses détails spécifiques
       const announcement = await prisma.$transaction(async (tx) => {
@@ -40,23 +96,24 @@ class AnnouncementService {
             title: data.title,
             description: data.description,
             pickupAddress: data.pickupAddress,
-            pickupLatitude: data.pickupLatitude,
-            pickupLongitude: data.pickupLongitude,
+            pickupLatitude: pickupCoords.lat,
+            pickupLongitude: pickupCoords.lng,
             deliveryAddress: data.deliveryAddress,
-            deliveryLatitude: data.deliveryLatitude,
-            deliveryLongitude: data.deliveryLongitude,
+            deliveryLatitude: deliveryCoords.lat,
+            deliveryLongitude: deliveryCoords.lng,
+            distance: distance,
             pickupDate: data.pickupDate ? new Date(data.pickupDate) : null,
             deliveryDate: data.deliveryDate ? new Date(data.deliveryDate) : null,
             isFlexibleDate: data.isFlexibleDate || false,
             preferredTimeSlot: data.preferredTimeSlot,
             isUrgent: data.isUrgent || false,
             basePrice: data.basePrice,
-            finalPrice: data.finalPrice || data.basePrice,
+            finalPrice: finalPrice,
             currency: data.currency || 'EUR',
             isPriceNegotiable: data.isPriceNegotiable || false,
-            urgencyFee: data.urgencyFee,
-            insuranceFee: data.insuranceFee,
-            platformFee: data.platformFee,
+            urgencyFee: data.isUrgent ? this.calculateUrgencyFee(finalPrice, subscription?.plan || 'FREE') : null,
+            insuranceFee: data.requiresInsurance ? this.calculateInsuranceFee(finalPrice, subscription?.plan || 'FREE') : null,
+            platformFee: finalPrice * 0.05, // 5% frais plateforme
             packageDetails: data.packageDetails,
             personDetails: data.personDetails,
             shoppingDetails: data.shoppingDetails,
@@ -66,13 +123,13 @@ class AnnouncementService {
             requiresInsurance: data.requiresInsurance || false,
             allowsPartialDelivery: data.allowsPartialDelivery || false,
             maxDeliverers: data.maxDeliverers || 1,
-            estimatedDuration: data.estimatedDuration,
+            estimatedDuration: routeResult?.duration ? Math.round(routeResult.duration / 60) : null,
             weight: data.weight,
             volume: data.volume,
             specialInstructions: data.specialInstructions,
             customerNotes: data.customerNotes,
-            status: 'ACTIVE',
-            publishedAt: new Date()
+            status: 'DRAFT', // Commence en DRAFT, devient ACTIVE après paiement
+            expiresAt: data.pickupDate ? new Date(data.pickupDate) : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // 7 jours
           },
           include: {
             author: {
@@ -85,17 +142,27 @@ class AnnouncementService {
           }
         })
 
+        // Créer l'entrée de tracking initial
+        await tx.announcementTracking.create({
+          data: {
+            announcementId: newAnnouncement.id,
+            status: 'DRAFT',
+            message: 'Annonce créée, en attente de paiement',
+            createdBy: userId,
+            isPublic: true
+          }
+        })
+
         return newAnnouncement
       })
 
-      // Lancer le matching automatique avec les trajets
-      this.triggerRouteMatching(announcement.id).catch(console.error)
+      logger.info(`Annonce créée: ${announcement.id}, prix final: ${finalPrice}€, distance: ${distance}km`)
 
       // Récupérer l'annonce complète avec tous les détails
       return await this.getAnnouncementById(announcement.id)
 
     } catch (error) {
-      console.error('Error creating announcement:', error)
+      logger.error('Erreur création annonce:', error)
       throw new Error('Erreur lors de la création de l\'annonce')
     }
   }
@@ -631,6 +698,417 @@ class AnnouncementService {
     }
 
     return limits[plan] || limits.FREE
+  }
+
+  /**
+   * Active une annonce après paiement confirmé
+   */
+  async activateAnnouncementAfterPayment(announcementId: string): Promise<void> {
+    try {
+      logger.info(`Activation annonce après paiement: ${announcementId}`)
+
+      await prisma.$transaction(async (tx) => {
+        // Activer l'annonce
+        await tx.announcement.update({
+          where: { id: announcementId },
+          data: {
+            status: 'ACTIVE',
+            publishedAt: new Date()
+          }
+        })
+
+        // Créer l'entrée de tracking
+        await tx.announcementTracking.create({
+          data: {
+            announcementId,
+            status: 'ACTIVE',
+            message: 'Annonce activée après paiement confirmé',
+            isPublic: true
+          }
+        })
+      })
+
+      // Lancer le matching automatique
+      this.triggerRouteMatching(announcementId).catch(console.error)
+
+      logger.info(`Annonce ${announcementId} activée et matching lancé`)
+
+    } catch (error) {
+      logger.error(`Erreur activation annonce:`, error)
+      throw error
+    }
+  }
+
+  /**
+   * Annule une annonce et déclenche le remboursement si nécessaire
+   */
+  async cancelAnnouncement(
+    announcementId: string, 
+    userId: string, 
+    reason: string = 'Annulation client'
+  ): Promise<void> {
+    try {
+      logger.info(`Annulation annonce: ${announcementId}`)
+
+      const announcement = await this.getAnnouncementById(announcementId)
+
+      // Vérifier les permissions
+      if (announcement.authorId !== userId) {
+        throw new Error('Non autorisé à annuler cette annonce')
+      }
+
+      // Vérifier qu'on peut annuler
+      if (['COMPLETED', 'CANCELLED'].includes(announcement.status)) {
+        throw new Error('Cette annonce ne peut plus être annulée')
+      }
+
+      if (announcement.status === 'IN_PROGRESS') {
+        throw new Error('Impossible d\'annuler une annonce en cours de livraison')
+      }
+
+      await prisma.$transaction(async (tx) => {
+        // Annuler l'annonce
+        await tx.announcement.update({
+          where: { id: announcementId },
+          data: {
+            status: 'CANCELLED',
+            updatedAt: new Date()
+          }
+        })
+
+        // Annuler la livraison si elle existe
+        const delivery = await tx.delivery.findUnique({
+          where: { announcementId }
+        })
+
+        if (delivery && delivery.status !== 'CANCELLED') {
+          await tx.delivery.update({
+            where: { id: delivery.id },
+            data: { status: 'CANCELLED' }
+          })
+        }
+
+        // Créer l'entrée de tracking
+        await tx.announcementTracking.create({
+          data: {
+            announcementId,
+            status: 'CANCELLED',
+            message: `Annonce annulée: ${reason}`,
+            createdBy: userId,
+            isPublic: true
+          }
+        })
+      })
+
+      // Déclencher le remboursement si paiement existant
+      const payment = await prisma.payment.findFirst({
+        where: {
+          announcementId,
+          status: { in: ['CONFIRMED', 'COMPLETED'] }
+        }
+      })
+
+      if (payment) {
+        await announcementPaymentService.refundPayment(payment.id, reason)
+      }
+
+      // Notifier les parties concernées
+      if (announcement.delivererId) {
+        await notificationService.createNotification({
+          userId: announcement.delivererId,
+          type: 'ANNOUNCEMENT_CANCELLED',
+          title: 'Annonce annulée',
+          message: `L'annonce "${announcement.title}" a été annulée`,
+          data: { announcementId, reason },
+          sendPush: true,
+          priority: 'medium'
+        })
+      }
+
+      logger.info(`Annonce ${announcementId} annulée avec succès`)
+
+    } catch (error) {
+      logger.error(`Erreur annulation annonce:`, error)
+      throw error
+    }
+  }
+
+  /**
+   * Valide une livraison avec le code 6 chiffres
+   */
+  async validateDeliveryWithCode(
+    announcementId: string,
+    validationCode: string,
+    userId: string
+  ): Promise<{ success: boolean; message: string }> {
+    try {
+      logger.info(`Validation livraison avec code: ${announcementId}`)
+
+      const announcement = await this.getAnnouncementById(announcementId)
+
+      // Vérifier les permissions
+      if (announcement.authorId !== userId) {
+        throw new Error('Non autorisé à valider cette livraison')
+      }
+
+      if (!announcement.delivery) {
+        throw new Error('Aucune livraison associée à cette annonce')
+      }
+
+      // Valider avec le service de validation
+      const deliveryId = announcement.delivery.id
+      const isValid = await ValidationCodeService.validateCode(deliveryId, validationCode)
+
+      if (!isValid) {
+        return {
+          success: false,
+          message: 'Code de validation incorrect ou expiré'
+        }
+      }
+
+      // Mettre à jour l'annonce
+      await prisma.$transaction(async (tx) => {
+        await tx.announcement.update({
+          where: { id: announcementId },
+          data: {
+            status: 'COMPLETED',
+            updatedAt: new Date()
+          }
+        })
+
+        // Créer l'entrée de tracking
+        await tx.announcementTracking.create({
+          data: {
+            announcementId,
+            status: 'COMPLETED',
+            message: 'Livraison validée avec succès par le client',
+            createdBy: userId,
+            isPublic: true
+          }
+        })
+      })
+
+      // Déclencher la capture du paiement
+      const payment = await prisma.payment.findFirst({
+        where: {
+          announcementId,
+          status: 'CONFIRMED'
+        }
+      })
+
+      if (payment) {
+        await announcementPaymentService.capturePayment(payment.id, deliveryId)
+      }
+
+      // Générer la facture automatiquement
+      try {
+        const { InvoiceGeneratorService } = await import('@/features/invoices/services/invoice-generator.service')
+        const invoiceUrl = await InvoiceGeneratorService.generateAnnouncementInvoice(announcementId)
+        logger.info(`Facture générée: ${invoiceUrl}`)
+      } catch (invoiceError) {
+        logger.error('Erreur génération facture:', invoiceError)
+        // Ne pas faire échouer la validation si la facture échoue
+      }
+
+      // Notifier le livreur
+      if (announcement.delivererId) {
+        await notificationService.createNotification({
+          userId: announcement.delivererId,
+          type: 'DELIVERY_VALIDATED',
+          title: 'Livraison validée',
+          message: `Votre livraison pour "${announcement.title}" a été validée`,
+          data: { announcementId, deliveryId },
+          sendPush: true,
+          priority: 'high'
+        })
+      }
+
+      logger.info(`Livraison ${deliveryId} validée avec succès`)
+
+      return {
+        success: true,
+        message: 'Livraison validée avec succès'
+      }
+
+    } catch (error) {
+      logger.error(`Erreur validation livraison:`, error)
+      throw error
+    }
+  }
+
+  /**
+   * Récupère le tracking en temps réel d'une annonce
+   */
+  async getAnnouncementTracking(announcementId: string, userId: string) {
+    try {
+      const announcement = await prisma.announcement.findFirst({
+        where: {
+          id: announcementId,
+          authorId: userId
+        },
+        include: {
+          delivery: {
+            include: {
+              tracking: {
+                orderBy: { timestamp: 'desc' },
+                take: 20
+              },
+              deliverer: {
+                include: {
+                  profile: {
+                    select: {
+                      firstName: true,
+                      lastName: true,
+                      phone: true,
+                      avatar: true
+                    }
+                  }
+                }
+              },
+              validations: {
+                where: { isUsed: false },
+                orderBy: { createdAt: 'desc' },
+                take: 1
+              }
+            }
+          },
+          tracking: {
+            orderBy: { createdAt: 'desc' },
+            take: 10
+          }
+        }
+      })
+
+      if (!announcement) {
+        throw new Error('Annonce introuvable')
+      }
+
+      // Calculer la position estimée actuelle du livreur
+      let currentPosition = null
+      if (announcement.delivery?.tracking?.length > 0) {
+        const latestTracking = announcement.delivery.tracking[0]
+        if (latestTracking.coordinates) {
+          currentPosition = latestTracking.coordinates
+        }
+      }
+
+      return {
+        announcement: {
+          id: announcement.id,
+          title: announcement.title,
+          status: announcement.status,
+          pickupAddress: announcement.pickupAddress,
+          deliveryAddress: announcement.deliveryAddress,
+          pickupCoordinates: {
+            lat: announcement.pickupLatitude,
+            lng: announcement.pickupLongitude
+          },
+          deliveryCoordinates: {
+            lat: announcement.deliveryLatitude,
+            lng: announcement.deliveryLongitude
+          }
+        },
+        delivery: announcement.delivery ? {
+          id: announcement.delivery.id,
+          status: announcement.delivery.status,
+          trackingNumber: announcement.delivery.trackingNumber,
+          currentPosition,
+          estimatedArrival: this.calculateEstimatedArrival(announcement.delivery),
+          deliverer: {
+            name: announcement.delivery.deliverer?.profile 
+              ? `${announcement.delivery.deliverer.profile.firstName} ${announcement.delivery.deliverer.profile.lastName}`
+              : 'Livreur',
+            phone: announcement.delivery.deliverer?.profile?.phone,
+            avatar: announcement.delivery.deliverer?.profile?.avatar
+          },
+          validationCode: announcement.delivery.validations?.[0]?.code || null
+        } : null,
+        trackingHistory: announcement.tracking?.map(t => ({
+          status: t.status,
+          message: t.message,
+          timestamp: t.createdAt,
+          isPublic: t.isPublic
+        })) || [],
+        deliveryTracking: announcement.delivery?.tracking?.map(t => ({
+          status: t.status,
+          message: t.message,
+          location: t.location,
+          coordinates: t.coordinates,
+          timestamp: t.timestamp,
+          isAutomatic: t.isAutomatic
+        })) || []
+      }
+
+    } catch (error) {
+      logger.error(`Erreur récupération tracking:`, error)
+      throw error
+    }
+  }
+
+  /**
+   * Calcule l'heure d'arrivée estimée
+   */
+  private calculateEstimatedArrival(delivery: any): Date | null {
+    if (!delivery.tracking || delivery.tracking.length === 0) {
+      return null
+    }
+
+    // Estimation basée sur la vitesse moyenne et la distance restante
+    // TODO: Améliorer avec données de trafic en temps réel
+    const estimatedMinutes = 30 // Estimation simple
+    return new Date(Date.now() + estimatedMinutes * 60 * 1000)
+  }
+
+  /**
+   * Calcule le prix final avec abonnement, urgence et assurance
+   */
+  private calculateFinalPriceWithSubscription(
+    basePrice: number,
+    plan: string,
+    isUrgent: boolean,
+    requiresInsurance: boolean
+  ): number {
+    const subscriptionLimits = this.getSubscriptionLimits(plan)
+    
+    let finalPrice = basePrice
+
+    // Appliquer réduction d'abonnement
+    finalPrice = finalPrice * (1 - subscriptionLimits.discountPercentage / 100)
+
+    // Appliquer frais d'urgence
+    if (isUrgent) {
+      const urgencyRate = plan === 'PREMIUM' ? 0.05 : 0.15
+      finalPrice = finalPrice * (1 + urgencyRate)
+    }
+
+    // Appliquer assurance si demandée
+    if (requiresInsurance) {
+      const insuranceFee = this.calculateInsuranceFee(basePrice, plan)
+      finalPrice += insuranceFee
+    }
+
+    return Math.round(finalPrice * 100) / 100
+  }
+
+  /**
+   * Calcule les frais d'urgence selon l'abonnement
+   */
+  private calculateUrgencyFee(amount: number, plan: string): number {
+    const rate = plan === 'PREMIUM' ? 0.05 : 0.15
+    return Math.round(amount * rate * 100) / 100
+  }
+
+  /**
+   * Calcule les frais d'assurance selon l'abonnement
+   */
+  private calculateInsuranceFee(amount: number, plan: string): number {
+    if (plan === 'STARTER' || plan === 'PREMIUM') {
+      return 0 // Assurance incluse
+    }
+    
+    // Plan FREE : 2% du montant, minimum 5€
+    const fee = Math.max(amount * 0.02, 5)
+    return Math.round(fee * 100) / 100
   }
 
   /**

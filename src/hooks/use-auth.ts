@@ -1,107 +1,33 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-
-interface User {
-  id: string
-  email: string
-  name?: string
-  role: string
-  emailVerified: boolean
-  isActive: boolean
-  validationStatus: string
-}
-
-interface AuthSession {
-  user: User
-  session: {
-    id: string
-    userId: string
-    expiresAt: string
-  }
-}
+import { useSession, signIn as nextSignIn, signOut as nextSignOut } from 'next-auth/react'
+import { useRouter } from 'next/navigation'
 
 export function useAuth() {
-  const [session, setSession] = useState<AuthSession | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-
-  useEffect(() => {
-    checkSession()
-  }, [])
-
-  const checkSession = async () => {
-    try {
-      setLoading(true)
-      
-      // Utiliser Better-Auth endpoint
-      const response = await fetch('/api/auth/session', {
-        method: 'GET',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      })
-
-      if (response.ok) {
-        try {
-          const data = await response.json()
-          
-          // Better-Auth peut retourner directement user et session ou null
-          if (data && data.user) {
-            setSession({
-              user: data.user,
-              session: data.session || { id: 'temp', userId: data.user.id, expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() }
-            })
-            setError(null)
-          } else {
-            setSession(null)
-          }
-        } catch (jsonError) {
-          // Si la réponse n'est pas du JSON valide ou est null
-          setSession(null)
-        }
-      } else {
-        setSession(null)
-        if (response.status !== 401 && response.status !== 404) {
-          setError(`Erreur ${response.status}`)
-        }
-      }
-    } catch (err) {
-      console.error('Erreur vérification session:', err)
-      setSession(null)
-      setError('Erreur de connexion')
-    } finally {
-      setLoading(false)
-    }
-  }
+  const { data: session, status, update } = useSession()
+  const router = useRouter()
 
   const signIn = async (email: string, password: string) => {
     try {
-      setLoading(true)
-      
-      const response = await fetch('/api/auth/sign-in/email', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify({ email, password }),
+      const result = await nextSignIn('credentials', {
+        email,
+        password,
+        redirect: false
       })
 
-      if (response.ok) {
-        const data = await response.json()
-        await checkSession()
-        return { success: true, data }
-      } else {
-        const errorData = await response.json()
-        throw new Error(errorData.message || 'Erreur de connexion')
+      if (result?.error) {
+        throw new Error(result.error)
       }
+
+      if (result?.ok) {
+        // Redirection après connexion réussie
+        router.push('/dashboard')
+        return { success: true }
+      }
+
+      throw new Error('Erreur de connexion')
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erreur de connexion')
       throw err
-    } finally {
-      setLoading(false)
     }
   }
 
@@ -112,57 +38,38 @@ export function useAuth() {
     role: string
   }) => {
     try {
-      setLoading(true)
-      
-      const response = await fetch('/api/auth/sign-up/email', {
+      // Créer le compte via notre API
+      const response = await fetch('/api/auth/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        credentials: 'include',
-        body: JSON.stringify({
-          ...userData,
-          emailVerified: false
-        }),
+        body: JSON.stringify(userData),
       })
 
       if (response.ok) {
         const data = await response.json()
-        await checkSession()
+        
+        // Connecter l'utilisateur automatiquement après inscription
+        await signIn(userData.email, userData.password)
+        
         return { success: true, data }
       } else {
         const errorData = await response.json()
-        throw new Error(errorData.message || 'Erreur d\'inscription')
+        throw new Error(errorData.error || 'Erreur d\'inscription')
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erreur d\'inscription')
       throw err
-    } finally {
-      setLoading(false)
     }
   }
 
   const signOut = async () => {
     try {
-      setLoading(true)
-      
-      const response = await fetch('/api/auth/sign-out', {
-        method: 'POST',
-        credentials: 'include',
-      })
-
-      if (response.ok) {
-        setSession(null)
-        setError(null)
-        return { success: true }
-      } else {
-        throw new Error('Erreur de déconnexion')
-      }
+      await nextSignOut({ redirect: false })
+      router.push('/login')
+      return { success: true }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erreur de déconnexion')
       throw err
-    } finally {
-      setLoading(false)
     }
   }
 
@@ -170,16 +77,16 @@ export function useAuth() {
     session,
     user: session?.user,
     isAuthenticated: !!session,
-    loading,
-    isLoading: loading,
-    error,
+    loading: status === 'loading',
+    isLoading: status === 'loading',
+    error: null, // NextAuth gère les erreurs différemment
     signIn,
     signUp,
     signOut,
-    refetch: checkSession,
+    refetch: update,
     role: session?.user?.role,
     isActive: session?.user?.isActive ?? false,
     validationStatus: session?.user?.validationStatus,
-    emailVerified: session?.user?.emailVerified ?? false
+    emailVerified: !!session?.user?.emailVerified
   }
 } 

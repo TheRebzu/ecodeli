@@ -2,7 +2,7 @@ const http = require('http')
 
 function testServer() {
   console.log('🚀 Test de connexion au serveur EcoDeli')
-  
+    
   const options = {
     hostname: 'localhost',
     port: 3000,

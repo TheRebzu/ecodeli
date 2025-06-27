@@ -4,6 +4,100 @@ import { prisma } from '@/lib/db'
 export class InvoiceGeneratorService {
   
   /**
+   * Génère une facture pour une annonce validée
+   * Créée après la validation de livraison
+   */
+  static async generateAnnouncementInvoice(announcementId: string): Promise<string> {
+    try {
+      // Récupérer l'annonce avec tous les détails nécessaires
+      const announcement = await prisma.announcement.findUnique({
+        where: { id: announcementId },
+        include: {
+          client: {
+            include: {
+              profile: true
+            }
+          },
+          delivery: {
+            include: {
+              deliverer: {
+                include: {
+                  profile: true
+                }
+              }
+            }
+          },
+          payment: true
+        }
+      })
+
+      if (!announcement) {
+        throw new Error('Annonce introuvable')
+      }
+
+      // Vérifier que la livraison est terminée
+      if (announcement.status !== 'COMPLETED' || announcement.delivery?.status !== 'DELIVERED') {
+        throw new Error('La facture ne peut être générée que pour une livraison terminée')
+      }
+
+      const pdf = new jsPDF()
+      
+      // En-tête EcoDeli
+      this.addCompanyHeader(pdf)
+      
+      // Informations facture
+      this.addAnnouncementInvoiceInfo(pdf, announcement)
+      
+      // Informations client
+      this.addClientInfo(pdf, announcement.client)
+      
+      // Détails de la livraison
+      this.addAnnouncementDeliveryDetails(pdf, announcement)
+      
+      // Montants et tarification
+      this.addAnnouncementAmounts(pdf, announcement)
+      
+      // Pied de page
+      this.addFooter(pdf)
+
+      // Sauvegarder le PDF
+      const pdfBytes = pdf.output('arraybuffer')
+      const fileName = `facture-annonce-${announcement.id.slice(-8)}-${Date.now()}.pdf`
+      
+      const pdfUrl = await this.uploadPDF(fileName, pdfBytes)
+      
+      // Enregistrer la facture dans la base de données
+      await prisma.invoice.create({
+        data: {
+          invoiceNumber: `ECO-${announcement.id.slice(-8)}-${Date.now().toString().slice(-6)}`,
+          type: 'DELIVERY',
+          status: 'ISSUED',
+          dueDate: new Date(), // Payé immédiatement
+          subtotal: announcement.finalPrice || announcement.basePrice,
+          tax: 0, // Pas de TVA pour les particuliers
+          total: announcement.finalPrice || announcement.basePrice,
+          currency: announcement.currency || 'EUR',
+          pdfUrl,
+          issuedAt: new Date(),
+          metadata: {
+            announcementId,
+            deliveryId: announcement.delivery?.id,
+            clientId: announcement.authorId,
+            delivererId: announcement.delivery?.delivererId,
+            type: 'announcement_invoice'
+          }
+        }
+      })
+      
+      return pdfUrl
+
+    } catch (error) {
+      console.error('Erreur génération facture annonce:', error)
+      throw error
+    }
+  }
+
+  /**
    * Génère une facture mensuelle pour un prestataire
    */
   static async generateProviderMonthlyInvoice(providerId: string, invoiceId: string): Promise<string> {
@@ -541,6 +635,177 @@ export class InvoiceGeneratorService {
     pdf.setFontSize(8)
     pdf.setFont('helvetica', 'italic')
     pdf.text('Fait en deux exemplaires originaux, à Paris le ' + new Date().toLocaleDateString('fr-FR'), 20, currentY)
+  }
+
+  // ============ MÉTHODES SPÉCIFIQUES POUR FACTURES D'ANNONCES ============
+
+  private static addAnnouncementInvoiceInfo(pdf: jsPDF, announcement: any) {
+    pdf.setFontSize(16)
+    pdf.setFont('helvetica', 'bold')
+    pdf.text('FACTURE DE LIVRAISON', 20, 70)
+    
+    pdf.setFontSize(10)
+    pdf.setFont('helvetica', 'normal')
+    const invoiceNumber = `ECO-${announcement.id.slice(-8)}-${Date.now().toString().slice(-6)}`
+    pdf.text(`Numéro: ${invoiceNumber}`, 20, 80)
+    pdf.text(`Date: ${new Date().toLocaleDateString('fr-FR')}`, 20, 85)
+    pdf.text(`Référence annonce: ${announcement.id.slice(-12)}`, 20, 90)
+    
+    if (announcement.delivery?.trackingNumber) {
+      pdf.text(`Numéro de suivi: ${announcement.delivery.trackingNumber}`, 20, 95)
+    }
+  }
+
+  private static addClientInfo(pdf: jsPDF, client: any) {
+    pdf.setFontSize(12)
+    pdf.setFont('helvetica', 'bold')
+    pdf.text('Client:', 120, 70)
+    
+    pdf.setFontSize(10)
+    pdf.setFont('helvetica', 'normal')
+    const profile = client.profile
+    pdf.text(`${profile.firstName} ${profile.lastName}`, 120, 80)
+    pdf.text(profile.email || 'Email non renseigné', 120, 85)
+    
+    if (profile.phone) {
+      pdf.text(`Tél: ${profile.phone}`, 120, 90)
+    }
+    
+    if (profile.address) {
+      pdf.text(profile.address, 120, 95)
+      if (profile.postalCode && profile.city) {
+        pdf.text(`${profile.postalCode} ${profile.city}`, 120, 100)
+      }
+    }
+  }
+
+  private static addAnnouncementDeliveryDetails(pdf: jsPDF, announcement: any) {
+    let currentY = 120
+    
+    pdf.setFontSize(12)
+    pdf.setFont('helvetica', 'bold')
+    pdf.text('DÉTAILS DE LA LIVRAISON', 20, currentY)
+    
+    currentY += 15
+    pdf.setFontSize(10)
+    pdf.setFont('helvetica', 'normal')
+    
+    // Titre de l'annonce
+    pdf.setFont('helvetica', 'bold')
+    pdf.text('Objet:', 20, currentY)
+    pdf.setFont('helvetica', 'normal')
+    const title = announcement.title.length > 50 
+      ? announcement.title.substring(0, 47) + '...'
+      : announcement.title
+    pdf.text(title, 60, currentY)
+    
+    currentY += 10
+    
+    // Adresse de récupération
+    pdf.setFont('helvetica', 'bold')
+    pdf.text('Récupération:', 20, currentY)
+    pdf.setFont('helvetica', 'normal')
+    const pickupLines = pdf.splitTextToSize(announcement.pickupAddress, 100)
+    pdf.text(pickupLines, 80, currentY)
+    currentY += pickupLines.length * 5 + 5
+    
+    // Adresse de livraison
+    pdf.setFont('helvetica', 'bold')
+    pdf.text('Livraison:', 20, currentY)
+    pdf.setFont('helvetica', 'normal')
+    const deliveryLines = pdf.splitTextToSize(announcement.deliveryAddress, 100)
+    pdf.text(deliveryLines, 80, currentY)
+    currentY += deliveryLines.length * 5 + 5
+    
+    // Livreur
+    if (announcement.delivery?.deliverer) {
+      pdf.setFont('helvetica', 'bold')
+      pdf.text('Livreur:', 20, currentY)
+      pdf.setFont('helvetica', 'normal')
+      const deliverer = announcement.delivery.deliverer.profile
+      pdf.text(`${deliverer.firstName || ''} ${deliverer.lastName || ''}`.trim(), 80, currentY)
+      currentY += 10
+    }
+    
+    // Dates
+    if (announcement.delivery?.deliveredAt) {
+      pdf.setFont('helvetica', 'bold')
+      pdf.text('Livré le:', 20, currentY)
+      pdf.setFont('helvetica', 'normal')
+      pdf.text(new Date(announcement.delivery.deliveredAt).toLocaleDateString('fr-FR'), 80, currentY)
+      currentY += 10
+    }
+    
+    // Type et urgence
+    pdf.setFont('helvetica', 'bold')
+    pdf.text('Type:', 20, currentY)
+    pdf.setFont('helvetica', 'normal')
+    const typeText = announcement.type === 'PACKAGE' ? 'Colis' : 
+                    announcement.type === 'DOCUMENT' ? 'Document' : 
+                    announcement.type
+    pdf.text(typeText + (announcement.isUrgent ? ' (Urgent)' : ''), 80, currentY)
+  }
+
+  private static addAnnouncementAmounts(pdf: jsPDF, announcement: any) {
+    const startY = 200
+    let currentY = startY
+    
+    // Ligne séparatrice
+    pdf.line(20, currentY - 5, 190, currentY - 5)
+    
+    pdf.setFontSize(11)
+    pdf.setFont('helvetica', 'bold')
+    pdf.text('DÉTAIL TARIFAIRE', 20, currentY)
+    
+    currentY += 15
+    pdf.setFontSize(10)
+    pdf.setFont('helvetica', 'normal')
+    
+    // Prix de base
+    pdf.text('Prix de base:', 20, currentY)
+    pdf.text(`${announcement.basePrice.toFixed(2)}€`, 160, currentY)
+    currentY += 8
+    
+    // Calculs de remise si applicable
+    const finalPrice = announcement.finalPrice || announcement.basePrice
+    const discount = announcement.basePrice - finalPrice
+    
+    if (discount > 0) {
+      pdf.text('Remise abonnement:', 20, currentY)
+      pdf.text(`-${discount.toFixed(2)}€`, 160, currentY)
+      currentY += 8
+    }
+    
+    // Frais de service EcoDeli
+    const serviceFee = finalPrice * 0.05 // 5% de frais
+    pdf.text('Frais de service EcoDeli (5%):', 20, currentY)
+    pdf.text(`${serviceFee.toFixed(2)}€`, 160, currentY)
+    currentY += 8
+    
+    // Total
+    currentY += 5
+    pdf.line(20, currentY, 190, currentY)
+    currentY += 10
+    
+    pdf.setFontSize(12)
+    pdf.setFont('helvetica', 'bold')
+    pdf.text('TOTAL TTC:', 20, currentY)
+    pdf.text(`${finalPrice.toFixed(2)}€`, 160, currentY)
+    
+    // Mode de paiement
+    currentY += 15
+    pdf.setFontSize(9)
+    pdf.setFont('helvetica', 'normal')
+    pdf.text('Mode de paiement: Carte bancaire via Stripe', 20, currentY)
+    pdf.text('Paiement sécurisé - Transaction référence: ' + (announcement.payment?.stripePaymentId?.slice(-12) || 'N/A'), 20, currentY + 5)
+    
+    // Mentions légales
+    currentY += 20
+    pdf.setFontSize(8)
+    pdf.setFont('helvetica', 'italic')
+    pdf.text('• Facture acquittée par paiement immédiat', 20, currentY)
+    pdf.text('• TVA non applicable - Article 293 B du CGI', 20, currentY + 5)
+    pdf.text('• Service de mise en relation entre particuliers', 20, currentY + 10)
   }
 }
 

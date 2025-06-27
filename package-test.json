@@ -1,0 +1,15 @@
+{
+  "name": "ecodeli-api-tests",
+  "version": "1.0.0",
+  "description": "Scripts de test pour l'API EcoDeli",
+  "scripts": {
+    "test": "node test-api-endpoints.js",
+    "test:verbose": "node test-api-endpoints.js --verbose",
+    "test:workflow": "bash test-announcement-workflow.sh",
+    "test:quick": "node quick-api-test.js",
+    "test:all": "npm run test && npm run test:workflow"
+  },
+  "keywords": ["ecodeli", "api", "test", "automation"],
+  "author": "EcoDeli Team",
+  "license": "MIT"
+}

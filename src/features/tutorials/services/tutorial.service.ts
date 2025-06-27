@@ -184,6 +184,20 @@ export class TutorialService {
    */
   static async startTutorial(userId: string): Promise<void> {
     try {
+      // Vérifier que l'utilisateur existe
+      const user = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { id: true, role: true }
+      })
+
+      if (!user) {
+        throw new Error(`Utilisateur non trouvé: ${userId}`)
+      }
+
+      if (user.role !== 'CLIENT') {
+        throw new Error('Le tutoriel est réservé aux clients')
+      }
+
       await prisma.clientTutorialProgress.upsert({
         where: { userId },
         update: {

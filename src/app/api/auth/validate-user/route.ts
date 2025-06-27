@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/db'
+import { db } from '@/lib/db'
 import { z } from 'zod'
 import { UserRole } from '@prisma/client'
 
@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
     console.log('🔍 Validation utilisateur:', { userId, userRole })
 
     // Vérifier que l'utilisateur existe
-    const user = await prisma.user.findUnique({
+    const user = await db.user.findUnique({
       where: { id: userId },
       include: { profile: true }
     })
@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Créer ou mettre à jour le profil
-    const profile = await prisma.profile.upsert({
+    const profile = await db.profile.upsert({
       where: { userId },
       update: {
         firstName: profileData.firstName,
@@ -76,7 +76,7 @@ export async function POST(request: NextRequest) {
     })
 
     // Créer un log d'activité
-    await prisma.activityLog.create({
+    await db.activityLog.create({
       data: {
         userId,
         action: 'PROFILE_VALIDATED',
@@ -102,7 +102,7 @@ export async function POST(request: NextRequest) {
       ]
 
       for (const doc of requiredDocuments) {
-        await prisma.document.create({
+        await db.document.create({
           data: {
             profileId: profile.id,
             type: doc.type as any,
@@ -119,7 +119,7 @@ export async function POST(request: NextRequest) {
       ]
 
       for (const doc of requiredDocuments) {
-        await prisma.document.create({
+        await db.document.create({
           data: {
             profileId: profile.id,
             type: doc.type as any,
@@ -136,7 +136,7 @@ export async function POST(request: NextRequest) {
       ]
 
       for (const doc of requiredDocuments) {
-        await prisma.document.create({
+        await db.document.create({
           data: {
             profileId: profile.id,
             type: doc.type as any,

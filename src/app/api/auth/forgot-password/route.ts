@@ -31,24 +31,24 @@ export async function POST(request: NextRequest) {
     const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000) // 24h
 
     // Supprimer les anciens tokens pour cet email
-    await db.verification.deleteMany({
+    await db.verificationToken.deleteMany({
       where: {
         identifier: email,
-        value: { startsWith: 'password-reset:' }
+        token: { startsWith: 'password-reset:' }
       }
     })
 
-    // Créer un nouveau token dans la table Verification de Better Auth
-    await db.verification.create({
+    // Créer un nouveau token dans la table VerificationToken pour NextAuth
+    await db.verificationToken.create({
       data: {
         identifier: email,
-        value: `password-reset:${token}`,
-        expiresAt
+        token: `password-reset:${token}`,
+        expires: expiresAt
       }
     })
 
     // Construire l'URL de reset
-    const baseUrl = process.env.BETTER_AUTH_URL || "http://localhost:3000"
+    const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000"
     const resetUrl = `${baseUrl}/reset-password?token=${token}&email=${encodeURIComponent(email)}`
 
     // Envoyer l'email

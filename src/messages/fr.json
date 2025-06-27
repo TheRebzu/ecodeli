@@ -524,6 +524,7 @@
   "dashboard": {
     "title": "Tableau de bord",
     "welcome": "Bienvenue sur EcoDeli",
+    "newAnnouncement": "Nouvelle annonce",
     "client": {
       "title": "Tableau de bord Client",
       "quickActions": "Actions rapides",

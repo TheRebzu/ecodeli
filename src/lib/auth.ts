@@ -1,360 +1,218 @@
-import { betterAuth } from "better-auth"
-import { prismaAdapter } from "better-auth/adapters/prisma"
+import NextAuth from "next-auth"
+import { PrismaAdapter } from "@auth/prisma-adapter"
+import { NextAuthConfig } from "next-auth"
+import CredentialsProvider from "next-auth/providers/credentials"
 import { db } from "@/lib/db"
+import bcrypt from "bcryptjs"
+import { UserRole } from "@prisma/client"
 
-export const auth = betterAuth({
-  database: prismaAdapter(db, {
-    provider: "postgresql",
-    // Configuration du mapping des champs pour correspondre au schéma Prisma
-    schema: {
-      session: {
-        modelName: "session",
-        fields: {
-          token: "sessionToken", // Better-Auth utilise 'token' mais Prisma a 'sessionToken'
+export const config = {
+  adapter: PrismaAdapter(db),
+  providers: [
+    CredentialsProvider({
+      name: "credentials",
+      credentials: {
+        email: { label: "Email", type: "email" },
+        password: { label: "Password", type: "password" }
+      },
+      async authorize(credentials) {
+        if (!credentials?.email || !credentials?.password) {
+          return null
         }
-      }
-    }
-  }),
-  
-  // Configuration des méthodes d'authentification
-  emailAndPassword: {
-    enabled: true,
-    requireEmailVerification: false, // Désactivé temporairement pour les tests
-  },
 
-  // Configuration des sessions
-  session: {
-    expiresIn: 60 * 60 * 24 * 7, // 7 jours
-    updateAge: 60 * 60 * 24, // Mise à jour après 24h
-    cookieName: "ecodeli-session",
-  },
-
-  // Configuration des cookies
-  cookie: {
-    secure: process.env.NODE_ENV === "production",
-    httpOnly: true,
-    sameSite: "lax",
-    priority: "high",
-  },
-
-  // URL de base
-  baseURL: process.env.BETTER_AUTH_URL || "http://localhost:3000",
-  
-  // Secret pour la signature des tokens
-  secret: process.env.BETTER_AUTH_SECRET || "ecodeli-secret-key-change-in-production",
-
-  // Plugins Better-Auth (désactivés temporairement)
-  // plugins: [],
-
-  // Configuration avancée
-  advanced: {
-    database: {
-      generateId: () => crypto.randomUUID(),
-    }
-  },
-
-  // Configuration des rôles EcoDeli
-  user: {
-    additionalFields: {
-      role: {
-        type: "string",
-        required: true,
-        defaultValue: "CLIENT",
-      },
-      isActive: {
-        type: "boolean",
-        defaultValue: true, // Actif par défaut pour les tests
-        required: true,
-      },
-      validationStatus: {
-        type: "string",
-        defaultValue: "VALIDATED", // Utiliser l'enum correct
-        required: true,
-      },
-      profileId: {
-        type: "string",
-        required: false,
-      },
-    },
-  },
-
-  // Callbacks personnalisés pour EcoDeli
-  callbacks: {
-    user: {
-      create: async ({ user }: { user: any }) => {
-        console.log("Création utilisateur EcoDeli:", user.email, "- Rôle:", user.role)
-        
-        // Créer le profil selon le rôle
-        try {
-          switch (user.role) {
-            case "CLIENT":
-              await db.client.create({
-                data: { 
-                  userId: user.id,
-                  subscriptionPlan: 'FREE',
-                  tutorialCompleted: false,
-                  termsAcceptedAt: new Date(),
-                  emailNotifications: true,
-                  pushNotifications: true,
-                  smsNotifications: false
-                }
-              })
-              console.log("✅ Profil CLIENT créé pour:", user.email)
-              break
-              
-            case "DELIVERER":
-              await db.deliverer.create({
-                data: { 
-                  userId: user.id,
-                  validationStatus: 'PENDING',
-                  isActive: false,
-                  averageRating: 0,
-                  totalDeliveries: 0
-                }
-              })
-              // Créer aussi le wallet
-              await db.wallet.create({
-                data: {
-                  userId: user.id,
-                  balance: 0,
-                  currency: 'EUR'
-                }
-              })
-              console.log("✅ Profil DELIVERER créé pour:", user.email)
-              break
-              
-            case "MERCHANT":
-              await db.merchant.create({
-                data: { 
-                  userId: user.id,
-                  companyName: 'À compléter',
-                  siret: 'À compléter',
-                  contractStatus: 'PENDING',
-                  commissionRate: 0.15,
-                  rating: 0
-                }
-              })
-              console.log("✅ Profil MERCHANT créé pour:", user.email)
-              break
-              
-            case "PROVIDER":
-              await db.provider.create({
-                data: { 
-                  userId: user.id,
-                  validationStatus: 'PENDING',
-                  businessName: 'À compléter',
-                  specialties: [],
-                  hourlyRate: 0,
-                  isActive: false,
-                  averageRating: 0
-                }
-              })
-              // Créer aussi le wallet
-              await db.wallet.create({
-                data: {
-                  userId: user.id,
-                  balance: 0,
-                  currency: 'EUR'
-                }
-              })
-              console.log("✅ Profil PROVIDER créé pour:", user.email)
-              break
-              
-            case "ADMIN":
-              await db.admin.create({
-                data: { 
-                  userId: user.id,
-                  permissions: ['MANAGE_USERS', 'MANAGE_PLATFORM'],
-                  department: 'GENERAL'
-                }
-              })
-              console.log("✅ Profil ADMIN créé pour:", user.email)
-              break
+        const user = await db.user.findUnique({
+          where: {
+            email: credentials.email as string
+          },
+          include: {
+            profile: true,
+            client: true,
+            deliverer: true,
+            merchant: true,
+            provider: true,
+            admin: true
           }
-        } catch (error) {
-          console.error("❌ Erreur création profil:", error)
+        })
+
+        if (!user) {
+          return null
         }
-        
-        return user
-      },
-    },
-    
-    session: {
-      create: async ({ session, user }: { session: any; user: any }) => {
-        // Enrichir la session avec les données EcoDeli
-        let profileData = null
-        
-        try {
-          // Récupérer le Profile de base de l'utilisateur
-          const userWithProfile = await db.user.findUnique({
-            where: { id: user.id },
-            include: { profile: true }
-          })
-          
-          switch (user.role) {
-            case "CLIENT":
-              profileData = await db.client.findUnique({
-                where: { userId: user.id }
-              })
-              break
-              
-            case "DELIVERER":
-              profileData = await db.deliverer.findUnique({
-                where: { userId: user.id }
-              })
-              break
-              
-            case "MERCHANT":
-              profileData = await db.merchant.findUnique({
-                where: { userId: user.id }
-              })
-              break
-              
-            case "PROVIDER":
-              profileData = await db.provider.findUnique({
-                where: { userId: user.id }
-              })
-              break
-              
-            case "ADMIN":
-              profileData = await db.admin.findUnique({
-                where: { userId: user.id }
-              })
-              break
+
+        // Vérifier le mot de passe (si présent)
+        if (user.password) {
+          const isPasswordValid = await bcrypt.compare(
+            credentials.password as string,
+            user.password
+          )
+
+          if (!isPasswordValid) {
+            return null
           }
-        } catch (error) {
-          console.error("Erreur récupération profil:", error)
+        }
+
+        // Vérifier si l'utilisateur est actif
+        if (!user.isActive && user.role !== "ADMIN") {
+          throw new Error("Compte en attente de validation")
         }
 
         return {
-          ...session,
-          user: {
-            ...session.user,
-            role: user.role,
-            isActive: user.isActive,
-            validationStatus: user.validationStatus,
-            profileData,
-            profile: userWithProfile?.profile
-          },
+          id: user.id,
+          email: user.email,
+          name: user.name || user.profile?.firstName || user.email,
+          image: user.image || user.profile?.avatar,
+          role: user.role,
+          isActive: user.isActive,
+          validationStatus: user.validationStatus,
+          profileData: getProfileData(user)
         }
-      },
-    },
-    
-    signIn: async ({ user, session }: { user: any; session: any }) => {
-      console.log("Connexion EcoDeli:", user.email, "- Rôle:", user.role, "- Actif:", user.isActive)
-      
-      // Vérifier si l'utilisateur est actif
-      if (!user.isActive && user.role !== "ADMIN") {
-        throw new Error("Compte en attente de validation")
       }
-      
+    })
+  ],
+  session: {
+    strategy: "jwt" as const,
+    maxAge: 7 * 24 * 60 * 60, // 7 jours
+  },
+  pages: {
+    signIn: "/login",
+    error: "/auth/error",
+  },
+  callbacks: {
+    async jwt({ token, user, trigger, session }) {
+      // Première connexion
+      if (user) {
+        token.role = user.role
+        token.isActive = user.isActive
+        token.validationStatus = user.validationStatus
+        token.profileData = user.profileData
+      }
+
+      // Mise à jour de session
+      if (trigger === "update" && session) {
+        token = { ...token, ...session }
+      }
+
+      return token
+    },
+    async session({ session, token }) {
+      if (token) {
+        session.user.id = token.sub!
+        session.user.role = token.role as UserRole
+        session.user.isActive = token.isActive as boolean
+        session.user.validationStatus = token.validationStatus as string
+        session.user.profileData = token.profileData
+      }
       return session
     },
+    async signIn({ user, account, profile }) {
+      // Vérifier si l'utilisateur est actif
+      if (!user.isActive && user.role !== "ADMIN") {
+        return false
+      }
+
+      // Mettre à jour la date de dernière connexion
+      if (user.id) {
+        await db.user.update({
+          where: { id: user.id },
+          data: { lastLoginAt: new Date() }
+        })
+      }
+
+      return true
+    }
   },
-})
-
-export type Session = typeof auth.$Infer.Session
-
-// Re-export USER_ROLES from auth utils for convenience
-export { USER_ROLES } from './auth/utils'
-
-/**
- * Fonction helper pour vérifier les rôles utilisateur (version API route)
- */
-export async function requireRole(requiredRole: string, request?: Request) {
-  try {
-    let session;
-    
-    if (request) {
-      // Version pour API routes avec contexte HTTP
-      // Utiliser la méthode correcte pour récupérer la session
-      const response = await auth.api.getSession({
-        headers: request.headers
-      })
-      
-      console.log('🔍 Response getSession:', response)
-      
-      if (response && response.user) {
-        session = response
-        console.log('✅ Session trouvée via response directe')
-      } else {
-        // Essayer une approche alternative avec les cookies
-        const cookies = request.headers.get('cookie')
-        console.log('🔍 Cookies reçus:', cookies ? 'Oui' : 'Non')
-        
-        if (cookies) {
-          // Essayer de récupérer la session via une requête interne
-          try {
-            const sessionResponse = await fetch(`${process.env.BETTER_AUTH_URL || 'http://localhost:3000'}/api/auth/get-session`, {
-              headers: {
-                cookie: cookies
-              }
-            })
-            
-            if (sessionResponse.ok) {
-              session = await sessionResponse.json()
-              console.log('✅ Session récupérée via fetch interne')
-            }
-          } catch (e) {
-            console.log('❌ Erreur fetch interne:', e)
-          }
-        }
-        
-        if (!session) {
-          console.log('❌ Aucune session trouvée')
-          throw new Error('Unauthorized')
-        }
-      }
-    } else {
-      // Version pour contexte serveur (sans headers)
-      const response = await auth.api.getSession()
-      
-      if (response && response.user) {
-        session = response
-      } else {
-        throw new Error('Unauthorized')
-      }
+  events: {
+    async signIn({ user, account, profile }) {
+      // Connexion réussie
     }
-    
-    console.log('Session récupérée:', session ? 'Oui' : 'Non')
-    
-    if (!session?.user) {
-      console.log('Aucun utilisateur dans la session')
-      throw new Error('Unauthorized')
-    }
-    
-    console.log('Utilisateur trouvé:', session.user.email, session.user.role)
-    
-    if (session.user.role !== requiredRole) {
-      console.log(`Rôle requis: ${requiredRole}, rôle actuel: ${session.user.role}`)
-      throw new Error(`Forbidden - ${requiredRole} role required`)
-    }
-    
-    return session.user
-  } catch (error) {
-    console.error('Erreur requireRole:', error)
-    throw new Error('Unauthorized')
+  }
+} satisfies NextAuthConfig
+
+function getProfileData(user: any) {
+  switch (user.role) {
+    case "CLIENT":
+      return user.client
+    case "DELIVERER":
+      return user.deliverer
+    case "MERCHANT":
+      return user.merchant
+    case "PROVIDER":
+      return user.provider
+    case "ADMIN":
+      return user.admin
+    default:
+      return null
   }
 }
 
-/**
- * Fonction helper pour vérifier les rôles utilisateur (version simple)
- */
-export async function requireRoleSimple(requiredRole: string) {
-  try {
-    const session = await auth.api.getSession()
-    
-    if (!session?.user) {
-      throw new Error('Unauthorized')
-    }
-    
-    if (session.user.role !== requiredRole) {
-      throw new Error(`Forbidden - ${requiredRole} role required`)
-    }
-    
-    return session.user
-  } catch (error) {
-    console.error('Erreur requireRoleSimple:', error)
-    throw new Error('Unauthorized')
+export const { handlers, auth, signIn, signOut } = NextAuth(config)
+
+// Types étendus pour NextAuth
+declare module "next-auth" {
+  interface User {
+    role: UserRole
+    isActive: boolean
+    validationStatus: string
+    profileData?: any
   }
-} 
+  
+  interface Session {
+    user: {
+      id: string
+      email: string
+      name?: string | null
+      image?: string | null
+      role: UserRole
+      isActive: boolean
+      validationStatus: string
+      profileData?: any
+    }
+  }
+}
+
+declare module "next-auth/jwt" {
+  interface JWT {
+    role: UserRole
+    isActive: boolean
+    validationStatus: string
+    profileData?: any
+  }
+}
+
+// Fonctions utilitaires pour vérifier les rôles
+export async function requireRole(requiredRole: UserRole) {
+  const session = await auth()
+  
+  if (!session?.user) {
+    throw new Error("Unauthorized")
+  }
+  
+  if (session.user.role !== requiredRole) {
+    throw new Error(`Forbidden - ${requiredRole} role required`)
+  }
+  
+  return session.user
+}
+
+export async function requireAuth() {
+  const session = await auth()
+  
+  if (!session?.user) {
+    throw new Error("Unauthorized")
+  }
+  
+  return session.user
+}
+
+export async function requireActiveUser() {
+  const session = await auth()
+  
+  if (!session?.user) {
+    throw new Error("Unauthorized")
+  }
+  
+  if (!session.user.isActive && session.user.role !== "ADMIN") {
+    throw new Error("Account pending validation")
+  }
+  
+  return session.user
+}

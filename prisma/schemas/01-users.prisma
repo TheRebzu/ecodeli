@@ -3,10 +3,10 @@
 model User {
   id                String              @id @default(cuid())
   email             String              @unique
-  emailVerified     Boolean             @default(false)
-  emailVerifiedAt   DateTime?
+  emailVerified     DateTime?
   name              String?
   image             String?
+  password          String?             // Mot de passe pour credentials
   role              UserRole            @default(CLIENT)
   isActive          Boolean             @default(false)
   validationStatus  ValidationStatus    @default(PENDING)
@@ -15,7 +15,7 @@ model User {
   createdAt         DateTime            @default(now())
   updatedAt         DateTime            @updatedAt
 
-  // Relations Better-Auth
+  // Relations NextAuth
   accounts          Account[]
   sessions          Session[]
   

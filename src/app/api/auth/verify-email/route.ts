@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/db'
+import { db } from '@/lib/db'
 import { z } from 'zod'
 import { redirect } from 'next/navigation'
 
@@ -23,31 +23,25 @@ export async function GET(request: NextRequest) {
 
     const { token: validatedToken, email: validatedEmail } = verifyEmailSchema.parse({ token, email })
 
-    // Vérifier le token de vérification (temporairement simulé)
+    // Vérifier le token de vérification
     console.log('🔍 Vérification du token:', validatedToken, 'pour email:', validatedEmail)
     
-    // Pour l'instant, nous acceptons tous les tokens cuid2 valides (25 caractères)
-    if (!validatedToken || validatedToken.length < 20) {
+    const verificationToken = await db.verificationToken.findFirst({
+      where: {
+        token: `email-verification:${validatedToken}`,
+        identifier: validatedEmail,
+        expires: {
+          gt: new Date()
+        }
+      }
+    })
+
+    if (!verificationToken) {
       return NextResponse.redirect(new URL('/verify-email?error=invalid_or_expired_token', request.url))
     }
-    
-    // const verificationToken = await prisma.verificationToken.findFirst({
-    //   where: {
-    //     token: validatedToken,
-    //     identifier: validatedEmail,
-    //     type: 'email_verification',
-    //     expires: {
-    //       gt: new Date()
-    //     }
-    //   }
-    // })
-
-    // if (!verificationToken) {
-    //   return NextResponse.redirect(new URL('/verify-email?error=invalid_or_expired_token', request.url))
-    // }
 
     // Vérifier que l'utilisateur existe
-    const user = await prisma.user.findUnique({
+    const user = await db.user.findUnique({
       where: { email: validatedEmail }
     })
 
@@ -56,7 +50,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Marquer l'email comme vérifié
-    await prisma.user.update({
+    await db.user.update({
       where: { id: user.id },
       data: {
         emailVerified: true,
@@ -64,10 +58,13 @@ export async function GET(request: NextRequest) {
       }
     })
 
-    // Supprimer le token utilisé (temporairement désactivé)
-    // await prisma.verificationToken.delete({
-    //   where: { id: verificationToken.id }
-    // })
+    // Supprimer le token utilisé
+    await db.verificationToken.deleteMany({
+      where: { 
+        identifier: verificationToken.identifier,
+        token: verificationToken.token
+      }
+    })
     
     console.log('✅ Email vérifié avec succès pour:', validatedEmail)
 
@@ -88,37 +85,28 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { token, email } = verifyEmailSchema.parse(body)
 
-    // Vérifier le token de vérification (temporairement simulé)
+    // Vérifier le token de vérification
     console.log('🔍 POST - Vérification du token:', token, 'pour email:', email)
     
-    // Pour l'instant, nous acceptons tous les tokens cuid2 valides (25 caractères)
-    if (!token || token.length < 20) {
+    const verificationToken = await db.verificationToken.findFirst({
+      where: {
+        token: `email-verification:${token}`,
+        identifier: email,
+        expires: {
+          gt: new Date()
+        }
+      }
+    })
+
+    if (!verificationToken) {
       return NextResponse.json(
         { error: 'Token invalide ou expiré' },
         { status: 400 }
       )
     }
-    
-    // const verificationToken = await prisma.verificationToken.findFirst({
-    //   where: {
-    //     token,
-    //     identifier: email,
-    //     type: 'email_verification',
-    //     expires: {
-    //       gt: new Date()
-    //     }
-    //   }
-    // })
-
-    // if (!verificationToken) {
-    //   return NextResponse.json(
-    //     { error: 'Token invalide ou expiré' },
-    //     { status: 400 }
-    //   )
-    // }
 
     // Vérifier que l'utilisateur existe
-    const user = await prisma.user.findUnique({
+    const user = await db.user.findUnique({
       where: { email }
     })
 
@@ -130,7 +118,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Marquer l'email comme vérifié
-    await prisma.user.update({
+    await db.user.update({
       where: { id: user.id },
       data: {
         emailVerified: true,
@@ -138,10 +126,13 @@ export async function POST(request: NextRequest) {
       }
     })
 
-    // Supprimer le token utilisé (temporairement désactivé)
-    // await prisma.verificationToken.delete({
-    //   where: { id: verificationToken.id }
-    // })
+    // Supprimer le token utilisé
+    await db.verificationToken.deleteMany({
+      where: { 
+        identifier: verificationToken.identifier,
+        token: verificationToken.token
+      }
+    })
     
     console.log('✅ POST - Email vérifié avec succès pour:', email)
 

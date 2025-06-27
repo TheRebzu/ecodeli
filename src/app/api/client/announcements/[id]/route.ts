@@ -71,21 +71,25 @@ export async function GET(
         },
         reviews: {
           include: {
-            reviewer: {
-              select: {
-                id: true,
-                name: true,
-                profile: {
+            client: {
+              include: {
+                user: {
                   select: {
-                    firstName: true,
-                    lastName: true,
-                    avatar: true
+                    id: true,
+                    name: true,
+                    profile: {
+                      select: {
+                        firstName: true,
+                        lastName: true,
+                        avatar: true
+                      }
+                    }
                   }
                 }
               }
             }
           },
-          orderBy: { id: 'desc' }
+          orderBy: { createdAt: 'desc' }
         },
         attachments: true
       }

@@ -14,7 +14,7 @@ const statsFiltersSchema = z.object({
  */
 export async function GET(request: NextRequest) {
   try {
-    const session = await auth.api.getSession({ headers: request.headers })
+    const session = await auth()
     
     if (!session?.user || session.user.role !== 'ADMIN') {
       return NextResponse.json({ error: 'Accès refusé' }, { status: 403 })

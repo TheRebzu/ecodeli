@@ -10,17 +10,18 @@ import { z } from "zod"
 const createAnnouncementSchema = z.object({
   title: z.string().min(5, 'Le titre doit faire au moins 5 caractères').max(100),
   description: z.string().min(20, 'La description doit faire au moins 20 caractères').max(1000),
-  serviceType: z.enum(['PACKAGE_DELIVERY', 'HOME_SERVICE', 'CART_DROP', 'SHOPPING', 'PET_CARE']),
+  type: z.enum(['PACKAGE', 'TRANSPORT', 'SHOPPING', 'PET_CARE', 'HOME_SERVICE']),
   pickupAddress: z.string().min(10, 'Adresse de collecte requise'),
   deliveryAddress: z.string().min(10, 'Adresse de livraison requise'),
-  weight: z.number().positive('Le poids doit être positif').max(50, 'Maximum 50kg'),
+  weight: z.number().positive('Le poids doit être positif').max(50, 'Maximum 50kg').optional(),
   dimensions: z.string().optional(),
-  price: z.number().positive('Le prix doit être positif').max(10000, 'Prix maximum 10,000€'),
-  pickupDate: z.string(),
-  deliveryDeadline: z.string(),
+  basePrice: z.number().positive('Le prix doit être positif').max(10000, 'Prix maximum 10,000€'),
+  pickupDate: z.string().optional(),
+  deliveryDate: z.string().optional(),
   fragile: z.boolean().default(false),
   urgent: z.boolean().default(false),
-  specialInstructions: z.string().max(500).optional()
+  specialInstructions: z.string().max(500).optional(),
+  requiresInsurance: z.boolean().default(false)
 })
 
 type CreateAnnouncementData = z.infer<typeof createAnnouncementSchema>
@@ -40,15 +41,16 @@ export function CreateAnnouncementForm() {
   } = useForm<CreateAnnouncementData>({
     resolver: zodResolver(createAnnouncementSchema),
     defaultValues: {
-      serviceType: 'PACKAGE_DELIVERY',
+      type: 'PACKAGE',
       fragile: false,
       urgent: false,
+      requiresInsurance: false,
       weight: 1,
-      price: 10
+      basePrice: 10
     }
   })
 
-  const serviceType = watch('serviceType')
+  const type = watch('type')
   const weight = watch('weight')
 
   // Suggestion de prix basée sur le poids et la distance (simulation)
@@ -88,11 +90,11 @@ export function CreateAnnouncementForm() {
   }
 
   const serviceTypes = [
-    { value: 'PACKAGE_DELIVERY', label: '📦 Livraison de colis', description: 'Envoi de colis, documents, objets' },
+    { value: 'PACKAGE', label: '📦 Livraison de colis', description: 'Envoi de colis, documents, objets' },
     { value: 'HOME_SERVICE', label: '🛠️ Service à domicile', description: 'Nettoyage, jardinage, bricolage, réparations' },
-    { value: 'CART_DROP', label: '🛒 Lâcher de chariot', description: 'Livraison depuis un magasin partenaire' },
     { value: 'SHOPPING', label: '🛒 Courses', description: 'Faire les courses pour le client' },
-    { value: 'PET_CARE', label: '🐕 Garde d\'animaux', description: 'Promenade, garde d\'animaux' }
+    { value: 'PET_CARE', label: '🐕 Garde d\'animaux', description: 'Promenade, garde d\'animaux' },
+    { value: 'TRANSPORT', label: '🚗 Transport', description: 'Transport de personnes ou objets' }
   ]
 
   return (
@@ -112,7 +114,7 @@ export function CreateAnnouncementForm() {
           {serviceTypes.map((type) => (
             <label key={type.value} className="relative">
               <input
-                {...register("serviceType")}
+                {...register("type")}
                 type="radio"
                 value={type.value}
                 className="sr-only peer"
@@ -124,8 +126,8 @@ export function CreateAnnouncementForm() {
             </label>
           ))}
         </div>
-        {errors.serviceType && (
-          <p className="mt-1 text-sm text-red-600">{errors.serviceType.message}</p>
+        {errors.type && (
+          <p className="mt-1 text-sm text-red-600">{errors.type.message}</p>
         )}
       </div>
 
@@ -209,7 +211,7 @@ export function CreateAnnouncementForm() {
               valueAsNumber: true,
               onChange: (e) => {
                 const newWeight = parseFloat(e.target.value) || 1
-                setValue('price', getSuggestedPrice(newWeight))
+                setValue('basePrice', getSuggestedPrice(newWeight))
               }
             })}
             type="number"
@@ -238,23 +240,23 @@ export function CreateAnnouncementForm() {
         </div>
 
         <div>
-          <label htmlFor="price" className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="basePrice" className="block text-sm font-medium text-gray-700 mb-1">
             Prix proposé (€) *
           </label>
           <input
-            {...register("price", { valueAsNumber: true })}
+            {...register("basePrice", { valueAsNumber: true })}
             type="number"
             step="0.5"
             min="1"
             max="10000"
-            id="price"
+            id="basePrice"
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
           />
           <p className="mt-1 text-xs text-gray-500">
             Suggéré: {getSuggestedPrice(weight || 1)}€
           </p>
-          {errors.price && (
-            <p className="mt-1 text-sm text-red-600">{errors.price.message}</p>
+          {errors.basePrice && (
+            <p className="mt-1 text-sm text-red-600">{errors.basePrice.message}</p>
           )}
         </div>
       </div>
@@ -278,18 +280,18 @@ export function CreateAnnouncementForm() {
         </div>
 
         <div>
-          <label htmlFor="deliveryDeadline" className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="deliveryDate" className="block text-sm font-medium text-gray-700 mb-1">
             Échéance de livraison *
           </label>
           <input
-            {...register("deliveryDeadline")}
+            {...register("deliveryDate")}
             type="datetime-local"
-            id="deliveryDeadline"
+            id="deliveryDate"
             min={new Date().toISOString().slice(0, 16)}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
           />
-          {errors.deliveryDeadline && (
-            <p className="mt-1 text-sm text-red-600">{errors.deliveryDeadline.message}</p>
+          {errors.deliveryDate && (
+            <p className="mt-1 text-sm text-red-600">{errors.deliveryDate.message}</p>
           )}
         </div>
       </div>
@@ -334,6 +336,18 @@ export function CreateAnnouncementForm() {
           />
           <label htmlFor="urgent" className="ml-2 text-sm text-gray-700">
             ⚡ Livraison urgente (+20% sur le prix)
+          </label>
+        </div>
+
+        <div className="flex items-center">
+          <input
+            {...register("requiresInsurance")}
+            type="checkbox"
+            id="requiresInsurance"
+            className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
+          />
+          <label htmlFor="requiresInsurance" className="ml-2 text-sm text-gray-700">
+            🛡️ Assurance recommandée (+5% sur le prix)
           </label>
         </div>
       </div>

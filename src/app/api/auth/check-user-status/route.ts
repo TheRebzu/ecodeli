@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/db'
+import { db } from '@/lib/db'
 
 export async function POST(request: NextRequest) {
   try {
@@ -13,7 +13,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Vérifier si l'utilisateur existe
-    const user = await prisma.user.findUnique({
+    const user = await db.user.findUnique({
       where: { email },
       include: {
         profile: true,
@@ -29,8 +29,8 @@ export async function POST(request: NextRequest) {
       })
     }
 
-    // Vérifier si l'email est vérifié
-    const emailVerified = user.emailVerified || false
+    // Vérifier si l'email est vérifié (NextAuth utilise DateTime)
+    const emailVerified = !!user.emailVerified
 
     // Vérifier si l'utilisateur a besoin de vérification
     const needsVerification = !emailVerified

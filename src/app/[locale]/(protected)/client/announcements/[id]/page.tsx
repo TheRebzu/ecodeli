@@ -9,22 +9,31 @@ interface Announcement {
   id: string
   title: string
   description: string
+  type: string
   pickupAddress: string
   deliveryAddress: string
-  weight: number
-  price: number
+  weight?: number
+  basePrice: number
+  finalPrice: number
   status: string
-  serviceType: string
   createdAt: string
-  pickupDate: string
-  deliveryDeadline: string
-  fragile: boolean
-  urgent: boolean
-  specialInstructions?: string
-  _count: {
-    applications: number
+  pickupDate?: string
+  deliveryDate?: string
+  packageDetails?: {
+    fragile?: boolean
+    weight?: number
+    dimensions?: string
   }
-  applications?: {
+  isUrgent: boolean
+  specialInstructions?: string
+  requiresInsurance: boolean
+  _count: {
+    reviews: number
+    matches: number
+    attachments: number
+    tracking: number
+  }
+  matches?: {
     id: string
     delivererId: string
     proposedPrice: number
@@ -33,12 +42,25 @@ interface Announcement {
     createdAt: string
     deliverer: {
       id: string
-      name: string
-      email: string
-      rating: number
-      completedDeliveries: number
+      user: {
+        id: string
+        name: string
+        profile?: {
+          firstName: string
+          lastName: string
+          avatar?: string
+          phone?: string
+        }
+      }
+      profile?: {
+        rating: number
+        completedDeliveries: number
+      }
     }
   }[]
+  reviews?: any[]
+  delivery?: any
+  attachments?: any[]
 }
 
 export default function AnnouncementDetailPage() {
@@ -73,9 +95,9 @@ export default function AnnouncementDetailPage() {
     }
   }
 
-  const handleAcceptApplication = async (applicationId: string) => {
+  const handleAcceptMatch = async (matchId: string) => {
     try {
-      const response = await fetch(`/api/client/announcements/${params.id}/applications/${applicationId}/accept`, {
+      const response = await fetch(`/api/client/announcements/${params.id}/matches/${matchId}/accept`, {
         method: 'POST'
       })
 
@@ -163,14 +185,19 @@ export default function AnnouncementDetailPage() {
                 <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(announcement.status)}`}>
                   {getStatusLabel(announcement.status)}
                 </span>
-                {announcement.urgent && (
+                {announcement.isUrgent && (
                   <span className="px-2 py-1 bg-red-100 text-red-800 rounded-full text-xs font-medium">
                     ⚡ Urgent
                   </span>
                 )}
-                {announcement.fragile && (
+                {announcement.packageDetails?.fragile && (
                   <span className="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs font-medium">
                     📦 Fragile
+                  </span>
+                )}
+                {announcement.requiresInsurance && (
+                  <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">
+                    🛡️ Assuré
                   </span>
                 )}
               </div>
@@ -230,23 +257,40 @@ export default function AnnouncementDetailPage() {
                 </div>
 
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {(announcement.weight || announcement.packageDetails?.weight) && (
+                    <div>
+                      <h3 className="font-medium text-gray-900 mb-1">Poids</h3>
+                      <p className="text-gray-600">{announcement.weight || announcement.packageDetails?.weight} kg</p>
+                    </div>
+                  )}
                   <div>
-                    <h3 className="font-medium text-gray-900 mb-1">Poids</h3>
-                    <p className="text-gray-600">{announcement.weight} kg</p>
+                    <h3 className="font-medium text-gray-900 mb-1">Prix de base</h3>
+                    <p className="text-gray-600">{announcement.basePrice}€</p>
                   </div>
                   <div>
-                    <h3 className="font-medium text-gray-900 mb-1">Prix</h3>
-                    <p className="text-gray-600">{announcement.price}€</p>
+                    <h3 className="font-medium text-gray-900 mb-1">Prix final</h3>
+                    <p className="text-gray-600 font-semibold">{announcement.finalPrice}€</p>
                   </div>
-                  <div>
-                    <h3 className="font-medium text-gray-900 mb-1">Collecte</h3>
-                    <p className="text-gray-600">{new Date(announcement.pickupDate).toLocaleDateString()}</p>
-                  </div>
-                  <div>
-                    <h3 className="font-medium text-gray-900 mb-1">Échéance</h3>
-                    <p className="text-gray-600">{new Date(announcement.deliveryDeadline).toLocaleDateString()}</p>
-                  </div>
+                  {announcement.pickupDate && (
+                    <div>
+                      <h3 className="font-medium text-gray-900 mb-1">Collecte</h3>
+                      <p className="text-gray-600">{new Date(announcement.pickupDate).toLocaleDateString()}</p>
+                    </div>
+                  )}
+                  {announcement.deliveryDate && (
+                    <div>
+                      <h3 className="font-medium text-gray-900 mb-1">Échéance</h3>
+                      <p className="text-gray-600">{new Date(announcement.deliveryDate).toLocaleDateString()}</p>
+                    </div>
+                  )}
                 </div>
+
+                {announcement.packageDetails?.dimensions && (
+                  <div>
+                    <h3 className="font-medium text-gray-900 mb-1">Dimensions</h3>
+                    <p className="text-gray-600">{announcement.packageDetails.dimensions}</p>
+                  </div>
+                )}
 
                 {announcement.specialInstructions && (
                   <div>
@@ -257,35 +301,46 @@ export default function AnnouncementDetailPage() {
               </div>
             </div>
 
-            {/* Candidatures */}
-            {announcement.applications && announcement.applications.length > 0 && (
+            {/* Correspondances/Matches */}
+            {announcement.matches && announcement.matches.length > 0 && (
               <div className="bg-white rounded-lg p-6 shadow-sm border">
                 <h2 className="text-xl font-semibold mb-4">
-                  Candidatures ({announcement.applications.length})
+                  Livreurs intéressés ({announcement.matches.length})
                 </h2>
                 
                 <div className="space-y-4">
-                  {announcement.applications.map((application) => (
-                    <div key={application.id} className="border rounded-lg p-4">
+                  {announcement.matches.map((match) => (
+                    <div key={match.id} className="border rounded-lg p-4">
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
                           <div className="flex items-center space-x-3 mb-2">
-                            <h3 className="font-medium text-gray-900">{application.deliverer.name}</h3>
-                            <span className="text-yellow-500">⭐ {application.deliverer.rating.toFixed(1)}</span>
-                            <span className="text-sm text-gray-500">
-                              {application.deliverer.completedDeliveries} livraisons
-                            </span>
+                            <h3 className="font-medium text-gray-900">
+                              {match.deliverer.user.profile?.firstName} {match.deliverer.user.profile?.lastName} 
+                              ({match.deliverer.user.name})
+                            </h3>
+                            {match.deliverer.profile?.rating && (
+                              <span className="text-yellow-500">⭐ {match.deliverer.profile.rating.toFixed(1)}</span>
+                            )}
+                            {match.deliverer.profile?.completedDeliveries && (
+                              <span className="text-sm text-gray-500">
+                                {match.deliverer.profile.completedDeliveries} livraisons
+                              </span>
+                            )}
                           </div>
-                          <p className="text-gray-600 mb-2">{application.message}</p>
+                          {match.message && (
+                            <p className="text-gray-600 mb-2">{match.message}</p>
+                          )}
                           <div className="flex items-center space-x-4 text-sm text-gray-500">
-                            <span>Prix proposé: {application.proposedPrice}€</span>
-                            <span>Postulé le {new Date(application.createdAt).toLocaleDateString()}</span>
+                            {match.proposedPrice && (
+                              <span>Prix proposé: {match.proposedPrice}€</span>
+                            )}
+                            <span>Matchée le {new Date(match.createdAt).toLocaleDateString()}</span>
                           </div>
                         </div>
                         
-                        {announcement.status === 'ACTIVE' && application.status === 'PENDING' && (
+                        {announcement.status === 'ACTIVE' && match.status === 'PENDING' && (
                           <button
-                            onClick={() => handleAcceptApplication(application.id)}
+                            onClick={() => handleAcceptMatch(match.id)}
                             className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 ml-4"
                           >
                             Accepter
@@ -310,11 +365,15 @@ export default function AnnouncementDetailPage() {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-500">Type de service:</span>
-                  <span className="text-gray-900">{announcement.serviceType}</span>
+                  <span className="text-gray-900">{announcement.type}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-500">Candidatures:</span>
-                  <span className="text-gray-900">{announcement._count.applications}</span>
+                  <span className="text-gray-500">Correspondances:</span>
+                  <span className="text-gray-900">{announcement._count.matches}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-500">Avis:</span>
+                  <span className="text-gray-900">{announcement._count.reviews}</span>
                 </div>
               </div>
             </div>

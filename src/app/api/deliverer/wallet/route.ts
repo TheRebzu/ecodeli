@@ -8,7 +8,7 @@ import { WalletService } from '@/features/deliverer/services/wallet.service'
  */
 export async function GET(request: NextRequest) {
   try {
-    const session = await auth.api.getSession({ headers: request.headers })
+    const session = await auth()
     
     if (!session?.user || session.user.role !== 'DELIVERER') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })

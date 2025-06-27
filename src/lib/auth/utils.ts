@@ -4,26 +4,16 @@ import { auth } from '@/lib/auth'
 import { headers } from 'next/headers'
 
 /**
- * Utilitaires d'authentification compatibles EcoDeli + Better-Auth
+ * Utilitaires d'authentification compatibles EcoDeli + NextAuth
  */
 
 /**
- * Récupérer l'utilisateur depuis la session - API Routes
+ * Récupérer l'utilisateur depuis la session - API Routes NextAuth
  */
 export async function getUserFromSession(request: NextRequest) {
   try {
-          // Vérification session
-
-    // Convertir les headers NextRequest en format compatible Better-Auth
-    const headersMap = new Headers()
-    request.headers.forEach((value, key) => {
-      headersMap.set(key, value)
-    })
-
-    // Récupérer la session avec Better-Auth
-    const session = await auth.api.getSession({
-      headers: headersMap
-    })
+    // Récupérer la session avec NextAuth
+    const session = await auth()
 
     if (!session?.user) {
       return null

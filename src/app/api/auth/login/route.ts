@@ -1,15 +1,15 @@
-import { auth } from "@/lib/auth"
+import { signIn } from "@/lib/auth"
 import { NextRequest, NextResponse } from "next/server"
-import { db } from "@/lib/db"
+import { redirect } from "next/navigation"
 
 /**
- * Route login compatible avec Better-Auth
- * Redirige vers l'endpoint Better-Auth approprié
+ * Route login compatible avec NextAuth
+ * Utilise signIn de NextAuth pour l'authentification
  */
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { email, password } = body
+    const { email, password, redirectTo } = body
 
     if (!email || !password) {
       return NextResponse.json(
@@ -18,58 +18,27 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Utiliser Better-Auth pour l'authentification
-    const result = await auth.api.signInEmail({
-      body: {
-        email,
-        password,
-      },
-      headers: request.headers,
+    // Utiliser NextAuth pour l'authentification
+    const result = await signIn("credentials", {
+      email,
+      password,
+      redirect: false
     })
 
-    // Better Auth signInEmail retourne un objet avec redirect, token, url, user
-    // Pas d'erreur directe, on vérifie si on a un user
-    if (!result.user) {
+    // Vérifier le résultat de l'authentification
+    if (result?.error) {
       return NextResponse.json(
         { error: "Identifiants invalides" },
         { status: 401 }
       )
     }
 
-    // Récupérer le user complet (avec le rôle) depuis la base
-    let user = result.user
-    // Vérifier si le user a déjà un rôle (extended user)
-    if (user && !('role' in user)) {
-      // On va chercher le user complet
-      const dbUser = await db.user.findUnique({
-        where: { email: user.email },
-        select: {
-          id: true,
-          email: true,
-          role: true,
-          name: true,
-          emailVerified: true,
-          isActive: true,
-          validationStatus: true,
-          createdAt: true,
-          updatedAt: true
-        }
-      })
-      if (dbUser) {
-        // Fusionner les données en gérant les types avec assertion
-        user = { 
-          ...user, 
-          ...dbUser
-        } as any // Type assertion pour éviter l'erreur TypeScript
-      }
-    }
-
     // Succès de l'authentification
     return NextResponse.json(
       { 
         success: true,
-        user,
-        token: result.token
+        message: "Connexion réussie",
+        redirectUrl: result?.url || redirectTo || "/dashboard"
       },
       { 
         status: 200
@@ -78,6 +47,16 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error("Erreur login:", error)
+    
+    // Gestion des erreurs spécifiques
+    if (error instanceof Error) {
+      if (error.message === "Compte en attente de validation") {
+        return NextResponse.json(
+          { error: "Votre compte est en attente de validation" },
+          { status: 403 }
+        )
+      }
+    }
     
     return NextResponse.json(
       { error: "Erreur lors de la connexion" },

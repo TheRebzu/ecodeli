@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/db'
+import { db } from '@/lib/db'
 import { z } from 'zod'
 
 const validationStatusSchema = z.object({
@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
     console.log('🔍 Récupération statut validation pour:', validatedUserId)
 
     // Récupérer l'utilisateur avec son profil et ses documents
-    const user = await prisma.user.findUnique({
+    const user = await db.user.findUnique({
       where: { id: validatedUserId },
       include: {
         profile: {

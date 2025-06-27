@@ -3,15 +3,13 @@ import { auth } from "@/lib/auth"
 
 /**
  * GET /api/auth/get-session
- * Récupère la session utilisateur via les cookies
+ * Récupère la session utilisateur via NextAuth
  */
 export async function GET(request: NextRequest) {
   try {
-    const session = await auth.api.getSession({
-      headers: request.headers
-    })
+    const session = await auth()
 
-    if (!session) {
+    if (!session?.user) {
       return NextResponse.json(
         { error: "Non authentifié" },
         { status: 401 }

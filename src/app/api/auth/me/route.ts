@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { auth } from "@/lib/auth"
+import { auth, requireAuth } from "@/lib/auth"
 import { db } from "@/lib/db"
 
 /**
@@ -8,11 +8,9 @@ import { db } from "@/lib/db"
  */
 export async function GET(request: NextRequest) {
   try {
-    const session = await auth.api.getSession({
-      headers: request.headers
-    })
+    const session = await auth()
 
-    if (!session) {
+    if (!session?.user) {
       return NextResponse.json(
         { error: "Non authentifié" },
         { status: 401 }
@@ -100,23 +98,14 @@ export async function GET(request: NextRequest) {
  */
 export async function PUT(request: NextRequest) {
   try {
-    const session = await auth.api.getSession({
-      headers: request.headers
-    })
-
-    if (!session) {
-      return NextResponse.json(
-        { error: "Non authentifié" },
-        { status: 401 }
-      )
-    }
+    const user = await requireAuth()
 
     const body = await request.json()
     const { name, language } = body
 
     // Mettre à jour les informations de base
     const updatedUser = await db.user.update({
-      where: { id: session.user.id },
+      where: { id: user.id },
       data: {
         name,
         language
@@ -137,6 +126,13 @@ export async function PUT(request: NextRequest) {
     })
 
   } catch (error) {
+    if (error instanceof Error && error.message === "Unauthorized") {
+      return NextResponse.json(
+        { error: "Non authentifié" },
+        { status: 401 }
+      )
+    }
+    
     console.error("❌ Erreur mise à jour profil:", error)
     return NextResponse.json(
       { error: "Erreur serveur" },
