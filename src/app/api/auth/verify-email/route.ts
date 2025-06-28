@@ -1,41 +1,165 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { AuthService } from '@/server/services/auth.service';
+import { NextRequest, NextResponse } from 'next/server'
+import { db } from '@/lib/db'
+import { z } from 'zod'
+import { redirect } from 'next/navigation'
 
-const authService = new AuthService();
+const verifyEmailSchema = z.object({
+  token: z.string().min(1, 'Token requis'),
+  email: z.string().email('Email invalide')
+})
 
 /**
- * Route API pour vérifier l'email d'un utilisateur avec un token
- *
- * GET /api/auth/verify-email?token=xyz
+ * GET - Vérifier l'email avec le token
  */
-export async function GET(req: NextRequest) {
+export async function GET(request: NextRequest) {
   try {
-    // Récupérer le token depuis les paramètres de requête
-    const url = new URL(req.url);
-    const token = url.searchParams.get('token');
+    const { searchParams } = new URL(request.url)
+    const token = searchParams.get('token')
+    const email = searchParams.get('email')
 
-    if (!token) {
-      return NextResponse.json({ success: false, message: 'Token manquant' }, { status: 400 });
+    if (!token || !email) {
+      return NextResponse.redirect(new URL('/login?error=invalid_token', request.url))
     }
 
-    // Vérifier le token et activer le compte
-    const result = await authService.verifyEmail(token);
+    const { token: validatedToken, email: validatedEmail } = verifyEmailSchema.parse({ token, email })
 
-    // Rediriger vers la page de succès ou la page de connexion
-    if (result) {
-      // Redirection côté client gérée par la page verify-email
-      return NextResponse.json({ success: true });
-    } else {
-      return NextResponse.json(
-        { success: false, message: 'Échec de la vérification' },
-        { status: 400 }
-      );
+    // Vérifier le token de vérification
+    console.log('🔍 Vérification du token:', validatedToken, 'pour email:', validatedEmail)
+    
+    const verificationToken = await db.verificationToken.findFirst({
+      where: {
+        token: `email-verification:${validatedToken}`,
+        identifier: validatedEmail,
+        expires: {
+          gt: new Date()
+        }
+      }
+    })
+
+    if (!verificationToken) {
+      return NextResponse.redirect(new URL('/verify-email?error=invalid_or_expired_token', request.url))
     }
+
+    // Vérifier que l'utilisateur existe
+    const user = await db.user.findUnique({
+      where: { email: validatedEmail }
+    })
+
+    if (!user) {
+      return NextResponse.redirect(new URL('/login?error=user_not_found', request.url))
+    }
+
+    // Marquer l'email comme vérifié
+    await db.user.update({
+      where: { id: user.id },
+      data: {
+        emailVerified: true,
+        emailVerifiedAt: new Date()
+      }
+    })
+
+    // Supprimer le token utilisé
+    await db.verificationToken.deleteMany({
+      where: { 
+        identifier: verificationToken.identifier,
+        token: verificationToken.token
+      }
+    })
+    
+    console.log('✅ Email vérifié avec succès pour:', validatedEmail)
+
+    // Rediriger vers la page de connexion avec succès
+    return NextResponse.redirect(new URL('/verify-email?verified=true', request.url))
+
   } catch (error) {
-    console.error('Erreur de vérification email:', error);
-
-    const errorMessage = error instanceof Error ? error.message : 'Une erreur est survenue';
-
-    return NextResponse.json({ success: false, message: errorMessage }, { status: 500 });
+    console.error('❌ Erreur lors de la vérification de l\'email:', error)
+    return NextResponse.redirect(new URL('/login?error=verification_failed', request.url))
   }
 }
+
+/**
+ * POST - API endpoint pour vérifier l'email (alternative)
+ */
+export async function POST(request: NextRequest) {
+  try {
+    const body = await request.json()
+    const { token, email } = verifyEmailSchema.parse(body)
+
+    // Vérifier le token de vérification
+    console.log('🔍 POST - Vérification du token:', token, 'pour email:', email)
+    
+    const verificationToken = await db.verificationToken.findFirst({
+      where: {
+        token: `email-verification:${token}`,
+        identifier: email,
+        expires: {
+          gt: new Date()
+        }
+      }
+    })
+
+    if (!verificationToken) {
+      return NextResponse.json(
+        { error: 'Token invalide ou expiré' },
+        { status: 400 }
+      )
+    }
+
+    // Vérifier que l'utilisateur existe
+    const user = await db.user.findUnique({
+      where: { email }
+    })
+
+    if (!user) {
+      return NextResponse.json(
+        { error: 'Utilisateur non trouvé' },
+        { status: 404 }
+      )
+    }
+
+    // Marquer l'email comme vérifié
+    await db.user.update({
+      where: { id: user.id },
+      data: {
+        emailVerified: true,
+        emailVerifiedAt: new Date()
+      }
+    })
+
+    // Supprimer le token utilisé
+    await db.verificationToken.deleteMany({
+      where: { 
+        identifier: verificationToken.identifier,
+        token: verificationToken.token
+      }
+    })
+    
+    console.log('✅ POST - Email vérifié avec succès pour:', email)
+
+    return NextResponse.json({
+      success: true,
+      message: 'Email vérifié avec succès'
+    })
+
+  } catch (error) {
+    console.error('❌ Erreur lors de la vérification de l\'email:', error)
+
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        { 
+          error: 'Données invalides', 
+          details: error.errors.map(e => ({ 
+            field: e.path.join('.'), 
+            message: e.message 
+          }))
+        },
+        { status: 400 }
+      )
+    }
+
+    return NextResponse.json(
+      { error: 'Erreur interne du serveur' },
+      { status: 500 }
+    )
+  }
+} 

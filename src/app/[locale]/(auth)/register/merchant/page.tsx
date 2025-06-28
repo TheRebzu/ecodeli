@@ -1,61 +1,65 @@
-import { Metadata } from 'next';
-import { redirect } from 'next/navigation';
-import { getTranslations } from 'next-intl/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/server/auth/next-auth';
-import MerchantRegisterForm from '@/components/auth/register-forms/merchant-register-form';
-import Link from 'next/link';
-import { Button } from '@/components/ui/button';
-import { ChevronLeft } from 'lucide-react';
-import { PageProps, MetadataProps } from '@/types/next';
+// Page d'inscription commerçant
+import { useTranslations } from "next-intl"
+import Link from "next/link"
+import { MerchantRegisterForm } from "@/features/auth/components/merchant-register-form"
 
-export async function generateMetadata({
-  params,
-}: {
-  params: { locale: string };
-}): Promise<Metadata> {
-  // Attendre la résolution des paramètres
-  const resolvedParams = await params;
-  const locale = resolvedParams.locale;
-
-  const t = await getTranslations({ locale, namespace: 'auth.register' });
-
-  return {
-    title: t('merchant.pageTitle'),
-    description: t('merchant.pageDescription'),
-  };
-}
-
-export default async function MerchantRegisterPage({ params }: { params: { locale: string } }) {
-  // Attendre que les paramètres soient résolus
-  const resolvedParams = await params;
-  const locale = resolvedParams.locale;
-
-  // Vérifier si l'utilisateur est déjà connecté
-  const session = await getServerSession(authOptions);
-  if (session) {
-    redirect(`/${locale}/dashboard`);
-  }
-
-  const t = await getTranslations({ locale, namespace: 'auth.register' });
+export default function MerchantRegisterPage() {
+  const t = useTranslations()
 
   return (
-    <div className="container flex h-screen flex-col items-center justify-center">
-      <div className="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[350px] md:w-[550px]">
-        <Button variant="ghost" className="absolute left-4 top-4 md:left-8 md:top-8" asChild>
-          <Link href={`/${locale}/register`}>
-            <ChevronLeft className="mr-2 h-4 w-4" />
-            {t('back')}
+    <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 py-8 px-4">
+      <div className="max-w-md mx-auto">
+        {/* Header */}
+        <div className="text-center mb-8">
+          <Link href="/" className="inline-flex items-center space-x-2 mb-6">
+            <div className="h-8 w-8 rounded-full bg-green-600"></div>
+            <span className="text-xl font-bold text-gray-900">EcoDeli</span>
           </Link>
-        </Button>
-
-        <div className="flex flex-col space-y-2 text-center">
-          <h1 className="text-2xl font-semibold tracking-tight">{t('merchant.title')}</h1>
-          <p className="text-sm text-muted-foreground">{t('merchant.description')}</p>
+          <div className="text-3xl mb-2">🏪</div>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">
+            Inscription Commerçant
+          </h1>
+          <p className="text-gray-600">
+            Rejoignez notre réseau de commerçants partenaires
+          </p>
         </div>
-        
-        <MerchantRegisterForm locale={locale} />
+
+        {/* Avantages */}
+        <div className="bg-purple-50 rounded-lg p-4 mb-6">
+          <h3 className="font-medium text-purple-900 mb-2">Avantages commerçant</h3>
+          <ul className="space-y-1 text-sm text-purple-800">
+            <li>📈 Augmentez vos ventes en ligne</li>
+            <li>🛒 Service de lâcher de chariot</li>
+            <li>📊 Analytics et rapports détaillés</li>
+            <li>🤝 Commission attractive</li>
+          </ul>
+        </div>
+
+        {/* Formulaire */}
+        <div className="bg-white rounded-xl shadow-sm border p-6">
+          <MerchantRegisterForm />
+        </div>
+
+        {/* Liens */}
+        <div className="mt-6 text-center space-y-4">
+          <Link 
+            href="/register" 
+            className="text-sm text-gray-600 hover:text-green-600"
+          >
+            ← Choisir un autre type de compte
+          </Link>
+          
+          <div className="text-sm text-gray-600">
+            Vous avez déjà un compte ?{' '}
+            <Link 
+              href="/login" 
+              className="text-green-600 hover:text-green-700 font-medium"
+            >
+              Se connecter
+            </Link>
+          </div>
+        </div>
       </div>
     </div>
-  );
+  )
 }

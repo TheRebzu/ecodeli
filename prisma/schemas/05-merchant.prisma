@@ -1,0 +1,84 @@
+// Modèles commerçant
+
+model Merchant {
+  id                String              @id @default(cuid())
+  userId            String              @unique
+  companyName       String
+  siret             String              @unique
+  vatNumber         String?
+  contractStatus    String              @default("PENDING")
+  contractStartDate DateTime?
+  contractEndDate   DateTime?
+  commissionRate    Float               @default(0.15)
+  rating            Float               @default(0)
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  // Relations
+  user              User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  contract          Contract?
+  announcements     Announcement[]
+  orders            Order[]
+  cartDropConfig    CartDropConfig?
+  payments          Payment[]           @relation("MerchantPayments")
+  
+  @@index([userId])
+  @@index([siret])
+}
+
+model CartDropConfig {
+  id                String              @id @default(cuid())
+  merchantId        String              @unique
+  isActive          Boolean             @default(false)
+  deliveryZones     Json[]              // [{postalCode, deliveryFee}]
+  timeSlots         Json[]              // [{day, startTime, endTime}]
+  maxOrdersPerSlot  Int                 @default(10)
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  merchant          Merchant            @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+}
+
+model Order {
+  id                String              @id @default(cuid())
+  merchantId        String
+  clientId          String
+  announcementId    String?             @unique
+  orderNumber       String              @unique
+  status            OrderStatus         @default(PENDING)
+  totalAmount       Float
+  deliveryFee       Float               @default(0)
+  notes             String?
+  deliveryAddress   String
+  scheduledDate     DateTime?
+  completedAt       DateTime?
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  // Relations
+  merchant          Merchant            @relation(fields: [merchantId], references: [id])
+  client            User                @relation("ClientOrders", fields: [clientId], references: [id])
+  announcement      Announcement?       @relation(fields: [announcementId], references: [id])
+  items             OrderItem[]
+  payment           Payment?
+  
+  @@index([merchantId])
+  @@index([clientId])
+  @@index([orderNumber])
+  @@index([status])
+}
+
+model OrderItem {
+  id                String              @id @default(cuid())
+  orderId           String
+  name              String
+  quantity          Int
+  unitPrice         Float
+  totalPrice        Float
+  createdAt         DateTime            @default(now())
+
+  // Relations
+  order             Order               @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  
+  @@index([orderId])
+}

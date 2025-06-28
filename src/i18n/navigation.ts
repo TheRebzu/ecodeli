@@ -1,5 +1,5 @@
-import { createNavigation } from 'next-intl/navigation';
-import { routing } from './routing';
+import { createNavigation } from "next-intl/navigation";
+import { routing } from "@/i18n/routing";
 
 /**
  * Navigation utilities that are aware of internationalization
@@ -15,5 +15,4 @@ export const {
   // For server-side redirects
   redirect,
   // For generating pathnames with locale
-  getPathname,
-} = createNavigation(routing);
+  getPathname} = createNavigation(routing);

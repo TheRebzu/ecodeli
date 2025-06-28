@@ -1,0 +1,43 @@
+
+> ecodeli@0.1.0 dev C:\Users\Amine\WebstormProjects\ecodeli
+> next dev
+
+   ▲ Next.js 15.3.4
+   - Local:        http://localhost:3000
+   - Network:      http://26.8.108.82:3000
+   - Environments: .env.local, .env
+
+ ✓ Starting...
+ ✓ Ready in 10s
+ ○ Compiling /middleware ...
+ ✓ Compiled /middleware in 2.9s (597 modules)
+ ○ Compiling /[locale]/login ...
+ ✓ Compiled /[locale]/login in 16.1s (1179 modules)
+ GET /fr/login 200 in 20918ms
+ ○ Compiling /api/auth/[...all] ...
+ ✓ Compiled /api/auth/[...all] in 10.9s (1617 modules)
+ GET /fr/login 200 in 445ms
+ GET /api/auth/get-session 200 in 13500ms
+ POST /api/auth/sign-in/email 200 in 13672ms
+ ○ Compiling /[locale]/client ...
+ ✓ Compiled /[locale]/client in 4.4s (2863 modules)
+🔍 [ClientLayout] Auth state: { user: undefined, isLoading: true, isAuthenticated: false }
+ ✓ Compiled in 3.5s (1061 modules)
+ GET /fr/client 200 in 8807ms
+ ✓ Compiled in 1910ms (1061 modules)
+ GET /api/auth/get-session 200 in 387ms
+ GET /api/auth/get-session 200 in 94ms
+ ○ Compiling /api/client/dashboard ...
+ ✓ Compiled /api/client/dashboard in 956ms (2880 modules)
+[API] Valid session for: client-complete@test.com - Role: CLIENT
+ GET /api/client/dashboard 200 in 1454ms
+[API] Valid session for: client-complete@test.com - Role: CLIENT
+ GET /api/client/dashboard 200 in 117ms
+🔍 [ClientLayout] Auth state: { user: undefined, isLoading: true, isAuthenticated: false }
+ GET /fr/client 200 in 1266ms
+ GET /api/auth/get-session 200 in 184ms
+ GET /api/auth/get-session 200 in 112ms
+[API] Valid session for: client-complete@test.com - Role: CLIENT
+ GET /api/client/dashboard 200 in 161ms
+[API] Valid session for: client-complete@test.com - Role: CLIENT
+ GET /api/client/dashboard 200 in 138ms

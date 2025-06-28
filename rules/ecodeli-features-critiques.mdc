@@ -1,0 +1,258 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# EcoDeli - Fonctionnalités Critiques Mission 1
+
+## Fonctionnalités OBLIGATOIRES à Implémenter
+
+### 1. Tutoriel Client Première Connexion
+**CRITIQUE** : Overlay obligatoire bloquant à la première connexion
+
+```typescript
+// src/features/tutorials/components/TutorialOverlay.tsx
+// Utiliser un état global pour tracking
+// Bloquer toute interaction jusqu'à completion
+// Étapes : Dépôt annonce → Réservation → Paiement → Suivi
+```
+
+### 2. Validation Documents Livreur
+**FLOW COMPLET** :
+1. Upload documents (identité, permis, assurance)
+2. Statut PENDING → admin validation
+3. Génération carte NFC automatique
+4. Activation compte + notifications
+
+```typescript
+// src/features/users/services/deliverer-validation.service.ts
+// Doit gérer les 3 types de documents obligatoires
+// Email automatique à l'admin pour validation
+// Génération QR code/NFC après validation
+```
+
+### 3. Code Validation Livraison (6 chiffres)
+**SÉCURITÉ CRITIQUE** :
+- Code unique généré à la création livraison
+- Client donne code au livreur
+- Livreur saisit code pour validation
+- Déblocage paiement automatique
+
+```typescript
+// src/features/deliveries/services/validation.service.ts
+generateValidationCode(): string // 6 chiffres
+validateDelivery(code: string, deliveryId: string): Promise<boolean>
+```
+
+### 4. Matching Trajets/Annonces
+**ALGORITHME OBLIGATOIRE** :
+- Livreur déclare trajets à l'avance
+- Système match avec annonces compatibles
+- Notification push automatique
+- Distance, horaires, capacité
+
+```typescript
+// src/features/deliveries/services/matching.service.ts
+// Algorithme basé sur géolocalisation
+// Notifications OneSignal
+// Scoring par proximité + horaires
+```
+
+### 5. Abonnements Client (Free/Starter/Premium)
+**PLANS OBLIGATOIRES** :
+
+```typescript
+const subscriptionPlans = {
+  FREE: {
+    price: 0,
+    insurance: 0,
+    discount: 0,
+    priorityShipping: false
+  },
+  STARTER: {
+    price: 9.90,
+    insurance: 115, // €/envoi
+    discount: 5, // %
+    priorityShipping: 5 // % supplement
+  },
+  PREMIUM: {
+    price: 19.99,
+    insurance: 3000, // €/envoi max
+    discount: 9, // %
+    priorityShipping: 3, // envois offerts/mois
+    firstShipmentFree: true // si < 150€
+  }
+}
+```
+
+### 6. Facturation Mensuelle Automatique Prestataires
+**CRON OBLIGATOIRE** :
+- 30 de chaque mois à 23h
+- Génération PDF automatique
+- Virement bancaire simulé
+- Archive accessible
+
+```typescript
+// src/features/invoices/services/invoice-generator.service.ts
+// Utiliser jsPDF pour génération
+// Template professionnel
+// Calcul automatique des prestations du mois
+```
+
+### 7. Notifications Push OneSignal
+**ÉVÉNEMENTS OBLIGATOIRES** :
+- Nouvelle annonce matchée
+- Livraison acceptée/refusée
+- Code validation reçu
+- Paiement effectué
+- Document validé/rejeté
+
+```typescript
+// src/features/notifications/services/notification.service.ts
+// Templates multilingues
+// Ciblage par rôle utilisateur
+// Retry en cas d'échec
+```
+
+### 8. Upload & Gestion Documents
+**SÉCURITÉ MAXIMALE** :
+- Upload sécurisé (types autorisés uniquement)
+- Stockage cloud ou local sécurisé
+- Validation admin obligatoire
+- Historique des modifications
+
+```typescript
+// src/features/documents/services/upload.service.ts
+// Validation MIME type
+// Redimensionnement images
+// Watermark optionnel
+```
+
+### 9. Suivi Temps Réel Livraisons
+**TRACKING OBLIGATOIRE** :
+- Statuts : PENDING → ACCEPTED → IN_TRANSIT → DELIVERED
+- Géolocalisation optionnelle
+- Historique complet
+- Notifications à chaque étape
+
+```typescript
+// src/features/deliveries/services/tracking.service.ts
+// WebSockets ou polling
+// Carte interactive optionnelle
+// ETA estimation
+```
+
+### 10. Paiements Stripe Intégrés
+**SÉCURITÉ MAXIMALE** :
+- Webhooks obligatoires
+- Gestion des échecs
+- Remboursements
+- Abonnements récurrents
+
+```typescript
+// src/features/payments/services/stripe.service.ts
+// src/app/api/payments/stripe/webhook/route.ts
+// Gestion événements : payment_succeeded, payment_failed
+// Mise à jour statuts automatique
+```
+
+## Points de Validation CRITIQUES
+
+### ✅ Checklist de Validation Finale
+
+**Authentification :**
+- [ ] 5 rôles fonctionnent (CLIENT, DELIVERER, MERCHANT, PROVIDER, ADMIN)
+- [ ] Sessions sécurisées avec cookies
+- [ ] Permissions par rôle respectées
+- [ ] Middleware de protection routes
+
+**Espaces Utilisateur :**
+- [ ] Dashboard client avec tutoriel première connexion
+- [ ] Espace livreur avec validation documents
+- [ ] Back office admin avec toutes les validations
+- [ ] Espace commerçant avec contrats
+- [ ] Espace prestataire avec calendrier
+
+**Fonctionnalités Core :**
+- [ ] Annonces CRUD complet
+- [ ] Matching trajets/annonces automatique
+- [ ] Code validation 6 chiffres livraisons
+- [ ] Abonnements 3 niveaux fonctionnels
+- [ ] Notifications push configurées
+- [ ] Upload documents sécurisé
+- [ ] Génération PDF factures
+- [ ] Suivi temps réel livraisons
+
+**Intégrations :**
+- [ ] Stripe paiements + webhooks
+- [ ] OneSignal notifications
+- [ ] jsPDF génération documents
+- [ ] next-intl FR/EN
+- [ ] Prisma + PostgreSQL
+
+**Tests End-to-End :**
+- [ ] Inscription → validation → activation livreur
+- [ ] Création annonce → matching → livraison → paiement
+- [ ] Réservation service → intervention → évaluation
+- [ ] Abonnement client → facturation → renouvellement
+- [ ] Upload document → validation admin → notification
+
+## Commandes de Validation Obligatoires
+
+```bash
+# Démarrage complet
+npm run dev
+npx prisma studio
+
+# Tests API critiques
+curl -X POST localhost:3000/api/auth/register -d '{"email":"test@test.com","password":"Test123!","role":"CLIENT"}'
+curl -X POST localhost:3000/api/announcements -H "Cookie: [session]" -d '{"title":"Test","description":"Test delivery","type":"PACKAGE_DELIVERY","price":25}'
+curl -X POST localhost:3000/api/deliveries/[id]/validate -d '{"code":"123456"}'
+
+# Vérification base de données
+psql -h localhost -U postgres -d ecodeli -c "SELECT COUNT(*) FROM users WHERE role = 'CLIENT';"
+```
+
+## Structure Prioritaire de Développement
+
+### Phase 1 : Fondations (Semaine 1-2)
+1. Setup Next.js 15 + TypeScript
+2. Configuration Prisma + PostgreSQL
+3. Authentification Better-Auth
+4. Modèles de données complets
+
+### Phase 2 : API Core (Semaine 3-4)
+1. Routes authentification
+2. CRUD utilisateurs
+3. CRUD annonces
+4. CRUD livraisons
+5. Tests cURL complets
+
+### Phase 3 : Interface (Semaine 5-6)
+1. Layouts par rôle
+2. Dashboards
+3. Formulaires React Hook Form + Zod
+4. Composants UI shadcn/ui
+
+### Phase 4 : Fonctionnalités Avancées (Semaine 7-8)
+1. Tutoriel client overlay
+2. Validation documents
+3. Matching trajets
+4. Code validation livraisons
+5. Notifications push
+
+### Phase 5 : Intégrations (Semaine 9-10)
+1. Paiements Stripe
+2. Génération PDF
+3. Multilingue
+4. Tests complets
+5. Déploiement
+
+## Fichiers Clés à Créer/Modifier
+- [prisma/schema.prisma](mdc:prisma/schema.prisma)
+- [src/lib/auth.ts](mdc:src/lib/auth.ts)
+- [src/middleware.ts](mdc:src/middleware.ts)
+- [src/features/](mdc:src/features)
+- [DEVELOPMENT_REPORT.md](mdc:DEVELOPMENT_REPORT.md)
+
+

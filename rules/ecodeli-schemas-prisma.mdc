@@ -1,0 +1,320 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# EcoDeli - Modèles de Données Prisma
+
+## Modèles Principaux à Créer
+
+### 1. Utilisateurs et Authentification
+```prisma
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  role      Role
+  profile   Profile?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum Role {
+  CLIENT
+  DELIVERER
+  MERCHANT
+  PROVIDER
+  ADMIN
+}
+
+model Profile {
+  id          String  @id @default(cuid())
+  userId      String  @unique
+  user        User    @relation(fields: [userId], references: [id])
+  firstName   String?
+  lastName    String?
+  phone       String?
+  address     String?
+  city        String?
+  postalCode  String?
+  country     String?
+  avatar      String?
+  verified    Boolean @default(false)
+  documents   Document[]
+}
+```
+
+### 2. Annonces et Services
+```prisma
+model Announcement {
+  id            String           @id @default(cuid())
+  title         String
+  description   String
+  type          AnnouncementType
+  status        AnnouncementStatus @default(ACTIVE)
+  price         Decimal
+  authorId      String
+  author        User             @relation(fields: [authorId], references: [id])
+  deliveries    Delivery[]
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+}
+
+enum AnnouncementType {
+  PACKAGE_DELIVERY
+  PERSON_TRANSPORT
+  AIRPORT_TRANSFER
+  SHOPPING
+  INTERNATIONAL_PURCHASE
+  PET_SITTING
+  HOME_SERVICE
+  CART_DROP
+}
+
+enum AnnouncementStatus {
+  ACTIVE
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+```
+
+### 3. Livraisons et Validation
+```prisma
+model Delivery {
+  id               String         @id @default(cuid())
+  announcementId   String
+  announcement     Announcement   @relation(fields: [announcementId], references: [id])
+  delivererId      String
+  deliverer        User           @relation(fields: [delivererId], references: [id])
+  status           DeliveryStatus @default(PENDING)
+  validationCode   String?        @unique
+  pickupAddress    String
+  deliveryAddress  String
+  scheduledAt      DateTime
+  completedAt      DateTime?
+  payment          Payment?
+  tracking         TrackingUpdate[]
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+}
+
+enum DeliveryStatus {
+  PENDING
+  ACCEPTED
+  IN_TRANSIT
+  DELIVERED
+  CANCELLED
+}
+
+model TrackingUpdate {
+  id         String   @id @default(cuid())
+  deliveryId String
+  delivery   Delivery @relation(fields: [deliveryId], references: [id])
+  status     String
+  message    String
+  location   String?
+  createdAt  DateTime @default(now())
+}
+```
+
+### 4. Paiements et Abonnements
+```prisma
+model Payment {
+  id            String        @id @default(cuid())
+  userId        String
+  user          User          @relation(fields: [userId], references: [id])
+  deliveryId    String?       @unique
+  delivery      Delivery?     @relation(fields: [deliveryId], references: [id])
+  amount        Decimal
+  currency      String        @default("EUR")
+  status        PaymentStatus @default(PENDING)
+  stripePaymentId String?
+  type          PaymentType
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+}
+
+enum PaymentType {
+  DELIVERY
+  SUBSCRIPTION
+  SERVICE
+}
+
+model Subscription {
+  id        String           @id @default(cuid())
+  userId    String           @unique
+  user      User             @relation(fields: [userId], references: [id])
+  plan      SubscriptionPlan
+  status    String           @default("active")
+  startDate DateTime         @default(now())
+  endDate   DateTime?
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+}
+
+enum SubscriptionPlan {
+  FREE
+  STARTER
+  PREMIUM
+}
+```
+
+### 5. Documents et Validation
+```prisma
+model Document {
+  id         String         @id @default(cuid())
+  profileId  String
+  profile    Profile        @relation(fields: [profileId], references: [id])
+  type       DocumentType
+  filename   String
+  url        String
+  status     DocumentStatus @default(PENDING)
+  validatedBy String?
+  validatedAt DateTime?
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+}
+
+enum DocumentType {
+  IDENTITY
+  DRIVING_LICENSE
+  INSURANCE
+  CERTIFICATION
+  CONTRACT
+}
+
+enum DocumentStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+```
+
+### 6. Prestataires et Services
+```prisma
+model Service {
+  id          String        @id @default(cuid())
+  providerId  String
+  provider    User          @relation(fields: [providerId], references: [id])
+  name        String
+  description String
+  category    ServiceCategory
+  price       Decimal
+  duration    Int           // en minutes
+  isActive    Boolean       @default(true)
+  bookings    Booking[]
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+}
+
+enum ServiceCategory {
+  CLEANING
+  GARDENING
+  HANDYMAN
+  TUTORING
+  HEALTHCARE
+  BEAUTY
+  OTHER
+}
+
+model Booking {
+  id          String        @id @default(cuid())
+  serviceId   String
+  service     Service       @relation(fields: [serviceId], references: [id])
+  clientId    String
+  client      User          @relation(fields: [clientId], references: [id])
+  scheduledAt DateTime
+  status      BookingStatus @default(PENDING)
+  notes       String?
+  rating      Int?          // 1-5
+  review      String?
+  payment     Payment?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+```
+
+### 7. Entrepôts et Box de Stockage
+```prisma
+model Warehouse {
+  id       String @id @default(cuid())
+  name     String
+  address  String
+  city     String
+  capacity Int
+  storageBoxes StorageBox[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model StorageBox {
+  id          String     @id @default(cuid())
+  warehouseId String
+  warehouse   Warehouse  @relation(fields: [warehouseId], references: [id])
+  number      String
+  size        BoxSize
+  status      BoxStatus  @default(AVAILABLE)
+  clientId    String?
+  client      User?      @relation(fields: [clientId], references: [id])
+  rentStartDate DateTime?
+  rentEndDate   DateTime?
+  monthlyPrice  Decimal
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+}
+
+enum BoxSize {
+  SMALL
+  MEDIUM
+  LARGE
+  EXTRA_LARGE
+}
+
+enum BoxStatus {
+  AVAILABLE
+  OCCUPIED
+  MAINTENANCE
+}
+```
+
+## Relations Importantes
+
+### Contraintes à Respecter
+- Un User peut avoir plusieurs Announcements
+- Un Deliverer peut avoir plusieurs Deliveries
+- Un Client peut avoir plusieurs Bookings
+- Un Provider peut avoir plusieurs Services
+- Une Delivery DOIT avoir un code de validation unique
+- Les Documents doivent être validés avant activation du compte
+
+### Index de Performance
+```prisma
+// Ajouter ces index pour les performances
+@@index([email])
+@@index([role])
+@@index([status])
+@@index([type])
+@@index([scheduledAt])
+@@index([createdAt])
+```
+
+## Schéma Complet
+Le schéma complet est dans [prisma/schema.prisma](mdc:prisma/schema.prisma)
+
+

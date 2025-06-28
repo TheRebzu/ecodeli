@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: ecodeli_postgres
+    restart: always
+    environment:
+      POSTGRES_DB: ecodeli
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - ecodeli_network
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: ecodeli_pgadmin
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@ecodeli.com
+      PGADMIN_DEFAULT_PASSWORD: admin123
+    ports:
+      - "8080:80"
+    depends_on:
+      - postgres
+    networks:
+      - ecodeli_network
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  ecodeli_network:
+    driver: bridge 

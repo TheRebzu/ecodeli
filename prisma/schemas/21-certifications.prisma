@@ -1,0 +1,236 @@
+// Modèles certifications et habilitations
+
+model Certification {
+  id                String              @id @default(cuid())
+  name              String
+  description       String
+  category          CertificationCategory
+  level             CertificationLevel  @default(BASIC)
+  isRequired        Boolean             @default(false)
+  validityDuration  Int?                // Durée en mois (null = permanent)
+  price             Float?              // Prix de la certification
+  requirements      Json                // Prérequis pour obtenir la certification
+  maxAttempts       Int                 @default(3)
+  passScore         Float               @default(80) // Score minimum pour réussir (%)
+  isActive          Boolean             @default(true)
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  // Relations
+  providerCertifications ProviderCertification[]
+  delivererCertifications DelivererCertification[]
+  examSessions      ExamSession[]
+  modules           CertificationModule[]
+
+  @@index([category])
+  @@index([isRequired])
+  @@index([isActive])
+}
+
+model CertificationModule {
+  id                String              @id @default(cuid())
+  certificationId   String
+  title             String
+  description       String
+  content           String              // Contenu du module (markdown/HTML)
+  orderIndex        Int                 // Ordre d'affichage
+  estimatedDuration Int                 // Durée estimée en minutes
+  isRequired        Boolean             @default(true)
+  resources         Json[]              // Ressources additionnelles (liens, documents)
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  // Relations
+  certification     Certification       @relation(fields: [certificationId], references: [id], onDelete: Cascade)
+  progress          ModuleProgress[]
+
+  @@index([certificationId])
+  @@index([orderIndex])
+}
+
+model ProviderCertification {
+  id                String              @id @default(cuid())
+  providerId        String
+  certificationId   String
+  status            CertificationStatus @default(NOT_STARTED)
+  enrolledAt        DateTime            @default(now())
+  startedAt         DateTime?
+  completedAt       DateTime?
+  expiresAt         DateTime?
+  score             Float?
+  attempts          Int                 @default(0)
+  certificateUrl    String?             // URL du certificat PDF
+  isValid           Boolean             @default(false)
+  renewalNotified   Boolean             @default(false)
+  notes             String?
+
+  // Relations
+  provider          Provider            @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  certification     Certification       @relation(fields: [certificationId], references: [id])
+  moduleProgress    ModuleProgress[]
+  examSessions      ExamSession[]
+
+  @@unique([providerId, certificationId])
+  @@index([providerId])
+  @@index([status])
+  @@index([expiresAt])
+}
+
+model DelivererCertification {
+  id                String              @id @default(cuid())
+  delivererId       String
+  certificationId   String
+  status            CertificationStatus @default(NOT_STARTED)
+  enrolledAt        DateTime            @default(now())
+  startedAt         DateTime?
+  completedAt       DateTime?
+  expiresAt         DateTime?
+  score             Float?
+  attempts          Int                 @default(0)
+  certificateUrl    String?
+  isValid           Boolean             @default(false)
+  renewalNotified   Boolean             @default(false)
+  notes             String?
+
+  // Relations
+  deliverer         Deliverer           @relation(fields: [delivererId], references: [id], onDelete: Cascade)
+  certification     Certification       @relation(fields: [certificationId], references: [id])
+  moduleProgress    ModuleProgress[]
+  examSessions      ExamSession[]
+
+  @@unique([delivererId, certificationId])
+  @@index([delivererId])
+  @@index([status])
+  @@index([expiresAt])
+}
+
+model ModuleProgress {
+  id                      String              @id @default(cuid())
+  moduleId                String
+  providerCertificationId String?
+  delivererCertificationId String?
+  status                  ModuleStatus        @default(NOT_STARTED)
+  startedAt               DateTime?
+  completedAt             DateTime?
+  timeSpent               Int                 @default(0) // en minutes
+  score                   Float?
+  attempts                Int                 @default(0)
+
+  // Relations
+  module                  CertificationModule @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  providerCertification   ProviderCertification? @relation(fields: [providerCertificationId], references: [id], onDelete: Cascade)
+  delivererCertification  DelivererCertification? @relation(fields: [delivererCertificationId], references: [id], onDelete: Cascade)
+
+  @@index([moduleId])
+  @@index([providerCertificationId])
+  @@index([delivererCertificationId])
+}
+
+model ExamSession {
+  id                      String              @id @default(cuid())
+  certificationId         String
+  providerCertificationId String?
+  delivererCertificationId String?
+  sessionNumber           Int                 // Numéro de la tentative
+  startedAt               DateTime            @default(now())
+  completedAt             DateTime?
+  timeLimit               Int                 // Limite de temps en minutes
+  score                   Float?
+  isPassed                Boolean             @default(false)
+  answers                 Json                // Réponses données
+  questions               Json                // Questions posées
+  metadata                Json?               // Métadonnées additionnelles
+
+  // Relations
+  certification           Certification       @relation(fields: [certificationId], references: [id])
+  providerCertification   ProviderCertification? @relation(fields: [providerCertificationId], references: [id], onDelete: Cascade)
+  delivererCertification  DelivererCertification? @relation(fields: [delivererCertificationId], references: [id], onDelete: Cascade)
+
+  @@index([certificationId])
+  @@index([providerCertificationId])
+  @@index([delivererCertificationId])
+  @@index([startedAt])
+}
+
+model CertificationTemplate {
+  id                String              @id @default(cuid())
+  name              String
+  template          String              // Template HTML/CSS du certificat
+  variables         Json                // Variables disponibles dans le template
+  isDefault         Boolean             @default(false)
+  isActive          Boolean             @default(true)
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  @@index([isDefault])
+  @@index([isActive])
+}
+
+model QualificationRequirement {
+  id                String              @id @default(cuid())
+  serviceType       String              // Type de service nécessitant cette qualification
+  certificationId   String
+  isRequired        Boolean             @default(true)
+  minimumLevel      CertificationLevel  @default(BASIC)
+  description       String?
+  createdAt         DateTime            @default(now())
+
+  // Relations
+  certification     Certification       @relation(fields: [certificationId], references: [id])
+
+  @@unique([serviceType, certificationId])
+  @@index([serviceType])
+}
+
+model CertificationAudit {
+  id                String              @id @default(cuid())
+  entityType        String              // 'provider' ou 'deliverer'
+  entityId          String
+  certificationId   String
+  action            String              // 'ENROLLED', 'STARTED', 'COMPLETED', 'FAILED', 'RENEWED', 'EXPIRED'
+  oldStatus         CertificationStatus?
+  newStatus         CertificationStatus
+  performedBy       String?             // User ID qui a effectué l'action (si applicable)
+  reason            String?
+  metadata          Json?
+  timestamp         DateTime            @default(now())
+
+  @@index([entityType, entityId])
+  @@index([certificationId])
+  @@index([timestamp])
+}
+
+enum CertificationCategory {
+  SAFETY                // Sécurité
+  QUALITY               // Qualité
+  TECHNICAL             // Technique
+  ENVIRONMENTAL         // Environnemental
+  COMPLIANCE            // Conformité
+  CUSTOMER_SERVICE      // Service client
+  SPECIALIZED           // Spécialisé
+}
+
+enum CertificationLevel {
+  BASIC                 // Niveau de base
+  INTERMEDIATE          // Niveau intermédiaire
+  ADVANCED              // Niveau avancé
+  EXPERT                // Niveau expert
+}
+
+enum CertificationStatus {
+  NOT_STARTED           // Pas commencé
+  ENROLLED              // Inscrit
+  IN_PROGRESS           // En cours
+  COMPLETED             // Terminé avec succès
+  FAILED                // Échoué
+  EXPIRED               // Expiré
+  SUSPENDED             // Suspendu
+  RENEWED               // Renouvelé
+}
+
+enum ModuleStatus {
+  NOT_STARTED           // Module pas commencé
+  IN_PROGRESS           // Module en cours
+  COMPLETED             // Module terminé
+  FAILED                // Module échoué
+}

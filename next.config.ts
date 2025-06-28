@@ -1,53 +1,56 @@
-// next.config.ts
-import { NextConfig } from 'next';
+import type { NextConfig } from "next";
 import createNextIntlPlugin from 'next-intl/plugin';
-import path from 'path';
+
+// Configuration next-intl
+const withNextIntl = createNextIntlPlugin('./src/i18n.ts');
 
 const nextConfig: NextConfig = {
-  webpack: (config, { isServer }) => {
-    // Configurer les alias pour s'assurer que @/ pointe vers src/
-    config.resolve.alias = {
-      ...config.resolve.alias,
-      '@': path.resolve(__dirname, './src'),
-    };
-    
-    // Gérer les modules Node.js côté client (uniquement pour le client)
-    if (!isServer) {
-      config.resolve.fallback = {
-        ...config.resolve.fallback,
-        fs: false,
-        net: false,
-        tls: false,
-        http: false,
-        https: false,
-        zlib: false,
-        path: false,
-        stream: false,
-        crypto: false,
-        util: false,
-        assert: false,
-        url: false,
-        os: false,
-        constants: false,
-        buffer: false,
-        child_process: false,
-        dns: false,
-        dgram: false,
-        worker_threads: false,
-        events: require.resolve('events/'),
-      };
-      
-      // Ajouter socket.io-client au client uniquement
-      config.externals = [
-        ...(config.externals || []),
-        // Exclure socket.io du bundle client (on n'utilise que socket.io-client)
-        {'socket.io': 'commonjs socket.io'},
-      ];
-    }
-    
-    return config;
+  // Configuration pour EcoDeli
+  serverExternalPackages: ['@prisma/client'],
+  
+  // Images optimization
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: '**',
+      },
+    ],
+  },
+  
+  // Headers de sécurité
+  async headers() {
+    return [
+      {
+        source: '/(.*)',
+        headers: [
+          {
+            key: 'X-Frame-Options',
+            value: 'DENY',
+          },
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff',
+          },
+          {
+            key: 'X-XSS-Protection',
+            value: '1; mode=block',
+          },
+        ],
+      },
+    ];
+  },
+  
+  // Redirections
+  async redirects() {
+    return [
+      {
+        source: '/dashboard',
+        destination: '/fr/client',
+        permanent: false,
+      },
+    ];
   },
 };
 
-const withNextIntl = createNextIntlPlugin();
 export default withNextIntl(nextConfig);

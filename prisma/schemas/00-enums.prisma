@@ -1,0 +1,199 @@
+// Enums et types partagés EcoDeli
+
+enum UserRole {
+  CLIENT
+  DELIVERER
+  MERCHANT
+  PROVIDER
+  ADMIN
+}
+
+enum ValidationStatus {
+  PENDING
+  PENDING_DOCUMENTS
+  PENDING_VALIDATION
+  APPROVED
+  VALIDATED
+  REJECTED
+  SUSPENDED
+}
+
+enum DocumentType {
+  IDENTITY
+  DRIVING_LICENSE
+  INSURANCE
+  CERTIFICATION
+  CONTRACT
+  OTHER
+}
+
+enum DocumentStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum ServiceType {
+  PERSON_TRANSPORT
+  AIRPORT_TRANSFER
+  SHOPPING
+  INTERNATIONAL_PURCHASE
+  PET_CARE
+  HOME_SERVICE
+  CART_DROP
+  OTHER
+}
+
+enum AnnouncementType {
+  PACKAGE_DELIVERY
+  PERSON_TRANSPORT
+  AIRPORT_TRANSFER
+  SHOPPING
+  INTERNATIONAL_PURCHASE
+  PET_SITTING
+  HOME_SERVICE
+  CART_DROP
+}
+
+enum AnnouncementStatus {
+  DRAFT
+  ACTIVE
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+  EXPIRED
+}
+
+enum DeliveryStatus {
+  PENDING
+  ACCEPTED
+  IN_PROGRESS
+  DELIVERED
+  CANCELLED
+  FAILED
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+  RESCHEDULED
+}
+
+enum PaymentStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  REFUNDED
+  PARTIALLY_REFUNDED
+}
+
+enum SubscriptionPlan {
+  FREE
+  STARTER
+  PREMIUM
+}
+
+enum SubscriptionType {
+  FREE
+  STARTER
+  PREMIUM
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  CANCELLED
+  EXPIRED
+  SUSPENDED
+}
+
+enum NotificationType {
+  SYSTEM
+  DELIVERY
+  BOOKING
+  PAYMENT
+  ANNOUNCEMENT
+  VALIDATION
+}
+
+enum NotificationStatus {
+  UNREAD
+  READ
+  ARCHIVED
+}
+
+enum ServiceCategory {
+  TRANSPORT
+  HOME_CLEANING
+  GARDENING
+  HANDYMAN
+  TUTORING
+  HEALTHCARE
+  BEAUTY
+  PET_CARE
+  OTHER
+}
+
+enum WalletOperationType {
+  CREDIT
+  DEBIT
+  WITHDRAWAL
+  REFUND
+  FEE
+}
+
+enum OperationStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+enum BoxSize {
+  SMALL
+  MEDIUM
+  LARGE
+  EXTRA_LARGE
+}
+
+enum BoxStatus {
+  AVAILABLE
+  OCCUPIED
+  MAINTENANCE
+  RESERVED
+}
+
+enum ContractType {
+  STANDARD
+  PREMIUM
+  ENTERPRISE
+  CUSTOM
+}
+
+enum ContractStatus {
+  DRAFT
+  PENDING
+  ACTIVE
+  SUSPENDED
+  TERMINATED
+}
+
+enum GenerationStatus {
+  SUCCESS
+  FAILED
+  IN_PROGRESS
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  PREPARING
+  READY_FOR_PICKUP
+  IN_TRANSIT
+  DELIVERED
+  CANCELLED
+  REFUNDED
+} 

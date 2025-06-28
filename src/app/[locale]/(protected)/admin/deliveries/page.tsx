@@ -1,183 +1,123 @@
-import { Metadata } from 'next';
-import { getTranslations } from 'next-intl/server';
-import { DeliveryDashboard } from '@/components/admin/deliveries/delivery-dashboard';
-import { DeliveryIssues } from '@/components/admin/deliveries/delivery-issues';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { AlertTriangle, Download, FileBarChart, MapPin, RefreshCw, Truck } from 'lucide-react';
-import { api } from '@/trpc/server';
+"use client"
 
-export async function generateMetadata(): Promise<Metadata> {
-  const t = await getTranslations('admin.deliveries');
+import { useEffect, useState } from "react"
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell
+} from "@/components/ui/table"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Loader2 } from "lucide-react"
 
-  return {
-    title: t('metadata.title'),
-    description: t('metadata.description'),
-  };
+const STATUS_LABELS: Record<string, string> = {
+  PENDING: "En attente",
+  ACCEPTED: "Acceptée",
+  IN_TRANSIT: "En transit",
+  DELIVERED: "Livrée",
+  CANCELLED: "Annulée"
 }
+const ALL_STATUS_VALUE = "ALL"
 
-export default async function AdminDeliveriesPage() {
-  const t = await getTranslations('admin.deliveries');
+export default function AdminDeliveriesPage() {
+  const [deliveries, setDeliveries] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  const [status, setStatus] = useState<string>(ALL_STATUS_VALUE)
+  const [page, setPage] = useState(1)
+  const [limit] = useState(20)
+  const [total, setTotal] = useState(0)
 
-  // Récupérer les statistiques des livraisons depuis l'API
-  const deliveryStats = await api.adminDashboard.getDeliveryStats.query();
+  useEffect(() => {
+    setLoading(true)
+    const params = new URLSearchParams()
+    if (status && status !== ALL_STATUS_VALUE) params.set("status", status)
+    params.set("page", String(page))
+    params.set("limit", String(limit))
+    fetch(`/api/admin/deliveries?${params.toString()}`)
+      .then(res => res.json())
+      .then(data => {
+        setDeliveries(data.deliveries || [])
+        setTotal(data.total || 0)
+      })
+      .finally(() => setLoading(false))
+  }, [status, page, limit])
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Suivi des Livraisons</h1>
-          <p className="text-muted-foreground">
-            Suivez en temps réel toutes les livraisons sur la plateforme
-          </p>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm">
-            <RefreshCw className="mr-2 h-4 w-4" />
-            Actualiser
-          </Button>
-          <Button variant="outline" size="sm">
-            <Download className="mr-2 h-4 w-4" />
-            Exporter
-          </Button>
-          <Button variant="outline" size="sm">
-            <FileBarChart className="mr-2 h-4 w-4" />
-            Rapports
-          </Button>
-        </div>
-      </div>
-
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Livraisons En Cours</CardTitle>
-            <Truck className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{deliveryStats.inProgressDeliveries}</div>
-            <p className="text-xs text-muted-foreground">
-              {deliveryStats.deliveriesToday} nouvelles livraisons aujourd'hui
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Taux de Livraison à Temps</CardTitle>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="h-4 w-4 text-muted-foreground"
-            >
-              <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-            </svg>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {Math.round(deliveryStats.onTimeDeliveryRate * 100)}%
+    <div className="max-w-7xl mx-auto py-8">
+      <Card>
+        <CardHeader>
+          <CardTitle>Suivi des livraisons</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center gap-4 mb-4">
+            <Select value={status} onValueChange={setStatus}>
+              <SelectTrigger className="w-48">
+                <SelectValue placeholder="Filtrer par statut" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={ALL_STATUS_VALUE}>Tous les statuts</SelectItem>
+                {Object.entries(STATUS_LABELS).map(([key, label]) => (
+                  <SelectItem key={key} value={key}>{label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <div className="ml-auto text-sm text-muted-foreground">
+              {total} livraisons
             </div>
-            <p className="text-xs text-muted-foreground">
-              {deliveryStats.completedToday} livraisons terminées aujourd'hui
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Temps Moyen de Livraison</CardTitle>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="h-4 w-4 text-muted-foreground"
-            >
-              <circle cx="12" cy="12" r="10" />
-              <polyline points="12 6 12 12 16 14" />
-            </svg>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{deliveryStats.averageDeliveryTime}m</div>
-            <p className="text-xs text-muted-foreground">
-              {deliveryStats.averageDeliveryTime < deliveryStats.previousAverageDeliveryTime
-                ? `-${Math.round(deliveryStats.previousAverageDeliveryTime - deliveryStats.averageDeliveryTime)}m`
-                : `+${Math.round(deliveryStats.averageDeliveryTime - deliveryStats.previousAverageDeliveryTime)}m`}
-              par rapport au mois dernier
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Incidents Signalés</CardTitle>
-            <AlertTriangle className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{deliveryStats.pendingIssues}</div>
-            <p className="text-xs text-muted-foreground">
-              {deliveryStats.todayIssues} nouveaux incidents aujourd'hui
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-
-      <Tabs defaultValue="map" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="map" className="flex items-center">
-            <MapPin className="mr-2 h-4 w-4" />
-            Carte en temps réel
-          </TabsTrigger>
-          <TabsTrigger value="list" className="flex items-center">
-            <Truck className="mr-2 h-4 w-4" />
-            Liste des livraisons
-          </TabsTrigger>
-          <TabsTrigger value="issues" className="flex items-center">
-            <AlertTriangle className="mr-2 h-4 w-4" />
-            Incidents
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="map" className="m-0">
-          <Card>
-            <CardHeader>
-              <CardTitle>{t('liveTracking')}</CardTitle>
-              <CardDescription>{t('liveTrackingDescription')}</CardDescription>
-            </CardHeader>
-            <CardContent className="p-0">
-              <DeliveryDashboard />
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="list" className="m-0">
-          <Card>
-            <CardHeader>
-              <CardTitle>Liste des Livraisons</CardTitle>
-              <CardDescription>Consultez et gérez toutes les livraisons actives</CardDescription>
-            </CardHeader>
-            <CardContent className="p-0">
-              {/* La liste des livraisons sera ajoutée ultérieurement */}
-              <div className="p-6 text-center text-muted-foreground">
-                La liste des livraisons apparaîtra ici
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="issues" className="m-0">
-          <DeliveryIssues />
-        </TabsContent>
-      </Tabs>
+          </div>
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>ID</TableHead>
+                  <TableHead>Statut</TableHead>
+                  <TableHead>Annonce</TableHead>
+                  <TableHead>Client</TableHead>
+                  <TableHead>Livreur</TableHead>
+                  <TableHead>Dernier suivi</TableHead>
+                  <TableHead>Localisation</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {loading ? (
+                  <TableRow>
+                    <TableCell colSpan={7} className="text-center py-8">
+                      <Loader2 className="animate-spin inline mr-2" /> Chargement...
+                    </TableCell>
+                  </TableRow>
+                ) : deliveries.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={7} className="text-center py-8">Aucune livraison trouvée</TableCell>
+                  </TableRow>
+                ) : deliveries.map((d) => (
+                  <TableRow key={d.id}>
+                    <TableCell className="font-mono text-xs">{d.id.slice(0, 8)}</TableCell>
+                    <TableCell><Badge variant="outline">{STATUS_LABELS[d.status] || d.status}</Badge></TableCell>
+                    <TableCell>{d.announcement?.title}</TableCell>
+                    <TableCell>{d.client?.profile ? `${d.client.profile.firstName || ''} ${d.client.profile.lastName || ''}` : d.client?.id}</TableCell>
+                    <TableCell>{d.deliverer?.profile ? `${d.deliverer.profile.firstName || ''} ${d.deliverer.profile.lastName || ''}` : d.deliverer?.id}</TableCell>
+                    <TableCell>{d.tracking?.[0]?.status ? (
+                      <span>{STATUS_LABELS[d.tracking[0].status] || d.tracking[0].status}</span>
+                    ) : <span className="text-muted-foreground">-</span>}</TableCell>
+                    <TableCell>{d.currentLocation?.address || <span className="text-muted-foreground">-</span>}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+          <div className="flex justify-between items-center mt-4">
+            <Button variant="ghost" disabled={page === 1} onClick={() => setPage(p => Math.max(1, p - 1))}>Précédent</Button>
+            <span>Page {page} / {Math.max(1, Math.ceil(total / limit))}</span>
+            <Button variant="ghost" disabled={page * limit >= total} onClick={() => setPage(p => p + 1)}>Suivant</Button>
+          </div>
+        </CardContent>
+      </Card>
     </div>
-  );
-}
+  )
+} 

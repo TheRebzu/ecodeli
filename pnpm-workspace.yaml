@@ -1,12 +1,13 @@
 onlyBuiltDependencies:
   - '@prisma/client'
   - '@prisma/engines'
-  - '@sentry/cli'
   - '@tailwindcss/oxide'
   - bcrypt
-  - canvas
+  - better-sqlite3
+  - core-js
   - esbuild
-  - msw
+  - node-base64
   - prisma
+  - protobufjs
   - sharp
   - unrs-resolver

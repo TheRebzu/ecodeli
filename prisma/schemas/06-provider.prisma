@@ -1,0 +1,182 @@
+// Modèles prestataire
+
+model Provider {
+  id                String              @id @default(cuid())
+  userId            String              @unique
+  validationStatus  ValidationStatus    @default(PENDING)
+  businessName      String?
+  siret             String?             @unique
+  specialties       String[]            // ["TRANSPORT", "HOME_CLEANING", etc.]
+  hourlyRate        Float?
+  description       String?
+  averageRating     Float?              @default(0)
+  totalBookings     Int                 @default(0)
+  isActive          Boolean             @default(true)
+  monthlyInvoiceDay Int                 @default(30)
+  activatedAt       DateTime?
+  lastActiveAt      DateTime?
+  zone              Json?               // Zone de service {coordinates: [], radius: km}
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  // Relations
+  user              User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  services          Service[]
+  bookings          Booking[]
+  reviews           Review[]            @relation("ProviderReviews")
+  availability      ProviderAvailability[]
+  rates             ProviderRate[]
+  certifications    Certification[]
+  interventions     Intervention[]
+  timeSlots         ProviderTimeSlot[]
+  monthlyInvoices   ProviderMonthlyInvoice[]
+  availabilityBlocks ProviderAvailabilityBlock[]
+
+  @@index([userId])
+}
+
+model Service {
+  id                String              @id @default(cuid())
+  providerId        String
+  name              String
+  description       String
+  type              ServiceType
+  basePrice         Float
+  priceUnit         String              @default("HOUR") // HOUR, FLAT, KM
+  duration          Int?                // en minutes
+  isActive          Boolean             @default(true)
+  minAdvanceBooking Int                 @default(24)    // heures
+  maxAdvanceBooking Int                 @default(720)   // heures (30 jours)
+  cancellationPolicy String?
+  requirements      String[]            // ["CAR_LICENSE", "INSURANCE"]
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  // Relations
+  provider          Provider            @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  bookings          Booking[]
+
+  @@index([providerId])
+  @@index([type])
+  @@index([isActive])
+}
+
+
+
+model ProviderAvailability {
+  id                String              @id @default(cuid())
+  providerId        String
+  dayOfWeek         Int                 // 0 = dimanche, 1 = lundi, etc.
+  startTime         String              // "09:00"
+  endTime           String              // "18:00"
+  isActive          Boolean             @default(true)
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  // Relations
+  provider          Provider            @relation(fields: [providerId], references: [id], onDelete: Cascade)
+
+  @@index([providerId])
+  @@index([dayOfWeek])
+}
+
+model ProviderRate {
+  id                String              @id @default(cuid())
+  providerId        String
+  serviceType       ServiceType
+  baseRate          Float
+  unitType          String              @default("HOUR") // HOUR, FLAT, KM
+  minimumCharge     Float?
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  // Relations
+  provider          Provider            @relation(fields: [providerId], references: [id], onDelete: Cascade)
+
+  @@index([providerId])
+  @@index([serviceType])
+}
+
+model ProviderTimeSlot {
+  id                String              @id @default(cuid())
+  providerId        String
+  date              DateTime            // Date du créneau
+  startTime         String              // "09:00"
+  endTime           String              // "10:00"
+  isAvailable       Boolean             @default(true)
+  isRecurring       Boolean             @default(false)
+  bookingId         String?             @unique
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  // Relations
+  provider          Provider            @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  booking           Booking?            @relation(fields: [bookingId], references: [id])
+
+  @@index([providerId])
+  @@index([date])
+  @@unique([providerId, date, startTime])
+}
+
+model ProviderAvailabilityBlock {
+  id                String              @id @default(cuid())
+  providerId        String
+  startDate         DateTime
+  endDate           DateTime
+  reason            String?
+  isActive          Boolean             @default(true)
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  // Relations
+  provider          Provider            @relation(fields: [providerId], references: [id], onDelete: Cascade)
+
+  @@index([providerId])
+  @@index([startDate, endDate])
+}
+
+model ProviderMonthlyInvoice {
+  id                String              @id @default(cuid())
+  providerId        String
+  month             Int                 // 1-12
+  year              Int
+  totalHours        Float               @default(0)
+  totalAmount       Float               @default(0)
+  commissionRate    Float               @default(0.15) // 15% commission EcoDeli
+  commissionAmount  Float               @default(0)
+  netAmount         Float               @default(0)
+  status            String              @default("PENDING") // PENDING, SENT, PAID
+  invoiceNumber     String              @unique
+  invoiceUrl        String?             // URL du PDF généré
+  sentAt            DateTime?
+  paidAt            DateTime?
+  dueDate           DateTime
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  // Relations
+  provider          Provider            @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  interventions     ProviderInvoiceIntervention[]
+
+  @@index([providerId])
+  @@index([month, year])
+  @@unique([providerId, month, year])
+}
+
+model ProviderInvoiceIntervention {
+  id                String              @id @default(cuid())
+  invoiceId         String
+  interventionId    String
+  hours             Float
+  rate              Float
+  amount            Float
+  createdAt         DateTime            @default(now())
+
+  // Relations
+  invoice           ProviderMonthlyInvoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  intervention      Intervention        @relation(fields: [interventionId], references: [id])
+
+  @@index([invoiceId])
+  @@index([interventionId])
+  @@unique([invoiceId, interventionId])
+}

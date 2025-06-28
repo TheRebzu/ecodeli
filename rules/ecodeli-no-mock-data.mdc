@@ -1,0 +1,182 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# EcoDeli - Interdiction Stricte des Données Mock
+
+## 🚫 INTERDICTIONS ABSOLUES
+
+### Données Mock/Simulées/Hardcodées INTERDITES
+- **AUCUNE** donnée hardcodée dans le code
+- **AUCUNE** simulation de données
+- **AUCUN** mock de services
+- **AUCUNE** réponse statique
+- **AUCUN** placeholder de données
+
+### Examples d'Interdictions
+```typescript
+// ❌ INTERDIT - Données hardcodées
+const users = [
+  { id: 1, name: "John Doe", email: "john@example.com" },
+  { id: 2, name: "Jane Smith", email: "jane@example.com" }
+]
+
+// ❌ INTERDIT - Mock de service
+const mockStripePayment = () => ({ success: true, transactionId: "fake_123" })
+
+// ❌ INTERDIT - Données simulées
+const generateFakeDeliveries = () => Array.from({length: 10}, () => ({...}))
+
+// ❌ INTERDIT - Réponses statiques
+return NextResponse.json({ message: "Simulated success" })
+```
+
+## ✅ IMPLEMENTATIONS OBLIGATOIRES
+
+### Base de Données Réelle
+- Toutes les données DOIVENT provenir de [prisma/schema.prisma](mdc:prisma/schema.prisma)
+- Utilisation obligatoire de PostgreSQL
+- Requêtes Prisma réelles uniquement
+- Pas de données en mémoire
+
+### API Routes Fonctionnelles
+- Toutes les routes dans [src/app/api/](mdc:src/app/api) DOIVENT être fonctionnelles
+- Connexion réelle à la base de données
+- Validation Zod obligatoire
+- Gestion d'erreurs complète
+
+### Intégrations Externes Réelles
+- **Stripe** : Paiements réels avec webhooks fonctionnels
+- **OneSignal** : Notifications push réelles
+- **jsPDF** : Génération PDF réelle
+- **Upload** : Stockage de fichiers réel
+
+## 📋 FONCTIONNALITÉS OBLIGATOIRES RÉELLES
+
+### Espace Livreurs
+- [ ] **Inscription réelle** avec validation documents
+- [ ] **Upload documents** avec stockage sécurisé
+- [ ] **Validation admin** avec workflow complet
+- [ ] **Matching trajets** avec algorithme fonctionnel
+- [ ] **Code validation 6 chiffres** généré et vérifié
+- [ ] **Portefeuille** avec transactions réelles
+- [ ] **Notifications** OneSignal fonctionnelles
+
+### Espace Clients
+- [ ] **Tutoriel overlay** bloquant première connexion
+- [ ] **Annonces** CRUD complet avec base de données
+- [ ] **Abonnements Stripe** fonctionnels (Free/Starter/Premium)
+- [ ] **Réservations** avec prestataires réels
+- [ ] **Box de stockage** avec disponibilité réelle
+- [ ] **Suivi livraisons** temps réel
+
+### Espace Commerçants
+- [ ] **Contrats** avec génération PDF automatique
+- [ ] **Lâcher de chariot** avec configuration zones
+- [ ] **Facturation** avec calculs réels
+- [ ] **Import bulk** CSV/Excel fonctionnel
+- [ ] **Paiements** Stripe intégrés
+
+### Espace Prestataires
+- [ ] **Validation certifications** avec vérification
+- [ ] **Calendrier disponibilités** avec réservations
+- [ ] **Facturation automatique** le 30 de chaque mois
+- [ ] **Génération PDF** factures avec archives
+- [ ] **Virement bancaire simulé** mais traçable
+- [ ] **Évaluations** clients avec notes réelles
+
+### Back Office Admin
+- [ ] **Validation documents** avec workflow complet
+- [ ] **Monitoring livraisons** en temps réel
+- [ ] **Gestion utilisateurs** CRUD complet
+- [ ] **Configuration 6 entrepôts** avec données réelles
+- [ ] **Analytics** avec données de la base
+
+## 🔧 SERVICES OBLIGATOIRES FONCTIONNELS
+
+### Authentification
+- Better-Auth avec [src/lib/auth.ts](mdc:src/lib/auth.ts)
+- Sessions réelles avec cookies sécurisés
+- Permissions par rôle vérifiées
+
+### Paiements Stripe
+- Webhooks configurés dans [src/app/api/payments/webhook/route.ts](mdc:src/app/api/payments/webhook/route.ts)
+- Événements : `payment_succeeded`, `payment_failed`, `subscription_updated`
+- Gestion des erreurs et des remboursements
+
+### Notifications OneSignal
+- Service dans [src/features/notifications/services/](mdc:src/features/notifications/services)
+- Templates dans [src/features/notifications/templates/](mdc:src/features/notifications/templates)
+- Envoi réel aux utilisateurs ciblés
+
+### Génération PDF
+- Service dans [src/features/invoices/services/](mdc:src/features/invoices/services)
+- Templates dans [src/features/invoices/templates/](mdc:src/features/invoices/templates)
+- Archive dans la base de données
+
+### Upload Documents
+- Route [src/app/api/upload/route.ts](mdc:src/app/api/upload/route.ts)
+- Stockage sécurisé (local ou cloud)
+- Validation MIME types
+
+## 🚨 VALIDATION ET TESTS
+
+### Tests API Obligatoires
+```bash
+# Tous les endpoints DOIVENT répondre avec de vraies données
+curl -X GET http://localhost:3000/api/users/profile
+curl -X POST http://localhost:3000/api/announcements
+curl -X POST http://localhost:3000/api/deliveries/[id]/validate
+```
+
+### Données de Test Réelles
+- Utiliser [prisma/seed.ts](mdc:prisma/seed.ts) pour données initiales
+- Comptes de test dans la base de données
+- Pas de données hardcodées dans les composants
+
+### Workflow Complet Obligatoire
+1. **Inscription livreur** → Upload documents → Validation admin → Activation
+2. **Création annonce** → Matching → Notification → Acceptation → Livraison → Paiement
+3. **Facturation prestataire** → Cron job 30/mois → PDF → Archive → Virement
+
+## 🔍 CONTRÔLES QUALITÉ
+
+### Vérifications Automatiques
+- Aucun `// TODO: Mock data`
+- Aucun `const mockData = []`
+- Aucun `return { fake: true }`
+- Toutes les API routes connectées à Prisma
+
+### Standards de Code
+- Toujours utiliser `await prisma.[model].[operation]()`
+- Toujours valider avec schémas Zod
+- Toujours gérer les erreurs
+- Toujours logger les opérations
+
+## 📈 MÉTRIQUES DE SUCCÈS
+
+### Critères d'Acceptation
+- [ ] **100%** des fonctionnalités opérationnelles
+- [ ] **0** donnée hardcodée
+- [ ] **0** mock de service
+- [ ] **Toutes** les intégrations fonctionnelles
+- [ ] **Workflow complet** de bout en bout
+
+### Tests End-to-End Obligatoires
+- Inscription complète d'un livreur
+- Création et livraison d'une annonce
+- Facturation automatique prestataire
+- Paiement Stripe avec webhook
+- Notification OneSignal reçue
+
+## ⚠️ SANCTIONS
+
+### Non-Respect des Règles
+- **Rejet immédiat** du code avec données mock
+- **Refactoring obligatoire** avant validation
+- **Documentation** de l'erreur dans le rapport
+- **Tests de régression** sur toute la chaîne
+
+Cette règle est **NON-NÉGOCIABLE** pour le projet EcoDeli Mission 1.
+

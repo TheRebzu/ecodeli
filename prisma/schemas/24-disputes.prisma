@@ -1,0 +1,247 @@
+// Modèles pour la gestion des litiges
+
+model Dispute {
+  id                     String              @id @default(cuid())
+  announcementId         String
+  reporterId             String
+  reportedUserId         String
+  category               DisputeCategory
+  reason                 String
+  description            String
+  evidenceFiles          String[]            // URLs des fichiers de preuve
+  priority               DisputePriority
+  status                 DisputeStatus       @default(OPEN)
+  ticketNumber           String              @unique
+  
+  // Résolution
+  resolution             DisputeResolution?
+  adminNotes             String?
+  compensationAmount     Float?
+  penaltyAmount          Float?
+  actionTaken            String[]            // Actions prises
+  
+  // Timestamps et suivi
+  createdAt              DateTime            @default(now())
+  updatedAt              DateTime            @updatedAt
+  estimatedResolutionDate DateTime
+  resolvedAt             DateTime?
+  escalatedAt            DateTime?
+  
+  // Assignation
+  lastUpdatedBy          String?
+  resolvedBy             String?
+  escalatedBy            String?
+  escalationReason       String?
+
+  // Relations
+  announcement           Announcement        @relation(fields: [announcementId], references: [id], onDelete: Cascade)
+  reporter               User                @relation("DisputeReporter", fields: [reporterId], references: [id])
+  reportedUser           User                @relation("DisputeReported", fields: [reportedUserId], references: [id])
+  
+  @@index([announcementId])
+  @@index([status])
+  @@index([priority])
+  @@index([category])
+  @@index([createdAt])
+}
+
+// Enchères inversées
+model ReverseAuction {
+  id                     String              @id @default(cuid())
+  announcementId         String              @unique
+  initialPrice           Float
+  minimumPrice           Float
+  currentBestPrice       Float
+  auctionDuration        Float               // en heures
+  autoAcceptThreshold    Float?
+  maxBidders             Int                 @default(10)
+  totalBids              Int                 @default(0)
+  
+  status                 AuctionStatus       @default(ACTIVE)
+  winningBidId           String?             @unique
+  
+  createdAt              DateTime            @default(now())
+  expiresAt              DateTime
+  completedAt            DateTime?
+  cancelledAt            DateTime?
+  cancellationReason     String?
+
+  // Relations
+  announcement           Announcement        @relation(fields: [announcementId], references: [id], onDelete: Cascade)
+  bids                   AuctionBid[]
+  winningBid             AuctionBid?         @relation("WinningBid", fields: [winningBidId], references: [id])
+  
+  @@index([status])
+  @@index([expiresAt])
+}
+
+model AuctionBid {
+  id                     String              @id @default(cuid())
+  auctionId              String
+  bidderId               String
+  proposedPrice          Float
+  estimatedDeliveryTime  Int                 // en minutes
+  additionalNotes        String?
+  validUntil             DateTime
+  
+  // Scoring
+  delivererRating        Float               @default(0)
+  compositeScore         Float               @default(0)
+  
+  status                 BidStatus           @default(PENDING)
+  createdAt              DateTime            @default(now())
+  acceptedAt             DateTime?
+
+  // Relations
+  auction                ReverseAuction      @relation(fields: [auctionId], references: [id], onDelete: Cascade)
+  bidder                 User                @relation(fields: [bidderId], references: [id])
+  winningAuction         ReverseAuction?     @relation("WinningBid")
+  
+  @@index([auctionId])
+  @@index([compositeScore])
+  @@index([status])
+}
+
+// Groupage de colis
+model DeliveryGroup {
+  id                     String              @id @default(cuid())
+  delivererId            String
+  status                 GroupStatus         @default(PROPOSED)
+  
+  // Métriques
+  totalAnnouncements     Int
+  originalTotalPrice     Float
+  groupedPrice           Float
+  savingsAmount          Float
+  delivererBonus         Float
+  estimatedDuration      Int                 // en minutes
+  
+  // Timestamps
+  createdAt              DateTime            @default(now())
+  validUntil             DateTime
+  activatedAt            DateTime?
+  completedAt            DateTime?
+  cancelledAt            DateTime?
+  cancellationReason     String?
+
+  // Relations
+  deliverer              User                @relation(fields: [delivererId], references: [id])
+  announcements          AnnouncementGroup[]
+  proposals              GroupingProposal[]
+  
+  @@index([delivererId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model AnnouncementGroup {
+  id                     String              @id @default(cuid())
+  announcementId         String
+  deliveryGroupId        String
+  originalPrice          Float
+  groupedPrice           Float
+  savings                Float
+  position               Int                 @default(1) // Ordre dans la tournée
+
+  // Relations
+  announcement           Announcement        @relation(fields: [announcementId], references: [id], onDelete: Cascade)
+  deliveryGroup          DeliveryGroup       @relation(fields: [deliveryGroupId], references: [id], onDelete: Cascade)
+  
+  @@unique([announcementId, deliveryGroupId])
+  @@index([deliveryGroupId])
+}
+
+model GroupingProposal {
+  id                     String              @id @default(cuid())
+  deliveryGroupId        String
+  clientId               String
+  announcementId         String
+  
+  originalPrice          Float
+  proposedPrice          Float
+  savings                Float
+  
+  status                 ProposalStatus      @default(PENDING)
+  validUntil             DateTime
+  responseAt             DateTime?
+  declineReason          String?
+  createdAt              DateTime            @default(now())
+
+  // Relations
+  deliveryGroup          DeliveryGroup       @relation(fields: [deliveryGroupId], references: [id], onDelete: Cascade)
+  client                 User                @relation(fields: [clientId], references: [id])
+  announcement           Announcement        @relation(fields: [announcementId], references: [id])
+  
+  @@index([deliveryGroupId])
+  @@index([clientId])
+  @@index([status])
+}
+
+// Enums pour les litiges et enchères
+enum DisputeCategory {
+  DELIVERY_NOT_RECEIVED
+  DAMAGED_PACKAGE
+  WRONG_ADDRESS
+  LATE_DELIVERY
+  PAYMENT_ISSUE
+  INAPPROPRIATE_BEHAVIOR
+  FRAUD_ATTEMPT
+  SERVICE_NOT_RENDERED
+  QUALITY_ISSUE
+  OTHER
+}
+
+enum DisputePriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum DisputeStatus {
+  OPEN
+  INVESTIGATING
+  WAITING_EVIDENCE
+  MEDIATION
+  RESOLVED
+  CLOSED
+  ESCALATED
+}
+
+enum DisputeResolution {
+  FAVOR_REPORTER
+  FAVOR_REPORTED
+  PARTIAL_REFUND
+  NO_ACTION
+  MEDIATION
+}
+
+enum AuctionStatus {
+  ACTIVE
+  COMPLETED
+  CANCELLED
+  EXPIRED
+}
+
+enum BidStatus {
+  PENDING
+  ACCEPTED
+  LOST
+  CANCELLED
+}
+
+enum GroupStatus {
+  PROPOSED
+  ACTIVE
+  COMPLETED
+  CANCELLED
+  EXPIRED
+}
+
+enum ProposalStatus {
+  PENDING
+  ACCEPT
+  DECLINE
+  EXPIRED
+  CANCELLED
+}

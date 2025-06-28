@@ -1,0 +1,108 @@
+// Modèles utilisateurs
+
+model User {
+  id                String              @id @default(cuid())
+  email             String              @unique
+  emailVerified     DateTime?
+  name              String?
+  image             String?
+  password          String?             // Mot de passe pour credentials
+  role              UserRole            @default(CLIENT)
+  isActive          Boolean             @default(false)
+  validationStatus  ValidationStatus    @default(PENDING)
+  language          String              @default("fr")
+  lastLoginAt       DateTime?
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  // Relations NextAuth
+  accounts          Account[]
+  sessions          Session[]
+  
+  // Relations business
+  profile           Profile?
+  client            Client?
+  deliverer         Deliverer?
+  merchant          Merchant?
+  provider          Provider?
+  admin             Admin?
+  announcements     Announcement[]
+  clientDeliveries  Delivery[]          @relation("ClientDeliveries")
+  delivererDeliveries Delivery[]        @relation("DelivererDeliveries")
+  bookings          Booking[]
+  documents         Document[]
+  documentGenerations DocumentGeneration[]
+  payments          Payment[]           @relation("UserPayments")
+  notifications     Notification[]
+  
+  // Relations pour litiges et enchères
+  disputesReported  Dispute[]           @relation("DisputeReporter")
+  disputesReceived  Dispute[]           @relation("DisputeReported")
+  auctionBids       AuctionBid[]
+  deliveryGroups    DeliveryGroup[]
+  groupingProposals GroupingProposal[]
+  walletOperations  WalletOperation[]
+  storageBoxRentals StorageBoxRental[]
+  wallet            Wallet?
+  globalAvailabilities GlobalAvailability[]
+  activityLogs      ActivityLog[]
+  tutorialProgress  ClientTutorialProgress?
+  
+  // Referral system relations
+  referrerCodes     ReferralCode[]      @relation("ReferrerCodes")
+  asReferrer        Referral[]          @relation("UserAsReferrer")
+  asReferee         Referral[]          @relation("UserAsReferee")
+  referralRewards   ReferralReward[]
+  referralStats     ReferralStats[]
+  influencerProgram InfluencerProgram?
+  
+  // Announcement system relations
+  delivererRoutes   DelivererRoute[]    @relation("DelivererRoutes")
+  routeMatches      RouteMatch[]        @relation("RouteMatches")
+  assignedAnnouncements Announcement[]  @relation("AnnouncementDeliverer")
+  
+  // Support system relations
+  authoredTickets   SupportTicket[]     @relation("TicketAuthor")
+  assignedTickets   SupportTicket[]     @relation("TicketAssignee")
+  escalatedFromTickets TicketEscalation[] @relation("EscalationFrom")
+  escalatedToTickets TicketEscalation[]   @relation("EscalationTo")
+  ticketMessages    TicketMessage[]
+  ticketAttachments TicketAttachment[]
+  knowledgeBaseEntries SupportKnowledgeBase[]
+  supportTemplates  SupportTemplate[]
+  clientOrders      Order[]             @relation("ClientOrders")
+  
+  // Insurance and warranty relations
+  serviceWarranties ServiceWarranty[]   @relation("ClientServiceWarranties")
+  delivererWarranties DeliveryWarranty[] @relation("DelivererWarranties")
+  clientDeliveryWarranties DeliveryWarranty[] @relation("ClientDeliveryWarranties")
+  warrantyClaims    WarrantyClaim[]
+  
+  @@index([email])
+  @@index([role])
+}
+
+model Profile {
+  id              String              @id @default(cuid())
+  userId          String              @unique
+  firstName       String?
+  lastName        String?
+  phone           String?
+  avatar          String?
+  dateOfBirth     DateTime?
+  address         String?
+  city            String?
+  postalCode      String?
+  country         String              @default("FR")
+  isVerified      Boolean             @default(false)
+  verifiedAt      DateTime?
+  language        String              @default("fr")
+  timezone        String              @default("Europe/Paris")
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+
+  // Relations
+  user            User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}

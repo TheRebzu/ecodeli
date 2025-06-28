@@ -1,0 +1,191 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# EcoDeli - Interdiction Données Mockées/Simulées
+
+## Règle Stricte : Aucune Donnée Factice
+
+**INTERDICTION ABSOLUE** de créer, utiliser ou maintenir des données :
+- **Mockées** (mock data)
+- **Hardcodées** (hard-coded)
+- **Simulées** (simulated data)
+- **Factices** (fake data)
+- **De test en dur** (hardcoded test data)
+
+## Données Interdites
+
+### ❌ Types de Données Interdites
+- Utilisateurs factices avec emails/mots de passe en dur
+- Annonces simulées avec prix/descriptions inventés
+- Livraisons mockées avec adresses fictives
+- Paiements simulés avec montants hardcodés
+- Documents de test avec noms/données personnelles factices
+- Trajets livreurs avec coordonnées GPS inventées
+- Évaluations/notes simulées
+- Factures avec données comptables fictives
+
+### ❌ Patterns de Code Interdits
+```typescript
+// INTERDIT - Données hardcodées
+const mockUsers = [
+  { email: 'test@test.com', password: 'password123' },
+  { email: 'client@example.com', name: 'Jean Dupont' }
+]
+
+// INTERDIT - Prix simulés
+const mockPrices = { delivery: 25.50, service: 45.00 }
+
+// INTERDIT - Adresses factices
+const fakeAddresses = [
+  '123 rue de la Paix, Paris',
+  '456 avenue des Champs, Lyon'
+]
+```
+
+## Alternatives Obligatoires
+
+### ✅ Génération Dynamique
+```typescript
+// CORRECT - Génération avec Faker.js ou similaire
+import { faker } from '@faker-js/faker'
+
+const generateUser = () => ({
+  email: faker.internet.email(),
+  firstName: faker.person.firstName(),
+  lastName: faker.person.lastName()
+})
+
+// CORRECT - Données depuis base de données
+const users = await prisma.user.findMany()
+```
+
+### ✅ Variables d'Environnement
+```typescript
+// CORRECT - Configuration via .env
+const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET
+const ONESIGNAL_API_KEY = process.env.ONESIGNAL_API_KEY
+```
+
+### ✅ Factories et Seeders
+```typescript
+// CORRECT - Factory pattern
+export class UserFactory {
+  static create(overrides = {}) {
+    return {
+      id: crypto.randomUUID(),
+      email: faker.internet.email(),
+      createdAt: new Date(),
+      ...overrides
+    }
+  }
+}
+
+// CORRECT - Seeder pour développement
+export async function seedDatabase() {
+  const users = Array.from({ length: 10 }, () => UserFactory.create())
+  await prisma.user.createMany({ data: users })
+}
+```
+
+## Fichiers Concernés
+
+### Base de Données
+- [prisma/seed.ts](mdc:prisma/seed.ts) - Doit utiliser des générateurs
+- [prisma/schema.prisma](mdc:prisma/schema.prisma) - Pas de valeurs par défaut hardcodées
+
+### Services
+- [src/features/*/services/*.service.ts](mdc:src/features) - Aucune donnée simulée
+- [src/lib/*.ts](mdc:src/lib) - Configuration dynamique uniquement
+
+### API Routes
+- [src/app/api/*/route.ts](mdc:src/app/api) - Données depuis DB ou génération
+- Tests API avec données générées dynamiquement
+
+### Tests
+- [src/features/*/tests/*.test.ts](mdc:src/features) - Factories et mocks appropriés
+- Pas de données hardcodées dans les assertions
+
+## Exceptions Autorisées
+
+### ✅ Configuration Système
+```typescript
+// AUTORISÉ - Constantes système
+export const SUBSCRIPTION_PLANS = {
+  FREE: { price: 0, features: ['basic'] },
+  STARTER: { price: 9.90, features: ['basic', 'insurance'] },
+  PREMIUM: { price: 19.99, features: ['all'] }
+} as const
+```
+
+### ✅ Énumérations Métier
+```typescript
+// AUTORISÉ - Enums business
+export enum DeliveryStatus {
+  PENDING = 'PENDING',
+  IN_TRANSIT = 'IN_TRANSIT',
+  DELIVERED = 'DELIVERED'
+}
+```
+
+### ✅ Messages d'Interface
+```typescript
+// AUTORISÉ - Messages UI
+export const ERROR_MESSAGES = {
+  INVALID_EMAIL: 'Email invalide',
+  REQUIRED_FIELD: 'Champ obligatoire'
+} as const
+```
+
+## Validation et Contrôles
+
+### Règles de Review
+1. **Aucun commit** avec données personnelles factices
+2. **Vérification systématique** des PR pour données hardcodées
+3. **Tests automatisés** pour détecter les patterns interdits
+4. **Documentation** des sources de données légitimes
+
+### Outils de Détection
+```bash
+# Recherche de patterns suspects
+grep -r "test@" src/ --exclude-dir=node_modules
+grep -r "password.*123" src/ --exclude-dir=node_modules
+grep -r "Jean.*Dupont" src/ --exclude-dir=node_modules
+```
+
+## Conséquences
+
+### Sanctions Immédiates
+- **Refus automatique** des PR contenant des données factices
+- **Nettoyage obligatoire** du code avant merge
+- **Réécriture** avec génération dynamique
+
+### Standards Professionnels
+- **Conformité RGPD** : Pas de données personnelles factices
+- **Sécurité** : Pas de credentials hardcodés
+- **Maintenabilité** : Code évolutif et configurable
+- **Qualité** : Tests reproductibles et fiables
+
+## Ressources Recommandées
+
+### Générateurs de Données
+- **@faker-js/faker** : Génération réaliste
+- **uuid** : Identifiants uniques
+- **crypto** : Données cryptographiques
+
+### Patterns Recommandés
+- **Factory Pattern** : Création d'objets configurables
+- **Builder Pattern** : Construction progressive
+- **Seeder Pattern** : Population base de données
+- **Environment Configuration** : Variables externes
+
+---
+
+**🚨 RÈGLE CRITIQUE : Zéro tolérance pour les données factices dans EcoDeli**
+
+Cette règle garantit :
+- **Professionnalisme** du code
+- **Sécurité** des données
+- **Conformité** réglementaire
+- **Maintenabilité** à long terme

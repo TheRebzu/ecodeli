@@ -1,0 +1,82 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# EcoDeli - Stack Technique Obligatoire
+
+## Framework & Runtime
+- **Next.js 15** avec App Router
+- **TypeScript** pour le typage strict
+- **Node.js** pour le runtime
+
+## Authentification
+- **Better-Auth** pour la gestion complète de l'authentification
+- Support des 5 rôles : CLIENT, DELIVERER, MERCHANT, PROVIDER, ADMIN
+- Sessions sécurisées avec cookies
+
+## Base de Données
+- **PostgreSQL** comme base de données principale
+- **Prisma** comme ORM avec typage TypeScript
+- Migrations automatiques avec `npx prisma migrate dev`
+- Interface d'administration avec `npx prisma studio`
+
+## State Management
+- **Zustand** pour la gestion d'état global
+- Store modulaire par feature
+
+## Validation & Formulaires
+- **React Hook Form** pour les formulaires performants
+- **Zod** pour la validation des schémas
+- Validation côté client ET serveur
+
+## Interface Utilisateur
+- **Radix UI** pour les composants primitifs accessibles
+- **Tailwind CSS** pour le styling utilitaire
+- **shadcn/ui** comme système de design
+- Composants dans [src/components/ui/](mdc:src/components/ui)
+
+## Paiements
+- **Stripe** pour tous les paiements
+- Webhooks sécurisés pour les événements
+- Gestion des abonnements (Free/Starter/Premium)
+
+## Notifications
+- **OneSignal** pour les notifications push
+- Templates de notifications dans [src/features/notifications/templates/](mdc:src/features/notifications/templates)
+
+## Génération PDF
+- **jsPDF** pour la génération de factures et documents
+- Templates réutilisables dans [src/features/invoices/templates/](mdc:src/features/invoices/templates)
+
+## Internationalisation
+- **next-intl** pour le support multilingue FR/EN
+- Messages dans [src/messages/](mdc:src/messages)
+- Configuration dans [src/i18n.ts](mdc:src/i18n.ts)
+
+## Structure API
+- **API Routes Next.js** dans [src/app/api/](mdc:src/app/api)
+- Services modulaires dans [src/features/*/services/](mdc:src/features)
+- Middlewares d'authentification et validation
+
+## Configuration Importante
+```json
+// package.json dependencies minimales
+{
+  "next": "^15.0.0",
+  "@auth/core": "latest",
+  "better-auth": "latest",
+  "prisma": "latest",
+  "@prisma/client": "latest",
+  "zustand": "latest",
+  "react-hook-form": "latest",
+  "zod": "latest",
+  "@radix-ui/react-*": "latest",
+  "tailwindcss": "latest",
+  "stripe": "latest",
+  "jspdf": "latest",
+  "next-intl": "latest"
+}
+```
+
+

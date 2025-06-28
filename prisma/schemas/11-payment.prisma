@@ -1,0 +1,79 @@
+// Modèles paiements
+
+model Payment {
+  id                String              @id @default(cuid())
+  userId            String
+  announcementId    String?             @unique
+  deliveryId        String?             @unique
+  bookingId         String?             @unique
+  clientId          String?
+  merchantId        String?
+  amount            Float
+  currency          String              @default("EUR")
+  status            PaymentStatus       @default(PENDING)
+  paymentMethod     String              // "STRIPE", "WALLET", "BANK_TRANSFER"
+  stripePaymentId   String?             @unique
+  stripeSessionId   String?
+  metadata          Json?               // Données Stripe ou autres
+  paidAt            DateTime?
+  failedAt          DateTime?
+  refundedAt        DateTime?
+  refundAmount      Float?
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  // Relations
+  user              User                @relation("UserPayments", fields: [userId], references: [id])
+  announcement      Announcement?       @relation(fields: [announcementId], references: [id])
+  delivery          Delivery?           @relation(fields: [deliveryId], references: [id])
+  booking           Booking?            @relation(fields: [bookingId], references: [id])
+  client            Client?             @relation("ClientPayments", fields: [clientId], references: [id])
+  merchant          Merchant?           @relation("MerchantPayments", fields: [merchantId], references: [id])
+  
+  @@index([userId])
+  @@index([status])
+  @@index([paymentMethod])
+  @@index([createdAt])
+}
+
+model Wallet {
+  id                String              @id @default(cuid())
+  userId            String              @unique
+  balance           Float               @default(0)
+  currency          String              @default("EUR")
+  stripeAccountId   String?             @unique
+  isActive          Boolean             @default(true)
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  // Relations
+  user              User                @relation(fields: [userId], references: [id])
+  operations        WalletOperation[]
+  
+  @@index([userId])
+  @@index([isActive])
+}
+
+model WalletOperation {
+  id                String              @id @default(cuid())
+  walletId          String
+  userId            String
+  type              WalletOperationType
+  amount            Float
+  description       String
+  reference         String?             // ID de la livraison, booking, etc.
+  status            OperationStatus     @default(PENDING)
+  executedAt        DateTime?
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  // Relations
+  wallet            Wallet              @relation(fields: [walletId], references: [id])
+  user              User                @relation(fields: [userId], references: [id])
+  
+  @@index([walletId])
+  @@index([userId])
+  @@index([type])
+  @@index([status])
+  @@index([createdAt])
+}

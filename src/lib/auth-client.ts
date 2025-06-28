@@ -1,23 +1,15 @@
-export async function registerUser(userData: any) {
-  try {
-    const response = await fetch('/api/auth/register', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(userData),
-    });
+'use client'
 
-    if (!response.ok) {
-      // Pour le débogage, afficher le contenu réel de la réponse
-      const errorText = await response.text();
-      console.log("Réponse d'erreur:", errorText);
-      throw new Error(`Erreur HTTP ${response.status}: ${errorText}`);
-    }
+import { createAuthClient } from "better-auth/client"
 
-    return await response.json();
-  } catch (error) {
-    console.error("Erreur d'enregistrement:", error);
-    throw error;
-  }
-}
+export const authClient = createAuthClient({
+  baseURL: process.env.NEXT_PUBLIC_BETTER_AUTH_URL || "http://localhost:3000",
+})
+
+// Export des types pour utilisation
+export type Session = typeof authClient.$Infer.Session
+export type User = typeof authClient.$Infer.User
+
+// Types pour EcoDeli
+export type UserRole = "CLIENT" | "DELIVERER" | "MERCHANT" | "PROVIDER" | "ADMIN"
+export type ValidationStatus = "PENDING" | "PENDING_DOCUMENTS" | "PENDING_VALIDATION" | "VALIDATED" | "REJECTED" 

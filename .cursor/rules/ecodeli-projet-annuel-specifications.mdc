@@ -1,0 +1,420 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# EcoDeli - Spécifications Projet Annuel 2024-2025 ESGI
+
+## 📋 Contexte Officiel du Projet
+
+**EcoDeli** est une société de crowdshipping créée à Paris en 2018, basée au 110 rue de Flandre (19ème).
+L'entreprise met en relation expéditeurs et livreurs occasionnels pour réduire l'impact environnemental et favoriser le pouvoir d'achat.
+
+### Croissance et Infrastructure
+- **Croissance rapide** depuis 2018
+- **6 entrepôts** : Paris (bureau + entrepôt), Marseille, Lyon, Lille, Montpellier, Rennes
+- **Modernisation SI** complète demandée
+- **Appel d'offre** lancé le 20 février 2025
+
+---
+
+## 🎯 Structure Obligatoire des 3 Missions
+
+### Mission 1 : Gestion de la Société ⭐ **PRIORITÉ MAXIMALE**
+**Application Web complète** avec 5 espaces distincts obligatoires
+
+### Mission 2 : Services Supplémentaires
+**Applications complémentaires** Java + Android + NFC
+
+### Mission 3 : Infrastructure Système, Réseau et Sécurité
+**Architecture réseau EDN** complète avec 6 sites
+
+---
+
+## 🏢 Mission 1 : Spécifications Détaillées
+
+### 1.1 Espace Livreurs - Fonctionnalités Obligatoires
+
+#### Processus de Recrutement
+- **Demande d'inscription** sur le site
+- **Validation obligatoire** par EcoDeli via pièces justificatives
+- **Documents requis** : identité, permis, assurance
+- **Statut** : PENDING → APPROVED → ACTIVE
+
+#### Gestion des Trajets et Matching
+- **Déclaration trajets à l'avance** par le livreur
+- **Matching automatique** avec annonces clients
+- **Notifications push** via OneSignal quand match trouvé
+- **Acceptation/refus** des propositions
+
+#### Gestion des Livraisons
+- **Types de livraisons** :
+  - Prise en charge intégrale (point A → point B)
+  - Prise en charge partielle (avec relais entrepôts)
+  - Livraison finale (depuis entrepôt → destinataire)
+- **Code de validation 6 chiffres** OBLIGATOIRE
+- **Suivi temps réel** des livraisons
+
+#### Système de Paiement
+- **Portefeuille EcoDeli** intégré
+- **Virement à la demande** vers compte bancaire
+- **Historique** des paiements détaillé
+
+### 1.2 Espace Clients - Fonctionnalités Obligatoires
+
+#### Tutoriel Première Connexion **CRITIQUE**
+- **Overlay bloquant** à la première connexion
+- **Étapes obligatoires** :
+  1. Dépôt d'annonce
+  2. Réservation de service
+  3. Gestion paiement
+  4. Suivi livraison
+- **Impossible de passer** sans compléter
+
+#### Gestion des Annonces
+- **Types d'annonces** supportées :
+  - Transport de colis (Paris → Marseille)
+  - Transport de personnes
+  - Transfert aéroport
+  - Courses avec liste fournie
+  - Achats internationaux
+  - Services à domicile
+
+#### Abonnements Clients **OBLIGATOIRES**
+```
+Free (€0/mois) :
+- Assurance : 0€
+- Réduction : 0%
+- Envoi prioritaire : +15%
+
+Starter (€9.90/mois) :
+- Assurance : jusqu'à 115€/envoi
+- Réduction : 5%
+- Envoi prioritaire : +5%
+- Réduction permanente : 5% petits colis
+
+Premium (€19.99/mois) :
+- Assurance : jusqu'à 3000€/envoi (au-delà +75€)
+- Réduction : 9%
+- Premier envoi offert (si < 150€)
+- Envoi prioritaire : 3 offerts/mois, puis +5%
+- Réduction permanente : 5% tous colis
+```
+
+#### Box de Stockage Temporaire
+- **Accès aux 6 entrepôts** EcoDeli
+- **Réservation en ligne** de box
+- **Codes d'accès** générés automatiquement
+- **Facturation** selon durée d'occupation
+
+### 1.3 Espace Commerçants - Fonctionnalités Obligatoires
+
+#### Gestion des Contrats
+- **Contrat avec EcoDeli** obligatoire
+- **Types** : STANDARD, PREMIUM, CUSTOM
+- **Taux de commission** négocié
+- **Signature électronique** du contrat
+- **Génération PDF** automatique
+
+#### Lâcher de Chariot **SERVICE PHARE**
+- **Configuration** par le commerçant :
+  - Zones de livraison
+  - Créneaux horaires disponibles
+  - Tarifs selon distance
+- **Processus client** :
+  1. Achats en magasin
+  2. Demande livraison à domicile en caisse
+  3. Choix adresse + créneau
+  4. Paiement livraison
+  5. Livraison par livreur EcoDeli
+
+#### Import Bulk d'Annonces
+- **Upload CSV/Excel** avec produits
+- **Mapping automatique** des champs
+- **Validation** avant publication
+- **Gestion en lot** des annonces
+
+### 1.4 Espace Prestataires - Fonctionnalités Obligatoires
+
+#### Processus de Validation
+- **Candidature** avec certifications/habilitations
+- **Vérification profil** par EcoDeli
+- **Validation types de prestations** proposées
+- **Négociation tarifs** avec EcoDeli
+- **Statut autoentrepreneur** obligatoire
+
+#### Services à la Personne
+- **Types de services** :
+  - Ménage/nettoyage
+  - Jardinage
+  - Bricolage/handyman
+  - Cours particuliers
+  - Soins/beauté
+  - Garde d'animaux
+- **Calendrier disponibilités** obligatoire
+- **Réservation créneaux** par clients
+
+#### Facturation Automatique **CRITIQUE**
+- **Génération automatique** le 30 de chaque mois à 23h
+- **Synthèse prestations** du mois écoulé
+- **Calcul gains** selon tarifs négociés
+- **Génération PDF** professionnel
+- **Virement bancaire automatique** simulé
+- **Archive accessible** prestataire + comptabilité EcoDeli
+
+### 1.5 Back Office Admin - Fonctionnalités Obligatoires
+
+#### Validation Documents
+- **Interface dédiée** validation pièces justificatives
+- **Types documents** : identité, permis, assurance, certifications
+- **Workflow** : PENDING → APPROVED/REJECTED
+- **Notifications automatiques** aux demandeurs
+- **Historique** des validations
+
+#### Gestion Complète Utilisateurs
+- **CRUD complet** tous types d'utilisateurs
+- **Changement de rôles** si nécessaire
+- **Suspension/réactivation** comptes
+- **Statistiques** par rôle et activité
+
+#### Monitoring Livraisons
+- **Dashboard temps réel** toutes livraisons
+- **Gestion litiges** entre clients/livreurs
+- **Intervention manuelle** si nécessaire
+- **Historique complet** des incidents
+
+#### Configuration 6 Entrepôts
+- **Gestion capacity** par entrepôt
+- **Configuration box** de stockage
+- **Tarification** selon taille et durée
+- **Maintenance** et disponibilité
+
+---
+
+## 🛠️ Mission 2 : Spécifications Détaillées
+
+### 2.1 Application Java Autonome **OBLIGATOIRE**
+
+#### Récupération de Données
+- **Connexion** à la base de données Mission 1
+- **Extraction automatique** :
+  - Comptes commerçants avec factures détaillées
+  - Livraisons complètes (type, contenu, modalités, dates)
+  - Prestations détaillées (type, durée, tarifs, évaluations)
+
+#### Génération de Données de Test
+- **Minimum 30 enregistrements** par catégorie
+- **Générateur de données aléatoires** mais cohérentes
+- **Respect contraintes** métier (dates, montants, relations)
+
+#### Génération PDF Rapport
+**Page 1 - Commerçants/Clients** :
+- 4 diagrammes obligatoires (camemberts, barres, courbes)
+- Répartition par CA, type de client, géographie
+- **Top 5 clients les plus fidèles** avec métriques
+- Évolution temporelle du chiffre d'affaires
+
+**Page 2 - Prestations** :
+- 4 diagrammes statistiques prestations
+- Répartition par type, fréquence, satisfaction
+- **Top 5 prestations les plus demandées**
+- Analyse saisonnalité des demandes
+
+#### Bonus Data Mining
+- **Algorithmes** de recommandation
+- **Clustering** clients par comportement
+- **Prédiction** demandes futures
+- **Détection anomalies** dans les données
+
+### 2.2 Application Android **OBLIGATOIRE**
+
+#### Fonctionnalités Clients
+- **Connexion** avec comptes Mission 1
+- **Consultation livraisons** en cours
+- **Suivi temps réel** avec géolocalisation
+- **Historique** livraisons et prestations
+- **Notifications push** natives
+
+#### Validation Livraisons
+- **Saisie code 6 chiffres** par livreur
+- **Validation côté client** de réception
+- **Photos** preuve de livraison
+- **Évaluation** du service
+
+#### Interface Mobile Optimisée
+- **Design responsive** Android
+- **Navigation intuitive** par onglets
+- **Synchronisation** temps réel avec web
+- **Mode hors ligne** pour consultation
+
+### 2.3 Système NFC Livreurs **OBLIGATOIRE**
+
+#### Carte NFC Physique
+- **Génération automatique** après validation documents
+- **Identifiant unique** par livreur
+- **Données chiffrées** sur la carte
+- **Durée de validité** limitée
+
+#### Reconnaissance par Clients
+- **Lecture NFC** via smartphone client
+- **Vérification identité** livreur
+- **Affichage informations** : nom, photo, note moyenne
+- **Historique livraisons** du livreur
+
+---
+
+## 🏗️ Mission 3 : Spécifications Infrastructure
+
+### 3.1 Architecture Réseau EDN (EcoDeli Network)
+
+#### Concept EDN
+- **EcoDeli devient son propre FAI**
+- **Gestion complète** connexions inter-sites
+- **Datacenter propre** pour hébergement
+- **Contrôle total** infrastructure réseau
+
+#### Site Principal Paris (110 rue de Flandre)
+**Équipe** : 80 salariés + direction
+- Sylvain Levy (PDG)
+- Pierre Chabrier (DRH) 
+- Lucas Hauchard (Directeur Commercial)
+- Elsa Blovin (Directrice Marketing)
+- Erwan Thibaud (DSI)
+
+**Infrastructure Obligatoire** :
+- **Active Directory** Windows Server 2019/2022/2025
+- **Baie de stockage** centralisée (missions 1 et 2)
+- **DMZ** avec serveur mails Postfix Linux
+- **5 VLAN obligatoires** :
+  - Direction (5 personnes)
+  - Marketing (3 personnes équipe Lucas)
+  - Commercial (5 commerciaux itinérants)
+  - RH (4 personnes région parisienne)
+  - Informatique (8 personnes équipe)
+- **2 Firewalls OPNSense** redondants
+- **GLPI** pour ticketing et inventaire
+- **Zabbix/Nagios** pour supervision complète
+
+### 3.2 Sites Provinciaux
+
+#### Site Marseille
+- **2 salariés** rattachés direction
+- **4 personnes** équipe DSI locale
+- **Serveur Mail backup** (relais si Paris en panne)
+- **VPN site-to-site** avec Paris
+- **VPN client-to-site** pour utilisateurs distants
+
+#### Site Lyon  
+- **2 salariés** rattachés direction
+- **4 personnes** équipe DSI locale
+- **Serveur DHCP Linux** pour distribution IP
+- **Serveur DNS Linux** résolution noms
+- **2 OPNSense** filtrage réseau
+- **Backup infrastructure** :
+  - Journalier automatique à 23h
+  - Mensuel le 30 de chaque mois
+- **Synchronisation** avec baie Paris
+
+#### Site Lille
+- **2 salariés** rattachés direction  
+- **4 personnes** équipe DSI locale
+- **RODC** (Read-Only Domain Controller)
+- **Stockage partagé direction** CHIFFRÉ
+- **Données RGPD** centralisées et sécurisées
+- **2 Firewall OPNSense** redondants
+- **VPN utilisateurs distants**
+
+#### Sites Montpellier et Rennes
+- **Non configurés** dans cette phase
+- **Prévus** pour vague 2 de déploiement
+- **Architecture** à prévoir évolutive
+
+### 3.3 Configuration Réseau EDN
+
+#### Protocoles de Routage
+- **RIP v2** entre tous les routeurs EDN
+- **Métriques** optimisées pour performance
+- **Tables de routage** dynamiques
+- **Convergence rapide** en cas de panne
+
+#### VPN Inter-Sites
+- **IPSec over GRE** obligatoire
+- **Chiffrement fort** AES-256
+- **Authentification** par certificats
+- **Tunnels redondants** pour haute disponibilité
+
+#### Contrôle d'Accès
+- **ACL précises** pour flux inter-sites
+- **Segmentation** par type de trafic
+- **Règles firewall** granulaires
+- **Logs centralisés** pour audit
+
+#### Redondance
+- **HSRP ou VRRP** sur routeurs
+- **Basculement automatique** < 3 secondes
+- **Monitoring** liens et équipements
+- **Alertes** temps réel en cas de panne
+
+---
+
+## 📊 Contraintes et Livrables Obligatoires
+
+### Contraintes Techniques
+- **GitHub obligatoire** : compte par membre équipe
+- **Langages variés** : pas que web (Python, C, Java requis)
+- **Frameworks autorisés** : validation préalable direction
+- **Script déploiement** : installation automatisée complète
+- **Virtualisation** : VMware/ProxMox/Eve-NG/GNS3
+- **Budget hébergement** : maximum 40€/mois par groupe
+
+### Documentation Obligatoire
+- **Rapports réunions** : minimum 3 fois/mois
+- **Trello** : gestion projet visible
+- **Budget détaillé** : devis + main d'œuvre + prestataire
+- **Planning GANTT** : tâches et dépendances
+- **Analyse risques RACI** : responsabilités claires
+- **DAT** : Document Architecture Technique complet
+
+### Sécurité Obligatoire
+- **HTTPS SSL/TLS** sur toutes les interfaces
+- **Chiffrement** données sensibles
+- **Authentification forte** pour admin
+- **Audit trails** complets
+- **Sauvegarde** chiffrée et testée
+
+### Production
+- **Missions 1 et 2** hébergées sur infrastructure Mission 3
+- **Déploiement Docker** pour resilience
+- **Monitoring** 24/7 avec alertes
+- **Procédures** de reprise après incident
+- **Tests charge** et performance
+
+---
+
+## ⚠️ Points Critiques de Réussite
+
+### Fonctionnalités Bloquantes
+1. **Tutoriel client** overlay première connexion
+2. **Code validation 6 chiffres** livraisons  
+3. **Facturation automatique** prestataires (30/mois)
+4. **Matching automatique** trajets/annonces
+5. **Notifications OneSignal** fonctionnelles
+6. **Abonnements 3 niveaux** opérationnels
+7. **Multilingue FR/EN** complet
+
+### Intégrations Critiques
+1. **Stripe** : paiements + webhooks + abonnements
+2. **jsPDF** : génération factures professionnelles
+3. **Upload sécurisé** : documents avec validation
+4. **OneSignal** : notifications push ciblées
+5. **NFC** : cartes livreurs fonctionnelles
+
+### Infrastructure Critique
+1. **6 sites** réseau EDN opérationnels
+2. **Haute disponibilité** avec basculement
+3. **Sécurité** : firewalls + VPN + chiffrement
+4. **Monitoring** : supervision complète
+5. **Sauvegarde** : journalière + mensuelle testées
+
+Ce document constitue la **référence officielle** pour le développement du projet annuel EcoDeli 2024-2025 ESGI.
+

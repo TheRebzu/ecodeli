@@ -1,212 +1,238 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# EcoDeli - Plateforme de Crowdshipping
 
-## Getting Started
+EcoDeli est une plateforme de crowdshipping éco-responsable qui met en relation des particuliers pour la livraison de colis et des services à la personne.
 
-First, run the development server:
+## 🚀 Fonctionnalités
 
+### 5 Espaces Utilisateurs
+- **Client** : Envoi de colis, réservation de services, suivi en temps réel
+- **Livreur** : Gestion des trajets, livraisons, portefeuille électronique
+- **Commerçant** : Catalogue produits, lâcher de chariot, analytics
+- **Prestataire** : Services à la personne, calendrier, facturation automatique
+- **Admin** : Gestion complète de la plateforme
+
+### Services Principaux
+- 📦 **Livraison de colis** (intégrale ou partielle)
+- 🚗 **Transport de personnes** (trajets occasionnels)
+- 🛒 **Services à domicile** (courses, garde d'animaux, travaux)
+- 📍 **Stockage temporaire** (box dans nos entrepôts)
+- 🛒 **Lâcher de chariot** (livraison depuis les magasins partenaires)
+
+## 🛠️ Stack Technique
+
+- **Framework** : Next.js 15 (App Router)
+- **Language** : TypeScript
+- **Base de données** : PostgreSQL + Prisma
+- **Authentification** : Better-Auth
+- **API** : Next.js API Routes
+- **État global** : Zustand
+- **Formulaires** : React Hook Form + Zod
+- **UI** : Radix UI + Tailwind CSS
+- **Paiements** : Stripe
+- **Notifications** : OneSignal
+- **PDF** : jsPDF
+- **Internationalisation** : next-intl
+- **Tests** : Jest + React Testing Library
+
+## 📁 Architecture
+
+```
+ecodeli/
+├── prisma/                 # Schema et migrations base de données
+├── src/
+│   ├── app/                # Routes Next.js avec i18n
+│   │   ├── [locale]/       # Routes internationalisées
+│   │   └── api/            # API Routes
+│   ├── features/           # Logique métier par domaine
+│   │   ├── auth/
+│   │   ├── announcements/
+│   │   ├── deliveries/
+│   │   ├── payments/
+│   │   └── ...
+│   ├── components/         # Composants UI réutilisables
+│   ├── lib/               # Configuration et utilitaires
+│   ├── types/             # Types TypeScript globaux
+│   └── messages/          # Traductions (fr/en)
+```
+
+## 🚀 Démarrage Rapide
+
+### Prérequis
+- Node.js 18+
+- PostgreSQL
+- pnpm (recommandé)
+
+### Installation
+
+1. **Cloner le projet**
 ```bash
-npm run dev
-# or
-yarn dev
-# or
+git clone https://github.com/your-org/ecodeli.git
+cd ecodeli
+```
+
+2. **Installer les dépendances**
+```bash
+pnpm install
+```
+
+3. **Configuration environnement**
+```bash
+cp .env.example .env.local
+# Modifier .env.local avec vos valeurs
+```
+
+4. **Base de données**
+```bash
+# Générer le client Prisma
+pnpm db:generate
+
+# Créer et appliquer les migrations
+pnpm db:migrate
+
+# (Optionnel) Peupler avec des données de test
+pnpm db:seed
+```
+
+5. **Lancer le serveur de développement**
+```bash
 pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+L'application sera accessible sur [http://localhost:3000](http://localhost:3000)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
-
-## Fonctionnalités
-
-### Authentification
-
-L'application EcoDeli dispose d'un système d'authentification complet avec les fonctionnalités suivantes:
-
-#### Modèle de données
-
-- Utilisateurs avec différents rôles (Client, Marchand, Livreur, Prestataire, Admin)
-- Profils spécifiques par rôle
-- Jetons de vérification d'email et de réinitialisation de mot de passe
-- Support pour l'authentification à deux facteurs (2FA)
-
-#### API et backend
-
-- Service d'authentification avec fonctions pour:
-
-  - Inscription utilisateur par rôle
-  - Connexion et déconnexion
-  - Vérification d'email
-  - Réinitialisation de mot de passe
-  - Gestion de l'authentification à deux facteurs
-
-- Router tRPC exposant toutes les fonctionnalités d'authentification
-- Validation des données avec Zod
-- Protection des routes par middleware
-
-#### Frontend
-
-- Hooks React pour la gestion de l'état d'authentification
-- Formulaires d'inscription spécifiques par type d'utilisateur
-- Composants pour la connexion, vérification d'email, réinitialisation de mot de passe
-- Interface pour la gestion de l'authentification à deux facteurs
-
-#### Tests
-
-- Tests unitaires pour les schémas de validation
-- Tests unitaires pour le service d'authentification
-- Tests d'intégration à venir
-
-#### Comment utiliser
-
-1. **Inscription**: Les utilisateurs peuvent s'inscrire en tant que client, marchand, livreur ou prestataire
-2. **Vérification**: Un email de vérification est envoyé pour confirmer l'adresse email
-3. **Connexion**: Les utilisateurs peuvent se connecter avec leur email et mot de passe
-4. **Sécurité**: Support pour l'authentification à deux facteurs via TOTP (Google Authenticator, etc.)
-5. **Récupération**: Possibilité de réinitialiser le mot de passe en cas d'oubli
-
-#### À venir
-
-- Support pour l'authentification via des fournisseurs sociaux (Google, Facebook, etc.)
-- Amélioration de la gestion des permissions par rôle
-- Journalisation des activités d'authentification
-
-## Internationalisation
-
-EcoDeli utilise [next-intl](https://next-intl-docs.vercel.app/) pour la gestion des traductions.
-
-### Script d'automatisation des traductions
-
-Un script d'automatisation des traductions est disponible pour faciliter la gestion des chaînes à traduire. Ce script analyse le code source pour trouver les chaînes hardcodées, les extrait dans des fichiers de messages structurés et facilite leur traduction.
-
-#### Commandes disponibles
+## 📝 Scripts Disponibles
 
 ```bash
-# Analyser uniquement (mode dry-run)
-pnpm run translate:analyze
+# Développement
+pnpm dev              # Serveur de développement
+pnpm build            # Build de production
+pnpm start            # Serveur de production
+pnpm lint             # Linting ESLint
+pnpm type-check       # Vérification TypeScript
 
-# Extraire les traductions et mettre à jour les fichiers de messages
-pnpm run translate:extract
+# Base de données
+pnpm db:generate      # Générer le client Prisma
+pnpm db:push          # Synchroniser le schema (dev)
+pnpm db:migrate       # Créer/appliquer migrations
+pnpm db:studio        # Interface Prisma Studio
+pnpm db:seed          # Peupler la base de données
 
-# Processus complet avec sauvegarde
-pnpm run translate:all --backup
-
-# Vérifier l'état des traductions sans modification
-pnpm run translate:check
-
-# Générer un rapport détaillé
-pnpm run translate:report
+# Tests
+pnpm test             # Lancer les tests
+pnpm test:watch       # Tests en mode watch
 ```
 
-#### Options supplémentaires
+## 🌍 Internationalisation
 
-- `--dry-run` : Exécuter sans modifier les fichiers (simulation)
-- `--backup` : Créer une sauvegarde avant toute modification
-- `--source-lang <lang>` : Spécifier la langue source (défaut: en)
-- `--target-langs <langs>` : Spécifier les langues cibles (séparées par des virgules, défaut: fr)
+Le projet support le français et l'anglais :
+- `/fr/*` - Version française
+- `/en/*` - Version anglaise
 
-#### Exemple d'utilisation
+Les traductions sont dans `src/messages/` et peuvent être étendues facilement.
 
+## 🔐 Authentification
+
+EcoDeli utilise Better-Auth avec 5 rôles utilisateurs :
+- `CLIENT` - Clients particuliers
+- `DELIVERER` - Livreurs occasionnels  
+- `MERCHANT` - Commerçants partenaires
+- `PROVIDER` - Prestataires de services
+- `ADMIN` - Administrateurs plateforme
+
+## 💳 Paiements
+
+Intégration Stripe complète :
+- Paiements sécurisés
+- Abonnements clients (Free, Starter, Premium)
+- Portefeuilles électroniques
+- Commissions automatiques
+- Facturation PDF
+
+## 📱 Notifications
+
+Système de notifications en temps réel via OneSignal :
+- Push notifications web/mobile
+- Emails transactionnels
+- Alertes de matching automatique
+- Mises à jour de livraison
+
+## 🏗️ Développement
+
+### Conventions de Code
+- **Fichiers/Dossiers** : kebab-case (`user-profile.tsx`)
+- **Composants** : PascalCase (`UserProfile`)
+- **Hooks** : camelCase avec prefix `use` (`useUserProfile`)
+- **Services** : camelCase avec suffix `Service` (`userService`)
+- **Types** : PascalCase (`UserProfile`)
+- **Constantes** : UPPER_SNAKE_CASE (`MAX_FILE_SIZE`)
+
+### Structure des Features
+Chaque feature suit cette structure :
+```
+features/[feature-name]/
+├── components/          # Composants UI
+├── hooks/              # Hooks React personnalisés
+├── services/           # Logique métier et API
+├── schemas/            # Validation Zod
+├── types.ts            # Types TypeScript
+├── constants.ts        # Constantes
+└── utils.ts           # Fonctions utilitaires
+```
+
+### Composants par Rôle
+Les composants sont organisés par rôle utilisateur avec suffixes :
+- `component-client.tsx` - Pour les clients
+- `component-deliverer.tsx` - Pour les livreurs
+- `component-merchant.tsx` - Pour les commerçants
+- `component-provider.tsx` - Pour les prestataires
+- `component-admin.tsx` - Pour les admins
+- `component.tsx` - Partagé entre rôles
+
+## 🚀 Déploiement
+
+### Variables d'Environnement Requises
+Voir `.env.example` pour la liste complète.
+
+Minimales pour la production :
+- `DATABASE_URL`
+- `NEXTAUTH_SECRET` 
+- `NEXTAUTH_URL`
+- `STRIPE_SECRET_KEY`
+- `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`
+- `NEXT_PUBLIC_ONESIGNAL_APP_ID`
+- `ONESIGNAL_API_KEY`
+
+### Build de Production
 ```bash
-# Extraire les traductions pour anglais et français
-pnpm run translate:extract --source-lang en --target-langs fr,es,de
-
-# Analyser avec sauvegarde
-pnpm run translate:analyze --backup
+pnpm build
+pnpm start
 ```
 
-#### Structure des fichiers de traduction
+## 📄 Documentation
 
-Les fichiers de traduction sont générés dans `src/messages/` avec une structure hiérarchique basée sur les modules et composants de l'application. Exemple:
+- [Architecture détaillée](docs/ARCHITECTURE.md)
+- [Guide API](docs/API.md)
+- [Guide déploiement](docs/DEPLOYMENT.md)
+- [Contribution](docs/CONTRIBUTING.md)
 
-```json
-{
-  "common": {
-    "buttons": {
-      "save": "Save",
-      "cancel": "Cancel"
-    }
-  },
-  "auth": {
-    "login": {
-      "title": "Log in to your account",
-      "emailLabel": "Email address"
-    }
-  }
-}
-```
+## 🤝 Contribution
 
-Cette structure permet une organisation claire et facilite la maintenance des traductions au fur et à mesure que l'application évolue.
+1. Fork le projet
+2. Créer une branche feature (`git checkout -b feature/amazing-feature`)
+3. Commit les changements (`git commit -m 'Add amazing feature'`)
+4. Push vers la branche (`git push origin feature/amazing-feature`)
+5. Ouvrir une Pull Request
 
-## Structure du schéma Prisma
+## 📞 Support
 
-Le schéma Prisma du projet est organisé de manière modulaire pour faciliter la maintenance et la lisibilité. Les modèles sont regroupés par domaine fonctionnel dans des fichiers séparés.
+- 📧 Email : contact@ecodeli.com
+- 📚 Documentation : [docs.ecodeli.com](https://docs.ecodeli.com)
+- 🐛 Issues : [GitHub Issues](https://github.com/your-org/ecodeli/issues)
 
-### Organisation des schémas
+## 📜 Licence
 
-```
-prisma/
-├── schema.prisma              # Schéma principal (généré par fusion)
-├── schemas/                   # Fragments de schéma par domaine
-│   ├── shared/                # Éléments partagés entre domaines
-│   │   ├── enums.prisma       # Énumérations
-│   │   └── types.prisma       # Types communs
-│   ├── users/                 # Domaine utilisateurs
-│   │   ├── user.prisma        # Modèle User principal
-│   │   ├── auth.prisma        # Modèles d'authentification
-│   │   ├── profile.prisma     # Profils par type d'utilisateur
-│   │   ├── verification.prisma # Vérification et documents
-│   │   ├── notification.prisma # Notifications utilisateur 
-│   │   └── contract.prisma    # Contrats marchands
-│   ├── deliveries/            # Domaine livraisons
-│   │   ├── announcement.prisma # Annonces de livraison
-│   │   ├── deliveries.prisma  # Livraisons et suivi
-│   │   ├── addresses.prisma   # Adresses de livraison
-│   │   └── application.prisma # Candidatures de livreurs
-│   ├── storage/               # Domaine stockage
-│   │   ├── warehouse.prisma   # Entrepôts
-│   │   ├── box.prisma         # Boxes de stockage
-│   │   └── reservation.prisma # Réservations
-│   ├── services/              # Domaine services
-│   │   ├── service.prisma     # Services proposés
-│   │   ├── booking.prisma     # Réservations de services
-│   │   └── provider.prisma    # Disponibilités prestataires
-│   └── financial/             # Domaine financier
-│       ├── payment.prisma     # Paiements
-│       ├── wallet.prisma      # Portefeuilles électroniques
-│       ├── invoice.prisma     # Factures
-│       ├── subscription.prisma # Abonnements
-│       ├── commission.prisma  # Commissions et rapports
-│       └── financial_task.prisma # Tâches financières
-```
+Ce projet est sous licence MIT. Voir le fichier [LICENSE](LICENSE) pour plus de détails.
 
-### Utilisation du schéma fragmenté
+---
 
-1. Pour modifier un modèle, éditez le fichier correspondant dans `prisma/schemas/`
-2. Exécutez `pnpm prisma:merge` pour fusionner les fragments en un seul schéma
-3. Validez le schéma avec `pnpm prisma:validate`
-4. Générez le client Prisma avec `pnpm prisma:generate`
-
-### Relations inter-domaines
-
-Les relations entre modèles de différents domaines sont maintenues dans leurs définitions respectives. Par exemple, un `User` a une relation avec `Wallet` dans le modèle `User`, et inversement dans le modèle `Wallet`.
-
-**Note importante:** Ne modifiez jamais directement `schema.prisma`, car il est généré automatiquement à partir des fragments.
+**EcoDeli** - La révolution du crowdshipping éco-responsable 🌱

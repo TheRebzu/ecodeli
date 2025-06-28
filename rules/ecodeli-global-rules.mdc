@@ -1,0 +1,1121 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# 🚀 EcoDeli - Règles Globales Complètes du Projet
+
+## 📋 Table des Matières
+1. [Vue d'ensemble du Projet](mdc:#vue-densemble-du-projet)
+2. [Spécifications Officielles](mdc:#spécifications-officielles)
+3. [Architecture et Stack Technique](mdc:#architecture-et-stack-technique)
+4. [Structure API Routes](mdc:#structure-api-routes)
+5. [Modèles de Données Prisma](mdc:#modèles-de-données-prisma)
+6. [Fonctionnalités Critiques](mdc:#fonctionnalités-critiques)
+7. [Bonnes Pratiques de Développement](mdc:#bonnes-pratiques-de-développement)
+8. [Restrictions et Interdictions](mdc:#restrictions-et-interdictions)
+9. [Rapport de Fonctionnalités](mdc:#rapport-de-fonctionnalités)
+
+---
+
+## 🏢 Vue d'ensemble du Projet
+
+**EcoDeli** est une société de crowdshipping créée à Paris en 2018, basée au 110 rue de Flandre (19ème).
+L'entreprise met en relation expéditeurs et livreurs occasionnels pour réduire l'impact environnemental et favoriser le pouvoir d'achat.
+
+### Croissance et Infrastructure
+- **Croissance rapide** depuis 2018
+- **6 entrepôts** : Paris (bureau + entrepôt), Marseille, Lyon, Lille, Montpellier, Rennes
+- **Modernisation SI** complète demandée
+- **Appel d'offre** lancé le 20 février 2025
+
+### 5 Espaces Utilisateur Distincts
+
+#### 1. Espace Client
+- Dépôt d'annonces (colis ou services)
+- Réservation de services à la personne
+- Gestion des paiements et abonnements (Free/Starter/Premium)
+- Suivi des livraisons en temps réel
+- Accès aux box de stockage
+- **Tutoriel obligatoire première connexion** (overlay)
+
+#### 2. Espace Livreur
+- Inscription avec validation documents (identité, permis, assurance)
+- Déclaration de trajets à l'avance
+- Matching automatique avec annonces
+- Gestion des livraisons (complètes/partielles)
+- Validation par code à 6 chiffres
+- Portefeuille et retraits
+- Carte NFC après validation
+
+#### 3. Espace Commerçant
+- Gestion contrat avec EcoDeli
+- Création d'annonces produits
+- Configuration lâcher de chariot
+- Facturation et paiements
+- Import bulk d'annonces
+
+#### 4. Espace Prestataire
+- Validation avec certifications/habilitations
+- Calendrier de disponibilités
+- Gestion des interventions
+- Évaluations clients
+- Facturation mensuelle automatique
+- Tarifs négociés avec EcoDeli
+
+#### 5. Back Office Admin
+- Validation documents livreurs/prestataires
+- Gestion complète utilisateurs
+- Monitoring livraisons et litiges
+- Gestion financière globale
+- Configuration des 6 entrepôts
+- Paramètres services cloud
+
+### Services Disponibles
+- Transport de colis (intégral ou partiel avec relais)
+- Transport de personnes
+- Transfert aéroport
+- Courses
+- Achats internationaux
+- Garde d'animaux
+- Services à domicile (ménage, jardinage)
+- Lâcher de chariot
+- Box de stockage temporaire
+
+---
+
+## 🎯 Spécifications Officielles
+
+### Structure Obligatoire des 3 Missions
+
+#### Mission 1 : Gestion de la Société ⭐ **PRIORITÉ MAXIMALE**
+**Application Web complète** avec 5 espaces distincts obligatoires
+
+#### Mission 2 : Services Supplémentaires
+**Applications complémentaires** Java + Android + NFC
+
+#### Mission 3 : Infrastructure Système, Réseau et Sécurité
+**Architecture réseau EDN** complète avec 6 sites
+
+### Mission 1 - Fonctionnalités Détaillées
+
+#### Espace Clients - Abonnements **OBLIGATOIRES**
+```
+Free (€0/mois) :
+- Assurance : 0€
+- Réduction : 0%
+- Envoi prioritaire : +15%
+
+Starter (€9.90/mois) :
+- Assurance : jusqu'à 115€/envoi
+- Réduction : 5%
+- Envoi prioritaire : +5%
+- Réduction permanente : 5% petits colis
+
+Premium (€19.99/mois) :
+- Assurance : jusqu'à 3000€/envoi (au-delà +75€)
+- Réduction : 9%
+- Premier envoi offert (si < 150€)
+- Envoi prioritaire : 3 offerts/mois, puis +5%
+- Réduction permanente : 5% tous colis
+```
+
+#### Espace Commerçants - Lâcher de Chariot **SERVICE PHARE**
+- **Configuration** par le commerçant : zones, créneaux, tarifs
+- **Processus client** : Achats → Demande livraison → Choix créneau → Paiement → Livraison
+
+#### Espace Prestataires - Facturation Automatique **CRITIQUE**
+- **Génération automatique** le 30 de chaque mois à 23h
+- **Synthèse prestations** du mois écoulé
+- **Génération PDF** professionnel
+- **Virement bancaire automatique** simulé
+
+---
+
+## 🛠️ Architecture et Stack Technique
+
+### Stack Technique Obligatoire
+
+#### Framework & Runtime
+- **Next.js 15** avec App Router
+- **TypeScript** pour le typage strict
+- **Node.js** pour le runtime
+
+#### Authentification
+- **Better-Auth** pour la gestion complète de l'authentification
+- Support des 5 rôles : CLIENT, DELIVERER, MERCHANT, PROVIDER, ADMIN
+- Sessions sécurisées avec cookies
+
+#### Base de Données
+- **PostgreSQL** comme base de données principale
+- **Prisma** comme ORM avec typage TypeScript
+- Migrations automatiques avec `npx prisma migrate dev`
+- Interface d'administration avec `npx prisma studio`
+
+#### State Management
+- **Zustand** pour la gestion d'état global
+- Store modulaire par feature
+
+#### Validation & Formulaires
+- **React Hook Form** pour les formulaires performants
+- **Zod** pour la validation des schémas
+- Validation côté client ET serveur
+
+#### Interface Utilisateur
+- **Radix UI** pour les composants primitifs accessibles
+- **Tailwind CSS** pour le styling utilitaire
+- **shadcn/ui** comme système de design
+- Composants dans [src/components/ui/](mdc:src/components/ui)
+
+#### Paiements
+- **Stripe** pour tous les paiements
+- Webhooks sécurisés pour les événements
+- Gestion des abonnements (Free/Starter/Premium)
+
+#### Notifications
+- **OneSignal** pour les notifications push
+- Templates de notifications dans [src/features/notifications/templates/](mdc:src/features/notifications/templates)
+
+#### Génération PDF
+- **jsPDF** pour la génération de factures et documents
+- Templates réutilisables dans [src/features/invoices/templates/](mdc:src/features/invoices/templates)
+
+#### Internationalisation
+- **next-intl** pour le support multilingue FR/EN
+- Messages dans [src/messages/](mdc:src/messages)
+- Configuration dans [src/i18n.ts](mdc:src/i18n.ts)
+
+### Structure de Fichiers
+- Configuration : [components.json](mdc:components.json)
+- Base de données : [prisma/schema.prisma](mdc:prisma/schema.prisma)
+- Authentification : [src/lib/auth.ts](mdc:src/lib/auth.ts)
+- Routes API : [src/app/api/](mdc:src/app/api)
+- Layouts par rôle : [src/app/[locale]/(protected)/](mdc:src/app/[locale]/(protected)/)
+- Composants UI : [src/components/ui/](mdc:src/components/ui)
+- Features modulaires : [src/features/](mdc:src/features)
+
+---
+
+## 🔗 Structure API Routes
+
+### Architecture API Routes
+
+#### 1. Authentification
+```
+/api/auth/
+├── register/route.ts       # POST - Inscription utilisateur
+├── login/route.ts          # POST - Connexion
+├── logout/route.ts         # POST - Déconnexion
+└── [...all]/route.ts       # Better-Auth configuration
+```
+
+#### 2. Gestion Utilisateurs
+```
+/api/users/
+├── profile/route.ts        # GET/PUT - Profil utilisateur
+├── [id]/
+│   ├── route.ts           # GET/PUT/DELETE - Utilisateur spécifique
+│   ├── documents/route.ts  # GET/POST - Documents utilisateur
+│   └── validate/route.ts   # POST - Validation utilisateur (admin)
+└── [role]/route.ts         # GET - Utilisateurs par rôle
+```
+
+#### 3. Annonces
+```
+/api/announcements/
+├── route.ts               # GET/POST - Liste/Créer annonces
+├── [id]/route.ts          # GET/PUT/DELETE - Annonce spécifique
+└── matching/route.ts      # POST - Matching annonces/trajets
+```
+
+#### 4. Livraisons
+```
+/api/deliveries/
+├── route.ts               # GET/POST - Liste/Créer livraisons
+├── [id]/
+│   ├── route.ts           # GET/PUT - Livraison spécifique
+│   ├── tracking/route.ts   # GET/POST - Suivi livraison
+│   └── validate/route.ts   # POST - Validation code 6 chiffres
+```
+
+#### 5. Réservations
+```
+/api/bookings/
+├── route.ts               # GET/POST - Liste/Créer réservations
+└── [id]/route.ts          # GET/PUT/DELETE - Réservation spécifique
+```
+
+#### 6. Paiements
+```
+/api/payments/
+├── route.ts               # GET/POST - Paiements
+├── stripe/
+│   └── webhook/route.ts   # POST - Webhooks Stripe
+└── wallet/
+    └── withdraw/route.ts  # POST - Retrait portefeuille
+```
+
+#### 7. Documents
+```
+/api/documents/
+└── upload/route.ts        # POST - Upload documents
+```
+
+#### 8. Factures
+```
+/api/invoices/
+└── generate/route.ts      # POST - Génération PDF factures
+```
+
+#### 9. Notifications
+```
+/api/notifications/
+└── push/route.ts          # POST - Notifications push OneSignal
+```
+
+#### 10. Contrats
+```
+/api/contracts/
+└── [id]/route.ts          # GET/PUT - Contrats commerçants
+```
+
+#### 11. Entrepôts et Stockage
+```
+/api/storage-boxes/
+└── [id]/route.ts          # GET/PUT - Box de stockage
+```
+
+#### 12. Localisations
+```
+/api/locations/
+└── [id]/route.ts          # GET/PUT - Gestion entrepôts
+```
+
+### Middleware d'Authentification
+
+#### Fichier : `src/middleware.ts`
+```typescript
+import { NextRequest, NextResponse } from 'next/server'
+import { auth } from '@/lib/auth'
+
+export async function middleware(request: NextRequest) {
+  // Vérification des routes protégées
+  if (request.nextUrl.pathname.startsWith('/api/')) {
+    const session = await auth()
+    
+    if (!session && isProtectedRoute(request.nextUrl.pathname)) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+    
+    // Vérification des permissions par rôle
+    if (session && !hasRequiredRole(session.user.role, request.nextUrl.pathname)) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
+  }
+  
+  return NextResponse.next()
+}
+```
+
+### Structure Type d'une API Route
+
+#### Exemple : `/api/announcements/route.ts`
+```typescript
+import { NextRequest, NextResponse } from 'next/server'
+import { z } from 'zod'
+import { auth } from '@/lib/auth'
+import { prisma } from '@/lib/db'
+import { announcementSchema } from '@/features/announcements/schemas'
+
+// GET - Liste des annonces
+export async function GET(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url)
+    const page = parseInt(searchParams.get('page') || '1')
+    const limit = parseInt(searchParams.get('limit') || '10')
+    const type = searchParams.get('type')
+    
+    const announcements = await prisma.announcement.findMany({
+      where: type ? { type } : {},
+      skip: (page - 1) * limit,
+      take: limit,
+      include: {
+        author: {
+          select: { id: true, profile: true }
+        }
+      },
+      orderBy: { createdAt: 'desc' }
+    })
+    
+    return NextResponse.json(announcements)
+  } catch (error) {
+    console.error('Error fetching announcements:', error)
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    )
+  }
+}
+
+// POST - Créer une annonce
+export async function POST(request: NextRequest) {
+  try {
+    const session = await auth()
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+    
+    const body = await request.json()
+    const validatedData = announcementSchema.parse(body)
+    
+    const announcement = await prisma.announcement.create({
+      data: {
+        ...validatedData,
+        authorId: session.user.id
+      },
+      include: {
+        author: {
+          select: { id: true, profile: true }
+        }
+      }
+    })
+    
+    return NextResponse.json(announcement, { status: 201 })
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        { error: 'Validation error', details: error.errors },
+        { status: 400 }
+      )
+    }
+    
+    console.error('Error creating announcement:', error)
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    )
+  }
+}
+```
+
+### Permissions par Rôle
+
+#### Matrice d'Autorisation
+```typescript
+const rolePermissions = {
+  CLIENT: [
+    'announcements:read',
+    'announcements:create',
+    'bookings:read',
+    'bookings:create',
+    'payments:read'
+  ],
+  DELIVERER: [
+    'announcements:read',
+    'deliveries:read',
+    'deliveries:create',
+    'deliveries:update',
+    'payments:read'
+  ],
+  MERCHANT: [
+    'announcements:read',
+    'announcements:create',
+    'contracts:read',
+    'contracts:update'
+  ],
+  PROVIDER: [
+    'services:read',
+    'services:create',
+    'bookings:read',
+    'invoices:read'
+  ],
+  ADMIN: ['*'] // Tous les droits
+}
+```
+
+---
+
+## 🗄️ Modèles de Données Prisma
+
+### 1. Utilisateurs et Authentification
+```prisma
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  role      Role
+  profile   Profile?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum Role {
+  CLIENT
+  DELIVERER
+  MERCHANT
+  PROVIDER
+  ADMIN
+}
+
+model Profile {
+  id          String  @id @default(cuid())
+  userId      String  @unique
+  user        User    @relation(fields: [userId], references: [id])
+  firstName   String?
+  lastName    String?
+  phone       String?
+  address     String?
+  city        String?
+  postalCode  String?
+  country     String?
+  avatar      String?
+  verified    Boolean @default(false)
+  documents   Document[]
+}
+```
+
+### 2. Annonces et Services
+```prisma
+model Announcement {
+  id            String           @id @default(cuid())
+  title         String
+  description   String
+  type          AnnouncementType
+  status        AnnouncementStatus @default(ACTIVE)
+  price         Decimal
+  authorId      String
+  author        User             @relation(fields: [authorId], references: [id])
+  deliveries    Delivery[]
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+}
+
+enum AnnouncementType {
+  PACKAGE_DELIVERY
+  PERSON_TRANSPORT
+  AIRPORT_TRANSFER
+  SHOPPING
+  INTERNATIONAL_PURCHASE
+  PET_SITTING
+  HOME_SERVICE
+  CART_DROP
+}
+
+enum AnnouncementStatus {
+  ACTIVE
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+```
+
+### 3. Livraisons et Validation
+```prisma
+model Delivery {
+  id               String         @id @default(cuid())
+  announcementId   String
+  announcement     Announcement   @relation(fields: [announcementId], references: [id])
+  delivererId      String
+  deliverer        User           @relation(fields: [delivererId], references: [id])
+  status           DeliveryStatus @default(PENDING)
+  validationCode   String?        @unique
+  pickupAddress    String
+  deliveryAddress  String
+  scheduledAt      DateTime
+  completedAt      DateTime?
+  payment          Payment?
+  tracking         TrackingUpdate[]
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+}
+
+enum DeliveryStatus {
+  PENDING
+  ACCEPTED
+  IN_TRANSIT
+  DELIVERED
+  CANCELLED
+}
+```
+
+### 4. Paiements et Abonnements
+```prisma
+model Payment {
+  id            String        @id @default(cuid())
+  userId        String
+  user          User          @relation(fields: [userId], references: [id])
+  deliveryId    String?       @unique
+  delivery      Delivery?     @relation(fields: [deliveryId], references: [id])
+  amount        Decimal
+  currency      String        @default("EUR")
+  status        PaymentStatus @default(PENDING)
+  stripePaymentId String?
+  type          PaymentType
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+}
+
+model Subscription {
+  id        String           @id @default(cuid())
+  userId    String           @unique
+  user      User             @relation(fields: [userId], references: [id])
+  plan      SubscriptionPlan
+  status    String           @default("active")
+  startDate DateTime         @default(now())
+  endDate   DateTime?
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+}
+
+enum SubscriptionPlan {
+  FREE
+  STARTER
+  PREMIUM
+}
+```
+
+### 5. Documents et Validation
+```prisma
+model Document {
+  id         String         @id @default(cuid())
+  profileId  String
+  profile    Profile        @relation(fields: [profileId], references: [id])
+  type       DocumentType
+  filename   String
+  url        String
+  status     DocumentStatus @default(PENDING)
+  validatedBy String?
+  validatedAt DateTime?
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+}
+
+enum DocumentType {
+  IDENTITY
+  DRIVING_LICENSE
+  INSURANCE
+  CERTIFICATION
+  CONTRACT
+}
+
+enum DocumentStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+```
+
+### 6. Prestataires et Services
+```prisma
+model Service {
+  id          String        @id @default(cuid())
+  providerId  String
+  provider    User          @relation(fields: [providerId], references: [id])
+  name        String
+  description String
+  category    ServiceCategory
+  price       Decimal
+  duration    Int           // en minutes
+  isActive    Boolean       @default(true)
+  bookings    Booking[]
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+}
+
+model Booking {
+  id          String        @id @default(cuid())
+  serviceId   String
+  service     Service       @relation(fields: [serviceId], references: [id])
+  clientId    String
+  client      User          @relation(fields: [clientId], references: [id])
+  scheduledAt DateTime
+  status      BookingStatus @default(PENDING)
+  notes       String?
+  rating      Int?          // 1-5
+  review      String?
+  payment     Payment?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+}
+```
+
+### 7. Entrepôts et Box de Stockage
+```prisma
+model Warehouse {
+  id       String @id @default(cuid())
+  name     String
+  address  String
+  city     String
+  capacity Int
+  storageBoxes StorageBox[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model StorageBox {
+  id          String     @id @default(cuid())
+  warehouseId String
+  warehouse   Warehouse  @relation(fields: [warehouseId], references: [id])
+  number      String
+  size        BoxSize
+  status      BoxStatus  @default(AVAILABLE)
+  clientId    String?
+  client      User?      @relation(fields: [clientId], references: [id])
+  rentStartDate DateTime?
+  rentEndDate   DateTime?
+  monthlyPrice  Decimal
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+}
+
+enum BoxSize {
+  SMALL
+  MEDIUM
+  LARGE
+  EXTRA_LARGE
+}
+
+enum BoxStatus {
+  AVAILABLE
+  OCCUPIED
+  MAINTENANCE
+}
+```
+
+---
+
+## ⚡ Fonctionnalités Critiques
+
+### Fonctionnalités OBLIGATOIRES à Implémenter
+
+#### 1. Tutoriel Client Première Connexion
+**CRITIQUE** : Overlay obligatoire bloquant à la première connexion
+
+```typescript
+// src/features/tutorials/components/TutorialOverlay.tsx
+// Utiliser un état global pour tracking
+// Bloquer toute interaction jusqu'à completion
+// Étapes : Dépôt annonce → Réservation → Paiement → Suivi
+```
+
+#### 2. Validation Documents Livreur
+**FLOW COMPLET** :
+1. Upload documents (identité, permis, assurance)
+2. Statut PENDING → admin validation
+3. Génération carte NFC automatique
+4. Activation compte + notifications
+
+#### 3. Code Validation Livraison (6 chiffres)
+**SÉCURITÉ CRITIQUE** :
+- Code unique généré à la création livraison
+- Client donne code au livreur
+- Livreur saisit code pour validation
+- Déblocage paiement automatique
+
+```typescript
+// src/features/deliveries/services/validation.service.ts
+generateValidationCode(): string // 6 chiffres
+validateDelivery(code: string, deliveryId: string): Promise<boolean>
+```
+
+#### 4. Matching Trajets/Annonces
+**ALGORITHME OBLIGATOIRE** :
+- Livreur déclare trajets à l'avance
+- Système match avec annonces compatibles
+- Notification push automatique
+- Distance, horaires, capacité
+
+#### 5. Notifications Push OneSignal
+**ÉVÉNEMENTS OBLIGATOIRES** :
+- Nouvelle annonce matchée
+- Livraison acceptée/refusée
+- Code validation reçu
+- Paiement effectué
+- Document validé/rejeté
+
+#### 6. Paiements Stripe Intégrés
+**SÉCURITÉ MAXIMALE** :
+- Webhooks obligatoires
+- Gestion des échecs
+- Remboursements
+- Abonnements récurrents
+
+---
+
+## 📋 Bonnes Pratiques de Développement
+
+### Méthodologie Obligatoire
+
+#### 0. Instance Unique et MCP
+**AVANT TOUT** : Vérifier l'instance unique et utiliser les MCP appropriés
+- **Instance** : Une seule instance EcoDeli active (port 3000)
+- **MCP** : Utiliser les MCP disponibles selon les besoins
+- **Desktop Commander** : Pour toutes les opérations de fichiers locaux
+- **GitHub MCP** : Pour rechercher des exemples et gérer le repository
+
+#### 1. Backend First
+**TOUJOURS** développer dans cet ordre :
+1. Créer/mettre à jour le modèle Prisma
+2. Créer le service avec la logique métier
+3. Créer l'API Route
+4. Tester avec cURL
+
+#### 2. Validation Continue
+Pour **CHAQUE** fonctionnalité développée :
+
+```bash
+# Exemple : Test création utilisateur
+curl -X POST http://localhost:3000/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"email":"test@test.com","password":"password123","role":"CLIENT"}'
+
+# Test route protégée
+curl -X GET http://localhost:3000/api/users/profile \
+  -H "Cookie: [cookie-reçu]"
+```
+
+#### 3. Structure Modulaire
+- **Features** : Chaque fonctionnalité dans [src/features/](mdc:src/features)
+- **Services** : Logique métier dans `*/services/`
+- **Schemas** : Validation Zod dans `*/schemas/`
+- **Types** : Types TypeScript dans `*/types/`
+- **Hooks** : Hooks React dans `*/hooks/`
+- **Components** : Composants dans `*/components/`
+
+### Comptes de Test Obligatoires
+
+```typescript
+// À créer au début du développement
+const testAccounts = [
+  { email: 'client@test.com', password: 'Test123!', role: 'CLIENT' },
+  { email: 'livreur@test.com', password: 'Test123!', role: 'DELIVERER' },
+  { email: 'commercant@test.com', password: 'Test123!', role: 'MERCHANT' },
+  { email: 'prestataire@test.com', password: 'Test123!', role: 'PROVIDER' },
+  { email: 'admin@test.com', password: 'Test123!', role: 'ADMIN' }
+]
+```
+
+### Standards de Code
+
+#### Cohérence Obligatoire
+**TOUJOURS** vérifier :
+- Modèle Prisma ↔ Schema Zod ↔ Types TS
+- API Route ↔ Service ↔ Hook ↔ Component
+
+#### Gestion d'Erreurs
+- Try/catch partout
+- Messages d'erreur clairs et traduits
+- Logs appropriés avec niveaux
+
+#### Performance
+- Pagination des listes
+- Optimisation requêtes Prisma
+- Cache approprié avec Next.js
+
+---
+
+## 🚫 Restrictions et Interdictions
+
+### Interdictions Absolues de Nommage de Fichiers
+
+**INTERDICTION ABSOLUE** de créer des fichiers avec les suffixes suivants :
+- `*-enhanced.*` (ex: `user-enhanced.ts`)
+- `*-fix.*` (ex: `auth-fix.js`)
+- `*-simple.*` (ex: `payment-simple.tsx`)
+- `*-improved.*` (ex: `delivery-improved.service.ts`)
+- `*-updated.*` (ex: `schema-updated.prisma`)
+- `*-new.*` (ex: `component-new.tsx`)
+- `*-refactored.*` (ex: `api-refactored.ts`)
+- `*-optimized.*` (ex: `query-optimized.sql`)
+
+### Interdiction Stricte des Données Mock
+
+#### 🚫 INTERDICTIONS ABSOLUES
+- **AUCUNE** donnée hardcodée dans le code
+- **AUCUNE** simulation de données
+- **AUCUN** mock de services
+- **AUCUNE** réponse statique
+- **AUCUN** placeholder de données
+
+#### Examples d'Interdictions
+```typescript
+// ❌ INTERDIT - Données hardcodées
+const users = [
+  { id: 1, name: "John Doe", email: "john@example.com" },
+  { id: 2, name: "Jane Smith", email: "jane@example.com" }
+]
+
+// ❌ INTERDIT - Mock de service
+const mockStripePayment = () => ({ success: true, transactionId: "fake_123" })
+
+// ❌ INTERDIT - Données simulées
+const generateFakeDeliveries = () => Array.from({length: 10}, () => ({...}))
+
+// ❌ INTERDIT - Réponses statiques
+return NextResponse.json({ message: "Simulated success" })
+```
+
+### Règles de Nommage Obligatoires
+
+#### Fichiers de Services
+- Format : `[feature].service.ts`
+- Exemple : `delivery-validation.service.ts`, `invoice-generator.service.ts`
+
+#### Fichiers de Schémas
+- Format : `[feature].schema.ts`
+- Exemple : `announcement.schema.ts`, `payment.schema.ts`
+
+#### Composants React
+- Format : `[ComponentName].tsx` (PascalCase)
+- Exemple : `delivery-form.tsx`, `user-profile.tsx`
+
+#### API Routes
+- Format : `route.ts` dans le dossier approprié
+- Structure : `src/app/api/[feature]/route.ts`
+
+---
+
+## 📊 Rapport de Fonctionnalités
+
+### 🎯 Mission 1 : Gestion de la Société
+
+#### 1.1 Espaces Utilisateur Obligatoires
+
+##### ✅ Espace Livreurs
+- [ ] **Inscription et validation** avec pièces justificatives
+- [ ] **Gestion des annonces** de livraison
+- [ ] **Gestion des trajets** déclarés à l'avance
+- [ ] **Matching automatique** avec notifications
+- [ ] **Gestion des livraisons** (toutes formes)
+- [ ] **Système de paiement** avec portefeuille
+- [ ] **Planning et déplacements**
+- [ ] **Code de validation** à 6 chiffres pour livraisons
+- [ ] **Carte NFC** après validation
+
+##### ✅ Espace Clients
+- [ ] **Tutoriel obligatoire** première connexion (overlay bloquant)
+- [ ] **Dépôt d'annonces** avec détails
+- [ ] **Réservation de services** à la personne
+- [ ] **Gestion des paiements** et abonnements
+- [ ] **Suivi des livraisons** en temps réel
+- [ ] **Accès aux box de stockage** temporaire
+- [ ] **Abonnements** : Free (€0), Starter (€9.90), Premium (€19.99)
+
+##### ✅ Espace Commerçants
+- [ ] **Gestion des contrats** avec EcoDeli
+- [ ] **Création d'annonces** produits
+- [ ] **Configuration lâcher de chariot**
+- [ ] **Facturation** des services
+- [ ] **Gestion des paiements**
+- [ ] **Import bulk** d'annonces
+
+##### ✅ Espace Prestataires
+- [ ] **Validation avec certifications**
+- [ ] **Calendrier de disponibilités**
+- [ ] **Gestion des interventions**
+- [ ] **Évaluations clients**
+- [ ] **Facturation mensuelle automatique** (30 de chaque mois)
+- [ ] **Tarifs négociés** avec EcoDeli
+
+##### ✅ Back Office Admin
+- [ ] **Validation documents** livreurs/prestataires
+- [ ] **Gestion complète utilisateurs**
+- [ ] **Monitoring livraisons** et litiges
+- [ ] **Gestion financière** globale
+- [ ] **Configuration des 6 entrepôts**
+- [ ] **Paramètres services cloud**
+
+#### 1.2 Intégrations Techniques Obligatoires
+
+##### Paiements
+- [ ] **Stripe** pour tous les paiements
+- [ ] **Webhooks sécurisés** pour événements
+- [ ] **Gestion des abonnements** récurrents
+- [ ] **Portefeuille livreur** avec retraits
+
+##### Notifications
+- [ ] **OneSignal** pour notifications push
+- [ ] **Notifications automatiques** :
+  - Nouvelle annonce matchée
+  - Livraison acceptée/refusée
+  - Code validation reçu
+  - Paiement effectué
+  - Document validé/rejeté
+
+##### Documents
+- [ ] **Génération PDF automatique** des factures
+- [ ] **Archive accessible** des documents
+- [ ] **Virement bancaire simulé** pour prestataires
+
+##### Multilingue
+- [ ] **Support FR/EN obligatoire**
+- [ ] **Ajout de langues** sans modification code
+- [ ] **Interface complète traduite**
+
+### 🛠️ Mission 2 : Services Supplémentaires
+
+#### 2.1 Application Java Autonome
+- [ ] **Rapport graphique** de l'activité
+- [ ] **Récupération données** :
+  - Comptes commerçants avec factures
+  - Livraisons détaillées (type, contenu, modalités)
+  - Prestations détaillées
+- [ ] **30 enregistrements minimum** par type
+- [ ] **Génération PDF** avec diagrammes
+- [ ] **Bonus** : Application Data Mining
+
+#### 2.2 Application Android
+- [ ] **Accès aux livraisons** et prestations
+- [ ] **Validation de livraison**
+- [ ] **Gestion des comptes** clients
+- [ ] **Interface mobile** optimisée
+
+#### 2.3 Carte NFC Livreurs
+- [ ] **Reconnaissance** par les clients
+- [ ] **Validation** des livraisons
+- [ ] **Sécurisation** des échanges
+
+### 🏗️ Mission 3 : Infrastructure Système, Réseau et Sécurité
+
+#### 3.1 Architecture Réseau EDN (EcoDeli Network)
+
+##### Site Principal Paris
+- [ ] **Active Directory** Windows Server 2019/2022/2025
+- [ ] **Baie de stockage** (missions 1 et 2 incluses)
+- [ ] **DMZ** avec serveur mails Linux (Postfix)
+- [ ] **5 VLAN** : Direction, Marketing, Commercial, RH, Informatique
+- [ ] **2 Firewalls OPNSense**
+- [ ] **Outils de supervision** : GLPI, Zabbix/Nagios
+
+##### Sites Provinciaux
+- [ ] **Site Marseille** : Serveur Mail backup, VPN
+- [ ] **Site Lyon** : Serveur DHCP/DNS, Backup infrastructure
+- [ ] **Site Lille** : RODC, Stockage partagé chiffré
+
+#### 3.2 Configuration Réseau EDN
+- [ ] **Protocole RIP v2** entre routeurs
+- [ ] **VPN IPSec over GRE** inter-sites
+- [ ] **ACL** pour gestion flux
+- [ ] **Redondance HSRP/VRRP**
+
+### ⚠️ Points Critiques de Validation
+
+#### Fonctionnalités Bloquantes
+- [ ] **Tutoriel client** overlay première connexion
+- [ ] **Code validation** 6 chiffres livraisons
+- [ ] **Facturation automatique** prestataires (30/mois)
+- [ ] **Matching trajets/annonces** automatique
+- [ ] **Notifications push** OneSignal
+- [ ] **Abonnements** 3 niveaux fonctionnels
+- [ ] **Multilingue** FR/EN complet
+
+#### Intégrations Critiques
+- [ ] **Stripe** paiements + webhooks
+- [ ] **jsPDF** génération factures
+- [ ] **Upload documents** sécurisé
+- [ ] **Validation admin** documents
+- [ ] **6 entrepôts** configurés
+
+#### Tests End-to-End Obligatoires
+- [ ] Inscription → validation → activation livreur
+- [ ] Création annonce → matching → livraison → paiement
+- [ ] Réservation service → intervention → évaluation
+- [ ] Upload document → validation admin → notification
+
+---
+
+## 🎯 Priorités de Développement
+
+### Phase 1 : Fondations (Semaines 1-2)
+1. ✅ Setup Next.js 15 + Prisma + PostgreSQL
+2. ✅ Modèles de données complets
+3. ✅ Authentification Better-Auth
+4. [ ] Configuration environnements
+
+### Phase 2 : Mission 1 Core (Semaines 3-6)
+1. [ ] API Routes complètes
+2. [ ] 5 espaces utilisateur
+3. [ ] Intégrations Stripe + OneSignal
+4. [ ] Tutoriel client overlay
+5. [ ] Code validation 6 chiffres
+
+### Phase 3 : Mission 2 (Semaines 7-8)
+1. [ ] Application Java avec PDF
+2. [ ] Application Android
+3. [ ] Système NFC
+
+### Phase 4 : Mission 3 (Semaines 9-12)
+1. [ ] Infrastructure réseau EDN
+2. [ ] Configuration sites
+3. [ ] Sécurité et monitoring
+4. [ ] Déploiement production
+
+---
+
+## 📈 Métriques de Succès
+
+### Technique
+- [ ] **100% des API routes** fonctionnelles
+- [ ] **0 erreur** validation Prisma
+- [ ] **Tous les rôles** authentifiés
+- [ ] **Toutes les intégrations** testées
+
+### Fonctionnel
+- [ ] **5 espaces utilisateur** opérationnels
+- [ ] **Tous les services** EcoDeli implémentés
+- [ ] **Infrastructure réseau** complète
+- [ ] **Documentation** exhaustive
+
+### Qualité
+- [ ] **Code review** systématique
+- [ ] **Tests unitaires** critiques
+- [ ] **Performance** optimisée
+- [ ] **Sécurité** validée
+
+---
+
+## 🚨 Documentation Obligatoire
+
+Maintenir [DEVELOPMENT_REPORT.md](mdc:DEVELOPMENT_REPORT.md) avec :
+- État d'avancement par feature
+- Tests API documentés
+- Comptes de test avec tokens
+- Problèmes rencontrés
+- TODO prioritaire
+
+---
+
+## 🔧 Tests cURL Obligatoires
+
+### Authentification
+```bash
+# Inscription
+curl -X POST http://localhost:3000/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"email":"test@example.com","password":"Test123!","role":"CLIENT"}'
+
+# Connexion
+curl -X POST http://localhost:3000/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"test@example.com","password":"Test123!"}'
+```
+
+### Annonces
+```bash
+# Créer annonce
+curl -X POST http://localhost:3000/api/announcements \
+  -H "Content-Type: application/json" \
+  -H "Cookie: [session-cookie]" \
+  -d '{"title":"Livraison Paris-Lyon","description":"Besoin de livrer un colis","type":"PACKAGE_DELIVERY","price":25.50}'
+
+# Lister annonces
+curl -X GET "http://localhost:3000/api/announcements?page=1&limit=10" \
+  -H "Cookie: [session-cookie]"
+```
+
+---
+
+Ce document constitue la **référence officielle complète** pour le développement du projet annuel EcoDeli 2024-2025 ESGI.
+
+**TOUTES** les règles de ce fichier sont **NON-NÉGOCIABLES** et doivent être respectées scrupuleusement.
+

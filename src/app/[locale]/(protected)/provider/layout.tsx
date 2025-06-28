@@ -1,34 +1,63 @@
-import { ProtectedHeader } from '@/components/layout/protected-header';
-import { ProtectedFooter } from '@/components/layout/protected-footer';
-import { ProviderSidebar } from '@/components/layout/sidebars/provider-sidebar';
+import { redirect } from 'next/navigation'
+import { auth } from '@/lib/auth'
+import { DashboardLayout } from '@/components/layout/dashboard-layout'
 
-interface ProviderLayoutProps {
-  children: React.ReactNode;
-  params: {
-    locale: string;
-  };
-}
+export default async function ProviderLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
+  const session = await auth()
+  
+  if (!session || session.user.role !== 'PROVIDER') {
+    redirect('/login')
+  }
 
-export default function ProviderLayout({ children, params }: ProviderLayoutProps) {
-  const { locale } = params;
+  const navigationItems = [
+    {
+      name: 'Dashboard',
+      href: '/provider',
+      icon: '🏠'
+    },
+    {
+      name: 'Mes services',
+      href: '/provider/services',
+      icon: '🛠️'
+    },
+    {
+      name: 'Calendrier',
+      href: '/provider/calendar',
+      icon: '📅'
+    },
+    {
+      name: 'Réservations',
+      href: '/provider/bookings',
+      icon: '📋'
+    },
+    {
+      name: 'Factures',
+      href: '/provider/invoices',
+      icon: '💰'
+    },
+    {
+      name: 'Certifications',
+      href: '/provider/certifications',
+      icon: '📄'
+    },
+    {
+      name: 'Paramètres',
+      href: '/provider/settings',
+      icon: '⚙️'
+    }
+  ]
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <ProtectedHeader locale={locale} />
-
-      <div className="flex-1 flex">
-        <div className="hidden md:block w-64 shrink-0">
-          <div className="sticky top-16 h-[calc(100vh-4rem)] overflow-hidden">
-            <ProviderSidebar locale={locale} />
-          </div>
-        </div>
-
-        <main className="flex-1 overflow-x-hidden bg-muted/10">
-          <div className="container max-w-7xl mx-auto p-4 md:p-8">{children}</div>
-        </main>
-      </div>
-
-      <ProtectedFooter locale={locale} />
-    </div>
-  );
-}
+    <DashboardLayout
+      user={session.user}
+      navigationItems={navigationItems}
+      title="Espace Prestataire"
+    >
+      {children}
+    </DashboardLayout>
+  )
+} 

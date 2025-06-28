@@ -1,6 +1,9 @@
-import { redirect } from 'next/navigation';
+import { redirect } from "next/navigation";
 
-export default function PublicRootPage({ params }: { params: { locale: string } }) {
+export default async function PublicRootPage({
+  params
+}: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
   // Rediriger vers la page d'accueil avec la locale appropriée
-  redirect(`/${params.locale}/home`);
+  redirect(`/${locale}/home`);
 }

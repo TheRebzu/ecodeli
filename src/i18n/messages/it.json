@@ -1,0 +1,167 @@
+{
+  "common": {
+    "loading": "Caricamento...",
+    "error": "Errore",
+    "success": "Successo",
+    "cancel": "Annulla",
+    "confirm": "Conferma",
+    "save": "Salva",
+    "edit": "Modifica",
+    "delete": "Elimina",
+    "create": "Crea",
+    "update": "Aggiorna",
+    "search": "Cerca",
+    "filter": "Filtra",
+    "reset": "Reimposta",
+    "next": "Avanti",
+    "previous": "Indietro",
+    "close": "Chiudi",
+    "view": "Visualizza",
+    "download": "Scarica",
+    "upload": "Carica",
+    "share": "Condividi",
+    "copy": "Copia",
+    "email": "Email",
+    "password": "Password",
+    "firstName": "Nome",
+    "lastName": "Cognome",
+    "phoneNumber": "Telefono",
+    "address": "Indirizzo",
+    "city": "Città",
+    "postalCode": "Codice postale",
+    "country": "Paese",
+    "description": "Descrizione",
+    "price": "Prezzo",
+    "date": "Data",
+    "time": "Ora",
+    "status": "Stato",
+    "actions": "Azioni"
+  },
+  "navigation": {
+    "home": "Home",
+    "dashboard": "Dashboard",
+    "services": "Servizi",
+    "announcements": "Annunci",
+    "deliveries": "Consegne",
+    "bookings": "Prenotazioni",
+    "payments": "Pagamenti",
+    "profile": "Profilo",
+    "settings": "Impostazioni",
+    "help": "Aiuto",
+    "logout": "Esci",
+    "login": "Accedi",
+    "register": "Registrati"
+  },
+  "auth": {
+    "login": {
+      "title": "Accedi a EcoDeli",
+      "subtitle": "Accedi al tuo account",
+      "emailPlaceholder": "Inserisci la tua email",
+      "passwordPlaceholder": "Inserisci la password",
+      "submitButton": "Accedi",
+      "forgotPassword": "Password dimenticata?",
+      "noAccount": "Non hai un account?",
+      "registerLink": "Crea account",
+      "errors": {
+        "invalidCredentials": "Email o password non valide",
+        "accountInactive": "Il tuo account è inattivo",
+        "accountSuspended": "Il tuo account è sospeso",
+        "emailNotVerified": "Verifica la tua email"
+      }
+    },
+    "register": {
+      "title": "Unisciti a EcoDeli",
+      "subtitle": "Crea il tuo account",
+      "chooseRole": "Scegli il tuo ruolo",
+      "roles": {
+        "client": {
+          "title": "Cliente",
+          "description": "Voglio ordinare consegne e servizi"
+        },
+        "deliverer": {
+          "title": "Corriere",
+          "description": "Voglio effettuare consegne"
+        },
+        "merchant": {
+          "title": "Commerciante",
+          "description": "Voglio offrire i miei prodotti"
+        },
+        "provider": {
+          "title": "Fornitore di servizi",
+          "description": "Voglio offrire i miei servizi"
+        }
+      },
+      "submitButton": "Crea account",
+      "hasAccount": "Hai già un account?",
+      "loginLink": "Accedi",
+      "terms": "Creando un account, accetti i nostri",
+      "termsLink": "termini di servizio",
+      "privacy": "e la nostra",
+      "privacyLink": "politica sulla privacy"
+    }
+  },
+  "roles": {
+    "client": {
+      "dashboard": {
+        "title": "Dashboard Cliente",
+        "welcome": "Benvenuto {name}",
+        "quickActions": "Azioni rapide",
+        "createAnnouncement": "Crea annuncio",
+        "bookService": "Prenota servizio",
+        "viewDeliveries": "Le mie consegne",
+        "viewBookings": "Le mie prenotazioni",
+        "stats": {
+          "activeDeliveries": "Consegne attive",
+          "completedDeliveries": "Consegne completate",
+          "totalSpent": "Totale speso",
+          "savedMoney": "Denaro risparmiato"
+        }
+      }
+    },
+    "deliverer": {
+      "dashboard": {
+        "title": "Dashboard Corriere",
+        "welcome": "Benvenuto {name}",
+        "validationStatus": "Stato validazione",
+        "earnings": "Guadagni mensili",
+        "activeDeliveries": "Consegne attive",
+        "totalDeliveries": "Totale consegne",
+        "rating": "Valutazione media"
+      }
+    }
+  },
+  "notifications": {
+    "title": "Notifiche",
+    "markAllRead": "Segna tutto come letto",
+    "noNotifications": "Nessuna notifica"
+  },
+  "payments": {
+    "title": "Pagamenti",
+    "card": {
+      "title": "Pagamento con carta",
+      "securePayment": "Pagamento sicuro",
+      "amount": "Importo",
+      "processingPayment": "Elaborazione...",
+      "payButton": "Paga {amount}"
+    }
+  },
+  "errors": {
+    "400": "Richiesta non valida",
+    "401": "Non autorizzato - Effettua l'accesso",
+    "403": "Accesso negato",
+    "404": "Pagina non trovata",
+    "500": "Errore interno del server",
+    "networkError": "Errore di rete",
+    "unknownError": "Errore sconosciuto"
+  },
+  "validation": {
+    "required": "Questo campo è obbligatorio",
+    "email": "Inserisci un'email valida",
+    "minLength": "Minimo {min} caratteri",
+    "maxLength": "Massimo {max} caratteri",
+    "pattern": "Formato non valido",
+    "numeric": "Inserisci un numero",
+    "positive": "Il valore deve essere positivo",
+    "phone": "Numero di telefono non valido"
+  }
+}

@@ -1,0 +1,167 @@
+{
+  "common": {
+    "loading": "Laden...",
+    "error": "Fehler",
+    "success": "Erfolg",
+    "cancel": "Abbrechen",
+    "confirm": "Bestätigen",
+    "save": "Speichern",
+    "edit": "Bearbeiten",
+    "delete": "Löschen",
+    "create": "Erstellen",
+    "update": "Aktualisieren",
+    "search": "Suchen",
+    "filter": "Filtern",
+    "reset": "Zurücksetzen",
+    "next": "Weiter",
+    "previous": "Zurück",
+    "close": "Schließen",
+    "view": "Ansehen",
+    "download": "Herunterladen",
+    "upload": "Hochladen",
+    "share": "Teilen",
+    "copy": "Kopieren",
+    "email": "E-Mail",
+    "password": "Passwort",
+    "firstName": "Vorname",
+    "lastName": "Nachname",
+    "phoneNumber": "Telefonnummer",
+    "address": "Adresse",
+    "city": "Stadt",
+    "postalCode": "Postleitzahl",
+    "country": "Land",
+    "description": "Beschreibung",
+    "price": "Preis",
+    "date": "Datum",
+    "time": "Zeit",
+    "status": "Status",
+    "actions": "Aktionen"
+  },
+  "navigation": {
+    "home": "Startseite",
+    "dashboard": "Dashboard",
+    "services": "Dienstleistungen",
+    "announcements": "Anzeigen",
+    "deliveries": "Lieferungen",
+    "bookings": "Buchungen",
+    "payments": "Zahlungen",
+    "profile": "Profil",
+    "settings": "Einstellungen",
+    "help": "Hilfe",
+    "logout": "Abmelden",
+    "login": "Anmelden",
+    "register": "Registrieren"
+  },
+  "auth": {
+    "login": {
+      "title": "Bei EcoDeli anmelden",
+      "subtitle": "Melden Sie sich in Ihrem Konto an",
+      "emailPlaceholder": "E-Mail eingeben",
+      "passwordPlaceholder": "Passwort eingeben",
+      "submitButton": "Anmelden",
+      "forgotPassword": "Passwort vergessen?",
+      "noAccount": "Noch kein Konto?",
+      "registerLink": "Konto erstellen",
+      "errors": {
+        "invalidCredentials": "Ungültige E-Mail oder Passwort",
+        "accountInactive": "Ihr Konto ist inaktiv",
+        "accountSuspended": "Ihr Konto ist gesperrt",
+        "emailNotVerified": "Bitte verifizieren Sie Ihre E-Mail"
+      }
+    },
+    "register": {
+      "title": "EcoDeli beitreten",
+      "subtitle": "Erstellen Sie Ihr Konto",
+      "chooseRole": "Wählen Sie Ihre Rolle",
+      "roles": {
+        "client": {
+          "title": "Kunde",
+          "description": "Ich möchte Lieferungen und Services bestellen"
+        },
+        "deliverer": {
+          "title": "Lieferant",
+          "description": "Ich möchte Lieferungen durchführen"
+        },
+        "merchant": {
+          "title": "Händler",
+          "description": "Ich möchte meine Produkte anbieten"
+        },
+        "provider": {
+          "title": "Dienstleister",
+          "description": "Ich möchte meine Services anbieten"
+        }
+      },
+      "submitButton": "Konto erstellen",
+      "hasAccount": "Bereits ein Konto?",
+      "loginLink": "Anmelden",
+      "terms": "Durch die Erstellung eines Kontos stimmen Sie unseren",
+      "termsLink": "Nutzungsbedingungen",
+      "privacy": "und unserer",
+      "privacyLink": "Datenschutzrichtlinie zu"
+    }
+  },
+  "roles": {
+    "client": {
+      "dashboard": {
+        "title": "Kunden-Dashboard",
+        "welcome": "Willkommen {name}",
+        "quickActions": "Schnellaktionen",
+        "createAnnouncement": "Anzeige erstellen",
+        "bookService": "Service buchen",
+        "viewDeliveries": "Meine Lieferungen",
+        "viewBookings": "Meine Buchungen",
+        "stats": {
+          "activeDeliveries": "Aktive Lieferungen",
+          "completedDeliveries": "Abgeschlossene Lieferungen",
+          "totalSpent": "Gesamt ausgegeben",
+          "savedMoney": "Gesparte Kosten"
+        }
+      }
+    },
+    "deliverer": {
+      "dashboard": {
+        "title": "Lieferanten-Dashboard",
+        "welcome": "Willkommen {name}",
+        "validationStatus": "Validierungsstatus",
+        "earnings": "Monatliche Einnahmen",
+        "activeDeliveries": "Aktive Lieferungen",
+        "totalDeliveries": "Gesamte Lieferungen",
+        "rating": "Durchschnittsbewertung"
+      }
+    }
+  },
+  "notifications": {
+    "title": "Benachrichtigungen",
+    "markAllRead": "Alle als gelesen markieren",
+    "noNotifications": "Keine Benachrichtigungen"
+  },
+  "payments": {
+    "title": "Zahlungen",
+    "card": {
+      "title": "Kartenzahlung",
+      "securePayment": "Sichere Zahlung",
+      "amount": "Betrag",
+      "processingPayment": "Verarbeitung...",
+      "payButton": "{amount} bezahlen"
+    }
+  },
+  "errors": {
+    "400": "Ungültige Anfrage",
+    "401": "Nicht autorisiert - Bitte anmelden",
+    "403": "Zugriff verweigert",
+    "404": "Seite nicht gefunden",
+    "500": "Interner Serverfehler",
+    "networkError": "Netzwerkfehler",
+    "unknownError": "Unbekannter Fehler"
+  },
+  "validation": {
+    "required": "Dieses Feld ist erforderlich",
+    "email": "Bitte geben Sie eine gültige E-Mail ein",
+    "minLength": "Mindestens {min} Zeichen",
+    "maxLength": "Maximal {max} Zeichen",
+    "pattern": "Ungültiges Format",
+    "numeric": "Bitte geben Sie eine Zahl ein",
+    "positive": "Wert muss positiv sein",
+    "phone": "Ungültige Telefonnummer"
+  }
+}

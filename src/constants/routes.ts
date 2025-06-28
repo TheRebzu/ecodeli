@@ -1,1 +1,0 @@
-export const ROUTES = {\n  HOME: '/',\n  LOGIN: '/login',\n  REGISTER: '/register',\n  CLIENT: '/client',\n  DELIVERER: '/deliverer',\n  MERCHANT: '/merchant',\n  PROVIDER: '/provider',\n  ADMIN: '/admin'\n};

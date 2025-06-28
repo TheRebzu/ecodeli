@@ -1,286 +1,307 @@
-'use client';
+/**
+ * Sidebar de base pour EcoDeli
+ * Utilise le composant Sidebar de shadcn/ui avec des améliorations spécifiques à EcoDeli
+ */
 
-import { useState, useEffect } from 'react';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { LogOut, Bell, ChevronLeft } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
-import { useAuth } from '@/hooks/use-auth';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { type ReactNode } from 'react'
+import Link from 'next/link'
+import { ChevronDown, ChevronRight, Circle } from 'lucide-react'
+import { cn } from '@/lib/utils'
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarMenuSub,
+  SidebarMenuSubButton,
+  SidebarMenuSubItem,
+  SidebarMenuBadge,
+  SidebarSeparator,
+} from '@/components/ui/sidebar'
+import { usePathname } from 'next/navigation'
+import { useState } from 'react'
+import { type BaseSidebarProps, type NavigationItem, type EcoDeliUser } from '../types/layout.types'
 
-export interface NavigationItem {
-  label: string;
-  href: string;
-  icon: React.ElementType;
-  badge?: number;
-  children?: NavigationItem[];
-  onClick?: () => void;
-}
-
-export interface SidebarSection {
-  title?: string;
-  items: NavigationItem[];
-}
-
-interface BaseSidebarProps {
-  locale: string;
-  sections: SidebarSection[];
-  logo?: React.ReactNode;
-  title: string;
-  userInfo?: {
-    name: string;
-    email: string;
-    avatar?: string;
-  };
-  footerActions?: React.ReactNode;
-  quickAction?: {
-    label: string;
-    icon: React.ElementType;
-    href: string;
-  };
-  subscriptionInfo?: {
-    plan: string;
-    href: string;
-  };
-  className?: string;
-  collapsible?: boolean;
-  defaultCollapsed?: boolean;
-  notifications?: number;
+// Configuration des icônes
+const getIcon = (iconName?: string) => {
+  // Retourne l'icône correspondante - à implémenter selon vos besoins
+  return iconName ? <Circle className="h-4 w-4" /> : null
 }
 
 export function BaseSidebar({
-  locale,
-  sections,
-  logo,
-  title,
-  userInfo,
-  footerActions,
-  quickAction,
-  subscriptionInfo,
-  className,
-  collapsible = true,
-  defaultCollapsed = false,
-  notifications = 0,
+  role,
+  user,
+  navigationItems,
+  collapsed = false,
+  onToggle,
+  className
 }: BaseSidebarProps) {
-  const pathname = usePathname();
-  const { logout } = useAuth();
-  const [collapsed, setCollapsed] = useState(defaultCollapsed);
-  const [mounted, setMounted] = useState(false);
-  const [windowWidth, setWindowWidth] = useState(0);
+  const pathname = usePathname()
+  const [expandedGroups, setExpandedGroups] = useState<string[]>([])
 
-  // Effet pour gérer le montage côté client et empêcher les problèmes d'hydratation
-  useEffect(() => {
-    setMounted(true);
-    setWindowWidth(window.innerWidth);
-    if (window.innerWidth < 1024) {
-      setCollapsed(false);
+  const isItemActive = (item: NavigationItem) => {
+    return pathname === item.href || pathname.startsWith(`${item.href}/`)
+  }
+
+  const toggleGroup = (groupKey: string) => {
+    setExpandedGroups(prev => 
+      prev.includes(groupKey) 
+        ? prev.filter(key => key !== groupKey)
+        : [...prev, groupKey]
+    )
+  }
+
+  const isGroupExpanded = (groupKey: string) => {
+    return expandedGroups.includes(groupKey)
+  }
+
+  // Grouper les éléments de navigation
+  const groupedItems = navigationItems.reduce((acc, item) => {
+    const category = item.category || 'main'
+    if (!acc[category]) {
+      acc[category] = []
     }
-  }, []);
-
-  // Effet pour gérer les changements de taille d'écran (après montage)
-  useEffect(() => {
-    if (!mounted) return;
-
-    const handleResize = () => {
-      setWindowWidth(window.innerWidth);
-      if (window.innerWidth < 1024) {
-        setCollapsed(false);
-      }
-    };
-
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, [mounted]);
-
-  const toggleCollapse = () => {
-    setCollapsed(!collapsed);
-  };
-
-  const handleLogout = () => {
-    console.log(`Déconnexion de l'utilisateur ${userInfo?.name}`);
-    logout();
-  };
-
-  // Fonction pour déterminer si un lien est actif
-  const isActive = (href: string) => {
-    if (href === `/${locale}`) return pathname === href;
-    return pathname.startsWith(href);
-  };
-
-  const defaultLogo = (
-    <div className="h-8 w-8 bg-primary rounded-full flex items-center justify-center">
-      <span className="text-primary-foreground font-bold">E</span>
-    </div>
-  );
+    acc[category].push(item)
+    return acc
+  }, {} as Record<string, NavigationItem[]>)
 
   return (
-    <nav
-      className={cn(
-        'h-full flex flex-col bg-background border-r transition-all duration-300',
-        collapsed ? 'w-[80px]' : 'w-[280px]',
-        className
-      )}
+    <Sidebar 
+      variant="sidebar" 
+      collapsible="icon"
+      className={cn("border-r border-border", className)}
     >
-      {/* En-tête de la Sidebar */}
-      <div className="p-4 border-b flex justify-between items-center">
-        <Link href={`/${locale}`} className="flex items-center gap-2">
-          {logo || defaultLogo}
-          {!collapsed && <span className="font-bold truncate">{title}</span>}
-        </Link>
-
-        <div className="flex items-center gap-2">
-          {!collapsed && notifications > 0 && mounted && (
-            <Button
-              variant="outline"
-              size="icon"
-              aria-label="Notifications"
-              className="relative"
-              asChild
-            >
-              <Link href={`/${locale}/notifications`}>
-                <Bell className="h-4 w-4" />
-                <span className="absolute -top-1 -right-1 h-4 w-4 bg-red-500 rounded-full text-[10px] text-white flex items-center justify-center">
-                  {notifications > 9 ? '9+' : notifications}
-                </span>
-              </Link>
-            </Button>
-          )}
-
-          {/* Afficher le bouton de collapse uniquement côté client après montage */}
-          {mounted && collapsible && windowWidth >= 1024 && (
-            <Button
-              variant="ghost"
-              size="icon"
-              aria-label={collapsed ? 'Déplier' : 'Replier'}
-              onClick={toggleCollapse}
-            >
-              <ChevronLeft
-                className={cn('h-4 w-4 transition-transform', collapsed && 'rotate-180')}
-              />
-            </Button>
-          )}
-        </div>
-      </div>
-
-      {/* Zone principale de navigation (scrollable) */}
-      <ScrollArea className="flex-1 overflow-auto py-2">
-        {sections.map((section, sectionIndex) => (
-          <div key={sectionIndex} className="mb-4">
-            {!collapsed && section.title && (
-              <h3 className="px-4 text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">
-                {section.title}
-              </h3>
-            )}
-            <div className="space-y-1">
-              {section.items.map((item, itemIndex) => (
-                <Link key={itemIndex} href={item.href} passHref onClick={item.onClick}>
-                  <Button
-                    variant="ghost"
-                    className={cn(
-                      'w-full justify-start',
-                      collapsed ? 'px-0 py-2 h-12 flex-col justify-center' : 'px-3 py-2',
-                      isActive(item.href) && 'bg-muted font-medium'
-                    )}
-                  >
-                    <item.icon className={cn('h-5 w-5', collapsed ? 'mx-auto' : 'mr-3')} />
-                    {!collapsed && <span className="truncate">{item.label}</span>}
-                    {!collapsed && item.badge && (
-                      <span className="ml-auto text-xs bg-primary/10 text-primary rounded-full px-2 py-0.5">
-                        {item.badge}
-                      </span>
-                    )}
-                    {collapsed && item.badge && (
-                      <span className="mt-1 text-xs bg-primary/10 text-primary rounded-full px-1.5 py-0">
-                        {item.badge}
-                      </span>
-                    )}
-                  </Button>
-                </Link>
-              ))}
-            </div>
+      {/* Header avec logo et info utilisateur */}
+      <SidebarHeader className="border-b border-border bg-muted/30">
+        <div className="flex items-center space-x-3 px-2 py-3">
+          <div className="w-8 h-8 bg-gradient-to-br from-green-600 to-blue-600 rounded-lg flex items-center justify-center flex-shrink-0">
+            <span className="text-white font-bold text-lg">E</span>
           </div>
-        ))}
-      </ScrollArea>
-
-      {/* Zone d'informations d'abonnement */}
-      {!collapsed && subscriptionInfo && mounted && (
-        <div className="px-4 py-3 border-t border-b">
-          <div className="flex items-center justify-between">
-            <div>
-              <span className="text-sm font-medium">Abonnement</span>
-              <div className="text-xs text-muted-foreground mt-1">{subscriptionInfo.plan}</div>
-            </div>
-            <Link href={subscriptionInfo.href}>
-              <Button variant="outline" size="sm" className="text-xs h-7 px-2">
-                Gérer
-              </Button>
-            </Link>
+          <div className="flex-1 min-w-0 group-data-[collapsible=icon]:hidden">
+            <p className="font-semibold text-foreground truncate">EcoDeli</p>
+            <p className="text-xs text-muted-foreground capitalize">
+              {role.toLowerCase()}
+            </p>
           </div>
         </div>
-      )}
-
-      {/* Action rapide */}
-      {!collapsed && quickAction && mounted && (
-        <div className="p-4">
-          <Button className="w-full" size="sm" asChild>
-            <Link href={quickAction.href}>
-              <quickAction.icon className="h-4 w-4 mr-2" />
-              {quickAction.label}
-            </Link>
-          </Button>
-        </div>
-      )}
-
-      {/* Pied de la Sidebar avec profil utilisateur et déconnexion */}
-      <div className={cn('border-t', collapsed ? 'p-2' : 'p-4')}>
-        {userInfo && (
-          <>
-            <div className={cn('flex items-center gap-3 mb-4', collapsed && 'flex-col')}>
-              <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center overflow-hidden">
-                {userInfo.avatar ? (
-                  <img
-                    src={userInfo.avatar}
-                    alt={userInfo.name}
-                    className="h-full w-full object-cover"
-                  />
-                ) : (
-                  <span className="font-medium text-sm">
-                    {userInfo.name
-                      .split(' ')
-                      .map(n => n[0])
-                      .join('')
-                      .toUpperCase()}
+        
+        {/* Info utilisateur condensée */}
+        {user && (
+          <div className="px-2 pb-2 group-data-[collapsible=icon]:hidden">
+            <div className="flex items-center space-x-2 p-2 bg-background rounded-md">
+              {user.avatar ? (
+                <img
+                  src={user.avatar}
+                  alt={user.name || user.email}
+                  className="w-6 h-6 rounded-full"
+                />
+              ) : (
+                <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center">
+                  <span className="text-xs text-primary-foreground font-medium">
+                    {(user.name || user.email).charAt(0).toUpperCase()}
                   </span>
-                )}
-              </div>
-              {!collapsed && (
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate">{userInfo.name}</p>
-                  <p className="text-xs text-muted-foreground truncate">{userInfo.email}</p>
                 </div>
               )}
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-medium text-foreground truncate">
+                  {user.name || user.email.split('@')[0]}
+                </p>
+                <div className="flex items-center space-x-1">
+                  <div className={cn(
+                    "w-2 h-2 rounded-full",
+                    user.validationStatus === 'VALIDATED' ? "bg-green-500" : 
+                    user.validationStatus === 'PENDING_VALIDATION' ? "bg-yellow-500" : "bg-gray-400"
+                  )} />
+                  <span className="text-xs text-muted-foreground">
+                    {user.validationStatus === 'VALIDATED' ? 'Vérifié' : 
+                     user.validationStatus === 'PENDING_VALIDATION' ? 'En attente' : 'Non vérifié'}
+                  </span>
+                </div>
+              </div>
             </div>
-            {!collapsed && <Separator className="my-4" />}
-          </>
+          </div>
         )}
+      </SidebarHeader>
 
-        {!collapsed && footerActions}
+      {/* Navigation principale */}
+      <SidebarContent className="p-2">
+        {Object.entries(groupedItems).map(([category, items], index) => (
+          <div key={category}>
+            {index > 0 && <SidebarSeparator />}
+            
+            <SidebarGroup>
+              {category !== 'main' && (
+                <SidebarGroupLabel className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                  {category}
+                </SidebarGroupLabel>
+              )}
+              
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {items.map((item) => (
+                    <NavigationMenuItem 
+                      key={item.key} 
+                      item={item} 
+                      isActive={isItemActive(item)}
+                      isExpanded={isGroupExpanded(item.key)}
+                      onToggle={() => toggleGroup(item.key)}
+                    />
+                  ))}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+          </div>
+        ))}
+      </SidebarContent>
 
-        <Button
-          variant="outline"
-          size={collapsed ? 'icon' : 'default'}
-          className={cn(
-            'text-muted-foreground',
-            collapsed ? 'w-full h-10 px-0' : 'w-full justify-start'
+      {/* Footer avec version et support */}
+      <SidebarFooter className="border-t border-border bg-muted/30 p-2">
+        <div className="group-data-[collapsible=icon]:hidden space-y-2">
+          <div className="text-xs text-muted-foreground text-center">
+            <p>EcoDeli v1.0.0</p>
+            <Link 
+              href="/support" 
+              className="text-primary hover:underline"
+            >
+              Support
+            </Link>
+          </div>
+        </div>
+      </SidebarFooter>
+    </Sidebar>
+  )
+}
+
+/**
+ * Élément de navigation individuel
+ */
+function NavigationMenuItem({
+  item,
+  isActive,
+  isExpanded,
+  onToggle
+}: {
+  item: NavigationItem
+  isActive: boolean
+  isExpanded: boolean
+  onToggle: () => void
+}) {
+  const hasChildren = item.children && item.children.length > 0
+
+  return (
+    <SidebarMenuItem>
+      {hasChildren ? (
+        <>
+          {/* Élément parent avec sous-éléments */}
+          <SidebarMenuButton
+            onClick={onToggle}
+            isActive={isActive}
+            className="group/menu-item"
+          >
+            {getIcon(item.icon)}
+            <span className="flex-1">{item.label}</span>
+            
+            {/* Badge de notification */}
+            {item.badge && (
+              <SidebarMenuBadge>
+                {item.badge}
+              </SidebarMenuBadge>
+            )}
+            
+            {/* Icône d'expansion */}
+            {isExpanded ? (
+              <ChevronDown className="h-4 w-4 transition-transform" />
+            ) : (
+              <ChevronRight className="h-4 w-4 transition-transform" />
+            )}
+          </SidebarMenuButton>
+
+          {/* Sous-menu */}
+          {isExpanded && item.children && (
+            <SidebarMenuSub>
+              {item.children.map((child) => (
+                <SidebarMenuSubItem key={child.key}>
+                  <SidebarMenuSubButton
+                    asChild
+                    isActive={pathname === child.href}
+                  >
+                    <Link href={child.href}>
+                      {getIcon(child.icon)}
+                      <span>{child.label}</span>
+                      {child.badge && (
+                        <span className="ml-auto bg-primary/10 text-primary text-xs px-1.5 py-0.5 rounded">
+                          {child.badge}
+                        </span>
+                      )}
+                    </Link>
+                  </SidebarMenuSubButton>
+                </SidebarMenuSubItem>
+              ))}
+            </SidebarMenuSub>
           )}
-          onClick={handleLogout}
-        >
-          <LogOut className={cn('h-4 w-4', collapsed ? 'mx-auto' : 'mr-2')} />
-          {!collapsed && 'Déconnexion'}
-        </Button>
-      </div>
-    </nav>
-  );
+        </>
+      ) : (
+        <>
+          {/* Élément simple */}
+          <SidebarMenuButton
+            asChild
+            isActive={isActive}
+            tooltip={item.label}
+          >
+            <Link href={item.href}>
+              {getIcon(item.icon)}
+              <span>{item.label}</span>
+              {item.badge && (
+                <SidebarMenuBadge>
+                  {item.badge}
+                </SidebarMenuBadge>
+              )}
+            </Link>
+          </SidebarMenuButton>
+        </>
+      )}
+    </SidebarMenuItem>
+  )
+}
+
+/**
+ * Sidebar vide pour les états de chargement
+ */
+export function SidebarSkeleton() {
+  return (
+    <Sidebar variant="sidebar" collapsible="icon">
+      <SidebarHeader className="border-b border-border bg-muted/30">
+        <div className="flex items-center space-x-3 px-2 py-3">
+          <div className="w-8 h-8 bg-muted rounded-lg animate-pulse" />
+          <div className="flex-1 space-y-1 group-data-[collapsible=icon]:hidden">
+            <div className="h-4 bg-muted rounded animate-pulse" />
+            <div className="h-3 bg-muted rounded w-2/3 animate-pulse" />
+          </div>
+        </div>
+      </SidebarHeader>
+      
+      <SidebarContent className="p-2">
+        <SidebarGroup>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {Array.from({ length: 6 }).map((_, i) => (
+                <SidebarMenuItem key={i}>
+                  <div className="flex items-center space-x-2 p-2">
+                    <div className="w-4 h-4 bg-muted rounded animate-pulse" />
+                    <div className="h-4 bg-muted rounded flex-1 animate-pulse" />
+                  </div>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+      </SidebarContent>
+    </Sidebar>
+  )
 }

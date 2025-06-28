@@ -1,43 +1,33 @@
-'use client';
+'use client'
 
-import { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react'
 
 /**
- * Hook pour détecter si une media query correspond à l'écran actuel
- * @param query La media query à vérifier (ex: '(max-width: 768px)')
- * @returns Booléen indiquant si la media query correspond
+ * Hook pour détecter les media queries
+ * Utilisé pour le responsive design et l'état mobile
  */
 export function useMediaQuery(query: string): boolean {
-  // État initial à false (par défaut, la requête ne correspond pas)
-  const [matches, setMatches] = useState(false);
+  const [matches, setMatches] = useState(false)
 
   useEffect(() => {
-    // Vérifier si window est disponible (côté client uniquement)
-    if (typeof window === 'undefined') {
-      return;
+    const mediaQuery = window.matchMedia(query)
+    
+    // Définir l'état initial
+    setMatches(mediaQuery.matches)
+    
+    // Fonction de callback pour les changements
+    const handleChange = (event: MediaQueryListEvent) => {
+      setMatches(event.matches)
     }
-
-    // Créer le media query matcher
-    const media = window.matchMedia(query);
-
-    // Mettre à jour l'état initial
-    setMatches(media.matches);
-
-    // Fonction de callback pour les changements de media query
-    const listener = (event: MediaQueryListEvent) => {
-      setMatches(event.matches);
-    };
-
+    
     // Ajouter l'écouteur d'événements
-    media.addEventListener('change', listener);
-
-    // Nettoyer l'écouteur lors du démontage du composant
+    mediaQuery.addEventListener('change', handleChange)
+    
+    // Nettoyer l'écouteur lors du démontage
     return () => {
-      media.removeEventListener('change', listener);
-    };
-  }, [query]); // Recréer l'effet si la requête change
+      mediaQuery.removeEventListener('change', handleChange)
+    }
+  }, [query])
 
-  return matches;
+  return matches
 }
-
-export default useMediaQuery;

@@ -1,1 +1,0 @@
-export function MessageBubble({ message, isOwn }) {\n  return <div className={message }>{message.content}</div>;\n}

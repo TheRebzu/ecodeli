@@ -1,573 +1,308 @@
-'use client';
+"use client"
 
-import { useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
-import Link from 'next/link';
-import { UserRole, UserStatus } from '@prisma/client';
-import { format } from 'date-fns';
-import {
-  ArrowLeft,
-  Calendar,
-  Mail,
-  Phone,
-  Shield,
-  User as UserIcon,
-  MapPin,
-  Check,
-  X,
-} from 'lucide-react';
+import { useState, useEffect } from "react"
+import { useParams, useRouter } from "next/navigation"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
+import { Separator } from "@/components/ui/separator"
+import { 
+  ArrowLeft, User, Mail, Phone, MapPin, Calendar, Edit, Trash2, CheckCircle, XCircle
+} from "lucide-react"
 
-import { api } from '@/trpc/react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
-import { Skeleton } from '@/components/ui/skeleton';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
-import ForceActivateDelivererButton from '@/components/admin/users/force-activate-deliverer-button';
+interface UserProfile {
+  id: string
+  email: string
+  role: 'CLIENT' | 'DELIVERER' | 'MERCHANT' | 'PROVIDER' | 'ADMIN'
+  firstName?: string
+  lastName?: string
+  phone?: string
+  address?: string
+  city?: string
+  postalCode?: string
+  country?: string
+  emailVerified: boolean
+  isActive: boolean
+  createdAt: string
+  lastLoginAt?: string
+}
 
-export default function UserDetailPage() {
-  const router = useRouter();
-  const params = useParams();
-  const userId = params.id as string;
-  const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false);
-  const [dialogAction, setDialogAction] = useState<{
-    title: string;
-    description: string;
-    action: () => void;
-  } | null>(null);
+export default function AdminUserProfilePage() {
+  const params = useParams()
+  const router = useRouter()
+  const [user, setUser] = useState<UserProfile | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
-  const { data: user, isLoading } = api.adminUser.getUserDetail.useQuery({ userId });
-  const updateUserStatusMutation = api.adminUser.updateUserStatus.useMutation({
-    onSuccess: () => {
-      router.refresh();
-    },
-  });
+  const userId = params.id as string
 
-  // Helper functions to show status/role badges
-  const getStatusBadge = (status: UserStatus) => {
-    switch (status) {
-      case UserStatus.ACTIVE:
-        return <Badge className="bg-green-500">Active</Badge>;
-      case UserStatus.PENDING_VERIFICATION:
-        return <Badge className="bg-yellow-500">Pending Verification</Badge>;
-      case UserStatus.SUSPENDED:
-        return <Badge className="bg-red-500">Suspended</Badge>;
-      case UserStatus.INACTIVE:
-        return <Badge className="bg-gray-500">Inactive</Badge>;
-      default:
-        return <Badge>{status}</Badge>;
+  const fetchUserProfile = async () => {
+    try {
+      setIsLoading(true)
+      setError(null)
+      
+      console.log('🔍 Fetching user profile:', userId)
+      
+      const response = await fetch(`/api/admin/users/${userId}`, {
+        credentials: 'include',
+      })
+      
+      console.log('🌐 Profile response status:', response.status)
+      
+      if (!response.ok) {
+        if (response.status === 404) {
+          setError('Utilisateur non trouvé')
+          return
+        }
+        if (response.status === 403) {
+          setError('Accès refusé - permissions insuffisantes')
+          return
+        }
+        throw new Error(`Erreur ${response.status}`)
+      }
+      
+      const data = await response.json()
+      console.log('📊 Profile data:', data)
+      
+      if (data.success) {
+        setUser(data.user)
+      } else {
+        setError(data.error || 'Erreur lors du chargement')
+      }
+    } catch (error) {
+      console.error('💥 Erreur profile:', error)
+      setError('Erreur de connexion')
+    } finally {
+      setIsLoading(false)
     }
-  };
+  }
 
-  const getRoleBadge = (role: UserRole) => {
+  useEffect(() => {
+    if (userId) {
+      fetchUserProfile()
+    }
+  }, [userId])
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('fr-FR', {
+      day: '2-digit',
+      month: '2-digit', 
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    })
+  }
+
+  const getRoleBadgeVariant = (role: string) => {
     switch (role) {
-      case UserRole.ADMIN:
-        return <Badge className="bg-purple-500">Administrator</Badge>;
-      case UserRole.CLIENT:
-        return <Badge className="bg-blue-500">Client</Badge>;
-      case UserRole.DELIVERER:
-        return <Badge className="bg-green-500">Deliverer</Badge>;
-      case UserRole.MERCHANT:
-        return <Badge className="bg-orange-500">Merchant</Badge>;
-      case UserRole.PROVIDER:
-        return <Badge className="bg-teal-500">Provider</Badge>;
-      default:
-        return <Badge>{role}</Badge>;
+      case 'ADMIN': return 'destructive'
+      case 'DELIVERER': return 'default'
+      case 'MERCHANT': return 'secondary'
+      case 'PROVIDER': return 'outline'
+      case 'CLIENT': return 'default'
+      default: return 'default'
     }
-  };
-
-  // Functions to handle user actions
-  const handleActivateUser = () => {
-    setDialogAction({
-      title: 'Activate User Account',
-      description: 'Are you sure you want to activate this user account?',
-      action: () => {
-        updateUserStatusMutation.mutate({
-          userId,
-          status: UserStatus.ACTIVE,
-        });
-        setIsDialogOpen(false);
-      },
-    });
-    setIsDialogOpen(true);
-  };
-
-  const handleSuspendUser = () => {
-    setDialogAction({
-      title: 'Suspend User Account',
-      description:
-        'Are you sure you want to suspend this user account? The user will lose access to the platform.',
-      action: () => {
-        updateUserStatusMutation.mutate({
-          userId,
-          status: UserStatus.SUSPENDED,
-        });
-        setIsDialogOpen(false);
-      },
-    });
-    setIsDialogOpen(true);
-  };
+  }
 
   if (isLoading) {
     return (
-      <div className="container mx-auto py-6 space-y-6">
-        <div className="flex items-center gap-2">
-          <Button variant="ghost" size="icon" onClick={() => router.back()}>
-            <ArrowLeft className="h-4 w-4" />
+      <div className="space-y-6">
+        <div className="flex items-center gap-4">
+          <Button variant="outline" size="sm" onClick={() => router.back()}>
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Retour
           </Button>
-          <Skeleton className="h-8 w-64" />
+        </div>
+        <div className="flex items-center justify-center py-12">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-600 mx-auto"></div>
+            <p className="mt-2 text-gray-600">Chargement du profil...</p>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center gap-4">
+          <Button variant="outline" size="sm" onClick={() => router.back()}>
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Retour
+          </Button>
         </div>
         <Card>
-          <CardHeader>
-            <Skeleton className="h-8 w-48" />
-            <Skeleton className="h-5 w-72" />
-          </CardHeader>
-          <CardContent className="space-y-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <Skeleton className="h-32 w-full" />
-              <Skeleton className="h-32 w-full" />
+          <CardContent className="p-6">
+            <div className="text-center">
+              <XCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">Erreur</h3>
+              <p className="text-gray-600">{error}</p>
             </div>
-            <Skeleton className="h-64 w-full" />
           </CardContent>
         </Card>
       </div>
-    );
+    )
   }
 
   if (!user) {
-    return (
-      <div className="container mx-auto py-6 space-y-6">
-        <div className="flex items-center gap-2">
-          <Button variant="ghost" size="icon" onClick={() => router.back()}>
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-          <h1 className="text-3xl font-bold tracking-tight">User Not Found</h1>
-        </div>
-        <Card>
-          <CardContent className="flex flex-col items-center justify-center h-64">
-            <h2 className="text-xl font-semibold mb-4">The requested user could not be found</h2>
-            <Button asChild>
-              <Link href="/admin/users">Back to User Management</Link>
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
+    return null
   }
 
-  const isVerified =
-    user.role === UserRole.CLIENT || user.role === UserRole.ADMIN
-      ? true
-      : user.role === UserRole.DELIVERER && user.deliverer
-        ? user.deliverer.isVerified
-        : user.role === UserRole.MERCHANT && user.merchant
-          ? user.merchant.isVerified
-          : user.role === UserRole.PROVIDER && user.provider
-            ? user.provider.isVerified
-            : false;
-
   return (
-    <div className="container mx-auto py-6 space-y-6">
-      <div className="flex items-center gap-2">
-        <Button variant="ghost" size="icon" onClick={() => router.back()}>
-          <ArrowLeft className="h-4 w-4" />
-        </Button>
-        <h1 className="text-3xl font-bold tracking-tight">User Details</h1>
+    <div className="space-y-6">
+      {/* Header avec actions */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <Button variant="outline" size="sm" onClick={() => router.back()}>
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Retour
+          </Button>
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">
+              {user.firstName} {user.lastName}
+            </h1>
+            <p className="text-gray-600">{user.email}</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => router.push(`/fr/admin/users/${user.id}/edit`)}
+          >
+            <Edit className="h-4 w-4 mr-2" />
+            Modifier
+          </Button>
+          <Button 
+            variant="outline" 
+            size="sm"
+          >
+            {user.emailVerified ? (
+              <>
+                <XCircle className="h-4 w-4 mr-2" />
+                Marquer non vérifié
+              </>
+            ) : (
+              <>
+                <CheckCircle className="h-4 w-4 mr-2" />
+                Marquer vérifié
+              </>
+            )}
+          </Button>
+          <Button 
+            variant="destructive" 
+            size="sm"
+          >
+            <Trash2 className="h-4 w-4 mr-2" />
+            Supprimer
+          </Button>
+        </div>
       </div>
 
-      <Card>
-        <CardHeader>
-          <div className="flex justify-between items-start">
-            <div>
-              <CardTitle className="text-2xl">{user.name}</CardTitle>
-              <CardDescription className="mt-1 flex items-center gap-2 text-base">
-                {getRoleBadge(user.role)}
-                {getStatusBadge(user.status)}
-                {isVerified ? (
-                  <Badge variant="outline" className="border-green-500 text-green-500">
-                    <Check className="mr-1 h-3 w-3" />
-                    Verified
-                  </Badge>
-                ) : (
-                  <Badge variant="outline" className="border-yellow-500 text-yellow-500">
-                    <X className="mr-1 h-3 w-3" />
-                    Not Verified
-                  </Badge>
-                )}
-              </CardDescription>
-            </div>
-            <div className="flex gap-2">
-              {user.status !== UserStatus.ACTIVE && (
-                <Button onClick={handleActivateUser} className="bg-green-500 hover:bg-green-600">
-                  Activate
-                </Button>
-              )}
-              {user.status !== UserStatus.SUSPENDED && (
-                <Button onClick={handleSuspendUser} variant="destructive">
-                  Suspend
-                </Button>
-              )}
-              <Button variant="outline" asChild>
-                <Link href={`/admin/users/${userId}/edit`}>Edit</Link>
-              </Button>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-8">
-          <Tabs defaultValue="information" className="w-full">
-            <TabsList>
-              <TabsTrigger value="information">Information</TabsTrigger>
-              <TabsTrigger value="activity">Activity</TabsTrigger>
-              {user.role === UserRole.ADMIN && (
-                <TabsTrigger value="permissions">Permissions</TabsTrigger>
-              )}
-              {user.role === UserRole.DELIVERER && (
-                <TabsTrigger value="deliveries">Deliveries</TabsTrigger>
-              )}
-              {user.role === UserRole.MERCHANT && (
-                <TabsTrigger value="contracts">Contracts</TabsTrigger>
-              )}
-              {user.role === UserRole.PROVIDER && (
-                <TabsTrigger value="services">Services</TabsTrigger>
-              )}
-            </TabsList>
-
-            <TabsContent value="information" className="space-y-6 mt-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg">User Information</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="flex items-center gap-2">
-                      <UserIcon className="h-4 w-4 text-muted-foreground" />
-                      <span className="font-semibold">Name:</span>
-                      <span>{user.name}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Mail className="h-4 w-4 text-muted-foreground" />
-                      <span className="font-semibold">Email:</span>
-                      <span>{user.email}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Phone className="h-4 w-4 text-muted-foreground" />
-                      <span className="font-semibold">Phone:</span>
-                      <span>{user.phoneNumber || 'Not provided'}</span>
-                    </div>
-                    {user.client?.address ||
-                    user.deliverer?.address ||
-                    user.merchant?.address ||
-                    user.provider?.address ? (
-                      <div className="flex items-center gap-2">
-                        <MapPin className="h-4 w-4 text-muted-foreground" />
-                        <span className="font-semibold">Address:</span>
-                        <span>
-                          {user.client?.address ||
-                            user.deliverer?.address ||
-                            user.merchant?.address ||
-                            user.provider?.address}
-                        </span>
-                      </div>
-                    ) : null}
-                    <div className="flex items-center gap-2">
-                      <Shield className="h-4 w-4 text-muted-foreground" />
-                      <span className="font-semibold">2FA:</span>
-                      <span>{user.twoFactorEnabled ? 'Enabled' : 'Disabled'}</span>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg">Account Details</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="flex items-center gap-2">
-                      <Calendar className="h-4 w-4 text-muted-foreground" />
-                      <span className="font-semibold">Created:</span>
-                      <span>{format(new Date(user.createdAt), 'PPP')}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Calendar className="h-4 w-4 text-muted-foreground" />
-                      <span className="font-semibold">Last Updated:</span>
-                      <span>{format(new Date(user.updatedAt), 'PPP')}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Calendar className="h-4 w-4 text-muted-foreground" />
-                      <span className="font-semibold">Last Login:</span>
-                      <span>
-                        {user.lastLoginAt ? format(new Date(user.lastLoginAt), 'PPP') : 'Never'}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Calendar className="h-4 w-4 text-muted-foreground" />
-                      <span className="font-semibold">Email Verified:</span>
-                      <span>
-                        {user.emailVerified
-                          ? format(new Date(user.emailVerified), 'PPP')
-                          : 'Not verified'}
-                      </span>
-                    </div>
-                  </CardContent>
-                </Card>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Informations générales */}
+        <div className="lg:col-span-2 space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <User className="h-5 w-5" />
+                Informations générales
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium text-gray-500">Email</label>
+                  <div className="flex items-center gap-2 mt-1">
+                    <Mail className="h-4 w-4 text-gray-400" />
+                    <span>{user.email}</span>
+                    {user.emailVerified ? (
+                      <CheckCircle className="h-4 w-4 text-green-500" />
+                    ) : (
+                      <XCircle className="h-4 w-4 text-red-500" />
+                    )}
+                  </div>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-500">Rôle</label>
+                  <div className="mt-1">
+                    <Badge variant={getRoleBadgeVariant(user.role) as any}>
+                      {user.role}
+                    </Badge>
+                  </div>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-500">Prénom</label>
+                  <p className="mt-1">{user.firstName || 'Non renseigné'}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-500">Nom</label>
+                  <p className="mt-1">{user.lastName || 'Non renseigné'}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-500">Téléphone</label>
+                  <div className="flex items-center gap-2 mt-1">
+                    <Phone className="h-4 w-4 text-gray-400" />
+                    <span>{user.phone || 'Non renseigné'}</span>
+                  </div>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-500">Statut</label>
+                  <div className="mt-1">
+                    <Badge variant={user.isActive ? "default" : "secondary"}>
+                      {user.isActive ? "Actif" : "Inactif"}
+                    </Badge>
+                  </div>
+                </div>
               </div>
-
-              {/* Role-specific information */}
-              {user.role === UserRole.DELIVERER && user.deliverer && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg">Deliverer Information</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div>
-                      <span className="font-semibold">Vehicle Type:</span>
-                      <span className="ml-2">{user.deliverer.vehicleType || 'Not specified'}</span>
-                    </div>
-                    <div>
-                      <span className="font-semibold">License Plate:</span>
-                      <span className="ml-2">{user.deliverer.licensePlate || 'Not specified'}</span>
-                    </div>
-                    <div>
-                      <span className="font-semibold">Max Capacity:</span>
-                      <span className="ml-2">
-                        {user.deliverer.maxCapacity
-                          ? `${user.deliverer.maxCapacity} kg`
-                          : 'Not specified'}
-                      </span>
-                    </div>
-                    <div>
-                      <span className="font-semibold">Status:</span>
-                      <Badge
-                        className={`ml-2 ${user.deliverer.isActive ? 'bg-green-500' : 'bg-gray-500'}`}
-                      >
-                        {user.deliverer.isActive ? 'Active' : 'Inactive'}
-                      </Badge>
-                    </div>
-                    <div>
-                      <span className="font-semibold">Verification Date:</span>
-                      <span className="ml-2">
-                        {user.deliverer.verificationDate
-                          ? format(new Date(user.deliverer.verificationDate), 'PPP')
-                          : 'Not verified yet'}
-                      </span>
-                    </div>
-                    <div>
-                      <span className="font-semibold">Rating:</span>
-                      <span className="ml-2">
-                        {user.deliverer.rating ? `${user.deliverer.rating} / 5` : 'No ratings yet'}
-                      </span>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-
-              {user.role === UserRole.MERCHANT && user.merchant && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg">Merchant Information</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div>
-                      <span className="font-semibold">Company Name:</span>
-                      <span className="ml-2">{user.merchant.companyName}</span>
-                    </div>
-                    <div>
-                      <span className="font-semibold">Business Type:</span>
-                      <span className="ml-2">{user.merchant.businessType || 'Not specified'}</span>
-                    </div>
-                    <div>
-                      <span className="font-semibold">VAT Number:</span>
-                      <span className="ml-2">{user.merchant.vatNumber || 'Not specified'}</span>
-                    </div>
-                    <div>
-                      <span className="font-semibold">Verification Status:</span>
-                      <Badge
-                        className={`ml-2 ${user.merchant.isVerified ? 'bg-green-500' : 'bg-yellow-500'}`}
-                      >
-                        {user.merchant.isVerified ? 'Verified' : 'Pending Verification'}
-                      </Badge>
-                    </div>
-                    <div>
-                      <span className="font-semibold">Verification Date:</span>
-                      <span className="ml-2">
-                        {user.merchant.verificationDate
-                          ? format(new Date(user.merchant.verificationDate), 'PPP')
-                          : 'Not verified yet'}
-                      </span>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-
-              {user.role === UserRole.PROVIDER && user.provider && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg">Provider Information</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div>
-                      <span className="font-semibold">Company Name:</span>
-                      <span className="ml-2">{user.provider.companyName || 'Not specified'}</span>
-                    </div>
-                    <div>
-                      <span className="font-semibold">Service Type:</span>
-                      <span className="ml-2">{user.provider.serviceType || 'Not specified'}</span>
-                    </div>
-                    <div>
-                      <span className="font-semibold">Offered Services:</span>
-                      <div className="mt-1 flex flex-wrap gap-1">
-                        {user.provider.services.length > 0
-                          ? user.provider.services.map((service, index) => (
-                              <Badge key={index} variant="secondary">
-                                {service}
-                              </Badge>
-                            ))
-                          : 'No services listed'}
-                      </div>
-                    </div>
-                    <div>
-                      <span className="font-semibold">Verification Status:</span>
-                      <Badge
-                        className={`ml-2 ${user.provider.isVerified ? 'bg-green-500' : 'bg-yellow-500'}`}
-                      >
-                        {user.provider.isVerified ? 'Verified' : 'Pending Verification'}
-                      </Badge>
-                    </div>
-                    <div>
-                      <span className="font-semibold">Rating:</span>
-                      <span className="ml-2">
-                        {user.provider.rating ? `${user.provider.rating} / 5` : 'No ratings yet'}
-                      </span>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-
-              {user.role === UserRole.ADMIN && user.admin && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg">Administrator Information</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div>
-                      <span className="font-semibold">Department:</span>
-                      <span className="ml-2">{user.admin.department || 'Not specified'}</span>
-                    </div>
-                    <div>
-                      <span className="font-semibold">2FA Status:</span>
-                      <Badge
-                        className={`ml-2 ${user.admin.twoFactorEnabled ? 'bg-green-500' : 'bg-red-500'}`}
-                      >
-                        {user.admin.twoFactorEnabled ? 'Enabled' : 'Disabled'}
-                      </Badge>
-                    </div>
-                    <div>
-                      <span className="font-semibold">Permissions:</span>
-                      <div className="mt-1 flex flex-wrap gap-1">
-                        {user.admin.permissions.length > 0
-                          ? user.admin.permissions.map((permission, index) => (
-                              <Badge key={index} variant="secondary">
-                                {permission}
-                              </Badge>
-                            ))
-                          : 'No specific permissions'}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-            </TabsContent>
-
-            <TabsContent value="activity" className="mt-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Recent Activity</CardTitle>
-                  <CardDescription>Recent login and system activity for this user</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex flex-col gap-4">
-                    <div className="flex items-center justify-between gap-4">
-                      <div className="flex items-center gap-4">
-                        <div className="bg-green-500/20 rounded-full p-3">
-                          <UserIcon className="h-5 w-5 text-green-500" />
-                        </div>
-                        <div>
-                          <h3 className="font-medium">Login</h3>
-                          <p className="text-sm text-muted-foreground">
-                            User logged in successfully
-                          </p>
-                        </div>
-                      </div>
-                      <span className="text-sm text-muted-foreground">
-                        {user.lastLoginAt
-                          ? format(new Date(user.lastLoginAt), 'PPP p')
-                          : format(new Date(), 'PPP p')}
-                      </span>
-                    </div>
-                    <Separator />
-
-                    <div className="text-center text-muted-foreground py-8">
-                      Activity log functionality to be implemented with ActivityLog model
+              
+              {(user.address || user.city || user.postalCode) && (
+                <>
+                  <Separator />
+                  <div>
+                    <label className="text-sm font-medium text-gray-500 flex items-center gap-2 mb-2">
+                      <MapPin className="h-4 w-4" />
+                      Adresse
+                    </label>
+                    <div className="text-sm">
+                      {user.address && <p>{user.address}</p>}
+                      {(user.postalCode || user.city) && (
+                        <p>{user.postalCode} {user.city}</p>
+                      )}
+                      {user.country && <p>{user.country}</p>}
                     </div>
                   </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            {user.role === UserRole.ADMIN && (
-              <TabsContent value="permissions" className="mt-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg">Admin Permissions</CardTitle>
-                    <CardDescription>
-                      Manage permissions for this administrator account
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-center text-muted-foreground py-8">
-                      Permission management UI to be implemented
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-            )}
-          </Tabs>
-        </CardContent>
-      </Card>
-
-      {/* Confirmation Dialog */}
-      <AlertDialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        {dialogAction && (
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>{dialogAction.title}</AlertDialogTitle>
-              <AlertDialogDescription>{dialogAction.description}</AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={dialogAction.action}>Continue</AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        )}
-      </AlertDialog>
-
-      {user.role === UserRole.DELIVERER && (
-        <div className="mt-4">
-          <h3 className="text-lg font-semibold mb-2">Actions spéciales</h3>
-          <ForceActivateDelivererButton userId={user.id} />
+                </>
+              )}
+            </CardContent>
+          </Card>
         </div>
-      )}
+
+        {/* Sidebar - Dates */}
+        <div className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Calendar className="h-5 w-5" />
+                Dates importantes
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <label className="text-sm font-medium text-gray-500">Inscription</label>
+                <p className="mt-1 text-sm">{formatDate(user.createdAt)}</p>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-500">Dernière connexion</label>
+                <p className="mt-1 text-sm">
+                  {user.lastLoginAt ? formatDate(user.lastLoginAt) : 'Jamais'}
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
     </div>
-  );
-}
+  )
+} 

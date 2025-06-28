@@ -1,0 +1,329 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# EcoDeli - Structure API Routes
+
+## Architecture API Routes
+
+### 1. Authentification
+```
+/api/auth/
+├── register/route.ts       # POST - Inscription utilisateur
+├── login/route.ts          # POST - Connexion
+├── logout/route.ts         # POST - Déconnexion
+└── [...all]/route.ts       # Better-Auth configuration
+```
+
+### 2. Gestion Utilisateurs
+```
+/api/users/
+├── profile/route.ts        # GET/PUT - Profil utilisateur
+├── [id]/
+│   ├── route.ts           # GET/PUT/DELETE - Utilisateur spécifique
+│   ├── documents/route.ts  # GET/POST - Documents utilisateur
+│   └── validate/route.ts   # POST - Validation utilisateur (admin)
+└── [role]/route.ts         # GET - Utilisateurs par rôle
+```
+
+### 3. Annonces
+```
+/api/announcements/
+├── route.ts               # GET/POST - Liste/Créer annonces
+├── [id]/route.ts          # GET/PUT/DELETE - Annonce spécifique
+└── matching/route.ts      # POST - Matching annonces/trajets
+```
+
+### 4. Livraisons
+```
+/api/deliveries/
+├── route.ts               # GET/POST - Liste/Créer livraisons
+├── [id]/
+│   ├── route.ts           # GET/PUT - Livraison spécifique
+│   ├── tracking/route.ts   # GET/POST - Suivi livraison
+│   └── validate/route.ts   # POST - Validation code 6 chiffres
+```
+
+### 5. Réservations
+```
+/api/bookings/
+├── route.ts               # GET/POST - Liste/Créer réservations
+└── [id]/route.ts          # GET/PUT/DELETE - Réservation spécifique
+```
+
+### 6. Paiements
+```
+/api/payments/
+├── route.ts               # GET/POST - Paiements
+├── stripe/
+│   └── webhook/route.ts   # POST - Webhooks Stripe
+└── wallet/
+    └── withdraw/route.ts  # POST - Retrait portefeuille
+```
+
+### 7. Documents
+```
+/api/documents/
+└── upload/route.ts        # POST - Upload documents
+```
+
+### 8. Factures
+```
+/api/invoices/
+└── generate/route.ts      # POST - Génération PDF factures
+```
+
+### 9. Notifications
+```
+/api/notifications/
+└── push/route.ts          # POST - Notifications push OneSignal
+```
+
+### 10. Contrats
+```
+/api/contracts/
+└── [id]/route.ts          # GET/PUT - Contrats commerçants
+```
+
+### 11. Entrepôts et Stockage
+```
+/api/storage-boxes/
+└── [id]/route.ts          # GET/PUT - Box de stockage
+```
+
+### 12. Localisations
+```
+/api/locations/
+└── [id]/route.ts          # GET/PUT - Gestion entrepôts
+```
+
+## Middleware d'Authentification
+
+### Fichier : `src/middleware.ts`
+```typescript
+import { NextRequest, NextResponse } from 'next/server'
+import { auth } from '@/lib/auth'
+
+export async function middleware(request: NextRequest) {
+  // Vérification des routes protégées
+  if (request.nextUrl.pathname.startsWith('/api/')) {
+    const session = await auth()
+    
+    if (!session && isProtectedRoute(request.nextUrl.pathname)) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+    
+    // Vérification des permissions par rôle
+    if (session && !hasRequiredRole(session.user.role, request.nextUrl.pathname)) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
+  }
+  
+  return NextResponse.next()
+}
+```
+
+## Structure Type d'une API Route
+
+### Exemple : `/api/announcements/route.ts`
+```typescript
+import { NextRequest, NextResponse } from 'next/server'
+import { z } from 'zod'
+import { auth } from '@/lib/auth'
+import { prisma } from '@/lib/db'
+import { announcementSchema } from '@/features/announcements/schemas'
+
+// GET - Liste des annonces
+export async function GET(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url)
+    const page = parseInt(searchParams.get('page') || '1')
+    const limit = parseInt(searchParams.get('limit') || '10')
+    const type = searchParams.get('type')
+    
+    const announcements = await prisma.announcement.findMany({
+      where: type ? { type } : {},
+      skip: (page - 1) * limit,
+      take: limit,
+      include: {
+        author: {
+          select: { id: true, profile: true }
+        }
+      },
+      orderBy: { createdAt: 'desc' }
+    })
+    
+    return NextResponse.json(announcements)
+  } catch (error) {
+    console.error('Error fetching announcements:', error)
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    )
+  }
+}
+
+// POST - Créer une annonce
+export async function POST(request: NextRequest) {
+  try {
+    const session = await auth()
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+    
+    const body = await request.json()
+    const validatedData = announcementSchema.parse(body)
+    
+    const announcement = await prisma.announcement.create({
+      data: {
+        ...validatedData,
+        authorId: session.user.id
+      },
+      include: {
+        author: {
+          select: { id: true, profile: true }
+        }
+      }
+    })
+    
+    return NextResponse.json(announcement, { status: 201 })
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        { error: 'Validation error', details: error.errors },
+        { status: 400 }
+      )
+    }
+    
+    console.error('Error creating announcement:', error)
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    )
+  }
+}
+```
+
+## Validation avec Zod
+
+### Fichier : `src/features/announcements/schemas/announcement.schema.ts`
+```typescript
+import { z } from 'zod'
+
+export const announcementSchema = z.object({
+  title: z.string().min(5, 'Le titre doit faire au moins 5 caractères'),
+  description: z.string().min(20, 'La description doit faire au moins 20 caractères'),
+  type: z.enum(['PACKAGE_DELIVERY', 'PERSON_TRANSPORT', 'AIRPORT_TRANSFER']),
+  price: z.number().positive('Le prix doit être positif'),
+  pickupAddress: z.string().min(10, 'Adresse de récupération requise'),
+  deliveryAddress: z.string().min(10, 'Adresse de livraison requise'),
+  scheduledAt: z.string().datetime('Date invalide')
+})
+
+export type AnnouncementInput = z.infer<typeof announcementSchema>
+```
+
+## Gestion des Erreurs
+
+### Standardisation des Réponses
+```typescript
+// Types de réponses standardisées
+export interface ApiResponse<T = any> {
+  data?: T
+  error?: string
+  message?: string
+  details?: any
+}
+
+// Fonction helper pour les erreurs
+export function handleApiError(error: any, operation: string) {
+  console.error(`Error in ${operation}:`, error)
+  
+  if (error instanceof z.ZodError) {
+    return NextResponse.json(
+      { error: 'Validation error', details: error.errors },
+      { status: 400 }
+    )
+  }
+  
+  if (error.code === 'P2002') { // Prisma unique constraint
+    return NextResponse.json(
+      { error: 'Resource already exists' },
+      { status: 409 }
+    )
+  }
+  
+  return NextResponse.json(
+    { error: 'Internal server error' },
+    { status: 500 }
+  )
+}
+```
+
+## Permissions par Rôle
+
+### Matrice d'Autorisation
+```typescript
+const rolePermissions = {
+  CLIENT: [
+    'announcements:read',
+    'announcements:create',
+    'bookings:read',
+    'bookings:create',
+    'payments:read'
+  ],
+  DELIVERER: [
+    'announcements:read',
+    'deliveries:read',
+    'deliveries:create',
+    'deliveries:update',
+    'payments:read'
+  ],
+  MERCHANT: [
+    'announcements:read',
+    'announcements:create',
+    'contracts:read',
+    'contracts:update'
+  ],
+  PROVIDER: [
+    'services:read',
+    'services:create',
+    'bookings:read',
+    'invoices:read'
+  ],
+  ADMIN: ['*'] // Tous les droits
+}
+```
+
+## Tests cURL Obligatoires
+
+### Authentification
+```bash
+# Inscription
+curl -X POST http://localhost:3000/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"email":"test@example.com","password":"Test123!","role":"CLIENT"}'
+
+# Connexion
+curl -X POST http://localhost:3000/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"test@example.com","password":"Test123!"}'
+```
+
+### Annonces
+```bash
+# Créer annonce
+curl -X POST http://localhost:3000/api/announcements \
+  -H "Content-Type: application/json" \
+  -H "Cookie: [session-cookie]" \
+  -d '{"title":"Livraison Paris-Lyon","description":"Besoin de livrer un colis","type":"PACKAGE_DELIVERY","price":25.50}'
+
+# Lister annonces
+curl -X GET "http://localhost:3000/api/announcements?page=1&limit=10" \
+  -H "Cookie: [session-cookie]"
+```
+
+## Configuration Routes
+Toutes les routes API sont dans [src/app/api/](mdc:src/app/api)
+
