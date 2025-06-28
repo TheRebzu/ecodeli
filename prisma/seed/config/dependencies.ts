@@ -113,15 +113,15 @@ export const seedDependencies: SeedDependency[] = [
   },
   {
     name: '09-delivery',
-    fn: async (ctx) => (await import('../seeds/09-delivery.seed')).seedDelivery(ctx)
+    fn: async (ctx) => (await import('../seeds/09-delivery.seed')).seedDeliveries(ctx)
   },
   {
     name: '10a-delivery-validation',
-    fn: async (ctx) => (await import('../seeds/10a-delivery-validation.seed')).seedDeliveryValidation(ctx)
+    fn: async (ctx) => (await import('../seeds/10a-delivery-validation.seed')).seedDeliveryValidations(ctx)
   },
   {
     name: '10-booking',
-    fn: async (ctx) => (await import('../seeds/10-booking.seed')).seedBooking(ctx)
+    fn: async (ctx) => (await import('../seeds/10-booking.seed')).seedBookings(ctx)
   },
   {
     name: '11-payment',

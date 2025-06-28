@@ -10,9 +10,28 @@ export async function seedBookings(ctx: SeedContext) {
   console.log('   Creating bookings...')
   
   const clients = users.filter((u: any) => u.role === CONSTANTS.roles.CLIENT)
+  console.log(`Number of clients: ${clients.length}`)
   const activeProviders = providers.filter((p: any) => p.provider.isActive)
+  console.log(`Number of active providers: ${activeProviders.length}`)
   
   const bookings = []
+
+  if (clients.length === 0) {
+    console.log('No clients found. Skipping booking creation.')
+    return bookings
+  }
+
+  if (activeProviders.length === 0) {
+    console.log('No active providers found. Skipping booking creation.')
+    return bookings
+  }
+
+  // Add logging for providerData.services.length
+  for (const providerData of activeProviders) {
+    if (!providerData.services || providerData.services.length === 0) {
+      console.log(`Provider ${providerData.provider.id} has no services. Skipping bookings for this provider.`)
+    }
+  }
   
   // Créer des réservations pour chaque client
   for (const client of clients) {
@@ -21,7 +40,15 @@ export async function seedBookings(ctx: SeedContext) {
     for (let i = 0; i < numBookings; i++) {
       // Sélectionner un prestataire aléatoire
       const providerData = activeProviders[Math.floor(Math.random() * activeProviders.length)]
-      if (!providerData || !providerData.services.length) continue
+      if (!providerData || !providerData.services || providerData.services.length === 0) {
+        console.log(`Provider ${providerData?.provider?.id} has no services or providerData is undefined. Skipping booking creation for this provider.`)
+        continue
+      }
+      const service = providerData.services[Math.floor(Math.random() * providerData.services.length)]
+      if (!service) {
+        console.log(`Service is undefined for provider ${providerData.provider.id}. Skipping booking creation.`)
+        continue
+      }
       
       const service = providerData.services[Math.floor(Math.random() * providerData.services.length)]
       
@@ -41,26 +68,19 @@ export async function seedBookings(ctx: SeedContext) {
         status = Math.random() > 0.3 ? 'CONFIRMED' : 'PENDING'
       }
       
+      console.log(`Attempting to create booking with: clientId=${client.id}, providerId=${providerData.provider.id}, serviceId=${service.id}`)
+      console.log(`Service object: ${JSON.stringify(service)}`)
       const booking = await prisma.booking.create({
         data: {
           clientId: client.id,
           providerId: providerData.provider.id,
           serviceId: service.id,
           status,
-          reference: generateBookingReference(),
           scheduledDate,
+          scheduledTime: scheduledDate.toTimeString().slice(0, 5),
           duration: service.duration || 120, // en minutes
-          price: service.basePrice,
-          address: client.address || '123 rue de la République, Paris',
-          city: client.city || 'Paris',
-          postalCode: client.postalCode || '75001',
-          notes: Math.random() > 0.7 ? 'Merci de sonner deux fois' : null,
-          clientPhone: client.phone,
-          clientEmail: client.email,
-          confirmedAt: status === 'CONFIRMED' || status === 'COMPLETED' ? new Date(scheduledDate.getTime() - 24 * 60 * 60 * 1000) : null,
-          completedAt: status === 'COMPLETED' ? new Date(scheduledDate.getTime() + (service.duration || 120) * 60 * 1000) : null,
-          cancelledAt: status === 'CANCELLED' ? new Date(scheduledDate.getTime() - 2 * 60 * 60 * 1000) : null,
-          cancellationReason: status === 'CANCELLED' ? 'Client indisponible' : null
+          totalPrice: service.basePrice,
+          address: { address: client.address || '123 rue de la République', city: client.city || 'Paris', postalCode: client.postalCode || '75001', lat: 0, lng: 0 },
         }
       })
       

@@ -9,7 +9,7 @@ const registerSchema = z.object({
   firstName: z.string().min(1, "Le prénom est requis"),
   lastName: z.string().min(1, "Le nom est requis"),
   phone: z.string().min(10, "Le numéro de téléphone est requis"),
-  role: z.enum(['CLIENT', 'DELIVERER', 'MERCHANT', 'PROVIDER']),
+  role: z.enum(['CLIENT', 'DELIVERER', 'MERCHANT', 'PROVIDER', 'ADMIN']),
   // Champs spécifiques selon le rôle
   companyName: z.string().optional(),
   siret: z.string().optional(),

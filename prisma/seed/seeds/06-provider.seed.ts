@@ -98,7 +98,7 @@ export async function seedProviders(ctx: SeedContext) {
             providerId: provider.id,
             name: serviceName,
             description: `${serviceName} professionnel par ${user.name}`,
-            type: 'HOME_SERVICE',
+            type: categoryData.specialty,
             basePrice,
             priceUnit: 'HOUR',
             duration, // en minutes

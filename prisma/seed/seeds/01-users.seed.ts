@@ -64,6 +64,9 @@ export async function seedUsers(ctx: SeedContext) {
           email: userData.email,
           password,
           role: role as any,
+          // Selon le cahier des charges EcoDeli
+          isActive: role === 'CLIENT' || role === 'ADMIN' || (userData as any).status === 'VALIDATED',
+          validationStatus: role === 'CLIENT' || role === 'ADMIN' ? 'VALIDATED' : 'PENDING',
           createdAt: new Date(Date.now() - Math.random() * 180 * 24 * 60 * 60 * 1000), // 6 derniers mois
           profile: {
             create: {

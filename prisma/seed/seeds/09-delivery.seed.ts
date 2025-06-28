@@ -9,8 +9,8 @@ export async function seedDeliveries(ctx: SeedContext) {
   
   console.log('   Creating deliveries...')
   
-  const deliverers = users.filter(u => u.role === CONSTANTS.roles.DELIVERER && u.validationStatus === 'VALIDATED')
-  const activeAnnouncements = announcements.filter(a => a.status === 'IN_PROGRESS' || (a.status === 'ACTIVE' && Math.random() > 0.5))
+  const deliverers = users.filter(u => u.role === CONSTANTS.roles.DELIVERER)
+  const activeAnnouncements = announcements
   
   const deliveries = []
   
@@ -38,39 +38,24 @@ export async function seedDeliveries(ctx: SeedContext) {
     const delivery = await prisma.delivery.create({
       data: {
         announcementId: announcement.id,
-        delivererId: delivererData.id,
+        delivererId: deliverer.id,
         status,
         trackingNumber,
         validationCode,
         pickupAddress: announcement.pickupAddress,
-        pickupCity: announcement.pickupCity,
-        pickupPostalCode: announcement.pickupPostalCode,
-        pickupLat: announcement.pickupLat,
-        pickupLng: announcement.pickupLng,
+        pickupLat: announcement.pickupLatitude,
+        pickupLng: announcement.pickupLongitude,
         deliveryAddress: announcement.deliveryAddress,
-        deliveryCity: announcement.deliveryCity,
-        deliveryPostalCode: announcement.deliveryPostalCode,
-        deliveryLat: announcement.deliveryLat,
-        deliveryLng: announcement.deliveryLng,
-        scheduledPickupAt: announcement.scheduledAt,
-        scheduledDeliveryAt: new Date(announcement.scheduledAt.getTime() + 3 * 60 * 60 * 1000), // +3h
+        deliveryLat: announcement.deliveryLatitude,
+        deliveryLng: announcement.deliveryLongitude,
+        scheduledPickupAt: announcement.pickupDate,
+        scheduledDeliveryAt: new Date(announcement.pickupDate.getTime() + 3 * 60 * 60 * 1000), // +3h
         actualPickupAt: statusIndex >= 2 ? new Date(Date.now() - Math.random() * 2 * 60 * 60 * 1000) : null,
         actualDeliveryAt: status === 'DELIVERED' ? new Date() : null,
         estimatedDuration: 180, // 3 heures
         estimatedDistance: 15 + Math.random() * 100, // 15-115 km
         deliveryType: Math.random() > 0.7 ? 'EXPRESS' : 'STANDARD',
-        price: announcement.price,
-        delivererEarnings: announcement.price * 0.8, // 80% pour le livreur
-        platformFee: announcement.price * 0.2, // 20% pour la plateforme
-        insuranceAmount: 0,
-        tips: status === 'DELIVERED' && Math.random() > 0.7 ? Math.floor(2 + Math.random() * 8) : 0,
-        rating: status === 'DELIVERED' ? Math.floor(3 + Math.random() * 2) + Math.random() : null,
-        review: status === 'DELIVERED' && Math.random() > 0.5 ? 'Livraison parfaite, livreur très professionnel' : null,
-        notes: Math.random() > 0.7 ? 'Appeler avant de sonner' : null,
-        isFragile: announcement.packageDetails?.fragile || false,
-        requiresSignature: announcement.packageDetails?.requiresSignature || false,
-        photoProof: status === 'DELIVERED' ? `https://storage.ecodeli.fr/proofs/${delivery.id}.jpg` : null,
-        signatureProof: status === 'DELIVERED' && announcement.packageDetails?.requiresSignature ? `https://storage.ecodeli.fr/signatures/${delivery.id}.png` : null
+        price: announcement.basePrice,
       }
     })
     

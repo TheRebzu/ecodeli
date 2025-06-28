@@ -51,7 +51,15 @@ export const config = {
         }
 
         // Vérifier si l'utilisateur est actif
+        console.log('🔍 Auth debug:', {
+          email: user.email,
+          isActive: user.isActive,
+          role: user.role,
+          validationStatus: user.validationStatus
+        })
+        
         if (!user.isActive && user.role !== "ADMIN") {
+          console.log('❌ Utilisateur bloqué - isActive:', user.isActive, 'role:', user.role)
           throw new Error("Compte en attente de validation")
         }
 

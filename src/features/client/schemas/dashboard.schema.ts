@@ -110,7 +110,7 @@ export const ClientDashboardResponseSchema = z.object({
     subscriptionPlan: z.enum(['FREE', 'STARTER', 'PREMIUM']),
     subscriptionExpiry: z.date().nullable(),
     tutorialCompleted: z.boolean(),
-    emailVerified: z.boolean(),
+    emailVerified: z.date().nullable(),
     profileComplete: z.boolean(),
     user: z.object({
       id: z.string(), // CUID au lieu d'UUID

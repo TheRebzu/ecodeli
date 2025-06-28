@@ -1,4 +1,4 @@
-import { prisma } from '@/lib/db'
+import { db } from '@/lib/db'
 
 export interface TutorialStep {
   id: number
@@ -41,7 +41,7 @@ export class TutorialService {
   static async isTutorialRequired(userId: string): Promise<boolean> {
     try {
       // Vérifier si le client a déjà complété le tutoriel
-      const tutorialProgress = await prisma.clientTutorialProgress.findUnique({
+      const tutorialProgress = await db.clientTutorialProgress.findUnique({
         where: { userId }
       })
 
@@ -109,7 +109,7 @@ export class TutorialService {
       ]
 
       // Récupérer la progression existante
-      const progressSteps = await prisma.tutorialStep.findMany({
+      const progressSteps = await db.tutorialStep.findMany({
         where: { userId },
         orderBy: { stepId: 'asc' }
       })
@@ -140,7 +140,7 @@ export class TutorialService {
   static async getTutorialProgress(userId: string): Promise<TutorialProgress> {
     try {
       const [tutorialProgress, steps] = await Promise.all([
-        prisma.clientTutorialProgress.findUnique({
+        db.clientTutorialProgress.findUnique({
           where: { userId }
         }),
         this.getClientTutorialSteps(userId)
@@ -185,7 +185,7 @@ export class TutorialService {
   static async startTutorial(userId: string): Promise<void> {
     try {
       // Vérifier que l'utilisateur existe
-      const user = await prisma.user.findUnique({
+      const user = await db.user.findUnique({
         where: { id: userId },
         select: { id: true, role: true }
       })
@@ -198,7 +198,7 @@ export class TutorialService {
         throw new Error('Le tutoriel est réservé aux clients')
       }
 
-      await prisma.clientTutorialProgress.upsert({
+      await db.clientTutorialProgress.upsert({
         where: { userId },
         update: {
           startedAt: new Date(),
@@ -227,7 +227,7 @@ export class TutorialService {
     timeSpent: number
   ): Promise<void> {
     try {
-      await prisma.$transaction(async (tx) => {
+      await db.$transaction(async (tx) => {
         // S'assurer que ClientTutorialProgress existe
         await tx.clientTutorialProgress.upsert({
           where: { userId },
@@ -289,7 +289,7 @@ export class TutorialService {
     completionData: TutorialCompletion
   ): Promise<void> {
     try {
-      await prisma.$transaction(async (tx) => {
+      await db.$transaction(async (tx) => {
         // Marquer le tutoriel comme terminé
         await tx.clientTutorialProgress.upsert({
           where: { userId },
@@ -371,21 +371,49 @@ export class TutorialService {
       })
 
       // Créer un crédit de bienvenue (si applicable)
-      const client = await prisma.client.findUnique({
+      const client = await db.client.findUnique({
         where: { userId },
-        include: { user: true }
+        include: { 
+          user: {
+            include: {
+              wallet: true
+            }
+          }
+        }
       })
 
-      if (client && client.user.subscriptionPlan === 'FREE') {
+      if (client && client.subscriptionPlan === 'FREE') {
+        // Créer ou récupérer le wallet
+        let wallet = client.user.wallet
+        if (!wallet) {
+          wallet = await db.wallet.create({
+            data: {
+              userId,
+              balance: 0,
+              currency: 'EUR'
+            }
+          })
+        }
+
         // Offrir un crédit de bienvenue
-        await prisma.walletOperation.create({
+        await db.walletOperation.create({
           data: {
-            walletId: client.user.wallet?.id || '',
+            walletId: wallet.id,
+            userId,
             type: 'CREDIT',
             amount: 5.00, // 5€ de crédit de bienvenue
             description: 'Crédit de bienvenue - Tutoriel terminé',
             reference: `WELCOME-${userId}`,
-            status: 'COMPLETED'
+            status: 'COMPLETED',
+            executedAt: new Date()
+          }
+        })
+
+        // Mettre à jour le solde du wallet
+        await db.wallet.update({
+          where: { id: wallet.id },
+          data: {
+            balance: wallet.balance + 5.00
           }
         })
 
@@ -422,7 +450,7 @@ export class TutorialService {
         throw new Error('Cette étape est obligatoire et ne peut pas être passée')
       }
 
-      await prisma.$transaction(async (tx) => {
+      await db.$transaction(async (tx) => {
         // S'assurer que ClientTutorialProgress existe
         await tx.clientTutorialProgress.upsert({
           where: { userId },
@@ -466,7 +494,7 @@ export class TutorialService {
    */
   static async resetTutorial(userId: string): Promise<void> {
     try {
-      await prisma.$transaction(async (tx) => {
+      await db.$transaction(async (tx) => {
         // Supprimer toutes les étapes
         await tx.tutorialStep.deleteMany({
           where: { userId }
@@ -499,15 +527,15 @@ export class TutorialService {
   static async getTutorialStats(): Promise<any> {
     try {
       const [totalUsers, completedTutorials, averageTime, feedbacks] = await Promise.all([
-        prisma.client.count(),
-        prisma.clientTutorialProgress.count({
+        db.client.count(),
+        db.clientTutorialProgress.count({
           where: { isCompleted: true }
         }),
-        prisma.clientTutorialProgress.aggregate({
+        db.clientTutorialProgress.aggregate({
           where: { isCompleted: true },
           _avg: { totalTimeSpent: true }
         }),
-        prisma.tutorialFeedback.aggregate({
+        db.tutorialFeedback.aggregate({
           _avg: { rating: true },
           _count: { rating: true }
         })

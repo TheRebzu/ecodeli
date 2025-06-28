@@ -9,48 +9,99 @@ import { Loader2, User, Truck, Store, Wrench, Settings, Copy } from "lucide-reac
 const TEST_ACCOUNTS = [
   {
     role: 'CLIENT',
-    email: 'client-complete@test.com',
+    email: 'client1@test.com',
     password: 'Test123!',
+    name: 'Marie Dubois',
     icon: User,
     color: 'bg-blue-500',
     description: 'Accès client avec tutoriel'
   },
   {
-    role: 'DELIVERER',
-    email: 'deliverer-complete@test.com',
+    role: 'CLIENT',
+    email: 'client2@test.com',
     password: 'Test123!',
+    name: 'Jean Martin',
+    icon: User,
+    color: 'bg-blue-400',
+    description: 'Client - Abonnement starter'
+  },
+  {
+    role: 'DELIVERER',
+    email: 'livreur1@test.com',
+    password: 'Test123!',
+    name: 'Thomas Moreau',
     icon: Truck,
     color: 'bg-green-500',
-    description: 'Livreur (documents à valider)'
+    description: 'Livreur validé'
+  },
+  {
+    role: 'DELIVERER',
+    email: 'livreur2@test.com',
+    password: 'Test123!',
+    name: 'Lucas Simon',
+    icon: Truck,
+    color: 'bg-green-400',
+    description: 'Livreur expérimenté'
   },
   {
     role: 'MERCHANT',
-    email: 'merchant-complete@test.com',
+    email: 'commercant1@test.com',
     password: 'Test123!',
+    name: 'Carrefour City',
     icon: Store,
     color: 'bg-purple-500',
-    description: 'Commerçant (contrat à signer)'
+    description: 'Carrefour City Flandre'
+  },
+  {
+    role: 'MERCHANT',
+    email: 'commercant2@test.com',
+    password: 'Test123!',
+    name: 'Monoprix',
+    icon: Store,
+    color: 'bg-purple-400',
+    description: 'Monoprix République'
   },
   {
     role: 'PROVIDER',
-    email: 'provider-complete@test.com',
+    email: 'prestataire1@test.com',
     password: 'Test123!',
+    name: 'Julie Durand',
     icon: Wrench,
     color: 'bg-orange-500',
-    description: 'Prestataire (profil à valider)'
+    description: 'Prestataire validée'
+  },
+  {
+    role: 'PROVIDER',
+    email: 'prestataire2@test.com',
+    password: 'Test123!',
+    name: 'Marc Rousseau',
+    icon: Wrench,
+    color: 'bg-orange-400',
+    description: 'Services à domicile'
   },
   {
     role: 'ADMIN',
-    email: 'admin-complete@test.com',
+    email: 'admin1@test.com',
     password: 'Test123!',
+    name: 'Admin Principal',
     icon: Settings,
     color: 'bg-red-500',
-    description: 'Administrateur (toutes permissions)'
+    description: 'Administrateur principal'
+  },
+  {
+    role: 'ADMIN',
+    email: 'admin2@test.com',
+    password: 'Test123!',
+    name: 'Admin Support',
+    icon: Settings,
+    color: 'bg-red-400',
+    description: 'Support et assistance'
   }
 ]
 
 export function TestAccountsWithForm() {
   const [loadingAccount, setLoadingAccount] = useState<string | null>(null)
+  const [isLoggingOut, setIsLoggingOut] = useState(false)
 
   // Ne pas afficher en production
   if (process.env.NODE_ENV !== 'development') {
@@ -74,7 +125,7 @@ export function TestAccountsWithForm() {
   }
 
   const handleQuickLogin = async (account: typeof TEST_ACCOUNTS[0]) => {
-    setLoadingAccount(account.role)
+    setLoadingAccount(account.email)
     
     try {
       console.log('🔐 Connexion rapide NextAuth:', account.email)
@@ -164,6 +215,19 @@ export function TestAccountsWithForm() {
     }
   }
 
+  const handleLogout = async () => {
+    setIsLoggingOut(true)
+    try {
+      console.log('🚪 Déconnexion en cours...')
+      const { signOut } = await import('next-auth/react')
+      await signOut({ callbackUrl: '/fr/login' })
+    } catch (error) {
+      console.error('❌ Erreur déconnexion:', error)
+    } finally {
+      setIsLoggingOut(false)
+    }
+  }
+
   return (
     <Card className="mt-6 border-dashed border-2 border-blue-200 bg-blue-50/50">
       <CardHeader className="pb-3">
@@ -172,13 +236,13 @@ export function TestAccountsWithForm() {
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
-        {TEST_ACCOUNTS.map((account) => {
+        {TEST_ACCOUNTS.map((account, index) => {
           const Icon = account.icon
-          const isLoading = loadingAccount === account.role
+          const isLoading = loadingAccount === account.email
           
           return (
             <div
-              key={account.role}
+              key={account.email}
               className="flex items-center justify-between p-3 bg-white rounded-lg border hover:border-blue-300 transition-colors"
             >
               <div className="flex items-center gap-3">
@@ -190,6 +254,11 @@ export function TestAccountsWithForm() {
                     <Badge variant="outline" className="text-xs">
                       {account.role}
                     </Badge>
+                    {account.name && (
+                      <span className="text-xs font-medium text-gray-700">
+                        {account.name}
+                      </span>
+                    )}
                   </div>
                   <p className="text-sm text-gray-600 mt-1">
                     {account.description}
@@ -226,9 +295,22 @@ export function TestAccountsWithForm() {
           )
         })}
         
-        <div className="text-xs text-blue-600 bg-blue-100 p-2 rounded">
-          💡 <strong>Astuce :</strong> Cliquez sur <Copy className="inline h-3 w-3" /> pour remplir le formulaire 
-          ou sur "Se connecter" pour une connexion directe.
+        <div className="space-y-2">
+          <div className="text-xs text-blue-600 bg-blue-100 p-2 rounded">
+            💡 <strong>Astuce :</strong> Cliquez sur <Copy className="inline h-3 w-3" /> pour remplir le formulaire 
+            ou sur "Se connecter" pour une connexion directe.
+          </div>
+          
+          <Button
+            onClick={handleLogout}
+            disabled={isLoggingOut}
+            variant="outline"
+            size="sm"
+            className="w-full text-red-600 border-red-200 hover:bg-red-50"
+          >
+            {isLoggingOut && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {isLoggingOut ? 'Déconnexion...' : '🚪 Se déconnecter d\'abord'}
+          </Button>
         </div>
       </CardContent>
     </Card>

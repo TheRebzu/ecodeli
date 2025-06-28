@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server'
-import { prisma } from '@/lib/db'
+import { db } from '@/lib/db'
 import { auth } from '@/lib/auth'
 import { headers } from 'next/headers'
 
@@ -43,7 +43,7 @@ export async function getUserFromSession(request: NextRequest) {
         break
     }
 
-    const user = await prisma.user.findUnique({
+    const user = await db.user.findUnique({
       where: { id: session.user.id },
       include: includeRelations
     })
@@ -63,12 +63,7 @@ export async function getUserFromSession(request: NextRequest) {
  */
 export async function getServerSession() {
   try {
-    const headersList = await headers()
-    
-    const session = await auth.api.getSession({
-      headers: headersList
-    })
-
+    const session = await auth()
     return session
   } catch (error) {
     return null
@@ -109,7 +104,7 @@ export async function getServerUser() {
         break
     }
 
-    const user = await prisma.user.findUnique({
+    const user = await db.user.findUnique({
       where: { id: session.user.id },
       include: includeRelations
     })
@@ -186,7 +181,7 @@ export async function requireRole(request: NextRequest, allowedRoles: string[]) 
         break
     }
 
-    const user = await prisma.user.findUnique({
+    const user = await db.user.findUnique({
       where: { id: userId },
       include: includeRelations
     })
@@ -258,20 +253,11 @@ export const VALIDATION_STATUS = {
 
 /**
  * Récupère l'utilisateur courant (compatible API route et RSC)
- * - Si request est fourni (API route), utilise les headers pour Better-Auth
- * - Sinon, utilise les headers du contexte serveur (RSC)
+ * - Utilise NextAuth pour récupérer la session
  */
-export async function getCurrentUser(request?: Request) {
+export async function getCurrentUser() {
   try {
-    let session
-    if (request) {
-      // API route
-      session = await auth.api.getSession({ headers: request.headers })
-    } else {
-      // RSC/server
-      const headersList = await headers()
-      session = await auth.api.getSession({ headers: headersList })
-    }
+    const session = await auth()
 
     if (!session?.user) {
       return null
@@ -301,7 +287,7 @@ export async function getCurrentUser(request?: Request) {
         break
     }
 
-    const user = await prisma.user.findUnique({
+    const user = await db.user.findUnique({
       where: { id: session.user.id },
       include: includeRelations
     })

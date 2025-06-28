@@ -142,33 +142,35 @@ export async function seedAnnouncements(ctx: SeedContext) {
           description,
           type,
           status: Math.random() > 0.3 ? 'ACTIVE' : Math.random() > 0.5 ? 'IN_PROGRESS' : 'COMPLETED',
-          price: template.prices[priceIndex],
-          userId: client.id,
-          pickupAddress: fromAddress.address,
-          pickupLatitude: fromAddress.lat,
-          pickupLongitude: fromAddress.lng,
-          deliveryAddress: toAddress.address,
-          deliveryLatitude: toAddress.lat,
-          deliveryLongitude: toAddress.lng,
-          scheduledAt,
-          urgency: Math.random() > 0.7 ? 'URGENT' : 'NORMAL',
-          requiresVehicle: type === 'PERSON_TRANSPORT' || type === 'AIRPORT_TRANSFER',
-          packageDetails: type === 'PACKAGE_DELIVERY' ? {
-            weight: template.weights[Math.floor(Math.random() * template.weights.length)],
-            dimensions: {
-              length: Math.floor(20 + Math.random() * 60),
-              width: Math.floor(20 + Math.random() * 40),
-              height: Math.floor(10 + Math.random() * 30)
-            },
-            fragile: Math.random() > 0.7,
-            requiresSignature: Math.random() > 0.5
-          } : null,
-          isAnonymous: false,
-          viewCount: Math.floor(Math.random() * 100),
-          contactPhone: client.phone,
-          contactEmail: client.email
+          basePrice: template.prices[priceIndex],
+          author: { connect: { id: client.id } },
+          pickupAddress: fromAddress.address || 'Unknown Address',
+          pickupLatitude: fromAddress.lat || 0,
+          pickupLongitude: fromAddress.lng || 0,
+          deliveryAddress: toAddress.address || 'Unknown Address',
+          deliveryLatitude: toAddress.lat || 0,
+          deliveryLongitude: toAddress.lng || 0,
+          pickupDate: scheduledAt,
+          isUrgent: Math.random() > 0.7 ? true : false,
+          viewCount: Math.floor(Math.random() * 100)
         }
       })
+      
+      if (type === 'PACKAGE_DELIVERY') {
+        await prisma.packageAnnouncement.create({
+          data: {
+            announcementId: announcement.id,
+            weight: template.weights[Math.floor(Math.random() * template.weights.length)],
+            length: Math.floor(20 + Math.random() * 60),
+            width: Math.floor(20 + Math.random() * 40),
+            height: Math.floor(10 + Math.random() * 30),
+            fragile: Math.random() > 0.7,
+            requiresInsurance: Math.random() > 0.5,
+            insuredValue: Math.random() > 0.5 ? Math.floor(50 + Math.random() * 500) : null,
+            specialInstructions: Math.random() > 0.5 ? 'Handle with care' : null,
+          }
+        })
+      }
       
       announcements.push(announcement)
     }
@@ -188,21 +190,17 @@ export async function seedAnnouncements(ctx: SeedContext) {
           description: `Service de livraison depuis notre magasin. Chariot complet livré en 2h maximum.`,
           type: 'CART_DROP',
           status: 'ACTIVE',
-          price: 10 + Math.floor(Math.random() * 10),
-          userId: merchant.id,
-          pickupAddress: fromAddress.address,
-          pickupLatitude: fromAddress.lat,
-          pickupLongitude: fromAddress.lng,
-          deliveryAddress: toAddress.address,
-          deliveryLatitude: toAddress.lat,
-          deliveryLongitude: toAddress.lng,
-          scheduledAt: new Date(Date.now() + 2 * 60 * 60 * 1000), // Dans 2 heures
-          urgency: 'URGENT',
-          requiresVehicle: true,
-          isAnonymous: false,
-          viewCount: Math.floor(Math.random() * 50),
-          contactPhone: merchant.phone,
-          contactEmail: merchant.email
+          basePrice: 10 + Math.floor(Math.random() * 10),
+          author: { connect: { id: merchant.id } },
+          pickupAddress: fromAddress.address || 'Unknown Address',
+          pickupLatitude: fromAddress.lat || 0,
+          pickupLongitude: fromAddress.lng || 0,
+          deliveryAddress: toAddress.address || 'Unknown Address',
+          deliveryLatitude: toAddress.lat || 0,
+          deliveryLongitude: toAddress.lng || 0,
+          pickupDate: new Date(Date.now() + 2 * 60 * 60 * 1000), // Dans 2 heures
+          isUrgent: true,
+          viewCount: Math.floor(Math.random() * 50)
         }
       })
       
@@ -211,6 +209,8 @@ export async function seedAnnouncements(ctx: SeedContext) {
   }
   
   console.log(`   ✓ Created ${announcements.length} announcements`)
+  console.log(`Number of clients: ${clients.length}`)
+  console.log(`Number of merchants: ${merchants.length}`)
   
   // Stocker pour les autres seeds
   ctx.data.set('announcements', announcements)
