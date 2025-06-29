@@ -2,14 +2,15 @@ import { Metadata } from 'next'
 import { UserVerificationsDashboard } from '@/features/admin/components/verifications/user-verifications-dashboard'
 
 interface VerificationsPageProps {
-  params: {
+  params: Promise<{
     locale: string
-  }
+  }>
 }
 
 export async function generateMetadata({
-  params: { locale }
+  params
 }: VerificationsPageProps): Promise<Metadata> {
+  const { locale } = await params
   return {
     title: 'Vérifications des utilisateurs - Admin EcoDeli',
     description: 'Liste des utilisateurs nécessitant une vérification avec leurs documents'
@@ -17,8 +18,9 @@ export async function generateMetadata({
 }
 
 export default async function VerificationsPage({
-  params: { locale }
+  params
 }: VerificationsPageProps) {
+  const { locale } = await params
   return (
     <div className="container mx-auto py-8">
       <div className="mb-8">

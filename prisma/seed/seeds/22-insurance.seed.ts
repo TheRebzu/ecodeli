@@ -1,199 +1,192 @@
 import { SeedContext } from '../index'
 import { CONSTANTS } from '../data/constants'
 
-const insurancePlans = {
-  BASIC: {
-    name: 'Assurance Basique',
-    coverage: 50,
-    premium: 2.99,
-    deductible: 10,
-    description: 'Couverture jusqu\'à 50€ pour les petits colis'
-  },
-  STANDARD: {
-    name: 'Assurance Standard',
-    coverage: 150,
-    premium: 4.99,
-    deductible: 15,
-    description: 'Couverture jusqu\'à 150€ pour les colis standards'
-  },
-  PREMIUM: {
-    name: 'Assurance Premium',
-    coverage: 500,
-    premium: 9.99,
-    deductible: 25,
-    description: 'Couverture jusqu\'à 500€ pour les colis de valeur'
-  },
-  ENTERPRISE: {
-    name: 'Assurance Enterprise',
-    coverage: 3000,
-    premium: 24.99,
-    deductible: 50,
-    description: 'Couverture jusqu\'à 3000€ pour les envois professionnels'
-  }
-}
-
-const claimReasons = [
-  { reason: 'Colis endommagé', percentage: 40 },
-  { reason: 'Colis perdu', percentage: 25 },
-  { reason: 'Vol du colis', percentage: 15 },
-  { reason: 'Contenu manquant', percentage: 10 },
-  { reason: 'Retard excessif', percentage: 10 }
-]
-
 export async function seedInsurance(ctx: SeedContext) {
   const { prisma } = ctx
   const deliveries = ctx.data.get('deliveries') || []
+  const bookings = ctx.data.get('bookings') || []
   
   console.log('   Creating insurance policies and claims...')
   
   const policies = []
   const claims = []
   
-  // Créer les plans d'assurance disponibles
-  for (const [key, plan] of Object.entries(insurancePlans)) {
-    await prisma.insurancePlan.create({
-      data: {
-        code: key,
-        name: plan.name,
-        description: plan.description,
-        coverageAmount: plan.coverage,
-        premiumAmount: plan.premium,
-        deductibleAmount: plan.deductible,
-        isActive: true,
-        terms: {
-          excludedItems: ['Cash', 'Jewelry', 'Electronics over 1000€'],
-          maxClaimPeriod: 30, // jours
-          requiredDocuments: ['Photos', 'Receipt', 'Delivery proof']
-        }
-      }
-    })
-  }
+  // Créer quelques polices d'assurance de base
+  const basicPolicies = [
+    {
+      name: 'Assurance Transport Basic',
+      description: 'Couverture basique pour les livraisons',
+      category: 'GOODS_TRANSPORT',
+      provider: 'EcoDeli Assurance',
+      policyNumber: 'TRANS-BASIC-2024',
+      coverageAmount: 500,
+      deductible: 25,
+      premiumAmount: 49.99,
+      terms: { maxWeight: '30kg', maxValue: '500€' },
+      coverageDetails: { damageRate: '100%', theftRate: '100%', lossRate: '80%' },
+      exclusions: ['Precious metals', 'Cash', 'Perishable goods']
+    },
+    {
+      name: 'Assurance Transport Premium',
+      description: 'Couverture premium pour les livraisons de valeur',
+      category: 'GOODS_TRANSPORT',
+      provider: 'EcoDeli Assurance',
+      policyNumber: 'TRANS-PREMIUM-2024',
+      coverageAmount: 2000,
+      deductible: 50,
+      premiumAmount: 99.99,
+      terms: { maxWeight: '50kg', maxValue: '2000€' },
+      coverageDetails: { damageRate: '100%', theftRate: '100%', lossRate: '100%' },
+      exclusions: ['Precious metals', 'Cash']
+    },
+    {
+      name: 'Responsabilité Civile Professionnelle',
+      description: 'Couverture RC pour les prestataires',
+      category: 'PROFESSIONAL_LIABILITY',
+      provider: 'EcoDeli Assurance',
+      policyNumber: 'RCP-PRO-2024',
+      coverageAmount: 10000,
+      deductible: 150,
+      premiumAmount: 199.99,
+      terms: { coverage: 'Professional activities', territory: 'France' },
+      coverageDetails: { personalInjury: '100%', propertyDamage: '100%' },
+      exclusions: ['Intentional acts', 'Criminal acts']
+    }
+  ]
   
-  // Créer des polices d'assurance pour 60% des livraisons
-  const insuredDeliveries = deliveries.filter(() => Math.random() < 0.6)
-  
-  for (const delivery of insuredDeliveries) {
-    // Sélectionner un plan selon la valeur déclarée
-    let planKey = 'BASIC'
-    const declaredValue = delivery.announcement.price * 10 // Estimation valeur colis
-    
-    if (declaredValue > 1000) planKey = 'ENTERPRISE'
-    else if (declaredValue > 300) planKey = 'PREMIUM'
-    else if (declaredValue > 100) planKey = 'STANDARD'
-    
-    const plan = insurancePlans[planKey as keyof typeof insurancePlans]
-    const policyNumber = `POL-${new Date().getFullYear()}-${String(policies.length + 1).padStart(6, '0')}`
+  for (const policyData of basicPolicies) {
+    const startDate = new Date(Date.now() - Math.random() * 180 * 24 * 60 * 60 * 1000)
+    const endDate = new Date(startDate.getTime() + 365 * 24 * 60 * 60 * 1000)
     
     const policy = await prisma.insurancePolicy.create({
       data: {
-        policyNumber,
-        deliveryId: delivery.id,
-        userId: delivery.announcement.userId,
-        planCode: planKey,
-        coverageAmount: plan.coverage,
-        premiumPaid: plan.premium,
-        declaredValue: Math.min(declaredValue, plan.coverage),
-        startDate: delivery.createdAt,
-        endDate: new Date(delivery.createdAt.getTime() + 365 * 24 * 60 * 60 * 1000), // 1 an
-        status: 'ACTIVE',
-        metadata: {
-          packageType: delivery.packageType,
-          deliveryDistance: delivery.estimatedDistance,
-          riskScore: Math.random() * 5 // Score de risque 0-5
-        }
+        ...policyData,
+        category: policyData.category as any,
+        startDate,
+        endDate,
+        isActive: endDate > new Date()
       }
     })
     policies.push(policy)
     
-    // 5% de chance d'avoir une réclamation
-    if (Math.random() < 0.05 && delivery.status === 'DELIVERED') {
-      const claimReason = claimReasons[Math.floor(Math.random() * claimReasons.length)]
-      const claimAmount = Math.min(
-        declaredValue * (0.5 + Math.random() * 0.5), // 50-100% de la valeur
-        plan.coverage
-      )
-      
-      const claimNumber = `CLM-${new Date().getFullYear()}-${String(claims.length + 1).padStart(5, '0')}`
-      const claimDate = new Date(delivery.actualDeliveryAt.getTime() + Math.random() * 7 * 24 * 60 * 60 * 1000)
-      
-      const claim = await prisma.insuranceClaim.create({
+    console.log(`Created insurance policy: ${policy.name}`)
+  }
+  
+  // Créer quelques couvertures spécifiques
+  const transportPolicy = policies.find(p => p.category === 'GOODS_TRANSPORT')
+  const liabilityPolicy = policies.find(p => p.category === 'PROFESSIONAL_LIABILITY')
+  
+  if (transportPolicy && deliveries.length > 0) {
+    // Couvrir quelques livraisons
+    const coveredDeliveries = deliveries.slice(0, Math.min(3, deliveries.length))
+    
+    for (const delivery of coveredDeliveries) {
+      const coverage = await prisma.insuranceCoverage.create({
         data: {
-          claimNumber,
-          policyId: policy.id,
-          userId: policy.userId,
-          claimAmount,
-          reason: claimReason.reason,
-          description: `${claimReason.reason} lors de la livraison. Demande d'indemnisation.`,
-          status: Math.random() < 0.7 ? 'APPROVED' : (Math.random() < 0.5 ? 'PENDING' : 'REJECTED'),
-          submittedAt: claimDate,
-          processedAt: Math.random() < 0.7 ? new Date(claimDate.getTime() + 3 * 24 * 60 * 60 * 1000) : null,
-          approvedAmount: Math.random() < 0.7 ? claimAmount - plan.deductible : null,
-          documents: [
-            'photo_colis_1.jpg',
-            'photo_colis_2.jpg',
-            'facture_achat.pdf'
-          ],
-          investigationNotes: 'Vérification effectuée. Dommages constatés conformes à la déclaration.',
+          policyId: transportPolicy.id,
+          entityType: 'delivery',
+          entityId: delivery.id,
+          coverageType: 'DAMAGE_COVERAGE' as any,
+          isActive: true,
+          maxCoverage: 500,
+          currentUsage: 0,
           metadata: {
-            investigatorId: 'ADMIN_INSURANCE_1',
-            photosProvided: true,
-            receiptProvided: true,
-            deliveryProofProvided: true
+            deliveryType: delivery.type || 'PACKAGE',
+            estimatedValue: 100 + Math.random() * 300
           }
         }
       })
-      claims.push(claim)
       
-      // Si approuvé, créer le paiement d'indemnisation
-      if (claim.status === 'APPROVED' && claim.approvedAmount) {
-        await prisma.payment.create({
+      // 20% de chance d'avoir une réclamation
+      if (Math.random() < 0.2) {
+        const claimAmount = 50 + Math.random() * 200
+        const incidentDate = new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000)
+        
+        const claim = await prisma.insuranceClaim.create({
           data: {
-            userId: claim.userId,
-            amount: claim.approvedAmount,
-            currency: 'EUR',
-            status: 'COMPLETED',
-            type: 'INSURANCE_PAYOUT',
-            description: `Indemnisation assurance - Réclamation ${claim.claimNumber}`,
-            metadata: {
-              claimId: claim.id,
-              policyNumber: policy.policyNumber,
-              payoutMethod: 'BANK_TRANSFER'
-            }
+            claimNumber: `CLM-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+            policyId: transportPolicy.id,
+            coverageId: coverage.id,
+            claimantId: delivery.announcement?.userId || 'default-user-id',
+            incidentDate,
+            claimType: ['DAMAGE', 'THEFT', 'LOSS'][Math.floor(Math.random() * 3)] as any,
+            status: ['REPORTED', 'APPROVED', 'REJECTED'][Math.floor(Math.random() * 3)] as any,
+            amount: claimAmount,
+            approvedAmount: Math.random() > 0.3 ? claimAmount * 0.8 : null,
+            description: 'Dommage constaté lors de la livraison',
+            circumstances: 'Le colis a été endommagé pendant le transport',
+            evidences: [
+              { type: 'photo', url: 'evidence1.jpg' },
+              { type: 'receipt', url: 'receipt.pdf' }
+            ]
           }
         })
+        claims.push(claim)
       }
     }
   }
   
-  // Créer des statistiques d'assurance globales
-  const totalPolicies = policies.length
-  const totalClaims = claims.length
-  const approvedClaims = claims.filter((c: any) => c.status === 'APPROVED').length
-  const totalPremiums = policies.reduce((sum: number, p: any) => sum + p.premiumPaid, 0)
-  const totalPayouts = claims
-    .filter((c: any) => c.status === 'APPROVED')
-    .reduce((sum: number, c: any) => sum + (c.approvedAmount || 0), 0)
-  
-  await prisma.insuranceStats.create({
-    data: {
-      period: 'MONTHLY',
-      periodStart: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
-      periodEnd: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0),
-      totalPolicies,
-      totalClaims,
-      approvedClaims,
-      rejectedClaims: claims.filter((c: any) => c.status === 'REJECTED').length,
-      totalPremiumsCollected: totalPremiums,
-      totalClaimsPaid: totalPayouts,
-      averageClaimAmount: totalClaims > 0 ? totalPayouts / approvedClaims : 0,
-      claimApprovalRate: totalClaims > 0 ? (approvedClaims / totalClaims) * 100 : 0,
-      lossRatio: totalPremiums > 0 ? (totalPayouts / totalPremiums) * 100 : 0
+  // Créer quelques garanties
+  const warranties = [
+    {
+      name: 'Garantie Qualité Service',
+      description: 'Garantie de qualité pour les prestations de service',
+      warrantyType: 'SERVICE_QUALITY',
+      duration: 30, // 30 jours
+      scope: { coverage: 'Service quality issues', refundRate: '100%' },
+      conditions: { minServiceDuration: 60, applicableServices: ['cleaning', 'gardening'] },
+      exclusions: [{ type: 'weather', description: 'Weather-related cancellations' }]
+    },
+    {
+      name: 'Garantie Livraison',
+      description: 'Garantie de livraison dans les délais',
+      warrantyType: 'DELIVERY_GUARANTEE',
+      duration: 7, // 7 jours
+      scope: { coverage: 'Delivery delays', compensationRate: '50%' },
+      conditions: { maxDelay: 24, applicableZones: ['urban', 'suburban'] },
+      exclusions: [{ type: 'force_majeure', description: 'Force majeure events' }]
     }
-  })
+  ]
+  
+  for (const warrantyData of warranties) {
+    await prisma.warranty.create({
+      data: {
+        ...warrantyData,
+        warrantyType: warrantyData.warrantyType as any
+      }
+    })
+  }
+  
+  // Créer des évaluations de risque pour quelques utilisateurs
+  const users = ctx.data.get('users') || []
+  for (let i = 0; i < Math.min(5, users.length); i++) {
+    const user = users[i]
+    const riskScore = Math.random() * 100
+    let riskLevel = 'LOW'
+    if (riskScore > 70) riskLevel = 'HIGH'
+    else if (riskScore > 40) riskLevel = 'MEDIUM'
+    
+    await prisma.riskAssessment.create({
+      data: {
+        entityType: 'user',
+        entityId: user.id,
+        riskLevel: riskLevel as any,
+        riskFactors: [
+          { factor: 'Activity level', weight: 0.3 },
+          { factor: 'Past claims', weight: 0.4 },
+          { factor: 'Account age', weight: 0.3 }
+        ],
+        score: riskScore,
+        recommendations: [
+          { type: 'monitoring', description: 'Regular activity monitoring' }
+        ]
+      }
+    })
+  }
   
   console.log(`   ✓ Created ${policies.length} insurance policies`)
   console.log(`   ✓ Created ${claims.length} insurance claims`)
-  console.log(`   ✓ Loss ratio: ${totalPremiums > 0 ? Math.round((totalPayouts / totalPremiums) * 100) : 0}%`)
+  console.log(`   ✓ Created ${warranties.length} warranties`)
   
   return { policies, claims }
 } 

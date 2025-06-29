@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { requireRole } from '@/lib/auth'
+import { requireRole } from '@/lib/auth/utils'
 import { prisma } from '@/lib/db'
 
 /**
@@ -10,7 +10,7 @@ export async function GET(request: NextRequest) {
     console.log('🔍 Vérification authentification admin (stats)...')
     
     // Vérifier que l'utilisateur est admin
-    const user = await requireRole('ADMIN', request)
+    const user = await requireRole(request, ['ADMIN'])
     console.log('✅ Utilisateur admin authentifié (stats):', user.email)
   } catch (error) {
     console.error('❌ Erreur authentification admin (stats):', error)

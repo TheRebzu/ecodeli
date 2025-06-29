@@ -94,6 +94,8 @@ model Profile {
   city            String?
   postalCode      String?
   country         String              @default("FR")
+  latitude        Float?              // Coordonnées géographiques
+  longitude       Float?
   isVerified      Boolean             @default(false)
   verifiedAt      DateTime?
   language        String              @default("fr")
@@ -105,4 +107,5 @@ model Profile {
   user            User                @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+  @@index([latitude, longitude])
 }

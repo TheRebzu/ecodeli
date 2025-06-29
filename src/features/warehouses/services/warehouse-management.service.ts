@@ -450,7 +450,6 @@ class WarehouseManagementService {
     // - Prêt pour récupération  
     // - Frais de stockage
     // - Rappel récupération
-    console.log(`Notifications programmées pour transfert ${transferId}`)
   }
 }
 

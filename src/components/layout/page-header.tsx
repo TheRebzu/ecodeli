@@ -11,8 +11,7 @@ export function PageHeader({
   className,
   children,
   title,
-  description,
-  ...props
+  description
 }: PageHeaderProps) {
   return (
     <section
@@ -20,7 +19,6 @@ export function PageHeader({
         "mx-auto flex max-w-[980px] flex-col items-start gap-2 px-4 pt-8 md:pt-12",
         className
       )}
-      {...props}
     >
       {title && (
         <h1 className="text-3xl font-bold leading-tight tracking-tighter md:text-4xl lg:leading-[1.1]">

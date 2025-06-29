@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react'
+import { ServiceRequest, ServiceStats } from '../types/service.types'
+import { useAuth } from '@/hooks/use-auth'
 
 export interface ClientService {
   id: string
@@ -61,12 +63,17 @@ export interface BookingRequest {
 export function useClientServices() {
   const [services, setServices] = useState<ClientService[]>([])
   const [bookings, setBookings] = useState<ServiceBooking[]>([])
+  const [serviceRequests, setServiceRequests] = useState<ServiceRequest[]>([])
+  const [stats, setStats] = useState<ServiceStats | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const { user } = useAuth()
 
   useEffect(() => {
-    fetchData()
-  }, [])
+    if (user) {
+      fetchData()
+    }
+  }, [user])
 
   const fetchData = async () => {
     setIsLoading(true)
@@ -74,7 +81,9 @@ export function useClientServices() {
     try {
       await Promise.all([
         fetchServices(),
-        fetchBookings()
+        fetchBookings(),
+        fetchServiceRequests(),
+        fetchStats()
       ])
     } catch (error) {
       console.error('Error fetching data:', error)
@@ -96,7 +105,6 @@ export function useClientServices() {
       setServices(data.services || [])
     } catch (error) {
       console.error('Error fetching services:', error)
-      throw error
     }
   }
 
@@ -112,7 +120,100 @@ export function useClientServices() {
       setBookings(data.bookings || [])
     } catch (error) {
       console.error('Error fetching bookings:', error)
-      throw error
+    }
+  }
+
+  const fetchServiceRequests = async () => {
+    try {
+      const response = await fetch('/api/client/service-requests')
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch service requests')
+      }
+      
+      const data = await response.json()
+      setServiceRequests(data.serviceRequests || [])
+    } catch (error) {
+      console.error('Error fetching service requests:', error)
+    }
+  }
+
+  const fetchStats = async () => {
+    try {
+      const response = await fetch('/api/client/service-requests/stats')
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch stats')
+      }
+      
+      const data = await response.json()
+      setStats(data.stats)
+    } catch (error) {
+      console.error('Error fetching service stats:', error)
+    }
+  }
+
+  const createServiceRequest = async (serviceRequestData: Partial<ServiceRequest>) => {
+    try {
+      const response = await fetch('/api/client/service-requests', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(serviceRequestData),
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to create service request')
+      }
+
+      const data = await response.json()
+      setServiceRequests(prev => [data.serviceRequest, ...prev])
+      
+      return data.serviceRequest
+    } catch (err) {
+      throw new Error(err instanceof Error ? err.message : 'Failed to create service request')
+    }
+  }
+
+  const updateServiceRequest = async (id: string, updateData: Partial<ServiceRequest>) => {
+    try {
+      const response = await fetch(`/api/client/service-requests/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(updateData),
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to update service request')
+      }
+
+      const data = await response.json()
+      setServiceRequests(prev => 
+        prev.map(req => req.id === id ? data.serviceRequest : req)
+      )
+      
+      return data.serviceRequest
+    } catch (err) {
+      throw new Error(err instanceof Error ? err.message : 'Failed to update service request')
+    }
+  }
+
+  const deleteServiceRequest = async (id: string) => {
+    try {
+      const response = await fetch(`/api/client/service-requests/${id}`, {
+        method: 'DELETE',
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to delete service request')
+      }
+
+      setServiceRequests(prev => prev.filter(req => req.id !== id))
+    } catch (err) {
+      throw new Error(err instanceof Error ? err.message : 'Failed to delete service request')
     }
   }
 
@@ -133,7 +234,7 @@ export function useClientServices() {
       }
 
       const result = await response.json()
-      await fetchBookings() // Recharger les réservations
+      await fetchBookings()
       return result
     } catch (error) {
       throw error
@@ -153,7 +254,7 @@ export function useClientServices() {
         throw new Error(error.error || 'Erreur lors de l\'annulation')
       }
 
-      await fetchBookings() // Recharger les réservations
+      await fetchBookings()
       return await response.json()
     } catch (error) {
       throw error
@@ -173,7 +274,7 @@ export function useClientServices() {
         throw new Error(error.error || 'Erreur lors de l\'évaluation')
       }
 
-      await fetchBookings() // Recharger les réservations
+      await fetchBookings()
       return await response.json()
     } catch (error) {
       throw error
@@ -199,12 +300,18 @@ export function useClientServices() {
   return {
     services,
     bookings,
+    serviceRequests,
+    stats,
     isLoading,
     error,
     fetchData,
     createBooking,
     cancelBooking,
     rateBooking,
-    getAvailableSlots
+    getAvailableSlots,
+    createServiceRequest,
+    updateServiceRequest,
+    deleteServiceRequest,
+    refreshData: () => fetchData()
   }
 }

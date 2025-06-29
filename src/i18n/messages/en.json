@@ -308,9 +308,12 @@
       "backHome": "Back to home"
     },
     "unauthorized": {
-      "title": "Authentication required",
-      "message": "You must be logged in to access this page.",
-      "signIn": "Sign in"
+      "title": "Access unauthorized",
+      "message": "Your user role does not allow you to access this page.",
+      "subtitle": "Log in with an account that has the appropriate permissions or contact the administrator.",
+      "backButton": "Back",
+      "loginButton": "Sign in",
+      "homeButton": "Home"
     }
   },
   "validation": {

@@ -18,7 +18,11 @@ const completeTutorialSchema = z.object({
  */
 export async function POST(request: NextRequest) {
   try {
-    const user = await requireRole(request, ['CLIENT'])
+    const user = await requireRole(request, ['CLIENT']).catch(() => null)
+    
+    if (!user) {
+      return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
+    }
     const body = await request.json()
     
     const { step, completed } = completeTutorialSchema.parse(body)

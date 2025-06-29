@@ -262,10 +262,10 @@ export class LabelExtractor {
    * Lancer l'extraction complète
    */
   async extract(): Promise<ExtractedLabel[]> {
-    console.log('🔍 Scanning files for hardcoded labels...')
+    console.log('Scanning files for hardcoded labels...')
     
     const files = await this.scanFiles()
-    console.log(`📁 Found ${files.length} files to scan`)
+    console.log(`Found ${files.length} files to scan`)
 
     this.extractedLabels = []
     
@@ -274,14 +274,14 @@ export class LabelExtractor {
         const labels = await this.extractFromFile(file)
         this.extractedLabels.push(...labels)
       } catch (error) {
-        console.error(`❌ Error scanning ${file}:`, error)
+        console.error(`Error scanning ${file}:`, error)
       }
     }
 
     // Supprimer les doublons
     this.extractedLabels = this.deduplicateLabels(this.extractedLabels)
     
-    console.log(`✅ Extracted ${this.extractedLabels.length} unique labels`)
+    console.log(`Extracted ${this.extractedLabels.length} unique labels`)
     return this.extractedLabels
   }
 
@@ -359,7 +359,7 @@ export class LabelExtractor {
     const reportPath = path.join(this.config.outputDir, 'extraction-report.md')
     fs.writeFileSync(reportPath, this.generateReport())
 
-    console.log(`💾 Results saved to:`)
+    console.log(`Results saved to:`)
     console.log(`   - ${jsonPath}`)
     console.log(`   - ${reportPath}`)
   }

@@ -1,207 +1,133 @@
 import { PrismaClient } from '@prisma/client'
-import { SeedContext } from '../config/seed.config'
-import { ROLES } from '../data/constants'
+import { SeedContext } from '../index'
+import { CONSTANTS } from '../data/constants'
 
-export async function seedContracts(prisma: PrismaClient, context: SeedContext) {
-  console.log('📋 Seeding contracts data...')
+export async function seedContracts(context: SeedContext) {
+  const { prisma } = context
+  console.log('Seeding contracts data...')
 
-  const merchants = await prisma.user.findMany({
-    where: { role: ROLES.MERCHANT },
-    include: { profile: true }
+  const merchants = await prisma.merchant.findMany({
+    include: { user: true }
   })
 
-  // Types de contrats EcoDeli
-  const contractTypes = [
-    {
-      name: 'Contrat Standard',
-      code: 'STANDARD',
-      description: 'Contrat de base pour les commerçants',
-      commissionRate: 8.5, // %
-      fixedFee: 0,
-      minimumMonthlyVolume: 0,
-      maxDeliveryRadius: 15, // km
-      features: ['Livraison standard', 'Support client', 'Interface marchande'],
-      paymentTerms: 'NET_30',
-      renewalType: 'AUTOMATIC',
-      contractDuration: 12 // mois
-    },
-    {
-      name: 'Contrat Premium',
-      code: 'PREMIUM',
-      description: 'Contrat pour les gros volumes',
-      commissionRate: 6.5, // %
-      fixedFee: 50,
-      minimumMonthlyVolume: 1000,
-      maxDeliveryRadius: 30, // km
-      features: ['Livraison prioritaire', 'Support dédié', 'Analytics avancées', 'API complète'],
-      paymentTerms: 'NET_15',
-      renewalType: 'AUTOMATIC',
-      contractDuration: 24 // mois
-    },
-    {
-      name: 'Contrat Enterprise',
-      code: 'ENTERPRISE',
-      description: 'Contrat sur mesure pour les grandes enseignes',
-      commissionRate: 4.5, // %
-      fixedFee: 200,
-      minimumMonthlyVolume: 5000,
-      maxDeliveryRadius: 50, // km
-      features: ['Livraison express', 'Account manager', 'SLA garanti', 'Intégration sur mesure'],
-      paymentTerms: 'NET_7',
-      renewalType: 'MANUAL',
-      contractDuration: 36 // mois
-    }
-  ]
-
-  // Créer les types de contrats
-  for (const contractType of contractTypes) {
-    await prisma.contractType.upsert({
-      where: { code: contractType.code },
-      update: {},
-      create: contractType
-    })
-  }
+  console.log(`Found ${merchants.length} merchants`)
 
   // Créer les contrats pour les commerçants
   for (const merchant of merchants) {
-    if (!merchant.profile) continue
-
     const index = merchants.indexOf(merchant)
     
     // Assigner un type de contrat selon l'index
-    const contractTypeCode = index === 0 ? 'ENTERPRISE' : 
-                           index === 1 ? 'PREMIUM' : 'STANDARD'
+    const contractType = index === 0 ? 'ENTERPRISE' : 
+                        index === 1 ? 'PREMIUM' : 'STANDARD'
 
-    const contractType = contractTypes.find(ct => ct.code === contractTypeCode)!
+    const commissionRates = {
+      STANDARD: 8.5,
+      PREMIUM: 6.5,
+      ENTERPRISE: 4.5
+    }
+
+    const monthlyFees = {
+      STANDARD: 0,
+      PREMIUM: 50,
+      ENTERPRISE: 200
+    }
     
     const signedDate = new Date(Date.now() - Math.random() * 365 * 24 * 60 * 60 * 1000)
-    const endDate = new Date(signedDate.getTime() + contractType.contractDuration * 30 * 24 * 60 * 60 * 1000)
+    const validUntil = new Date(signedDate.getTime() + 12 * 30 * 24 * 60 * 60 * 1000) // 12 mois
 
-    const contract = await prisma.merchantContract.upsert({
-      where: { merchantId: merchant.id },
-      update: {},
-      create: {
+    const contract = await prisma.contract.create({
+      data: {
         merchantId: merchant.id,
-        contractTypeId: contractType.code,
-        contractNumber: `CTR-${new Date().getFullYear()}-${(index + 1).toString().padStart(4, '0')}`,
-        status: Math.random() > 0.1 ? 'ACTIVE' : 'PENDING_SIGNATURE',
-        signedDate: Math.random() > 0.1 ? signedDate : null,
-        startDate: Math.random() > 0.1 ? signedDate : new Date(),
-        endDate: endDate,
-        commissionRate: contractType.commissionRate + (Math.random() - 0.5), // Variation de ±0.5%
-        fixedMonthlyFee: contractType.fixedFee,
-        minimumMonthlyVolume: contractType.minimumMonthlyVolume,
-        maxDeliveryRadius: contractType.maxDeliveryRadius,
-        paymentTerms: contractType.paymentTerms,
-        autoRenewal: contractType.renewalType === 'AUTOMATIC',
-        specialConditions: index === 0 ? 'Conditions négociées spécialement' : null,
-        signedByMerchant: Math.random() > 0.1,
-        signedByEcoDeli: Math.random() > 0.05,
-        ecoDeliSignatory: 'Pierre Chabrier', // DRH
-        merchantSignatory: merchant.profile?.firstName + ' ' + merchant.profile?.lastName,
-        documentUrl: `https://contracts.ecodeli.fr/merchants/${merchant.id}/contract.pdf`
+        type: contractType as any,
+        status: Math.random() > 0.1 ? 'ACTIVE' : 'PENDING',
+        title: `Contrat EcoDeli ${contractType}`,
+        description: `Contrat de partenariat EcoDeli type ${contractType}`,
+        commissionRate: commissionRates[contractType as keyof typeof commissionRates],
+        setupFee: contractType === 'ENTERPRISE' ? 500 : 0,
+        monthlyFee: monthlyFees[contractType as keyof typeof monthlyFees],
+        validFrom: signedDate,
+        validUntil: validUntil,
+        autoRenewal: contractType !== 'ENTERPRISE',
+        renewalPeriod: contractType === 'ENTERPRISE' ? 36 : 12,
+        maxOrdersPerMonth: contractType === 'STANDARD' ? 100 : null,
+        maxOrderValue: contractType === 'STANDARD' ? 500 : null,
+        deliveryZones: [
+          { zone: 'PARIS_CENTER', radius: contractType === 'ENTERPRISE' ? 50 : 25 },
+          { zone: 'SUBURBS', radius: contractType === 'STANDARD' ? 15 : 30 }
+        ],
+        allowedServices: ['DELIVERY', 'EXPRESS_DELIVERY', ...(contractType === 'ENTERPRISE' ? ['PRIORITY_DELIVERY'] : [])],
+        merchantSignedAt: Math.random() > 0.1 ? signedDate : null,
+        merchantSignature: Math.random() > 0.1 ? 'merchant_signature_hash' : null,
+        adminSignedAt: Math.random() > 0.05 ? signedDate : null,
+        adminSignedBy: Math.random() > 0.05 ? 'admin123' : null,
+        adminSignature: Math.random() > 0.05 ? 'admin_signature_hash' : null,
+        templatePath: `/contracts/templates/${contractType.toLowerCase()}.pdf`,
+        signedDocumentPath: Math.random() > 0.1 ? `/contracts/signed/${merchant.id}_contract.pdf` : null,
+        notes: index === 0 ? 'Conditions négociées spécialement' : null,
+        tags: [contractType.toLowerCase(), 'active']
       }
     })
 
-    // Créer les SLA (Service Level Agreements) pour les contrats premium et enterprise
-    if (contractTypeCode === 'PREMIUM' || contractTypeCode === 'ENTERPRISE') {
-      await prisma.serviceLevelAgreement.upsert({
-        where: { contractId: contract.id },
-        update: {},
-        create: {
-          contractId: contract.id,
-          maxDeliveryTime: contractTypeCode === 'ENTERPRISE' ? 2 : 4, // heures
-          uptimeGuarantee: contractTypeCode === 'ENTERPRISE' ? 99.9 : 99.5, // %
-          responseTime: contractTypeCode === 'ENTERPRISE' ? 15 : 30, // minutes
-          resolutionTime: contractTypeCode === 'ENTERPRISE' ? 2 : 4, // heures
-          refundPolicy: 'Remboursement automatique si SLA non respecté',
-          penalties: contractTypeCode === 'ENTERPRISE' ? 'Pénalités de 5% par heure de retard' : null,
-          escalationProcedure: 'Escalade automatique vers account manager après 1h',
-          emergencyContact: '+33142345678',
-          reportingFrequency: 'MONTHLY'
-        }
-      })
-    }
-
-    // Créer les avenants au contrat
-    if (index < 2 && Math.random() > 0.5) {
+    // Créer les avenants au contrat pour certains contrats
+    if (index < 3 && Math.random() > 0.5) {
       await prisma.contractAmendment.create({
         data: {
           contractId: contract.id,
-          amendmentNumber: 1,
-          type: 'COMMISSION_CHANGE',
+          version: '1.1',
+          title: 'Avenant - Réduction commission',
           description: 'Réduction de commission suite à l\'augmentation du volume',
-          oldValue: contractType.commissionRate.toString(),
-          newValue: (contractType.commissionRate - 0.5).toString(),
+          changes: {
+            oldCommissionRate: commissionRates[contractType as keyof typeof commissionRates],
+            newCommissionRate: commissionRates[contractType as keyof typeof commissionRates] - 0.5,
+            reason: 'Volume mensuel dépassé'
+          },
           effectiveDate: new Date(signedDate.getTime() + 6 * 30 * 24 * 60 * 60 * 1000), // 6 mois après
-          approvedDate: new Date(signedDate.getTime() + 6 * 30 * 24 * 60 * 60 * 1000 - 7 * 24 * 60 * 60 * 1000),
-          approvedBy: 'Direction EcoDeli',
-          documentUrl: `https://contracts.ecodeli.fr/merchants/${merchant.id}/amendment-1.pdf`
+          merchantSignedAt: new Date(signedDate.getTime() + 6 * 30 * 24 * 60 * 60 * 1000 - 3 * 24 * 60 * 60 * 1000),
+          adminSignedAt: new Date(signedDate.getTime() + 6 * 30 * 24 * 60 * 60 * 1000 - 1 * 24 * 60 * 60 * 1000),
+          adminSignedBy: 'admin123'
         }
       })
     }
 
-    // Créer l'historique de facturation
+    // Créer l'historique de facturation pour les 6 derniers mois
     const monthsHistory = 6
     for (let i = 0; i < monthsHistory; i++) {
-      const month = new Date()
-      month.setMonth(month.getMonth() - i)
+      const periodStart = new Date()
+      periodStart.setMonth(periodStart.getMonth() - i - 1)
+      periodStart.setDate(1)
       
-      const deliveriesCount = Math.floor(Math.random() * 200) + 50
-      const totalRevenue = deliveriesCount * (Math.random() * 30 + 10) // 10-40€ par livraison
+      const periodEnd = new Date(periodStart)
+      periodEnd.setMonth(periodEnd.getMonth() + 1)
+      periodEnd.setDate(0) // Dernier jour du mois
+      
+      const totalOrders = Math.floor(Math.random() * 150) + 30
+      const totalRevenue = totalOrders * (Math.random() * 25 + 15) // 15-40€ par commande
       const commissionAmount = totalRevenue * (contract.commissionRate / 100)
 
-      await prisma.merchantBilling.upsert({
-        where: {
-          contractId_month_year: {
-            contractId: contract.id,
-            month: month.getMonth() + 1,
-            year: month.getFullYear()
-          }
-        },
-        update: {},
-        create: {
+      await prisma.merchantBilling.create({
+        data: {
+          merchantId: merchant.id,
           contractId: contract.id,
-          month: month.getMonth() + 1,
-          year: month.getFullYear(),
-          deliveriesCount,
+          periodStart,
+          periodEnd,
+          status: Math.random() > 0.2 ? 'PAID' : 'PENDING',
+          totalOrders,
           totalRevenue,
-          commissionRate: contract.commissionRate,
           commissionAmount,
-          fixedFee: contract.fixedMonthlyFee,
-          totalAmount: commissionAmount + contract.fixedMonthlyFee,
-          invoiceNumber: `INV-${month.getFullYear()}-${(month.getMonth() + 1).toString().padStart(2, '0')}-${merchant.id.substr(0, 8)}`,
-          invoiceDate: new Date(month.getFullYear(), month.getMonth() + 1, 1),
-          dueDate: new Date(month.getFullYear(), month.getMonth() + 1, contract.paymentTerms === 'NET_7' ? 8 : contract.paymentTerms === 'NET_15' ? 16 : 31),
-          paymentStatus: Math.random() > 0.2 ? 'PAID' : 'PENDING',
-          paidDate: Math.random() > 0.2 ? new Date(month.getFullYear(), month.getMonth() + 1, Math.floor(Math.random() * 20) + 5) : null
+          monthlyFee: contract.monthlyFee,
+          additionalFees: Math.random() > 0.8 ? Math.random() * 50 : 0,
+          totalAmount: commissionAmount + contract.monthlyFee,
+          invoiceNumber: `INV-${periodStart.getFullYear()}-${(periodStart.getMonth() + 1).toString().padStart(2, '0')}-${merchant.id.substr(0, 8)}`,
+          invoicePath: `/invoices/${merchant.id}/${periodStart.getFullYear()}-${periodStart.getMonth() + 1}.pdf`,
+          dueDate: new Date(periodEnd.getTime() + 30 * 24 * 60 * 60 * 1000), // 30 jours après fin de période
+          paidAt: Math.random() > 0.2 ? new Date(periodEnd.getTime() + Math.random() * 25 * 24 * 60 * 60 * 1000) : null,
+          paymentMethod: Math.random() > 0.2 ? 'BANK_TRANSFER' : null
         }
       })
     }
 
-    context.logger?.log(`Created contract for merchant ${merchant.email} (${contractTypeCode})`)
+    console.log(`Created contract for merchant ${merchant.user.email} (${contractType})`)
   }
 
-  // Créer les métriques de performance des contrats
-  const totalContracts = await prisma.merchantContract.count()
-  const activeContracts = await prisma.merchantContract.count({ where: { status: 'ACTIVE' } })
-  
-  await prisma.contractMetrics.upsert({
-    where: { month_year: { month: new Date().getMonth() + 1, year: new Date().getFullYear() } },
-    update: {},
-    create: {
-      month: new Date().getMonth() + 1,
-      year: new Date().getFullYear(),
-      totalContracts,
-      activeContracts,
-      newContracts: Math.floor(totalContracts * 0.1),
-      renewedContracts: Math.floor(totalContracts * 0.8),
-      terminatedContracts: Math.floor(totalContracts * 0.05),
-      averageCommissionRate: 6.5,
-      totalRevenue: Math.floor(Math.random() * 100000) + 50000,
-      averageContractValue: Math.floor(Math.random() * 5000) + 2000
-    }
-  })
-
-  context.logger?.log(`✅ Contracts seeding completed - ${merchants.length} contracts processed`)
+  console.log(`Contracts seeding completed - ${merchants.length} contracts processed`)
 } 

@@ -3,12 +3,12 @@ import { getUserFromSession } from '@/lib/auth/utils'
 import { db } from '@/lib/db'
 
 export async function GET(request: NextRequest) {
-  const user = await getUserFromSession(request)
-  if (!user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
-
   try {
+    const user = await getUserFromSession(request)
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
     const { searchParams } = new URL(request.url)
     const category = searchParams.get('category')
     const search = searchParams.get('search')
@@ -22,12 +22,12 @@ export async function GET(request: NextRequest) {
       isActive: true,
       provider: {
         isActive: true,
-        status: 'APPROVED'
+        validationStatus: 'APPROVED'
       }
     }
 
     if (category && category !== 'all') {
-      where.category = category
+      where.type = category
     }
 
     if (search) {
@@ -38,13 +38,13 @@ export async function GET(request: NextRequest) {
     }
 
     if (minPrice || maxPrice) {
-      where.pricePerHour = {}
-      if (minPrice) where.pricePerHour.gte = parseFloat(minPrice)
-      if (maxPrice) where.pricePerHour.lte = parseFloat(maxPrice)
+      where.basePrice = {}
+      if (minPrice) where.basePrice.gte = parseFloat(minPrice)
+      if (maxPrice) where.basePrice.lte = parseFloat(maxPrice)
     }
 
     if (location) {
-      where.provider.user = {
+      where.provider.user.profile = {
         OR: [
           { city: { contains: location, mode: 'insensitive' } },
           { address: { contains: location, mode: 'insensitive' } }
@@ -53,19 +53,23 @@ export async function GET(request: NextRequest) {
     }
 
     // Récupérer les services
-    const services = await db.providerService.findMany({
+    const services = await db.service.findMany({
       where,
       include: {
         provider: {
           include: {
             user: {
-              select: {
-                id: true,
-                name: true,
-                phone: true,
-                image: true,
-                city: true,
-                address: true
+              include: {
+                profile: {
+                  select: {
+                    firstName: true,
+                    lastName: true,
+                    phone: true,
+                    avatar: true,
+                    city: true,
+                    address: true
+                  }
+                }
               }
             },
             reviews: {
@@ -81,7 +85,6 @@ export async function GET(request: NextRequest) {
         }
       },
       orderBy: [
-        { provider: { reviews: { _count: 'desc' } } },
         { createdAt: 'desc' }
       ]
     })
@@ -91,37 +94,35 @@ export async function GET(request: NextRequest) {
     if (minRating) {
       const minRatingNum = parseFloat(minRating)
       filteredServices = services.filter(service => {
-        const reviews = service.provider.reviews
-        if (reviews.length === 0) return minRatingNum <= 0
-        const avgRating = reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length
+        const avgRating = service.provider.averageRating || 0
         return avgRating >= minRatingNum
       })
     }
 
     // Transformer les données
     const transformedServices = filteredServices.map(service => {
-      const reviews = service.provider.reviews
-      const avgRating = reviews.length > 0 
-        ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length
-        : 0
-
+      const provider = service.provider
+      const user = provider.user
+      const profile = user.profile
+      
       return {
         id: service.id,
         name: service.name,
         description: service.description,
-        category: service.category,
-        pricePerHour: service.pricePerHour,
-        duration: service.defaultDuration || 60,
+        type: service.type,
+        basePrice: service.basePrice,
+        priceUnit: service.priceUnit,
+        duration: service.duration || 60,
         isActive: service.isActive,
         provider: {
-          id: service.provider.id,
-          name: service.provider.user.name,
-          businessName: service.provider.businessName,
-          rating: Math.round(avgRating * 10) / 10,
-          completedBookings: service.provider.bookings.length,
-          location: `${service.provider.user.city || ''} ${service.provider.user.address || ''}`.trim(),
-          phone: service.provider.user.phone,
-          avatar: service.provider.user.image
+          id: provider.id,
+          name: profile ? `${profile.firstName || ''} ${profile.lastName || ''}`.trim() : user.name || 'Anonyme',
+          businessName: provider.businessName,
+          rating: Math.round((provider.averageRating || 0) * 10) / 10,
+          completedBookings: provider.totalBookings || 0,
+          location: profile ? `${profile.city || ''} ${profile.address || ''}`.trim() : '',
+          phone: profile?.phone,
+          avatar: profile?.avatar || user.image
         }
       }
     })

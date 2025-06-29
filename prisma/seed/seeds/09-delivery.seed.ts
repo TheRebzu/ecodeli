@@ -4,74 +4,135 @@ import { generateValidationCode, generateTrackingNumber } from '../utils/generat
 
 export async function seedDeliveries(ctx: SeedContext) {
   const { prisma } = ctx
-  const announcements = ctx.data.get('announcements') || []
-  const users = ctx.data.get('users') || []
   
   console.log('   Creating deliveries...')
   
-  const deliverers = users.filter(u => u.role === CONSTANTS.roles.DELIVERER)
-  const activeAnnouncements = announcements
+  // Récupérer les annonces et utilisateurs depuis la base de données
+  const announcements = await prisma.announcement.findMany({
+    where: { 
+      status: 'ACTIVE',
+      type: { in: ['PACKAGE_DELIVERY', 'SHOPPING', 'INTERNATIONAL_PURCHASE'] }
+    },
+    include: { author: true },
+    take: 15 // Limiter pour éviter trop de livraisons
+  })
+  
+  const deliverers = await prisma.user.findMany({
+    where: { role: 'DELIVERER' }
+  })
+  
+  if (deliverers.length === 0 || announcements.length === 0) {
+    console.log(`   No deliverers (${deliverers.length}) or announcements (${announcements.length}) found`)
+    return []
+  }
   
   const deliveries = []
   
-  for (const announcement of activeAnnouncements) {
-    // Sélectionner un livreur aléatoire
-    const deliverer = deliverers[Math.floor(Math.random() * deliverers.length)]
-    if (!deliverer) continue
+  for (let i = 0; i < Math.min(announcements.length, 10); i++) {
+    const announcement = announcements[i]
+    const deliverer = deliverers[i % deliverers.length]
     
-    const delivererData = await prisma.deliverer.findUnique({
-      where: { userId: deliverer.id }
-    })
-    
-    if (!delivererData) continue
-    
-    // Déterminer le statut de la livraison
-    const statuses = ['PENDING', 'ACCEPTED', 'COLLECTED', 'IN_TRANSIT', 'DELIVERED']
-    const statusIndex = Math.floor(Math.random() * statuses.length)
-    const status = statuses[statusIndex]
-    
-    // Générer un code de validation
-    const validationCode = generateValidationCode()
+    // Générer des codes uniques
     const trackingNumber = generateTrackingNumber()
+    const validationCode = generateValidationCode()
     
-    // Créer la livraison
-    const delivery = await prisma.delivery.create({
-      data: {
-        announcementId: announcement.id,
-        delivererId: deliverer.id,
-        status,
-        trackingNumber,
-        validationCode,
-        pickupAddress: announcement.pickupAddress,
-        pickupLat: announcement.pickupLatitude,
-        pickupLng: announcement.pickupLongitude,
-        deliveryAddress: announcement.deliveryAddress,
-        deliveryLat: announcement.deliveryLatitude,
-        deliveryLng: announcement.deliveryLongitude,
-        scheduledPickupAt: announcement.pickupDate,
-        scheduledDeliveryAt: new Date(announcement.pickupDate.getTime() + 3 * 60 * 60 * 1000), // +3h
-        actualPickupAt: statusIndex >= 2 ? new Date(Date.now() - Math.random() * 2 * 60 * 60 * 1000) : null,
-        actualDeliveryAt: status === 'DELIVERED' ? new Date() : null,
-        estimatedDuration: 180, // 3 heures
-        estimatedDistance: 15 + Math.random() * 100, // 15-115 km
-        deliveryType: Math.random() > 0.7 ? 'EXPRESS' : 'STANDARD',
-        price: announcement.basePrice,
+    // Calculer les prix
+    const basePrice = announcement.basePrice || 25.0
+    const platformFee = basePrice * 0.15 // 15% commission
+    const delivererFee = basePrice - platformFee
+    
+    // Déterminer le statut (utiliser les valeurs d'enum correctes)
+    const statuses = ['PENDING', 'ACCEPTED', 'IN_PROGRESS', 'DELIVERED']
+    const status = statuses[Math.floor(Math.random() * statuses.length)]
+    
+    // Dates réalistes
+    const pickupDate = new Date(Date.now() + Math.random() * 7 * 24 * 60 * 60 * 1000) // Dans les 7 prochains jours
+    const deliveryDate = new Date(pickupDate.getTime() + (2 + Math.random() * 6) * 60 * 60 * 1000) // 2-8h après pickup
+    
+    try {
+      const delivery = await prisma.delivery.create({
+        data: {
+          announcementId: announcement.id,
+          clientId: announcement.authorId,
+          delivererId: deliverer.id,
+          status: status as any,
+          trackingNumber,
+          validationCode,
+          pickupDate,
+          deliveryDate,
+          actualDeliveryDate: status === 'DELIVERED' ? new Date() : null,
+          isPartial: Math.random() > 0.8, // 20% chance d'être partiel
+          currentLocation: {
+            address: '123 rue de Rivoli, Paris',
+            lat: 48.8566,
+            lng: 2.3522,
+            updatedAt: new Date().toISOString()
+          },
+          price: basePrice,
+          delivererFee,
+          platformFee,
+          insuranceFee: basePrice > 100 ? 5.0 : null
+        }
+      })
+      
+      deliveries.push(delivery)
+      
+      // Créer des mises à jour de tracking
+      await prisma.trackingUpdate.create({
+        data: {
+          deliveryId: delivery.id,
+          status: 'PENDING' as any,
+          message: 'Commande créée',
+          location: 'Paris, France',
+          coordinates: { lat: 48.8566, lng: 2.3522 },
+          isAutomatic: true
+        }
+      })
+      
+      if (status !== 'PENDING') {
+        await prisma.trackingUpdate.create({
+          data: {
+            deliveryId: delivery.id,
+            status: 'ACCEPTED' as any,
+            message: `Livraison acceptée par ${deliverer.name}`,
+            location: 'Paris, France',
+            isAutomatic: true,
+            timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000) // Il y a 2h
+          }
+        })
       }
-    })
-    
-    deliveries.push(delivery)
-    
-    // Mettre à jour le statut de l'annonce
-    if (status === 'DELIVERED') {
-      await prisma.announcement.update({
-        where: { id: announcement.id },
-        data: { status: 'COMPLETED' }
-      })
-    } else if (statusIndex >= 1) {
-      await prisma.announcement.update({
-        where: { id: announcement.id },
-        data: { status: 'IN_PROGRESS' }
-      })
+      
+      if (status === 'DELIVERED') {
+        await prisma.trackingUpdate.create({
+          data: {
+            deliveryId: delivery.id,
+            status: 'DELIVERED' as any,
+            message: 'Colis livré avec succès',
+            location: 'Adresse de livraison',
+            isAutomatic: false
+          }
+        })
+        
+        // Créer une preuve de livraison
+        await prisma.proofOfDelivery.create({
+          data: {
+            deliveryId: delivery.id,
+            recipientName: 'Client destinataire',
+            photos: [`https://storage.ecodeli.fr/deliveries/${delivery.id}/photo1.jpg`],
+            notes: 'Livraison effectuée sans problème',
+            validatedWithCode: true
+          }
+        })
+        
+        // Mettre à jour le statut de l'annonce
+        await prisma.announcement.update({
+          where: { id: announcement.id },
+          data: { status: 'COMPLETED' }
+        })
+      }
+      
+    } catch (error) {
+      console.log(`   Error creating delivery for announcement ${announcement.id}:`, error.message)
     }
   }
   

@@ -274,7 +274,6 @@ function createExtendedPrisma() {
     })
   } catch (error) {
     // En cas d'erreur (Edge Runtime), retourner Prisma basique
-    console.warn('Extensions Prisma désactivées (Edge Runtime)')
     return prisma as any
   }
 }

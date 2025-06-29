@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
+import { prisma } from '@/lib/db'
 import { StorageBoxService } from '@/features/storage/services/storage-box.service'
 
 /**
- * GET - Récupérer les box de stockage disponibles
+ * GET - Récupérer les box de stockage disponibles et les locations du client
  */
 export async function GET(request: NextRequest) {
   try {
@@ -25,9 +26,22 @@ export async function GET(request: NextRequest) {
 
     const boxes = await StorageBoxService.getAvailableBoxes(filters)
 
+    // Si l'utilisateur est un client, récupérer ses locations
+    let clientRentals = []
+    if (session.user.role === 'CLIENT') {
+      const client = await prisma.client.findUnique({
+        where: { userId: session.user.id }
+      })
+      
+      if (client) {
+        clientRentals = await StorageBoxService.getClientRentals(client.id)
+      }
+    }
+
     return NextResponse.json({
       success: true,
-      boxes
+      boxes,
+      rentals: clientRentals
     })
 
   } catch (error) {

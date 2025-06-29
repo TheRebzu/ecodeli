@@ -26,8 +26,17 @@ export async function GET(request: NextRequest) {
   try {
     const session = await auth()
     
-    if (!session?.user || session.user.role !== 'CLIENT') {
+    if (!session?.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    // Si l'utilisateur n'est pas CLIENT, retourner une réponse neutre
+    if (session.user.role !== 'CLIENT') {
+      return NextResponse.json({
+        success: true,
+        tutorialRequired: false,
+        message: 'Tutoriel non applicable pour ce type d\'utilisateur'
+      })
     }
 
     const { searchParams } = new URL(request.url)
@@ -59,23 +68,49 @@ export async function GET(request: NextRequest) {
         })
 
       default:
-        // Récupérer toutes les informations du tutoriel
-        const [required, tutorialSteps, tutorialProgress] = await Promise.all([
-          TutorialService.isTutorialRequired(session.user.id),
-          TutorialService.getClientTutorialSteps(session.user.id),
-          TutorialService.getTutorialProgress(session.user.id)
-        ])
+        try {
+          // Récupérer toutes les informations du tutoriel
+          const [required, tutorialSteps, tutorialProgress] = await Promise.all([
+            TutorialService.isTutorialRequired(session.user.id),
+            TutorialService.getClientTutorialSteps(session.user.id),
+            TutorialService.getTutorialProgress(session.user.id)
+          ])
 
-        return NextResponse.json({
-          success: true,
-          tutorialRequired: required,
-          steps: tutorialSteps,
-          progress: tutorialProgress
-        })
+          return NextResponse.json({
+            success: true,
+            tutorialRequired: required,
+            steps: tutorialSteps,
+            progress: tutorialProgress
+          })
+        } catch (error) {
+          // Si l'utilisateur n'existe pas, retourner une réponse neutre
+          if (error instanceof Error && error.message.includes('non trouvé')) {
+            return NextResponse.json({
+              success: false,
+              message: 'Utilisateur non trouvé',
+              tutorialRequired: false,
+              progress: {
+                isCompleted: true,
+                skipped: true
+              }
+            })
+          }
+          throw error
+        }
     }
 
   } catch (error) {
     console.error('Error getting tutorial state:', error)
+    
+    // Si l'utilisateur n'existe pas, retourner une réponse neutre plutôt qu'une erreur
+    if (error instanceof Error && error.message.includes('non trouvé')) {
+      return NextResponse.json({
+        success: false,
+        message: 'Utilisateur non trouvé pour le tutoriel',
+        tutorialRequired: false
+      })
+    }
+    
     return NextResponse.json(
       { error: 'Erreur lors de la récupération du tutoriel' },
       { status: 500 }
@@ -90,13 +125,20 @@ export async function POST(request: NextRequest) {
   try {
     const session = await auth()
     
-    if (!session?.user || session.user.role !== 'CLIENT') {
+    if (!session?.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    // Si l'utilisateur n'est pas CLIENT, retourner une réponse neutre
+    if (session.user.role !== 'CLIENT') {
+      return NextResponse.json({
+        success: true,
+        message: 'Action non applicable pour ce type d\'utilisateur'
+      })
     }
 
     const { searchParams } = new URL(request.url)
     const action = searchParams.get('action')
-    const body = await request.json()
 
     switch (action) {
       case 'start':
@@ -107,8 +149,9 @@ export async function POST(request: NextRequest) {
           message: 'Tutoriel démarré'
         })
 
-      case 'complete-step':
+      case 'complete-step': {
         // Compléter une étape
+        const body = await request.json()
         const stepData = completeStepSchema.parse(body)
         await TutorialService.completeStep(
           session.user.id,
@@ -119,24 +162,29 @@ export async function POST(request: NextRequest) {
           success: true,
           message: 'Étape complétée'
         })
+      }
 
-      case 'skip-step':
+      case 'skip-step': {
         // Passer une étape
+        const body = await request.json()
         const skipData = skipStepSchema.parse(body)
         await TutorialService.skipStep(session.user.id, skipData.stepId)
         return NextResponse.json({
           success: true,
           message: 'Étape passée'
         })
+      }
 
-      case 'complete':
+      case 'complete': {
         // Terminer le tutoriel complet
+        const body = await request.json()
         const completionData = completeTutorialSchema.parse(body)
         await TutorialService.completeTutorial(session.user.id, completionData)
         return NextResponse.json({
           success: true,
           message: 'Tutoriel terminé avec succès'
         })
+      }
 
       case 'reset':
         // Réinitialiser le tutoriel (pour les tests)

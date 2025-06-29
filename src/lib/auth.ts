@@ -7,7 +7,7 @@ import bcrypt from "bcryptjs"
 import { UserRole } from "@prisma/client"
 
 export const config = {
-  adapter: PrismaAdapter(db),
+  // adapter: PrismaAdapter(db), // Désactiver l'adapter pour utiliser les utilisateurs des seeds
   providers: [
     CredentialsProvider({
       name: "credentials",
@@ -51,7 +51,7 @@ export const config = {
         }
 
         // Vérifier si l'utilisateur est actif
-        console.log('🔍 Auth debug:', {
+        console.log('Auth debug:', {
           email: user.email,
           isActive: user.isActive,
           role: user.role,
@@ -59,7 +59,7 @@ export const config = {
         })
         
         if (!user.isActive && user.role !== "ADMIN") {
-          console.log('❌ Utilisateur bloqué - isActive:', user.isActive, 'role:', user.role)
+          console.log('Utilisateur bloqué - isActive:', user.isActive, 'role:', user.role)
           throw new Error("Compte en attente de validation")
         }
 
@@ -81,8 +81,9 @@ export const config = {
     maxAge: 7 * 24 * 60 * 60, // 7 jours
   },
   pages: {
-    signIn: "/login",
-    error: "/auth/error",
+    signIn: "/fr/login",
+    signUp: "/fr/register",
+    error: "/fr/auth/error",
   },
   callbacks: {
     async jwt({ token, user, trigger, session }) {

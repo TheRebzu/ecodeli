@@ -30,21 +30,86 @@ export async function GET(
       )
     }
 
-    // Récupérer l'historique de suivi
-    const trackingHistory = await deliveryTrackingService.getTrackingHistory(deliveryId)
+    // Récupérer les informations complètes de la livraison avec tracking
+    const delivery = await prisma.delivery.findUnique({
+      where: { id: deliveryId },
+      include: {
+        announcement: {
+          include: {
+            pickupLocation: true,
+            deliveryLocation: true
+          }
+        },
+        deliverer: {
+          include: {
+            user: {
+              include: {
+                profile: true
+              }
+            }
+          }
+        },
+        trackingSession: {
+          where: { isActive: true },
+          include: {
+            locationUpdates: {
+              orderBy: { timestamp: 'desc' },
+              take: 1
+            }
+          }
+        }
+      }
+    })
 
-    // Récupérer le statut actuel
-    const currentStatus = await deliveryTrackingService.getCurrentStatus(deliveryId)
+    if (!delivery) {
+      return NextResponse.json({ error: 'Livraison non trouvée' }, { status: 404 })
+    }
+
+    // Obtenir la position actuelle
+    const currentPosition = delivery.trackingSession?.[0]?.locationUpdates?.[0]
+
+    // Calculer l'estimation d'arrivée
+    const estimatedArrival = currentPosition ? 
+      await deliveryTrackingService.calculateEstimatedArrival(
+        deliveryId,
+        delivery.announcement.deliveryLocation.address
+      ) : null
 
     console.log(`[TRACKING CONSULTÉ] Livraison: ${deliveryId}, User: ${session.user.id}`)
 
     return NextResponse.json({
       success: true,
-      deliveryId,
-      currentStatus,
-      trackingHistory,
-      totalUpdates: trackingHistory.length,
-      lastUpdate: trackingHistory[0] || null
+      delivery: {
+        id: delivery.id,
+        trackingCode: delivery.trackingCode,
+        status: delivery.status,
+        pickupLocation: {
+          address: delivery.announcement.pickupLocation.address,
+          coordinates: delivery.announcement.pickupLocation.coordinates ? 
+            JSON.parse(delivery.announcement.pickupLocation.coordinates as string) : null
+        },
+        deliveryLocation: {
+          address: delivery.announcement.deliveryLocation.address,
+          coordinates: delivery.announcement.deliveryLocation.coordinates ? 
+            JSON.parse(delivery.announcement.deliveryLocation.coordinates as string) : null
+        },
+        deliverer: {
+          id: delivery.deliverer.id,
+          name: `${delivery.deliverer.user.profile?.firstName} ${delivery.deliverer.user.profile?.lastName}`,
+          phone: delivery.deliverer.phone,
+          vehicle: delivery.deliverer.vehicleType || 'Véhicule'
+        },
+        estimatedArrival: estimatedArrival?.toISOString(),
+        currentPosition: currentPosition ? {
+          latitude: currentPosition.latitude,
+          longitude: currentPosition.longitude,
+          accuracy: currentPosition.accuracy,
+          timestamp: currentPosition.timestamp,
+          speed: currentPosition.speed,
+          heading: currentPosition.heading
+        } : null,
+        lastUpdate: currentPosition?.timestamp || delivery.updatedAt
+      }
     })
 
   } catch (error) {

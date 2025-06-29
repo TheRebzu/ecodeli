@@ -307,6 +307,8 @@ model Profile {
   city        String?
   postalCode  String?
   country     String    @default("FR")
+  latitude    Float? // Coordonnées géographiques
+  longitude   Float?
   isVerified  Boolean   @default(false)
   verifiedAt  DateTime?
   language    String    @default("fr")
@@ -318,6 +320,7 @@ model Profile {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+  @@index([latitude, longitude])
 }
 
 // From 02-auth.prisma
@@ -862,13 +865,13 @@ model Announcement {
   attachments         AnnouncementAttachment[]
   notifications       AnnouncementNotification[]
   tracking            AnnouncementTracking[]
+  PackageAnnouncement PackageAnnouncement?
+  ServiceAnnouncement ServiceAnnouncement?
   Client              Client?                    @relation(fields: [clientId], references: [id])
   clientId            String?
   Merchant            Merchant?                  @relation(fields: [merchantId], references: [id])
   merchantId          String?
   Order               Order?
-  PackageAnnouncement PackageAnnouncement?
-  ServiceAnnouncement ServiceAnnouncement?
   Dispute             Dispute[]
   ReverseAuction      ReverseAuction?
   AnnouncementGroup   AnnouncementGroup[]

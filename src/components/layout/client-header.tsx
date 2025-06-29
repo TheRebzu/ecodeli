@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { TutorialButton } from '@/features/tutorials/components/tutorial-button';
 import { 
   Package, 
   Bell, 
@@ -27,7 +28,8 @@ import {
   Box,
   Menu,
   Search,
-  Plus
+  Plus,
+  BookOpen
 } from 'lucide-react';
 
 interface ClientHeaderProps {
@@ -98,6 +100,11 @@ export function ClientHeader({
               {t('dashboard.newAnnouncement', 'Nouvelle Annonce')}
             </Link>
           </Button>
+
+          {/* Tutorial access */}
+          <div className="hidden md:block">
+            <TutorialButton variant="ghost" size="sm" />
+          </div>
 
           {/* Notifications */}
           <DropdownMenu>
@@ -193,6 +200,10 @@ export function ClientHeader({
                   <Settings className="mr-2 h-4 w-4" />
                   <span>Paramètres</span>
                 </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem className="md:hidden">
+                <BookOpen className="mr-2 h-4 w-4" />
+                <TutorialButton variant="ghost" size="sm" className="p-0 h-auto" />
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={onLogout} className="text-red-600">

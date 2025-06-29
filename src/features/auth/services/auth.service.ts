@@ -429,18 +429,16 @@ export class AuthService {
   }
   
   /**
-   * Obtenir l'utilisateur connecté avec son profil complet
+   * Obtenir l'utilisateur connecté avec son profil complet (pour NextAuth)
    */
-  static async getCurrentUser(headers: Headers) {
+  static async getCurrentUser(userId: string) {
     try {
-      const session = await auth.api.getSession({ headers })
-      
-      if (!session) {
+      if (!userId) {
         return null
       }
       
       const user = await prisma.user.findUnique({
-        where: { id: session.user.id },
+        where: { id: userId },
         include: {
           profile: true,
           client: {

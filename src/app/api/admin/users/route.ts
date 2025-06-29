@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
-import { requireRole } from '@/lib/auth'
+import { requireRole } from '@/lib/auth/utils'
 
 /**
  * GET - Récupérer tous les utilisateurs
@@ -10,7 +10,7 @@ export async function GET(request: NextRequest) {
     console.log('🔍 Vérification authentification admin...')
     
     // Vérifier que l'utilisateur est admin
-    const user = await requireRole('ADMIN', request)
+    const user = await requireRole(request, ['ADMIN'])
     console.log('✅ Utilisateur admin authentifié:', user.email, user.role)
   } catch (error) {
     console.error('❌ Erreur authentification admin:', error)
@@ -106,7 +106,7 @@ export async function PUT(request: NextRequest) {
     console.log('🔍 Vérification authentification admin (PUT)...')
     
     // Vérifier que l'utilisateur est admin
-    const user = await requireRole('ADMIN', request)
+    const user = await requireRole(request, ['ADMIN'])
     console.log('✅ Utilisateur admin authentifié (PUT):', user.email)
   } catch (error) {
     console.error('❌ Erreur authentification admin (PUT):', error)
@@ -200,7 +200,7 @@ export async function DELETE(request: NextRequest) {
     console.log('🔍 Vérification authentification admin (DELETE)...')
     
     // Vérifier que l'utilisateur est admin
-    const user = await requireRole('ADMIN', request)
+    const user = await requireRole(request, ['ADMIN'])
     console.log('✅ Utilisateur admin authentifié (DELETE):', user.email)
   } catch (error) {
     console.error('❌ Erreur authentification admin (DELETE):', error)

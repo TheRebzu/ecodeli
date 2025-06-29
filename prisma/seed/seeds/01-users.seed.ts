@@ -45,7 +45,7 @@ const usersByRole = {
 export async function seedUsers(ctx: SeedContext) {
   const { prisma } = ctx
   
-  console.log('   Creating users...')
+  console.log('   Creating users with NextAuth compatibility...')
   
   const password = await bcrypt.hash('Test123!', 10)
   const createdUsers = []
@@ -59,11 +59,14 @@ export async function seedUsers(ctx: SeedContext) {
       const address = addresses[addressIndex % addresses.length]
       addressIndex++
       
+      // Créer l'utilisateur avec emailVerified pour NextAuth
       const user = await prisma.user.create({
         data: {
           email: userData.email,
           password,
           role: role as any,
+          name: userData.name, // Nom complet pour NextAuth
+          emailVerified: new Date(), // Email vérifié pour NextAuth
           // Selon le cahier des charges EcoDeli
           isActive: role === 'CLIENT' || role === 'ADMIN' || (userData as any).status === 'VALIDATED',
           validationStatus: role === 'CLIENT' || role === 'ADMIN' ? 'VALIDATED' : 'PENDING',
@@ -97,6 +100,50 @@ export async function seedUsers(ctx: SeedContext) {
         })
       }
       
+      if (role === 'DELIVERER') {
+        await prisma.deliverer.create({
+          data: {
+            userId: user.id,
+            validationStatus: (userData as any).status || 'VALIDATED',
+            vehicleType: 'BICYCLE',
+            isActive: (userData as any).status === 'VALIDATED',
+            availabilityZone: 'PARIS'
+          }
+        })
+      }
+      
+      if (role === 'MERCHANT') {
+        await prisma.merchant.create({
+          data: {
+            userId: user.id,
+            companyName: (userData as any).company || userData.name,
+            siret: `123456789${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}`,
+            isActive: true
+          }
+        })
+      }
+      
+      if (role === 'PROVIDER') {
+        await prisma.provider.create({
+          data: {
+            userId: user.id,
+            validationStatus: (userData as any).status || 'VALIDATED',
+            isActive: (userData as any).status === 'VALIDATED',
+            servicesOffered: ['DELIVERY']
+          }
+        })
+      }
+      
+      if (role === 'ADMIN') {
+        await prisma.admin.create({
+          data: {
+            userId: user.id,
+            role: 'ADMIN',
+            permissions: ['ALL']
+          }
+        })
+      }
+      
       // On stocke aussi les infos supplémentaires pour utilisation dans d'autres seeds
       createdUsers.push({
         ...user,
@@ -111,7 +158,7 @@ export async function seedUsers(ctx: SeedContext) {
     }
   }
   
-  console.log(`   ✓ Created ${createdUsers.length} users`)
+  console.log(`   ✓ Created ${createdUsers.length} users with profiles`)
   
   // Stocker les utilisateurs créés pour les autres seeds
   ctx.data.set('users', createdUsers)

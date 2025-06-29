@@ -125,27 +125,27 @@ export const seedDependencies: SeedDependency[] = [
   },
   {
     name: '11-payment',
-    fn: async (ctx) => (await import('../seeds/11-payment.seed')).seedPayment(ctx)
+    fn: async (ctx) => (await import('../seeds/11-payment.seed')).seedPayments(ctx)
   },
   {
     name: '12-invoice',
-    fn: async (ctx) => (await import('../seeds/12-invoice.seed')).seedInvoice(ctx)
+    fn: async (ctx) => (await import('../seeds/12-invoice.seed')).seedInvoices(ctx)
   },
   {
     name: '15-notification',
-    fn: async (ctx) => (await import('../seeds/15-notification.seed')).seedNotification(ctx)
+    fn: async (ctx) => (await import('../seeds/15-notification.seed')).seedNotifications(ctx)
   },
   {
     name: '16-review',
-    fn: async (ctx) => (await import('../seeds/16-review.seed')).seedReview(ctx)
+    fn: async (ctx) => (await import('../seeds/16-review.seed')).seedReviews(ctx)
   },
   {
     name: '17-contract',
-    fn: async (ctx) => (await import('../seeds/17-contract.seed')).seedContracts(ctx)
+    fn: async (ctx) => (await import('../seeds/17-contract.seed')).seedContracts(ctx.prisma, ctx)
   },
   {
     name: '18-tutorial',
-    fn: async (ctx) => (await import('../seeds/18-tutorial.seed')).seedTutorial(ctx)
+    fn: async (ctx) => (await import('../seeds/18-tutorial.seed')).seedTutorials(ctx)
   },
   {
     name: '19-tracking',
@@ -165,11 +165,11 @@ export const seedDependencies: SeedDependency[] = [
   },
   {
     name: '23-referral',
-    fn: async (ctx) => (await import('../seeds/23-referral.seed')).seedReferral(ctx)
+    fn: async (ctx) => (await import('../seeds/23-referral.seed')).seedReferrals(ctx)
   },
   {
     name: '24-disputes',
-    fn: async (ctx) => (await import('../seeds/24-disputes.seed')).seedDisputes(ctx)
+    fn: async (ctx) => (await import('../seeds/24-disputes.seed')).seedDisputes(ctx.prisma, ctx)
   },
   {
     name: '25-analytics',

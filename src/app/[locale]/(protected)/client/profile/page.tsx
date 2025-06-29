@@ -1,17 +1,19 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { useTranslations } from "next-intl"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Switch } from "@/components/ui/switch"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { useAuth } from "@/hooks/use-auth";
+import { useState, useEffect } from "react";
+import { useTranslations } from "next-intl";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { PageHeader } from "@/components/layout/page-header";
 import { 
   User, 
   Mail, 
@@ -33,14 +35,72 @@ import {
   CheckCircle,
   XCircle,
   Clock
-} from "lucide-react"
-import { useClientProfile, ProfileUpdateData } from "@/features/client/hooks/useClientProfile"
+} from "lucide-react";
+
+interface Address {
+  id: string;
+  label: string;
+  street: string;
+  city: string;
+  postalCode: string;
+  country: string;
+  isDefault: boolean;
+}
+
+interface PaymentMethod {
+  id: string;
+  lastFour: string;
+  brand: string;
+  expiryDate: string;
+  isDefault: boolean;
+}
+
+interface Document {
+  id: string;
+  name: string;
+  type: string;
+  status: 'PENDING' | 'APPROVED' | 'REJECTED';
+  uploadedAt: string;
+  url?: string;
+}
+
+interface ClientProfile {
+  user: {
+    id: string;
+    name: string;
+    email: string;
+    phone?: string;
+    address?: string;
+    city?: string;
+    postalCode?: string;
+    country?: string;
+    dateOfBirth?: string;
+  };
+  subscriptionPlan: 'FREE' | 'STARTER' | 'PREMIUM';
+  stats: {
+    totalOrders: number;
+    totalSpent: number;
+    averageRating: number;
+    completedDeliveries: number;
+  };
+  addresses: Address[];
+  paymentMethods: PaymentMethod[];
+  documents: Document[];
+  preferences: {
+    notifications: {
+      email: boolean;
+      sms: boolean;
+      push: boolean;
+      marketing: boolean;
+    };
+  };
+}
 
 const subscriptionLabels = {
   FREE: { name: 'Gratuit', color: 'bg-gray-100 text-gray-800' },
   STARTER: { name: 'Starter', color: 'bg-blue-100 text-blue-800' },
   PREMIUM: { name: 'Premium', color: 'bg-yellow-100 text-yellow-800' }
-}
+};
 
 const documentTypes = {
   IDENTITY: 'Pièce d\'identité',
@@ -48,28 +108,43 @@ const documentTypes = {
   DRIVING_LICENSE: 'Permis de conduire',
   INSURANCE: 'Assurance',
   OTHER: 'Autre'
-}
+};
 
 const documentStatusLabels = {
   PENDING: { label: 'En attente', color: 'bg-yellow-100 text-yellow-800', icon: Clock },
   APPROVED: { label: 'Approuvé', color: 'bg-green-100 text-green-800', icon: CheckCircle },
   REJECTED: { label: 'Rejeté', color: 'bg-red-100 text-red-800', icon: XCircle }
-}
+};
 
 export default function ClientProfilePage() {
-  const {
-    profile,
-    isLoading,
-    error,
-    updateProfile,
-    uploadDocument,
-    deleteDocument,
-    addPaymentMethod,
-    removePaymentMethod,
-    addAddress,
-    updateAddress,
-    deleteAddress
-  } = useClientProfile()
+  const { user } = useAuth();
+  const t = useTranslations("client.profile");
+  const [profile, setProfile] = useState<ClientProfile | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    if (user) {
+      fetchProfile();
+    }
+  }, [user]);
+
+  const fetchProfile = async () => {
+    if (!user) return;
+    
+    setIsLoading(true);
+    try {
+      const response = await fetch(`/api/client/profile?clientId=${user.id}`);
+      
+      if (response.ok) {
+        const data = await response.json();
+        setProfile(data.profile);
+      }
+    } catch (error) {
+      console.error('Error fetching profile:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const [editMode, setEditMode] = useState(false)
   const [documentDialog, setDocumentDialog] = useState(false)
@@ -109,8 +184,6 @@ export default function ClientProfilePage() {
     push: true,
     marketing: false
   })
-
-  const t = useTranslations()
 
   const handleEditProfile = () => {
     if (profile) {
@@ -193,127 +266,81 @@ export default function ClientProfilePage() {
     }
   }
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gray-50 p-6">
-        <div className="max-w-6xl mx-auto">
-          <div className="animate-pulse space-y-4">
-            <div className="h-8 bg-gray-200 rounded w-1/3"></div>
-            <div className="h-32 bg-gray-200 rounded"></div>
-            <div className="h-32 bg-gray-200 rounded"></div>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
-  if (error) {
-    return (
-      <div className="min-h-screen bg-gray-50 p-6">
-        <div className="max-w-6xl mx-auto">
-          <Card className="border-red-200 bg-red-50">
-            <CardContent className="p-6 text-center">
-              <AlertCircle className="h-12 w-12 text-red-600 mx-auto mb-4" />
-              <div className="text-red-600 mb-4">Erreur de chargement</div>
-              <p className="text-red-800">{error}</p>
-              <Button 
-                onClick={() => window.location.reload()} 
-                className="mt-4"
-                variant="outline"
-              >
-                Réessayer
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-    )
-  }
-
-  if (!profile) {
-    return (
-      <div className="min-h-screen bg-gray-50 p-6">
-        <div className="max-w-6xl mx-auto">
-          <Card>
-            <CardContent className="p-6 text-center">
-              <p className="text-gray-500">Profil non trouvé</p>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-    )
-  }
-
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-6xl mx-auto">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                👤 Mon Profil
-              </h1>
-              <p className="text-gray-600">
-                Gérez vos informations personnelles et préférences
-              </p>
-            </div>
-            <Badge className={subscriptionLabels[profile.subscriptionPlan].color}>
-              {subscriptionLabels[profile.subscriptionPlan].name}
-            </Badge>
-          </div>
-        </div>
+    <div className="space-y-6">
+          <PageHeader
+            title={t("page.title")}
+            description={t("page.description")}
+            action={
+              profile && (
+                <Badge className={subscriptionLabels[profile.subscriptionPlan].color}>
+                  {subscriptionLabels[profile.subscriptionPlan].name}
+                </Badge>
+              )
+            }
+          />
 
-        {/* Statistiques rapides */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center">
-                <Package className="h-8 w-8 text-blue-600" />
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-500">Commandes</p>
-                  <p className="text-2xl font-bold">{profile.stats.totalOrders}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          {isLoading ? (
+            <div className="text-center py-8">{t("loading")}</div>
+          ) : !profile ? (
+            <Card className="text-center py-12">
+              <CardContent>
+                <User className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+                <p className="text-gray-500">{t("profile_not_found")}</p>
+              </CardContent>
+            </Card>
+          ) : (
+            <>
+              {/* Statistiques rapides */}
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <Card>
+                  <CardContent className="p-6">
+                    <div className="flex items-center">
+                      <Package className="h-8 w-8 text-blue-600" />
+                      <div className="ml-4">
+                        <p className="text-sm font-medium text-gray-500">{t("stats.orders")}</p>
+                        <p className="text-2xl font-bold">{profile.stats.totalOrders}</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
 
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center">
-                <CreditCard className="h-8 w-8 text-green-600" />
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-500">Dépenses</p>
-                  <p className="text-2xl font-bold">{profile.stats.totalSpent}€</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+                <Card>
+                  <CardContent className="p-6">
+                    <div className="flex items-center">
+                      <CreditCard className="h-8 w-8 text-green-600" />
+                      <div className="ml-4">
+                        <p className="text-sm font-medium text-gray-500">{t("stats.spent")}</p>
+                        <p className="text-2xl font-bold">{profile.stats.totalSpent}€</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
 
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center">
-                <Star className="h-8 w-8 text-yellow-600" />
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-500">Note moyenne</p>
-                  <p className="text-2xl font-bold">{profile.stats.averageRating.toFixed(1)}/5</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+                <Card>
+                  <CardContent className="p-6">
+                    <div className="flex items-center">
+                      <Star className="h-8 w-8 text-yellow-600" />
+                      <div className="ml-4">
+                        <p className="text-sm font-medium text-gray-500">{t("stats.rating")}</p>
+                        <p className="text-2xl font-bold">{profile.stats.averageRating.toFixed(1)}/5</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
 
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center">
-                <CheckCircle className="h-8 w-8 text-purple-600" />
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-500">Livraisons</p>
-                  <p className="text-2xl font-bold">{profile.stats.completedDeliveries}</p>
-                </div>
+                <Card>
+                  <CardContent className="p-6">
+                    <div className="flex items-center">
+                      <CheckCircle className="h-8 w-8 text-purple-600" />
+                      <div className="ml-4">
+                        <p className="text-sm font-medium text-gray-500">{t("stats.deliveries")}</p>
+                        <p className="text-2xl font-bold">{profile.stats.completedDeliveries}</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
               </div>
-            </CardContent>
-          </Card>
-        </div>
 
         <Tabs defaultValue="profile" className="space-y-6">
           <TabsList className="grid grid-cols-5 w-full max-w-2xl">
@@ -797,7 +824,8 @@ export default function ClientProfilePage() {
             </Card>
           </TabsContent>
         </Tabs>
-      </div>
+      </>
+      )}
     </div>
-  )
+  );
 }

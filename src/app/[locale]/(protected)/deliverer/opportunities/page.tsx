@@ -1,35 +1,29 @@
-import { Metadata } from 'next'
-import { getTranslations } from 'next-intl/server'
-import { auth } from '@/lib/auth'
-import { redirect } from 'next/navigation'
-import { USER_ROLES } from '@/lib/auth'
-import { DelivererOpportunitiesPage } from '@/features/deliverer/components/opportunities/deliverer-opportunities-page'
+"use client";
 
-export async function generateMetadata({
-  params: { locale }
-}: {
-  params: { locale: string }
-}): Promise<Metadata> {
-  const t = await getTranslations({ locale, namespace: 'pages.deliverer.opportunities' })
-  
-  return {
-    title: t('title'),
-    description: t('description')
-  }
-}
+import { useAuth } from "@/hooks/use-auth";
+import { Loader2 } from "lucide-react";
+import { PageHeader } from "@/components/layout/page-header";
+import OpportunityManager from "@/features/deliverer/components/opportunities/opportunity-manager";
 
-export default async function OpportunitiesPage({
-  params: { locale }
-}: {
-  params: { locale: string }
-}) {
-  const session = await auth.api.getSession({
-    headers: await import('next/headers').then(mod => mod.headers())
-  })
+export default function DelivererOpportunitiesPage() {
+  const { user } = useAuth();
 
-  if (!session?.user || session.user.role !== USER_ROLES.DELIVERER) {
-    redirect(`/${locale}/login`)
+  if (!user) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
   }
 
-  return <DelivererOpportunitiesPage />
+  return (
+    <div className="space-y-6">
+      <PageHeader
+        title="Opportunités de livraison"
+        description="Découvrez les opportunités de livraison disponibles"
+      />
+      
+      <OpportunityManager delivererId={user.id} />
+    </div>
+  );
 }

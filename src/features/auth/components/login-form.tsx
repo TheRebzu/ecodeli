@@ -4,24 +4,13 @@ import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useTranslations } from "next-intl"
-// Removed unused import
+import { signIn, getSession } from "next-auth/react"
 import { loginSchema, type LoginData } from "@/features/auth/schemas/auth.schema"
 import { Link, useRouter } from "@/i18n/navigation"
 
-interface UserStatus {
-  exists: boolean
-  emailVerified: boolean
-  needsVerification: boolean
-  role?: string
-}
-
 export function LoginForm() {
   const [isLoading, setIsLoading] = useState(false)
-  const [isResendingEmail, setIsResendingEmail] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [showResendButton, setShowResendButton] = useState(false)
-  const [currentEmail, setCurrentEmail] = useState<string>("")
-  const [successMessage, setSuccessMessage] = useState<string | null>(null)
   const router = useRouter()
   const t = useTranslations()
 
@@ -33,161 +22,49 @@ export function LoginForm() {
     resolver: zodResolver(loginSchema)
   })
 
-  const checkUserStatus = async (email: string): Promise<UserStatus> => {
-    const response = await fetch('/api/auth/check-user-status', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email })
-    })
-    return response.json()
-  }
-
-  const resendVerificationEmail = async () => {
-    if (!currentEmail) return
-
-    setIsResendingEmail(true)
-    setError(null)
-    setSuccessMessage(null)
-
-    try {
-      const response = await fetch('/api/auth/resend-verification', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: currentEmail })
-      })
-
-      const result = await response.json()
-
-      if (response.ok) {
-        setSuccessMessage('📧 Email de vérification renvoyé ! Vérifiez votre boîte de réception.')
-        setShowResendButton(false)
-      } else {
-        setError(result.error || 'Erreur lors du renvoi de l\'email')
-      }
-    } catch (err) {
-      setError('Erreur lors du renvoi de l\'email de vérification')
-    } finally {
-      setIsResendingEmail(false)
-    }
-  }
-
   const onSubmit = async (data: LoginData) => {
     setIsLoading(true)
     setError(null)
-    setSuccessMessage(null)
-    setShowResendButton(false)
-    setCurrentEmail(data.email)
 
     try {
-      // D'abord vérifier le statut de l'utilisateur
-      const userStatus = await checkUserStatus(data.email)
-
-      // Si l'utilisateur existe mais l'email n'est pas vérifié
-      if (userStatus.exists && userStatus.needsVerification) {
-        setError('Votre email n\'est pas encore vérifié. Veuillez vérifier votre boîte de réception ou cliquer sur le bouton ci-dessous pour renvoyer l\'email de vérification.')
-        setShowResendButton(true)
-        return
-      }
-
-              // Connexion avec Better-Auth
-      const response = await fetch('/api/auth/sign-in/email', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({
-          email: data.email,
-          password: data.password
-        })
+      // Utiliser NextAuth signIn
+      const result = await signIn('credentials', {
+        email: data.email,
+        password: data.password,
+        redirect: false,
       })
 
-      const result = await response.json()
-
-      if (!response.ok) {
-        // Si l'erreur est liée aux credentials, re-vérifier le statut
-        if (result.error?.includes('Email ou mot de passe incorrect')) {
-          const statusRecheck = await checkUserStatus(data.email)
-          
-          if (statusRecheck.exists && statusRecheck.needsVerification) {
-            setError('Votre email n\'est pas encore vérifié. Veuillez vérifier votre boîte de réception ou renvoyer l\'email de vérification.')
-            setShowResendButton(true)
-          } else if (statusRecheck.exists) {
-            setError('Mot de passe incorrect')
-          } else {
-                          setError('Aucun compte trouvé avec cet email')
-          }
-        } else {
-          setError(result.error || 'Erreur de connexion')
-        }
+      if (result?.error) {
+        setError('Email ou mot de passe incorrect')
         return
       }
 
-      // Redirection selon le rôle utilisateur
-      let user = result.user
-      
-      // Vérifier s'il y a un callbackUrl dans l'URL
-      const urlParams = new URLSearchParams(window.location.search)
-      let callbackUrl = urlParams.get('callbackUrl')
-      
-      if (callbackUrl) {
-        // Nettoyer le callbackUrl s'il a des locales en double (ex: /fr/fr/fr/client -> /fr/client)
-        const urlParts = callbackUrl.split('/')
-        const supportedLocales = ['fr', 'en']
+      if (result?.ok) {
+        // Récupérer la session pour obtenir les infos utilisateur
+        const session = await getSession()
         
-        if (urlParts.length >= 2 && supportedLocales.includes(urlParts[1])) {
-          const locale = urlParts[1]
-          // Supprimer toutes les occurrences en double de la locale
-          const cleanParts = [urlParts[0], locale] // Garder '' et la locale
-          
-          // Ajouter le reste en ignorant les locales en double
-          for (let i = 2; i < urlParts.length; i++) {
-            if (urlParts[i] !== locale) {
-              cleanParts.push(urlParts[i])
-            }
-          }
-          
-          callbackUrl = cleanParts.join('/')
-        }
+        // Vérifier s'il y a un callbackUrl dans l'URL
+        const urlParams = new URLSearchParams(window.location.search)
+        let callbackUrl = urlParams.get('callbackUrl')
         
-        console.log('🔄 Redirection vers callbackUrl:', callbackUrl)
-        // Utiliser window.location pour s'assurer que les cookies sont envoyés
-        window.location.href = callbackUrl
-      } else if (result.redirectTo) {
-        window.location.href = result.redirectTo
-      } else if (user?.role) {
-        // Sinon, rediriger selon le rôle avec locale
-        const locale = window.location.pathname.split('/')[1] || 'fr'
-        const roleRoutes = {
-          'CLIENT': `/${locale}/client`,
-          'DELIVERER': `/${locale}/deliverer`, 
-          'MERCHANT': `/${locale}/merchant`,
-          'PROVIDER': `/${locale}/provider`,
-          'ADMIN': `/${locale}/admin`
-        }
-        window.location.href = roleRoutes[user.role as keyof typeof roleRoutes] || `/${locale}/client`
-      } else {
-        // PATCH: Si le rôle n'est pas dans la réponse, on va le chercher via la session
-        try {
-          const sessionRes = await fetch('/api/auth/me', { credentials: 'include' })
-          if (sessionRes.ok) {
-            const sessionData = await sessionRes.json()
-            const sessionUser = sessionData?.user
-            if (sessionUser?.role) {
-              const locale = window.location.pathname.split('/')[1] || 'fr'
-              const roleRoutes = {
-                'CLIENT': `/${locale}/client`,
-                'DELIVERER': `/${locale}/deliverer`, 
-                'MERCHANT': `/${locale}/merchant`,
-                'PROVIDER': `/${locale}/provider`,
-                'ADMIN': `/${locale}/admin`
-              }
-              window.location.href = roleRoutes[sessionUser.role as keyof typeof roleRoutes] || `/${locale}/client`
-              return
-            }
+        if (callbackUrl) {
+          window.location.href = callbackUrl
+        } else if (session?.user?.role) {
+          // Rediriger selon le rôle avec locale
+          const locale = window.location.pathname.split('/')[1] || 'fr'
+          const roleRoutes = {
+            'CLIENT': `/${locale}/client`,
+            'DELIVERER': `/${locale}/deliverer`, 
+            'MERCHANT': `/${locale}/merchant`,
+            'PROVIDER': `/${locale}/provider`,
+            'ADMIN': `/${locale}/admin`
           }
-        } catch (e) { /* ignore */ }
-        // Fallback
-        const locale = window.location.pathname.split('/')[1] || 'fr'
-        window.location.href = `/${locale}/client`
+          window.location.href = roleRoutes[session.user.role as keyof typeof roleRoutes] || `/${locale}/client`
+        } else {
+          // Fallback
+          const locale = window.location.pathname.split('/')[1] || 'fr'
+          window.location.href = `/${locale}/client`
+        }
       }
     } catch (err) {
       setError(t('auth.login.errors.generic'))
@@ -201,12 +78,6 @@ export function LoginForm() {
       {error && (
         <div className="bg-red-50 border border-red-200 rounded-lg p-3">
           <p className="text-sm text-red-600">{error}</p>
-        </div>
-      )}
-
-      {successMessage && (
-        <div className="bg-green-50 border border-green-200 rounded-lg p-3">
-          <p className="text-sm text-green-600">{successMessage}</p>
         </div>
       )}
 
@@ -258,17 +129,6 @@ export function LoginForm() {
       >
         {isLoading ? t('auth.login.signing') : t('auth.login.loginButton')}
       </button>
-
-      {showResendButton && (
-        <button
-          type="button"
-          onClick={resendVerificationEmail}
-          disabled={isResendingEmail}
-          className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors mt-2"
-        >
-          {isResendingEmail ? '📧 Envoi en cours...' : '📧 Renvoyer l\'email de vérification'}
-        </button>
-      )}
     </form>
   )
 }

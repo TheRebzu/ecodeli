@@ -1,316 +1,394 @@
-'use client'
+"use client";
 
-import { useEffect, useState } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Progress } from '@/components/ui/progress'
+import { useState, useEffect } from "react";
+import { useTranslations } from "next-intl";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   Wallet, 
-  Euro, 
   TrendingUp, 
-  Download,
-  Clock,
-  CheckCircle,
-  X,
-  AlertCircle,
-  Plus,
-  Minus,
+  TrendingDown, 
+  Calendar, 
+  Euro,
+  CreditCard,
   ArrowUpRight,
-  ArrowDownLeft
-} from 'lucide-react'
-import { useDelivererWallet, useWithdrawals } from '../../hooks/useDelivererData'
-import { WithdrawalRequestDialog } from './WithdrawalRequestDialog'
-import { useTranslations } from 'next-intl'
-import type { WalletTransaction } from '../../types'
+  ArrowDownLeft,
+  Clock
+} from "lucide-react";
+import { toast } from "sonner";
+import WithdrawalRequestDialog from "./withdrawal-request-dialog";
 
-export function WalletManager() {
-  const { wallet, loading: walletLoading, error: walletError, fetchWallet } = useDelivererWallet()
-  const { withdrawals, stats, loading: withdrawalsLoading, fetchWithdrawals } = useWithdrawals()
-  const [withdrawalDialogOpen, setWithdrawalDialogOpen] = useState(false)
-  const [selectedTab, setSelectedTab] = useState('overview')
-  const t = useTranslations('deliverer.wallet')
+interface WalletManagerProps {
+  delivererId: string;
+}
+
+interface WalletData {
+  balance: number;
+  totalEarnings: number;
+  monthlyEarnings: number;
+  pendingEarnings: number;
+  availableForWithdrawal: number;
+  lastWithdrawal?: {
+    amount: number;
+    date: string;
+    status: string;
+  };
+}
+
+interface WalletOperation {
+  id: string;
+  type: string;
+  amount: number;
+  description: string;
+  status: string;
+  date: string;
+  reference?: string;
+  deliveryId?: string;
+}
+
+interface Earning {
+  id: string;
+  deliveryId: string;
+  announcementTitle: string;
+  clientName: string;
+  amount: number;
+  commission: number;
+  netAmount: number;
+  status: string;
+  date: string;
+  paidAt?: string;
+}
+
+export default function WalletManager({ delivererId }: WalletManagerProps) {
+  const t = useTranslations("deliverer.wallet");
+  const [walletData, setWalletData] = useState<WalletData | null>(null);
+  const [operations, setOperations] = useState<WalletOperation[]>([]);
+  const [earnings, setEarnings] = useState<Earning[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showWithdrawalDialog, setShowWithdrawalDialog] = useState(false);
+
+  const fetchWalletData = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch("/api/deliverer/wallet");
+      if (response.ok) {
+        const data = await response.json();
+        setWalletData(data.wallet);
+      }
+    } catch (error) {
+      console.error("Error fetching wallet data:", error);
+      toast.error(t("error.fetch_failed"));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchOperations = async () => {
+    try {
+      const response = await fetch("/api/deliverer/wallet/operations");
+      if (response.ok) {
+        const data = await response.json();
+        setOperations(data.operations || []);
+      }
+    } catch (error) {
+      console.error("Error fetching operations:", error);
+    }
+  };
+
+  const fetchEarnings = async () => {
+    try {
+      const response = await fetch("/api/deliverer/wallet/earnings");
+      if (response.ok) {
+        const data = await response.json();
+        setEarnings(data.earnings || []);
+      }
+    } catch (error) {
+      console.error("Error fetching earnings:", error);
+    }
+  };
 
   useEffect(() => {
-    fetchWallet()
-    fetchWithdrawals()
-  }, [])
+    fetchWalletData();
+    fetchOperations();
+    fetchEarnings();
+  }, [delivererId]);
 
-  const getTransactionIcon = (type: string) => {
+  const getOperationIcon = (type: string) => {
     switch (type) {
-      case 'EARNING': return <ArrowUpRight className="w-4 h-4 text-green-600" />
-      case 'WITHDRAWAL': return <ArrowDownLeft className="w-4 h-4 text-red-600" />
-      case 'BONUS': return <Plus className="w-4 h-4 text-blue-600" />
-      case 'FEE': return <Minus className="w-4 h-4 text-orange-600" />
-      default: return <Euro className="w-4 h-4 text-gray-600" />
+      case "earning":
+        return <TrendingUp className="w-4 h-4 text-green-600" />;
+      case "withdrawal":
+        return <TrendingDown className="w-4 h-4 text-red-600" />;
+      case "refund":
+        return <ArrowUpRight className="w-4 h-4 text-yellow-600" />;
+      default:
+        return <Euro className="w-4 h-4 text-gray-600" />;
     }
-  }
+  };
 
-  const getTransactionColor = (type: string) => {
-    switch (type) {
-      case 'EARNING': return 'text-green-600'
-      case 'WITHDRAWAL': return 'text-red-600'
-      case 'BONUS': return 'text-blue-600'
-      case 'FEE': return 'text-orange-600'
-      default: return 'text-gray-600'
-    }
-  }
+  const getStatusBadge = (status: string) => {
+    const statusConfig = {
+      completed: { color: "bg-green-100 text-green-800", label: t("status.completed") },
+      pending: { color: "bg-yellow-100 text-yellow-800", label: t("status.pending") },
+      processing: { color: "bg-blue-100 text-blue-800", label: t("status.processing") },
+      cancelled: { color: "bg-red-100 text-red-800", label: t("status.cancelled") },
+      failed: { color: "bg-red-100 text-red-800", label: t("status.failed") },
+    };
+    
+    const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.pending;
+    return <Badge className={config.color}>{config.label}</Badge>;
+  };
 
-  const getWithdrawalStatusColor = (status: string) => {
-    switch (status) {
-      case 'COMPLETED': return 'bg-green-100 text-green-800'
-      case 'PROCESSING': return 'bg-blue-100 text-blue-800'
-      case 'PENDING': return 'bg-yellow-100 text-yellow-800'
-      case 'FAILED': return 'bg-red-100 text-red-800'
-      default: return 'bg-gray-100 text-gray-800'
-    }
-  }
-
-  const getWithdrawalStatusIcon = (status: string) => {
-    switch (status) {
-      case 'COMPLETED': return <CheckCircle className="w-4 h-4" />
-      case 'PROCESSING': return <Clock className="w-4 h-4" />
-      case 'PENDING': return <Clock className="w-4 h-4" />
-      case 'FAILED': return <X className="w-4 h-4" />
-      default: return <Clock className="w-4 h-4" />
-    }
-  }
-
-  if (walletLoading) {
+  if (loading || !walletData) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      <div className="space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {[1, 2, 3, 4].map((i) => (
+            <Card key={i}>
+              <CardContent className="p-6">
+                <div className="animate-pulse space-y-4">
+                  <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                  <div className="h-8 bg-gray-200 rounded w-1/2"></div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
       </div>
-    )
+    );
   }
 
   return (
-    <div className="space-y-6">
-      {/* En-tête avec solde principal */}
-      <Card className="bg-gradient-to-r from-blue-600 to-purple-600 text-white">
-        <CardHeader>
-          <CardTitle className="flex items-center text-2xl">
-            <Wallet className="w-8 h-8 mr-3" />
-            {t('title')}
-          </CardTitle>
-          <CardDescription className="text-blue-100">
-            {t('description')}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div>
-              <p className="text-blue-100 text-sm">{t('available_balance')}</p>
-              <p className="text-4xl font-bold">
-                {wallet?.balance?.toFixed(2) || '0.00'}€
+    <>
+      <div className="space-y-6">
+        {/* Wallet Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                {t("stats.current_balance")}
+              </CardTitle>
+              <Wallet className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-green-600">
+                {walletData.balance.toFixed(2)}€
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {t("stats.available_balance")}
               </p>
-            </div>
+            </CardContent>
+          </Card>
 
-            <div className="grid grid-cols-2 gap-4 text-sm">
-              <div>
-                <p className="text-blue-100">{t('total_earned')}</p>
-                <p className="text-xl font-semibold">
-                  {wallet?.totalEarned?.toFixed(2) || '0.00'}€
-                </p>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                {t("stats.total_earnings")}
+              </CardTitle>
+              <TrendingUp className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {walletData.totalEarnings.toFixed(2)}€
               </div>
-              <div>
-                <p className="text-blue-100">{t('total_withdrawn')}</p>
-                <p className="text-xl font-semibold">
-                  {wallet?.totalWithdrawn?.toFixed(2) || '0.00'}€
-                </p>
-              </div>
-            </div>
+              <p className="text-xs text-muted-foreground">
+                {t("stats.all_time")}
+              </p>
+            </CardContent>
+          </Card>
 
-            {wallet && wallet.pendingAmount > 0 && (
-              <Alert className="bg-yellow-100 border-yellow-300">
-                <AlertCircle className="h-4 w-4 text-yellow-600" />
-                <AlertDescription className="text-yellow-800">
-                  {t('pending_amount')}: {wallet.pendingAmount.toFixed(2)}€
-                </AlertDescription>
-              </Alert>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                {t("stats.monthly_earnings")}
+              </CardTitle>
+              <Calendar className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {walletData.monthlyEarnings.toFixed(2)}€
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {t("stats.this_month")}
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                {t("stats.pending_earnings")}
+              </CardTitle>
+              <Clock className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-yellow-600">
+                {walletData.pendingEarnings.toFixed(2)}€
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {t("stats.processing")}
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Withdrawal Section */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center justify-between">
+              <span>{t("withdrawal.title")}</span>
+              <Button
+                onClick={() => setShowWithdrawalDialog(true)}
+                disabled={walletData.availableForWithdrawal < 10}
+              >
+                <CreditCard className="w-4 h-4 mr-2" />
+                {t("withdrawal.request")}
+              </Button>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-600">{t("withdrawal.available")}</span>
+                <span className="text-lg font-semibold text-green-600">
+                  {walletData.availableForWithdrawal.toFixed(2)}€
+                </span>
+              </div>
+              
+              {walletData.lastWithdrawal && (
+                <div className="p-3 bg-gray-50 rounded-lg">
+                  <h4 className="text-sm font-medium mb-2">{t("withdrawal.last")}</h4>
+                  <div className="flex justify-between items-center text-sm">
+                    <span>{walletData.lastWithdrawal.amount.toFixed(2)}€</span>
+                    <span>{new Date(walletData.lastWithdrawal.date).toLocaleDateString()}</span>
+                    {getStatusBadge(walletData.lastWithdrawal.status)}
+                  </div>
+                </div>
+              )}
+              
+              {walletData.availableForWithdrawal < 10 && (
+                <p className="text-sm text-yellow-600">
+                  {t("withdrawal.minimum_amount")}
+                </p>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Tabs for Operations and Earnings */}
+        <Tabs defaultValue="operations" className="space-y-6">
+          <TabsList>
+            <TabsTrigger value="operations">
+              {t("tabs.operations")} ({operations.length})
+            </TabsTrigger>
+            <TabsTrigger value="earnings">
+              {t("tabs.earnings")} ({earnings.length})
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="operations" className="space-y-4">
+            {operations.length === 0 ? (
+              <Card>
+                <CardContent className="text-center py-12">
+                  <Wallet className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                    {t("empty.no_operations")}
+                  </h3>
+                  <p className="text-gray-600">{t("empty.operations_description")}</p>
+                </CardContent>
+              </Card>
+            ) : (
+              operations.map((operation) => (
+                <Card key={operation.id}>
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-3">
+                        {getOperationIcon(operation.type)}
+                        <div>
+                          <p className="font-medium">{operation.description}</p>
+                          <p className="text-sm text-gray-500">
+                            {new Date(operation.date).toLocaleString()}
+                          </p>
+                          {operation.reference && (
+                            <p className="text-xs text-gray-400">
+                              {t("operation.reference")}: {operation.reference}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className={`font-semibold ${
+                          operation.type === "earning" ? "text-green-600" : "text-red-600"
+                        }`}>
+                          {operation.type === "earning" ? "+" : "-"}{operation.amount.toFixed(2)}€
+                        </p>
+                        {getStatusBadge(operation.status)}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))
             )}
+          </TabsContent>
 
-            <Button 
-              onClick={() => setWithdrawalDialogOpen(true)}
-              disabled={!wallet || wallet.balance < 10}
-              className="w-full bg-white text-blue-600 hover:bg-gray-100"
-            >
-              <Download className="w-4 h-4 mr-2" />
-              {t('request_withdrawal')}
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Erreurs */}
-      {walletError && (
-        <Alert variant="destructive">
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>{walletError}</AlertDescription>
-        </Alert>
-      )}
-
-      {/* Statistiques */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <ArrowDownLeft className="w-5 h-5 text-red-600" />
-              <div>
-                <p className="text-sm text-gray-600">{t('stats.total_withdrawn')}</p>
-                <p className="text-xl font-bold">{stats?.totalWithdrawn?.toFixed(2) || '0.00'}€</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <Clock className="w-5 h-5 text-yellow-600" />
-              <div>
-                <p className="text-sm text-gray-600">{t('stats.pending_amount')}</p>
-                <p className="text-xl font-bold">{stats?.pendingAmount?.toFixed(2) || '0.00'}€</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <TrendingUp className="w-5 h-5 text-green-600" />
-              <div>
-                <p className="text-sm text-gray-600">{t('stats.processing_time')}</p>
-                <p className="text-xl font-bold">{stats?.avgProcessingTime || 0}h</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+          <TabsContent value="earnings" className="space-y-4">
+            {earnings.length === 0 ? (
+              <Card>
+                <CardContent className="text-center py-12">
+                  <TrendingUp className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                    {t("empty.no_earnings")}
+                  </h3>
+                  <p className="text-gray-600">{t("empty.earnings_description")}</p>
+                </CardContent>
+              </Card>
+            ) : (
+              earnings.map((earning) => (
+                <Card key={earning.id}>
+                  <CardContent className="p-4">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <h4 className="font-medium">{earning.announcementTitle}</h4>
+                        <p className="text-sm text-gray-600">{earning.clientName}</p>
+                        <p className="text-xs text-gray-500">
+                          {new Date(earning.date).toLocaleDateString()}
+                        </p>
+                      </div>
+                      <div className="text-right space-y-1">
+                        <div className="text-sm">
+                          <span className="text-gray-500">{t("earning.gross")}:</span>
+                          <span className="ml-1">{earning.amount.toFixed(2)}€</span>
+                        </div>
+                        <div className="text-sm">
+                          <span className="text-gray-500">{t("earning.commission")}:</span>
+                          <span className="ml-1 text-red-600">-{earning.commission.toFixed(2)}€</span>
+                        </div>
+                        <div className="text-lg font-semibold text-green-600">
+                          {earning.netAmount.toFixed(2)}€
+                        </div>
+                        {getStatusBadge(earning.status)}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))
+            )}
+          </TabsContent>
+        </Tabs>
       </div>
 
-      {/* Onglets */}
-      <Tabs value={selectedTab} onValueChange={setSelectedTab}>
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="overview">{t('tabs.overview')}</TabsTrigger>
-          <TabsTrigger value="withdrawals">{t('tabs.withdrawals')}</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="overview" className="space-y-4">
-          {/* Transactions récentes */}
-          <Card>
-            <CardHeader>
-              <CardTitle>{t('recent_transactions')}</CardTitle>
-              <CardDescription>
-                {t('transactions_description')}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {wallet?.transactions && wallet.transactions.length > 0 ? (
-                <div className="space-y-3">
-                  {wallet.transactions.slice(0, 10).map((transaction) => (
-                    <div 
-                      key={transaction.id} 
-                      className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
-                    >
-                      <div className="flex items-center space-x-3">
-                        {getTransactionIcon(transaction.type)}
-                        <div>
-                          <p className="font-medium">{transaction.description}</p>
-                          <p className="text-sm text-gray-500">
-                            {new Date(transaction.createdAt).toLocaleDateString()}
-                          </p>
-                        </div>
-                      </div>
-                      
-                      <div className="text-right">
-                        <p className={`font-semibold ${getTransactionColor(transaction.type)}`}>
-                          {transaction.type === 'WITHDRAWAL' || transaction.type === 'FEE' ? '-' : '+'}
-                          {transaction.amount.toFixed(2)}€
-                        </p>
-                        <Badge variant="secondary" className="text-xs">
-                          {t(`transaction_types.${transaction.type.toLowerCase()}`)}
-                        </Badge>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-8">
-                  <Euro className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                  <p className="text-gray-500">{t('no_transactions')}</p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="withdrawals" className="space-y-4">
-          {/* Demandes de retrait */}
-          <Card>
-            <CardHeader>
-              <CardTitle>{t('withdrawal_history')}</CardTitle>
-              <CardDescription>
-                {t('withdrawals_description')}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {withdrawals && withdrawals.length > 0 ? (
-                <div className="space-y-3">
-                  {withdrawals.map((withdrawal) => (
-                    <div 
-                      key={withdrawal.id} 
-                      className="flex items-center justify-between p-4 border rounded-lg"
-                    >
-                      <div className="flex items-center space-x-3">
-                        {getWithdrawalStatusIcon(withdrawal.status)}
-                        <div>
-                          <p className="font-medium">{withdrawal.amount.toFixed(2)}€</p>
-                          <p className="text-sm text-gray-500">{withdrawal.bankAccount}</p>
-                          <p className="text-xs text-gray-400">
-                            {new Date(withdrawal.createdAt).toLocaleDateString()}
-                          </p>
-                        </div>
-                      </div>
-                      
-                      <div className="text-right">
-                        <Badge className={getWithdrawalStatusColor(withdrawal.status)}>
-                          {t(`withdrawal_status.${withdrawal.status.toLowerCase()}`)}
-                        </Badge>
-                        <p className="text-sm text-gray-500 mt-1">
-                          {t('net_amount')}: {withdrawal.netAmount.toFixed(2)}€
-                        </p>
-                        <p className="text-xs text-gray-400">
-                          {t('fees')}: {withdrawal.fee.toFixed(2)}€
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-8">
-                  <Download className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                  <p className="text-gray-500">{t('no_withdrawals')}</p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
-
-      {/* Dialog de demande de retrait */}
       <WithdrawalRequestDialog
-        isOpen={withdrawalDialogOpen}
-        onClose={() => setWithdrawalDialogOpen(false)}
-        availableBalance={wallet?.balance || 0}
+        open={showWithdrawalDialog}
+        onOpenChange={setShowWithdrawalDialog}
+        availableAmount={walletData.availableForWithdrawal}
         onSuccess={() => {
-          fetchWallet()
-          fetchWithdrawals()
-          setWithdrawalDialogOpen(false)
+          fetchWalletData();
+          fetchOperations();
+          setShowWithdrawalDialog(false);
         }}
       />
-    </div>
-  )
+    </>
+  );
 } 

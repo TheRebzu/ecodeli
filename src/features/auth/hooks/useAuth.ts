@@ -1,15 +1,14 @@
 'use client'
 
-import { useSession } from 'better-auth/react'
+import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
-import { Role, UserStatus } from '@/lib/auth/config'
 
 export interface AuthUser {
   id: string
   email: string
-  role: Role
-  status: UserStatus
+  role: string
+  status: string
   firstName?: string
   lastName?: string
   phone?: string
@@ -27,11 +26,11 @@ export interface AuthState {
 }
 
 /**
- * Hook principal pour l'authentification Better-Auth
+ * Hook principal pour l'authentification NextAuth
  * Gère l'état de l'utilisateur et les permissions
  */
 export function useAuth(): AuthState {
-  const { data: session, isPending } = useSession()
+  const { data: session, status } = useSession()
   const router = useRouter()
   const [needsAction, setNeedsAction] = useState<string[]>([])
 
@@ -39,8 +38,7 @@ export function useAuth(): AuthState {
   const canAccess = (resource: string): boolean => {
     if (!session?.user) return false
     
-    // TODO: Implémenter la logique de permissions complète
-    const userRole = session.user.role as Role
+    const userRole = session.user.role as string
     
     // Logique de base - à enrichir avec la matrice de permissions
     switch (userRole) {
@@ -91,7 +89,7 @@ export function useAuth(): AuthState {
 
   return {
     user: session?.user as AuthUser | null,
-    isLoading: isPending,
+    isLoading: status === 'loading',
     isAuthenticated: !!session?.user,
     canAccess,
     needsAction

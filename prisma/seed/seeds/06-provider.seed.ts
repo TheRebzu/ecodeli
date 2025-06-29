@@ -5,14 +5,14 @@ import { generateCertificationNumber } from '../utils/generators/code-generator'
 const serviceCategories = {
   HOME_SERVICE: {
     name: 'Ménage',
-    specialty: 'HOME_CLEANING',
+    specialty: 'HOME_SERVICE',
     services: ['Ménage complet', 'Nettoyage approfondi', 'Repassage', 'Vitres'],
     pricing: { min: 20, max: 40 },
     duration: { min: 60, max: 180 }
   },
   OTHER_PLUMBING: {
     name: 'Plomberie',
-    specialty: 'HANDYMAN',
+    specialty: 'OTHER',
     services: ['Fuite d\'eau', 'Débouchage', 'Installation', 'Dépannage urgent'],
     pricing: { min: 50, max: 150 },
     duration: { min: 30, max: 240 }
@@ -26,14 +26,14 @@ const serviceCategories = {
   },
   OTHER_GARDENING: {
     name: 'Jardinage',
-    specialty: 'GARDENING',
+    specialty: 'OTHER',
     services: ['Tonte pelouse', 'Taille haies', 'Entretien jardin', 'Plantations'],
     pricing: { min: 30, max: 80 },
     duration: { min: 60, max: 300 }
   },
   OTHER_HANDYMAN: {
     name: 'Bricolage', 
-    specialty: 'HANDYMAN',
+    specialty: 'OTHER',
     services: ['Montage meuble', 'Petites réparations', 'Peinture', 'Électricité basique'],
     pricing: { min: 35, max: 100 },
     duration: { min: 60, max: 240 }
@@ -98,7 +98,7 @@ export async function seedProviders(ctx: SeedContext) {
             providerId: provider.id,
             name: serviceName,
             description: `${serviceName} professionnel par ${user.name}`,
-            type: categoryData.specialty,
+            type: categoryData.specialty as any,
             basePrice,
             priceUnit: 'HOUR',
             duration, // en minutes
@@ -150,7 +150,7 @@ export async function seedProviders(ctx: SeedContext) {
     }
   }
   
-  console.log(`   ✓ Created ${createdProviders.length} provider profiles`)
+  console.log(`   Created ${createdProviders.length} provider profiles`)
   
   // Stocker pour les autres seeds
   ctx.data.set('providers', createdProviders)

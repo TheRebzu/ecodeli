@@ -91,10 +91,10 @@ export class EmailServiceAlternative {
 
     try {
       const result = await transporter.sendMail(mailOptions)
-      console.log('✅ Email de reset envoyé:', result.messageId)
+      console.log('Email de reset envoyé:', result.messageId)
       return { success: true, messageId: result.messageId }
     } catch (error) {
-      console.error('❌ Erreur envoi email:', error)
+      console.error('Erreur envoi email:', error)
       throw error
     }
   }
@@ -169,10 +169,10 @@ export class EmailServiceAlternative {
 
     try {
       const result = await transporter.sendMail(mailOptions)
-      console.log('✅ Email de vérification envoyé:', result.messageId)
+      console.log('Email de vérification envoyé:', result.messageId)
       return { success: true, messageId: result.messageId }
     } catch (error) {
-      console.error('❌ Erreur envoi email:', error)
+      console.error('Erreur envoi email:', error)
       throw error
     }
   }

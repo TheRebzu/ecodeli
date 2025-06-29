@@ -22,7 +22,7 @@ interface Announcement {
   }
 }
 
-export function ClientAnnouncementsList() {
+export default function ClientAnnouncementsList() {
   const [announcements, setAnnouncements] = useState<Announcement[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)

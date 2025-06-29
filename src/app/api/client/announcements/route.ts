@@ -1,35 +1,75 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createAnnouncementSchema } from '@/features/announcements/schemas/announcement.schema'
-import { getUserFromSession } from '@/lib/auth/utils'
+import { createAnnouncementSchema, searchAnnouncementsSchema } from '@/features/announcements/schemas/announcement.schema'
+import { requireRole } from '@/lib/auth/utils'
 import { db } from '@/lib/db'
 
 export async function GET(request: NextRequest) {
   try {
     console.log('🔍 [GET /api/client/announcements] Début de la requête')
     
-    const user = await getUserFromSession(request)
-    if (!user) {
-      console.log('❌ Utilisateur non authentifié')
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+    const user = await requireRole(request, ['CLIENT'])
 
     console.log('✅ Utilisateur authentifié:', user.id, user.role)
 
     const { searchParams } = new URL(request.url)
-    const page = parseInt(searchParams.get('page') || '1')
-    const limit = parseInt(searchParams.get('limit') || '10')
-    const status = searchParams.get('status')
-    const type = searchParams.get('type')
+    
+    // Validation des paramètres avec le schema
+    const params = searchAnnouncementsSchema.parse({
+      page: searchParams.get('page'),
+      limit: searchParams.get('limit'),
+      status: searchParams.get('status'),
+      type: searchParams.get('type'),
+      priceMin: searchParams.get('priceMin'),
+      priceMax: searchParams.get('priceMax'),
+      city: searchParams.get('city'),
+      dateFrom: searchParams.get('dateFrom'),
+      dateTo: searchParams.get('dateTo'),
+      urgent: searchParams.get('urgent'),
+      sortBy: searchParams.get('sortBy'),
+      sortOrder: searchParams.get('sortOrder')
+    })
 
-    console.log('📝 Paramètres de recherche:', { page, limit, status, type })
+    console.log('📝 Paramètres de recherche:', params)
 
     // Construire la clause WHERE
     const where: any = { authorId: user.id }
-    if (status) where.status = status
-    if (type) where.type = type
+    
+    if (params.status) where.status = params.status
+    if (params.type) where.type = params.type
+    if (params.urgent !== undefined) where.isUrgent = params.urgent
+    if (params.city) {
+      where.OR = [
+        { pickupAddress: { contains: params.city, mode: 'insensitive' } },
+        { deliveryAddress: { contains: params.city, mode: 'insensitive' } }
+      ]
+    }
+    
+    // Filtres de prix
+    if (params.priceMin || params.priceMax) {
+      where.basePrice = {}
+      if (params.priceMin) where.basePrice.gte = params.priceMin
+      if (params.priceMax) where.basePrice.lte = params.priceMax
+    }
+    
+    // Filtres de date
+    if (params.dateFrom || params.dateTo) {
+      where.pickupDate = {}
+      if (params.dateFrom) where.pickupDate.gte = new Date(params.dateFrom)
+      if (params.dateTo) where.pickupDate.lte = new Date(params.dateTo)
+    }
+
+    // Construire l'ordre de tri
+    const orderBy: any = {}
+    if (params.sortBy === 'desiredDate') {
+      orderBy.pickupDate = params.sortOrder
+    } else if (params.sortBy === 'price') {
+      orderBy.basePrice = params.sortOrder
+    } else {
+      orderBy.createdAt = params.sortOrder
+    }
 
     try {
-      console.log('🔍 Requête base de données simplifiée...')
+      console.log('🔍 Requête base de données avec filtres avancés...')
       
       const [announcements, total] = await Promise.all([
         db.announcement.findMany({
@@ -50,11 +90,48 @@ export async function GET(request: NextRequest) {
                 mimeType: true,
                 size: true
               }
+            },
+            PackageAnnouncement: {
+              select: {
+                weight: true,
+                length: true,
+                width: true,
+                height: true,
+                fragile: true,
+                insuredValue: true
+              }
+            },
+            delivery: {
+              select: {
+                id: true,
+                status: true,
+                deliverer: {
+                  select: {
+                    id: true,
+                    name: true,
+                    profile: {
+                      select: {
+                        firstName: true,
+                        lastName: true,
+                        avatar: true
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            _count: {
+              select: {
+                matches: true,
+                reviews: true,
+                attachments: true,
+                tracking: true
+              }
             }
           },
-          orderBy: { createdAt: 'desc' },
-          skip: (page - 1) * limit,
-          take: limit
+          orderBy,
+          skip: (params.page - 1) * params.limit,
+          take: params.limit
         }),
         db.announcement.count({ where })
       ])
@@ -68,8 +145,11 @@ export async function GET(request: NextRequest) {
           description: announcement.description,
           type: announcement.type,
           status: announcement.status,
-          price: Number(announcement.basePrice),
+          basePrice: Number(announcement.basePrice),
+          finalPrice: Number(announcement.finalPrice || announcement.basePrice),
           currency: announcement.currency,
+          pickupAddress: announcement.pickupAddress,
+          deliveryAddress: announcement.deliveryAddress,
           startLocation: {
             address: announcement.pickupAddress,
             city: announcement.pickupAddress.split(',').pop()?.trim() || 'Paris'
@@ -78,9 +158,15 @@ export async function GET(request: NextRequest) {
             address: announcement.deliveryAddress,
             city: announcement.deliveryAddress.split(',').pop()?.trim() || 'Lyon'
           },
-          scheduledAt: announcement.pickupDate?.toISOString(),
+          pickupDate: announcement.pickupDate?.toISOString(),
+          deliveryDate: announcement.deliveryDate?.toISOString(),
           createdAt: announcement.createdAt.toISOString(),
           updatedAt: announcement.updatedAt.toISOString(),
+          isUrgent: announcement.isUrgent,
+          viewCount: announcement.viewCount,
+          packageDetails: announcement.packageAnnouncement,
+          _count: announcement._count,
+          delivery: announcement.delivery || null,
           author: {
             id: announcement.author.id,
             name: announcement.author.profile 
@@ -90,10 +176,26 @@ export async function GET(request: NextRequest) {
           }
         })),
         pagination: {
-          page,
-          limit,
+          page: params.page,
+          limit: params.limit,
           total,
-          totalPages: Math.ceil(total / limit)
+          totalPages: Math.ceil(total / params.limit),
+          hasNext: params.page < Math.ceil(total / params.limit),
+          hasPrev: params.page > 1
+        },
+        stats: {
+          totalValue: announcements.reduce((sum, a) => sum + Number(a.basePrice), 0),
+          averagePrice: total > 0 ? announcements.reduce((sum, a) => sum + Number(a.basePrice), 0) / total : 0,
+          byStatus: await db.announcement.groupBy({
+            by: ['status'],
+            where: { authorId: user.id },
+            _count: { status: true }
+          }),
+          byType: await db.announcement.groupBy({
+            by: ['type'],
+            where: { authorId: user.id },
+            _count: { type: true }
+          })
         }
       }
 
@@ -109,6 +211,12 @@ export async function GET(request: NextRequest) {
 
   } catch (error) {
     console.error('❌ Erreur générale GET announcements:', error)
+    
+    // Si c'est une erreur d'authentification, retourner 403
+    if (error.message?.includes('Accès refusé')) {
+      return NextResponse.json({ error: error.message }, { status: 403 })
+    }
+    
     return NextResponse.json(
       { error: 'Internal server error', details: error.message },
       { status: 500 }
@@ -120,18 +228,9 @@ export async function POST(request: NextRequest) {
   try {
     console.log('🔍 [POST /api/client/announcements] Début de la requête')
     
-    const user = await getUserFromSession(request)
-    if (!user) {
-      console.log('❌ Utilisateur non authentifié')
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+    const user = await requireRole(request, ['CLIENT'])
 
     console.log('✅ Utilisateur authentifié:', user.id, user.role)
-
-    // Vérifier que c'est bien un client (sans relation subscription pour l'instant)
-    if (user.role !== 'CLIENT') {
-      return NextResponse.json({ error: 'Forbidden - CLIENT role required' }, { status: 403 })
-    }
 
     const body = await request.json()
     console.log('📝 Données reçues:', body)
@@ -221,6 +320,12 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error('❌ Erreur générale POST announcements:', error)
+    
+    // Si c'est une erreur d'authentification, retourner 403
+    if (error.message?.includes('Accès refusé')) {
+      return NextResponse.json({ error: error.message }, { status: 403 })
+    }
+    
     return NextResponse.json(
       { error: 'Internal server error', details: error.message },
       { status: 500 }

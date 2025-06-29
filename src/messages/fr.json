@@ -2128,12 +2128,182 @@
     "gains_1": "Gains",
     "se_dconnecter": "Se déconnecter"
   },
+  "client": {
+    "announcements": {
+      "create": {
+        "page": {
+          "title": "Créer une annonce de livraison",
+          "description": "Publiez votre demande de livraison de colis sur EcoDeli"
+        }
+      },
+      "page": {
+        "title": "Mes annonces",
+        "description": "Gérez vos demandes de livraison de colis"
+      }
+    },
+    "bookings": {
+      "page": {
+        "title": "Mes réservations",
+        "description": "Gérez vos réservations de services",
+        "new_booking_button": "Nouvelle réservation"
+      },
+      "loading": "Chargement des réservations...",
+      "filters": {
+        "title": "Filtres"
+      },
+      "tabs": {
+        "active": "Actives",
+        "history": "Historique"
+      }
+    },
+    "deliveries": {
+      "page": {
+        "title": "Mes livraisons",
+        "description": "Suivez vos livraisons de colis"
+      },
+      "loading": "Chargement des livraisons...",
+      "tabs": {
+        "active": "En cours",
+        "history": "Historique"
+      }
+    },
+    "payments": {
+      "page": {
+        "title": "Mes paiements",
+        "description": "Gérez vos paiements et transactions"
+      },
+      "filters": {
+        "title": "Filtres",
+        "search": "Rechercher",
+        "search_placeholder": "Rechercher dans les paiements..."
+      },
+      "tabs": {
+        "history": "Historique",
+        "statistics": "Statistiques"
+      }
+    },
+    "profile": {
+      "page": {
+        "title": "Mon profil",
+        "description": "Gérez vos informations personnelles"
+      },
+      "loading": "Chargement du profil...",
+      "profile_not_found": "Profil non trouvé",
+      "stats": {
+        "orders": "Commandes",
+        "spent": "Dépensé",
+        "rating": "Note moyenne",
+        "deliveries": "Livraisons"
+      }
+    },
+    "services": {
+      "page": {
+        "title": "Services disponibles",
+        "description": "Découvrez et réservez nos services"
+      }
+    },
+    "storage": {
+      "page": {
+        "title": "Mes box de stockage",
+        "description": "Gérez vos locations de box de stockage"
+      }
+    },
+    "tutorial": {
+      "page": {
+        "title": "Tutoriel EcoDeli",
+        "description": "Apprenez à utiliser la plateforme EcoDeli"
+      }
+    }
+  },
+  "deliverer": {
+    "dashboard": {
+      "title": "Tableau de bord livreur",
+      "description": "Gérez vos livraisons et suivez vos gains",
+      "stats": {
+        "earnings": "Gains du mois",
+        "deliveries": "Livraisons",
+        "rating": "Note moyenne",
+        "pending": "En attente"
+      },
+      "loading": "Chargement...",
+      "dashboard_not_found": "Tableau de bord introuvable",
+      "page": {
+        "title": "Tableau de bord",
+        "description": "Vue d'ensemble de votre activité"
+      }
+    },
+    "opportunities": {
+      "title": "Opportunités de livraison",
+      "description": "Trouvez des livraisons sur votre trajet",
+      "filter": {
+        "all": "Toutes",
+        "near_me": "Près de moi",
+        "on_my_route": "Sur mon trajet"
+      },
+      "no_opportunities": "Aucune opportunité disponible",
+      "loading": "Recherche d'opportunités...",
+      "accept": "Accepter",
+      "view_details": "Voir détails",
+      "page": {
+        "title": "Opportunités",
+        "description": "Livraisons disponibles"
+      }
+    },
+    "deliveries": {
+      "title": "Mes livraisons",
+      "description": "Gérez vos livraisons en cours",
+      "status": {
+        "pending": "En attente",
+        "accepted": "Acceptée",
+        "picked_up": "Récupérée",
+        "in_transit": "En transit",
+        "delivered": "Livrée",
+        "cancelled": "Annulée"
+      },
+      "no_deliveries": "Aucune livraison en cours",
+      "validate": "Valider la livraison",
+      "start": "Démarrer",
+      "pickup": "Récupérer",
+      "deliver": "Livrer"
+    },
+    "wallet": {
+      "title": "Mon portefeuille",
+      "balance": "Solde disponible",
+      "pending": "En attente",
+      "withdraw": "Retirer",
+      "history": "Historique",
+      "no_transactions": "Aucune transaction"
+    },
+    "routes": {
+      "title": "Mes trajets",
+      "add": "Déclarer un trajet",
+      "active": "Trajets actifs",
+      "past": "Trajets passés"
+    },
+    "planning": {
+      "title": "Mon planning",
+      "availability": "Disponibilités",
+      "calendar": "Calendrier"
+    }
+  },
   "pages": {
     "admin": {
       "contracts": {
         "title": "Gestion des Contrats",
         "description": "Gérez les contrats avec les commerçants partenaires"
+      },
+      "billing": {
+        "title": "Facturation Mensuelle",
+        "description": "Gestion de la facturation automatique mensuelle des prestataires"
       }
+    }
+  },
+  "public": {
+    "Partners": {
+      "description": "Découvrez nos partenaires commerciaux et rejoignez notre réseau"
+    },
+    "Blog": {
+      "description": "Actualités et conseils pour optimiser vos livraisons écologiques"
     }
   }
 }

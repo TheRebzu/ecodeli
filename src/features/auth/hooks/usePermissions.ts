@@ -1,8 +1,17 @@
 'use client'
 
-import { useAuth } from './useAuth'
-import { ROLE_PERMISSIONS } from '@/lib/auth/permissions'
-import { Role } from '@/lib/auth/config'
+import { useAuth } from '@/hooks/use-auth'
+
+type Role = 'CLIENT' | 'DELIVERER' | 'MERCHANT' | 'PROVIDER' | 'ADMIN'
+
+// Permissions par rôle - simplifié pour corriger l'erreur
+const rolePermissions: Record<Role, string[]> = {
+  CLIENT: ['announcements:read', 'announcements:create', 'bookings:read', 'bookings:create', 'payments:read'],
+  DELIVERER: ['deliveries:read', 'deliveries:create', 'deliveries:update', 'routes:read', 'routes:create'],
+  MERCHANT: ['products:read', 'products:create', 'orders:read', 'contracts:read'],
+  PROVIDER: ['services:read', 'services:create', 'bookings:read', 'invoices:read'],
+  ADMIN: ['*'] // Tous les droits
+}
 
 export interface PermissionCheck {
   hasPermission: (permission: string) => boolean
@@ -14,7 +23,7 @@ export interface PermissionCheck {
 
 /**
  * Hook pour vérifier les permissions granulaires
- * Utilise la matrice de permissions définie dans auth/permissions.ts
+ * Utilise la matrice de permissions définie localement
  */
 export function usePermissions(): PermissionCheck {
   const { user, isAuthenticated } = useAuth()
@@ -23,10 +32,13 @@ export function usePermissions(): PermissionCheck {
     if (!isAuthenticated || !user) return false
 
     const userRole = user.role as Role
-    const rolePermissions = ROLE_PERMISSIONS[userRole] || []
+    const userPermissions = rolePermissions[userRole] || []
+
+    // Admin a tous les droits
+    if (userPermissions.includes('*')) return true
 
     // Vérifier si l'utilisateur a la permission spécifique
-    return rolePermissions.includes(permission) || rolePermissions.includes('*')
+    return userPermissions.includes(permission)
   }
 
   const hasRole = (role: Role | Role[]): boolean => {

@@ -12,7 +12,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Separator } from '@/components/ui/separator'
 import { Eye, EyeOff, Mail, Lock, AlertTriangle, Loader2 } from 'lucide-react'
-import { authUtils } from '@/lib/auth-client'
+import { useAuth } from '@/hooks/use-auth'
 
 const loginSchema = z.object({
   email: z.string().email('Email invalide'),
@@ -29,7 +29,7 @@ interface LoginFormProps {
 }
 
 /**
- * Formulaire de connexion unifié avec Better-Auth
+ * Formulaire de connexion unifié avec NextAuth
  * Gestion des erreurs et redirections selon le rôle
  */
 export function LoginForm({ 
@@ -59,7 +59,13 @@ export function LoginForm({
 
     try {
       // Vérifier d'abord le statut de l'utilisateur
-      const statusCheck = await authUtils.checkUserStatus(data.email)
+      const statusResponse = await fetch('/api/auth/check-user-status', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: data.email })
+      })
+      
+      const statusCheck = await statusResponse.json()
       
       if (!statusCheck.exists) {
         setError('Aucun compte trouvé avec cet email. Souhaitez-vous vous inscrire ?')
@@ -87,10 +93,16 @@ export function LoginForm({
         return
       }
 
-      // Connexion avec Better-Auth
-      const result = await authUtils.loginWithErrorHandling(data.email, data.password)
+      // Connexion avec NextAuth
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: data.email, password: data.password })
+      })
 
-      if (!result.success) {
+      const result = await response.json()
+
+      if (!response.ok) {
         setError(result.error || 'Erreur de connexion')
         setIsLoading(false)
         return

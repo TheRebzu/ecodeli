@@ -1,17 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
-import { requireRole } from '@/lib/auth'
+import { requireRole } from '@/lib/auth/utils'
 
 // GET /api/admin/deliveries?status=&page=&limit=
 export async function GET(request: NextRequest) {
   try {
     // Utiliser requireRole pour vérifier l'authentification et les permissions
-    const user = await requireRole('ADMIN', request)
-    console.log('SESSION ADMIN DELIVERIES:', user)
+    const user = await requireRole(request, ['ADMIN']).catch(() => null)
     
     if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
     }
+    
+    console.log('SESSION ADMIN DELIVERIES:', user)
 
     const { searchParams } = new URL(request.url)
     const page = parseInt(searchParams.get('page') || '1')

@@ -100,7 +100,7 @@ export class LabelReplacer {
     
     const backupPath = `${filePath}.backup.${Date.now()}`
     fs.copyFileSync(filePath, backupPath)
-    console.log(`📋 Backup created: ${backupPath}`)
+    console.log(`Backup created: ${backupPath}`)
   }
 
   /**
@@ -152,14 +152,14 @@ export class LabelReplacer {
                 namespace: label.namespace || this.config.defaultNamespace
               })
               
-              console.log(`🔄 ${filePath}:${label.line} - "${label.text}" → ${replacement}`)
+              console.log(`${filePath}:${label.line} - "${label.text}" → ${replacement}`)
               break
             }
           }
         }
 
         if (!replaced) {
-          console.warn(`⚠️  Could not replace "${label.text}" in ${filePath}:${label.line}`)
+          console.warn(`Could not replace "${label.text}" in ${filePath}:${label.line}`)
         }
       }
     }
@@ -170,6 +170,7 @@ export class LabelReplacer {
       // Ajouter l'import de useTranslations si nécessaire
       const updatedContent = this.ensureTranslationImport(lines.join('\n'), filePath)
       fs.writeFileSync(filePath, updatedContent)
+      console.log(`Updated ${filePath}`)
     }
   }
 
@@ -293,10 +294,10 @@ export class LabelReplacer {
         if (!this.config.dryRun) {
           this.createBackup(filePath)
           fs.writeFileSync(filePath, JSON.stringify(translations, null, 2))
-          console.log(`📝 Updated ${filePath}`)
+          console.log(`Updated ${filePath}`)
         }
       } catch (error) {
-        console.error(`❌ Error updating ${filePath}:`, error)
+        console.error(`Error updating ${filePath}:`, error)
       }
     }
   }
@@ -305,14 +306,14 @@ export class LabelReplacer {
    * Lancer le remplacement complet
    */
   async replace(): Promise<Replacement[]> {
-    console.log('🔄 Starting label replacement...')
+    console.log('Starting label replacement...')
     
     if (this.config.dryRun) {
-      console.log('🧪 DRY RUN MODE - No files will be modified')
+      console.log('DRY RUN MODE - No files will be modified')
     }
 
     const labels = this.loadExtractedLabels()
-    console.log(`📋 Loaded ${labels.length} labels to replace`)
+    console.log(`Loaded ${labels.length} labels to replace`)
 
     // Grouper les labels par fichier
     const fileGroups = labels.reduce((acc, label) => {
@@ -326,14 +327,14 @@ export class LabelReplacer {
       try {
         await this.replaceInFile(filePath, fileLabels)
       } catch (error) {
-        console.error(`❌ Error processing ${filePath}:`, error)
+        console.error(`Error processing ${filePath}:`, error)
       }
     }
 
     // Mettre à jour les fichiers de traduction
     await this.updateTranslationFiles(labels)
 
-    console.log(`✅ Completed ${this.replacements.length} replacements`)
+    console.log(`Completed ${this.replacements.length} replacements`)
     return this.replacements
   }
 
@@ -383,7 +384,7 @@ export class LabelReplacer {
     const reportPath = path.join(outputDir, 'replacement-report.md')
     
     fs.writeFileSync(reportPath, this.generateReport())
-    console.log(`📊 Report saved to: ${reportPath}`)
+    console.log(`Report saved to: ${reportPath}`)
   }
 }
 

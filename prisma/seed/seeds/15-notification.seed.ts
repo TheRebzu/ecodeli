@@ -124,13 +124,72 @@ export async function seedNotifications(ctx: SeedContext) {
         smsNotifications: user.role === 'DELIVERER' || user.role === 'PROVIDER',
         announcementMatch: user.role === 'DELIVERER',
         deliveryUpdates: user.role === 'CLIENT' || user.role === 'DELIVERER',
-        bookingUpdates: user.role === 'CLIENT' || user.role === 'PROVIDER',
         paymentUpdates: true,
-        marketingEmails: user.role === 'CLIENT' && Math.random() > 0.5,
-        newsletterSubscribed: user.role === 'CLIENT' && Math.random() > 0.3
+        marketingEmails: user.role === 'CLIENT' && Math.random() > 0.5
       }
     })
   }
+  
+  // 2. Créer quelques notifications réelles pour les événements
+  const recentDeliveries = await prisma.delivery.findMany({
+    include: { client: true, deliverer: true },
+    take: 5
+  })
+  
+  const recentBookings = await prisma.booking.findMany({
+    include: { client: true, service: { include: { provider: true } } },
+    take: 5
+  })
+  
+  // Notifications pour livraisons
+  for (const delivery of recentDeliveries) {
+    try {
+              const notification = await prisma.notification.create({
+          data: {
+            userId: delivery.clientId,
+            type: 'DELIVERY_UPDATE',
+            title: 'Livraison mise à jour',
+            message: `Votre livraison ${delivery.trackingNumber} est maintenant ${delivery.status}`,
+            isRead: Math.random() > 0.3,
+            metadata: {
+              deliveryId: delivery.id,
+              trackingNumber: delivery.trackingNumber,
+              delivererName: delivery.deliverer.name
+            },
+            oneSignalId: `os_${Math.random().toString(36).substring(2, 15)}`
+          }
+        })
+      notifications.push(notification)
+    } catch (error) {
+      console.log(`   Error creating notification for delivery ${delivery.id}`)
+    }
+  }
+  
+  // Notifications pour prestataires
+  for (const booking of recentBookings) {
+    try {
+              const notification = await prisma.notification.create({
+          data: {
+            userId: booking.service.providerId,
+            type: 'BOOKING_NEW',
+            title: 'Nouvelle réservation',
+            message: `Nouvelle réservation de ${booking.client.name} pour ${booking.serviceType}`,
+            isRead: false,
+            metadata: {
+              bookingId: booking.id,
+              serviceType: booking.serviceType,
+              clientName: booking.client.name
+            },
+            oneSignalId: `os_${Math.random().toString(36).substring(2, 15)}`
+          }
+        })
+      notifications.push(notification)
+    } catch (error) {
+      console.log(`   Error creating notification for booking ${booking.id}`)
+    }
+  }
+  
+  /*
   
   // 2. Notifications de bienvenue pour tous
   for (const user of users) {
@@ -380,8 +439,9 @@ export async function seedNotifications(ctx: SeedContext) {
     }
   }
   
-  console.log(`   ✓ Created ${notifications.length} notifications`)
+  */
   console.log(`   ✓ Created notification preferences for ${users.length} users`)
+  console.log(`   ✓ Created ${notifications.length} notifications`)
   
   return notifications
 } 

@@ -1,161 +1,98 @@
 import { SeedContext } from '../index'
 
-export async function cleanDatabase(ctx: SeedContext) {
-  console.log('🧹 Cleaning database...')
+export async function cleanDatabase(context: SeedContext) {
+  const { prisma } = context
   
-  const { prisma } = ctx
+  console.log('Cleaning up database...')
   
-  // Ordre de suppression important pour respecter les contraintes FK
-  const deletionOrder = [
-    // Niveau 5 - Tables sans dépendances descendantes
-    'linkAnalytics',
-    'influencerPost',
-    'influencerLink',
-    'influencerCampaign',
-    'referralActivity',
-    'referralReward',
-    'referralStats',
-    'warrantyClaim',
-    'deliveryWarranty',
-    'serviceWarranty',
-    'claimPayment',
-    'claimAssessment',
-    'insuranceClaim',
-    'insuranceCoverage',
-    'insuranceAudit',
-    'riskAssessment',
-    'certificationAudit',
-    'qualificationRequirement',
-    'certificationTemplate',
-    'examSession',
-    'moduleProgress',
-    'delivererCertification',
-    'providerCertification',
-    'certificationModule',
-    'supportMetrics',
-    'supportTemplate',
-    'supportKnowledgeBase',
-    'ticketSatisfaction',
-    'ticketEscalation',
-    'messageAttachment',
-    'ticketMessage',
-    'ticketAttachment',
-    'geofenceEntry',
-    'locationUpdate',
-    'delivererLocation',
-    'tutorialFeedback',
-    'tutorialStep',
-    'merchantBilling',
-    'contractAmendment',
-    'systemNotification',
-    'activityLog',
-    'settings',
-    'analytics',
-    'review',
-    'notificationPreference',
-    'documentGeneration',
-    'storageBoxRental',
-    'orderItem',
-    'invoiceItem',
-    'deliveryStatusHistory',
-    'proofOfDelivery',
-    'handover',
-    'deliveryHistory',
-    'trackingUpdate',
-    'deliveryValidation',
-    'providerInvoiceIntervention',
-    'providerAvailabilityBlock',
-    'providerTimeSlot',
-    'intervention',
-    'availability',
-    'providerRate',
-    'providerAvailability',
-    'delivererAvailability',
-    'nFCCard',
-    'deliveryRoute',
-    'cartDropConfig',
-    'availability',
-    'globalAvailability',
-    'clientTutorialProgress',
-    'contractAmendment',
-    'verificationToken',
-    'passwordReset',
-    'verification',
+  // Supprimer dans l'ordre des dépendances (du plus dépendant au moins dépendant)
+  const cleanupOperations = [
+    // 1. Tutoriels et feedback
+    () => prisma.tutorialFeedback.deleteMany(),
+    () => prisma.tutorialStep.deleteMany(),
+    () => prisma.clientTutorialProgress.deleteMany(),
     
-    // Niveau 4 - Tables avec dépendances moyennes
-    'proposalStatus',
-    'announcementGroup',
-    'auctionBid',
-    'dispute',
-    'reverseAuction',
-    'deliveryGroup',
-    'groupingProposal',
-    'referral',
-    'referralCode',
-    'influencerProgram',
-    'warranty',
-    'insurancePolicy',
-    'certification',
-    'supportTicket',
-    'trackingSession',
-    'geofence',
-    'contract',
-    'notification',
-    'announcementNotification',
-    'announcementAttachment',
-    'announcementTracking',
-    'routeMatch',
-    'delivererRoute',
-    'serviceAnnouncement',
-    'packageAnnouncement',
+    // 2. Finances
+    () => prisma.walletOperation.deleteMany(),
+    () => prisma.payment.deleteMany(),
+    () => prisma.wallet.deleteMany(),
     
-    // Niveau 3 - Tables avec dépendances fortes
-    'walletOperation',
-    'wallet',
-    'invoice',
-    'booking',
-    'payment',
-    'delivery',
-    'announcement',
-    'storageBox',
-    'warehouse',
-    'location',
-    'document',
-    'providerMonthlyInvoice',
-    'order',
-    'service',
+    // 3. Livraisons et réservations
+    () => prisma.proofOfDelivery.deleteMany(),
+    () => prisma.handover.deleteMany(),
+    () => prisma.trackingUpdate.deleteMany(),
+    () => prisma.deliveryStatusHistory.deleteMany(),
+    () => prisma.deliveryHistory.deleteMany(),
+    () => prisma.deliveryValidation.deleteMany(),
+    () => prisma.delivery.deleteMany(),
     
-    // Niveau 2 - Tables de profils
-    'admin',
-    'provider',
-    'merchant',
-    'deliverer',
-    'client',
-    'profile',
+    () => prisma.intervention.deleteMany(),
+    () => prisma.booking.deleteMany(),
     
-    // Niveau 1 - Tables de base
-    'referralProgram',
-    'session',
-    'account',
-    'user'
+    // 4. Annonces
+    () => prisma.announcementNotification.deleteMany(),
+    () => prisma.announcementAttachment.deleteMany(),
+    () => prisma.serviceAnnouncement.deleteMany(),
+    () => prisma.packageAnnouncement.deleteMany(),
+    () => prisma.announcement.deleteMany(),
+    
+    // 5. Services et disponibilités
+    () => prisma.providerTimeSlot.deleteMany(),
+    () => prisma.providerAvailability.deleteMany(),
+    () => prisma.service.deleteMany(),
+    
+    // 6. Documents et générations
+    () => prisma.documentGeneration.deleteMany(),
+    () => prisma.document.deleteMany(),
+    
+    // 7. Stockage
+    () => prisma.storageBoxRental.deleteMany(),
+    () => prisma.storageBox.deleteMany(),
+    () => prisma.warehouse.deleteMany(),
+    
+    // 8. Commandes et contrats
+    () => prisma.orderItem.deleteMany(),
+    () => prisma.order.deleteMany(),
+    () => prisma.cartDropConfig.deleteMany(),
+    () => prisma.contract.deleteMany(),
+    
+    // 9. Avis et notifications
+    () => prisma.review.deleteMany(),
+    () => prisma.notification.deleteMany(),
+    
+    // 10. Routes et disponibilités livreurs
+    () => prisma.delivererAvailability.deleteMany(),
+    () => prisma.deliveryRoute.deleteMany(),
+    () => prisma.availability.deleteMany(),
+    () => prisma.globalAvailability.deleteMany(),
+    
+    // 11. Cartes NFC
+    () => prisma.nFCCard.deleteMany(),
+    
+    // 12. Profils spécialisés
+    () => prisma.admin.deleteMany(),
+    () => prisma.provider.deleteMany(),
+    () => prisma.merchant.deleteMany(),
+    () => prisma.deliverer.deleteMany(),
+    () => prisma.client.deleteMany(),
+    
+    // 13. Profils et utilisateurs
+    () => prisma.profile.deleteMany(),
+    () => prisma.passwordReset.deleteMany(),
+    () => prisma.verificationToken.deleteMany(),
+    () => prisma.session.deleteMany(),
+    () => prisma.account.deleteMany(),
+    () => prisma.user.deleteMany(),
   ]
   
-  // Suppression dans l'ordre
-  for (const model of deletionOrder) {
+  for (const operation of cleanupOperations) {
     try {
-      if (prisma[model]) {
-        const count = await prisma[model].deleteMany()
-        if (count.count > 0) {
-          console.log(`   ✓ Deleted ${count.count} records from ${model}`)
-        }
-      }
+      await operation()
     } catch (error) {
-      // Ignorer les erreurs si la table n'existe pas
-      if (!error.message.includes('Unknown arg')) {
-        console.warn(`   ⚠️  Warning cleaning ${model}:`, error.message)
-      }
+      // Ignorer les erreurs de suppression pour les tables qui n'existent pas encore
+      console.log('Cleanup operation failed (expected):', error.message?.slice(0, 100))
     }
   }
   
-  console.log('✅ Database cleaned successfully')
+  console.log('Database cleanup completed')
 } 

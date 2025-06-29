@@ -29,7 +29,7 @@ import { seedCertifications } from './seeds/21-certifications.seed'
 import { seedInsurance } from './seeds/22-insurance.seed'
 import { seedReferrals } from './seeds/23-referral.seed'
 import { seedDisputes } from './seeds/24-disputes.seed'
-import { finalizeBetterAuth } from './seeds/25-better-auth.seed'
+import { seedAnalytics } from './seeds/25-analytics.seed'
 
 export const prisma = new PrismaClient({
   log: seedConfig.logLevel === 'debug' ? ['query', 'info', 'warn', 'error'] : ['error'],
@@ -48,7 +48,7 @@ export async function seedDatabase() {
     data: new Map()
   }
 
-  console.log('📊 Starting EcoDeli database seed with configuration:', {
+  console.log('Starting EcoDeli database seed with configuration:', {
     environment: seedConfig.environment,
     cleanFirst: seedConfig.cleanFirst,
     seedTestScenarios: seedConfig.seedTestScenarios,
@@ -57,13 +57,13 @@ export async function seedDatabase() {
   try {
     // 1. Nettoyage optionnel de la base
     if (seedConfig.cleanFirst) {
-      console.log('🧹 Cleaning database...')
+      console.log('Cleaning database...')
       await cleanDatabase(context)
     }
 
     // 2. Exécution des seeds dans l'ordre des dépendances
     for (const seed of seedDependencies) {
-      console.log(`\n🌱 Running ${seed.name}...`)
+      console.log(`\nRunning ${seed.name}...`)
       const startTime = Date.now()
       
       try {
@@ -75,9 +75,9 @@ export async function seedDatabase() {
         }
         
         const duration = Date.now() - startTime
-        console.log(`✅ ${seed.name} completed in ${duration}ms`)
+        console.log(`${seed.name} completed in ${duration}ms`)
       } catch (error) {
-        console.error(`❌ Error in ${seed.name}:`, error)
+        console.error(`Error in ${seed.name}:`, error)
         throw error
       }
     }
@@ -87,13 +87,13 @@ export async function seedDatabase() {
       await generateSeedReport(context)
     }
 
-    console.log('\n🎉 Database seeding completed successfully!')
+    console.log('\nDatabase seeding completed successfully!')
     
     // 4. Afficher les comptes de test créés
     displayTestAccounts(context)
     
   } catch (error) {
-    console.error('❌ Seeding failed:', error)
+    console.error('Seeding failed:', error)
     throw error
   } finally {
     await prisma.$disconnect()
@@ -101,7 +101,7 @@ export async function seedDatabase() {
 }
 
 async function generateSeedReport(context: SeedContext) {
-  console.log('\n📝 Generating seed report...')
+  console.log('\nGenerating seed report...')
   
   const counts = {
     users: await context.prisma.user.count(),
@@ -114,7 +114,7 @@ async function generateSeedReport(context: SeedContext) {
     notifications: await context.prisma.notification.count(),
   }
   
-  console.log('\n📊 Database Summary:')
+  console.log('\nDatabase Summary:')
   Object.entries(counts).forEach(([table, count]) => {
     console.log(`   - ${table}: ${count} records`)
   })
@@ -123,7 +123,7 @@ async function generateSeedReport(context: SeedContext) {
 function displayTestAccounts(context: SeedContext) {
   const users = context.data.get('users') || []
   
-  console.log('\n🔑 Test Accounts Created:')
+  console.log('\nTest Accounts Created:')
   console.log('────────────────────────')
   console.log('All passwords: Test123!')
   console.log('')
@@ -135,20 +135,11 @@ function displayTestAccounts(context: SeedContext) {
   }, {})
   
   Object.entries(usersByRole).forEach(([role, roleUsers]: [string, any]) => {
-    console.log(`\n${getRoleEmoji(role)} ${role}:`)
+    console.log(`\n${role}:`)
     roleUsers.forEach((user: any) => {
       console.log(`   - ${user.email} (${user.name || 'No name'})`)
     })
   })
 }
 
-function getRoleEmoji(role: string): string {
-  const emojis: Record<string, string> = {
-    CLIENT: '👤',
-    DELIVERER: '🚚',
-    MERCHANT: '🏪',
-    PROVIDER: '🔧',
-    ADMIN: '👨‍💼',
-  }
-  return emojis[role] || '❓'
-} 
+// Function removed as emojis are no longer used 

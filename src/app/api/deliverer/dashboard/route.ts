@@ -9,6 +9,10 @@ import { requireRole } from '@/lib/auth/utils'
 export async function GET(request: NextRequest) {
   try {
     const user = await requireRole(request, ['DELIVERER'])
+    
+    if (!user) {
+      return NextResponse.json({ error: 'Accès refusé - Rôle DELIVERER requis' }, { status: 401 })
+    }
 
     // Récupérer profil livreur complet
     const deliverer = await prisma.deliverer.findUnique({
@@ -79,6 +83,12 @@ export async function GET(request: NextRequest) {
 
   } catch (error) {
     console.error('Erreur dashboard livreur:', error)
+    
+    // Si c'est une erreur d'authentification, retourner 403
+    if (error.message?.includes('Accès refusé')) {
+      return NextResponse.json({ error: error.message }, { status: 403 })
+    }
+    
     return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 })
   }
 }

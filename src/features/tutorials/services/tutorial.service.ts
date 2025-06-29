@@ -40,7 +40,33 @@ export class TutorialService {
    */
   static async isTutorialRequired(userId: string): Promise<boolean> {
     try {
-      // Vérifier si le client a déjà complété le tutoriel
+      // Vérifier que l'utilisateur existe
+      const user = await db.user.findUnique({
+        where: { id: userId },
+        select: { id: true, role: true }
+      })
+
+      if (!user) {
+        console.warn(`Utilisateur non trouvé pour isTutorialRequired: ${userId}`)
+        return false // Ne pas requérir le tutoriel si l'utilisateur n'existe pas
+      }
+
+      if (user.role !== 'CLIENT') {
+        return false // Seuls les clients ont besoin du tutoriel
+      }
+
+      // D'abord vérifier dans la table Client
+      const client = await db.client.findUnique({
+        where: { userId },
+        select: { tutorialCompleted: true }
+      })
+
+      // Si le client a déjà complété le tutoriel, ne pas le requérir
+      if (client?.tutorialCompleted) {
+        return false
+      }
+
+      // Sinon vérifier dans la table ClientTutorialProgress
       const tutorialProgress = await db.clientTutorialProgress.findUnique({
         where: { userId }
       })
@@ -50,7 +76,7 @@ export class TutorialService {
 
     } catch (error) {
       console.error('Erreur vérification tutoriel requis:', error)
-      return true // Par défaut, requérir le tutoriel en cas d'erreur
+      return false // En cas d'erreur, ne pas requérir le tutoriel
     }
   }
 
@@ -59,6 +85,17 @@ export class TutorialService {
    */
   static async getClientTutorialSteps(userId: string): Promise<TutorialStep[]> {
     try {
+      // Vérifier que l'utilisateur existe
+      const user = await db.user.findUnique({
+        where: { id: userId },
+        select: { id: true, role: true }
+      })
+
+      if (!user) {
+        console.warn(`Utilisateur non trouvé pour getClientTutorialSteps: ${userId}`)
+        return [] // Retourner un tableau vide au lieu d'une erreur
+      }
+
       // Étapes par défaut du tutoriel client
       const defaultSteps: Omit<TutorialStep, 'completed' | 'timeSpent' | 'skipped'>[] = [
         {
@@ -130,7 +167,7 @@ export class TutorialService {
 
     } catch (error) {
       console.error('Erreur récupération étapes tutoriel:', error)
-      throw error
+      return [] // Retourner un tableau vide en cas d'erreur
     }
   }
 
@@ -139,6 +176,29 @@ export class TutorialService {
    */
   static async getTutorialProgress(userId: string): Promise<TutorialProgress> {
     try {
+      // Vérifier que l'utilisateur existe
+      const user = await db.user.findUnique({
+        where: { id: userId },
+        select: { id: true, role: true }
+      })
+
+      if (!user) {
+        console.warn(`Utilisateur non trouvé pour getTutorialProgress: ${userId}`)
+        // Retourner une progression par défaut
+        return {
+          userId,
+          totalSteps: 0,
+          completedSteps: 0,
+          mandatorySteps: 0,
+          completedMandatory: 0,
+          progressPercentage: 100,
+          currentStep: 1,
+          isCompleted: true,
+          startedAt: new Date(),
+          totalTimeSpent: 0
+        }
+      }
+
       const [tutorialProgress, steps] = await Promise.all([
         db.clientTutorialProgress.findUnique({
           where: { userId }
@@ -191,11 +251,13 @@ export class TutorialService {
       })
 
       if (!user) {
-        throw new Error(`Utilisateur non trouvé: ${userId}`)
+        console.warn(`Utilisateur non trouvé pour tutoriel: ${userId}`)
+        return // Ne pas lancer d'erreur, juste ignorer
       }
 
       if (user.role !== 'CLIENT') {
-        throw new Error('Le tutoriel est réservé aux clients')
+        console.warn(`Tutoriel demandé pour un non-client: ${user.role}`)
+        return // Ne pas lancer d'erreur, juste ignorer
       }
 
       await db.clientTutorialProgress.upsert({
@@ -214,7 +276,7 @@ export class TutorialService {
 
     } catch (error) {
       console.error('Erreur démarrage tutoriel:', error)
-      throw error
+      // Ne pas relancer l'erreur pour éviter de casser l'application
     }
   }
 
@@ -227,6 +289,22 @@ export class TutorialService {
     timeSpent: number
   ): Promise<void> {
     try {
+      // Vérifier que l'utilisateur existe d'abord
+      const user = await db.user.findUnique({
+        where: { id: userId },
+        select: { id: true, role: true }
+      })
+
+      if (!user) {
+        console.warn(`Utilisateur non trouvé pour completeStep: ${userId}`)
+        return // Ne pas lancer d'erreur, juste ignorer
+      }
+
+      if (user.role !== 'CLIENT') {
+        console.warn(`CompleteStep demandé pour un non-client: ${user.role}`)
+        return // Ne pas lancer d'erreur, juste ignorer
+      }
+
       await db.$transaction(async (tx) => {
         // S'assurer que ClientTutorialProgress existe
         await tx.clientTutorialProgress.upsert({
@@ -289,6 +367,17 @@ export class TutorialService {
     completionData: TutorialCompletion
   ): Promise<void> {
     try {
+      // Vérifier si le tutoriel est déjà complété
+      const client = await db.client.findUnique({
+        where: { userId },
+        select: { tutorialCompleted: true }
+      })
+
+      if (client?.tutorialCompleted) {
+        console.log('Tutoriel déjà complété pour l\'utilisateur:', userId)
+        return
+      }
+
       await db.$transaction(async (tx) => {
         // Marquer le tutoriel comme terminé
         await tx.clientTutorialProgress.upsert({
@@ -360,7 +449,7 @@ export class TutorialService {
       await NotificationService.createNotification({
         userId,
         type: 'TUTORIAL_COMPLETED',
-        title: '🎉 Tutoriel terminé !',
+        title: 'Tutoriel terminé !',
         message: 'Félicitations ! Vous pouvez maintenant accéder à toutes les fonctionnalités d\'EcoDeli.',
         data: {
           completionTime: completionData.totalTimeSpent,
@@ -420,7 +509,7 @@ export class TutorialService {
         await NotificationService.createNotification({
           userId,
           type: 'WELCOME_CREDIT',
-          title: '💰 Crédit de bienvenue !',
+          title: 'Crédit de bienvenue !',
           message: 'Vous avez reçu 5€ de crédit pour avoir terminé le tutoriel.',
           data: {
             amount: 5.00,
@@ -442,6 +531,20 @@ export class TutorialService {
    */
   static async skipStep(userId: string, stepId: number): Promise<void> {
     try {
+      // Vérifier que l'utilisateur existe d'abord
+      const user = await db.user.findUnique({
+        where: { id: userId },
+        select: { id: true, role: true }
+      })
+
+      if (!user) {
+        throw new Error(`Utilisateur non trouvé: ${userId}`)
+      }
+
+      if (user.role !== 'CLIENT') {
+        throw new Error('Le tutoriel est réservé aux clients')
+      }
+
       // Vérifier que l'étape n'est pas obligatoire
       const steps = await this.getClientTutorialSteps(userId)
       const step = steps.find(s => s.id === stepId)

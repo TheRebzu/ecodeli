@@ -95,7 +95,7 @@ export class EmailService {
       // Email de vérification envoyé
       return { success: true, messageId: result.messageId }
     } catch (error) {
-      console.error('❌ Erreur envoi email:', error)
+      console.error('Erreur envoi email:', error)
       throw error
     }
   }
@@ -172,7 +172,7 @@ export class EmailService {
       // Email de reset envoyé
       return { success: true, messageId: result.messageId }
     } catch (error) {
-      console.error('❌ Erreur envoi email:', error)
+      console.error('Erreur envoi email:', error)
       throw error
     }
   }
@@ -193,7 +193,7 @@ export class EmailService {
       // Email générique envoyé
       return { success: true, messageId: result.messageId }
     } catch (error) {
-      console.error('❌ Erreur envoi email générique:', error)
+      console.error('Erreur envoi email générique:', error)
       throw error
     }
   }
@@ -207,7 +207,7 @@ export class EmailService {
       // Connexion SMTP réussie
       return { success: true }
     } catch (error) {
-      console.error('❌ Erreur connexion SMTP:', error)
+      console.error('Erreur connexion SMTP:', error)
       throw error
     }
   }

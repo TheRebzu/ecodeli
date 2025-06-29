@@ -17,11 +17,10 @@ export async function seedInvoices(ctx: SeedContext) {
   for (const delivery of completedDeliveries) {
     const invoice = await prisma.invoice.create({
       data: {
-        userId: delivery.announcement.userId,
+        invoiceNumber: generateInvoiceNumber('LIV'),
         type: 'DELIVERY',
-        number: generateInvoiceNumber('LIV'),
         status: 'PAID',
-        amount: delivery.price,
+        subtotal: delivery.price,
         tax: delivery.price * 0.2, // TVA 20%
         total: delivery.price * 1.2,
         currency: 'EUR',
@@ -31,9 +30,8 @@ export async function seedInvoices(ctx: SeedContext) {
           delivererEarnings: delivery.delivererEarnings,
           platformFee: delivery.platformFee
         },
-        description: `Livraison ${delivery.trackingNumber}`,
-        dueDate: new Date(delivery.actualDeliveryAt.getTime() + 30 * 24 * 60 * 60 * 1000),
-        paidAt: delivery.actualDeliveryAt,
+        dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+        paidAt: new Date(),
         pdfUrl: `https://storage.ecodeli.fr/invoices/${generateInvoiceNumber('LIV')}.pdf`
       }
     })
@@ -45,22 +43,20 @@ export async function seedInvoices(ctx: SeedContext) {
   for (const booking of completedBookings) {
     const invoice = await prisma.invoice.create({
       data: {
-        userId: booking.clientId,
+        clientId: booking.clientId,
+        invoiceNumber: generateInvoiceNumber('SRV'),
         type: 'SERVICE',
-        number: generateInvoiceNumber('SRV'),
         status: 'PAID',
-        amount: booking.price,
-        tax: booking.price * 0.2,
-        total: booking.price * 1.2,
+        subtotal: booking.totalPrice,
+        tax: booking.totalPrice * 0.2,
+        total: booking.totalPrice * 1.2,
         currency: 'EUR',
         metadata: {
           bookingId: booking.id,
-          reference: booking.reference,
           serviceId: booking.serviceId
         },
-        description: `Service ${booking.reference}`,
-        dueDate: new Date(booking.completedAt.getTime() + 30 * 24 * 60 * 60 * 1000),
-        paidAt: booking.completedAt,
+        dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+        paidAt: new Date(),
         pdfUrl: `https://storage.ecodeli.fr/invoices/${generateInvoiceNumber('SRV')}.pdf`
       }
     })
@@ -116,11 +112,11 @@ export async function seedInvoices(ctx: SeedContext) {
         // Créer aussi une facture standard pour la compatibilité
         const invoice = await prisma.invoice.create({
           data: {
-            userId: providerData.provider.userId,
+            providerId: providerData.provider.id,
+            invoiceNumber: monthlyInvoice.invoiceNumber,
             type: 'PROVIDER_MONTHLY',
-            number: monthlyInvoice.invoiceNumber,
             status: monthlyInvoice.status === 'PAID' ? 'PAID' : 'PENDING',
-            amount: netAmount,
+            subtotal: netAmount,
             tax: 0, // Prestataires gèrent leur propre TVA
             total: netAmount,
             currency: 'EUR',
@@ -131,11 +127,9 @@ export async function seedInvoices(ctx: SeedContext) {
               totalHours,
               commissionAmount
             },
-            description: `Facturation mensuelle ${month}/${year}`,
             dueDate: monthlyInvoice.dueDate,
             paidAt: monthlyInvoice.paidAt,
-            pdfUrl: monthlyInvoice.invoiceUrl,
-            isRecurring: true
+            pdfUrl: monthlyInvoice.invoiceUrl
           }
         })
         
@@ -147,7 +141,7 @@ export async function seedInvoices(ctx: SeedContext) {
   // 4. Factures d'abonnement pour les clients Premium/Starter
   const subscribedClients = await prisma.client.findMany({
     where: {
-      subscription: { in: ['STARTER', 'PREMIUM'] }
+      subscriptionPlan: { in: ['STARTER', 'PREMIUM'] }
     },
     include: {
       user: true
@@ -158,27 +152,25 @@ export async function seedInvoices(ctx: SeedContext) {
     // Générer les factures des 3 derniers mois
     for (let monthOffset = 2; monthOffset >= 0; monthOffset--) {
       const invoiceDate = new Date(currentYear, currentMonth - monthOffset, 1)
-      const amount = client.subscription === 'PREMIUM' ? 19.99 : 9.90
+      const amount = client.subscriptionPlan === 'PREMIUM' ? 19.99 : 9.90
       
       const invoice = await prisma.invoice.create({
         data: {
-          userId: client.userId,
+          clientId: client.id,
+          invoiceNumber: generateInvoiceNumber('SUB'),
           type: 'SUBSCRIPTION',
-          number: generateInvoiceNumber('SUB'),
           status: 'PAID',
-          amount,
+          subtotal: amount,
           tax: amount * 0.2,
           total: amount * 1.2,
           currency: 'EUR',
           metadata: {
-            subscriptionType: client.subscription,
+            subscriptionType: client.subscriptionPlan,
             period: `${invoiceDate.getMonth() + 1}/${invoiceDate.getFullYear()}`
           },
-          description: `Abonnement ${client.subscription}`,
           dueDate: new Date(invoiceDate.getTime() + 7 * 24 * 60 * 60 * 1000),
           paidAt: invoiceDate,
-          pdfUrl: `https://storage.ecodeli.fr/invoices/subscriptions/${generateInvoiceNumber('SUB')}.pdf`,
-          isRecurring: true
+          pdfUrl: `https://storage.ecodeli.fr/invoices/subscriptions/${generateInvoiceNumber('SUB')}.pdf`
         }
       })
       

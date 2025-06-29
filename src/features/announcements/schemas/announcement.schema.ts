@@ -1,15 +1,15 @@
 import { z } from 'zod'
 
-// Types d'annonces selon le cahier des charges EcoDeli
+// Types d'annonces - SEULEMENT pour les colis/livraisons selon le cahier des charges EcoDeli
 export const announcementTypeSchema = z.enum([
-  'PACKAGE_DELIVERY',      // Transport de colis (intégral ou partiel)
-  'PERSON_TRANSPORT',      // Transport de personnes
-  'AIRPORT_TRANSFER',      // Transfert aéroport
-  'SHOPPING',              // Courses avec liste fournie
-  'INTERNATIONAL_PURCHASE', // Achats internationaux
-  'PET_SITTING',           // Garde d'animaux
-  'HOME_SERVICE',          // Services à domicile (ménage, jardinage)
-  'CART_DROP'              // Lâcher de chariot (service phare)
+  'PACKAGE_DELIVERY',       // Transport de colis standard
+  'DOCUMENT_DELIVERY',      // Transport de documents
+  'CART_DROP',              // Lâcher de chariot (service phare EcoDeli)
+  'SHOPPING_DELIVERY',      // Livraison de courses
+  'AIRPORT_TRANSFER',       // Transfert aéroport avec bagages
+  'INTERNATIONAL_PURCHASE', // Achats internationaux à livrer
+  'FRAGILE_DELIVERY',       // Livraison d'objets fragiles
+  'URGENT_DELIVERY'         // Livraison express/urgente
 ])
 
 export type AnnouncementType = z.infer<typeof announcementTypeSchema>
@@ -204,20 +204,20 @@ export const updateAnnouncementSchema = z.object({
 
 // Schema pour recherche d'annonces
 export const searchAnnouncementsSchema = z.object({
-  page: z.coerce.number().min(1).default(1),
-  limit: z.coerce.number().min(1).max(50).default(10),
-  type: announcementTypeSchema.optional(),
-  status: announcementStatusSchema.optional(),
-  clientId: z.string().optional(),
-  merchantId: z.string().optional(),
-  priceMin: z.coerce.number().positive().optional(),
-  priceMax: z.coerce.number().positive().optional(),
-  city: z.string().optional(),
-  dateFrom: z.string().datetime().optional(),
-  dateTo: z.string().datetime().optional(),
-  urgent: z.coerce.boolean().optional(),
-  sortBy: z.enum(['createdAt', 'desiredDate', 'price', 'distance']).default('createdAt'),
-  sortOrder: z.enum(['asc', 'desc']).default('desc')
+  page: z.string().nullable().transform(val => val ? parseInt(val) : 1).pipe(z.number().min(1)),
+  limit: z.string().nullable().transform(val => val ? parseInt(val) : 20).pipe(z.number().min(1).max(50)),
+  type: z.string().nullable().transform(val => val || undefined).pipe(announcementTypeSchema.optional()),
+  status: z.string().nullable().transform(val => val || undefined).pipe(announcementStatusSchema.optional()),
+  clientId: z.string().nullable().optional(),
+  merchantId: z.string().nullable().optional(),
+  priceMin: z.string().nullable().transform(val => val ? parseFloat(val) : undefined).pipe(z.number().positive().optional()),
+  priceMax: z.string().nullable().transform(val => val ? parseFloat(val) : undefined).pipe(z.number().positive().optional()),
+  city: z.string().nullable().optional(),
+  dateFrom: z.string().nullable().optional(),
+  dateTo: z.string().nullable().optional(),
+  urgent: z.string().nullable().transform(val => val === 'true').pipe(z.boolean().optional()),
+  sortBy: z.string().nullable().transform(val => val || 'createdAt').pipe(z.enum(['createdAt', 'desiredDate', 'price', 'distance'])),
+  sortOrder: z.string().nullable().transform(val => val || 'desc').pipe(z.enum(['asc', 'desc']))
 })
 
 // Schema pour matching avec trajets livreurs

@@ -1,12 +1,8 @@
 import winston from 'winston'
-import { NodeTracerProvider } from '@opentelemetry/sdk-node'
-import { ConsoleSpanExporter, BatchSpanProcessor } from '@opentelemetry/sdk-trace-node'
-import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node'
-import { registerInstrumentations } from '@opentelemetry/instrumentation'
 
 /**
  * Configuration centralisée des logs pour EcoDeli
- * Support pour Winston + OpenTelemetry pour monitoring cloud
+ * Logger simplifié avec Winston
  */
 
 // Configuration des niveaux de log personnalisés
@@ -107,52 +103,13 @@ export const logger = winston.createLogger({
   ]
 })
 
-// Configuration OpenTelemetry pour le tracing distribué
-let tracerProvider: NodeTracerProvider | null = null
-
+// Configuration simplifiée pour éviter les erreurs OpenTelemetry
 export function initializeTracing() {
-  if (process.env.NODE_ENV === 'production' && !tracerProvider) {
-    tracerProvider = new NodeTracerProvider()
-    
-    // Configuration des exporteurs selon l'environnement cloud
-    if (process.env.OTEL_EXPORTER_JAEGER_ENDPOINT) {
-      // Jaeger pour le tracing
-      const { JaegerExporter } = require('@opentelemetry/exporter-jaeger')
-      const jaegerExporter = new JaegerExporter({
-        endpoint: process.env.OTEL_EXPORTER_JAEGER_ENDPOINT,
-      })
-      tracerProvider.addSpanProcessor(new BatchSpanProcessor(jaegerExporter))
-    }
-    
-    if (process.env.AZURE_MONITOR_CONNECTION_STRING) {
-      // Azure Application Insights
-      const { AzureMonitorTraceExporter } = require('@azure/monitor-opentelemetry-exporter')
-      const azureExporter = new AzureMonitorTraceExporter({
-        connectionString: process.env.AZURE_MONITOR_CONNECTION_STRING
-      })
-      tracerProvider.addSpanProcessor(new BatchSpanProcessor(azureExporter))
-    }
-    
-    // Fallback vers console en développement
-    tracerProvider.addSpanProcessor(
-      new BatchSpanProcessor(new ConsoleSpanExporter())
-    )
-    
-    tracerProvider.register()
-    
-    // Auto-instrumentation pour Next.js, HTTP, Base de données, etc.
-    registerInstrumentations({
-      instrumentations: [getNodeAutoInstrumentations({
-        '@opentelemetry/instrumentation-fs': {
-          enabled: false, // Désactiver pour éviter le spam
-        },
-      })],
-    })
-    
-    logger.info('OpenTelemetry tracing initialized', {
+  // Désactivé temporairement - à réactiver en production avec les bonnes dépendances
+  if (process.env.ENABLE_TRACING === 'true') {
+    logger.info('Tracing désactivé temporairement', {
       service: 'ecodeli',
-      environment: process.env.NODE_ENV,
-      version: process.env.npm_package_version
+      environment: process.env.NODE_ENV
     })
   }
 }
@@ -281,9 +238,9 @@ export const createContextLogger = (userId?: string, role?: string, sessionId?: 
   }
 }
 
-// Initialisation automatique en production
-if (process.env.NODE_ENV === 'production') {
-  initializeTracing()
-}
+// Initialisation automatique désactivée pour éviter les erreurs
+// if (process.env.NODE_ENV === 'production') {
+//   initializeTracing()
+// }
 
 export default logger

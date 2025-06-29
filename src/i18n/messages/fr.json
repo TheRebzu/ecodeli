@@ -317,9 +317,12 @@
       "backHome": "Retour à l'accueil"
     },
     "unauthorized": {
-      "title": "Authentification requise",
-      "message": "Vous devez être connecté pour accéder à cette page.",
-      "signIn": "Se connecter"
+      "title": "Accès non autorisé",
+      "message": "Votre rôle utilisateur ne vous permet pas d'accéder à cette page.",
+      "subtitle": "Connectez-vous avec un compte ayant les permissions appropriées ou contactez l'administrateur.",
+      "backButton": "Retour",
+      "loginButton": "Se connecter",
+      "homeButton": "Accueil"
     }
   },
   "validation": {

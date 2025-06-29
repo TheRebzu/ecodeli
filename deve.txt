@@ -8,36 +8,888 @@
    - Environments: .env.local, .env
 
  ✓ Starting...
- ✓ Ready in 10s
+ ✓ Ready in 11.4s
+ ○ Compiling /_not-found ...
+ ✓ Compiled /_not-found in 10.8s (739 modules)
+ GET /_next/static/webpack/f863094e588a3c23.webpack.hot-update.json 404 in 12089ms
+ GET /_next/static/webpack/f863094e588a3c23.webpack.hot-update.json 404 in 144ms
  ○ Compiling /middleware ...
- ✓ Compiled /middleware in 2.9s (597 modules)
- ○ Compiling /[locale]/login ...
- ✓ Compiled /[locale]/login in 16.1s (1179 modules)
- GET /fr/login 200 in 20918ms
- ○ Compiling /api/auth/[...all] ...
- ✓ Compiled /api/auth/[...all] in 10.9s (1617 modules)
- GET /fr/login 200 in 445ms
- GET /api/auth/get-session 200 in 13500ms
- POST /api/auth/sign-in/email 200 in 13672ms
- ○ Compiling /[locale]/client ...
- ✓ Compiled /[locale]/client in 4.4s (2863 modules)
-🔍 [ClientLayout] Auth state: { user: undefined, isLoading: true, isAuthenticated: false }
- ✓ Compiled in 3.5s (1061 modules)
- GET /fr/client 200 in 8807ms
- ✓ Compiled in 1910ms (1061 modules)
- GET /api/auth/get-session 200 in 387ms
- GET /api/auth/get-session 200 in 94ms
- ○ Compiling /api/client/dashboard ...
- ✓ Compiled /api/client/dashboard in 956ms (2880 modules)
-[API] Valid session for: client-complete@test.com - Role: CLIENT
- GET /api/client/dashboard 200 in 1454ms
-[API] Valid session for: client-complete@test.com - Role: CLIENT
- GET /api/client/dashboard 200 in 117ms
-🔍 [ClientLayout] Auth state: { user: undefined, isLoading: true, isAuthenticated: false }
- GET /fr/client 200 in 1266ms
- GET /api/auth/get-session 200 in 184ms
- GET /api/auth/get-session 200 in 112ms
-[API] Valid session for: client-complete@test.com - Role: CLIENT
- GET /api/client/dashboard 200 in 161ms
-[API] Valid session for: client-complete@test.com - Role: CLIENT
- GET /api/client/dashboard 200 in 138ms
+ ✓ Compiled /middleware in 826ms (326 modules)
+ ○ Compiling /[locale]/client/deliveries ...
+ GET /_next/static/webpack/f863094e588a3c23.webpack.hot-update.json 500 in 7271ms
+ GET /_next/static/webpack/f863094e588a3c23.webpack.hot-update.json 500 in 83ms
+ GET /fr/client/deliveries 500 in 249ms
+ GET /fr/client/deliveries 500 in 266ms
+ GET /fr/client/deliveries 500 in 210ms
+ GET /_next/static/webpack/f863094e588a3c23.webpack.hot-update.json 500 in 6695ms
+ GET /_next/static/webpack/f863094e588a3c23.webpack.hot-update.json 500 in 36ms
+ GET /fr/client/deliveries 500 in 189ms
+ GET /fr/client/deliveries 500 in 182ms
+ GET /fr/client/deliveries 500 in 366ms
+ GET /_next/static/webpack/f863094e588a3c23.webpack.hot-update.json 500 in 6344ms
+ GET /fr/client/deliveries 500 in 429ms
+ ✓ Compiled /_error in 6.5s (1181 modules)
+ GET /fr/client/deliveries 500 in 321ms
+ GET /fr/client/deliveries 500 in 296ms
+ ✓ Compiled in 6.1s (1181 modules)
+ ✓ Compiled in 6.4s (1181 modules)
+ GET /fr/client/deliveries 500 in 644ms
+ GET /fr/client/deliveries 500 in 220ms
+ GET /fr/client/deliveries 500 in 254ms
+ ✓ Compiled in 5.9s (1181 modules)
+ GET /fr/client/deliveries 500 in 192ms
+ GET /fr/client/deliveries 500 in 177ms
+ ✓ Compiled in 6.4s (1181 modules)
+ ✓ Compiled in 7.1s (1181 modules)
+ GET /fr/client/deliveries 500 in 273ms
+ GET /fr/client/deliveries 500 in 238ms
+ ✓ Compiled in 7.1s (1181 modules)
+ GET /fr/client/deliveries 500 in 247ms
+ GET /fr/client/deliveries 500 in 262ms
+ ✓ Compiled in 5.8s (1181 modules)
+ GET /fr/client/deliveries 500 in 247ms
+ GET /fr/client/deliveries 500 in 375ms
+ ✓ Compiled in 18.6s (2562 modules)
+ ✓ Compiled (2548 modules)
+ GET /_next/static/webpack/f863094e588a3c23.webpack.hot-update.json 404 in 19737ms
+ GET /_next/static/webpack/f863094e588a3c23.webpack.hot-update.json 404 in 197ms
+ GET /fr/client/deliveries 200 in 11621ms
+ ✓ Compiled in 8.8s (1195 modules)
+ GET /_next/static/webpack/f863094e588a3c23.webpack.hot-update.json 404 in 82ms
+ GET /fr/client/deliveries 200 in 1513ms
+ ○ Compiling /api/auth/session ...
+ ✓ Compiled /api/auth/session in 8.3s (2706 modules)
+ GET /api/auth/session 200 in 9341ms
+ GET /fr/client/deliveries 200 in 640ms
+ ○ Compiling /api/client/deliveries ...
+ ✓ Compiled /api/client/deliveries in 4.5s (2711 modules)
+ GET /api/auth/session 200 in 3576ms
+ GET /api/client/tutorial 200 in 5466ms
+prisma:error 
+Invalid `prisma.delivery.findMany()` invocation:
+
+{
+  where: {
+    announcement: {
+      clientId: "cmcgdyn3q0000ufbsj84l8rup"
+    }
+  },
+  include: {
+    announcement: {
+      select: {
+        id: true,
+        title: true,
+        pickupAddress: true,
+        deliveryAddress: true,
+        basePrice: true,
+        finalPrice: true
+      }
+    },
+    deliverer: {
+      include: {
+        user: {
+        ~~~~
+          select: {
+            id: true,
+            name: true,
+            phone: true,
+            image: true
+          }
+        },
+?       accounts?: true,
+?       sessions?: true,
+?       profile?: true,
+?       client?: true,
+?       deliverer?: true,
+?       merchant?: true,
+?       provider?: true,
+?       admin?: true,
+?       announcements?: true,
+?       clientDeliveries?: true,
+?       delivererDeliveries?: true,
+?       bookings?: true,
+?       documents?: true,
+?       documentGenerations?: true,
+?       payments?: true,
+?       notifications?: true,
+?       disputesReported?: true,
+?       disputesReceived?: true,
+?       auctionBids?: true,
+?       deliveryGroups?: true,
+?       groupingProposals?: true,
+?       walletOperations?: true,
+?       storageBoxRentals?: true,
+?       wallet?: true,
+?       globalAvailabilities?: true,
+?       activityLogs?: true,
+?       tutorialProgress?: true,
+?       referrerCodes?: true,
+?       asReferrer?: true,
+?       asReferee?: true,
+?       referralRewards?: true,
+?       referralStats?: true,
+?       influencerProgram?: true,
+?       delivererRoutes?: true,
+?       routeMatches?: true,
+?       assignedAnnouncements?: true,
+?       authoredTickets?: true,
+?       assignedTickets?: true,
+?       escalatedFromTickets?: true,
+?       escalatedToTickets?: true,
+?       ticketMessages?: true,
+?       ticketAttachments?: true,
+?       knowledgeBaseEntries?: true,
+?       supportTemplates?: true,
+?       clientOrders?: true,
+?       serviceWarranties?: true,
+?       delivererWarranties?: true,
+?       clientDeliveryWarranties?: true,
+?       warrantyClaims?: true,
+?       InsuranceClaim?: true,
+?       ClaimAssessment?: true
+      }
+    },
+    tracking: {
+      orderBy: {
+        createdAt: "desc"
+      },
+      take: 1
+    }
+  },
+  orderBy: {
+    createdAt: "desc"
+  },
+  skip: 0,
+  take: 10
+}
+
+Unknown field `user` for include statement on model `User`. Available options are marked with ?.
+ GET /api/client/deliveries?clientId=cmcgdyn3q0000ufbsj84l8rup 500 in 5572ms
+ GET /api/client/tutorial 200 in 560ms
+prisma:error 
+Invalid `prisma.delivery.findMany()` invocation:
+
+{
+  where: {
+    announcement: {
+      clientId: "cmcgdyn3q0000ufbsj84l8rup"
+    }
+  },
+  include: {
+    announcement: {
+      select: {
+        id: true,
+        title: true,
+        pickupAddress: true,
+        deliveryAddress: true,
+        basePrice: true,
+        finalPrice: true
+      }
+    },
+    deliverer: {
+      include: {
+        user: {
+        ~~~~
+          select: {
+            id: true,
+            name: true,
+            phone: true,
+            image: true
+          }
+        },
+?       accounts?: true,
+?       sessions?: true,
+?       profile?: true,
+?       client?: true,
+?       deliverer?: true,
+?       merchant?: true,
+?       provider?: true,
+?       admin?: true,
+?       announcements?: true,
+?       clientDeliveries?: true,
+?       delivererDeliveries?: true,
+?       bookings?: true,
+?       documents?: true,
+?       documentGenerations?: true,
+?       payments?: true,
+?       notifications?: true,
+?       disputesReported?: true,
+?       disputesReceived?: true,
+?       auctionBids?: true,
+?       deliveryGroups?: true,
+?       groupingProposals?: true,
+?       walletOperations?: true,
+?       storageBoxRentals?: true,
+?       wallet?: true,
+?       globalAvailabilities?: true,
+?       activityLogs?: true,
+?       tutorialProgress?: true,
+?       referrerCodes?: true,
+?       asReferrer?: true,
+?       asReferee?: true,
+?       referralRewards?: true,
+?       referralStats?: true,
+?       influencerProgram?: true,
+?       delivererRoutes?: true,
+?       routeMatches?: true,
+?       assignedAnnouncements?: true,
+?       authoredTickets?: true,
+?       assignedTickets?: true,
+?       escalatedFromTickets?: true,
+?       escalatedToTickets?: true,
+?       ticketMessages?: true,
+?       ticketAttachments?: true,
+?       knowledgeBaseEntries?: true,
+?       supportTemplates?: true,
+?       clientOrders?: true,
+?       serviceWarranties?: true,
+?       delivererWarranties?: true,
+?       clientDeliveryWarranties?: true,
+?       warrantyClaims?: true,
+?       InsuranceClaim?: true,
+?       ClaimAssessment?: true
+      }
+    },
+    tracking: {
+      orderBy: {
+        createdAt: "desc"
+      },
+      take: 1
+    }
+  },
+  orderBy: {
+    createdAt: "desc"
+  },
+  skip: 0,
+  take: 10
+}
+
+Unknown field `user` for include statement on model `User`. Available options are marked with ?.
+ GET /api/client/deliveries?clientId=cmcgdyn3q0000ufbsj84l8rup 500 in 422ms
+ GET /api/client/tutorial 200 in 367ms
+ GET /api/client/tutorial 200 in 179ms
+ ✓ Compiled in 5.3s (1192 modules)
+ GET /api/auth/session 200 in 150ms
+ GET /api/auth/session 200 in 154ms
+ ○ Compiling /_not-found ...
+ GET /api/auth/session 200 in 373ms
+ ✓ Compiled /_not-found in 9.7s (2616 modules)
+ ✓ Compiled in 7s (2616 modules)
+ GET /fr/client/storage/boxes 404 in 17374ms
+ GET /api/auth/session 200 in 10271ms
+ GET /fr/client/storage/boxes 404 in 132ms
+ GET /api/auth/session 200 in 1200ms
+ GET /fr/client/deliveries 200 in 10719ms
+ GET /fr/client/storage/boxes 404 in 28ms
+ GET /fr/client/storage/boxes 404 in 79ms
+ GET /api/auth/session 200 in 170ms
+ GET /api/auth/session 200 in 172ms
+ ○ Compiling /api/client/deliveries ...
+ ✓ Compiled /api/client/deliveries in 1048ms (1437 modules)
+ ✓ Compiled in 3.2s (2621 modules)
+ GET /fr/client/storage/boxes 404 in 4103ms
+ GET /api/auth/session 200 in 5420ms
+ GET /api/client/tutorial 200 in 5485ms
+prisma:error 
+Invalid `prisma.delivery.findMany()` invocation:
+
+{
+  where: {
+    announcement: {
+      clientId: "cmcgdyn3q0000ufbsj84l8rup"
+    }
+  },
+  include: {
+    announcement: {
+      select: {
+        id: true,
+        title: true,
+        pickupAddress: true,
+        deliveryAddress: true,
+        basePrice: true,
+        finalPrice: true
+      }
+    },
+    deliverer: {
+      include: {
+        user: {
+        ~~~~
+          select: {
+            id: true,
+            name: true,
+            phone: true,
+            image: true
+          }
+        },
+?       accounts?: true,
+?       sessions?: true,
+?       profile?: true,
+?       client?: true,
+?       deliverer?: true,
+?       merchant?: true,
+?       provider?: true,
+?       admin?: true,
+?       announcements?: true,
+?       clientDeliveries?: true,
+?       delivererDeliveries?: true,
+?       bookings?: true,
+?       documents?: true,
+?       documentGenerations?: true,
+?       payments?: true,
+?       notifications?: true,
+?       disputesReported?: true,
+?       disputesReceived?: true,
+?       auctionBids?: true,
+?       deliveryGroups?: true,
+?       groupingProposals?: true,
+?       walletOperations?: true,
+?       storageBoxRentals?: true,
+?       wallet?: true,
+?       globalAvailabilities?: true,
+?       activityLogs?: true,
+?       tutorialProgress?: true,
+?       referrerCodes?: true,
+?       asReferrer?: true,
+?       asReferee?: true,
+?       referralRewards?: true,
+?       referralStats?: true,
+?       influencerProgram?: true,
+?       delivererRoutes?: true,
+?       routeMatches?: true,
+?       assignedAnnouncements?: true,
+?       authoredTickets?: true,
+?       assignedTickets?: true,
+?       escalatedFromTickets?: true,
+?       escalatedToTickets?: true,
+?       ticketMessages?: true,
+?       ticketAttachments?: true,
+?       knowledgeBaseEntries?: true,
+?       supportTemplates?: true,
+?       clientOrders?: true,
+?       serviceWarranties?: true,
+?       delivererWarranties?: true,
+?       clientDeliveryWarranties?: true,
+?       warrantyClaims?: true,
+?       InsuranceClaim?: true,
+?       ClaimAssessment?: true
+      }
+    },
+    tracking: {
+      orderBy: {
+        createdAt: "desc"
+      },
+      take: 1
+    }
+  },
+  orderBy: {
+    createdAt: "desc"
+  },
+  skip: 0,
+  take: 10
+}
+
+Unknown field `user` for include statement on model `User`. Available options are marked with ?.
+ GET /api/client/deliveries?clientId=cmcgdyn3q0000ufbsj84l8rup 500 in 5717ms
+ GET /api/client/tutorial 200 in 301ms
+prisma:error 
+Invalid `prisma.delivery.findMany()` invocation:
+
+{
+  where: {
+    announcement: {
+      clientId: "cmcgdyn3q0000ufbsj84l8rup"
+    }
+  },
+  include: {
+    announcement: {
+      select: {
+        id: true,
+        title: true,
+        pickupAddress: true,
+        deliveryAddress: true,
+        basePrice: true,
+        finalPrice: true
+      }
+    },
+    deliverer: {
+      include: {
+        user: {
+        ~~~~
+          select: {
+            id: true,
+            name: true,
+            phone: true,
+            image: true
+          }
+        },
+?       accounts?: true,
+?       sessions?: true,
+?       profile?: true,
+?       client?: true,
+?       deliverer?: true,
+?       merchant?: true,
+?       provider?: true,
+?       admin?: true,
+?       announcements?: true,
+?       clientDeliveries?: true,
+?       delivererDeliveries?: true,
+?       bookings?: true,
+?       documents?: true,
+?       documentGenerations?: true,
+?       payments?: true,
+?       notifications?: true,
+?       disputesReported?: true,
+?       disputesReceived?: true,
+?       auctionBids?: true,
+?       deliveryGroups?: true,
+?       groupingProposals?: true,
+?       walletOperations?: true,
+?       storageBoxRentals?: true,
+?       wallet?: true,
+?       globalAvailabilities?: true,
+?       activityLogs?: true,
+?       tutorialProgress?: true,
+?       referrerCodes?: true,
+?       asReferrer?: true,
+?       asReferee?: true,
+?       referralRewards?: true,
+?       referralStats?: true,
+?       influencerProgram?: true,
+?       delivererRoutes?: true,
+?       routeMatches?: true,
+?       assignedAnnouncements?: true,
+?       authoredTickets?: true,
+?       assignedTickets?: true,
+?       escalatedFromTickets?: true,
+?       escalatedToTickets?: true,
+?       ticketMessages?: true,
+?       ticketAttachments?: true,
+?       knowledgeBaseEntries?: true,
+?       supportTemplates?: true,
+?       clientOrders?: true,
+?       serviceWarranties?: true,
+?       delivererWarranties?: true,
+?       clientDeliveryWarranties?: true,
+?       warrantyClaims?: true,
+?       InsuranceClaim?: true,
+?       ClaimAssessment?: true
+      }
+    },
+    tracking: {
+      orderBy: {
+        createdAt: "desc"
+      },
+      take: 1
+    }
+  },
+  orderBy: {
+    createdAt: "desc"
+  },
+  skip: 0,
+  take: 10
+}
+
+Unknown field `user` for include statement on model `User`. Available options are marked with ?.
+ GET /api/client/deliveries?clientId=cmcgdyn3q0000ufbsj84l8rup 500 in 553ms
+ GET /api/client/tutorial 200 in 421ms
+ GET /api/auth/session 200 in 302ms
+ GET /api/client/tutorial 200 in 338ms
+ GET /api/auth/session 200 in 161ms
+ GET /api/auth/session 200 in 176ms
+ GET /api/auth/session 200 in 216ms
+ ✓ Compiled in 5.4s (1195 modules)
+ GET /fr/client/storage/boxes 404 in 135ms
+ GET /fr/client/deliveries 200 in 524ms
+ GET /fr/client/storage/boxes 404 in 175ms
+ GET /api/auth/session 200 in 171ms
+ GET /api/auth/session 200 in 170ms
+ GET /api/auth/session 200 in 185ms
+ GET /api/auth/session 200 in 225ms
+ GET /api/auth/session 200 in 156ms
+ GET /api/auth/session 200 in 169ms
+ GET /api/auth/session 200 in 182ms
+ GET /api/auth/session 200 in 174ms
+ GET /api/auth/session 200 in 199ms
+ ✓ Compiled in 8.1s (2612 modules)
+ ○ Compiling /_not-found ...
+ GET /fr/client/deliveries 200 in 1078ms
+ ✓ Compiled /_not-found in 1695ms (2602 modules)
+ GET /fr/client/storage/boxes 404 in 1922ms
+ GET /fr/client/storage/boxes 404 in 164ms
+ GET /api/auth/session 200 in 312ms
+ GET /api/auth/session 200 in 197ms
+ GET /api/auth/session 200 in 163ms
+ ✓ Compiled in 6s (1192 modules)
+ ○ Compiling /_not-found ...
+ GET /fr/client/deliveries 200 in 875ms
+ ✓ Compiled /_not-found in 2.5s (2459 modules)
+ GET /fr/client/storage/boxes 404 in 2961ms
+ GET /fr/client/storage/boxes 404 in 200ms
+ ✓ Compiled in 5.9s (1195 modules)
+ GET /fr/client/deliveries 200 in 3408ms
+ ○ Compiling /api/auth/session ...
+ ✓ Compiled /api/auth/session in 995ms (1421 modules)
+ GET /api/auth/session 200 in 1615ms
+ ✓ Compiled in 6.4s (2602 modules)
+ GET /api/auth/session 404 in 2070ms
+ GET /fr/client/storage/boxes 404 in 219ms
+ GET /api/auth/session 200 in 365ms
+ GET /fr/client/storage/boxes 404 in 515ms
+ GET /fr/client/deliveries 200 in 1105ms
+ GET /api/auth/session 200 in 147ms
+ GET /api/auth/session 200 in 167ms
+ GET /api/auth/session 200 in 211ms
+ ○ Compiling /api/client/deliveries ...
+ ✓ Compiled /api/client/deliveries in 2s (1437 modules)
+ ✓ Compiled (1440 modules)
+ GET /api/client/tutorial 200 in 3875ms
+prisma:error 
+Invalid `prisma.delivery.findMany()` invocation:
+
+{
+  where: {
+    announcement: {
+      clientId: "cmcgdyn3q0000ufbsj84l8rup"
+    }
+  },
+  include: {
+    announcement: {
+      select: {
+        id: true,
+        title: true,
+        pickupAddress: true,
+        deliveryAddress: true,
+        basePrice: true,
+        finalPrice: true
+      }
+    },
+    deliverer: {
+      select: {
+        id: true,
+        user: {
+        ~~~~
+          select: {
+            id: true,
+            name: true,
+            phone: true,
+            image: true
+          }
+        },
+?       email?: true,
+?       emailVerified?: true,
+?       name?: true,
+?       image?: true,
+?       password?: true,
+?       role?: true,
+?       isActive?: true,
+?       validationStatus?: true,
+?       language?: true,
+?       lastLoginAt?: true,
+?       createdAt?: true,
+?       updatedAt?: true,
+?       accounts?: true,
+?       sessions?: true,
+?       profile?: true,
+?       client?: true,
+?       deliverer?: true,
+?       merchant?: true,
+?       provider?: true,
+?       admin?: true,
+?       announcements?: true,
+?       clientDeliveries?: true,
+?       delivererDeliveries?: true,
+?       bookings?: true,
+?       documents?: true,
+?       documentGenerations?: true,
+?       payments?: true,
+?       notifications?: true,
+?       disputesReported?: true,
+?       disputesReceived?: true,
+?       auctionBids?: true,
+?       deliveryGroups?: true,
+?       groupingProposals?: true,
+?       walletOperations?: true,
+?       storageBoxRentals?: true,
+?       wallet?: true,
+?       globalAvailabilities?: true,
+?       activityLogs?: true,
+?       tutorialProgress?: true,
+?       referrerCodes?: true,
+?       asReferrer?: true,
+?       asReferee?: true,
+?       referralRewards?: true,
+?       referralStats?: true,
+?       influencerProgram?: true,
+?       delivererRoutes?: true,
+?       routeMatches?: true,
+?       assignedAnnouncements?: true,
+?       authoredTickets?: true,
+?       assignedTickets?: true,
+?       escalatedFromTickets?: true,
+?       escalatedToTickets?: true,
+?       ticketMessages?: true,
+?       ticketAttachments?: true,
+?       knowledgeBaseEntries?: true,
+?       supportTemplates?: true,
+?       clientOrders?: true,
+?       serviceWarranties?: true,
+?       delivererWarranties?: true,
+?       clientDeliveryWarranties?: true,
+?       warrantyClaims?: true,
+?       InsuranceClaim?: true,
+?       ClaimAssessment?: true,
+?       _count?: true
+      }
+    },
+    tracking: {
+      orderBy: {
+        createdAt: "desc"
+      },
+      take: 1
+    }
+  },
+  orderBy: {
+    createdAt: "desc"
+  },
+  skip: 0,
+  take: 10
+}
+
+Unknown field `user` for select statement on model `User`. Available options are marked with ?.
+ GET /api/client/deliveries?clientId=cmcgdyn3q0000ufbsj84l8rup 500 in 3988ms
+ GET /fr/client/storage/boxes 404 in 482ms
+ GET /api/client/tutorial 200 in 671ms
+prisma:error 
+Invalid `prisma.delivery.findMany()` invocation:
+
+{
+  where: {
+    announcement: {
+      clientId: "cmcgdyn3q0000ufbsj84l8rup"
+    }
+  },
+  include: {
+    announcement: {
+      select: {
+        id: true,
+        title: true,
+        pickupAddress: true,
+        deliveryAddress: true,
+        basePrice: true,
+        finalPrice: true
+      }
+    },
+    deliverer: {
+      select: {
+        id: true,
+        user: {
+        ~~~~
+          select: {
+            id: true,
+            name: true,
+            phone: true,
+            image: true
+          }
+        },
+?       email?: true,
+?       emailVerified?: true,
+?       name?: true,
+?       image?: true,
+?       password?: true,
+?       role?: true,
+?       isActive?: true,
+?       validationStatus?: true,
+?       language?: true,
+?       lastLoginAt?: true,
+?       createdAt?: true,
+?       updatedAt?: true,
+?       accounts?: true,
+?       sessions?: true,
+?       profile?: true,
+?       client?: true,
+?       deliverer?: true,
+?       merchant?: true,
+?       provider?: true,
+?       admin?: true,
+?       announcements?: true,
+?       clientDeliveries?: true,
+?       delivererDeliveries?: true,
+?       bookings?: true,
+?       documents?: true,
+?       documentGenerations?: true,
+?       payments?: true,
+?       notifications?: true,
+?       disputesReported?: true,
+?       disputesReceived?: true,
+?       auctionBids?: true,
+?       deliveryGroups?: true,
+?       groupingProposals?: true,
+?       walletOperations?: true,
+?       storageBoxRentals?: true,
+?       wallet?: true,
+?       globalAvailabilities?: true,
+?       activityLogs?: true,
+?       tutorialProgress?: true,
+?       referrerCodes?: true,
+?       asReferrer?: true,
+?       asReferee?: true,
+?       referralRewards?: true,
+?       referralStats?: true,
+?       influencerProgram?: true,
+?       delivererRoutes?: true,
+?       routeMatches?: true,
+?       assignedAnnouncements?: true,
+?       authoredTickets?: true,
+?       assignedTickets?: true,
+?       escalatedFromTickets?: true,
+?       escalatedToTickets?: true,
+?       ticketMessages?: true,
+?       ticketAttachments?: true,
+?       knowledgeBaseEntries?: true,
+?       supportTemplates?: true,
+?       clientOrders?: true,
+?       serviceWarranties?: true,
+?       delivererWarranties?: true,
+?       clientDeliveryWarranties?: true,
+?       warrantyClaims?: true,
+?       InsuranceClaim?: true,
+?       ClaimAssessment?: true,
+?       _count?: true
+      }
+    },
+    tracking: {
+      orderBy: {
+        createdAt: "desc"
+      },
+      take: 1
+    }
+  },
+  orderBy: {
+    createdAt: "desc"
+  },
+  skip: 0,
+  take: 10
+}
+
+Unknown field `user` for select statement on model `User`. Available options are marked with ?.
+ GET /api/client/deliveries?clientId=cmcgdyn3q0000ufbsj84l8rup 500 in 870ms
+ GET /fr/client/deliveries 200 in 1464ms
+ GET /api/client/tutorial 200 in 382ms
+ GET /api/client/tutorial 200 in 199ms
+ GET /fr/client/storage/boxes 404 in 197ms
+ GET /api/auth/session 200 in 104ms
+ GET /api/auth/session 200 in 125ms
+ GET /api/auth/session 200 in 161ms
+ ✓ Compiled in 5.7s (1195 modules)
+ GET /fr/client/storage/boxes 404 in 55ms
+ GET /fr/client/deliveries 200 in 402ms
+ GET /fr/client/storage/boxes 404 in 214ms
+ GET /api/auth/session 200 in 216ms
+ GET /api/auth/session 200 in 213ms
+ GET /api/auth/session 200 in 241ms
+ ✓ Compiled in 6s (1195 modules)
+ GET /fr/client/storage/boxes 404 in 120ms
+ GET /fr/client/deliveries 200 in 397ms
+ GET /fr/client/storage/boxes 404 in 485ms
+ GET /api/auth/session 200 in 273ms
+ GET /api/auth/session 200 in 172ms
+ GET /api/auth/session 200 in 184ms
+ ✓ Compiled in 6s (1192 modules)
+ ○ Compiling /_not-found ...
+ GET /fr/client/deliveries 200 in 875ms
+ ✓ Compiled /_not-found in 2.5s (2459 modules)
+ GET /fr/client/storage/boxes 404 in 2897ms
+ GET /fr/client/storage/boxes 404 in 248ms
+ ○ Compiling /api/auth/session ...
+ ✓ Compiled /api/auth/session in 947ms (1421 modules)
+ GET /api/auth/session 200 in 1605ms
+ GET /api/auth/session 200 in 199ms
+ GET /api/auth/session 200 in 205ms
+ ✓ Compiled in 5.5s (1195 modules)
+ GET /fr/client/storage/boxes 404 in 235ms
+ GET /fr/client/deliveries 200 in 641ms
+ GET /fr/client/storage/boxes 404 in 315ms
+ GET /api/auth/session 200 in 172ms
+ GET /api/auth/session 200 in 169ms
+ GET /api/auth/session 200 in 210ms
+ ✓ Compiled in 6.8s (1195 modules)
+ GET /fr/client/storage/boxes 404 in 121ms
+ GET /fr/client/deliveries 200 in 552ms
+ GET /fr/client/storage/boxes 404 in 159ms
+ GET /api/auth/session 200 in 233ms
+ GET /api/auth/session 200 in 220ms
+ GET /api/auth/session 200 in 216ms
+ ✓ Compiled in 5.9s (1195 modules)
+ GET /fr/client/storage/boxes 404 in 95ms
+ GET /fr/client/deliveries 200 in 507ms
+ GET /fr/client/storage/boxes 404 in 211ms
+ GET /api/auth/session 200 in 208ms
+ GET /api/auth/session 200 in 161ms
+ GET /api/auth/session 200 in 194ms
+ ✓ Compiled in 6.6s (1195 modules)
+ GET /fr/client/storage/boxes 404 in 138ms
+ GET /fr/client/deliveries 200 in 565ms
+ GET /fr/client/storage/boxes 404 in 146ms
+ GET /api/auth/session 200 in 184ms
+ GET /api/auth/session 200 in 166ms
+ GET /api/auth/session 200 in 150ms
+ ✓ Compiled in 6.3s (1195 modules)
+ GET /fr/client/storage/boxes 404 in 343ms
+ GET /fr/client/deliveries 200 in 1016ms
+ GET /fr/client/storage/boxes 404 in 135ms
+ GET /api/auth/session 200 in 218ms
+ GET /api/auth/session 200 in 202ms
+ GET /api/auth/session 200 in 183ms
+ ✓ Compiled in 6.2s (1195 modules)
+ GET /fr/client/storage/boxes 404 in 262ms
+ GET /fr/client/deliveries 200 in 475ms
+ GET /fr/client/storage/boxes 404 in 121ms
+ GET /api/auth/session 200 in 194ms
+ GET /api/auth/session 200 in 216ms
+ GET /api/auth/session 200 in 160ms
+ ✓ Compiled in 6.2s (1195 modules)
+ GET /fr/client/storage/boxes 404 in 159ms
+ GET /fr/client/deliveries 200 in 374ms
+ GET /fr/client/storage/boxes 404 in 150ms
+ GET /api/auth/session 200 in 213ms
+ GET /api/auth/session 200 in 169ms
+ GET /api/auth/session 200 in 155ms
+ ✓ Compiled in 5.9s (1195 modules)
+ GET /fr/client/deliveries 200 in 883ms
+ ✓ Compiled in 9.5s (2602 modules)
+ GET /fr/client/storage/boxes 404 in 3997ms
+ GET /fr/client/storage/boxes 404 in 56ms
+ GET /fr/client/deliveries 200 in 564ms
+ ✓ Compiled in 7.9s (2602 modules)
+ GET /fr/client/storage/boxes 404 in 2250ms
+ GET /fr/client/deliveries 200 in 771ms
+ GET /api/auth/session 200 in 366ms
+ GET /api/auth/session 200 in 244ms
+ GET /api/auth/session 200 in 167ms
+ ✓ Compiled in 6.7s (1195 modules)
+ GET /fr/client/storage/boxes 404 in 121ms
+ GET /fr/client/deliveries 200 in 429ms
+ GET /fr/client/storage/boxes 404 in 130ms
+ GET /api/auth/session 200 in 256ms
+ GET /api/auth/session 200 in 204ms
+ GET /api/auth/session 200 in 234ms
+ ✓ Compiled in 6.6s (1192 modules)
+ ○ Compiling /_not-found ...
+ GET /fr/client/deliveries 200 in 1023ms
+ ✓ Compiled /_not-found in 1920ms (2459 modules)
+ GET /fr/client/storage/boxes 404 in 2620ms
+ GET /fr/client/storage/boxes 404 in 173ms
+ ○ Compiling /api/auth/session ...
+ ✓ Compiled /api/auth/session in 1041ms (1421 modules)
+ GET /api/auth/session 200 in 1714ms
+ GET /api/auth/session 200 in 180ms
+ GET /api/auth/session 200 in 236ms
+ ✓ Compiled in 6.1s (1195 modules)
+ GET /fr/client/storage/boxes 404 in 478ms
+ GET /fr/client/deliveries 200 in 719ms
+ GET /fr/client/storage/boxes 404 in 273ms
+ GET /api/auth/session 200 in 171ms
+ GET /api/auth/session 200 in 101ms
+ GET /api/auth/session 200 in 103ms
+ ✓ Compiled in 7.2s (1192 modules)
+ GET /fr/client/deliveries 200 in 715ms

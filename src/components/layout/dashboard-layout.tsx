@@ -21,7 +21,7 @@ export function DashboardLayout({
   sidebar,
   className
 }: DashboardLayoutProps) {
-  // Fonction de déconnexion Better-Auth
+  // Fonction de déconnexion NextAuth
   const handleLogout = async () => {
     try {
       await fetch('/api/auth/logout', { method: 'POST' });

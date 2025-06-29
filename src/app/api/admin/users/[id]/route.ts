@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { requireRole } from '@/lib/auth'
+import { requireRole } from '@/lib/auth/utils'
 import { prisma } from '@/lib/db'
 
 /**
@@ -13,7 +13,7 @@ export async function GET(
     console.log('🔍 Vérification authentification admin (user/[id])...')
     
     // Vérifier que l'utilisateur est admin
-    const user = await requireRole('ADMIN', request)
+    const user = await requireRole(request, ['ADMIN'])
     console.log('✅ Utilisateur admin authentifié (user/[id]):', user.email)
   } catch (error) {
     console.error('❌ Erreur authentification admin (user/[id]):', error)
@@ -97,7 +97,7 @@ export async function PUT(
     console.log('🔍 Vérification authentification admin (PUT user/[id])...')
     
     // Vérifier que l'utilisateur est admin
-    const user = await requireRole('ADMIN', request)
+    const user = await requireRole(request, ['ADMIN'])
     console.log('✅ Utilisateur admin authentifié (PUT user/[id]):', user.email)
   } catch (error) {
     console.error('❌ Erreur authentification admin (PUT user/[id]):', error)

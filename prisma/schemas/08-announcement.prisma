@@ -75,6 +75,8 @@ model Announcement {
   attachments         AnnouncementAttachment[]
   notifications       AnnouncementNotification[]
   tracking            AnnouncementTracking[]
+  PackageAnnouncement PackageAnnouncement?
+  ServiceAnnouncement ServiceAnnouncement?
   
   @@index([authorId])
   @@index([delivererId])
