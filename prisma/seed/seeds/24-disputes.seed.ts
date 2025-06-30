@@ -1,8 +1,8 @@
-import { PrismaClient } from '@prisma/client'
-import { SeedContext } from '../config/seed.config'
+import { SeedContext } from '../index'
 import { CONSTANTS } from '../data/constants'
 
-export async function seedDisputes(prisma: PrismaClient, context: SeedContext) {
+export async function seedDisputes(ctx: SeedContext) {
+  const { prisma } = ctx
   console.log('⚖️ Seeding disputes data...')
 
   // Récupérer quelques annonces et utilisateurs

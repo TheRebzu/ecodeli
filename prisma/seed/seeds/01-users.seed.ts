@@ -55,7 +55,8 @@ export async function seedUsers(ctx: SeedContext) {
   let addressIndex = 0
   
   for (const [role, users] of Object.entries(usersByRole)) {
-    for (const userData of users) {
+    for (let i = 0; i < users.length; i++) {
+      const userData = users[i]
       const address = addresses[addressIndex % addresses.length]
       addressIndex++
       
@@ -66,7 +67,8 @@ export async function seedUsers(ctx: SeedContext) {
           password,
           role: role as any,
           name: userData.name, // Nom complet pour NextAuth
-          emailVerified: new Date(), // Email vérifié pour NextAuth
+          emailVerified: true, // Boolean au lieu de DateTime
+          emailVerifiedAt: new Date(), // Date de vérification
           // Selon le cahier des charges EcoDeli
           isActive: role === 'CLIENT' || role === 'ADMIN' || (userData as any).status === 'VALIDATED',
           validationStatus: role === 'CLIENT' || role === 'ADMIN' ? 'VALIDATED' : 'PENDING',
@@ -89,12 +91,12 @@ export async function seedUsers(ctx: SeedContext) {
       // Créer les profils spécifiques selon le rôle
       if (role === 'CLIENT') {
         const subscriptions = ['FREE', 'FREE', 'STARTER', 'PREMIUM', 'FREE']
-        const subIndex = users.indexOf(userData)
+        const subscriptionPlan = subscriptions[i] // Utiliser l'index de la boucle
         
         await prisma.client.create({
           data: {
             userId: user.id,
-            subscriptionPlan: subscriptions[subIndex] as any,
+            subscriptionPlan: subscriptionPlan as any,
             tutorialCompleted: Math.random() > 0.3
           }
         })
@@ -106,8 +108,7 @@ export async function seedUsers(ctx: SeedContext) {
             userId: user.id,
             validationStatus: (userData as any).status || 'VALIDATED',
             vehicleType: 'BICYCLE',
-            isActive: (userData as any).status === 'VALIDATED',
-            availabilityZone: 'PARIS'
+            isActive: (userData as any).status === 'VALIDATED'
           }
         })
       }
@@ -117,8 +118,7 @@ export async function seedUsers(ctx: SeedContext) {
           data: {
             userId: user.id,
             companyName: (userData as any).company || userData.name,
-            siret: `123456789${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}`,
-            isActive: true
+            siret: `123456789${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}`
           }
         })
       }
@@ -128,8 +128,7 @@ export async function seedUsers(ctx: SeedContext) {
           data: {
             userId: user.id,
             validationStatus: (userData as any).status || 'VALIDATED',
-            isActive: (userData as any).status === 'VALIDATED',
-            servicesOffered: ['DELIVERY']
+            isActive: (userData as any).status === 'VALIDATED'
           }
         })
       }
@@ -138,8 +137,8 @@ export async function seedUsers(ctx: SeedContext) {
         await prisma.admin.create({
           data: {
             userId: user.id,
-            role: 'ADMIN',
-            permissions: ['ALL']
+            permissions: ['ALL'],
+            department: 'Management'
           }
         })
       }

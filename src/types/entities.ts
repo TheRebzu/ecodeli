@@ -70,7 +70,7 @@ export type UserRole = "CLIENT" | "DELIVERER" | "MERCHANT" | "PROVIDER" | "ADMIN
 export type UserStatus = "PENDING" | "ACTIVE" | "SUSPENDED" | "INACTIVE"
 export type VerificationStatus = "PENDING" | "APPROVED" | "REJECTED" | "EXPIRED"
 
-export type AnnouncementType = "PACKAGE" | "SERVICE_TRANSPORT" | "SERVICE_SHOPPING" | "SERVICE_PET_CARE" | "SERVICE_HOME"
+export type AnnouncementType = "PACKAGE_DELIVERY" | "PERSON_TRANSPORT" | "AIRPORT_TRANSFER" | "SHOPPING" | "INTERNATIONAL_PURCHASE" | "PET_SITTING" | "HOME_SERVICE" | "CART_DROP"
 export type AnnouncementStatus = "DRAFT" | "PUBLISHED" | "MATCHED" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED"
 
 export type DeliveryStatus = "PENDING" | "ACCEPTED" | "IN_TRANSIT" | "DELIVERED" | "CANCELLED" | "ISSUE"

@@ -1,9 +1,8 @@
-import { PrismaClient } from '@prisma/client'
 import { SeedContext } from '../index'
 import { CONSTANTS } from '../data/constants'
 
-export async function seedContracts(context: SeedContext) {
-  const { prisma } = context
+export async function seedContracts(ctx: SeedContext) {
+  const { prisma } = ctx
   console.log('Seeding contracts data...')
 
   const merchants = await prisma.merchant.findMany({

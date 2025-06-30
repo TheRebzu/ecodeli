@@ -107,9 +107,11 @@ export default async function middleware(request: NextRequest) {
       
       for (const check of roleChecks) {
         if (pathname.includes(check.path) && !check.allowedRoles.includes(user.role)) {
-        const locale = pathname.split('/')[1] || 'fr'
-        return NextResponse.redirect(new URL(`/${locale}/403`, request.url))
-      }
+          console.log(`🚨 Accès refusé: Utilisateur ${user.role} tente d'accéder à ${pathname}`)
+          const locale = pathname.split('/')[1] || 'fr'
+          // Redirection vers l'espace du rôle de l'utilisateur
+          return NextResponse.redirect(new URL(`/${locale}/${user.role.toLowerCase()}/`, request.url))
+        }
       }
       
       // Vérifier si le compte est actif (Mission 1)

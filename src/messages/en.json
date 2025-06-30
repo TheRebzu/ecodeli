@@ -1,4 +1,38 @@
 {
+  "navigation": {
+    "home": "Home",
+    "services": "Services",
+    "pricing": "Pricing",
+    "about": "About",
+    "contact": "Contact",
+    "dashboard": "Dashboard",
+    "announcements": "Announcements",
+    "deliveries": "Deliveries",
+    "bookings": "Bookings",
+    "payments": "Payments",
+    "wallet": "Wallet",
+    "messages": "Messages",
+    "notifications": "Notifications",
+    "support": "Support",
+    "availability": "Availability",
+    "earnings": "Earnings",
+    "routes": "Routes",
+    "schedule": "Schedule",
+    "deliverer_space": "Deliverer Space",
+    "verification": "Verification",
+    "vehicle": "Vehicle"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "welcome": "Welcome to EcoDeli",
+    "overview": "Overview",
+    "newAnnouncement": "New announcement"
+  },
+  "common": {
+    "profile": "Profile",
+    "settings": "Settings",
+    "logout": "Logout"
+  },
   "client": {
     "announcements": {
       "create": {
@@ -84,6 +118,104 @@
         "title": "EcoDeli Tutorial",
         "description": "Learn how to use the EcoDeli platform"
       }
+    }
+  },
+  "deliverer": {
+    "dashboard": {
+      "title": "Deliverer dashboard",
+      "description": "Manage your deliveries and track your earnings",
+      "stats": {
+        "earnings": "Monthly earnings",
+        "deliveries": "Deliveries",
+        "rating": "Average rating",
+        "pending": "Pending"
+      },
+      "loading": "Loading...",
+      "dashboard_not_found": "Dashboard not found",
+      "page": {
+        "title": "Dashboard",
+        "description": "Overview of your activity"
+      }
+    },
+    "opportunities": {
+      "title": "Delivery opportunities",
+      "description": "Find deliveries on your route",
+      "available_opportunities": "available opportunities",
+      "filter": {
+        "all": "All",
+        "near_me": "Near me",
+        "on_my_route": "On my route"
+      },
+      "no_opportunities": "No opportunities available",
+      "loading": "Searching for opportunities...",
+      "accept": "Accept",
+      "view_details": "View details",
+      "page": {
+        "title": "Opportunities",
+        "description": "Available deliveries"
+      },
+      "refresh": "Refresh",
+      "filters": "Filters",
+      "search_placeholder": "Search opportunities...",
+      "filter_type": "Filter by type",
+      "all_types": "All types",
+      "package_delivery": "Package delivery",
+      "person_transport": "Person transport",
+      "airport_transfer": "Airport transfer",
+      "shopping": "Shopping",
+      "max_distance": "Max distance (km)",
+      "min_earnings": "Min earnings (€)",
+      "clear_filters": "Clear filters",
+      "no_opportunities_title": "No opportunities available",
+      "no_opportunities_description": "Check back later for new delivery opportunities.",
+      "pickup": "Pickup",
+      "delivery": "Delivery",
+      "scheduled": "Scheduled",
+      "client": "Client",
+      "accepting": "Accepting...",
+      "error": {
+        "fetch_failed": "Failed to load opportunities",
+        "accept_failed": "Failed to accept opportunity"
+      },
+      "success": {
+        "opportunity_accepted": "Opportunity accepted successfully"
+      }
+    },
+    "deliveries": {
+      "title": "My deliveries",
+      "description": "Manage your ongoing deliveries",
+      "status": {
+        "pending": "Pending",
+        "accepted": "Accepted",
+        "picked_up": "Picked up",
+        "in_transit": "In transit",
+        "delivered": "Delivered",
+        "cancelled": "Cancelled"
+      },
+      "no_deliveries": "No ongoing deliveries",
+      "validate": "Validate delivery",
+      "start": "Start",
+      "pickup": "Pick up",
+      "deliver": "Deliver"
+    },
+    "wallet": {
+      "title": "My wallet",
+      "balance": "Available balance",
+      "pending": "Pending",
+      "withdraw": "Withdraw",
+      "history": "History",
+      "no_transactions": "No transactions"
+    },
+    "routes": {
+      "title": "My routes",
+      "add": "Declare a route",
+      "active": "Active routes",
+      "past": "Past routes"
+    },
+    "planning": {
+      "title": "My schedule",
+      "availability": "Availability",
+      "calendar": "Calendar"
     }
   }
 }

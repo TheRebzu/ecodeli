@@ -3,7 +3,8 @@
 model User {
   id                String              @id @default(cuid())
   email             String              @unique
-  emailVerified     DateTime?
+  emailVerified     Boolean             @default(false)
+  emailVerifiedAt   DateTime?
   name              String?
   image             String?
   password          String?             // Mot de passe pour credentials

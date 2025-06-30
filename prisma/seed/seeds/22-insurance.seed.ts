@@ -102,12 +102,23 @@ export async function seedInsurance(ctx: SeedContext) {
         const claimAmount = 50 + Math.random() * 200
         const incidentDate = new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000)
         
+        // Récupérer l'utilisateur qui a créé l'annonce
+        const announcement = await prisma.announcement.findUnique({
+          where: { id: delivery.announcementId },
+          include: { author: true }
+        })
+        
+        if (!announcement) {
+          console.log(`   Skipping claim for delivery ${delivery.id} - announcement not found`)
+          continue
+        }
+        
         const claim = await prisma.insuranceClaim.create({
           data: {
             claimNumber: `CLM-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
             policyId: transportPolicy.id,
             coverageId: coverage.id,
-            claimantId: delivery.announcement?.userId || 'default-user-id',
+            claimantId: announcement.authorId, // Utiliser l'ID de l'auteur de l'annonce
             incidentDate,
             claimType: ['DAMAGE', 'THEFT', 'LOSS'][Math.floor(Math.random() * 3)] as any,
             status: ['REPORTED', 'APPROVED', 'REJECTED'][Math.floor(Math.random() * 3)] as any,

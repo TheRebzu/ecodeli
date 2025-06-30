@@ -3,13 +3,13 @@ import { z } from 'zod'
 // Types d'annonces - SEULEMENT pour les colis/livraisons selon le cahier des charges EcoDeli
 export const announcementTypeSchema = z.enum([
   'PACKAGE_DELIVERY',       // Transport de colis standard
-  'DOCUMENT_DELIVERY',      // Transport de documents
-  'CART_DROP',              // Lâcher de chariot (service phare EcoDeli)
-  'SHOPPING_DELIVERY',      // Livraison de courses
+  'PERSON_TRANSPORT',       // Transport de personnes
   'AIRPORT_TRANSFER',       // Transfert aéroport avec bagages
+  'SHOPPING',               // Livraison de courses
   'INTERNATIONAL_PURCHASE', // Achats internationaux à livrer
-  'FRAGILE_DELIVERY',       // Livraison d'objets fragiles
-  'URGENT_DELIVERY'         // Livraison express/urgente
+  'PET_SITTING',            // Garde d'animaux
+  'HOME_SERVICE',           // Services à domicile
+  'CART_DROP'               // Lâcher de chariot (service phare EcoDeli)
 ])
 
 export type AnnouncementType = z.infer<typeof announcementTypeSchema>
@@ -122,36 +122,42 @@ export const createAnnouncementSchema = z.object({
   description: z.string()
     .min(20, 'La description doit faire au moins 20 caractères')
     .max(1000, 'La description ne peut dépasser 1000 caractères'),
-  type: z.enum(['PACKAGE', 'TRANSPORT', 'SHOPPING', 'PET_CARE', 'HOME_SERVICE']),
+  type: announcementTypeSchema,
   
-  // Adresses
-  pickupAddress: z.string().min(10, 'Adresse de récupération requise'),
-  deliveryAddress: z.string().min(10, 'Adresse de livraison requise'),
+  // Adresses - rendre optionnelles car elles peuvent venir de startLocation/endLocation
+  pickupAddress: z.string().optional(),
+  deliveryAddress: z.string().optional(),
   pickupLatitude: z.number().optional(),
   pickupLongitude: z.number().optional(),
   deliveryLatitude: z.number().optional(),
   deliveryLongitude: z.number().optional(),
   
-  // Dates
-  pickupDate: z.string().datetime('Date de récupération invalide').optional(),
-  deliveryDate: z.string().datetime('Date limite de livraison invalide').optional(),
+  // Dates - make them optional and handle datetime-local format
+  pickupDate: z.string().optional(),
+  deliveryDate: z.string().optional(),
+  desiredDate: z.string().optional(),
   
   // Tarification
-  basePrice: z.number().positive('Le prix doit être positif').max(10000, 'Prix maximum 10,000€'),
-  price: z.number().positive('Le prix doit être positif').max(10000, 'Prix maximum 10,000€').optional(),
+  basePrice: z.number().positive('Le prix doit être positif').max(10000, 'Prix maximum 10,000€').optional(),
+  price: z.number().positive('Le prix doit être positif').max(10000, 'Prix maximum 10,000€'),
   currency: z.string().default('EUR'),
   
   // Options
   urgent: z.boolean().default(false),
   isUrgent: z.boolean().default(false),
   requiresInsurance: z.boolean().default(false),
+  flexibleDates: z.boolean().default(false),
   
   // Détails spécifiques
   packageDetails: z.object({
     weight: z.number().positive().optional(),
     dimensions: z.string().optional(),
     fragile: z.boolean().default(false),
-    description: z.string().optional()
+    description: z.string().optional(),
+    content: z.string().optional(),
+    length: z.number().optional(),
+    width: z.number().optional(),
+    height: z.number().optional()
   }).optional(),
   
   specialInstructions: z.string().max(500).optional(),
@@ -159,13 +165,16 @@ export const createAnnouncementSchema = z.object({
   // Compatibilité avec l'ancien format
   startLocation: z.object({
     address: z.string(),
-    city: z.string().optional()
+    city: z.string().optional(),
+    postalCode: z.string().optional(),
+    country: z.string().optional()
   }).optional(),
   endLocation: z.object({
     address: z.string(),
-    city: z.string().optional()
+    city: z.string().optional(),
+    postalCode: z.string().optional(),
+    country: z.string().optional()
   }).optional(),
-  desiredDate: z.string().datetime().optional(),
   serviceType: z.string().optional()
 })
 

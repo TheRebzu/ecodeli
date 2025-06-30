@@ -110,7 +110,7 @@ async function generateRevenueCSV(startDate: Date, endDate: Date) {
     }
   })
 
-  let csv = 'Date,Prestataire,Client,Service,Durée (min),Prix Horaire,Montant Total,Commission,Net Prestataire\\n'
+  let csv = 'Date,Prestataire,Client,Service,Durée (min),Prix Horaire,Montant Total,Commission,Net Prestataire\n'
 
   interventions.forEach(intervention => {
     const duration = intervention.actualDuration || intervention.booking.duration
@@ -129,7 +129,7 @@ async function generateRevenueCSV(startDate: Date, endDate: Date) {
       totalAmount.toFixed(2),
       commission.toFixed(2),
       netAmount.toFixed(2)
-    ].join(',') + '\\n'
+    ].join(',') + '\n'
   })
 
   return csv
@@ -187,7 +187,7 @@ async function generateCommissionsCSV(startDate: Date, endDate: Date) {
     current.interventionsCount += 1
   })
 
-  let csv = 'Prestataire,Nombre Interventions,Chiffre d\\'Affaires Total,Commission Total,Taux Commission\\n'
+  let csv = `Prestataire,Nombre Interventions,Chiffre d'Affaires Total,Commission Total,Taux Commission\n`
 
   Array.from(providerData.values()).forEach(provider => {
     const commissionRate = provider.totalRevenue > 0 
@@ -200,7 +200,7 @@ async function generateCommissionsCSV(startDate: Date, endDate: Date) {
       provider.totalRevenue.toFixed(2),
       provider.totalCommission.toFixed(2),
       `${commissionRate.toFixed(1)}%`
-    ].join(',') + '\\n'
+    ].join(',') + '\n'
   })
 
   return csv
@@ -235,7 +235,7 @@ async function generateTransactionsCSV(startDate: Date, endDate: Date) {
     }
   })
 
-  let csv = 'Date,Client,Prestataire,Montant,Statut,Méthode,Référence\\n'
+  let csv = 'Date,Client,Prestataire,Montant,Statut,Méthode,Référence\n'
 
   payments.forEach(payment => {
     csv += [
@@ -246,7 +246,7 @@ async function generateTransactionsCSV(startDate: Date, endDate: Date) {
       payment.status,
       payment.method || 'CARD',
       payment.stripePaymentIntentId || ''
-    ].join(',') + '\\n'
+    ].join(',') + '\n'
   })
 
   return csv

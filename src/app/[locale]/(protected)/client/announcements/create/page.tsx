@@ -1,7 +1,7 @@
 "use client";
 
 import { useAuth } from "@/hooks/use-auth";
-import CreateAnnouncementForm from "@/features/announcements/components/create-announcement-form";
+import { CreateAnnouncementForm } from "@/features/announcements/components/client/create-announcement-form";
 import { PageHeader } from "@/components/layout/page-header";
 import { useTranslations } from "next-intl";
 
@@ -14,10 +14,12 @@ export default function CreateAnnouncementPage() {
       <PageHeader
         title={t("page.title")}
         description={t("page.description")}
-      />
+      >
+        <div></div>
+      </PageHeader>
       
       {user && (
-        <CreateAnnouncementForm clientId={user.id} />
+        <CreateAnnouncementForm />
       )}
     </div>
   );

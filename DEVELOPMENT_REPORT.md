@@ -68,7 +68,6 @@ ClientDashboardService.getDashboardData() - Récupération complète
 ```
 
 #### 🔒 Sécurité & Authentification
-- [x] **Better-Auth integration** - Vérification rôle CLIENT obligatoire
 - [x] **Session validation** - getUserFromSession() avec permissions
 - [x] **Data isolation** - Chaque client ne voit que ses données
 - [x] **Error handling** - Gestion Zod, métier, et erreurs génériques
@@ -214,7 +213,6 @@ bash test-announcements-api.sh
 ### ✅ Intégrations Critiques
 - [x] **OneSignal** : Notifications push automatiques
 - [x] **Prisma** : Requêtes optimisées avec relations
-- [x] **Better-Auth** : Authentification et sessions sécurisées
 - [x] **Zod** : Validation stricte côté serveur
 - [x] **TypeScript** : Typage fort et cohérence
 

@@ -118,9 +118,9 @@ export default function DeliveryManager({ delivererId }: DeliveryManagerProps) {
   };
 
   const filteredDeliveries = deliveries.filter(delivery =>
-    delivery.announcementTitle.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    delivery.clientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    delivery.pickupAddress.toLowerCase().includes(searchTerm.toLowerCase())
+    (delivery.announcement?.title || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (delivery.announcement?.client?.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (delivery.announcement?.pickupAddress || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const activeDeliveries = filteredDeliveries.filter(d => !["delivered", "cancelled"].includes(d.status));

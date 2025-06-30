@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useRouter } from 'next/navigation'
@@ -87,7 +87,7 @@ const announcementTypes = [
 
 export function CreateAnnouncementForm({ onSuccess, initialData }: CreateAnnouncementFormProps) {
   const [isLoading, setIsLoading] = useState(false)
-  const [selectedType, setSelectedType] = useState<string>('')
+  const [selectedType, setSelectedType] = useState<string>('PACKAGE_DELIVERY')
   const router = useRouter()
   const { toast } = useToast()
 
@@ -96,10 +96,12 @@ export function CreateAnnouncementForm({ onSuccess, initialData }: CreateAnnounc
     defaultValues: {
       title: '',
       description: '',
+      type: 'PACKAGE_DELIVERY' as any,
       price: 0,
       currency: 'EUR',
       urgent: false,
       flexibleDates: false,
+      desiredDate: new Date().toISOString().slice(0, 16),
       startLocation: {
         address: '',
         city: '',
@@ -116,20 +118,60 @@ export function CreateAnnouncementForm({ onSuccess, initialData }: CreateAnnounc
     }
   })
 
+  // Synchroniser selectedType avec la valeur du formulaire
+  useEffect(() => {
+    const subscription = form.watch((value, { name }) => {
+      if (name === 'type' && value.type) {
+        setSelectedType(value.type)
+      }
+    })
+    return () => subscription.unsubscribe()
+  }, [form])
+
   const onSubmit = async (data: CreateAnnouncementInput) => {
     setIsLoading(true)
     try {
+      // Préparer les données pour l'API
+      const processedData = {
+        title: data.title,
+        description: data.description,
+        type: data.type,
+        pickupAddress: data.startLocation?.address || '',
+        deliveryAddress: data.endLocation?.address || '',
+        basePrice: data.price || 0,
+        price: data.price || 0,
+        currency: data.currency || 'EUR',
+        urgent: data.urgent || false,
+        isUrgent: data.urgent || false,
+        requiresInsurance: data.requiresInsurance || false,
+        specialInstructions: data.specialInstructions || '',
+        // Convertir les dates si présentes
+        desiredDate: data.desiredDate ? new Date(data.desiredDate).toISOString() : undefined,
+        pickupDate: data.pickupDate ? new Date(data.pickupDate).toISOString() : undefined,
+        deliveryDate: data.deliveryDate ? new Date(data.deliveryDate).toISOString() : undefined,
+        // Détails du package si c'est une livraison de colis
+        packageDetails: data.type === 'PACKAGE_DELIVERY' ? {
+          weight: data.packageDetails?.weight || 1,
+          dimensions: `${data.packageDetails?.length || 0}x${data.packageDetails?.width || 0}x${data.packageDetails?.height || 0}cm`,
+          fragile: data.packageDetails?.fragile || false,
+          description: data.packageDetails?.content || 'Colis standard'
+        } : undefined
+      }
+
+      console.log('Données envoyées à l\'API:', processedData)
+
       const response = await fetch('/api/client/announcements', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(data),
+        body: JSON.stringify(processedData),
       })
 
       if (!response.ok) {
         const error = await response.json()
-        throw new Error(error.error || 'Erreur lors de la création')
+        console.error('Erreur API:', error)
+        throw new Error(error.error || error.details || 'Erreur lors de la création')
       }
 
       const result = await response.json()
@@ -370,6 +412,15 @@ export function CreateAnnouncementForm({ onSuccess, initialData }: CreateAnnounc
                         <Input 
                           type="datetime-local" 
                           {...field}
+                          onChange={(e) => {
+                            // Convert to ISO string for validation
+                            if (e.target.value) {
+                              const date = new Date(e.target.value);
+                              field.onChange(date.toISOString());
+                            } else {
+                              field.onChange(undefined);
+                            }
+                          }}
                         />
                       </FormControl>
                       <FormMessage />
@@ -593,7 +644,7 @@ export function CreateAnnouncementForm({ onSuccess, initialData }: CreateAnnounc
                 </Button>
                 <Button
                   type="submit"
-                  disabled={isLoading || !selectedType}
+                  disabled={isLoading || !form.formState.isValid}
                   className="bg-blue-600 hover:bg-blue-700"
                 >
                   {isLoading ? (

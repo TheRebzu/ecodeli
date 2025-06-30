@@ -58,7 +58,7 @@ export default function OpportunityManager({ delivererId }: OpportunityManagerPr
   const [loading, setLoading] = useState(true);
   const [accepting, setAccepting] = useState<string | null>(null);
   const [filters, setFilters] = useState({
-    type: "",
+    type: "all",
     maxDistance: "",
     minEarnings: "",
     urgency: "",
@@ -69,7 +69,7 @@ export default function OpportunityManager({ delivererId }: OpportunityManagerPr
     try {
       setLoading(true);
       const params = new URLSearchParams();
-      if (filters.type) params.append("type", filters.type);
+      if (filters.type && filters.type !== "all") params.append("type", filters.type);
       if (filters.maxDistance) params.append("maxDistance", filters.maxDistance);
       if (filters.minEarnings) params.append("minEarnings", filters.minEarnings);
       if (filters.urgency) params.append("urgency", filters.urgency);
@@ -92,13 +92,19 @@ export default function OpportunityManager({ delivererId }: OpportunityManagerPr
     try {
       const response = await fetch(`/api/deliverer/opportunities/${opportunityId}/accept`, {
         method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({})
       });
 
       if (response.ok) {
         toast.success(t("success.opportunity_accepted"));
         fetchOpportunities();
       } else {
-        toast.error(t("error.accept_failed"));
+        const errorData = await response.json();
+        console.error("Error response:", errorData);
+        toast.error(errorData.error || t("error.accept_failed"));
       }
     } catch (error) {
       console.error("Error accepting opportunity:", error);
@@ -200,7 +206,7 @@ export default function OpportunityManager({ delivererId }: OpportunityManagerPr
                 <SelectValue placeholder={t("filter_type")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">{t("all_types")}</SelectItem>
+                <SelectItem value="all">{t("all_types")}</SelectItem>
                 <SelectItem value="PACKAGE_DELIVERY">{t("package_delivery")}</SelectItem>
                 <SelectItem value="PERSON_TRANSPORT">{t("person_transport")}</SelectItem>
                 <SelectItem value="AIRPORT_TRANSFER">{t("airport_transfer")}</SelectItem>
@@ -225,7 +231,7 @@ export default function OpportunityManager({ delivererId }: OpportunityManagerPr
 
             <Button 
               variant="outline" 
-              onClick={() => setFilters({ type: "", maxDistance: "", minEarnings: "", urgency: "", search: "" })}
+              onClick={() => setFilters({ type: "all", maxDistance: "", minEarnings: "", urgency: "", search: "" })}
             >
               {t("clear_filters")}
             </Button>
@@ -257,8 +263,8 @@ export default function OpportunityManager({ delivererId }: OpportunityManagerPr
                         <Badge className={getTypeColor(opportunity.type)}>
                           {t(opportunity.type.toLowerCase())}
                         </Badge>
-                        <Badge className={getUrgencyColor(opportunity.urgency)}>
-                          {t(opportunity.urgency)}
+                        <Badge className={getUrgencyColor(opportunity.urgency || 'normal')}>
+                          {t(opportunity.urgency || 'normal')}
                         </Badge>
                       </div>
                     </div>
@@ -301,7 +307,7 @@ export default function OpportunityManager({ delivererId }: OpportunityManagerPr
                       <div className="flex items-center space-x-2">
                         <Euro className="w-4 h-4 text-green-600" />
                         <span className="font-semibold text-green-600">
-                          {opportunity.estimatedEarnings.toFixed(2)}€
+                          {(opportunity.estimatedEarnings || 0).toFixed(2)}€
                         </span>
                       </div>
                       <div className="flex items-center space-x-2">

@@ -1,0 +1,3457 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+// From 00-enums.prisma
+// Enums et types partagés EcoDeli
+
+enum UserRole {
+  CLIENT
+  DELIVERER
+  MERCHANT
+  PROVIDER
+  ADMIN
+}
+
+enum ValidationStatus {
+  PENDING
+  PENDING_DOCUMENTS
+  PENDING_VALIDATION
+  APPROVED
+  VALIDATED
+  REJECTED
+  SUSPENDED
+}
+
+enum DocumentType {
+  IDENTITY
+  DRIVING_LICENSE
+  INSURANCE
+  CERTIFICATION
+  CONTRACT
+  OTHER
+}
+
+enum DocumentStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum ServiceType {
+  PERSON_TRANSPORT
+  AIRPORT_TRANSFER
+  SHOPPING
+  INTERNATIONAL_PURCHASE
+  PET_CARE
+  HOME_SERVICE
+  CART_DROP
+  OTHER
+}
+
+enum AnnouncementType {
+  PACKAGE_DELIVERY
+  PERSON_TRANSPORT
+  AIRPORT_TRANSFER
+  SHOPPING
+  INTERNATIONAL_PURCHASE
+  PET_SITTING
+  HOME_SERVICE
+  CART_DROP
+}
+
+enum AnnouncementStatus {
+  DRAFT
+  ACTIVE
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+  EXPIRED
+}
+
+enum DeliveryStatus {
+  PENDING
+  ACCEPTED
+  IN_PROGRESS
+  DELIVERED
+  CANCELLED
+  FAILED
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+  RESCHEDULED
+}
+
+enum PaymentStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  REFUNDED
+  PARTIALLY_REFUNDED
+}
+
+enum SubscriptionPlan {
+  FREE
+  STARTER
+  PREMIUM
+}
+
+enum SubscriptionType {
+  FREE
+  STARTER
+  PREMIUM
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  CANCELLED
+  EXPIRED
+  SUSPENDED
+}
+
+enum NotificationType {
+  SYSTEM
+  DELIVERY
+  BOOKING
+  PAYMENT
+  ANNOUNCEMENT
+  VALIDATION
+}
+
+enum NotificationStatus {
+  UNREAD
+  READ
+  ARCHIVED
+}
+
+enum ServiceCategory {
+  TRANSPORT
+  HOME_CLEANING
+  GARDENING
+  HANDYMAN
+  TUTORING
+  HEALTHCARE
+  BEAUTY
+  PET_CARE
+  OTHER
+}
+
+enum WalletOperationType {
+  CREDIT
+  DEBIT
+  WITHDRAWAL
+  REFUND
+  FEE
+}
+
+enum OperationStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+enum BoxSize {
+  SMALL
+  MEDIUM
+  LARGE
+  EXTRA_LARGE
+}
+
+enum BoxStatus {
+  AVAILABLE
+  OCCUPIED
+  MAINTENANCE
+  RESERVED
+}
+
+enum ContractType {
+  STANDARD
+  PREMIUM
+  ENTERPRISE
+  CUSTOM
+}
+
+enum ContractStatus {
+  DRAFT
+  PENDING
+  ACTIVE
+  SUSPENDED
+  TERMINATED
+}
+
+enum GenerationStatus {
+  SUCCESS
+  FAILED
+  IN_PROGRESS
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  PREPARING
+  READY_FOR_PICKUP
+  IN_TRANSIT
+  DELIVERED
+  CANCELLED
+  REFUNDED
+}
+
+// From 01-users.prisma
+// Modèles utilisateurs
+
+model User {
+  id               String           @id @default(cuid())
+  email            String           @unique
+  emailVerified    DateTime?
+  name             String?
+  image            String?
+  password         String? // Mot de passe pour credentials
+  role             UserRole         @default(CLIENT)
+  isActive         Boolean          @default(false)
+  validationStatus ValidationStatus @default(PENDING)
+  language         String           @default("fr")
+  lastLoginAt      DateTime?
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  // Relations NextAuth
+  accounts Account[]
+  sessions Session[]
+
+  // Relations business
+  profile             Profile?
+  client              Client?
+  deliverer           Deliverer?
+  merchant            Merchant?
+  provider            Provider?
+  admin               Admin?
+  announcements       Announcement[]
+  clientDeliveries    Delivery[]           @relation("ClientDeliveries")
+  delivererDeliveries Delivery[]           @relation("DelivererDeliveries")
+  bookings            Booking[]
+  documents           Document[]
+  documentGenerations DocumentGeneration[]
+  payments            Payment[]            @relation("UserPayments")
+  notifications       Notification[]
+
+  // Relations pour litiges et enchères
+  disputesReported     Dispute[]               @relation("DisputeReporter")
+  disputesReceived     Dispute[]               @relation("DisputeReported")
+  auctionBids          AuctionBid[]
+  deliveryGroups       DeliveryGroup[]
+  groupingProposals    GroupingProposal[]
+  walletOperations     WalletOperation[]
+  storageBoxRentals    StorageBoxRental[]
+  wallet               Wallet?
+  globalAvailabilities GlobalAvailability[]
+  activityLogs         ActivityLog[]
+  tutorialProgress     ClientTutorialProgress?
+
+  // Referral system relations
+  referrerCodes     ReferralCode[]     @relation("ReferrerCodes")
+  asReferrer        Referral[]         @relation("UserAsReferrer")
+  asReferee         Referral[]         @relation("UserAsReferee")
+  referralRewards   ReferralReward[]
+  referralStats     ReferralStats[]
+  influencerProgram InfluencerProgram?
+
+  // Announcement system relations
+  delivererRoutes       DelivererRoute[] @relation("DelivererRoutes")
+  routeMatches          RouteMatch[]     @relation("RouteMatches")
+  assignedAnnouncements Announcement[]   @relation("AnnouncementDeliverer")
+
+  // Support system relations
+  authoredTickets      SupportTicket[]        @relation("TicketAuthor")
+  assignedTickets      SupportTicket[]        @relation("TicketAssignee")
+  escalatedFromTickets TicketEscalation[]     @relation("EscalationFrom")
+  escalatedToTickets   TicketEscalation[]     @relation("EscalationTo")
+  ticketMessages       TicketMessage[]
+  ticketAttachments    TicketAttachment[]
+  knowledgeBaseEntries SupportKnowledgeBase[]
+  supportTemplates     SupportTemplate[]
+  clientOrders         Order[]                @relation("ClientOrders")
+
+  // Insurance and warranty relations
+  serviceWarranties        ServiceWarranty[]  @relation("ClientServiceWarranties")
+  delivererWarranties      DeliveryWarranty[] @relation("DelivererWarranties")
+  clientDeliveryWarranties DeliveryWarranty[] @relation("ClientDeliveryWarranties")
+  warrantyClaims           WarrantyClaim[]
+  InsuranceClaim           InsuranceClaim[]
+  ClaimAssessment          ClaimAssessment[]
+
+  @@index([email])
+  @@index([role])
+}
+
+model Profile {
+  id          String    @id @default(cuid())
+  userId      String    @unique
+  firstName   String?
+  lastName    String?
+  phone       String?
+  avatar      String?
+  dateOfBirth DateTime?
+  address     String?
+  city        String?
+  postalCode  String?
+  country     String    @default("FR")
+  latitude    Float? // Coordonnées géographiques
+  longitude   Float?
+  isVerified  Boolean   @default(false)
+  verifiedAt  DateTime?
+  language    String    @default("fr")
+  timezone    String    @default("Europe/Paris")
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([latitude, longitude])
+}
+
+// From 02-auth.prisma
+// Modèles authentification NextAuth
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model PasswordReset {
+  id        String   @id @default(cuid())
+  email     String
+  token     String   @unique
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([token])
+  @@index([email])
+  @@index([expiresAt])
+}
+
+// From 03-client.prisma
+// Modèles client
+
+model Client {
+  id                  String           @id @default(cuid())
+  userId              String           @unique
+  subscriptionPlan    SubscriptionPlan @default(FREE)
+  subscriptionStart   DateTime         @default(now())
+  subscriptionEnd     DateTime?
+  tutorialCompleted   Boolean          @default(false)
+  tutorialCompletedAt DateTime?
+  termsAcceptedAt     DateTime         @default(now())
+  emailNotifications  Boolean          @default(true)
+  pushNotifications   Boolean          @default(true)
+  smsNotifications    Boolean          @default(false)
+  createdAt           DateTime         @default(now())
+  updatedAt           DateTime         @updatedAt
+
+  // Relations
+  user          User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  announcements Announcement[]
+  bookings      Booking[]
+  payments      Payment[]          @relation("ClientPayments")
+  storageBoxes  StorageBoxRental[]
+  reviews       Review[]
+
+  @@index([userId])
+  @@index([subscriptionPlan])
+}
+
+// From 04-deliverer.prisma
+// Modèles livreur
+
+model Deliverer {
+  id               String           @id @default(cuid())
+  userId           String           @unique
+  validationStatus ValidationStatus @default(PENDING)
+  vehicleType      String?
+  licensePlate     String?
+  maxWeight        Float? // en kg
+  maxVolume        Float? // en litres
+  averageRating    Float?           @default(0)
+  totalDeliveries  Int              @default(0)
+  isActive         Boolean          @default(true)
+  nfcCardId        String?          @unique
+  activatedAt      DateTime?
+  lastActiveAt     DateTime?
+  coordinates      Json? // {lat, lng, updatedAt}
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  // Relations
+  user                    User                     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  routes                  DeliveryRoute[]
+  delivererAvailabilities DelivererAvailability[]
+  trackingSessions        TrackingSession[]
+  currentLocation         DelivererLocation?
+  NFCCard                 NFCCard?
+  Availability            Availability[]
+  DelivererCertification  DelivererCertification[]
+
+  @@index([userId])
+  @@index([isActive])
+  @@index([averageRating])
+}
+
+model DeliveryRoute {
+  id                String   @id @default(cuid())
+  delivererId       String
+  name              String // ex: "Paris - Lyon quotidien"
+  fromAddress       String
+  toAddress         String
+  fromCoordinates   Json // {lat, lng}
+  toCoordinates     Json // {lat, lng}
+  schedule          Json // {days: ['monday', 'wednesday'], time: '08:00'}
+  isActive          Boolean  @default(true)
+  maxCapacity       Int      @default(1)
+  estimatedDuration Int // en minutes
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  // Relations
+  deliverer Deliverer @relation(fields: [delivererId], references: [id], onDelete: Cascade)
+
+  @@index([delivererId])
+  @@index([isActive])
+}
+
+model DelivererAvailability {
+  id          String   @id @default(cuid())
+  delivererId String
+  dayOfWeek   Int // 0 = dimanche, 1 = lundi, etc.
+  startTime   String // "09:00"
+  endTime     String // "18:00"
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  deliverer Deliverer @relation(fields: [delivererId], references: [id], onDelete: Cascade)
+
+  @@index([delivererId])
+  @@index([dayOfWeek])
+}
+
+model NFCCard {
+  id          String    @id @default(cuid())
+  delivererId String    @unique
+  cardNumber  String    @unique
+  isActive    Boolean   @default(true)
+  issuedAt    DateTime  @default(now())
+  lastUsedAt  DateTime?
+
+  deliverer Deliverer @relation(fields: [delivererId], references: [id], onDelete: Cascade)
+
+  @@index([cardNumber])
+}
+
+// From 05-merchant.prisma
+// Modèles commerçant
+
+model Merchant {
+  id                String    @id @default(cuid())
+  userId            String    @unique
+  companyName       String
+  siret             String    @unique
+  vatNumber         String?
+  contractStatus    String    @default("PENDING")
+  contractStartDate DateTime?
+  contractEndDate   DateTime?
+  commissionRate    Float     @default(0.15)
+  rating            Float     @default(0)
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  // Relations
+  user            User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  contract        Contract?
+  announcements   Announcement[]
+  orders          Order[]
+  cartDropConfig  CartDropConfig?
+  payments        Payment[]         @relation("MerchantPayments")
+  MerchantBilling MerchantBilling[]
+
+  @@index([userId])
+  @@index([siret])
+}
+
+model CartDropConfig {
+  id               String   @id @default(cuid())
+  merchantId       String   @unique
+  isActive         Boolean  @default(false)
+  deliveryZones    Json[] // [{postalCode, deliveryFee}]
+  timeSlots        Json[] // [{day, startTime, endTime}]
+  maxOrdersPerSlot Int      @default(10)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  merchant Merchant @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+}
+
+model Order {
+  id              String      @id @default(cuid())
+  merchantId      String
+  clientId        String
+  announcementId  String?     @unique
+  orderNumber     String      @unique
+  status          OrderStatus @default(PENDING)
+  totalAmount     Float
+  deliveryFee     Float       @default(0)
+  notes           String?
+  deliveryAddress String
+  scheduledDate   DateTime?
+  completedAt     DateTime?
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  // Relations
+  merchant          Merchant         @relation(fields: [merchantId], references: [id])
+  client            User             @relation("ClientOrders", fields: [clientId], references: [id])
+  announcement      Announcement?    @relation(fields: [announcementId], references: [id])
+  items             OrderItem[]
+  payment           Payment?         @relation(fields: [paymentId], references: [id])
+  paymentId         String?
+  MerchantBilling   MerchantBilling? @relation(fields: [merchantBillingId], references: [id])
+  merchantBillingId String?
+
+  @@index([merchantId])
+  @@index([clientId])
+  @@index([orderNumber])
+  @@index([status])
+}
+
+model OrderItem {
+  id         String   @id @default(cuid())
+  orderId    String
+  name       String
+  quantity   Int
+  unitPrice  Float
+  totalPrice Float
+  createdAt  DateTime @default(now())
+
+  // Relations
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
+}
+
+// From 06-provider.prisma
+// Modèles prestataire
+
+model Provider {
+  id                String           @id @default(cuid())
+  userId            String           @unique
+  validationStatus  ValidationStatus @default(PENDING)
+  businessName      String?
+  siret             String?          @unique
+  specialties       String[] // ["TRANSPORT", "HOME_CLEANING", etc.]
+  hourlyRate        Float?
+  description       String?
+  averageRating     Float?           @default(0)
+  totalBookings     Int              @default(0)
+  isActive          Boolean          @default(true)
+  monthlyInvoiceDay Int              @default(30)
+  activatedAt       DateTime?
+  lastActiveAt      DateTime?
+  zone              Json? // Zone de service {coordinates: [], radius: km}
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+
+  // Relations
+  user                  User                        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  services              Service[]
+  bookings              Booking[]
+  reviews               Review[]                    @relation("ProviderReviews")
+  availability          ProviderAvailability[]
+  rates                 ProviderRate[]
+  certifications        Certification[]
+  interventions         Intervention[]
+  timeSlots             ProviderTimeSlot[]
+  monthlyInvoices       ProviderMonthlyInvoice[]
+  availabilityBlocks    ProviderAvailabilityBlock[]
+  Availability          Availability[]
+  ProviderCertification ProviderCertification[]
+  ServiceWarranty       ServiceWarranty[]
+
+  @@index([userId])
+}
+
+model Service {
+  id                 String      @id @default(cuid())
+  providerId         String
+  name               String
+  description        String
+  type               ServiceType
+  basePrice          Float
+  priceUnit          String      @default("HOUR") // HOUR, FLAT, KM
+  duration           Int? // en minutes
+  isActive           Boolean     @default(true)
+  minAdvanceBooking  Int         @default(24) // heures
+  maxAdvanceBooking  Int         @default(720) // heures (30 jours)
+  cancellationPolicy String?
+  requirements       String[] // ["CAR_LICENSE", "INSURANCE"]
+  createdAt          DateTime    @default(now())
+  updatedAt          DateTime    @updatedAt
+
+  // Relations
+  provider Provider  @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  bookings Booking[]
+
+  @@index([providerId])
+  @@index([type])
+  @@index([isActive])
+}
+
+model ProviderAvailability {
+  id         String   @id @default(cuid())
+  providerId String
+  dayOfWeek  Int // 0 = dimanche, 1 = lundi, etc.
+  startTime  String // "09:00"
+  endTime    String // "18:00"
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  // Relations
+  provider Provider @relation(fields: [providerId], references: [id], onDelete: Cascade)
+
+  @@index([providerId])
+  @@index([dayOfWeek])
+}
+
+model ProviderRate {
+  id            String      @id @default(cuid())
+  providerId    String
+  serviceType   ServiceType
+  baseRate      Float
+  unitType      String      @default("HOUR") // HOUR, FLAT, KM
+  minimumCharge Float?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  // Relations
+  provider Provider @relation(fields: [providerId], references: [id], onDelete: Cascade)
+
+  @@index([providerId])
+  @@index([serviceType])
+}
+
+model ProviderTimeSlot {
+  id          String   @id @default(cuid())
+  providerId  String
+  date        DateTime // Date du créneau
+  startTime   String // "09:00"
+  endTime     String // "10:00"
+  isAvailable Boolean  @default(true)
+  isRecurring Boolean  @default(false)
+  bookingId   String?  @unique
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  provider Provider @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  booking  Booking? @relation(fields: [bookingId], references: [id])
+
+  @@unique([providerId, date, startTime])
+  @@index([providerId])
+  @@index([date])
+}
+
+model ProviderAvailabilityBlock {
+  id         String   @id @default(cuid())
+  providerId String
+  startDate  DateTime
+  endDate    DateTime
+  reason     String?
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  // Relations
+  provider Provider @relation(fields: [providerId], references: [id], onDelete: Cascade)
+
+  @@index([providerId])
+  @@index([startDate, endDate])
+}
+
+model ProviderMonthlyInvoice {
+  id               String    @id @default(cuid())
+  providerId       String
+  month            Int // 1-12
+  year             Int
+  totalHours       Float     @default(0)
+  totalAmount      Float     @default(0)
+  commissionRate   Float     @default(0.15) // 15% commission EcoDeli
+  commissionAmount Float     @default(0)
+  netAmount        Float     @default(0)
+  status           String    @default("PENDING") // PENDING, SENT, PAID
+  invoiceNumber    String    @unique
+  invoiceUrl       String? // URL du PDF généré
+  sentAt           DateTime?
+  paidAt           DateTime?
+  dueDate          DateTime
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  // Relations
+  provider      Provider                      @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  interventions ProviderInvoiceIntervention[]
+
+  @@unique([providerId, month, year])
+  @@index([providerId])
+  @@index([month, year])
+}
+
+model ProviderInvoiceIntervention {
+  id             String   @id @default(cuid())
+  invoiceId      String
+  interventionId String
+  hours          Float
+  rate           Float
+  amount         Float
+  createdAt      DateTime @default(now())
+
+  // Relations
+  invoice      ProviderMonthlyInvoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  intervention Intervention           @relation(fields: [interventionId], references: [id])
+
+  @@unique([invoiceId, interventionId])
+  @@index([invoiceId])
+  @@index([interventionId])
+}
+
+// From 07-admin.prisma
+// Modèles admin
+
+model Admin {
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  permissions String[] @default([])
+  department  String? // "OPERATIONS", "FINANCE", "SUPPORT", etc.
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+// From 08-announcement.prisma
+// Modèles annonces et système de matching
+
+model Announcement {
+  id          String             @id @default(cuid())
+  title       String
+  description String
+  type        AnnouncementType
+  status      AnnouncementStatus @default(DRAFT)
+  authorId    String
+  delivererId String?
+
+  // Localisation
+  pickupAddress     String
+  pickupLatitude    Float?
+  pickupLongitude   Float?
+  deliveryAddress   String
+  deliveryLatitude  Float?
+  deliveryLongitude Float?
+  distance          Float? // En kilomètres
+
+  // Temporalité
+  pickupDate        DateTime?
+  deliveryDate      DateTime?
+  isFlexibleDate    Boolean   @default(false)
+  preferredTimeSlot String? // "MORNING", "AFTERNOON", "EVENING"
+  isUrgent          Boolean   @default(false)
+
+  // Tarification
+  basePrice         Float
+  finalPrice        Float?
+  currency          String  @default("EUR")
+  isPriceNegotiable Boolean @default(false)
+  urgencyFee        Float?
+  insuranceFee      Float?
+  platformFee       Float?
+
+  // Détails spécifiques selon le type
+  packageDetails  Json? // Poids, dimensions, fragile, etc.
+  personDetails   Json? // Nombre passagers, besoins spéciaux
+  shoppingDetails Json? // Liste courses, budget max, magasins
+  petDetails      Json? // Type animal, vaccinations, besoins
+  serviceDetails  Json? // Durée, matériel nécessaire
+
+  // Configuration
+  requiresValidation    Boolean @default(true)
+  requiresInsurance     Boolean @default(false)
+  allowsPartialDelivery Boolean @default(false)
+  maxDeliverers         Int     @default(1)
+  recurringConfig       Json? // Configuration récurrence
+
+  // Métadonnées
+  estimatedDuration   Int? // En minutes
+  weight              Float? // En kg
+  volume              Float? // En litres
+  specialInstructions String?
+  customerNotes       String?
+  internalNotes       String?
+
+  // Suivi
+  viewCount   Int       @default(0)
+  matchCount  Int       @default(0)
+  expiresAt   DateTime?
+  publishedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  author              User                       @relation(fields: [authorId], references: [id])
+  deliverer           User?                      @relation("AnnouncementDeliverer", fields: [delivererId], references: [id])
+  delivery            Delivery?
+  payment             Payment?
+  reviews             Review[]
+  matches             RouteMatch[]
+  attachments         AnnouncementAttachment[]
+  notifications       AnnouncementNotification[]
+  tracking            AnnouncementTracking[]
+  PackageAnnouncement PackageAnnouncement?
+  ServiceAnnouncement ServiceAnnouncement?
+  Client              Client?                    @relation(fields: [clientId], references: [id])
+  clientId            String?
+  Merchant            Merchant?                  @relation(fields: [merchantId], references: [id])
+  merchantId          String?
+  Order               Order?
+  Dispute             Dispute[]
+  ReverseAuction      ReverseAuction?
+  AnnouncementGroup   AnnouncementGroup[]
+  GroupingProposal    GroupingProposal[]
+
+  @@index([authorId])
+  @@index([delivererId])
+  @@index([type])
+  @@index([status])
+  @@index([pickupLatitude, pickupLongitude])
+  @@index([deliveryLatitude, deliveryLongitude])
+  @@index([pickupDate])
+  @@index([createdAt])
+  @@index([isUrgent])
+}
+
+model PackageAnnouncement {
+  id                  String  @id @default(cuid())
+  announcementId      String  @unique
+  weight              Float // En kg
+  length              Float // En cm
+  width               Float // En cm
+  height              Float // En cm
+  fragile             Boolean @default(false)
+  requiresInsurance   Boolean @default(false)
+  insuredValue        Float?
+  specialInstructions String?
+
+  announcement Announcement @relation(fields: [announcementId], references: [id], onDelete: Cascade)
+}
+
+model ServiceAnnouncement {
+  id                  String      @id @default(cuid())
+  announcementId      String      @unique
+  serviceType         ServiceType
+  numberOfPeople      Int?
+  duration            Int? // En minutes
+  recurringService    Boolean     @default(false)
+  recurringPattern    String? // "DAILY", "WEEKLY", "MONTHLY"
+  specialRequirements String?
+  preferredProviderId String?
+
+  announcement Announcement @relation(fields: [announcementId], references: [id], onDelete: Cascade)
+}
+
+model DelivererRoute {
+  id          String  @id @default(cuid())
+  delivererId String
+  title       String?
+  description String?
+
+  // Itinéraire
+  startAddress   String
+  startLatitude  Float
+  startLongitude Float
+  endAddress     String
+  endLatitude    Float
+  endLongitude   Float
+  waypoints      Json? // Points intermédiaires
+
+  // Planning
+  startDate        DateTime
+  endDate          DateTime
+  isRecurring      Boolean  @default(false)
+  recurringPattern String? // "DAILY", "WEEKLY", "MONTHLY"
+
+  // Capacités
+  maxPackages Int     @default(5)
+  maxWeight   Float? // kg
+  maxVolume   Float? // litres
+  vehicleType String? // "CAR", "BIKE", "SCOOTER", "FOOT"
+
+  // Configuration
+  isActive      Boolean            @default(true)
+  autoAccept    Boolean            @default(false)
+  maxDetour     Float              @default(5.0) // km
+  acceptedTypes AnnouncementType[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  deliverer User         @relation("DelivererRoutes", fields: [delivererId], references: [id])
+  matches   RouteMatch[]
+
+  @@index([delivererId])
+  @@index([startDate])
+  @@index([endDate])
+  @@index([startLatitude, startLongitude])
+  @@index([endLatitude, endLongitude])
+  @@index([isActive])
+}
+
+model RouteMatch {
+  id             String @id @default(cuid())
+  announcementId String
+  routeId        String
+  delivererId    String
+
+  // Scoring du match
+  distanceScore Float // 0-1, plus proche = meilleur
+  timeScore     Float // 0-1, timing compatible
+  capacityScore Float // 0-1, capacité suffisante
+  typeScore     Float // 0-1, type d'annonce accepté
+  globalScore   Float // Score global pondéré
+
+  // Détails du match
+  pickupDetour      Float // km de détour pour pickup
+  deliveryDetour    Float // km de détour pour delivery
+  estimatedDuration Int // minutes ajoutées au trajet
+
+  // Statut
+  status      String    @default("PENDING") // PENDING, SENT, ACCEPTED, REJECTED, EXPIRED
+  notifiedAt  DateTime?
+  respondedAt DateTime?
+  expiresAt   DateTime
+
+  createdAt DateTime @default(now())
+
+  // Relations
+  announcement Announcement   @relation(fields: [announcementId], references: [id])
+  route        DelivererRoute @relation(fields: [routeId], references: [id])
+  deliverer    User           @relation("RouteMatches", fields: [delivererId], references: [id])
+
+  @@unique([announcementId, routeId])
+  @@index([delivererId])
+  @@index([status])
+  @@index([globalScore])
+  @@index([expiresAt])
+  @@index([createdAt])
+}
+
+model AnnouncementTracking {
+  id             String             @id @default(cuid())
+  announcementId String
+  status         AnnouncementStatus
+  message        String
+  metadata       Json? // Données contextuelles
+  createdBy      String? // User qui a créé le tracking
+  isPublic       Boolean            @default(true) // Visible par le client
+  createdAt      DateTime           @default(now())
+
+  // Relations
+  announcement Announcement @relation(fields: [announcementId], references: [id], onDelete: Cascade)
+
+  @@index([announcementId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model AnnouncementAttachment {
+  id             String   @id @default(cuid())
+  announcementId String
+  filename       String
+  originalName   String
+  mimeType       String
+  size           Int // bytes
+  url            String
+  uploadedBy     String
+  createdAt      DateTime @default(now())
+
+  // Relations
+  announcement Announcement @relation(fields: [announcementId], references: [id], onDelete: Cascade)
+
+  @@index([announcementId])
+}
+
+model AnnouncementNotification {
+  id             String    @id @default(cuid())
+  announcementId String
+  userId         String
+  type           String // "MATCH_FOUND", "ACCEPTED", "REMINDER", etc.
+  title          String
+  message        String
+  metadata       Json?
+  sentAt         DateTime?
+  readAt         DateTime?
+  createdAt      DateTime  @default(now())
+
+  // Relations
+  announcement Announcement @relation(fields: [announcementId], references: [id], onDelete: Cascade)
+
+  @@index([announcementId])
+  @@index([userId])
+  @@index([sentAt])
+}
+
+// From 09-delivery.prisma
+// Modèles livraisons
+
+model Delivery {
+  id                 String         @id @default(cuid())
+  announcementId     String         @unique
+  clientId           String
+  delivererId        String
+  status             DeliveryStatus @default(PENDING)
+  trackingNumber     String         @unique @default(cuid())
+  validationCode     String? // Code à 6 chiffres
+  pickupDate         DateTime?
+  deliveryDate       DateTime?
+  actualDeliveryDate DateTime?
+  isPartial          Boolean        @default(false)
+  currentLocation    Json? // {address, lat, lng, updatedAt}
+  price              Float
+  delivererFee       Float // Part du livreur
+  platformFee        Float // Commission plateforme
+  insuranceFee       Float?
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
+
+  // Relations
+  announcement          Announcement            @relation(fields: [announcementId], references: [id])
+  client                User                    @relation("ClientDeliveries", fields: [clientId], references: [id])
+  deliverer             User                    @relation("DelivererDeliveries", fields: [delivererId], references: [id])
+  payment               Payment?
+  tracking              TrackingUpdate[]
+  history               DeliveryHistory[]
+  validations           DeliveryValidation[]
+  trackingSessions      TrackingSession[]
+  DeliveryStatusHistory DeliveryStatusHistory[]
+  Handover              Handover[]
+  ProofOfDelivery       ProofOfDelivery?
+  SupportTicket         SupportTicket[]
+  DeliveryWarranty      DeliveryWarranty?
+
+  @@index([clientId])
+  @@index([delivererId])
+  @@index([status])
+  @@index([trackingNumber])
+  @@index([createdAt])
+}
+
+model TrackingUpdate {
+  id          String         @id @default(cuid())
+  deliveryId  String
+  status      DeliveryStatus
+  message     String
+  location    String?
+  coordinates Json? // {lat, lng}
+  timestamp   DateTime       @default(now())
+  isAutomatic Boolean        @default(false)
+
+  // Relations
+  delivery Delivery @relation(fields: [deliveryId], references: [id], onDelete: Cascade)
+
+  @@index([deliveryId])
+  @@index([timestamp])
+}
+
+model DeliveryHistory {
+  id          String   @id @default(cuid())
+  deliveryId  String
+  action      String // "CREATED", "ACCEPTED", "PICKED_UP", etc.
+  description String
+  metadata    Json?
+  createdAt   DateTime @default(now())
+  createdBy   String? // User ID qui a fait l'action
+
+  // Relations
+  delivery Delivery @relation(fields: [deliveryId], references: [id], onDelete: Cascade)
+
+  @@index([deliveryId])
+  @@index([createdAt])
+}
+
+model DeliveryStatusHistory {
+  id         String         @id @default(cuid())
+  deliveryId String
+  status     DeliveryStatus
+  comment    String?
+  location   Json? // {address, lat, lng}
+  createdBy  String
+  createdAt  DateTime       @default(now())
+
+  delivery Delivery @relation(fields: [deliveryId], references: [id], onDelete: Cascade)
+
+  @@index([deliveryId])
+}
+
+model Handover {
+  id              String    @id @default(cuid())
+  deliveryId      String
+  fromDelivererId String
+  toDelivererId   String?
+  locationId      String
+  handoverDate    DateTime
+  handoverCode    String // Code de transfert
+  isCompleted     Boolean   @default(false)
+  completedAt     DateTime?
+  notes           String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  delivery Delivery @relation(fields: [deliveryId], references: [id], onDelete: Cascade)
+  location Location @relation(fields: [locationId], references: [id])
+
+  @@index([deliveryId])
+  @@index([handoverCode])
+}
+
+model ProofOfDelivery {
+  id                 String   @id @default(cuid())
+  deliveryId         String   @unique
+  recipientName      String?
+  recipientSignature String? // Base64
+  photos             String[] // URLs
+  notes              String?
+  validatedWithCode  Boolean  @default(false)
+  validatedWithNFC   Boolean  @default(false)
+  createdAt          DateTime @default(now())
+
+  delivery Delivery @relation(fields: [deliveryId], references: [id], onDelete: Cascade)
+}
+
+// From 10-booking.prisma
+// Modèles réservations
+
+model Booking {
+  id            String   @id @default(cuid())
+  clientId      String
+  providerId    String
+  serviceId     String
+  status        String   @default("PENDING") // PENDING, CONFIRMED, IN_PROGRESS, COMPLETED, CANCELLED
+  scheduledDate DateTime
+  scheduledTime String // HH:MM
+  duration      Int // En minutes
+  address       Json // {address, city, postalCode, lat, lng}
+  totalPrice    Float
+  notes         String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  client       Client            @relation(fields: [clientId], references: [id])
+  provider     Provider          @relation(fields: [providerId], references: [id])
+  service      Service           @relation(fields: [serviceId], references: [id])
+  intervention Intervention?
+  payment      Payment?
+  review       Review?
+  timeSlot     ProviderTimeSlot?
+  User         User?             @relation(fields: [userId], references: [id])
+  userId       String?
+
+  @@index([clientId])
+  @@index([providerId])
+  @@index([scheduledDate])
+  @@index([status])
+}
+
+model Intervention {
+  id              String    @id @default(cuid())
+  bookingId       String    @unique
+  providerId      String
+  startTime       DateTime?
+  endTime         DateTime?
+  actualDuration  Int? // En minutes
+  report          String?
+  photos          String[] // URLs
+  clientSignature String? // Base64
+  isCompleted     Boolean   @default(false)
+  completedAt     DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  // Relations
+  booking      Booking                       @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  provider     Provider                      @relation(fields: [providerId], references: [id])
+  invoiceItems ProviderInvoiceIntervention[]
+
+  @@index([providerId])
+}
+
+// From 10a-delivery-validation.prisma
+// Modèle pour la validation des livraisons avec codes à 6 chiffres
+
+model DeliveryValidation {
+  id         String    @id @default(cuid())
+  deliveryId String
+  code       String    @unique // Code à 6 chiffres
+  isUsed     Boolean   @default(false)
+  usedAt     DateTime?
+  expiresAt  DateTime // Expire après 2 heures
+  createdAt  DateTime  @default(now())
+
+  // Relations
+  delivery Delivery @relation(fields: [deliveryId], references: [id], onDelete: Cascade)
+
+  @@index([deliveryId])
+  @@index([code])
+  @@index([expiresAt])
+}
+
+// From 11-payment.prisma
+// Modèles paiements
+
+model Payment {
+  id              String        @id @default(cuid())
+  userId          String
+  announcementId  String?       @unique
+  deliveryId      String?       @unique
+  bookingId       String?       @unique
+  clientId        String?
+  merchantId      String?
+  amount          Float
+  currency        String        @default("EUR")
+  status          PaymentStatus @default(PENDING)
+  paymentMethod   String // "STRIPE", "WALLET", "BANK_TRANSFER"
+  stripePaymentId String?       @unique
+  stripeSessionId String?
+  metadata        Json? // Données Stripe ou autres
+  paidAt          DateTime?
+  failedAt        DateTime?
+  refundedAt      DateTime?
+  refundAmount    Float?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  // Relations
+  user         User          @relation("UserPayments", fields: [userId], references: [id])
+  announcement Announcement? @relation(fields: [announcementId], references: [id])
+  delivery     Delivery?     @relation(fields: [deliveryId], references: [id])
+  booking      Booking?      @relation(fields: [bookingId], references: [id])
+  client       Client?       @relation("ClientPayments", fields: [clientId], references: [id])
+  merchant     Merchant?     @relation("MerchantPayments", fields: [merchantId], references: [id])
+  Order        Order[]
+
+  @@index([userId])
+  @@index([status])
+  @@index([paymentMethod])
+  @@index([createdAt])
+}
+
+model Wallet {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  balance         Float    @default(0)
+  currency        String   @default("EUR")
+  stripeAccountId String?  @unique
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  user       User              @relation(fields: [userId], references: [id])
+  operations WalletOperation[]
+
+  @@index([userId])
+  @@index([isActive])
+}
+
+model WalletOperation {
+  id          String              @id @default(cuid())
+  walletId    String
+  userId      String
+  type        WalletOperationType
+  amount      Float
+  description String
+  reference   String? // ID de la livraison, booking, etc.
+  status      OperationStatus     @default(PENDING)
+  executedAt  DateTime?
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+
+  // Relations
+  wallet Wallet @relation(fields: [walletId], references: [id])
+  user   User   @relation(fields: [userId], references: [id])
+
+  @@index([walletId])
+  @@index([userId])
+  @@index([type])
+  @@index([status])
+  @@index([createdAt])
+}
+
+// From 12-invoice.prisma
+// Modèles factures
+
+model Invoice {
+  id                 String    @id @default(cuid())
+  invoiceNumber      String    @unique
+  type               String // "PROVIDER_MONTHLY", "DELIVERY", "SERVICE", "MERCHANT"
+  status             String    @default("DRAFT") // DRAFT, SENT, PAID, OVERDUE
+  providerId         String?
+  merchantId         String?
+  clientId           String?
+  billingPeriodStart DateTime?
+  billingPeriodEnd   DateTime?
+  subtotal           Float
+  tax                Float
+  total              Float
+  currency           String    @default("EUR")
+  dueDate            DateTime
+  paidAt             DateTime?
+  pdfUrl             String?
+  metadata           Json?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  // Relations
+  items InvoiceItem[]
+
+  @@index([invoiceNumber])
+  @@index([type])
+  @@index([status])
+  @@index([providerId])
+}
+
+model InvoiceItem {
+  id            String   @id @default(cuid())
+  invoiceId     String
+  description   String
+  quantity      Float    @default(1)
+  unitPrice     Float
+  total         Float
+  referenceType String? // "INTERVENTION", "DELIVERY", etc.
+  referenceId   String?
+  metadata      Json?
+  createdAt     DateTime @default(now())
+
+  invoice Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  @@index([invoiceId])
+}
+
+// From 13-location.prisma
+// Modèles emplacements
+
+model Location {
+  id           String   @id @default(cuid())
+  name         String
+  type         String // "WAREHOUSE", "RELAY_POINT", "OFFICE"
+  address      String
+  city         String
+  postalCode   String
+  country      String   @default("FR")
+  lat          Float
+  lng          Float
+  phone        String?
+  email        String?
+  openingHours Json? // [{day, open, close}]
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relations
+  warehouses   Warehouse[]
+  handovers    Handover[]
+  storageBoxes StorageBox[]
+
+  @@index([type])
+  @@index([city])
+}
+
+model Warehouse {
+  id               String   @id @default(cuid())
+  locationId       String   @unique
+  capacity         Int // Nombre de colis max
+  currentOccupancy Int      @default(0)
+  managerName      String?
+  managerEmail     String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  location Location @relation(fields: [locationId], references: [id])
+}
+
+model StorageBox {
+  id          String   @id @default(cuid())
+  locationId  String
+  boxNumber   String
+  size        String // "SMALL", "MEDIUM", "LARGE"
+  pricePerDay Float
+  isAvailable Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  location Location           @relation(fields: [locationId], references: [id])
+  rentals  StorageBoxRental[]
+
+  @@unique([locationId, boxNumber])
+  @@index([locationId])
+  @@index([isAvailable])
+}
+
+model StorageBoxRental {
+  id           String    @id @default(cuid())
+  clientId     String
+  storageBoxId String
+  startDate    DateTime
+  endDate      DateTime?
+  accessCode   String // Code d'accès au box
+  totalPrice   Float?
+  isPaid       Boolean   @default(false)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  // Relations
+  client     Client     @relation(fields: [clientId], references: [id])
+  storageBox StorageBox @relation(fields: [storageBoxId], references: [id])
+  User       User?      @relation(fields: [userId], references: [id])
+  userId     String?
+
+  @@index([clientId])
+  @@index([storageBoxId])
+  @@index([startDate])
+}
+
+// From 14-document.prisma
+// Modèles documents
+
+model Document {
+  id               String           @id @default(cuid())
+  userId           String
+  type             DocumentType
+  filename         String
+  originalName     String
+  mimeType         String
+  validationStatus ValidationStatus @default(PENDING)
+  size             Int // en bytes
+  url              String
+  validatedAt      DateTime?
+  validatedBy      String? // ID de l'admin qui a validé
+  rejectionReason  String?
+  expirationDate   DateTime? // Pour permis, assurances, etc.
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([type])
+  @@index([validationStatus])
+}
+
+// Tracking de génération de documents (PDF, etc.)
+model DocumentGeneration {
+  id           String           @id @default(cuid())
+  userId       String
+  documentType String // 'delivery-slip', 'contract', 'invoice', 'certificate'
+  entityId     String // ID de l'entité liée (announcement, contract, payment, etc.)
+  fileName     String
+  fileUrl      String
+  status       GenerationStatus @default(SUCCESS)
+  metadata     Json? // Options utilisées, user agent, etc.
+  createdAt    DateTime         @default(now())
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([documentType])
+  @@index([entityId])
+  @@index([createdAt])
+}
+
+// From 15-notification.prisma
+// Modèles notifications
+
+model Notification {
+  id         String    @id @default(cuid())
+  userId     String
+  type       String // "ANNOUNCEMENT_MATCH", "DELIVERY_UPDATE", "PAYMENT_RECEIVED", etc.
+  title      String
+  message    String
+  data       Json? // Données additionnelles
+  isRead     Boolean   @default(false)
+  readAt     DateTime?
+  isPush     Boolean   @default(false)
+  pushSentAt DateTime?
+  createdAt  DateTime  @default(now())
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([isRead])
+  @@index([type])
+}
+
+model NotificationPreference {
+  id                 String  @id @default(cuid())
+  userId             String  @unique
+  emailNotifications Boolean @default(true)
+  pushNotifications  Boolean @default(true)
+  smsNotifications   Boolean @default(false)
+
+  // Types de notifications
+  announcementMatch Boolean @default(true)
+  deliveryUpdates   Boolean @default(true)
+  paymentUpdates    Boolean @default(true)
+  marketingEmails   Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+}
+
+// From 16-review.prisma
+// Modèles évaluations et autres
+
+model Review {
+  id          String    @id @default(cuid())
+  bookingId   String?   @unique
+  clientId    String?
+  rating      Int // 1 à 5
+  comment     String?
+  isVerified  Boolean   @default(false)
+  response    String? // Réponse du prestataire
+  respondedAt DateTime?
+  providerId  String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  booking        Booking?      @relation(fields: [bookingId], references: [id])
+  client         Client?       @relation(fields: [clientId], references: [id])
+  provider       Provider?     @relation("ProviderReviews", fields: [providerId], references: [id])
+  Announcement   Announcement? @relation(fields: [announcementId], references: [id])
+  announcementId String?
+
+  @@index([rating])
+  @@index([isVerified])
+  @@index([providerId])
+  @@index([clientId])
+}
+
+model GlobalAvailability {
+  id        String   @id @default(cuid())
+  userId    String
+  date      DateTime // Date spécifique
+  startTime String // "09:00"
+  endTime   String // "18:00"
+  isBooked  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([date])
+}
+
+model Analytics {
+  id       String   @id @default(cuid())
+  type     String // "DELIVERY", "BOOKING", "PAYMENT"
+  entity   String // "CLIENT", "DELIVERER", "PROVIDER"
+  entityId String
+  action   String // "CREATED", "COMPLETED", "CANCELLED"
+  metadata Json? // Données spécifiques
+  value    Float? // Valeur monétaire si applicable
+  date     DateTime @default(now())
+  period   String // "DAILY", "WEEKLY", "MONTHLY"
+
+  @@index([type])
+  @@index([entity])
+  @@index([date])
+  @@index([period])
+}
+
+model Settings {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  value       Json // Valeur flexible
+  description String?
+  isActive    Boolean  @default(true)
+  updatedBy   String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([key])
+  @@index([isActive])
+}
+
+model ActivityLog {
+  id         String   @id @default(cuid())
+  userId     String?
+  action     String // "LOGIN", "CREATE_DELIVERY", etc.
+  entityType String? // "DELIVERY", "BOOKING", etc.
+  entityId   String?
+  metadata   Json? // Détails de l'action
+  ipAddress  String?
+  userAgent  String?
+  createdAt  DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([action])
+  @@index([createdAt])
+}
+
+model SystemNotification {
+  id         String    @id @default(cuid())
+  type       String // "MAINTENANCE", "UPDATE", "ALERT"
+  title      String
+  message    String
+  priority   String    @default("LOW") // LOW, MEDIUM, HIGH, CRITICAL
+  targetRole UserRole? // Si spécifique à un rôle
+  isActive   Boolean   @default(true)
+  startDate  DateTime?
+  endDate    DateTime?
+  createdBy  String
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  @@index([type])
+  @@index([priority])
+  @@index([isActive])
+  @@index([targetRole])
+}
+
+model Availability {
+  id           String    @id @default(cuid())
+  providerId   String?
+  delivererId  String?
+  dayOfWeek    Int // 0-6 (Dimanche-Samedi)
+  startTime    String // HH:MM
+  endTime      String // HH:MM
+  isRecurring  Boolean   @default(true)
+  specificDate DateTime? // Pour disponibilités ponctuelles
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  // Relations
+  provider  Provider?  @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  deliverer Deliverer? @relation(fields: [delivererId], references: [id], onDelete: Cascade)
+
+  @@index([providerId])
+  @@index([delivererId])
+  @@index([dayOfWeek])
+}
+
+// From 17-contract.prisma
+// Modèles contrats
+
+model Contract {
+  id          String         @id @default(cuid())
+  merchantId  String         @unique
+  type        ContractType   @default(STANDARD)
+  status      ContractStatus @default(DRAFT)
+  version     String         @default("1.0")
+  title       String
+  description String?
+
+  // Conditions financières
+  commissionRate      Float // Taux de commission en %
+  minCommissionAmount Float? // Commission minimum en €
+  setupFee            Float  @default(0)
+  monthlyFee          Float  @default(0)
+
+  // Conditions générales
+  validFrom     DateTime
+  validUntil    DateTime?
+  autoRenewal   Boolean   @default(true)
+  renewalPeriod Int       @default(12) // mois
+
+  // Limites et conditions
+  maxOrdersPerMonth Int? // Limite commandes/mois
+  maxOrderValue     Float? // Valeur max par commande
+  deliveryZones     Json[] // Zones de livraison autorisées
+  allowedServices   String[] // Services autorisés
+
+  // Signature électronique
+  merchantSignedAt  DateTime?
+  merchantSignature String? // Hash de signature
+  adminSignedAt     DateTime?
+  adminSignedBy     String? // Admin user ID
+  adminSignature    String?
+
+  // Documents
+  templatePath       String? // Chemin vers template PDF
+  signedDocumentPath String? // Document signé
+
+  // Métadonnées
+  notes     String?
+  tags      String[] @default([])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  merchant      Merchant            @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  amendments    ContractAmendment[]
+  billingCycles MerchantBilling[]
+
+  @@index([merchantId])
+  @@index([status])
+  @@index([validFrom])
+}
+
+model ContractAmendment {
+  id            String   @id @default(cuid())
+  contractId    String
+  version       String
+  title         String
+  description   String
+  changes       Json // Détail des changements
+  effectiveDate DateTime
+
+  // Signature
+  merchantSignedAt DateTime?
+  adminSignedAt    DateTime?
+  adminSignedBy    String?
+
+  createdAt DateTime @default(now())
+
+  contract Contract @relation(fields: [contractId], references: [id], onDelete: Cascade)
+
+  @@index([contractId])
+}
+
+model MerchantBilling {
+  id         String  @id @default(cuid())
+  merchantId String
+  contractId String?
+
+  // Période de facturation
+  periodStart DateTime
+  periodEnd   DateTime
+  status      String   @default("PENDING") // PENDING, SENT, PAID, OVERDUE
+
+  // Montants
+  totalOrders      Int   @default(0)
+  totalRevenue     Float @default(0)
+  commissionAmount Float @default(0)
+  monthlyFee       Float @default(0)
+  additionalFees   Float @default(0)
+  totalAmount      Float @default(0)
+
+  // Paiement
+  invoiceNumber String?
+  invoicePath   String? // Chemin vers facture PDF
+  dueDate       DateTime?
+  paidAt        DateTime?
+  paymentMethod String?
+
+  // Métadonnées
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  merchant Merchant  @relation(fields: [merchantId], references: [id])
+  contract Contract? @relation(fields: [contractId], references: [id])
+  orders   Order[]
+
+  @@unique([merchantId, periodStart])
+  @@index([merchantId])
+  @@index([status])
+  @@index([dueDate])
+}
+
+// From 18-tutorial.prisma
+// Modèles tutoriel
+
+model ClientTutorialProgress {
+  id             String    @id @default(cuid())
+  userId         String    @unique
+  isCompleted    Boolean   @default(false)
+  startedAt      DateTime  @default(now())
+  completedAt    DateTime?
+  totalTimeSpent Int       @default(0) // en secondes
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  // Relations
+  user     User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  steps    TutorialStep[]
+  feedback TutorialFeedback?
+
+  @@index([userId])
+  @@index([isCompleted])
+}
+
+model TutorialStep {
+  id          String    @id @default(cuid())
+  userId      String
+  stepId      Int // ID de l'étape (1, 2, 3, etc.)
+  isCompleted Boolean   @default(false)
+  isSkipped   Boolean   @default(false)
+  timeSpent   Int       @default(0) // en secondes
+  completedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  // Relations
+  progress ClientTutorialProgress @relation(fields: [userId], references: [userId], onDelete: Cascade)
+
+  @@unique([userId, stepId])
+  @@index([userId])
+  @@index([stepId])
+  @@index([isCompleted])
+}
+
+model TutorialFeedback {
+  id             String   @id @default(cuid())
+  userId         String   @unique
+  feedback       String?
+  rating         Int? // 1-5 étoiles
+  stepsCompleted Int      @default(0)
+  completionTime Int      @default(0) // en secondes
+  createdAt      DateTime @default(now())
+
+  // Relations
+  progress ClientTutorialProgress @relation(fields: [userId], references: [userId], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([rating])
+}
+
+// From 19-tracking.prisma
+// Modèles tracking et géolocalisation
+
+model TrackingSession {
+  id            String    @id @default(cuid())
+  deliveryId    String
+  delivererId   String
+  startTime     DateTime  @default(now())
+  endTime       DateTime?
+  isActive      Boolean   @default(true)
+  totalDistance Float     @default(0) // en mètres
+  averageSpeed  Float     @default(0) // km/h
+  maxSpeed      Float     @default(0) // km/h
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  delivery        Delivery         @relation(fields: [deliveryId], references: [id], onDelete: Cascade)
+  deliverer       Deliverer        @relation(fields: [delivererId], references: [id], onDelete: Cascade)
+  locationUpdates LocationUpdate[]
+  geofenceEntries GeofenceEntry[]
+
+  @@unique([deliveryId, delivererId, startTime])
+  @@index([deliveryId])
+  @@index([delivererId])
+  @@index([isActive])
+}
+
+model LocationUpdate {
+  id                String   @id @default(cuid())
+  trackingSessionId String
+  latitude          Float
+  longitude         Float
+  accuracy          Float
+  speed             Float? // km/h
+  heading           Float? // degrés
+  altitude          Float? // mètres
+  timestamp         DateTime
+  createdAt         DateTime @default(now())
+
+  // Relations
+  trackingSession TrackingSession @relation(fields: [trackingSessionId], references: [id], onDelete: Cascade)
+
+  @@index([trackingSessionId])
+  @@index([timestamp])
+}
+
+model Geofence {
+  id        String   @id @default(cuid())
+  name      String
+  type      String // PICKUP, DELIVERY, STORAGE, SERVICE_AREA
+  latitude  Float
+  longitude Float
+  radius    Float // en mètres
+  isActive  Boolean  @default(true)
+  metadata  Json? // données additionnelles
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  entries GeofenceEntry[]
+
+  @@index([type])
+  @@index([isActive])
+}
+
+model GeofenceEntry {
+  id                String   @id @default(cuid())
+  trackingSessionId String
+  geofenceId        String
+  isInside          Boolean // true = entrée, false = sortie
+  latitude          Float
+  longitude         Float
+  timestamp         DateTime
+  createdAt         DateTime @default(now())
+
+  // Relations
+  trackingSession TrackingSession @relation(fields: [trackingSessionId], references: [id], onDelete: Cascade)
+  geofence        Geofence        @relation(fields: [geofenceId], references: [id], onDelete: Cascade)
+
+  @@index([trackingSessionId])
+  @@index([geofenceId])
+  @@index([timestamp])
+}
+
+model DelivererLocation {
+  id           String   @id @default(cuid())
+  delivererId  String   @unique
+  latitude     Float
+  longitude    Float
+  accuracy     Float
+  speed        Float?
+  heading      Float?
+  isOnline     Boolean  @default(true)
+  lastUpdateAt DateTime @default(now())
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relations
+  deliverer Deliverer @relation(fields: [delivererId], references: [id], onDelete: Cascade)
+
+  @@index([delivererId])
+  @@index([isOnline])
+  @@index([lastUpdateAt])
+}
+
+// From 20-support.prisma
+// Modèles support client
+
+model SupportTicket {
+  id                  String         @id @default(cuid())
+  ticketNumber        String         @unique
+  authorId            String
+  assignedToId        String?
+  title               String
+  description         String
+  category            TicketCategory
+  priority            TicketPriority @default(MEDIUM)
+  status              TicketStatus   @default(OPEN)
+  deliveryId          String? // Ticket lié à une livraison
+  orderId             String? // Ticket lié à une commande
+  isUrgent            Boolean        @default(false)
+  estimatedResolution DateTime?
+  resolvedAt          DateTime?
+  createdAt           DateTime       @default(now())
+  updatedAt           DateTime       @updatedAt
+
+  // Relations
+  author             User                @relation("TicketAuthor", fields: [authorId], references: [id])
+  assignedTo         User?               @relation("TicketAssignee", fields: [assignedToId], references: [id])
+  delivery           Delivery?           @relation(fields: [deliveryId], references: [id])
+  messages           TicketMessage[]
+  attachments        TicketAttachment[]
+  escalations        TicketEscalation[]
+  satisfactionSurvey TicketSatisfaction?
+
+  @@index([authorId])
+  @@index([assignedToId])
+  @@index([status])
+  @@index([category])
+  @@index([priority])
+  @@index([createdAt])
+}
+
+model TicketMessage {
+  id              String   @id @default(cuid())
+  ticketId        String
+  authorId        String
+  content         String
+  isInternal      Boolean  @default(false) // Message interne (entre agents)
+  isSystemMessage Boolean  @default(false) // Message automatique
+  createdAt       DateTime @default(now())
+
+  // Relations
+  ticket      SupportTicket       @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  author      User                @relation(fields: [authorId], references: [id])
+  attachments MessageAttachment[]
+
+  @@index([ticketId])
+  @@index([authorId])
+  @@index([createdAt])
+}
+
+model TicketAttachment {
+  id           String   @id @default(cuid())
+  ticketId     String
+  uploadedById String
+  fileName     String
+  originalName String
+  mimeType     String
+  fileSize     Int // en bytes
+  filePath     String
+  createdAt    DateTime @default(now())
+
+  // Relations
+  ticket     SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  uploadedBy User          @relation(fields: [uploadedById], references: [id])
+
+  @@index([ticketId])
+}
+
+model MessageAttachment {
+  id           String   @id @default(cuid())
+  messageId    String
+  fileName     String
+  originalName String
+  mimeType     String
+  fileSize     Int
+  filePath     String
+  createdAt    DateTime @default(now())
+
+  // Relations
+  message TicketMessage @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+  @@index([messageId])
+}
+
+model TicketEscalation {
+  id          String    @id @default(cuid())
+  ticketId    String
+  fromUserId  String?
+  toUserId    String
+  reason      String
+  escalatedAt DateTime  @default(now())
+  resolvedAt  DateTime?
+
+  // Relations
+  ticket   SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  fromUser User?         @relation("EscalationFrom", fields: [fromUserId], references: [id])
+  toUser   User          @relation("EscalationTo", fields: [toUserId], references: [id])
+
+  @@index([ticketId])
+  @@index([escalatedAt])
+}
+
+model TicketSatisfaction {
+  id                String   @id @default(cuid())
+  ticketId          String   @unique
+  rating            Int // 1-5
+  feedback          String?
+  wouldRecommend    Boolean?
+  responseTime      Int? // Note de 1-5
+  resolutionQuality Int? // Note de 1-5
+  agentHelpfulness  Int? // Note de 1-5
+  submittedAt       DateTime @default(now())
+
+  // Relations
+  ticket SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+
+  @@index([rating])
+  @@index([submittedAt])
+}
+
+model SupportKnowledgeBase {
+  id           String   @id @default(cuid())
+  title        String
+  content      String
+  category     String
+  tags         String[]
+  isPublic     Boolean  @default(true)
+  isActive     Boolean  @default(true)
+  viewCount    Int      @default(0)
+  helpfulCount Int      @default(0)
+  createdById  String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relations
+  createdBy User @relation(fields: [createdById], references: [id])
+
+  @@index([category])
+  @@index([isPublic])
+  @@index([isActive])
+}
+
+model SupportTemplate {
+  id          String         @id @default(cuid())
+  name        String
+  subject     String
+  content     String
+  category    TicketCategory
+  isActive    Boolean        @default(true)
+  usageCount  Int            @default(0)
+  createdById String
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  // Relations
+  createdBy User @relation(fields: [createdById], references: [id])
+
+  @@index([category])
+  @@index([isActive])
+}
+
+model SupportMetrics {
+  id                     String   @id @default(cuid())
+  date                   DateTime @db.Date
+  totalTickets           Int      @default(0)
+  openTickets            Int      @default(0)
+  resolvedTickets        Int      @default(0)
+  avgResponseTime        Float    @default(0) // en heures
+  avgResolutionTime      Float    @default(0) // en heures
+  customerSatisfaction   Float    @default(0) // moyenne des notes
+  firstContactResolution Float    @default(0) // pourcentage
+  createdAt              DateTime @default(now())
+
+  @@unique([date])
+  @@index([date])
+}
+
+enum TicketCategory {
+  DELIVERY_ISSUE
+  PAYMENT_PROBLEM
+  ACCOUNT_ACCESS
+  TECHNICAL_SUPPORT
+  BILLING_INQUIRY
+  FEATURE_REQUEST
+  COMPLAINT
+  PARTNERSHIP
+  GENERAL_INQUIRY
+  BUG_REPORT
+}
+
+enum TicketPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+  CRITICAL
+}
+
+enum TicketStatus {
+  OPEN
+  IN_PROGRESS
+  WAITING_CUSTOMER
+  ESCALATED
+  RESOLVED
+  CLOSED
+  REOPENED
+}
+
+// From 21-certifications.prisma
+// Modèles certifications et habilitations
+
+model Certification {
+  id               String                @id @default(cuid())
+  name             String
+  description      String
+  category         CertificationCategory
+  level            CertificationLevel    @default(BASIC)
+  isRequired       Boolean               @default(false)
+  validityDuration Int? // Durée en mois (null = permanent)
+  price            Float? // Prix de la certification
+  requirements     Json // Prérequis pour obtenir la certification
+  maxAttempts      Int                   @default(3)
+  passScore        Float                 @default(80) // Score minimum pour réussir (%)
+  isActive         Boolean               @default(true)
+  createdAt        DateTime              @default(now())
+  updatedAt        DateTime              @updatedAt
+
+  // Relations
+  providerCertifications   ProviderCertification[]
+  delivererCertifications  DelivererCertification[]
+  examSessions             ExamSession[]
+  modules                  CertificationModule[]
+  Provider                 Provider?                  @relation(fields: [providerId], references: [id])
+  providerId               String?
+  QualificationRequirement QualificationRequirement[]
+
+  @@index([category])
+  @@index([isRequired])
+  @@index([isActive])
+}
+
+model CertificationModule {
+  id                String   @id @default(cuid())
+  certificationId   String
+  title             String
+  description       String
+  content           String // Contenu du module (markdown/HTML)
+  orderIndex        Int // Ordre d'affichage
+  estimatedDuration Int // Durée estimée en minutes
+  isRequired        Boolean  @default(true)
+  resources         Json[] // Ressources additionnelles (liens, documents)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  // Relations
+  certification Certification    @relation(fields: [certificationId], references: [id], onDelete: Cascade)
+  progress      ModuleProgress[]
+
+  @@index([certificationId])
+  @@index([orderIndex])
+}
+
+model ProviderCertification {
+  id              String              @id @default(cuid())
+  providerId      String
+  certificationId String
+  status          CertificationStatus @default(NOT_STARTED)
+  enrolledAt      DateTime            @default(now())
+  startedAt       DateTime?
+  completedAt     DateTime?
+  expiresAt       DateTime?
+  score           Float?
+  attempts        Int                 @default(0)
+  certificateUrl  String? // URL du certificat PDF
+  isValid         Boolean             @default(false)
+  renewalNotified Boolean             @default(false)
+  notes           String?
+
+  // Relations
+  provider       Provider         @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  certification  Certification    @relation(fields: [certificationId], references: [id])
+  moduleProgress ModuleProgress[]
+  examSessions   ExamSession[]
+
+  @@unique([providerId, certificationId])
+  @@index([providerId])
+  @@index([status])
+  @@index([expiresAt])
+}
+
+model DelivererCertification {
+  id              String              @id @default(cuid())
+  delivererId     String
+  certificationId String
+  status          CertificationStatus @default(NOT_STARTED)
+  enrolledAt      DateTime            @default(now())
+  startedAt       DateTime?
+  completedAt     DateTime?
+  expiresAt       DateTime?
+  score           Float?
+  attempts        Int                 @default(0)
+  certificateUrl  String?
+  isValid         Boolean             @default(false)
+  renewalNotified Boolean             @default(false)
+  notes           String?
+
+  // Relations
+  deliverer      Deliverer        @relation(fields: [delivererId], references: [id], onDelete: Cascade)
+  certification  Certification    @relation(fields: [certificationId], references: [id])
+  moduleProgress ModuleProgress[]
+  examSessions   ExamSession[]
+
+  @@unique([delivererId, certificationId])
+  @@index([delivererId])
+  @@index([status])
+  @@index([expiresAt])
+}
+
+model ModuleProgress {
+  id                       String       @id @default(cuid())
+  moduleId                 String
+  providerCertificationId  String?
+  delivererCertificationId String?
+  status                   ModuleStatus @default(NOT_STARTED)
+  startedAt                DateTime?
+  completedAt              DateTime?
+  timeSpent                Int          @default(0) // en minutes
+  score                    Float?
+  attempts                 Int          @default(0)
+
+  // Relations
+  module                 CertificationModule     @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  providerCertification  ProviderCertification?  @relation(fields: [providerCertificationId], references: [id], onDelete: Cascade)
+  delivererCertification DelivererCertification? @relation(fields: [delivererCertificationId], references: [id], onDelete: Cascade)
+
+  @@index([moduleId])
+  @@index([providerCertificationId])
+  @@index([delivererCertificationId])
+}
+
+model ExamSession {
+  id                       String    @id @default(cuid())
+  certificationId          String
+  providerCertificationId  String?
+  delivererCertificationId String?
+  sessionNumber            Int // Numéro de la tentative
+  startedAt                DateTime  @default(now())
+  completedAt              DateTime?
+  timeLimit                Int // Limite de temps en minutes
+  score                    Float?
+  isPassed                 Boolean   @default(false)
+  answers                  Json // Réponses données
+  questions                Json // Questions posées
+  metadata                 Json? // Métadonnées additionnelles
+
+  // Relations
+  certification          Certification           @relation(fields: [certificationId], references: [id])
+  providerCertification  ProviderCertification?  @relation(fields: [providerCertificationId], references: [id], onDelete: Cascade)
+  delivererCertification DelivererCertification? @relation(fields: [delivererCertificationId], references: [id], onDelete: Cascade)
+
+  @@index([certificationId])
+  @@index([providerCertificationId])
+  @@index([delivererCertificationId])
+  @@index([startedAt])
+}
+
+model CertificationTemplate {
+  id        String   @id @default(cuid())
+  name      String
+  template  String // Template HTML/CSS du certificat
+  variables Json // Variables disponibles dans le template
+  isDefault Boolean  @default(false)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([isDefault])
+  @@index([isActive])
+}
+
+model QualificationRequirement {
+  id              String             @id @default(cuid())
+  serviceType     String // Type de service nécessitant cette qualification
+  certificationId String
+  isRequired      Boolean            @default(true)
+  minimumLevel    CertificationLevel @default(BASIC)
+  description     String?
+  createdAt       DateTime           @default(now())
+
+  // Relations
+  certification Certification @relation(fields: [certificationId], references: [id])
+
+  @@unique([serviceType, certificationId])
+  @@index([serviceType])
+}
+
+model CertificationAudit {
+  id              String               @id @default(cuid())
+  entityType      String // 'provider' ou 'deliverer'
+  entityId        String
+  certificationId String
+  action          String // 'ENROLLED', 'STARTED', 'COMPLETED', 'FAILED', 'RENEWED', 'EXPIRED'
+  oldStatus       CertificationStatus?
+  newStatus       CertificationStatus
+  performedBy     String? // User ID qui a effectué l'action (si applicable)
+  reason          String?
+  metadata        Json?
+  timestamp       DateTime             @default(now())
+
+  @@index([entityType, entityId])
+  @@index([certificationId])
+  @@index([timestamp])
+}
+
+enum CertificationCategory {
+  SAFETY // Sécurité
+  QUALITY // Qualité
+  TECHNICAL // Technique
+  ENVIRONMENTAL // Environnemental
+  COMPLIANCE // Conformité
+  CUSTOMER_SERVICE // Service client
+  SPECIALIZED // Spécialisé
+}
+
+enum CertificationLevel {
+  BASIC // Niveau de base
+  INTERMEDIATE // Niveau intermédiaire
+  ADVANCED // Niveau avancé
+  EXPERT // Niveau expert
+}
+
+enum CertificationStatus {
+  NOT_STARTED // Pas commencé
+  ENROLLED // Inscrit
+  IN_PROGRESS // En cours
+  COMPLETED // Terminé avec succès
+  FAILED // Échoué
+  EXPIRED // Expiré
+  SUSPENDED // Suspendu
+  RENEWED // Renouvelé
+}
+
+enum ModuleStatus {
+  NOT_STARTED // Module pas commencé
+  IN_PROGRESS // Module en cours
+  COMPLETED // Module terminé
+  FAILED // Module échoué
+}
+
+// From 22-insurance.prisma
+// Modèles assurance et garanties
+
+model InsurancePolicy {
+  id              String            @id @default(cuid())
+  name            String
+  description     String
+  category        InsuranceCategory
+  provider        String // Nom de l'assureur
+  policyNumber    String            @unique
+  coverageAmount  Float // Montant de couverture
+  deductible      Float // Franchise
+  premiumAmount   Float // Prime annuelle
+  startDate       DateTime
+  endDate         DateTime
+  isActive        Boolean           @default(true)
+  terms           Json // Conditions générales
+  coverageDetails Json // Détails de couverture
+  exclusions      Json[] // Exclusions
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  // Relations
+  coverages InsuranceCoverage[]
+  claims    InsuranceClaim[]
+
+  @@index([category])
+  @@index([isActive])
+  @@index([endDate])
+}
+
+model InsuranceCoverage {
+  id           String       @id @default(cuid())
+  policyId     String
+  entityType   String // 'delivery', 'service', 'storage', 'user'
+  entityId     String? // ID de l'entité couverte
+  coverageType CoverageType
+  isActive     Boolean      @default(true)
+  startDate    DateTime     @default(now())
+  endDate      DateTime?
+  maxCoverage  Float // Montant maximum couvert
+  currentUsage Float        @default(0) // Montant déjà utilisé
+  metadata     Json? // Métadonnées spécifiques
+
+  // Relations
+  policy InsurancePolicy  @relation(fields: [policyId], references: [id])
+  claims InsuranceClaim[]
+
+  @@index([policyId])
+  @@index([entityType, entityId])
+  @@index([coverageType])
+  @@index([isActive])
+}
+
+model InsuranceClaim {
+  id                 String      @id @default(cuid())
+  claimNumber        String      @unique
+  policyId           String
+  coverageId         String
+  claimantId         String // Utilisateur qui déclare le sinistre
+  incidentDate       DateTime
+  reportedDate       DateTime    @default(now())
+  claimType          ClaimType
+  status             ClaimStatus @default(REPORTED)
+  amount             Float // Montant réclamé
+  approvedAmount     Float? // Montant approuvé
+  description        String
+  circumstances      String // Circonstances du sinistre
+  evidences          Json[] // Preuves (photos, documents)
+  investigationNotes String?
+  processingNotes    String?
+  rejectionReason    String?
+  settledAt          DateTime?
+  createdAt          DateTime    @default(now())
+  updatedAt          DateTime    @updatedAt
+
+  // Relations
+  policy      InsurancePolicy   @relation(fields: [policyId], references: [id])
+  coverage    InsuranceCoverage @relation(fields: [coverageId], references: [id])
+  claimant    User              @relation(fields: [claimantId], references: [id])
+  assessments ClaimAssessment[]
+  payments    ClaimPayment[]
+
+  @@index([policyId])
+  @@index([coverageId])
+  @@index([claimantId])
+  @@index([status])
+  @@index([incidentDate])
+}
+
+model ClaimAssessment {
+  id                String           @id @default(cuid())
+  claimId           String
+  assessorId        String // Expert/assesseur
+  assessmentDate    DateTime         @default(now())
+  findings          String
+  recommendedAmount Float?
+  photos            String[] // URLs des photos
+  report            String? // Rapport détaillé
+  status            AssessmentStatus @default(PENDING)
+  createdAt         DateTime         @default(now())
+
+  // Relations
+  claim    InsuranceClaim @relation(fields: [claimId], references: [id], onDelete: Cascade)
+  assessor User           @relation(fields: [assessorId], references: [id])
+
+  @@index([claimId])
+  @@index([assessorId])
+}
+
+model ClaimPayment {
+  id            String        @id @default(cuid())
+  claimId       String
+  amount        Float
+  paymentDate   DateTime      @default(now())
+  paymentMethod String // 'bank_transfer', 'check', 'digital'
+  reference     String? // Référence de paiement
+  status        PaymentStatus @default(PENDING)
+  notes         String?
+
+  // Relations
+  claim InsuranceClaim @relation(fields: [claimId], references: [id], onDelete: Cascade)
+
+  @@index([claimId])
+  @@index([paymentDate])
+}
+
+model Warranty {
+  id           String       @id @default(cuid())
+  name         String
+  description  String
+  warrantyType WarrantyType
+  duration     Int // Durée en jours
+  scope        Json // Périmètre de la garantie
+  conditions   Json // Conditions d'application
+  exclusions   Json[] // Exclusions
+  isActive     Boolean      @default(true)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  // Relations
+  serviceWarranties  ServiceWarranty[]
+  deliveryWarranties DeliveryWarranty[]
+
+  @@index([warrantyType])
+  @@index([isActive])
+}
+
+model ServiceWarranty {
+  id                 String   @id @default(cuid())
+  warrantyId         String
+  serviceId          String // ID du service
+  providerId         String
+  clientId           String
+  startDate          DateTime @default(now())
+  endDate            DateTime
+  isActive           Boolean  @default(true)
+  claimsCount        Int      @default(0)
+  maxClaims          Int      @default(3)
+  totalClaimedAmount Float    @default(0)
+  maxClaimAmount     Float    @default(1000)
+
+  // Relations
+  warranty Warranty        @relation(fields: [warrantyId], references: [id])
+  provider Provider        @relation(fields: [providerId], references: [id])
+  client   User            @relation("ClientServiceWarranties", fields: [clientId], references: [id])
+  claims   WarrantyClaim[]
+
+  @@index([warrantyId])
+  @@index([serviceId])
+  @@index([providerId])
+  @@index([clientId])
+  @@index([endDate])
+}
+
+model DeliveryWarranty {
+  id             String   @id @default(cuid())
+  warrantyId     String
+  deliveryId     String   @unique
+  delivererId    String
+  clientId       String
+  startDate      DateTime @default(now())
+  endDate        DateTime
+  isActive       Boolean  @default(true)
+  maxClaimAmount Float    @default(500)
+  claimsCount    Int      @default(0)
+
+  // Relations
+  warranty  Warranty        @relation(fields: [warrantyId], references: [id])
+  delivery  Delivery        @relation(fields: [deliveryId], references: [id])
+  deliverer User            @relation("DelivererWarranties", fields: [delivererId], references: [id])
+  client    User            @relation("ClientDeliveryWarranties", fields: [clientId], references: [id])
+  claims    WarrantyClaim[]
+
+  @@index([warrantyId])
+  @@index([deliveryId])
+  @@index([delivererId])
+  @@index([clientId])
+  @@index([endDate])
+}
+
+model WarrantyClaim {
+  id                 String            @id @default(cuid())
+  claimNumber        String            @unique
+  serviceWarrantyId  String?
+  deliveryWarrantyId String?
+  claimantId         String
+  claimType          WarrantyClaimType
+  description        String
+  requestedAmount    Float
+  approvedAmount     Float?
+  status             ClaimStatus       @default(REPORTED)
+  evidences          Json[] // Preuves
+  processingNotes    String?
+  resolution         String?
+  claimedAt          DateTime          @default(now())
+  processedAt        DateTime?
+  resolvedAt         DateTime?
+
+  // Relations
+  serviceWarranty  ServiceWarranty?  @relation(fields: [serviceWarrantyId], references: [id])
+  deliveryWarranty DeliveryWarranty? @relation(fields: [deliveryWarrantyId], references: [id])
+  claimant         User              @relation(fields: [claimantId], references: [id])
+
+  @@index([serviceWarrantyId])
+  @@index([deliveryWarrantyId])
+  @@index([claimantId])
+  @@index([status])
+  @@index([claimedAt])
+}
+
+model RiskAssessment {
+  id              String    @id @default(cuid())
+  entityType      String // 'user', 'delivery', 'service'
+  entityId        String
+  riskLevel       RiskLevel @default(LOW)
+  riskFactors     Json[] // Facteurs de risque identifiés
+  score           Float // Score de risque (0-100)
+  recommendations Json[] // Recommandations
+  lastAssessment  DateTime  @default(now())
+  nextAssessment  DateTime?
+  isActive        Boolean   @default(true)
+
+  @@unique([entityType, entityId])
+  @@index([riskLevel])
+  @@index([lastAssessment])
+}
+
+model InsuranceAudit {
+  id          String   @id @default(cuid())
+  entityType  String // Type d'entité concernée
+  entityId    String // ID de l'entité
+  action      String // Action effectuée
+  details     Json // Détails de l'action
+  performedBy String? // Utilisateur qui a effectué l'action
+  timestamp   DateTime @default(now())
+
+  @@index([entityType, entityId])
+  @@index([timestamp])
+}
+
+enum InsuranceCategory {
+  PROFESSIONAL_LIABILITY // Responsabilité civile professionnelle
+  GOODS_TRANSPORT // Transport de marchandises
+  STORAGE_COVERAGE // Couverture stockage
+  PERSONAL_ACCIDENT // Accident personnel
+  CYBER_LIABILITY // Responsabilité cyber
+  GENERAL_LIABILITY // Responsabilité civile générale
+}
+
+enum CoverageType {
+  DAMAGE_COVERAGE // Couverture dommages
+  THEFT_COVERAGE // Couverture vol
+  LOSS_COVERAGE // Couverture perte
+  DELAY_COVERAGE // Couverture retard
+  LIABILITY_COVERAGE // Couverture responsabilité
+  PERSONAL_INJURY // Dommages corporels
+}
+
+enum ClaimType {
+  DAMAGE // Dommage
+  THEFT // Vol
+  LOSS // Perte
+  DELAY // Retard
+  PERSONAL_INJURY // Dommage corporel
+  LIABILITY // Responsabilité
+  OTHER // Autre
+}
+
+enum ClaimStatus {
+  REPORTED // Déclaré
+  UNDER_INVESTIGATION // En cours d'enquête
+  BEING_ASSESSED // En cours d'évaluation
+  APPROVED // Approuvé
+  REJECTED // Rejeté
+  SETTLED // Réglé
+  CLOSED // Fermé
+}
+
+enum AssessmentStatus {
+  PENDING // En attente
+  IN_PROGRESS // En cours
+  COMPLETED // Terminé
+  CANCELLED // Annulé
+}
+
+enum WarrantyType {
+  SERVICE_QUALITY // Qualité de service
+  DELIVERY_GUARANTEE // Garantie livraison
+  SATISFACTION_GUARANTEE // Garantie satisfaction
+  DAMAGE_PROTECTION // Protection dommages
+  TIME_GUARANTEE // Garantie délai
+}
+
+enum WarrantyClaimType {
+  SERVICE_DEFECT // Défaut de service
+  LATE_DELIVERY // Livraison en retard
+  DAMAGED_GOODS // Marchandises endommagées
+  INCOMPLETE_SERVICE // Service incomplet
+  UNSATISFACTORY_QUALITY // Qualité insatisfaisante
+}
+
+enum RiskLevel {
+  LOW // Faible
+  MEDIUM // Moyen
+  HIGH // Élevé
+  CRITICAL // Critique
+}
+
+// From 23-referral.prisma
+// Modèles référencement et parrainage
+
+model ReferralProgram {
+  id                  String       @id @default(cuid())
+  name                String
+  description         String
+  programType         ReferralType
+  isActive            Boolean      @default(true)
+  startDate           DateTime     @default(now())
+  endDate             DateTime?
+  maxParticipants     Int? // Limite de participants
+  currentParticipants Int          @default(0)
+
+  // Conditions d'éligibilité
+  eligibilityRules Json // Règles d'éligibilité
+  minimumAge       Int?
+  requiredRole     UserRole?
+  requiredStatus   ValidationStatus?
+
+  // Récompenses
+  referrerReward  Json // Récompense pour le parrain
+  refereeReward   Json // Récompense pour le filleul
+  bonusConditions Json? // Conditions pour bonus supplémentaires
+
+  // Limites
+  maxReferralsPerUser Int    @default(10)
+  maxRewardPerUser    Float? // Montant max de récompense par utilisateur
+  rewardValidityDays  Int    @default(30)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  referrals     Referral[]
+  codes         ReferralCode[]
+  ReferralStats ReferralStats[]
+
+  @@index([programType])
+  @@index([isActive])
+  @@index([startDate])
+}
+
+model ReferralCode {
+  id         String    @id @default(cuid())
+  programId  String
+  referrerId String // Utilisateur qui parraine
+  code       String    @unique
+  isActive   Boolean   @default(true)
+  usageLimit Int       @default(1)
+  usageCount Int       @default(0)
+  expiresAt  DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  // Relations
+  program   ReferralProgram @relation(fields: [programId], references: [id])
+  referrer  User            @relation("ReferrerCodes", fields: [referrerId], references: [id])
+  referrals Referral[]
+
+  @@index([programId])
+  @@index([referrerId])
+  @@index([code])
+  @@index([isActive])
+}
+
+model Referral {
+  id             String         @id @default(cuid())
+  programId      String
+  codeId         String?
+  referrerId     String // Parrain
+  refereeId      String // Filleul
+  status         ReferralStatus @default(PENDING)
+  referralMethod ReferralMethod // Comment le parrainage a été fait
+
+  // Suivi des conditions
+  conditionsMet Json // Conditions remplies
+  completedAt   DateTime? // Date de complétion des conditions
+
+  // Récompenses
+  referrerRewardStatus RewardStatus @default(PENDING)
+  refereeRewardStatus  RewardStatus @default(PENDING)
+  referrerRewardAmount Float?
+  refereeRewardAmount  Float?
+  referrerRewardDate   DateTime?
+  refereeRewardDate    DateTime?
+
+  // Métadonnées
+  metadata Json? // Informations supplémentaires
+  notes    String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  program        ReferralProgram    @relation(fields: [programId], references: [id])
+  code           ReferralCode?      @relation(fields: [codeId], references: [id])
+  referrer       User               @relation("UserAsReferrer", fields: [referrerId], references: [id])
+  referee        User               @relation("UserAsReferee", fields: [refereeId], references: [id])
+  activities     ReferralActivity[]
+  ReferralReward ReferralReward[]
+
+  @@unique([referrerId, refereeId, programId])
+  @@index([programId])
+  @@index([referrerId])
+  @@index([refereeId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model ReferralActivity {
+  id           String       @id @default(cuid())
+  referralId   String
+  activityType ActivityType
+  description  String
+  value        Float? // Valeur associée (montant, points, etc.)
+  metadata     Json?
+  occurredAt   DateTime     @default(now())
+
+  // Relations
+  referral Referral @relation(fields: [referralId], references: [id], onDelete: Cascade)
+
+  @@index([referralId])
+  @@index([activityType])
+  @@index([occurredAt])
+}
+
+model ReferralReward {
+  id               String       @id @default(cuid())
+  userId           String
+  referralId       String
+  rewardType       RewardType
+  amount           Float
+  currency         String       @default("EUR")
+  status           RewardStatus @default(PENDING)
+  description      String
+  expiresAt        DateTime?
+  claimedAt        DateTime?
+  processedAt      DateTime?
+  paymentReference String?
+  metadata         Json?
+  createdAt        DateTime     @default(now())
+
+  // Relations
+  user     User     @relation(fields: [userId], references: [id])
+  referral Referral @relation(fields: [referralId], references: [id])
+
+  @@index([userId])
+  @@index([referralId])
+  @@index([status])
+  @@index([rewardType])
+  @@index([expiresAt])
+}
+
+model ReferralStats {
+  id                  String    @id @default(cuid())
+  userId              String
+  programId           String
+  totalReferrals      Int       @default(0)
+  successfulReferrals Int       @default(0)
+  totalRewards        Float     @default(0)
+  pendingRewards      Float     @default(0)
+  lastReferralDate    DateTime?
+  ranking             Int? // Classement dans le programme
+  level               String? // Niveau atteint (Bronze, Silver, Gold, etc.)
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  // Relations
+  user    User            @relation(fields: [userId], references: [id])
+  program ReferralProgram @relation(fields: [programId], references: [id])
+
+  @@unique([userId, programId])
+  @@index([userId])
+  @@index([programId])
+  @@index([totalReferrals])
+  @@index([ranking])
+}
+
+model InfluencerProgram {
+  id           String           @id @default(cuid())
+  influencerId String           @unique
+  programName  String
+  description  String
+  status       InfluencerStatus @default(PENDING)
+
+  // Conditions
+  minimumFollowers    Int?
+  requiredPlatforms   String[] // ['instagram', 'tiktok', 'youtube', etc.]
+  contentRequirements Json
+
+  // Commission
+  commissionRate  Float // Pourcentage de commission
+  fixedReward     Float? // Récompense fixe par conversion
+  bonusThresholds Json // Seuils pour bonus
+
+  // Suivi
+  totalClicks      Int   @default(0)
+  totalConversions Int   @default(0)
+  totalEarnings    Float @default(0)
+  conversionRate   Float @default(0)
+
+  // Dates
+  startDate  DateTime?
+  endDate    DateTime?
+  approvedAt DateTime?
+  approvedBy String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  influencer User                 @relation(fields: [influencerId], references: [id])
+  campaigns  InfluencerCampaign[]
+  links      InfluencerLink[]
+
+  @@index([influencerId])
+  @@index([status])
+  @@index([approvedAt])
+}
+
+model InfluencerCampaign {
+  id          String       @id @default(cuid())
+  programId   String
+  name        String
+  description String
+  type        CampaignType
+
+  // Objectifs
+  targetAudience    Json
+  expectedReach     Int?
+  targetConversions Int?
+
+  // Budget
+  budget            Float?
+  costPerClick      Float?
+  costPerConversion Float?
+
+  // Contenu
+  contentGuidelines    Json
+  requiredHashtags     String[]
+  brandingRequirements Json
+
+  // Planning
+  startDate       DateTime
+  endDate         DateTime
+  postingSchedule Json?
+
+  // Suivi
+  actualReach       Int   @default(0)
+  actualClicks      Int   @default(0)
+  actualConversions Int   @default(0)
+  actualCost        Float @default(0)
+
+  status    CampaignStatus @default(DRAFT)
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+
+  // Relations
+  program InfluencerProgram @relation(fields: [programId], references: [id])
+  posts   InfluencerPost[]
+
+  @@index([programId])
+  @@index([status])
+  @@index([startDate])
+}
+
+model InfluencerLink {
+  id          String  @id @default(cuid())
+  programId   String
+  url         String  @unique
+  shortCode   String  @unique
+  description String?
+
+  // Suivi
+  clicks      Int   @default(0)
+  conversions Int   @default(0)
+  revenue     Float @default(0)
+
+  // Métadonnées
+  utmSource   String?
+  utmMedium   String?
+  utmCampaign String?
+
+  isActive  Boolean   @default(true)
+  expiresAt DateTime?
+  createdAt DateTime  @default(now())
+
+  // Relations
+  program   InfluencerProgram @relation(fields: [programId], references: [id])
+  analytics LinkAnalytics[]
+
+  @@index([programId])
+  @@index([shortCode])
+  @@index([isActive])
+}
+
+model InfluencerPost {
+  id         String   @id @default(cuid())
+  campaignId String
+  platform   String // 'instagram', 'tiktok', 'youtube', etc.
+  postUrl    String?
+  postId     String? // ID du post sur la plateforme
+  content    String
+  hashtags   String[]
+
+  // Métriques
+  likes      Int   @default(0)
+  comments   Int   @default(0)
+  shares     Int   @default(0)
+  views      Int   @default(0)
+  reach      Int   @default(0)
+  engagement Float @default(0) // Taux d'engagement
+
+  // Validation
+  isApproved      Boolean   @default(false)
+  approvedAt      DateTime?
+  approvedBy      String?
+  rejectionReason String?
+
+  publishedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  // Relations
+  campaign InfluencerCampaign @relation(fields: [campaignId], references: [id])
+
+  @@index([campaignId])
+  @@index([platform])
+  @@index([publishedAt])
+}
+
+model LinkAnalytics {
+  id           String   @id @default(cuid())
+  linkId       String
+  date         DateTime @db.Date
+  clicks       Int      @default(0)
+  uniqueClicks Int      @default(0)
+  conversions  Int      @default(0)
+  revenue      Float    @default(0)
+
+  // Démographie
+  countries Json // Répartition par pays
+  devices   Json // Répartition par appareil
+  referrers Json // Sites référents
+
+  createdAt DateTime @default(now())
+
+  // Relations
+  link InfluencerLink @relation(fields: [linkId], references: [id])
+
+  @@unique([linkId, date])
+  @@index([linkId])
+  @@index([date])
+}
+
+enum ReferralType {
+  USER_REFERRAL // Parrainage d'utilisateurs
+  SERVICE_REFERRAL // Parrainage de services
+  MERCHANT_REFERRAL // Parrainage de commerçants
+  DELIVERER_REFERRAL // Parrainage de livreurs
+  PROVIDER_REFERRAL // Parrainage de prestataires
+}
+
+enum ReferralStatus {
+  PENDING // En attente
+  ACTIVE // Actif
+  COMPLETED // Terminé
+  EXPIRED // Expiré
+  CANCELLED // Annulé
+}
+
+enum ReferralMethod {
+  CODE // Code de parrainage
+  LINK // Lien de parrainage
+  EMAIL // Email
+  SOCIAL_MEDIA // Réseaux sociaux
+  WORD_OF_MOUTH // Bouche à oreille
+  OTHER // Autre
+}
+
+enum RewardStatus {
+  PENDING // En attente
+  APPROVED // Approuvé
+  PAID // Payé
+  EXPIRED // Expiré
+  CANCELLED // Annulé
+}
+
+enum RewardType {
+  CASH // Argent
+  CREDIT // Crédit
+  DISCOUNT // Réduction
+  POINTS // Points
+  FREE_SERVICE // Service gratuit
+  PREMIUM_ACCESS // Accès premium
+}
+
+enum ActivityType {
+  REGISTRATION // Inscription
+  FIRST_ORDER // Première commande
+  FIRST_DELIVERY // Première livraison
+  MONTHLY_ACTIVITY // Activité mensuelle
+  SPENDING_THRESHOLD // Seuil de dépense
+  REFERRAL_CHAIN // Chaîne de parrainage
+}
+
+enum InfluencerStatus {
+  PENDING // En attente
+  APPROVED // Approuvé
+  REJECTED // Rejeté
+  ACTIVE // Actif
+  SUSPENDED // Suspendu
+  TERMINATED // Terminé
+}
+
+enum CampaignType {
+  AWARENESS // Sensibilisation
+  CONVERSION // Conversion
+  ENGAGEMENT // Engagement
+  BRAND_PARTNERSHIP // Partenariat de marque
+  PRODUCT_LAUNCH // Lancement produit
+}
+
+enum CampaignStatus {
+  DRAFT // Brouillon
+  PENDING_APPROVAL // En attente d'approbation
+  APPROVED // Approuvé
+  ACTIVE // Actif
+  PAUSED // En pause
+  COMPLETED // Terminé
+  CANCELLED // Annulé
+}
+
+// From 24-disputes.prisma
+// Modèles pour la gestion des litiges
+
+model Dispute {
+  id             String          @id @default(cuid())
+  announcementId String
+  reporterId     String
+  reportedUserId String
+  category       DisputeCategory
+  reason         String
+  description    String
+  evidenceFiles  String[] // URLs des fichiers de preuve
+  priority       DisputePriority
+  status         DisputeStatus   @default(OPEN)
+  ticketNumber   String          @unique
+
+  // Résolution
+  resolution         DisputeResolution?
+  adminNotes         String?
+  compensationAmount Float?
+  penaltyAmount      Float?
+  actionTaken        String[] // Actions prises
+
+  // Timestamps et suivi
+  createdAt               DateTime  @default(now())
+  updatedAt               DateTime  @updatedAt
+  estimatedResolutionDate DateTime
+  resolvedAt              DateTime?
+  escalatedAt             DateTime?
+
+  // Assignation
+  lastUpdatedBy    String?
+  resolvedBy       String?
+  escalatedBy      String?
+  escalationReason String?
+
+  // Relations
+  announcement Announcement @relation(fields: [announcementId], references: [id], onDelete: Cascade)
+  reporter     User         @relation("DisputeReporter", fields: [reporterId], references: [id])
+  reportedUser User         @relation("DisputeReported", fields: [reportedUserId], references: [id])
+
+  @@index([announcementId])
+  @@index([status])
+  @@index([priority])
+  @@index([category])
+  @@index([createdAt])
+}
+
+// Enchères inversées
+model ReverseAuction {
+  id                  String @id @default(cuid())
+  announcementId      String @unique
+  initialPrice        Float
+  minimumPrice        Float
+  currentBestPrice    Float
+  auctionDuration     Float // en heures
+  autoAcceptThreshold Float?
+  maxBidders          Int    @default(10)
+  totalBids           Int    @default(0)
+
+  status       AuctionStatus @default(ACTIVE)
+  winningBidId String?       @unique
+
+  createdAt          DateTime  @default(now())
+  expiresAt          DateTime
+  completedAt        DateTime?
+  cancelledAt        DateTime?
+  cancellationReason String?
+
+  // Relations
+  announcement Announcement @relation(fields: [announcementId], references: [id], onDelete: Cascade)
+  bids         AuctionBid[]
+  winningBid   AuctionBid?  @relation("WinningBid", fields: [winningBidId], references: [id])
+
+  @@index([status])
+  @@index([expiresAt])
+}
+
+model AuctionBid {
+  id                    String   @id @default(cuid())
+  auctionId             String
+  bidderId              String
+  proposedPrice         Float
+  estimatedDeliveryTime Int // en minutes
+  additionalNotes       String?
+  validUntil            DateTime
+
+  // Scoring
+  delivererRating Float @default(0)
+  compositeScore  Float @default(0)
+
+  status     BidStatus @default(PENDING)
+  createdAt  DateTime  @default(now())
+  acceptedAt DateTime?
+
+  // Relations
+  auction        ReverseAuction  @relation(fields: [auctionId], references: [id], onDelete: Cascade)
+  bidder         User            @relation(fields: [bidderId], references: [id])
+  winningAuction ReverseAuction? @relation("WinningBid")
+
+  @@index([auctionId])
+  @@index([compositeScore])
+  @@index([status])
+}
+
+// Groupage de colis
+model DeliveryGroup {
+  id          String      @id @default(cuid())
+  delivererId String
+  status      GroupStatus @default(PROPOSED)
+
+  // Métriques
+  totalAnnouncements Int
+  originalTotalPrice Float
+  groupedPrice       Float
+  savingsAmount      Float
+  delivererBonus     Float
+  estimatedDuration  Int // en minutes
+
+  // Timestamps
+  createdAt          DateTime  @default(now())
+  validUntil         DateTime
+  activatedAt        DateTime?
+  completedAt        DateTime?
+  cancelledAt        DateTime?
+  cancellationReason String?
+
+  // Relations
+  deliverer     User                @relation(fields: [delivererId], references: [id])
+  announcements AnnouncementGroup[]
+  proposals     GroupingProposal[]
+
+  @@index([delivererId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model AnnouncementGroup {
+  id              String @id @default(cuid())
+  announcementId  String
+  deliveryGroupId String
+  originalPrice   Float
+  groupedPrice    Float
+  savings         Float
+  position        Int    @default(1) // Ordre dans la tournée
+
+  // Relations
+  announcement  Announcement  @relation(fields: [announcementId], references: [id], onDelete: Cascade)
+  deliveryGroup DeliveryGroup @relation(fields: [deliveryGroupId], references: [id], onDelete: Cascade)
+
+  @@unique([announcementId, deliveryGroupId])
+  @@index([deliveryGroupId])
+}
+
+model GroupingProposal {
+  id              String @id @default(cuid())
+  deliveryGroupId String
+  clientId        String
+  announcementId  String
+
+  originalPrice Float
+  proposedPrice Float
+  savings       Float
+
+  status        ProposalStatus @default(PENDING)
+  validUntil    DateTime
+  responseAt    DateTime?
+  declineReason String?
+  createdAt     DateTime       @default(now())
+
+  // Relations
+  deliveryGroup DeliveryGroup @relation(fields: [deliveryGroupId], references: [id], onDelete: Cascade)
+  client        User          @relation(fields: [clientId], references: [id])
+  announcement  Announcement  @relation(fields: [announcementId], references: [id])
+
+  @@index([deliveryGroupId])
+  @@index([clientId])
+  @@index([status])
+}
+
+// Enums pour les litiges et enchères
+enum DisputeCategory {
+  DELIVERY_NOT_RECEIVED
+  DAMAGED_PACKAGE
+  WRONG_ADDRESS
+  LATE_DELIVERY
+  PAYMENT_ISSUE
+  INAPPROPRIATE_BEHAVIOR
+  FRAUD_ATTEMPT
+  SERVICE_NOT_RENDERED
+  QUALITY_ISSUE
+  OTHER
+}
+
+enum DisputePriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum DisputeStatus {
+  OPEN
+  INVESTIGATING
+  WAITING_EVIDENCE
+  MEDIATION
+  RESOLVED
+  CLOSED
+  ESCALATED
+}
+
+enum DisputeResolution {
+  FAVOR_REPORTER
+  FAVOR_REPORTED
+  PARTIAL_REFUND
+  NO_ACTION
+  MEDIATION
+}
+
+enum AuctionStatus {
+  ACTIVE
+  COMPLETED
+  CANCELLED
+  EXPIRED
+}
+
+enum BidStatus {
+  PENDING
+  ACCEPTED
+  LOST
+  CANCELLED
+}
+
+enum GroupStatus {
+  PROPOSED
+  ACTIVE
+  COMPLETED
+  CANCELLED
+  EXPIRED
+}
+
+enum ProposalStatus {
+  PENDING
+  ACCEPT
+  DECLINE
+  EXPIRED
+  CANCELLED
+}

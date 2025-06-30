@@ -44,10 +44,10 @@ export async function seedProviders(ctx: SeedContext) {
   const { prisma } = ctx
   const users = ctx.data.get('users') || []
   
-  console.log('   Creating provider profiles...')
+  console.log('   Updating provider profiles...')
   
   const providers = users.filter((u: any) => u.role === CONSTANTS.roles.PROVIDER)
-  const createdProviders = []
+  const updatedProviders = []
   
   // Associer chaque prestataire à une catégorie
   const providerCategories = [
@@ -64,10 +64,9 @@ export async function seedProviders(ctx: SeedContext) {
     const categoryData = serviceCategories[category as keyof typeof serviceCategories]
     
     const radius = 10 + Math.floor(Math.random() * 20) // 10-30 km
-    const provider = await prisma.provider.create({
+    const provider = await prisma.provider.update({
+      where: { userId: user.id },
       data: {
-        userId: user.id,
-        validationStatus: user.validationStatus,
         businessName: `${user.name} Services`,
         siret: user.validationStatus === 'VALIDATED' ? `${Math.floor(10000000 + Math.random() * 90000000)}00021` : null,
         specialties: [categoryData.specialty],
@@ -75,7 +74,6 @@ export async function seedProviders(ctx: SeedContext) {
         description: `Service professionnel de ${categoryData.name.toLowerCase()}`,
         averageRating: user.validationStatus === 'VALIDATED' ? 4 + Math.random() : 0,
         totalBookings: user.validationStatus === 'VALIDATED' ? Math.floor(Math.random() * 200) : 0,
-        isActive: user.validationStatus === 'VALIDATED',
         activatedAt: user.validationStatus === 'VALIDATED' ? new Date(Date.now() - Math.random() * 180 * 24 * 60 * 60 * 1000) : null,
         lastActiveAt: user.validationStatus === 'VALIDATED' ? new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000) : null,
         zone: {
@@ -144,16 +142,16 @@ export async function seedProviders(ctx: SeedContext) {
         })
       }
       
-      createdProviders.push({ provider, services })
+      updatedProviders.push({ provider, services })
     } else {
-      createdProviders.push({ provider, services: [] })
+      updatedProviders.push({ provider, services: [] })
     }
   }
   
-  console.log(`   Created ${createdProviders.length} provider profiles`)
+  console.log(`   Updated ${updatedProviders.length} provider profiles`)
   
   // Stocker pour les autres seeds
-  ctx.data.set('providers', createdProviders)
+  ctx.data.set('providers', updatedProviders)
   
-  return createdProviders
+  return updatedProviders
 } 

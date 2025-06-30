@@ -19,10 +19,14 @@ export async function seedDeliverer(ctx: SeedContext) {
       where: { id: deliverer.deliverer.id },
       data: {
         validationStatus: index < 3 ? 'VALIDATED' : index === 3 ? 'PENDING_VALIDATION' : 'REJECTED',
-        experienceLevel: index < 2 ? 'EXPERT' : 'BEGINNER',
-        preferredRegions: ['PARIS', 'ILE_DE_FRANCE'],
-        emergencyContact: `+336${Math.floor(10000000 + Math.random() * 89999999)}`,
-        bankAccountVerified: index < 4
+        vehicleType: index < 2 ? 'BICYCLE' : 'CAR',
+        maxWeight: index < 2 ? 50.0 : 25.0,
+        maxVolume: index < 2 ? 100.0 : 50.0,
+        averageRating: index < 3 ? 4.5 + Math.random() * 0.5 : 3.5 + Math.random() * 1.0,
+        totalDeliveries: Math.floor(Math.random() * 100) + 10,
+        isActive: index < 4,
+        activatedAt: index < 3 ? new Date() : null,
+        lastActiveAt: index < 4 ? new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000) : null
       }
     })
 

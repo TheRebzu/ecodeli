@@ -4,33 +4,21 @@ import { generateTransactionReference } from '../utils/generators/code-generator
 
 export async function seedPayments(ctx: SeedContext) {
   const { prisma } = ctx
+  const deliveries = ctx.data.get('deliveries') || []
+  const bookings = ctx.data.get('bookings') || []
   
   console.log('   Creating payments and wallets...')
   
   const payments = []
   const wallets = []
   
-  // Récupérer les données depuis la base de données
-  const deliverers = await prisma.user.findMany({
-    where: { role: 'DELIVERER' }
+  // Récupérer les livreurs et prestataires
+  const deliverers = await prisma.deliverer.findMany({
+    include: { user: true }
   })
   
-  const providers = await prisma.user.findMany({
-    where: { role: 'PROVIDER' }
-  })
-  
-  const deliveries = await prisma.delivery.findMany({
-    include: { client: true, deliverer: true }
-  })
-  
-  const bookings = await prisma.booking.findMany({
-    include: { 
-      client: true, 
-      service: { 
-        include: { provider: true } 
-      },
-      intervention: true 
-    }
+  const providers = await prisma.provider.findMany({
+    include: { user: true }
   })
   
   // 1. Créer des portefeuilles pour les livreurs
@@ -38,7 +26,7 @@ export async function seedPayments(ctx: SeedContext) {
     try {
       const wallet = await prisma.wallet.create({
         data: {
-          userId: deliverer.id,
+          userId: deliverer.userId,
           balance: 50 + Math.random() * 200, // Entre 50€ et 250€
           currency: 'EUR',
           stripeAccountId: `acct_${Math.random().toString(36).substring(2, 15)}`,
@@ -57,7 +45,7 @@ export async function seedPayments(ctx: SeedContext) {
     try {
       const wallet = await prisma.wallet.create({
         data: {
-          userId: provider.id,
+          userId: provider.userId,
           balance: 100 + Math.random() * 500, // Entre 100€ et 600€
           currency: 'EUR',
           stripeAccountId: `acct_${Math.random().toString(36).substring(2, 15)}`,
@@ -74,6 +62,16 @@ export async function seedPayments(ctx: SeedContext) {
   // 3. Créer des paiements pour les livraisons
   for (const delivery of deliveries) {
     try {
+      // Vérifier que l'utilisateur existe
+      const user = await prisma.user.findUnique({
+        where: { id: delivery.clientId }
+      })
+      
+      if (!user) {
+        console.log(`   Skipping payment for delivery ${delivery.id} - user ${delivery.clientId} not found`)
+        continue
+      }
+
       const payment = await prisma.payment.create({
         data: {
           userId: delivery.clientId,
@@ -131,9 +129,20 @@ export async function seedPayments(ctx: SeedContext) {
   // 4. Créer des paiements pour les réservations
   for (const booking of bookings) {
     try {
+      // Récupérer le client pour obtenir le userId
+      const client = await prisma.client.findUnique({
+        where: { id: booking.clientId },
+        include: { user: true }
+      })
+      
+      if (!client) {
+        console.log(`   Skipping payment for booking ${booking.id} - client ${booking.clientId} not found`)
+        continue
+      }
+
       const payment = await prisma.payment.create({
         data: {
-          userId: booking.clientId,
+          userId: client.userId, // Utiliser le userId du client
           bookingId: booking.id,
           amount: booking.totalPrice,
           currency: 'EUR',
@@ -150,34 +159,41 @@ export async function seedPayments(ctx: SeedContext) {
       })
       payments.push(payment)
       
-      // Créer une opération dans le portefeuille du prestataire
-      const providerWallet = await prisma.wallet.findUnique({
-        where: { userId: booking.service.providerId }
+      // Récupérer le prestataire pour obtenir le userId
+      const provider = await prisma.provider.findUnique({
+        where: { id: booking.providerId },
+        include: { user: true }
       })
       
-      if (providerWallet) {
-        const providerEarnings = booking.totalPrice * 0.85 // 85% pour le prestataire
-        
-        await prisma.walletOperation.create({
-          data: {
-            walletId: providerWallet.id,
-            userId: booking.service.providerId,
-            type: 'CREDIT',
-            amount: providerEarnings,
-            description: `Prestation #${booking.id}`,
-            reference: booking.id,
-            status: 'COMPLETED',
-            executedAt: booking.intervention?.completedAt || new Date()
-          }
+      if (provider) {
+        const providerWallet = await prisma.wallet.findUnique({
+          where: { userId: provider.userId }
         })
         
-        // Mettre à jour le solde du portefeuille
-        await prisma.wallet.update({
-          where: { id: providerWallet.id },
-          data: {
-            balance: { increment: providerEarnings }
-          }
-        })
+        if (providerWallet) {
+          const providerEarnings = booking.totalPrice * 0.85 // 85% pour le prestataire
+          
+          await prisma.walletOperation.create({
+            data: {
+              walletId: providerWallet.id,
+              userId: provider.userId,
+              type: 'CREDIT',
+              amount: providerEarnings,
+              description: `Prestation #${booking.id}`,
+              reference: booking.id,
+              status: 'COMPLETED',
+              executedAt: booking.intervention?.completedAt || new Date()
+            }
+          })
+          
+          // Mettre à jour le solde du portefeuille
+          await prisma.wallet.update({
+            where: { id: providerWallet.id },
+            data: {
+              balance: { increment: providerEarnings }
+            }
+          })
+        }
       }
       
     } catch (error) {
@@ -216,30 +232,8 @@ export async function seedPayments(ctx: SeedContext) {
     })
   }
   
-  // 6. Créer quelques opérations de frais de plateforme
+  // 6. Skip platform fee operations for now to avoid foreign key constraint issues
   const platformFees = []
-  for (let i = 0; i < Math.min(10, payments.length); i++) {
-    const randomPayment = payments[Math.floor(Math.random() * payments.length)]
-    const feeAmount = randomPayment.amount * 0.1 // 10% de frais de plateforme
-    
-    try {
-      await prisma.walletOperation.create({
-        data: {
-          walletId: walletsWithBalance[0]?.id || 'dummy',
-          userId: 'PLATFORM',
-          type: 'FEE',
-          amount: feeAmount,
-          description: `Commission plateforme`,
-          reference: randomPayment.id,
-          status: 'COMPLETED',
-          executedAt: randomPayment.paidAt || new Date()
-        }
-      })
-      platformFees.push(feeAmount)
-    } catch (error) {
-      // Ignore si pas de portefeuille disponible
-    }
-  }
   
   console.log(`   Created ${payments.length} payments`)
   console.log(`   Created ${wallets.length} wallets`)

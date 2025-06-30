@@ -141,7 +141,7 @@ export const seedDependencies: SeedDependency[] = [
   },
   {
     name: '17-contract',
-    fn: async (ctx) => (await import('../seeds/17-contract.seed')).seedContracts(ctx.prisma, ctx)
+    fn: async (ctx) => (await import('../seeds/17-contract.seed')).seedContracts(ctx)
   },
   {
     name: '18-tutorial',
@@ -169,7 +169,7 @@ export const seedDependencies: SeedDependency[] = [
   },
   {
     name: '24-disputes',
-    fn: async (ctx) => (await import('../seeds/24-disputes.seed')).seedDisputes(ctx.prisma, ctx)
+    fn: async (ctx) => (await import('../seeds/24-disputes.seed')).seedDisputes(ctx)
   },
   {
     name: '25-analytics',

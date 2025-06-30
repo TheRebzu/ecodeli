@@ -16,17 +16,17 @@ export async function seedAuth(ctx: SeedContext) {
     const account = await prisma.account.create({
       data: {
         userId: user.id,
-        type: 'credentials',
-        provider: 'credentials',
-        providerAccountId: user.email, // Utiliser l'email comme providerAccountId
+        accountId: user.email, // Utiliser l'email comme accountId
+        providerId: 'credentials', // providerId pour credentials
         // Les champs optionnels pour credentials provider
-        refresh_token: null,
-        access_token: null,
-        expires_at: null,
-        token_type: null,
+        accessToken: null,
+        refreshToken: null,
+        idToken: null,
+        accessTokenExpiresAt: null,
+        refreshTokenExpiresAt: null,
         scope: null,
-        id_token: null,
-        session_state: null
+        password: null,
+        updatedAt: new Date()
       }
     })
     accounts.push(account)
@@ -39,8 +39,9 @@ export async function seedAuth(ctx: SeedContext) {
       const session = await prisma.session.create({
         data: {
           userId: user.id,
-          sessionToken,
-          expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // 30 jours
+          token: sessionToken,
+          expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 jours
+          updatedAt: new Date()
         }
       })
       sessions.push(session)

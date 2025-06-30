@@ -174,7 +174,7 @@ export interface QuickAction {
 
 // Enums alignés avec Prisma
 export type SubscriptionPlan = 'FREE' | 'STARTER' | 'PREMIUM'
-export type AnnouncementType = 'DELIVERY' | 'TRANSPORT' | 'SERVICE'
+export type AnnouncementType = 'PACKAGE_DELIVERY' | 'PERSON_TRANSPORT' | 'AIRPORT_TRANSFER' | 'SHOPPING' | 'INTERNATIONAL_PURCHASE' | 'PET_SITTING' | 'HOME_SERVICE' | 'CART_DROP'
 export type AnnouncementStatus = 'DRAFT' | 'PUBLISHED' | 'MATCHED' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED'
 export type BookingStatus = 'PENDING' | 'CONFIRMED' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED'
 export type DeliveryStatus = 'PENDING' | 'PICKED_UP' | 'IN_TRANSIT' | 'DELIVERED' | 'FAILED'

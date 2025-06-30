@@ -10,7 +10,7 @@ const deliveriesFiltersSchema = z.object({
   status: z.string().optional(),
   dateFrom: z.string().optional(),
   dateTo: z.string().optional(),
-  sortBy: z.enum(['createdAt', 'scheduledPickupTime', 'estimatedDeliveryTime']).default('createdAt'),
+  sortBy: z.enum(['createdAt', 'pickupDate', 'deliveryDate']).default('createdAt'),
   sortOrder: z.enum(['asc', 'desc']).default('desc')
 })
 
@@ -35,13 +35,13 @@ export async function GET(request: NextRequest) {
     
     // Validation des paramètres
     const params = deliveriesFiltersSchema.parse({
-      page: searchParams.get('page'),
-      limit: searchParams.get('limit'),
-      status: searchParams.get('status'),
-      dateFrom: searchParams.get('dateFrom'),
-      dateTo: searchParams.get('dateTo'),
-      sortBy: searchParams.get('sortBy'),
-      sortOrder: searchParams.get('sortOrder')
+      page: searchParams.get('page') || '1',
+      limit: searchParams.get('limit') || '10',
+      status: searchParams.get('status') || undefined,
+      dateFrom: searchParams.get('dateFrom') || undefined,
+      dateTo: searchParams.get('dateTo') || undefined,
+      sortBy: searchParams.get('sortBy') || 'createdAt',
+      sortOrder: searchParams.get('sortOrder') || 'desc'
     })
 
     console.log('📝 Paramètres livraisons:', params)
@@ -57,7 +57,7 @@ export async function GET(request: NextRequest) {
 
     // Construire la clause WHERE
     const where: any = {
-      delivererId: deliverer.id
+      delivererId: user.id
     }
 
     if (params.status) {
@@ -69,6 +69,8 @@ export async function GET(request: NextRequest) {
       if (params.dateFrom) where.createdAt.gte = new Date(params.dateFrom)
       if (params.dateTo) where.createdAt.lte = new Date(params.dateTo)
     }
+
+    console.log('🔍 Clause WHERE pour la requête:', JSON.stringify(where, null, 2))
 
     // Récupérer les livraisons
     const deliveries = await db.delivery.findMany({
@@ -88,7 +90,7 @@ export async function GET(request: NextRequest) {
                 }
               }
             },
-            packageAnnouncement: {
+            PackageAnnouncement: {
               select: {
                 weight: true,
                 length: true,
@@ -107,7 +109,7 @@ export async function GET(request: NextRequest) {
             paidAt: true
           }
         },
-        proofOfDelivery: {
+        ProofOfDelivery: {
           select: {
             id: true,
             recipientName: true,
@@ -116,36 +118,46 @@ export async function GET(request: NextRequest) {
           }
         },
         tracking: {
-          orderBy: { createdAt: 'desc' },
+          orderBy: { timestamp: 'desc' },
           take: 5,
           select: {
             id: true,
             status: true,
             message: true,
             location: true,
-            createdAt: true
+            timestamp: true
           }
         }
       },
       orderBy: params.sortBy === 'createdAt' ? { createdAt: params.sortOrder } :
-               params.sortBy === 'scheduledPickupTime' ? { scheduledPickupTime: params.sortOrder } :
-               { scheduledDeliveryTime: params.sortOrder },
+               params.sortBy === 'pickupDate' ? { pickupDate: params.sortOrder } :
+               { deliveryDate: params.sortOrder },
       skip: (params.page - 1) * params.limit,
       take: params.limit
     })
+
+    console.log('📦 Livraisons trouvées:', deliveries.length)
+    if (deliveries.length > 0) {
+      console.log('📋 Première livraison:', {
+        id: deliveries[0].id,
+        status: deliveries[0].status,
+        delivererId: deliveries[0].delivererId,
+        announcementId: deliveries[0].announcementId
+      })
+    }
 
     // Formater les données
     const formattedDeliveries = deliveries.map(delivery => ({
       id: delivery.id,
       status: delivery.status,
       validationCode: delivery.validationCode,
-      pickupLocation: delivery.pickupLocation,
-      deliveryLocation: delivery.deliveryLocation,
-      scheduledPickupTime: delivery.scheduledPickupTime?.toISOString(),
-      scheduledDeliveryTime: delivery.scheduledDeliveryTime?.toISOString(),
-      actualPickupTime: delivery.actualPickupTime?.toISOString(),
-      actualDeliveryTime: delivery.actualDeliveryTime?.toISOString(),
-      notes: delivery.notes,
+      pickupDate: delivery.pickupDate?.toISOString(),
+      deliveryDate: delivery.deliveryDate?.toISOString(),
+      actualDeliveryDate: delivery.actualDeliveryDate?.toISOString(),
+      price: delivery.price,
+      delivererFee: delivery.delivererFee,
+      platformFee: delivery.platformFee,
+      insuranceFee: delivery.insuranceFee,
       createdAt: delivery.createdAt.toISOString(),
       updatedAt: delivery.updatedAt.toISOString(),
       
@@ -154,13 +166,13 @@ export async function GET(request: NextRequest) {
         title: delivery.announcement.title,
         description: delivery.announcement.description,
         type: delivery.announcement.type,
-        basePrice: Number(delivery.announcement.basePrice),
-        finalPrice: Number(delivery.announcement.finalPrice || delivery.announcement.basePrice),
+        basePrice: delivery.announcement.basePrice,
+        finalPrice: delivery.announcement.finalPrice || delivery.announcement.basePrice,
         currency: delivery.announcement.currency,
         isUrgent: delivery.announcement.isUrgent,
         pickupAddress: delivery.announcement.pickupAddress,
         deliveryAddress: delivery.announcement.deliveryAddress,
-        packageDetails: delivery.announcement.packageAnnouncement,
+        packageDetails: delivery.announcement.PackageAnnouncement,
         
         client: {
           id: delivery.announcement.author.id,
@@ -173,12 +185,12 @@ export async function GET(request: NextRequest) {
       },
       
       payment: delivery.payment ? {
-        amount: Number(delivery.payment.amount),
+        amount: delivery.payment.amount,
         status: delivery.payment.status,
         paidAt: delivery.payment.paidAt?.toISOString()
       } : null,
       
-      proofOfDelivery: delivery.proofOfDelivery,
+      proofOfDelivery: delivery.ProofOfDelivery,
       tracking: delivery.tracking
     }))
 
@@ -187,7 +199,7 @@ export async function GET(request: NextRequest) {
     // Statistiques
     const stats = await db.delivery.groupBy({
       by: ['status'],
-      where: { delivererId: deliverer.id },
+      where: { delivererId: user.id },
       _count: { _all: true }
     })
 
@@ -198,33 +210,21 @@ export async function GET(request: NextRequest) {
 
     console.log(`✅ Trouvé ${formattedDeliveries.length} livraisons sur ${total} total`)
 
-    const result = {
+    return NextResponse.json({
       deliveries: formattedDeliveries,
       pagination: {
         page: params.page,
         limit: params.limit,
         total,
-        totalPages: Math.ceil(total / params.limit),
-        hasNext: params.page < Math.ceil(total / params.limit),
-        hasPrev: params.page > 1
+        totalPages: Math.ceil(total / params.limit)
       },
-      stats: {
-        total,
-        byStatus: statusStats,
-        activeDeliveries: (statusStats['ACCEPTED'] || 0) + (statusStats['PICKED_UP'] || 0) + (statusStats['IN_TRANSIT'] || 0),
-        completedDeliveries: statusStats['DELIVERED'] || 0,
-        totalEarnings: formattedDeliveries
-          .filter(d => d.status === 'DELIVERED' && d.payment?.status === 'PAID')
-          .reduce((sum, d) => sum + (d.payment?.amount || 0), 0)
-      }
-    }
-
-    return NextResponse.json(result)
+      stats: statusStats
+    })
 
   } catch (error) {
     console.error('❌ Erreur récupération livraisons:', error)
     return NextResponse.json(
-      { error: 'Internal server error', details: error.message },
+      { error: 'Internal server error' },
       { status: 500 }
     )
   }

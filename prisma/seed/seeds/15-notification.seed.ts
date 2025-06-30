@@ -144,21 +144,20 @@ export async function seedNotifications(ctx: SeedContext) {
   // Notifications pour livraisons
   for (const delivery of recentDeliveries) {
     try {
-              const notification = await prisma.notification.create({
+      const notification = await prisma.notification.create({
+        data: {
+          userId: delivery.clientId,
+          type: 'DELIVERY_UPDATE',
+          title: 'Livraison mise à jour',
+          message: `Votre livraison ${delivery.trackingNumber} est maintenant ${delivery.status}`,
+          isRead: Math.random() > 0.3,
           data: {
-            userId: delivery.clientId,
-            type: 'DELIVERY_UPDATE',
-            title: 'Livraison mise à jour',
-            message: `Votre livraison ${delivery.trackingNumber} est maintenant ${delivery.status}`,
-            isRead: Math.random() > 0.3,
-            metadata: {
-              deliveryId: delivery.id,
-              trackingNumber: delivery.trackingNumber,
-              delivererName: delivery.deliverer.name
-            },
-            oneSignalId: `os_${Math.random().toString(36).substring(2, 15)}`
+            deliveryId: delivery.id,
+            trackingNumber: delivery.trackingNumber,
+            delivererName: delivery.deliverer.name
           }
-        })
+        }
+      })
       notifications.push(notification)
     } catch (error) {
       console.log(`   Error creating notification for delivery ${delivery.id}`)
@@ -168,21 +167,31 @@ export async function seedNotifications(ctx: SeedContext) {
   // Notifications pour prestataires
   for (const booking of recentBookings) {
     try {
-              const notification = await prisma.notification.create({
+      // Récupérer le prestataire pour obtenir le userId
+      const provider = await prisma.provider.findUnique({
+        where: { id: booking.providerId },
+        include: { user: true }
+      })
+      
+      if (!provider) {
+        console.log(`   Skipping notification for booking ${booking.id} - provider not found`)
+        continue
+      }
+
+      const notification = await prisma.notification.create({
+        data: {
+          userId: provider.userId,
+          type: 'BOOKING_NEW',
+          title: 'Nouvelle réservation',
+          message: `Nouvelle réservation de ${booking.client?.name || 'Client'} pour ${booking.service?.name || 'service'}`,
+          isRead: false,
           data: {
-            userId: booking.service.providerId,
-            type: 'BOOKING_NEW',
-            title: 'Nouvelle réservation',
-            message: `Nouvelle réservation de ${booking.client.name} pour ${booking.serviceType}`,
-            isRead: false,
-            metadata: {
-              bookingId: booking.id,
-              serviceType: booking.serviceType,
-              clientName: booking.client.name
-            },
-            oneSignalId: `os_${Math.random().toString(36).substring(2, 15)}`
+            bookingId: booking.id,
+            serviceType: booking.service?.type,
+            clientName: booking.client?.name
           }
-        })
+        }
+      })
       notifications.push(notification)
     } catch (error) {
       console.log(`   Error creating notification for booking ${booking.id}`)
