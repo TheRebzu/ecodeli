@@ -7,7 +7,7 @@ import bcrypt from "bcryptjs"
 import { UserRole } from "@prisma/client"
 
 export const config = {
-  // adapter: PrismaAdapter(db), // Désactiver l'adapter pour utiliser les utilisateurs des seeds
+  adapter: PrismaAdapter(db), // Activer l'adapter pour synchroniser avec la DB
   providers: [
     CredentialsProvider({
       name: "credentials",
@@ -89,6 +89,7 @@ export const config = {
     async jwt({ token, user, trigger, session }) {
       // Première connexion
       if (user) {
+        token.sub = user.id // Forcer l'utilisation de l'ID réel de l'utilisateur
         token.role = user.role
         token.isActive = user.isActive
         token.validationStatus = user.validationStatus
@@ -103,8 +104,8 @@ export const config = {
       return token
     },
     async session({ session, token }) {
-      if (token) {
-        session.user.id = token.sub!
+      if (token && token.sub) {
+        session.user.id = token.sub // Utiliser l'ID réel stocké dans sub
         session.user.role = token.role as UserRole
         session.user.isActive = token.isActive as boolean
         session.user.validationStatus = token.validationStatus as string

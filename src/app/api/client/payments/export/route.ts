@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '@/lib/auth'
+import { getUserFromSession } from '@/lib/auth/utils'
 import { db } from '@/lib/db'
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await auth()
-    if (!session?.user) {
+    const user = await getUserFromSession(request)
+    if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -19,30 +19,50 @@ export async function GET(request: NextRequest) {
 
     // Construire les filtres
     const where: any = {
-      payerId: session.user.id
+      userId: user.id
     }
 
-    if (status) where.status = status
-    if (type) where.type = type
-    if (search) {
-      where.description = {
-        contains: search,
-        mode: 'insensitive'
-      }
+    if (status && status !== 'all') {
+      where.status = status
     }
+
+    // Construire les filtres metadata sÃ©parÃ©ment
+    const metadataFilters: any[] = []
+    
+    if (type && type !== 'all') {
+      metadataFilters.push({
+        path: ['type'],
+        equals: type
+      })
+    }
+
+    if (search) {
+      metadataFilters.push({
+        path: ['description'],
+        string_contains: search
+      })
+    }
+
+    if (metadataFilters.length === 1) {
+      where.metadata = metadataFilters[0]
+    } else if (metadataFilters.length > 1) {
+      where.AND = metadataFilters.map(filter => ({ metadata: filter }))
+    }
+
     if (dateFrom || dateTo) {
       where.createdAt = {}
       if (dateFrom) where.createdAt.gte = new Date(dateFrom)
       if (dateTo) where.createdAt.lte = new Date(dateTo)
     }
 
-    // Récupérer tous les paiements correspondants
+    // Rï¿½cupï¿½rer tous les paiements correspondants
     const payments = await db.payment.findMany({
       where,
       include: {
-        recipient: {
+        user: {
           select: {
-            name: true
+            name: true,
+            email: true
           }
         },
         delivery: {
@@ -54,25 +74,36 @@ export async function GET(request: NextRequest) {
               }
             }
           }
+        },
+        booking: {
+          select: {
+            id: true,
+            service: {
+              select: {
+                name: true,
+                type: true
+              }
+            }
+          }
         }
       },
       orderBy: { createdAt: 'desc' }
     })
 
     if (format === 'csv') {
-      // Générer CSV
+      // Gï¿½nï¿½rer CSV
       const csvHeader = 'Date,Type,Description,Montant,Devise,Statut,Destinataire,Livraison\n'
       const csvData = payments.map(payment => {
         const date = new Date(payment.createdAt).toLocaleDateString('fr-FR')
-        const type = payment.type
-        const description = `"${payment.description.replace(/"/g, '""')}"`
+        const type = payment.metadata?.type || 'UNKNOWN'
+        const description = `"${(payment.metadata?.description || `Paiement ${payment.amount}â‚¬`).replace(/"/g, '""')}"`
         const amount = payment.amount.toString()
         const currency = payment.currency
         const status = payment.status
-        const recipient = payment.recipient?.name || ''
-        const delivery = payment.delivery?.announcement?.title || ''
+        const userName = payment.user?.name || ''
+        const delivery = payment.delivery?.announcement?.title || payment.booking?.service?.name || ''
         
-        return `${date},${type},${description},${amount},${currency},${status},"${recipient}","${delivery}"`
+        return `${date},${type},${description},${amount},${currency},${status},"${userName}","${delivery}"`
       }).join('\n')
 
       const csv = csvHeader + csvData
@@ -84,7 +115,7 @@ export async function GET(request: NextRequest) {
         }
       })
     } else if (format === 'pdf') {
-      // Générer PDF simple (en pratique, utiliser une librairie comme jsPDF ou Puppeteer)
+      // Gï¿½nï¿½rer PDF simple (en pratique, utiliser une librairie comme jsPDF ou Puppeteer)
       const htmlContent = `
         <!DOCTYPE html>
         <html>
@@ -106,8 +137,8 @@ export async function GET(request: NextRequest) {
         </head>
         <body>
           <h1>Historique des paiements EcoDeli</h1>
-          <p>Période: ${dateFrom || 'Début'} - ${dateTo || 'Aujourd\'hui'}</p>
-          <p>Généré le: ${new Date().toLocaleDateString('fr-FR')}</p>
+          <p>Pï¿½riode: ${dateFrom || 'Dï¿½but'} - ${dateTo || 'Aujourd\'hui'}</p>
+          <p>Gï¿½nï¿½rï¿½ le: ${new Date().toLocaleDateString('fr-FR')}</p>
           
           <table>
             <thead>
@@ -124,18 +155,18 @@ export async function GET(request: NextRequest) {
               ${payments.map(payment => `
                 <tr>
                   <td>${new Date(payment.createdAt).toLocaleDateString('fr-FR')}</td>
-                  <td>${payment.type}</td>
-                  <td>${payment.description}</td>
+                  <td>${payment.metadata?.type || 'UNKNOWN'}</td>
+                  <td>${payment.metadata?.description || `Paiement ${payment.amount}â‚¬`}</td>
                   <td class="amount">${payment.amount} ${payment.currency}</td>
                   <td class="status-${payment.status.toLowerCase()}">${payment.status}</td>
-                  <td>${payment.recipient?.name || '-'}</td>
+                  <td>${payment.user?.name || '-'}</td>
                 </tr>
               `).join('')}
             </tbody>
           </table>
           
           <div style="margin-top: 30px;">
-            <h3>Résumé</h3>
+            <h3>Rï¿½sumï¿½</h3>
             <p>Total des paiements: ${payments.filter(p => p.status === 'COMPLETED').reduce((sum, p) => sum + p.amount, 0)} EUR</p>
             <p>Nombre de transactions: ${payments.length}</p>
           </div>

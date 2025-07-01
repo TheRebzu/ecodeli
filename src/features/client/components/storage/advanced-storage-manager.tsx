@@ -273,7 +273,7 @@ export default function AdvancedStorageManager({ clientId }: AdvancedStorageMana
       reserved: { color: "bg-blue-100 text-blue-800", label: t("availability.reserved") }
     };
 
-    const statusConfig = config[availability as keyof typeof config];
+    const statusConfig = config[availability as keyof typeof config] || config.available;
     return <Badge className={statusConfig.color}>{statusConfig.label}</Badge>;
   };
 
@@ -285,7 +285,7 @@ export default function AdvancedStorageManager({ clientId }: AdvancedStorageMana
       overdue: { color: "bg-orange-100 text-orange-800", label: t("rental_status.overdue") }
     };
 
-    const statusConfig = config[status as keyof typeof config];
+    const statusConfig = config[status as keyof typeof config] || config.active;
     return <Badge className={statusConfig.color}>{statusConfig.label}</Badge>;
   };
 
@@ -297,7 +297,7 @@ export default function AdvancedStorageManager({ clientId }: AdvancedStorageMana
       xl: { color: "bg-red-100 text-red-800", label: t("sizes.xl") }
     };
 
-    const sizeConfig = config[size as keyof typeof config];
+    const sizeConfig = config[size as keyof typeof config] || config.medium;
     return <Badge variant="outline" className={sizeConfig.color}>{sizeConfig.label}</Badge>;
   };
 
@@ -309,7 +309,7 @@ export default function AdvancedStorageManager({ clientId }: AdvancedStorageMana
       fragile: { color: "bg-yellow-100 text-yellow-800", label: t("types.fragile") }
     };
 
-    const typeConfig = config[type as keyof typeof config];
+    const typeConfig = config[type as keyof typeof config] || config.standard;
     return <Badge variant="outline" className={typeConfig.color}>{typeConfig.label}</Badge>;
   };
 
@@ -431,11 +431,11 @@ export default function AdvancedStorageManager({ clientId }: AdvancedStorageMana
                   <div className="grid grid-cols-2 gap-2 text-sm">
                     <div>
                       <span className="text-gray-600">{t("dimensions")}:</span>
-                      <div>{box.dimensions.width}×{box.dimensions.height}×{box.dimensions.depth}cm</div>
+                      <div>{box.dimensions?.width || 0}×{box.dimensions?.height || 0}×{box.dimensions?.depth || 0}cm</div>
                     </div>
                     <div>
                       <span className="text-gray-600">{t("max_weight")}:</span>
-                      <div>{box.maxWeight}kg</div>
+                      <div>{box.maxWeight || 0}kg</div>
                     </div>
                   </div>
 
@@ -452,11 +452,11 @@ export default function AdvancedStorageManager({ clientId }: AdvancedStorageMana
 
                   <div className="flex items-center gap-2 text-sm">
                     <Clock className="h-4 w-4" />
-                    <span>{t("access_hours")}: {box.accessHours.start} - {box.accessHours.end}</span>
+                    <span>{t("access_hours")}: {box.accessHours?.start || '00:00'} - {box.accessHours?.end || '23:59'}</span>
                   </div>
 
                   <div className="flex flex-wrap gap-1">
-                    {box.features.map((feature, index) => (
+                    {(box.features || []).map((feature, index) => (
                       <Badge key={index} variant="secondary" className="text-xs">
                         {feature}
                       </Badge>

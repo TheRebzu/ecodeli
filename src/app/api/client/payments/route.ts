@@ -21,22 +21,34 @@ export async function GET(request: NextRequest) {
 
     // Construire les filtres
     const where: any = {
-      payerId: user.id
+      userId: user.id
     }
 
-    if (status) {
+    if (status && status !== 'all') {
       where.status = status
     }
 
-    if (type) {
-      where.type = type
+    // Construire les filtres metadata séparément pour éviter l'écrasement
+    const metadataFilters: any[] = []
+    
+    if (type && type !== 'all') {
+      metadataFilters.push({
+        path: ['type'],
+        equals: type
+      })
     }
 
     if (search) {
-      where.description = {
-        contains: search,
-        mode: 'insensitive'
-      }
+      metadataFilters.push({
+        path: ['description'],
+        string_contains: search
+      })
+    }
+
+    if (metadataFilters.length === 1) {
+      where.metadata = metadataFilters[0]
+    } else if (metadataFilters.length > 1) {
+      where.AND = metadataFilters.map(filter => ({ metadata: filter }))
     }
 
     if (dateFrom || dateTo) {
@@ -54,14 +66,35 @@ export async function GET(request: NextRequest) {
       db.payment.findMany({
         where,
         include: {
-          recipient: {
+          user: {
             select: {
-              name: true
+              name: true,
+              email: true
             }
           },
           delivery: {
             select: {
-              id: true
+              id: true,
+              announcement: {
+                select: {
+                  title: true
+                }
+              }
+            }
+          },
+          booking: {
+            select: {
+              id: true,
+              status: true,
+              scheduledDate: true,
+              service: {
+                select: {
+                  id: true,
+                  name: true,
+                  type: true,
+                  description: true
+                }
+              }
             }
           }
         },
@@ -75,13 +108,13 @@ export async function GET(request: NextRequest) {
     // Calculer les statistiques
     const allPayments = await db.payment.findMany({
       where: {
-        payerId: user.id
+        userId: user.id
       }
     })
 
     const stats = {
       totalSpent: allPayments
-        .filter(p => p.status === 'COMPLETED' && p.type !== 'INSURANCE_CLAIM')
+        .filter(p => p.status === 'COMPLETED')
         .reduce((sum, p) => sum + p.amount, 0),
       totalRefunds: allPayments
         .filter(p => p.status === 'REFUNDED')
@@ -95,16 +128,22 @@ export async function GET(request: NextRequest) {
     // Transformer les données
     const transformedPayments = payments.map(payment => ({
       id: payment.id,
-      type: payment.type,
+      type: payment.metadata?.type || 'UNKNOWN',
       amount: payment.amount,
       currency: payment.currency,
       status: payment.status,
-      description: payment.description,
+      description: payment.metadata?.description || `Paiement ${payment.amount}€`,
       createdAt: payment.createdAt.toISOString(),
-      recipientName: payment.recipient?.name,
+      userName: payment.user?.name,
       deliveryId: payment.delivery?.id,
+      deliveryTitle: payment.delivery?.announcement?.title,
+      bookingId: payment.booking?.id,
+      bookingServiceName: payment.booking?.service?.name,
+      bookingServiceType: payment.booking?.service?.type,
+      bookingStatus: payment.booking?.status,
       stripePaymentId: payment.stripePaymentId,
-      refundAmount: payment.refundAmount
+      refundAmount: payment.refundAmount,
+      paymentMethod: payment.paymentMethod
     }))
 
     return NextResponse.json({

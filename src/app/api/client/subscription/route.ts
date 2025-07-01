@@ -11,10 +11,7 @@ export async function GET(request: NextRequest) {
   try {
     // Récupérer l'abonnement client
     const clientProfile = await db.client.findUnique({
-      where: { userId: user.id },
-      include: {
-        subscription: true
-      }
+      where: { userId: user.id }
     })
 
     if (!clientProfile) {
@@ -65,22 +62,22 @@ export async function GET(request: NextRequest) {
 
     // Calculer les économies réalisées ce mois
     const thisMonthSavings = thisMonthStats.reduce((total, delivery) => {
-      const originalPrice = delivery.announcement.price
-      const subscriptionDiscount = clientProfile.subscription?.plan === 'STARTER' ? 0.05 : 
-                                   clientProfile.subscription?.plan === 'PREMIUM' ? 0.09 : 0
+      const originalPrice = delivery.announcement.finalPrice || delivery.announcement.basePrice
+      const subscriptionDiscount = clientProfile.subscriptionPlan === 'STARTER' ? 0.05 : 
+                                   clientProfile.subscriptionPlan === 'PREMIUM' ? 0.09 : 0
       return total + (originalPrice * subscriptionDiscount)
     }, 0)
 
     const lastMonthSavings = lastMonthStats.reduce((total, delivery) => {
-      const originalPrice = delivery.announcement.price
-      const subscriptionDiscount = clientProfile.subscription?.plan === 'STARTER' ? 0.05 : 
-                                   clientProfile.subscription?.plan === 'PREMIUM' ? 0.09 : 0
+      const originalPrice = delivery.announcement.finalPrice || delivery.announcement.basePrice
+      const subscriptionDiscount = clientProfile.subscriptionPlan === 'STARTER' ? 0.05 : 
+                                   clientProfile.subscriptionPlan === 'PREMIUM' ? 0.09 : 0
       return total + (originalPrice * subscriptionDiscount)
     }, 0)
 
-    // Compter les envois prioritaires
+    // Compter les envois prioritaires (urgents)
     const priorityShipments = thisMonthStats.filter(delivery => 
-      delivery.announcement.priority === 'HIGH'
+      delivery.announcement.isUrgent
     ).length
 
     // Calculer l'assurance utilisée
@@ -105,20 +102,13 @@ export async function GET(request: NextRequest) {
     }
 
     // Transformer les données d'abonnement
-    const subscription = clientProfile.subscription ? {
-      id: clientProfile.subscription.id,
-      plan: clientProfile.subscription.plan,
-      status: clientProfile.subscription.status,
-      startDate: clientProfile.subscription.startDate.toISOString(),
-      endDate: clientProfile.subscription.endDate?.toISOString(),
-      autoRenew: clientProfile.subscription.autoRenew
-    } : {
-      id: 'free',
-      plan: 'FREE',
-      status: 'active',
-      startDate: clientProfile.createdAt.toISOString(),
-      endDate: null,
-      autoRenew: false
+    const subscription = {
+      id: clientProfile.id,
+      plan: clientProfile.subscriptionPlan,
+      status: clientProfile.subscriptionEnd && clientProfile.subscriptionEnd < new Date() ? 'expired' : 'active',
+      startDate: clientProfile.subscriptionStart.toISOString(),
+      endDate: clientProfile.subscriptionEnd?.toISOString() || null,
+      autoRenew: clientProfile.subscriptionPlan !== 'FREE'
     }
 
     return NextResponse.json({
@@ -148,10 +138,7 @@ export async function PUT(request: NextRequest) {
     }
 
     const clientProfile = await db.client.findUnique({
-      where: { userId: user.id },
-      include: {
-        subscription: true
-      }
+      where: { userId: user.id }
     })
 
     if (!clientProfile) {
@@ -159,23 +146,22 @@ export async function PUT(request: NextRequest) {
     }
 
     let subscription
+    const now = new Date()
 
     if (plan === 'FREE') {
       // Annuler l'abonnement payant
-      if (clientProfile.subscription) {
-        await db.subscription.update({
-          where: { id: clientProfile.subscription.id },
-          data: {
-            status: 'cancelled',
-            endDate: new Date()
-          }
-        })
-      }
+      await db.client.update({
+        where: { id: clientProfile.id },
+        data: {
+          subscriptionPlan: 'FREE',
+          subscriptionEnd: now
+        }
+      })
       subscription = {
-        id: 'free',
+        id: clientProfile.id,
         plan: 'FREE',
         status: 'active',
-        startDate: new Date().toISOString(),
+        startDate: now.toISOString(),
         endDate: null,
         autoRenew: false
       }
@@ -185,57 +171,40 @@ export async function PUT(request: NextRequest) {
       const endDate = new Date()
       endDate.setMonth(endDate.getMonth() + 1)
 
-      if (clientProfile.subscription) {
-        // Mettre à jour l'abonnement existant
-        const updatedSubscription = await db.subscription.update({
-          where: { id: clientProfile.subscription.id },
-          data: {
-            plan,
-            status: 'active',
-            endDate,
-            autoRenew: true
-          }
-        })
-        subscription = {
-          id: updatedSubscription.id,
-          plan: updatedSubscription.plan,
-          status: updatedSubscription.status,
-          startDate: updatedSubscription.startDate.toISOString(),
-          endDate: updatedSubscription.endDate?.toISOString(),
-          autoRenew: updatedSubscription.autoRenew
+      // Mettre à jour l'abonnement
+      const updatedClient = await db.client.update({
+        where: { id: clientProfile.id },
+        data: {
+          subscriptionPlan: plan,
+          subscriptionStart: now,
+          subscriptionEnd: endDate
         }
-      } else {
-        // Créer un nouvel abonnement
-        const newSubscription = await db.subscription.create({
-          data: {
-            clientId: clientProfile.id,
-            plan,
-            status: 'active',
-            startDate: new Date(),
-            endDate,
-            autoRenew: true
-          }
-        })
-        subscription = {
-          id: newSubscription.id,
-          plan: newSubscription.plan,
-          status: newSubscription.status,
-          startDate: newSubscription.startDate.toISOString(),
-          endDate: newSubscription.endDate?.toISOString(),
-          autoRenew: newSubscription.autoRenew
-        }
+      })
+      
+      subscription = {
+        id: updatedClient.id,
+        plan: updatedClient.subscriptionPlan,
+        status: 'active',
+        startDate: updatedClient.subscriptionStart.toISOString(),
+        endDate: updatedClient.subscriptionEnd?.toISOString(),
+        autoRenew: true
       }
 
       // Créer un paiement pour l'abonnement
       await db.payment.create({
         data: {
-          payerId: user.id,
-          recipientId: 'system',
+          userId: user.id,
+          clientId: clientProfile.id,
           amount: price,
           currency: 'EUR',
-          type: 'SUBSCRIPTION',
+          paymentMethod: 'STRIPE',
           status: 'COMPLETED',
-          description: `Abonnement ${plan} - ${new Date().toLocaleDateString('fr-FR')}`
+          paidAt: now,
+          metadata: {
+            type: 'SUBSCRIPTION',
+            plan: plan,
+            description: `Abonnement ${plan} - ${new Date().toLocaleDateString('fr-FR')}`
+          }
         }
       })
     }
@@ -258,22 +227,21 @@ export async function DELETE(request: NextRequest) {
     }
 
     const clientProfile = await db.client.findUnique({
-      where: { userId: user.id },
-      include: {
-        subscription: true
-      }
+      where: { userId: user.id }
     })
 
-    if (!clientProfile?.subscription) {
+    if (clientProfile.subscriptionPlan === 'FREE') {
       return NextResponse.json({ error: 'No subscription to cancel' }, { status: 404 })
     }
 
     // Annuler l'abonnement (il reste actif jusqu'à la fin de la période)
-    await db.subscription.update({
-      where: { id: clientProfile.subscription.id },
+    // On ne change pas immédiatement en FREE, on garde le plan actuel jusqu'à la fin
+    // mais on note que c'est annulé en ajoutant une date de fin si elle n'existe pas
+    const endDate = clientProfile.subscriptionEnd || new Date()
+    await db.client.update({
+      where: { id: clientProfile.id },
       data: {
-        autoRenew: false,
-        status: 'cancelled'
+        subscriptionEnd: endDate
       }
     })
 

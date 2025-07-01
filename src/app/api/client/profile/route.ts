@@ -13,21 +13,15 @@ export async function GET(request: NextRequest) {
     const clientProfile = await db.client.findUnique({
       where: { userId: user.id },
       include: {
-        user: true,
-        subscription: true,
-        documents: {
-          orderBy: { createdAt: 'desc' }
-        },
-        addresses: {
-          orderBy: { isDefault: 'desc' }
-        },
-        paymentMethods: {
-          orderBy: { isDefault: 'desc' }
+        user: {
+          include: {
+            profile: true
+          }
         },
         announcements: {
           select: {
             id: true,
-            price: true,
+            basePrice: true,
             status: true
           }
         },
@@ -35,15 +29,26 @@ export async function GET(request: NextRequest) {
           select: {
             id: true,
             totalPrice: true,
-            status: true,
-            rating: true
+            status: true
           }
         },
-        deliveries: {
+        payments: {
           where: {
-            status: 'DELIVERED'
+            status: 'COMPLETED'
           },
+          select: { 
+            id: true,
+            amount: true 
+          }
+        },
+        storageBoxes: {
           select: { id: true }
+        },
+        reviews: {
+          select: { 
+            id: true,
+            rating: true 
+          }
         }
       }
     })
@@ -54,9 +59,9 @@ export async function GET(request: NextRequest) {
 
     // Calculer les statistiques
     const completedOrders = clientProfile.bookings.filter(b => b.status === 'COMPLETED')
-    const totalSpent = completedOrders.reduce((sum, b) => sum + (b.totalPrice || 0), 0)
-    const averageRating = completedOrders.filter(b => b.rating).length > 0 
-      ? completedOrders.filter(b => b.rating).reduce((sum, b) => sum + (b.rating || 0), 0) / completedOrders.filter(b => b.rating).length
+    const totalSpent = clientProfile.payments.reduce((sum, p) => sum + (p.amount || 0), 0)
+    const averageRating = clientProfile.reviews.length > 0 
+      ? clientProfile.reviews.reduce((sum, r) => sum + (r.rating || 0), 0) / clientProfile.reviews.length
       : 0
     const cancelledOrders = clientProfile.bookings.filter(b => b.status === 'CANCELLED').length
 
@@ -67,58 +72,31 @@ export async function GET(request: NextRequest) {
       user: {
         name: clientProfile.user.name,
         email: clientProfile.user.email,
-        phone: clientProfile.user.phone,
+        phone: clientProfile.user.profile?.phone,
         image: clientProfile.user.image,
-        address: clientProfile.user.address,
-        city: clientProfile.user.city,
-        postalCode: clientProfile.user.postalCode,
-        country: clientProfile.user.country,
-        dateOfBirth: clientProfile.user.dateOfBirth?.toISOString()
+        address: clientProfile.user.profile?.address,
+        city: clientProfile.user.profile?.city,
+        postalCode: clientProfile.user.profile?.postalCode,
+        country: clientProfile.user.profile?.country,
+        dateOfBirth: clientProfile.user.profile?.dateOfBirth?.toISOString()
       },
-      subscriptionPlan: clientProfile.subscription?.plan || 'FREE',
+      subscriptionPlan: clientProfile.subscriptionPlan || 'FREE',
       preferences: {
         notifications: {
           email: clientProfile.emailNotifications !== false,
           sms: clientProfile.smsNotifications === true,
-          push: clientProfile.pushNotifications !== false,
-          marketing: clientProfile.marketingNotifications === true
-        },
-        language: clientProfile.language || 'fr',
-        timezone: clientProfile.timezone || 'Europe/Paris',
-        defaultPaymentMethod: clientProfile.defaultPaymentMethodId
+          push: clientProfile.pushNotifications !== false
+        }
       },
-      documents: clientProfile.documents.map(doc => ({
-        id: doc.id,
-        type: doc.type,
-        name: doc.name,
-        status: doc.status,
-        uploadedAt: doc.createdAt.toISOString(),
-        url: doc.url
-      })),
       stats: {
         totalOrders: clientProfile.bookings.length,
         totalSpent: Math.round(totalSpent * 100) / 100,
         averageRating: Math.round(averageRating * 10) / 10,
-        completedDeliveries: clientProfile.deliveries.length,
-        cancelledOrders
-      },
-      paymentMethods: clientProfile.paymentMethods.map(pm => ({
-        id: pm.id,
-        type: pm.type,
-        isDefault: pm.isDefault,
-        lastFour: pm.lastFour,
-        expiryDate: pm.expiryDate,
-        brand: pm.brand
-      })),
-      addresses: clientProfile.addresses.map(addr => ({
-        id: addr.id,
-        label: addr.label,
-        street: addr.street,
-        city: addr.city,
-        postalCode: addr.postalCode,
-        country: addr.country,
-        isDefault: addr.isDefault
-      }))
+        completedOrders: completedOrders.length,
+        cancelledOrders,
+        totalReviews: clientProfile.reviews.length,
+        storageBoxes: clientProfile.storageBoxes.length
+      }
     }
 
     return NextResponse.json({ profile })
@@ -140,16 +118,19 @@ export async function PUT(request: NextRequest) {
 
     const updates = await request.json()
 
-    // Mettre à jour les informations utilisateur
+    // Mettre à jour les informations utilisateur (User table)
     const userUpdates: any = {}
     if (updates.name) userUpdates.name = updates.name
     if (updates.email) userUpdates.email = updates.email
-    if (updates.phone) userUpdates.phone = updates.phone
-    if (updates.address) userUpdates.address = updates.address
-    if (updates.city) userUpdates.city = updates.city
-    if (updates.postalCode) userUpdates.postalCode = updates.postalCode
-    if (updates.country) userUpdates.country = updates.country
-    if (updates.dateOfBirth) userUpdates.dateOfBirth = new Date(updates.dateOfBirth)
+
+    // Mettre à jour les informations de profil (Profile table)
+    const profileUpdates: any = {}
+    if (updates.phone) profileUpdates.phone = updates.phone
+    if (updates.address) profileUpdates.address = updates.address
+    if (updates.city) profileUpdates.city = updates.city
+    if (updates.postalCode) profileUpdates.postalCode = updates.postalCode
+    if (updates.country) profileUpdates.country = updates.country
+    if (updates.dateOfBirth) profileUpdates.dateOfBirth = new Date(updates.dateOfBirth)
 
     // Mettre à jour les préférences client
     const clientUpdates: any = {}
@@ -157,18 +138,27 @@ export async function PUT(request: NextRequest) {
       clientUpdates.emailNotifications = updates.preferences.notifications.email
       clientUpdates.smsNotifications = updates.preferences.notifications.sms
       clientUpdates.pushNotifications = updates.preferences.notifications.push
-      clientUpdates.marketingNotifications = updates.preferences.notifications.marketing
     }
-    if (updates.preferences?.language) clientUpdates.language = updates.preferences.language
-    if (updates.preferences?.timezone) clientUpdates.timezone = updates.preferences.timezone
 
-    // Transaction pour mettre à jour user et client
+    // Transaction pour mettre à jour user, profile et client
     await db.$transaction(async (tx) => {
       // Mettre à jour l'utilisateur
       if (Object.keys(userUpdates).length > 0) {
         await tx.user.update({
           where: { id: user.id },
           data: userUpdates
+        })
+      }
+
+      // Mettre à jour le profil (ou le créer s'il n'existe pas)
+      if (Object.keys(profileUpdates).length > 0) {
+        await tx.profile.upsert({
+          where: { userId: user.id },
+          update: profileUpdates,
+          create: {
+            userId: user.id,
+            ...profileUpdates
+          }
         })
       }
 
@@ -180,10 +170,8 @@ export async function PUT(request: NextRequest) {
         })
       }
     })
-
-    // Récupérer le profil mis à jour
-    const response = await GET(request)
-    return response
+    
+    return NextResponse.json({ success: true, message: 'Profil mis à jour avec succès' })
 
   } catch (error) {
     console.error('Error updating client profile:', error)

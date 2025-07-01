@@ -52,17 +52,13 @@ export default async function HomePage({
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div className="space-y-6 mx-auto lg:mx-0 max-w-xl">
               <Badge className="px-3 py-1 mb-2 mx-auto lg:mx-0 inline-flex">
-                <Sparkles className="mr-1 h-3 w-3" /> Nouveau en France
+                <Sparkles className="mr-1 h-3 w-3" /> {t('hero.badge', 'Nouveau en France')}
               </Badge>
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary">
-                La livraison <span>collaborative</span> qui change tout
+                {t('hero.title', 'La livraison collaborative qui change tout')}
               </h1>
               <div className="text-xl text-muted-foreground max-w-lg mx-auto lg:mx-0">
-                EcoDeli connecte particuliers, commerçants et prestataires pour
-                des livraisons
-                <span className="mx-1 font-medium text-primary">
-                  plus écologiques
-                </span>
+                {t('hero.subtitle', 'EcoDeli connecte particuliers, commerçants et prestataires pour des livraisons plus écologiques')}
               </div>
               <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
                 <Link href={`/${locale}/register`}>
@@ -84,15 +80,15 @@ export default async function HomePage({
               <div className="grid grid-cols-3 gap-4 mt-8 text-center p-4 rounded-lg border border-border/30 bg-background/50 backdrop-blur-sm">
                 <div className="space-y-1">
                   <p className="text-xl font-bold text-primary">+5000</p>
-                  <p className="text-xs text-muted-foreground">Utilisateurs</p>
+                  <p className="text-xs text-muted-foreground">{t('hero.stats.users', 'Utilisateurs')}</p>
                 </div>
                 <div className="space-y-1">
                   <p className="text-xl font-bold text-primary">+15000</p>
-                  <p className="text-xs text-muted-foreground">Livraisons</p>
+                  <p className="text-xs text-muted-foreground">{t('hero.stats.deliveries', 'Livraisons')}</p>
                 </div>
                 <div className="space-y-1">
                   <p className="text-xl font-bold text-primary">-40%</p>
-                  <p className="text-xs text-muted-foreground">Coûts réduits</p>
+                  <p className="text-xs text-muted-foreground">{t('hero.stats.costs', 'Coûts réduits')}</p>
                 </div>
               </div>
             </div>
@@ -119,12 +115,12 @@ export default async function HomePage({
       <section className="w-full">
         <div className="container mx-auto px-4 text-center">
           <div className="text-center max-w-3xl mx-auto mb-16">
-            <Badge className="mb-4">Simple & Rapide</Badge>
+            <Badge className="mb-4">{t('howItWorks.badge', 'Simple & Rapide')}</Badge>
             <h2 className="text-3xl md:text-4xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary">
-              Comment fonctionne EcoDeli ?
+              {t('howItWorks.title', 'Comment fonctionne EcoDeli ?')}
             </h2>
             <p className="text-lg text-muted-foreground">
-              Un système de livraison collaboratif en 4 étapes simples
+              {t('howItWorks.subtitle', 'Un système de livraison collaboratif en 4 étapes simples')}
             </p>
           </div>
 
@@ -132,27 +128,27 @@ export default async function HomePage({
             {[
               {
                 step: "1",
-                title: "Publiez votre annonce",
+                title: t('howItWorks.steps.step1.title', 'Publiez votre annonce'),
                 description:
-                  "Décrivez votre besoin de livraison ou le service que vous proposez",
+                  t('howItWorks.steps.step1.description', "Décrivez votre besoin de livraison ou le service que vous proposez"),
                 icon: Package},
               {
                 step: "2",
-                title: "Mettez-vous d'accord",
+                title: t('howItWorks.steps.step2.title', "Mettez-vous d'accord"),
                 description:
-                  "Discutez des détails et du prix avec l'autre partie",
+                  t('howItWorks.steps.step2.description', "Discutez des détails et du prix avec l'autre partie"),
                 icon: User},
               {
                 step: "3",
-                title: "Suivez en temps réel",
+                title: t('howItWorks.steps.step3.title', 'Suivez en temps réel'),
                 description:
-                  "Suivez le parcours du colis ou du livreur et communiquez si besoin",
+                  t('howItWorks.steps.step3.description', "Suivez le parcours du colis ou du livreur et communiquez si besoin"),
                 icon: Clock},
               {
                 step: "4",
-                title: "Code de confirmation",
+                title: t('howItWorks.steps.step4.title', 'Code de confirmation'),
                 description:
-                  "Un code de confirmation valide la livraison et déclenche le paiement",
+                  t('howItWorks.steps.step4.description', "Un code de confirmation valide la livraison et déclenche le paiement"),
                 icon: CheckCircle}].map((step, index) => (
               <div
                 key={index}
@@ -179,7 +175,7 @@ export default async function HomePage({
           <div className="mt-12 text-center">
             <Link href={`/${locale}/faq`}>
               <Button variant="link" className="text-lg group">
-                En savoir plus sur le fonctionnement{" "}
+                {t('howItWorks.learnMore', 'En savoir plus sur le fonctionnement')}{" "}
                 <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
               </Button>
             </Link>
@@ -191,12 +187,12 @@ export default async function HomePage({
       <section className="bg-muted w-full">
         <div className="container py-16 mx-auto px-4">
           <div className="text-center max-w-3xl mx-auto mb-16">
-            <Badge className="mb-4">Pourquoi EcoDeli ?</Badge>
+            <Badge className="mb-4">{t('advantages.badge', 'Pourquoi EcoDeli ?')}</Badge>
             <h2 className="text-3xl md:text-4xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary">
-              Des avantages pour tous
+              {t('advantages.title', 'Des avantages pour tous')}
             </h2>
             <p className="text-lg text-muted-foreground">
-              Une solution innovante avec de multiples bénéfices
+              {t('advantages.subtitle', 'Une solution innovante avec de multiples bénéfices')}
             </p>
           </div>
 
@@ -204,39 +200,39 @@ export default async function HomePage({
             {[
               {
                 icon: PiggyBank,
-                title: "Économique",
+                title: t('advantages.items.economical.title', 'Économique'),
                 description:
-                  "Réduisez vos coûts de livraison grâce à notre système d'annonces entre particuliers.",
+                  t('advantages.items.economical.description', "Réduisez vos coûts de livraison grâce à notre système d'annonces entre particuliers."),
                 color: "text-green-500"},
               {
                 icon: Leaf,
-                title: "Écologique",
+                title: t('advantages.items.ecological.title', 'Écologique'),
                 description:
-                  "Diminuez l'impact environnemental en optimisant les trajets déjà existants.",
+                  t('advantages.items.ecological.description', "Diminuez l'impact environnemental en optimisant les trajets déjà existants."),
                 color: "text-primary"},
               {
                 icon: Heart,
-                title: "Social",
+                title: t('advantages.items.social.title', 'Social'),
                 description:
-                  "Créez du lien social et luttez contre l'isolement grâce à nos services à la personne.",
+                  t('advantages.items.social.description', "Créez du lien social et luttez contre l'isolement grâce à nos services à la personne."),
                 color: "text-red-500"},
               {
                 icon: Users,
-                title: "Collaboratif",
+                title: t('advantages.items.collaborative.title', 'Collaboratif'),
                 description:
-                  "Participez à l'économie du partage et générez des revenus complémentaires.",
+                  t('advantages.items.collaborative.description', "Participez à l'économie du partage et générez des revenus complémentaires."),
                 color: "text-blue-500"},
               {
                 icon: BadgeCheck,
-                title: "Sécurisé",
+                title: t('advantages.items.secure.title', 'Sécurisé'),
                 description:
-                  "Bénéficiez d'une assurance sur vos colis et d'un système de code de confirmation.",
+                  t('advantages.items.secure.description', "Bénéficiez d'une assurance sur vos colis et d'un système de code de confirmation."),
                 color: "text-amber-500"},
               {
                 icon: Truck,
-                title: "Flexible",
+                title: t('advantages.items.flexible.title', 'Flexible'),
                 description:
-                  "Des solutions adaptées à tous types de services: transport de colis, personnes et plus.",
+                  t('advantages.items.flexible.description', "Des solutions adaptées à tous types de services: transport de colis, personnes et plus."),
                 color: "text-purple-500"}].map((item, index) => (
               <div
                 key={index}
@@ -261,12 +257,12 @@ export default async function HomePage({
       <section className="w-full">
         <div className="container mx-auto px-4">
           <div className="text-center max-w-3xl mx-auto mb-16">
-            <Badge className="mb-4">Nos Services</Badge>
+            <Badge className="mb-4">{t('services.badge', 'Nos Services')}</Badge>
             <h2 className="text-3xl md:text-4xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary">
-              Des solutions pour tous vos besoins
+              {t('services.title', 'Des solutions pour tous vos besoins')}
             </h2>
             <p className="text-lg text-muted-foreground">
-              EcoDeli propose une gamme complète de services de crowdshipping
+              {t('services.subtitle', 'EcoDeli propose une gamme complète de services de crowdshipping')}
             </p>
           </div>
 
@@ -274,24 +270,24 @@ export default async function HomePage({
             {[
               {
                 icon: Package,
-                title: "Transport de colis",
+                title: t('services.items.parcel.title', 'Transport de colis'),
                 description:
-                  "Livraison de colis de particuliers à particuliers avec prise en charge intégrale ou partielle du trajet."},
+                  t('services.items.parcel.description', "Livraison de colis de particuliers à particuliers avec prise en charge intégrale ou partielle du trajet."),},
               {
                 icon: User,
-                title: "Transport de personnes",
+                title: t('services.items.people.title', 'Transport de personnes'),
                 description:
-                  "Accompagnez des personnes à leurs rendez-vous médicaux, à la gare ou à l'aéroport."},
+                  t('services.items.people.description', "Accompagnez des personnes à leurs rendez-vous médicaux, à la gare ou à l'aéroport."),},
               {
                 icon: ShoppingBag,
-                title: "Services de courses",
+                title: t('services.items.shopping.title', 'Services de courses'),
                 description:
-                  "Faites réaliser vos courses selon une liste établie, même pour des produits spécifiques à l'étranger."},
+                  t('services.items.shopping.description', "Faites réaliser vos courses selon une liste établie, même pour des produits spécifiques à l'étranger."),},
               {
                 icon: Heart,
-                title: "Services écologiques",
+                title: t('services.items.ecological.title', 'Services écologiques'),
                 description:
-                  "Garde d'animaux, travaux ménagers ou de jardinage et autres services à la personne."}].map((service, index) => (
+                  t('services.items.ecological.description', "Garde d'animaux, travaux ménagers ou de jardinage et autres services à la personne.")}].map((service, index) => (
               <Card
                 key={index}
                 className="bg-background h-full transition-all duration-300 hover:shadow-md"
@@ -310,7 +306,7 @@ export default async function HomePage({
                     href={`/${locale}/services`}
                     className="text-primary hover:underline text-sm inline-flex items-center"
                   >
-                    En savoir plus <ArrowRight className="ml-1 h-3 w-3" />
+                    {t('services.learnMore', 'En savoir plus')} <ArrowRight className="ml-1 h-3 w-3" />
                   </Link>
                 </CardFooter>
               </Card>
@@ -323,58 +319,57 @@ export default async function HomePage({
       <section className="bg-muted/50 w-full py-16">
         <div className="container mx-auto px-4">
           <div className="text-center max-w-3xl mx-auto mb-16">
-            <Badge className="mb-4">Nos Formules</Badge>
+            <Badge className="mb-4">{t('plans.badge', 'Nos Formules')}</Badge>
             <h2 className="text-3xl md:text-4xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary">
-              Choisissez la formule adaptée à vos besoins
+              {t('plans.title', 'Choisissez la formule adaptée à vos besoins')}
             </h2>
             <p className="text-lg text-muted-foreground">
-              Du compte gratuit à la formule premium, trouvez l&apos;offre qui
-              vous convient
+              {t('plans.subtitle', "Du compte gratuit à la formule premium, trouvez l'offre qui vous convient")}
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
             {[
               {
-                title: "Free",
-                price: "0€",
-                period: "pour toujours",
-                description: "L'essentiel pour commencer",
+                title: t('plans.free.title', 'Free'),
+                price: t('plans.free.price', '0€'),
+                period: t('plans.free.period', 'pour toujours'),
+                description: t('plans.free.description', "L'essentiel pour commencer'),
                 features: [
-                  "Publication d'annonces limitée",
-                  "Messagerie avec les utilisateurs",
-                  "Système de paiement sécurisé",
-                  "Commission standard sur les transactions",
-                  "Support client par email"],
-                cta: "Commencer gratuitement",
+                  t('plans.free.features.f1', "Publication d'annonces limitée'),
+                  t('plans.free.features.f2', 'Messagerie avec les utilisateurs'),
+                  t('plans.free.features.f3', 'Système de paiement sécurisé'),
+                  t('plans.free.features.f4', 'Commission standard sur les transactions'),
+                  t('plans.free.features.f5', 'Support client par email')],
+                cta: t('plans.free.cta', 'Commencer gratuitement'),
                 popular: false},
               {
-                title: "Starter",
-                price: "9,99€",
-                period: "par mois",
-                description: "Pour les utilisateurs réguliers",
+                title: t('plans.starter.title', 'Starter'),
+                price: t('plans.starter.price', '9,99€'),
+                period: t('plans.starter.period', 'par mois'),
+                description: t('plans.starter.description', 'Pour les utilisateurs réguliers'),
                 features: [
-                  "Publication d'annonces illimitée",
-                  "Messagerie avec les utilisateurs",
-                  "Système de paiement sécurisé",
-                  "Commission réduite sur les transactions",
-                  "Support client prioritaire",
-                  "Mise en avant des annonces"],
-                cta: "Choisir Starter",
+                  t('plans.starter.features.f1', "Publication d'annonces illimitée'),
+                  t('plans.starter.features.f2', 'Messagerie avec les utilisateurs'),
+                  t('plans.starter.features.f3', 'Système de paiement sécurisé'),
+                  t('plans.starter.features.f4', 'Commission réduite sur les transactions'),
+                  t('plans.starter.features.f5', 'Support client prioritaire'),
+                  t('plans.starter.features.f6', 'Mise en avant des annonces')],
+                cta: t('plans.starter.cta', 'Choisir Starter'),
                 popular: true},
               {
-                title: "Premium",
-                price: "19,99€",
-                period: "par mois",
-                description: "Pour les professionnels",
+                title: t('plans.premium.title', 'Premium'),
+                price: t('plans.premium.price', '19,99€'),
+                period: t('plans.premium.period', 'par mois'),
+                description: t('plans.premium.description', 'Pour les professionnels'),
                 features: [
-                  "Toutes les fonctionnalités Starter",
-                  "Commission minimale sur les transactions",
-                  "Outils d'analyse et de statistiques",
-                  "Support client dédié",
-                  "Doubles points de fidélité",
-                  "Accès anticipé aux nouvelles fonctionnalités"],
-                cta: "Choisir Premium",
+                  t('plans.premium.features.f1', 'Toutes les fonctionnalités Starter'),
+                  t('plans.premium.features.f2', 'Commission minimale sur les transactions'),
+                  t('plans.premium.features.f3', "Outils d'analyse et de statistiques"),
+                  t('plans.premium.features.f4', 'Support client dédié'),
+                  t('plans.premium.features.f5', 'Doubles points de fidélité'),
+                  t('plans.premium.features.f6', 'Accès anticipé aux nouvelles fonctionnalités')],
+                cta: t('plans.premium.cta', 'Choisir Premium'),
                 popular: false}].map((plan, index) => (
               <Card
                 key={index}
@@ -386,7 +381,7 @@ export default async function HomePage({
                 {plan.popular && (
                   <div className="absolute top-0 right-0">
                     <div className="bg-primary text-primary-foreground text-xs px-3 py-1 font-medium rotate-[45deg] translate-x-[30%] translate-y-[-10%]">
-                      Populaire
+                      {t('plans.popular', 'Populaire')}
                     </div>
                   </div>
                 )}
@@ -431,12 +426,12 @@ export default async function HomePage({
       <section className="w-full">
         <div className="container mx-auto px-4">
           <div className="text-center max-w-3xl mx-auto mb-16">
-            <Badge className="mb-4">Ils utilisent EcoDeli</Badge>
+            <Badge className="mb-4">{t('testimonials.badge', 'Ils utilisent EcoDeli')}</Badge>
             <h2 className="text-3xl md:text-4xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary">
-              Ce que disent nos utilisateurs
+              {t('testimonials.title', 'Ce que disent nos utilisateurs')}
             </h2>
             <p className="text-lg text-muted-foreground">
-              Des expériences positives partagées par notre communauté
+              {t('testimonials.subtitle', 'Des expériences positives partagées par notre communauté')}
             </p>
           </div>
 
@@ -444,19 +439,19 @@ export default async function HomePage({
             {[
               {
                 name: "Sophie M.",
-                role: "Utilisatrice",
+                role: t('testimonials.user1.role', 'Utilisatrice'),
                 comment:
-                  "J'utilise régulièrement EcoDeli pour envoyer des colis à ma famille. C'est économique et je sais que je contribue à réduire l'impact environnemental. Le système de code de confirmation est vraiment sécurisant."},
+                  t('testimonials.user1.comment', "J'utilise régulièrement EcoDeli pour envoyer des colis à ma famille. C'est économique et je sais que je contribue à réduire l'impact environnemental. Le système de code de confirmation est vraiment sécurisant.")},,
               {
                 name: "Thomas R.",
-                role: "Livreur",
+                role: t('testimonials.user2.role', 'Livreur'),
                 comment:
-                  "Je fais des livraisons sur mes trajets quotidiens et ça me permet de gagner un revenu complémentaire tout en rendant service. La plateforme est simple à utiliser et le paiement est rapide."},
+                  t('testimonials.user2.comment', "Je fais des livraisons sur mes trajets quotidiens et ça me permet de gagner un revenu complémentaire tout en rendant service. La plateforme est simple à utiliser et le paiement est rapide.")},
               {
                 name: "Marie L.",
-                role: "Commerçante",
+                role: t('testimonials.user3.role', 'Commerçante'),
                 comment:
-                  "En tant que petite commerçante, EcoDeli m'a permis de proposer un service de livraison à mes clients sans investir dans une flotte de véhicules. Le système de lâcher de chariot est parfait pour mon activité."}].map((testimonial, index) => (
+                  t('testimonials.user3.comment', "En tant que petite commerçante, EcoDeli m'a permis de proposer un service de livraison à mes clients sans investir dans une flotte de véhicules. Le système de lâcher de chariot est parfait pour mon activité.")}}}]
               <Card
                 key={index}
                 className="bg-background h-full transition-all duration-300 hover:shadow-md"
@@ -488,13 +483,12 @@ export default async function HomePage({
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto bg-muted/30 rounded-xl p-8 md:p-12 border shadow-sm">
             <div className="flex flex-col items-center text-center space-y-6">
-              <Badge className="mb-2">Rejoignez EcoDeli</Badge>
+              <Badge className="mb-2">{t('cta.badge', 'Rejoignez EcoDeli')}</Badge>
               <h2 className="text-3xl md:text-4xl font-bold">
-                Prêt à rejoindre la révolution du crowdshipping ?
+                {t('cta.title', 'Prêt à rejoindre la révolution du crowdshipping ?')}
               </h2>
               <p className="text-lg text-muted-foreground max-w-2xl">
-                Inscrivez-vous gratuitement et commencez à utiliser notre
-                plateforme de livraison collaborative, économique et écologique.
+                {t('cta.subtitle', 'Inscrivez-vous gratuitement et commencez à utiliser notre plateforme de livraison collaborative, économique et écologique.')}
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
                 <Link href={`/${locale}/register`}>
@@ -509,7 +503,7 @@ export default async function HomePage({
                     variant="outline"
                     className="w-full sm:w-auto"
                   >
-                    Devenir livreur
+                    {t('cta.buttons.becomeCourier', 'Devenir livreur')}
                   </Button>
                 </Link>
               </div>

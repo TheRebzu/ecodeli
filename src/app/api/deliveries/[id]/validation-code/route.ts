@@ -1,47 +1,43 @@
 // API pour la génération et récupération des codes de validation
 import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '@/lib/auth'
-import { DeliveryValidationService } from '@/features/deliveries/services/validation.service'
-import { getNotificationTemplate } from '@/features/notifications/templates/notification-templates'
+import { getUserFromSession } from '@/lib/auth/utils'
+import { db } from '@/lib/db'
 
 export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
-    const session = await auth()
-    if (!session?.user) {
+    const user = await getUserFromSession(request)
+    if (!user) {
       return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
     }
 
     const { id: deliveryId } = await params
 
-    // Vérifier que l'utilisateur est le client propriétaire
-    if (session.user.role !== 'CLIENT') {
-      return NextResponse.json({ 
-        error: 'Seul le client peut récupérer le code de validation' 
-      }, { status: 403 })
+    // Récupérer la livraison
+    const delivery = await db.delivery.findUnique({
+      where: { id: deliveryId },
+      include: {
+        client: true
+      }
+    })
+
+    if (!delivery) {
+      return NextResponse.json({ error: 'Livraison non trouvée' }, { status: 404 })
     }
 
-    // Récupérer le code actuel
-    const validationCode = await DeliveryValidationService.getCurrentValidationCode(
-      deliveryId, 
-      session.user.id
-    )
-
-    if (!validationCode) {
+    // Vérifier que l'utilisateur est le client propriétaire
+    if (delivery.clientId !== user.id) {
       return NextResponse.json({ 
-        error: 'Aucun code de validation actif trouvé' 
-      }, { status: 404 })
+        error: 'Non autorisé' 
+      }, { status: 403 })
     }
 
     return NextResponse.json({
       success: true,
-      data: {
-        code: validationCode.code,
-        expiresAt: validationCode.expiresAt,
-        timeRemaining: Math.max(0, validationCode.expiresAt.getTime() - Date.now())
-      }
+      code: delivery.validationCode,
+      status: delivery.status
     })
 
   } catch (error) {
@@ -57,53 +53,53 @@ export async function POST(
   { params }: { params: { id: string } }
 ) {
   try {
-    const session = await auth()
-    if (!session?.user) {
+    const user = await getUserFromSession(request)
+    if (!user) {
       return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
     }
 
     const { id: deliveryId } = await params
 
+    // Récupérer la livraison
+    const delivery = await db.delivery.findUnique({
+      where: { id: deliveryId },
+      include: {
+        client: true
+      }
+    })
+
+    if (!delivery) {
+      return NextResponse.json({ error: 'Livraison non trouvée' }, { status: 404 })
+    }
+
     // Vérifier que l'utilisateur est le client propriétaire
-    if (session.user.role !== 'CLIENT') {
+    if (delivery.clientId !== user.id) {
       return NextResponse.json({ 
-        error: 'Seul le client peut générer un code de validation' 
+        error: 'Non autorisé' 
       }, { status: 403 })
     }
 
-    // Générer ou rafraîchir le code
-    const validationCode = await DeliveryValidationService.refreshValidationCode(
-      deliveryId,
-      session.user.id
-    )
+    // Générer un nouveau code de validation à 6 chiffres
+    const newValidationCode = Math.floor(100000 + Math.random() * 900000).toString()
 
-    if (!validationCode) {
-      return NextResponse.json({ 
-        error: 'Impossible de générer un code de validation' 
-      }, { status: 400 })
-    }
-
-    // TODO: Envoyer une notification push au client avec le code
-    // const notification = getNotificationTemplate(
-    //   'DELIVERY_VALIDATION_CODE',
-    //   'fr', // TODO: récupérer la langue de l'utilisateur
-    //   { validationCode: validationCode.code }
-    // )
+    // Mettre à jour la livraison
+    const updatedDelivery = await db.delivery.update({
+      where: { id: deliveryId },
+      data: {
+        validationCode: newValidationCode
+      }
+    })
 
     return NextResponse.json({
       success: true,
-      data: {
-        code: validationCode.code,
-        expiresAt: validationCode.expiresAt,
-        timeRemaining: validationCode.expiresAt.getTime() - Date.now(),
-        message: 'Code de validation généré avec succès'
-      }
+      code: newValidationCode,
+      message: 'Code de validation généré avec succès'
     })
 
   } catch (error) {
     console.error('Erreur génération code validation:', error)
     return NextResponse.json({ 
-      error: error instanceof Error ? error.message : 'Erreur interne du serveur' 
+      error: 'Erreur interne du serveur' 
     }, { status: 500 })
   }
 }

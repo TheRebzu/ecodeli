@@ -6,7 +6,10 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
+import { useTranslations } from 'next-intl';
+
 export default function TestLoginPage() {
+  const t = useTranslations();
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
@@ -25,12 +28,12 @@ export default function TestLoginPage() {
       })
 
       if (result?.error) {
-        setError('Erreur de connexion: ' + result.error)
+        setError(t('auth.testLogin.errors.loginError', 'Erreur de connexion: ') + result.error)
       } else if (result?.ok) {
         window.location.href = '/fr/client/announcements'
       }
     } catch (err) {
-      setError('Erreur de connexion')
+      setError(t('auth.testLogin.errors.loginError', 'Erreur de connexion'))
     } finally {
       setLoading(false)
     }
@@ -49,14 +52,14 @@ export default function TestLoginPage() {
       <div className="max-w-md w-full space-y-8">
         <Card>
           <CardHeader>
-            <CardTitle className="text-center">Test Login EcoDeli</CardTitle>
+            <CardTitle className="text-center">{t('auth.testLogin.title', 'Test Login EcoDeli')}</CardTitle>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <Input
                   type="email"
-                  placeholder="Email"
+                  placeholder={t('auth.login.emailPlaceholder', 'Email')}
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
@@ -65,7 +68,7 @@ export default function TestLoginPage() {
               <div>
                 <Input
                   type="password"
-                  placeholder="Mot de passe"
+                  placeholder={t('auth.login.passwordPlaceholder', 'Mot de passe')}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
@@ -81,12 +84,12 @@ export default function TestLoginPage() {
                 className="w-full"
                 disabled={loading}
               >
-                {loading ? 'Connexion...' : 'Se connecter'}
+                {loading ? t('auth.login.signingIn', 'Connexion...') : t('auth.login.loginButton', 'Se connecter')}
               </Button>
             </form>
 
             <div className="mt-6">
-              <h3 className="text-sm font-medium text-gray-700 mb-3">Comptes de test (mot de passe: Test123!):</h3>
+              <h3 className="text-sm font-medium text-gray-700 mb-3">{t('auth.testLogin.testAccountsTitle', 'Comptes de test (mot de passe: Test123!):')}</h3>
               <div className="space-y-2">
                 {testAccounts.map((account) => (
                   <Button

@@ -44,13 +44,12 @@ export default function ServicesPage() {
         <section className="w-full py-12 md:py-24 lg:py-32 bg-muted/30">
           <div className="container px-4 md:px-6">
             <div className="flex flex-col items-center space-y-4 text-center">
-              <Badge className="px-3 py-1">Nos Services</Badge>
+              <Badge className="px-3 py-1">{t('hero.badge', 'Nos Services')}</Badge>
               <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl lg:text-6xl">
-                Des solutions pour tous vos besoins
+                {t('hero.title', 'Des solutions pour tous vos besoins')}
               </h1>
               <p className="max-w-[700px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-                EcoDeli propose une gamme complète de services de crowdshipping
-                pour particuliers et professionnels
+                {t('hero.subtitle', 'EcoDeli propose une gamme complète de services de crowdshipping pour particuliers et professionnels')}
               </p>
             </div>
           </div>
@@ -71,12 +70,12 @@ export default function ServicesPage() {
                 </p>
                 <ul className="grid gap-4">
                   {[
-                    "Livraison de colis de particuliers à particuliers",
-                    "Prise en charge intégrale ou partielle du trajet",
-                    "Livraison aux destinataires finaux",
-                    "Suivi des colis en temps réel",
-                    "Assurance incluse",
-                    "Code de confirmation pour validation de livraison"].map((feature, index) => (
+                    t('parcelTransport.feature1', 'Livraison de colis de particuliers à particuliers'),
+                    t('parcelTransport.feature2', 'Prise en charge intégrale ou partielle du trajet'),
+                    t('parcelTransport.feature3', 'Livraison aux destinataires finaux'),
+                    t('parcelTransport.feature4', 'Suivi des colis en temps réel'),
+                    t('parcelTransport.feature5', 'Assurance incluse'),
+                    t('parcelTransport.feature6', 'Code de confirmation pour validation de livraison')].map((feature, index) => (
                     <li key={index} className="flex items-center gap-2">
                       <CheckCircle className="h-5 w-5 text-primary flex-shrink-0" />
                       <span>{feature}</span>
@@ -86,12 +85,12 @@ export default function ServicesPage() {
                 <div className="flex mt-8">
                   <Link href="/register">
                     <Button className="mr-4">
-                      Commencer maintenant
+                      {t('parcelTransport.button1', 'Commencer maintenant')}
                       <ArrowRight className="ml-2 h-4 w-4" />
                     </Button>
                   </Link>
                   <Link href="/shipping">
-                    <Button variant="outline">En savoir plus</Button>
+                    <Button variant="outline">{t('parcelTransport.button2', 'En savoir plus')}</Button>
                   </Link>
                 </div>
               </div>
@@ -108,47 +107,46 @@ export default function ServicesPage() {
         <section className="w-full py-12 md:py-24 bg-muted/30">
           <div className="container px-4 md:px-6">
             <div className="flex flex-col items-center space-y-4 text-center">
-              <Badge className="px-3 py-1">Services additionnels</Badge>
+              <Badge className="px-3 py-1">{t('additionalServices.badge', 'Services additionnels')}</Badge>
               <h2 className="text-3xl font-bold tracking-tighter md:text-4xl">
-                Services à la personne
+                {t('additionalServices.title', 'Services à la personne')}
               </h2>
               <p className="max-w-[700px] text-muted-foreground md:text-xl">
-                Au-delà du transport de colis, nous proposons plusieurs services
-                complémentaires
+                {t('additionalServices.subtitle', 'Au-delà du transport de colis, nous proposons plusieurs services complémentaires')}
               </p>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mt-12">
               {[
                 {
                   icon: User,
-                  title: "Transport de personnes",
+                  title: t('additionalServices.personTransport.title', 'Transport de personnes'),
                   description:
-                    "Transport quotidien pour rendez-vous médicaux, gare, aéroport, travail et autres déplacements.",
+                    t('additionalServices.personTransport.description', "Transport quotidien pour rendez-vous médicaux, gare, aéroport, travail et autres déplacements."),
                   features: [
-                    "Transferts aéroport",
-                    "Accompagnement à des rendez-vous",
-                    "Transports réguliers",
-                    "Service ponctuel ou récurrent"]},
+                    t('additionalServices.personTransport.feature1', 'Transferts aéroport'),
+                    t('additionalServices.personTransport.feature2', 'Accompagnement à des rendez-vous'),
+                    t('additionalServices.personTransport.feature3', 'Transports réguliers'),
+                    t('additionalServices.personTransport.feature4', 'Service ponctuel ou récurrent')],
                 {
                   icon: ShoppingBag,
-                  title: "Services de courses",
+                  title: t('additionalServices.shoppingServices.title', 'Services de courses'),
                   description:
-                    "Nous effectuons vos courses selon vos besoins, même pour des produits spécifiques difficiles à trouver.",
+                    t('additionalServices.shoppingServices.description', "Nous effectuons vos courses selon vos besoins, même pour des produits spécifiques difficiles à trouver."),
                   features: [
-                    "Courses selon liste fournie",
-                    "Achats à l'étranger",
-                    "Produits spécifiques",
-                    "Livraison à domicile"]},
+                    t('additionalServices.shoppingServices.feature1', 'Courses selon liste fournie'),
+                    t('additionalServices.shoppingServices.feature2', "Achats à l'étranger'),
+                    t('additionalServices.shoppingServices.feature3', 'Produits spécifiques'),
+                    t('additionalServices.shoppingServices.feature4', 'Livraison à domicile')],
                 {
                   icon: Heart,
-                  title: "Services écologiques",
+                  title: t('additionalServices.ecologicalServices.title', 'Services écologiques'),
                   description:
-                    "Des services complémentaires pour répondre à tous vos besoins quotidiens.",
+                    t('additionalServices.ecologicalServices.description', "Des services complémentaires pour répondre à tous vos besoins quotidiens."),
                   features: [
-                    "Garde d'animaux à domicile",
-                    "Petits travaux ménagers",
-                    "Services de jardinage",
-                    "Autres services personnalisés"]}].map((service, index) => (
+                    t('additionalServices.ecologicalServices.feature1', "Garde d'animaux à domicile'),
+                    t('additionalServices.ecologicalServices.feature2', 'Petits travaux ménagers'),
+                    t('additionalServices.ecologicalServices.feature3', 'Services de jardinage'),
+                    t('additionalServices.ecologicalServices.feature4', 'Autres services personnalisés')]}].map((service, index) => (
                 <Card
                   key={index}
                   className="h-full transition-all duration-300 hover:shadow-md"
@@ -182,39 +180,39 @@ export default function ServicesPage() {
         <section className="w-full py-12 md:py-24">
           <div className="container px-4 md:px-6">
             <div className="flex flex-col items-center space-y-4 text-center mb-12">
-              <Badge className="px-3 py-1">Processus</Badge>
+              <Badge className="px-3 py-1">{t('process.badge', 'Processus')}</Badge>
               <h2 className="text-3xl font-bold tracking-tighter md:text-4xl">
-                Comment ça fonctionne
+                {t('process.title', 'Comment ça fonctionne')}
               </h2>
               <p className="max-w-[700px] text-muted-foreground md:text-xl">
-                Un processus simple en 4 étapes pour utiliser nos services
+                {t('process.subtitle', 'Un processus simple en 4 étapes pour utiliser nos services')}
               </p>
             </div>
             <div className="grid grid-cols-1 gap-8 md:grid-cols-4">
               {[
                 {
                   step: "01",
-                  title: "Publiez votre annonce",
+                  title: t('process.step1.title', 'Publiez votre annonce'),
                   description:
-                    "Décrivez votre besoin de service ou le service que vous proposez",
+                    t('process.step1.description', "Décrivez votre besoin de service ou le service que vous proposez"),
                   icon: Package},
                 {
                   step: "02",
-                  title: "Mettez-vous d'accord",
+                  title: t('process.step2.title', "Mettez-vous d'accord'),
                   description:
-                    "Discutez des détails et du prix avec l'autre partie",
+                    t('process.step2.description', "Discutez des détails et du prix avec l'autre partie"),
                   icon: User},
                 {
                   step: "03",
-                  title: "Suivez en temps réel",
+                  title: t('process.step3.title', 'Suivez en temps réel'),
                   description:
-                    "Suivez le service en temps réel et communiquez si besoin",
+                    t('process.step3.description', "Suivez le service en temps réel et communiquez si besoin"),
                   icon: Clock},
                 {
                   step: "04",
-                  title: "Code de confirmation",
+                  title: t('process.step4.title', 'Code de confirmation'),
                   description:
-                    "Un code de confirmation valide le service et déclenche le paiement",
+                    t('process.step4.description', "Un code de confirmation valide le service et déclenche le paiement")],
                   icon: CheckCircle}].map((step, index) => (
                 <div
                   key={index}
@@ -240,21 +238,21 @@ export default function ServicesPage() {
         <section className="w-full py-12 md:py-24 bg-muted/30">
           <div className="container px-4 md:px-6">
             <div className="flex flex-col items-center space-y-4 text-center mb-12">
-              <Badge className="px-3 py-1">Nos engagements</Badge>
+              <Badge className="px-3 py-1">{t('commitments.badge', 'Nos engagements')}</Badge>
               <h2 className="text-3xl font-bold tracking-tighter md:text-4xl">
-                Pourquoi choisir EcoDeli
+                {t('commitments.title', 'Pourquoi choisir EcoDeli')}
               </h2>
               <p className="max-w-[700px] text-muted-foreground md:text-xl">
-                Nos valeurs et engagements pour un service de qualité
+                {t('commitments.subtitle', 'Nos valeurs et engagements pour un service de qualité')}
               </p>
             </div>
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
               {[
                 {
                   icon: Leaf,
-                  title: "Écologique",
+                  title: t('commitments.ecological.title', 'Écologique'),
                   description:
-                    "Réduction de l'empreinte carbone grâce à l'optimisation des trajets existants."},
+                    t('commitments.ecological.description', "Réduction de l'empreinte carbone grâce à l'optimisation des trajets existants."),
                 {
                   icon: Shield,
                   title: "Sécurisé",

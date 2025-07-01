@@ -19,13 +19,12 @@ export default function PricingPage() {
       <section className="relative w-full pt-16 md:pt-24 lg:pt-32 overflow-hidden">
         <div className="container relative z-10 mx-auto px-4 text-center">
           <div className="max-w-3xl mx-auto space-y-6">
-            <Badge className="px-3 py-1 mb-2 inline-flex mx-auto">Tarifs</Badge>
+            <Badge className="px-3 py-1 mb-2 inline-flex mx-auto">{t('hero.badge', 'Tarifs')}</Badge>
             <h1 className="text-4xl md:text-5xl font-bold mb-4">
-              Des formules simples pour tous les besoins
+              {t('hero.title', 'Des formules simples pour tous les besoins')}
             </h1>
             <p className="text-xl text-muted-foreground">
-              Choisissez la formule qui vous convient et profitez pleinement des
-              services EcoDeli
+              {t('hero.subtitle', 'Choisissez la formule qui vous convient et profitez pleinement des services EcoDeli')}
             </p>
           </div>
         </div>
@@ -41,62 +40,62 @@ export default function PricingPage() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                 {[
                   {
-                    name: "Gratuit",
-                    price: "0€",
-                    period: "pour toujours",
-                    description: "Découvrez EcoDeli sans engagement",
+                    name: t('plans.free.name', 'Gratuit'),
+                    price: t('plans.free.price', '0€'),
+                    period: t('plans.free.period', 'pour toujours'),
+                    description: t('plans.free.description', 'Découvrez EcoDeli sans engagement'),
                     features: [
-                      "Publication d'annonces (max 5)",
-                      "Accès aux annonces disponibles",
-                      "Messagerie avec les utilisateurs",
-                      "Possibilité de devenir livreur",
-                      "Assurance de base",
-                      "Support par email"],
+                      t('plans.free.features.f1', "Publication d'annonces (max 5)"),
+                      t('plans.free.features.f2', 'Accès aux annonces disponibles'),
+                      t('plans.free.features.f3', 'Messagerie avec les utilisateurs'),
+                      t('plans.free.features.f4', 'Possibilité de devenir livreur'),
+                      t('plans.free.features.f5', 'Assurance de base'),
+                      t('plans.free.features.f6', 'Support par email')],
                     notIncluded: [
-                      "Annonces prioritaires",
-                      "Code de livraison illimité",
-                      "Support client prioritaire",
-                      "Système d'évaluation avancé"],
-                    cta: "Commencer gratuitement",
+                      t('plans.free.notIncluded.f1', 'Annonces prioritaires'),
+                      t('plans.free.notIncluded.f2', 'Code de livraison illimité'),
+                      t('plans.free.notIncluded.f3', 'Support client prioritaire'),
+                      t('plans.free.notIncluded.f4', "Système d'évaluation avancé")],
+                    cta: t('plans.free.cta', 'Commencer gratuitement'),
                     href: "/register",
                     popular: false,
                     color: ""},
                   {
-                    name: "Starter",
-                    price: "4,99€",
-                    period: "par mois",
-                    description: "Pour les utilisateurs réguliers",
+                    name: t('plans.starter.name', 'Starter'),
+                    price: t('plans.starter.price', '4,99€'),
+                    period: t('plans.starter.period', 'par mois'),
+                    description: t('plans.starter.description', 'Pour les utilisateurs réguliers'),
                     features: [
-                      "Publications d'annonces illimitées",
-                      "Priorité dans les résultats de recherche",
-                      "Assurance intermédiaire",
-                      "Codes de livraison (10 par mois)",
-                      "Support client prioritaire",
-                      "Système d'évaluation avancé",
-                      "Annonces prioritaires"],
+                      t('plans.starter.features.f1', "Publications d'annonces illimitées'),
+                      t('plans.starter.features.f2', 'Priorité dans les résultats de recherche'),
+                      t('plans.starter.features.f3', 'Assurance intermédiaire'),
+                      t('plans.starter.features.f4', "Codes de livraison (10 par mois)"),
+                      t('plans.starter.features.f5', 'Support client prioritaire'),
+                      t('plans.starter.features.f6', "Système d'évaluation avancé"),
+                      t('plans.starter.features.f7', 'Annonces prioritaires')],
                     notIncluded: [
-                      "Codes de livraison illimités",
-                      "Assistance dédiée"],
-                    cta: "S'abonner",
+                      t('plans.starter.notIncluded.f1', 'Codes de livraison illimités'),
+                      t('plans.starter.notIncluded.f2', 'Assistance dédiée')],
+                    cta: t('plans.starter.cta', "S'abonner"),
                     href: "/register?plan=starter",
                     popular: true,
                     color: "border-primary"},
                   {
-                    name: "Premium",
-                    price: "9,99€",
-                    period: "par mois",
-                    description: "Pour une utilisation intensive",
+                    name: t('plans.premium.name', 'Premium'),
+                    price: t('plans.premium.price', '9,99€'),
+                    period: t('plans.premium.period', 'par mois'),
+                    description: t('plans.premium.description', 'Pour une utilisation intensive'),
                     features: [
-                      "Publications d'annonces illimitées",
-                      "Priorité maximum dans les résultats",
-                      "Assurance premium",
-                      "Codes de livraison illimités",
-                      "Support téléphonique",
-                      "Assistance dédiée",
-                      "Statistiques avancées",
-                      "Système d'évaluation complet"],
+                      t('plans.premium.features.f1', "Publications d'annonces illimitées'),
+                      t('plans.premium.features.f2', 'Priorité maximum dans les résultats'),
+                      t('plans.premium.features.f3', 'Assurance premium'),
+                      t('plans.premium.features.f4', 'Codes de livraison illimités'),
+                      t('plans.premium.features.f5', 'Support téléphonique'),
+                      t('plans.premium.features.f6', 'Assistance dédiée'),
+                      t('plans.premium.features.f7', 'Statistiques avancées'),
+                      t('plans.premium.features.f8', "Système d'évaluation complet")],
                     notIncluded: [],
-                    cta: "S'abonner",
+                    cta: t('plans.premium.cta', "S'abonner"),
                     href: "/register?plan=premium",
                     popular: false,
                     color: ""}].map((plan, index) => (
@@ -112,12 +111,12 @@ export default function PricingPage() {
       <section className="w-full bg-muted/30 py-16">
         <div className="container mx-auto px-4">
           <div className="text-center max-w-3xl mx-auto mb-16">
-            <Badge className="mb-4">Comparaison détaillée</Badge>
+            <Badge className="mb-4">{t('comparison.badge', 'Comparaison détaillée')}</Badge>
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Comparez toutes les fonctionnalités
+              {t('comparison.title', 'Comparez toutes les fonctionnalités')}
             </h2>
             <p className="text-lg text-muted-foreground">
-              Un aperçu complet de ce qui est inclus dans chaque formule
+              {t('comparison.subtitle', 'Un aperçu complet de ce qui est inclus dans chaque formule')}
             </p>
           </div>
 
@@ -126,63 +125,63 @@ export default function PricingPage() {
               <thead>
                 <tr className="text-sm text-muted-foreground">
                   <th className="py-4 px-6 text-left font-medium w-1/3">
-                    Fonctionnalités
+                    {t('comparison.table.features', 'Fonctionnalités')}
                   </th>
-                  <th className="py-4 px-4 text-center font-medium">Gratuit</th>
+                  <th className="py-4 px-4 text-center font-medium">{t('comparison.table.free', 'Gratuit')}</th>
                   <th className="py-4 px-4 text-center font-medium bg-primary/5 border-y-2 border-primary">
-                    Starter
+                    {t('comparison.table.starter', 'Starter')}
                   </th>
-                  <th className="py-4 px-4 text-center font-medium">Premium</th>
+                  <th className="py-4 px-4 text-center font-medium">{t('comparison.table.premium', 'Premium')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y">
                 <FeatureRow
-                  feature="Publications d'annonces"
-                  values={["5 maximum", "Illimitées", "Illimitées"]}
+                  feature={t('comparison.features.announcementPublications', "Publications d'annonces")}
+                  values={[t('comparison.values.max5', "5 maximum"), t('comparison.values.unlimited', "Illimitées"), t('comparison.values.unlimited', "Illimitées")]}
                 />
                 <FeatureRow
-                  feature="Priorité dans les recherches"
-                  values={["Standard", "Élevée", "Maximum"]}
+                  feature={t('comparison.features.searchPriority', "Priorité dans les recherches")}
+                  values={[t('comparison.values.standard', "Standard"), t('comparison.values.high', "Élevée"), t('comparison.values.maximum', "Maximum")]}
                 />
                 <FeatureRow
-                  feature="Assurance"
-                  values={["De base", "Intermédiaire", "Premium"]}
+                  feature={t('comparison.features.insurance', "Assurance")}
+                  values={[t('comparison.values.basic', "De base"), t('comparison.values.intermediate', "Intermédiaire"), t('comparison.values.premium', "Premium")]}
                 />
                 <FeatureRow
-                  feature="Codes de livraison"
-                  values={["5 par mois", "10 par mois", "Illimités"]}
+                  feature={t('comparison.features.deliveryCodes', "Codes de livraison")}
+                  values={[t('comparison.values.5perMonth', "5 par mois"), t('comparison.values.10perMonth', "10 par mois"), t('comparison.values.unlimited', "Illimités")]}
                 />
                 <FeatureRow
-                  feature="Support client"
-                  values={["Email", "Prioritaire", "Téléphonique"]}
+                  feature={t('comparison.features.customerSupport', "Support client")}
+                  values={[t('comparison.values.email', "Email"), t('comparison.values.priority', "Prioritaire"), t('comparison.values.phone', "Téléphonique")]}
                 />
                 <FeatureRow
-                  feature="Système d'évaluation"
-                  values={["Basique", "Avancé", "Complet"]}
+                  feature={t('comparison.features.evaluationSystem', "Système d'évaluation")}
+                  values={[t('comparison.values.basic', "Basique"), t('comparison.values.advanced', "Avancé"), t('comparison.values.complete', "Complet")]}
                 />
                 <FeatureRow
-                  feature="Transport de colis"
+                  feature={t('comparison.features.parcelTransport', "Transport de colis")}
                   values={[true, true, true]}
                 />
                 <FeatureRow
-                  feature="Transport de personnes"
+                  feature={t('comparison.features.personTransport', "Transport de personnes")}
                   values={[true, true, true]}
                 />
                 <FeatureRow
-                  feature="Services de courses"
+                  feature={t('comparison.features.shoppingServices', "Services de courses")}
                   values={[true, true, true]}
                 />
                 <FeatureRow
-                  feature="Services écologiques"
+                  feature={t('comparison.features.ecologicalServices', "Services écologiques")}
                   values={[true, true, true]}
                 />
                 <FeatureRow
-                  feature="Suivi en temps réel"
+                  feature={t('comparison.features.realTimeTracking', "Suivi en temps réel")}
                   values={[true, true, true]}
                 />
                 <FeatureRow
-                  feature="Statistiques personnelles"
-                  values={["Basiques", "Avancées", "Complètes"]}
+                  feature={t('comparison.features.personalStatistics', "Statistiques personnelles")}
+                  values={[t('comparison.values.basic', "Basiques"), t('comparison.values.advanced', "Avancées"), t('comparison.values.complete', "Complètes")]}
                 />
               </tbody>
             </table>
@@ -194,74 +193,63 @@ export default function PricingPage() {
       <section className="w-full">
         <div className="container mx-auto px-4">
           <div className="text-center max-w-3xl mx-auto mb-16">
-            <Badge className="mb-4">Questions fréquentes</Badge>
+            <Badge className="mb-4">{t('faq.badge', 'Questions fréquentes')}</Badge>
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Tout ce que vous devez savoir sur nos formules
+              {t('faq.title', 'Tout ce que vous devez savoir sur nos formules')}
             </h2>
             <p className="text-lg text-muted-foreground">
-              Les réponses aux questions les plus courantes concernant nos
-              tarifs et abonnements
+              {t('faq.subtitle', 'Les réponses aux questions les plus courantes concernant nos tarifs et abonnements')}
             </p>
           </div>
 
           <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8">
             {[
               {
-                question: "Puis-je changer de formule à tout moment ?",
+                question: t('faq.q1.question', 'Puis-je changer de formule à tout moment ?'),
                 answer:
-                  "Oui, vous pouvez changer de formule à tout moment depuis votre espace personnel. Le changement prendra effet à la prochaine période de facturation."},
+                  t('faq.q1.answer', "Oui, vous pouvez changer de formule à tout moment depuis votre espace personnel. Le changement prendra effet à la prochaine période de facturation.")},
               {
-                question: "Comment fonctionne la formule gratuite ?",
+                question: t('faq.q2.question', 'Comment fonctionne la formule gratuite ?'),
                 answer:
-                  "La formule gratuite vous permet de publier jusqu'à 5 annonces par mois et d'accéder aux services de base d'EcoDeli sans aucun engagement ni frais cachés."},
+                  t('faq.q2.answer', "La formule gratuite vous permet de publier jusqu'à 5 annonces par mois et d'accéder aux services de base d'EcoDeli sans aucun engagement ni frais cachés.")},
               {
-                question: "Qu'est-ce qu'un code de livraison ?",
+                question: t('faq.q3.question', "Qu'est-ce qu'un code de livraison ?"),
                 answer:
-                  "Les codes de livraison sont utilisés pour valider la réception d'un colis ou l'achèvement d'un service. Le destinataire doit confirmer en saisissant ce code, déclenchant ainsi le paiement du livreur."},
+                  t('faq.q3.answer', "Les codes de livraison sont utilisés pour valider la réception d'un colis ou l'achèvement d'un service. Le destinataire doit confirmer en saisissant ce code, déclenchant ainsi le paiement du livreur.")},
               {
                 question:
-                  "Les formules incluent-elles tous les types de services ?",
+                    t('faq.q4.question', "Les formules incluent-elles tous les types de services ?"),
                 answer:
-                  "Oui, toutes les formules donnent accès à l'ensemble des services proposés sur EcoDeli : transport de colis, transport de personnes, services de courses et services écologiques."},
+                    t('faq.q4.answer', "Oui, toutes les formules donnent accès à l'ensemble des services proposés sur EcoDeli : transport de colis, transport de personnes, services de courses et services écologiques.")},
               {
-                question: "Comment fonctionne l'assurance ?",
+                question: t('faq.q5.question', 'Comment fonctionne l'assurance ?'),
                 answer:
-                  "Chaque formule inclut une assurance qui couvre les colis ou services en cas de problème. Le niveau de couverture varie selon la formule choisie, avec une protection plus complète pour les formules supérieures."},
+                  t('faq.q5.answer', "Chaque formule inclut une assurance qui couvre les colis ou services en cas de problème. Le niveau de couverture varie selon la formule choisie, avec une protection plus complète pour les formules supérieures.")},
               {
-                question: "Y a-t-il un engagement minimum ?",
+                question: t('faq.q6.question', 'Y a-t-il un engagement minimum ?'),
                 answer:
-                  "Non, il n'y a aucun engagement minimum. Vous pouvez résilier votre abonnement à tout moment, la résiliation prendra effet à la fin de la période de facturation en cours."}].map((faq, index) => (
-              <div key={index} className="p-6 rounded-xl border">
-                <h3 className="font-bold text-lg mb-2">{faq.question}</h3>
-                <p className="text-muted-foreground">{faq.answer}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+                  t('faq.q6.answer', "Non, il n'y a aucun engagement minimum. Vous pouvez résilier votre abonnement à tout moment, la résiliation prendra effet à la fin de la période de facturation en cours.")}]
 
       {/* Section CTA */}
       <section className="w-full bg-muted/30 py-16">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto bg-background rounded-xl border shadow-sm p-8 md:p-12 text-center">
-            <Badge className="mb-4">Prêt à commencer ?</Badge>
+            <Badge className="mb-4">{t('cta.badge', 'Prêt à commencer ?')}</Badge>
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Rejoignez la communauté EcoDeli dès aujourd&apos;hui
+              {t('cta.title', 'Rejoignez la communauté EcoDeli dès aujourd'hui')}
             </h2>
             <p className="text-lg text-muted-foreground max-w-xl mx-auto mb-8">
-              Que vous souhaitiez utiliser nos services ou devenir livreur,
-              créez votre compte gratuitement et découvrez tous les avantages
-              d&apos;EcoDeli.
+              {t('cta.subtitle', "Que vous souhaitiez utiliser nos services ou devenir livreur, créez votre compte gratuitement et découvrez tous les avantages d'EcoDeli.")}
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button size="lg" asChild>
                 <Link href="/register">
-                  Créer un compte gratuit
+                  {t('cta.createAccount', 'Créer un compte gratuit')}
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
               </Button>
               <Button size="lg" variant="outline" asChild>
-                <Link href="/contact">Nous contacter</Link>
+                <Link href="/contact">{t('cta.contactUs', 'Nous contacter')}</Link>
               </Button>
             </div>
           </div>

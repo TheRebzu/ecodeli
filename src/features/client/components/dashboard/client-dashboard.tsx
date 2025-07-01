@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { useTranslations } from "next-intl";
 import { Package, Truck, Calendar, DollarSign, Plus, Eye } from "lucide-react";
 import Link from "next/link";
+import ClientTutorialSystem from "@/features/tutorials/components/client-tutorial-system";
+import { useAuth } from "@/hooks/use-auth";
 
 interface DashboardStats {
   totalAnnouncements: number;
@@ -30,6 +32,7 @@ interface ClientDashboardProps {
 
 export function ClientDashboard({ clientId }: ClientDashboardProps) {
   const t = useTranslations("client.dashboard");
+  const { user } = useAuth();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [recentActivities, setRecentActivities] = useState<RecentActivity[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -214,6 +217,16 @@ export function ClientDashboard({ clientId }: ClientDashboardProps) {
           )}
         </CardContent>
       </Card>
+
+      {/* Tutoriel pour nouveaux clients uniquement */}
+      {user && (
+        <ClientTutorialSystem 
+          userId={user.id}
+          onComplete={() => {
+            console.log('Tutorial completed');
+          }}
+        />
+      )}
     </div>
   );
 }

@@ -10,6 +10,7 @@ export async function GET(request: NextRequest) {
     }
 
     const { searchParams } = new URL(request.url)
+    const clientId = searchParams.get('clientId')
     const status = searchParams.get('status')
     const serviceType = searchParams.get('serviceType')
     const dateFrom = searchParams.get('dateFrom')
@@ -17,14 +18,10 @@ export async function GET(request: NextRequest) {
     const page = parseInt(searchParams.get('page') || '1')
     const limit = parseInt(searchParams.get('limit') || '10')
 
-    const filters: any = { clientId: user.id }
+    const filters: any = { clientId: clientId || user.id }
     
     if (status) {
       filters.status = status
-    }
-    
-    if (serviceType) {
-      filters.serviceType = serviceType
     }
     
     if (dateFrom || dateTo) {
@@ -40,13 +37,27 @@ export async function GET(request: NextRequest) {
           provider: {
             select: {
               id: true,
-              name: true,
-              email: true,
-              phone: true,
-              avatar: true,
-              rating: true
+              businessName: true,
+              averageRating: true,
+              user: {
+                select: {
+                  id: true,
+                  firstName: true,
+                  lastName: true,
+                  email: true,
+                  profilePhoto: true
+                }
+              }
             }
-          }
+          },
+          service: {
+            select: {
+              id: true,
+              name: true,
+              type: true
+            }
+          },
+          review: true
         },
         orderBy: { createdAt: 'desc' },
         skip: (page - 1) * limit,
@@ -58,21 +69,23 @@ export async function GET(request: NextRequest) {
     // Transformer les données pour correspondre à l'interface frontend
     const transformedBookings = bookings.map(booking => ({
       id: booking.id,
-      serviceType: booking.serviceType,
-      providerName: booking.provider.name,
-      providerRating: booking.provider.rating || 0,
-      scheduledDate: booking.scheduledDate.toISOString(),
-      duration: booking.duration,
-      price: booking.price,
-      status: booking.status,
-      location: booking.location,
-      description: booking.description,
       providerId: booking.provider.id,
+      providerName: `${booking.provider.user.firstName} ${booking.provider.user.lastName}`,
+      serviceId: booking.service?.id || '',
+      serviceName: booking.service?.name || 'Service',
+      date: booking.scheduledDate.toISOString().split('T')[0],
+      startTime: booking.scheduledTime,
+      endTime: `${parseInt(booking.scheduledTime.split(':')[0]) + Math.floor(booking.duration / 60)}:${booking.scheduledTime.split(':')[1]}`,
+      status: booking.status.toLowerCase(),
+      location: typeof booking.address === 'object' ? 
+        `${booking.address.address}, ${booking.address.city}` : 
+        booking.address?.toString() || 'Non spécifié',
+      price: booking.totalPrice,
       notes: booking.notes,
-      cancelReason: booking.cancelReason,
-      completedAt: booking.completedAt?.toISOString(),
-      rating: booking.rating,
-      review: booking.review
+      specialRequests: '',
+      rating: booking.review?.rating,
+      review: booking.review?.comment,
+      createdAt: booking.createdAt.toISOString()
     }))
 
     return NextResponse.json({
@@ -102,51 +115,79 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json()
     const {
+      clientId,
       providerId,
-      serviceType,
-      scheduledDate,
-      duration,
+      serviceId,
+      date,
+      timeSlot,
       location,
-      description,
-      specialRequirements
+      homeService,
+      notes,
+      specialRequests
     } = body
 
-    // Vérifier que le prestataire existe et est disponible
-    const provider = await db.provider.findUnique({
-      where: { id: providerId },
-      include: { availability: true }
-    })
+    // Vérifier que le prestataire et le service existent
+    const [provider, service] = await Promise.all([
+      db.provider.findUnique({
+        where: { id: providerId },
+        include: { 
+          user: {
+            select: {
+              firstName: true,
+              lastName: true
+            }
+          }
+        }
+      }),
+      db.service.findUnique({
+        where: { id: serviceId }
+      })
+    ])
 
     if (!provider) {
       return NextResponse.json({ error: 'Provider not found' }, { status: 404 })
     }
 
-    // Calculer le prix basé sur le service et la durée
-    const baseRate = provider.hourlyRate || 25 // Prix de base par heure
-    const price = Math.round((duration / 60) * baseRate)
+    if (!service) {
+      return NextResponse.json({ error: 'Service not found' }, { status: 404 })
+    }
+
+    // Extraire l'heure de début du timeSlot
+    const [startTime, endTime] = timeSlot.split('-')
+    const duration = service.duration || 60
 
     // Créer la réservation
     const booking = await db.booking.create({
       data: {
-        clientId: user.id,
+        clientId: clientId || user.id,
         providerId,
-        serviceType,
-        scheduledDate: new Date(scheduledDate),
+        serviceId,
+        status: 'PENDING',
+        scheduledDate: new Date(date),
+        scheduledTime: startTime,
         duration,
-        price,
-        location,
-        description,
-        specialRequirements,
-        status: 'PENDING'
+        address: { address: location, city: '', postalCode: '', lat: 0, lng: 0 },
+        totalPrice: service.basePrice,
+        notes: notes || null
       },
       include: {
         provider: {
           select: {
             id: true,
-            name: true,
-            email: true,
-            phone: true,
-            rating: true
+            businessName: true,
+            averageRating: true,
+            user: {
+              select: {
+                firstName: true,
+                lastName: true
+              }
+            }
+          }
+        },
+        service: {
+          select: {
+            id: true,
+            name: true
           }
         }
       }
@@ -155,16 +196,18 @@ export async function POST(request: NextRequest) {
     // Transformer les données pour la réponse
     const transformedBooking = {
       id: booking.id,
-      serviceType: booking.serviceType,
-      providerName: booking.provider.name,
-      providerRating: booking.provider.rating || 0,
-      scheduledDate: booking.scheduledDate.toISOString(),
-      duration: booking.duration,
-      price: booking.price,
-      status: booking.status,
-      location: booking.location,
-      description: booking.description,
-      providerId: booking.provider.id
+      providerId: booking.provider.id,
+      providerName: `${booking.provider.user.firstName} ${booking.provider.user.lastName}`,
+      serviceId: booking.service.id,
+      serviceName: booking.service.name,
+      date: booking.scheduledDate.toISOString().split('T')[0],
+      startTime: booking.scheduledTime,
+      endTime: endTime,
+      status: booking.status.toLowerCase(),
+      location: location,
+      price: booking.totalPrice,
+      notes: booking.notes,
+      createdAt: booking.createdAt.toISOString()
     }
 
     return NextResponse.json(transformedBooking, { status: 201 })

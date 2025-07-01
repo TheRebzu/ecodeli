@@ -92,7 +92,7 @@ export default function ClientServicesManager({ clientId }: ClientServicesManage
   const t = useTranslations("client.services");
   const [providers, setProviders] = useState<ServiceProvider[]>([]);
   const [bookings, setBookings] = useState<ServiceBooking[]>([]);
-  const [serviceCategories, setServiceCategories] = useState<string[]>([]);
+  const [serviceCategories, setServiceCategories] = useState<{id: string, name: string, description: string, icon: string}[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
@@ -312,7 +312,7 @@ export default function ClientServicesManager({ clientId }: ClientServicesManage
                   <SelectContent>
                     <SelectItem value="all">{t("search.all_categories")}</SelectItem>
                     {serviceCategories.map((category) => (
-                      <SelectItem key={category} value={category}>{category}</SelectItem>
+                      <SelectItem key={category.id} value={category.id}>{category.name}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>

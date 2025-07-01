@@ -36,7 +36,8 @@ import {
   MessageCircle,
   LifeBuoy,
   ChevronRight,
-  ChevronDown
+  ChevronDown,
+  User
 } from 'lucide-react'
 
 interface NavigationItem {
@@ -113,62 +114,22 @@ const getClientNavigation = (subscription?: string): NavigationItem[] => [
     category: 'main'
   },
 
-  // Services
+  // Services (page unifiée)
   {
     key: 'services',
     label: 'Services',
     href: '/client/services',
     icon: Briefcase,
-    category: 'services',
-    children: [
-      {
-        key: 'personal-services',
-        label: 'Services à la personne',
-        href: '/client/services/personal',
-        icon: Users
-      },
-      {
-        key: 'home-services',
-        label: 'Services à domicile',
-        href: '/client/services/home',
-        icon: Home
-      },
-      {
-        key: 'maintenance',
-        label: 'Maintenance',
-        href: '/client/services/maintenance',
-        icon: Wrench
-      }
-    ]
+    category: 'services'
   },
 
-  // Stockage
+  // Stockage (page existante)
   {
     key: 'storage',
     label: 'Stockage',
     href: '/client/storage',
     icon: Package,
-    category: 'services',
-    children: [
-      {
-        key: 'my-boxes',
-        label: 'Mes box',
-        href: '/client/storage/boxes',
-        icon: Box
-      },
-      {
-        key: 'rent-box',
-        label: 'Louer une box',
-        href: '/client/storage/rent',
-        icon: Plus
-      },
-      {
-        key: 'nearby-warehouses',
-        label: 'Entrepôts à proximité',
-        href: '/client/storage/warehouses',
-        icon: MapPin
-      }
-    ]
+    category: 'services'
   },
 
   // Réservations
@@ -180,7 +141,14 @@ const getClientNavigation = (subscription?: string): NavigationItem[] => [
     category: 'services'
   },
 
-  // Paiements et abonnement
+  // Profil et compte
+  {
+    key: 'profile',
+    label: 'Mon profil',
+    href: '/client/profile',
+    icon: User,
+    category: 'account'
+  },
   {
     key: 'subscription',
     label: 'Mon abonnement',
@@ -194,27 +162,7 @@ const getClientNavigation = (subscription?: string): NavigationItem[] => [
     label: 'Paiements',
     href: '/client/payments',
     icon: CreditCard,
-    category: 'account',
-    children: [
-      {
-        key: 'payment-history',
-        label: 'Historique',
-        href: '/client/payments/history',
-        icon: History
-      },
-      {
-        key: 'payment-methods',
-        label: 'Moyens de paiement',
-        href: '/client/payments/methods',
-        icon: CreditCard
-      },
-      {
-        key: 'invoices',
-        label: 'Factures',
-        href: '/client/payments/invoices',
-        icon: FileText
-      }
-    ]
+    category: 'account'
   },
 
   // Évaluations
@@ -239,21 +187,7 @@ const getClientNavigation = (subscription?: string): NavigationItem[] => [
     label: 'Support',
     href: '/client/support',
     icon: HelpCircle,
-    category: 'help',
-    children: [
-      {
-        key: 'faq',
-        label: 'FAQ',
-        href: '/client/support/faq',
-        icon: MessageCircle
-      },
-      {
-        key: 'tickets',
-        label: 'Mes tickets',
-        href: '/client/support/tickets',
-        icon: LifeBuoy
-      }
-    ]
+    category: 'help'
   }
 ]
 
@@ -344,7 +278,10 @@ function NavigationItem({
       style={{ paddingLeft: collapsed ? 8 : 12 + indent }}
       asChild
     >
-      <Link href={item.href}>
+      <Link 
+        href={item.href}
+        data-tutorial={item.key === 'create-announcement' ? 'create-announcement' : undefined}
+      >
         <Icon className={cn("h-4 w-4", collapsed ? "" : "mr-3")} />
         {!collapsed && (
           <>
@@ -363,7 +300,7 @@ function NavigationItem({
 
 export function ClientSidebar({ className, collapsed = false, user }: ClientSidebarProps) {
   const pathname = usePathname()
-  const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set(['announcements', 'services']))
+  const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set(['announcements']))
   
   const navigation = getClientNavigation(user?.subscription)
 

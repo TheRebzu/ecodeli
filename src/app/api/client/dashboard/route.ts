@@ -36,6 +36,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Récupération des données complètes du dashboard
+    console.log('🔍 [Dashboard API] User ID:', user.id)
     const dashboardData = await dashboardService.getDashboardData(user.id)
     
     // Formatage de la réponse selon le schéma

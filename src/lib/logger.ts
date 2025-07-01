@@ -172,6 +172,22 @@ export const ecoLogger = {
     contractSigned: (contractId: string, merchantId: string, terms: string) =>
       logger.info('Contract signed', { contractId, merchantId, terms, action: 'contract_signed' })
   },
+
+  // Logs marchands
+  merchant: {
+    info: (message: string, meta?: any) => logger.info(message, { ...meta, action: 'merchant_info' }),
+    error: (message: string, meta?: any) => logger.error(message, { ...meta, action: 'merchant_error' }),
+    cartDropConfigured: (merchantId: string, config: any) =>
+      logger.info('Cart drop configured', { merchantId, config, action: 'cart_drop_configured' })
+  },
+
+  // Logs facturation
+  billing: {
+    info: (message: string, meta?: any) => logger.info(message, { ...meta, action: 'billing_info' }),
+    error: (message: string, meta?: any) => logger.error(message, { ...meta, action: 'billing_error' }),
+    monthlyGenerated: (providerId: string, amount: number) =>
+      logger.info('Monthly billing generated', { providerId, amount, action: 'monthly_billing_generated' })
+  },
   
   // Logs système
   system: {

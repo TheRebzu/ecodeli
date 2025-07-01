@@ -1,5 +1,5 @@
-import { prisma } from '@/lib/db'
-import { logger } from '@/lib/logger'
+import { db as prisma } from '@/lib/db'
+import { ecoLogger } from '@/lib/logger'
 import { z } from 'zod'
 
 const cartDropConfigSchema = z.object({
@@ -93,7 +93,7 @@ export class CartDropService {
         }
       })
 
-      logger.info(`Configuration lâcher de chariot mise à jour pour ${merchant.user.email}`)
+      ecoLogger.merchant.info(`Configuration lâcher de chariot mise à jour pour ${merchant.user.email}`)
 
       return {
         id: cartDropConfig.id,
@@ -104,7 +104,7 @@ export class CartDropService {
       }
 
     } catch (error) {
-      logger.error('Erreur configuration cart-drop:', error)
+      ecoLogger.merchant.error('Erreur configuration cart-drop:', error)
       throw error
     }
   }
@@ -167,7 +167,7 @@ export class CartDropService {
       }
 
     } catch (error) {
-      logger.error('Erreur récupération créneaux:', error)
+      ecoLogger.merchant.error('Erreur récupération créneaux:', error)
       throw error
     }
   }
@@ -247,7 +247,7 @@ export class CartDropService {
         }
       })
 
-      logger.info(`Commande lâcher de chariot créée: ${orderNumber}`)
+      ecoLogger.merchant.info(`Commande lâcher de chariot créée: ${orderNumber}`)
 
       return {
         id: order.id,
@@ -262,7 +262,7 @@ export class CartDropService {
       }
 
     } catch (error) {
-      logger.error('Erreur planification cart-drop:', error)
+      ecoLogger.merchant.error('Erreur planification cart-drop:', error)
       throw error
     }
   }
@@ -315,7 +315,7 @@ export class CartDropService {
       return updatedOrder
 
     } catch (error) {
-      logger.error('Erreur mise à jour statut commande:', error)
+      ecoLogger.merchant.error('Erreur mise à jour statut commande:', error)
       throw error
     }
   }
@@ -381,7 +381,7 @@ export class CartDropService {
       }
 
     } catch (error) {
-      logger.error('Erreur stats cart-drop:', error)
+      ecoLogger.merchant.error('Erreur stats cart-drop:', error)
       throw error
     }
   }

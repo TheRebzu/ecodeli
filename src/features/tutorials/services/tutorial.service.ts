@@ -47,7 +47,6 @@ export class TutorialService {
       })
 
       if (!user) {
-        console.warn(`Utilisateur non trouvé pour isTutorialRequired: ${userId}`)
         return false // Ne pas requérir le tutoriel si l'utilisateur n'existe pas
       }
 
@@ -219,6 +218,14 @@ export class TutorialService {
       const currentStepObj = steps.find(s => !s.completed) || steps[steps.length - 1]
       const currentStep = currentStepObj ? currentStepObj.id : 1
 
+      // Vérifier aussi dans la table Client
+      const client = await db.client.findUnique({
+        where: { userId },
+        select: { tutorialCompleted: true }
+      })
+
+      const isCompleted = tutorialProgress?.isCompleted || client?.tutorialCompleted || false
+
       return {
         userId,
         totalSteps,
@@ -227,7 +234,7 @@ export class TutorialService {
         completedMandatory,
         progressPercentage,
         currentStep,
-        isCompleted: tutorialProgress?.isCompleted || false,
+        isCompleted,
         startedAt: tutorialProgress?.startedAt || new Date(),
         completedAt: tutorialProgress?.completedAt,
         totalTimeSpent: tutorialProgress?.totalTimeSpent || 0
@@ -374,7 +381,6 @@ export class TutorialService {
       })
 
       if (client?.tutorialCompleted) {
-        console.log('Tutoriel déjà complété pour l\'utilisateur:', userId)
         return
       }
 

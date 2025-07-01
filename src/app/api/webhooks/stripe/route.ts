@@ -2,7 +2,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { headers } from 'next/headers'
 import Stripe from 'stripe'
-import { prisma } from '@/lib/db'
+import { db as prisma } from '@/lib/db'
 import { OneSignalService } from '@/lib/onesignal'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {

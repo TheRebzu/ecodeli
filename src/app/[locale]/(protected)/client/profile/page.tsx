@@ -81,17 +81,16 @@ interface ClientProfile {
     totalOrders: number;
     totalSpent: number;
     averageRating: number;
-    completedDeliveries: number;
+    completedOrders: number;
+    cancelledOrders: number;
+    totalReviews: number;
+    storageBoxes: number;
   };
-  addresses: Address[];
-  paymentMethods: PaymentMethod[];
-  documents: Document[];
   preferences: {
     notifications: {
       email: boolean;
       sms: boolean;
       push: boolean;
-      marketing: boolean;
     };
   };
 }
@@ -147,10 +146,6 @@ export default function ClientProfilePage() {
   };
 
   const [editMode, setEditMode] = useState(false)
-  const [documentDialog, setDocumentDialog] = useState(false)
-  const [addressDialog, setAddressDialog] = useState(false)
-  const [paymentDialog, setPaymentDialog] = useState(false)
-  const [selectedAddress, setSelectedAddress] = useState<any>(null)
   
   // Formulaires
   const [profileForm, setProfileForm] = useState({
@@ -164,25 +159,11 @@ export default function ClientProfilePage() {
     dateOfBirth: ''
   })
 
-  const [documentForm, setDocumentForm] = useState({
-    type: '',
-    file: null as File | null
-  })
-
-  const [addressForm, setAddressForm] = useState({
-    label: '',
-    street: '',
-    city: '',
-    postalCode: '',
-    country: 'France',
-    isDefault: false
-  })
 
   const [notificationPrefs, setNotificationPrefs] = useState({
     email: true,
     sms: false,
-    push: true,
-    marketing: false
+    push: true
   })
 
   const handleEditProfile = () => {
@@ -204,65 +185,27 @@ export default function ClientProfilePage() {
 
   const handleSaveProfile = async () => {
     try {
-      const updates: ProfileUpdateData = {
+      const updates = {
         ...profileForm,
         preferences: {
-          ...profile?.preferences,
           notifications: notificationPrefs
         }
       }
 
-      await updateProfile(updates)
-      setEditMode(false)
-      alert('Profil mis à jour avec succès !')
+      const response = await fetch('/api/client/profile', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updates)
+      })
+
+      if (response.ok) {
+        await fetchProfile()
+        setEditMode(false)
+      } else {
+        alert('Erreur lors de la mise à jour')
+      }
     } catch (error) {
       alert(error instanceof Error ? error.message : 'Erreur lors de la mise à jour')
-    }
-  }
-
-  const handleUploadDocument = async () => {
-    if (!documentForm.file || !documentForm.type) {
-      alert('Veuillez sélectionner un fichier et un type')
-      return
-    }
-
-    try {
-      await uploadDocument(documentForm.file, documentForm.type)
-      setDocumentDialog(false)
-      setDocumentForm({ type: '', file: null })
-      alert('Document uploadé avec succès !')
-    } catch (error) {
-      alert(error instanceof Error ? error.message : 'Erreur lors de l\'upload')
-    }
-  }
-
-  const handleAddAddress = async () => {
-    if (!addressForm.street || !addressForm.city || !addressForm.postalCode) {
-      alert('Veuillez remplir tous les champs obligatoires')
-      return
-    }
-
-    try {
-      if (selectedAddress) {
-        await updateAddress(selectedAddress.id, addressForm)
-        alert('Adresse mise à jour avec succès !')
-      } else {
-        await addAddress(addressForm)
-        alert('Adresse ajoutée avec succès !')
-      }
-      
-      setAddressDialog(false)
-      setAddressForm({
-        label: '',
-        street: '',
-        city: '',
-        postalCode: '',
-        country: 'France',
-        isDefault: false
-      })
-      setSelectedAddress(null)
-    } catch (error) {
-      alert(error instanceof Error ? error.message : 'Erreur lors de l\'opération')
     }
   }
 
@@ -335,7 +278,7 @@ export default function ClientProfilePage() {
                       <CheckCircle className="h-8 w-8 text-purple-600" />
                       <div className="ml-4">
                         <p className="text-sm font-medium text-gray-500">{t("stats.deliveries")}</p>
-                        <p className="text-2xl font-bold">{profile.stats.completedDeliveries}</p>
+                        <p className="text-2xl font-bold">{profile.stats.completedOrders}</p>
                       </div>
                     </div>
                   </CardContent>
@@ -343,11 +286,8 @@ export default function ClientProfilePage() {
               </div>
 
         <Tabs defaultValue="profile" className="space-y-6">
-          <TabsList className="grid grid-cols-5 w-full max-w-2xl">
+          <TabsList className="grid grid-cols-2 w-full max-w-md">
             <TabsTrigger value="profile">Profil</TabsTrigger>
-            <TabsTrigger value="addresses">Adresses</TabsTrigger>
-            <TabsTrigger value="payments">Paiements</TabsTrigger>
-            <TabsTrigger value="documents">Documents</TabsTrigger>
             <TabsTrigger value="settings">Paramètres</TabsTrigger>
           </TabsList>
 
@@ -444,305 +384,8 @@ export default function ClientProfilePage() {
             </Card>
           </TabsContent>
 
-          {/* Onglet Adresses */}
-          <TabsContent value="addresses" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle>Mes adresses</CardTitle>
-                  <Dialog open={addressDialog} onOpenChange={setAddressDialog}>
-                    <DialogTrigger asChild>
-                      <Button>
-                        <Plus className="h-4 w-4 mr-2" />
-                        Ajouter une adresse
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle>
-                          {selectedAddress ? 'Modifier l\'adresse' : 'Nouvelle adresse'}
-                        </DialogTitle>
-                      </DialogHeader>
-                      <div className="space-y-4">
-                        <div>
-                          <Label htmlFor="addressLabel">Libellé</Label>
-                          <Input
-                            id="addressLabel"
-                            placeholder="Domicile, Bureau..."
-                            value={addressForm.label}
-                            onChange={(e) => setAddressForm({...addressForm, label: e.target.value})}
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="street">Adresse</Label>
-                          <Input
-                            id="street"
-                            placeholder="Rue, avenue..."
-                            value={addressForm.street}
-                            onChange={(e) => setAddressForm({...addressForm, street: e.target.value})}
-                          />
-                        </div>
-                        <div className="grid grid-cols-2 gap-4">
-                          <div>
-                            <Label htmlFor="addressCity">Ville</Label>
-                            <Input
-                              id="addressCity"
-                              value={addressForm.city}
-                              onChange={(e) => setAddressForm({...addressForm, city: e.target.value})}
-                            />
-                          </div>
-                          <div>
-                            <Label htmlFor="addressPostalCode">Code postal</Label>
-                            <Input
-                              id="addressPostalCode"
-                              value={addressForm.postalCode}
-                              onChange={(e) => setAddressForm({...addressForm, postalCode: e.target.value})}
-                            />
-                          </div>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <Switch
-                            id="defaultAddress"
-                            checked={addressForm.isDefault}
-                            onCheckedChange={(checked) => setAddressForm({...addressForm, isDefault: checked})}
-                          />
-                          <Label htmlFor="defaultAddress">Adresse par défaut</Label>
-                        </div>
-                        <Button onClick={handleAddAddress} className="w-full">
-                          {selectedAddress ? 'Modifier' : 'Ajouter'}
-                        </Button>
-                      </div>
-                    </DialogContent>
-                  </Dialog>
-                </div>
-              </CardHeader>
-              <CardContent>
-                {profile.addresses.length === 0 ? (
-                  <div className="text-center py-8">
-                    <MapPin className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                    <p className="text-gray-500">Aucune adresse enregistrée</p>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {profile.addresses.map((address) => (
-                      <Card key={address.id} className="border">
-                        <CardContent className="p-4">
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <div className="flex items-center gap-2">
-                                <h4 className="font-medium">{address.label}</h4>
-                                {address.isDefault && (
-                                  <Badge variant="outline">Par défaut</Badge>
-                                )}
-                              </div>
-                              <p className="text-sm text-gray-600">
-                                {address.street}, {address.city} {address.postalCode}
-                              </p>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => {
-                                  setSelectedAddress(address)
-                                  setAddressForm({
-                                    label: address.label,
-                                    street: address.street,
-                                    city: address.city,
-                                    postalCode: address.postalCode,
-                                    country: address.country,
-                                    isDefault: address.isDefault
-                                  })
-                                  setAddressDialog(true)
-                                }}
-                              >
-                                <Edit className="h-4 w-4" />
-                              </Button>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => deleteAddress(address.id)}
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
 
-          {/* Onglet Paiements */}
-          <TabsContent value="payments" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle>Moyens de paiement</CardTitle>
-                  <Button>
-                    <Plus className="h-4 w-4 mr-2" />
-                    Ajouter une carte
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent>
-                {profile.paymentMethods.length === 0 ? (
-                  <div className="text-center py-8">
-                    <CreditCard className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                    <p className="text-gray-500">Aucun moyen de paiement</p>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {profile.paymentMethods.map((method) => (
-                      <Card key={method.id} className="border">
-                        <CardContent className="p-4">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                              <CreditCard className="h-6 w-6 text-gray-600" />
-                              <div>
-                                <div className="flex items-center gap-2">
-                                  <span className="font-medium">
-                                    **** **** **** {method.lastFour}
-                                  </span>
-                                  {method.isDefault && (
-                                    <Badge variant="outline">Principal</Badge>
-                                  )}
-                                </div>
-                                <p className="text-sm text-gray-600">
-                                  {method.brand} • Expire {method.expiryDate}
-                                </p>
-                              </div>
-                            </div>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => removePaymentMethod(method.id)}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
 
-          {/* Onglet Documents */}
-          <TabsContent value="documents" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle>Mes documents</CardTitle>
-                  <Dialog open={documentDialog} onOpenChange={setDocumentDialog}>
-                    <DialogTrigger asChild>
-                      <Button>
-                        <Upload className="h-4 w-4 mr-2" />
-                        Ajouter un document
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle>Nouveau document</DialogTitle>
-                      </DialogHeader>
-                      <div className="space-y-4">
-                        <div>
-                          <Label htmlFor="documentType">Type de document</Label>
-                          <Select
-                            value={documentForm.type}
-                            onValueChange={(value) => setDocumentForm({...documentForm, type: value})}
-                          >
-                            <SelectTrigger>
-                              <SelectValue placeholder="Choisir un type" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {Object.entries(documentTypes).map(([key, label]) => (
-                                <SelectItem key={key} value={key}>{label}</SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div>
-                          <Label htmlFor="documentFile">Fichier</Label>
-                          <Input
-                            id="documentFile"
-                            type="file"
-                            accept="image/*,.pdf"
-                            onChange={(e) => setDocumentForm({
-                              ...documentForm,
-                              file: e.target.files?.[0] || null
-                            })}
-                          />
-                        </div>
-                        <Button onClick={handleUploadDocument} className="w-full">
-                          Uploader
-                        </Button>
-                      </div>
-                    </DialogContent>
-                  </Dialog>
-                </div>
-              </CardHeader>
-              <CardContent>
-                {profile.documents.length === 0 ? (
-                  <div className="text-center py-8">
-                    <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                    <p className="text-gray-500">Aucun document uploadé</p>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {profile.documents.map((document) => {
-                      const StatusIcon = documentStatusLabels[document.status].icon
-                      return (
-                        <Card key={document.id} className="border">
-                          <CardContent className="p-4">
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-3">
-                                <FileText className="h-6 w-6 text-gray-600" />
-                                <div>
-                                  <div className="flex items-center gap-2">
-                                    <span className="font-medium">{document.name}</span>
-                                    <Badge className={documentStatusLabels[document.status].color}>
-                                      <StatusIcon className="h-3 w-3 mr-1" />
-                                      {documentStatusLabels[document.status].label}
-                                    </Badge>
-                                  </div>
-                                  <p className="text-sm text-gray-600">
-                                    {documentTypes[document.type as keyof typeof documentTypes]} • 
-                                    Uploadé le {new Date(document.uploadedAt).toLocaleDateString('fr-FR')}
-                                  </p>
-                                </div>
-                              </div>
-                              <div className="flex items-center gap-2">
-                                {document.url && (
-                                  <Button variant="outline" size="sm" asChild>
-                                    <a href={document.url} target="_blank" rel="noopener noreferrer">
-                                      <Download className="h-4 w-4" />
-                                    </a>
-                                  </Button>
-                                )}
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => deleteDocument(document.id)}
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
-                              </div>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      )
-                    })}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
 
           {/* Onglet Paramètres */}
           <TabsContent value="settings" className="space-y-6">
@@ -787,17 +430,6 @@ export default function ClientProfilePage() {
                   />
                 </div>
 
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h4 className="font-medium">Communications marketing</h4>
-                    <p className="text-sm text-gray-600">Offres et nouveautés</p>
-                  </div>
-                  <Switch
-                    checked={editMode ? notificationPrefs.marketing : profile.preferences.notifications.marketing}
-                    onCheckedChange={(checked) => setNotificationPrefs({...notificationPrefs, marketing: checked})}
-                    disabled={!editMode}
-                  />
-                </div>
               </CardContent>
             </Card>
 

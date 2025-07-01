@@ -39,6 +39,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Récupérer les livraisons
+<<<<<<< Updated upstream
     const deliveries = await db.delivery.findMany({
       where: whereConditions,
       include: {
@@ -83,6 +84,68 @@ export async function GET(request: NextRequest) {
     // Compter le total pour la pagination
     const total = await db.delivery.count({
       where: whereConditions
+=======
+    const [deliveries, total] = await Promise.all([
+      db.delivery.findMany({
+        where,
+        include: {
+          announcement: {
+            select: {
+              id: true,
+              title: true,
+              pickupAddress: true,
+              deliveryAddress: true,
+              basePrice: true,
+              finalPrice: true
+            }
+          },
+          deliverer: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+              profile: {
+                select: {
+                  phone: true,
+                  avatar: true
+                }
+              }
+            }
+          },
+          tracking: {
+            orderBy: { timestamp: 'desc' },
+            take: 1
+          }
+        },
+        orderBy: { createdAt: 'desc' },
+        skip: offset,
+        take: limit
+      }),
+      db.delivery.count({ where })
+    ])
+
+    // Transformer les données
+    const transformedDeliveries = deliveries.map(delivery => {
+      return {
+        id: delivery.id,
+        announcementId: delivery.announcement.id,
+        announcementTitle: delivery.announcement.title,
+        status: delivery.status,
+        delivererName: delivery.deliverer?.name,
+        delivererPhone: delivery.deliverer?.profile?.phone,
+        delivererAvatar: delivery.deliverer?.profile?.avatar,
+        pickupAddress: delivery.announcement.pickupAddress,
+        deliveryAddress: delivery.announcement.deliveryAddress,
+        scheduledDate: delivery.pickupDate?.toISOString(),
+        price: delivery.price,
+        validationCode: delivery.validationCode,
+        trackingUrl: `/client/deliveries/${delivery.id}/tracking`,
+        estimatedDelivery: delivery.deliveryDate?.toISOString(),
+        actualDelivery: delivery.actualDeliveryDate?.toISOString(),
+        lastTracking: delivery.tracking?.[0] || null,
+        createdAt: delivery.createdAt.toISOString()
+      }
+>>>>>>> Stashed changes
     })
 
     console.log(`✅ ${deliveries.length} livraisons récupérées sur ${total} total`)
