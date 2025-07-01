@@ -72,6 +72,18 @@ export async function POST(
       return NextResponse.json({ error: 'Livraison non trouvée' }, { status: 404 })
     }
 
+    // Récupérer la livraison
+    const delivery = await db.delivery.findUnique({
+      where: { id: deliveryId },
+      include: {
+        client: true
+      }
+    })
+
+    if (!delivery) {
+      return NextResponse.json({ error: 'Livraison non trouvée' }, { status: 404 })
+    }
+
     // Vérifier que l'utilisateur est le client propriétaire
     if (delivery.clientId !== user.id) {
       return NextResponse.json({ 
