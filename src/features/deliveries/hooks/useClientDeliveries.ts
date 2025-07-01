@@ -4,7 +4,7 @@ export interface ClientDelivery {
   id: string
   announcementId: string
   announcementTitle: string
-  status: 'PENDING' | 'ACCEPTED' | 'IN_PROGRESS' | 'DELIVERED' | 'CANCELLED'
+  status: 'PENDING' | 'ACCEPTED' | 'IN_TRANSIT' | 'DELIVERED' | 'CANCELLED'
   delivererName?: string
   delivererPhone?: string
   delivererAvatar?: string

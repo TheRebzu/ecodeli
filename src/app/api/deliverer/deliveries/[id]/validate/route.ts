@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
-import { getCurrentUser } from '@/lib/auth'
-import { prisma } from '@/lib/db'
-import { handleApiError } from '@/lib/utils/api-response'
+import { getUserFromSession } from '@/lib/auth/utils'
+import { db } from '@/lib/db'
 
 // Schema pour validation de livraison
 const validateDeliverySchema = z.object({
@@ -23,71 +22,85 @@ const validateDeliverySchema = z.object({
   })).optional()
 })
 
-// POST - Valider une livraison avec le code � 6 chiffres
-export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
+// POST - Valider une livraison avec le code à 6 chiffres
+export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const user = await getUser(request)
+    console.log('🚚 [POST /api/deliverer/deliveries/[id]/validate] Début de la requête')
+    
+    const user = await getUserFromSession(request)
     if (!user) {
+      console.log('❌ Utilisateur non authentifié')
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     if (user.role !== 'DELIVERER') {
-      return NextResponse.json({ error: 'Forbidden - Deliverer only' }, { status: 403 })
+      console.log('❌ Rôle incorrect:', user.role)
+      return NextResponse.json({ error: 'Forbidden - DELIVERER role required' }, { status: 403 })
     }
 
-    const deliveryId = params.id
+    const { id: deliveryId } = await params
+    console.log('📦 ID Livraison à valider:', deliveryId)
+
     const body = await request.json()
     const validatedData = validateDeliverySchema.parse(body)
 
-    // R�cup�rer la livraison avec toutes les informations n�cessaires
-    const delivery = await prisma.delivery.findUnique({
-      where: { id: deliveryId },
+    console.log('📝 Données de validation reçues:', {
+      validationCode: validatedData.validationCode,
+      hasDeliveryProof: !!validatedData.deliveryProof,
+      hasIssues: !!validatedData.issues
+    })
+
+    // Récupérer la livraison avec toutes les informations nécessaires
+    const delivery = await db.delivery.findFirst({
+      where: { 
+        id: deliveryId,
+        delivererId: user.id
+      },
       include: {
-        deliverer: {
-          include: {
-            user: {
-              select: { id: true, profile: { select: { firstName: true, lastName: true } } }
-            }
-          }
-        },
         announcement: {
           include: {
-            client: {
+            author: {
               include: {
-                user: {
-                  select: { id: true, profile: { select: { firstName: true, lastName: true } } }
-                }
+                profile: true
               }
             }
           }
-        }
+        },
+        payment: true
       }
     })
 
     if (!delivery) {
-      return NextResponse.json({ error: 'Delivery not found' }, { status: 404 })
+      console.log('❌ Livraison non trouvée ou non autorisée')
+      return NextResponse.json({ error: 'Delivery not found or not authorized' }, { status: 404 })
     }
 
-    // V�rifier que le livreur est bien assign� � cette livraison
-    if (delivery.deliverer.userId !== user.id) {
-      return NextResponse.json({ 
-        error: 'You are not assigned to this delivery' 
-      }, { status: 403 })
-    }
+    console.log('📋 Livraison trouvée:', {
+      id: delivery.id,
+      status: delivery.status,
+      delivererId: delivery.delivererId,
+      hasValidationCode: !!delivery.validationCode
+    })
 
-    // V�rifier le statut de la livraison
-    if (delivery.status !== 'IN_TRANSIT') {
+    // Vérifier le statut de la livraison
+    if (delivery.status !== 'IN_TRANSIT' && delivery.status !== 'IN_PROGRESS') {
+      console.log('❌ Statut incorrect pour validation:', delivery.status)
       return NextResponse.json({
         error: 'Delivery cannot be validated',
         currentStatus: delivery.status,
-        allowedStatus: 'IN_TRANSIT'
+        allowedStatus: 'IN_TRANSIT or IN_PROGRESS'
       }, { status: 409 })
     }
 
-    // V�rifier le code de validation
+    // Vérifier le code de validation
     if (delivery.validationCode !== validatedData.validationCode) {
-      // Enregistrer la tentative �chou�e
-      await prisma.deliveryValidationAttempt.create({
+      console.log('❌ Code de validation incorrect:', {
+        provided: validatedData.validationCode,
+        expected: delivery.validationCode
+      })
+
+      // Enregistrer la tentative échouée
+      await db.deliveryValidationAttempt.create({
         data: {
           deliveryId: delivery.id,
           attemptedCode: validatedData.validationCode,
@@ -97,8 +110,8 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
         }
       })
 
-      // Compter les tentatives �chou�es r�centes (derni�res 30 minutes)
-      const recentFailedAttempts = await prisma.deliveryValidationAttempt.count({
+      // Compter les tentatives échouées récentes (dernières 30 minutes)
+      const recentFailedAttempts = await db.deliveryValidationAttempt.count({
         where: {
           deliveryId: delivery.id,
           success: false,
@@ -108,7 +121,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
         }
       })
 
-      // Bloquer temporairement apr�s 3 tentatives �chou�es
+      // Bloquer temporairement après 3 tentatives échouées
       if (recentFailedAttempts >= 3) {
         return NextResponse.json({
           error: 'Too many failed attempts',
@@ -125,8 +138,10 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
       }, { status: 400 })
     }
 
-    // Code correct - enregistrer la tentative r�ussie
-    await prisma.deliveryValidationAttempt.create({
+    console.log('✅ Code de validation correct')
+
+    // Code correct - enregistrer la tentative réussie
+    await db.deliveryValidationAttempt.create({
       data: {
         deliveryId: delivery.id,
         attemptedCode: validatedData.validationCode,
@@ -136,239 +151,213 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
       }
     })
 
-    // D�terminer le statut final
+    // Déterminer le statut final
     const hasIssues = validatedData.issues && validatedData.issues.length > 0
-    const finalStatus = hasIssues ? 'DELIVERED_WITH_ISSUES' : 'DELIVERED'
+    const finalStatus = 'DELIVERED' // Toujours DELIVERED selon l'enum
 
-    // Mettre � jour la livraison
-    const updatedDelivery = await prisma.delivery.update({
+    console.log('🔄 Mise à jour du statut vers:', finalStatus)
+
+    // Mettre à jour la livraison
+    const updatedDelivery = await db.delivery.update({
       where: { id: deliveryId },
       data: {
         status: finalStatus,
-        validatedAt: new Date(),
-        deliveryProof: validatedData.deliveryProof ? JSON.stringify(validatedData.deliveryProof) : null,
-        issues: hasIssues ? JSON.stringify(validatedData.issues) : null,
-        completedAt: new Date()
+        actualDeliveryDate: new Date()
+      }
+    })
+
+    // Créer une preuve de livraison si nécessaire
+    if (validatedData.deliveryProof || hasIssues) {
+      await db.proofOfDelivery.upsert({
+        where: { deliveryId },
+        update: {
+          notes: validatedData.deliveryProof ? JSON.stringify(validatedData.deliveryProof) : null,
+          validatedWithCode: true
+        },
+        create: {
+          deliveryId,
+          notes: validatedData.deliveryProof ? JSON.stringify(validatedData.deliveryProof) : null,
+          validatedWithCode: true
+        }
+      })
+    }
+
+    // Ajouter une entrée de tracking
+    await db.trackingUpdate.create({
+      data: {
+        deliveryId,
+        status: 'DELIVERED',
+        message: hasIssues ? 'Livraison terminée avec signalements' : 'Livraison terminée avec succès',
+        timestamp: new Date()
       }
     })
 
     // Calculer la commission du livreur (10% du prix)
     const delivererCommission = Math.round(delivery.price * 0.10 * 100) / 100
 
-    // Cr�er la transaction de paiement pour le livreur
-    const delivererPayment = await prisma.payment.create({
+    console.log('💰 Commission livreur calculée:', delivererCommission)
+
+    // Créer la transaction de paiement pour le livreur
+    const delivererPayment = await db.payment.create({
       data: {
-        userId: delivery.deliverer.userId,
+        userId: user.id,
+        deliveryId: delivery.id,
         amount: delivererCommission,
         currency: 'EUR',
-        type: 'DELIVERY_COMMISSION',
         status: 'COMPLETED',
-        metadata: {
+        paymentMethod: 'DELIVERY_COMMISSION',
+        paidAt: new Date(),
+        metadata: JSON.stringify({
           deliveryId: delivery.id,
           commissionRate: 0.10,
           originalAmount: delivery.price
-        }
+        })
       }
     })
 
-    // Mettre � jour le portefeuille du livreur
-    await prisma.wallet.upsert({
-      where: { userId: delivery.deliverer.userId },
+    // Mettre à jour le portefeuille du livreur
+    await db.wallet.upsert({
+      where: { userId: user.id },
       update: {
         balance: {
-          increment: delivererCommission
-        },
-        totalEarnings: {
           increment: delivererCommission
         }
       },
       create: {
-        userId: delivery.deliverer.userId,
-        balance: delivererCommission,
-        totalEarnings: delivererCommission
+        userId: user.id,
+        balance: delivererCommission
       }
     })
 
-    // Cr�er les notifications
+    // Si le paiement client existe et est en attente, le compléter
+    if (delivery.payment && delivery.payment.status === 'PENDING') {
+      await db.payment.update({
+        where: { id: delivery.payment.id },
+        data: {
+          status: 'COMPLETED',
+          paidAt: new Date()
+        }
+      })
+    }
+
+    // Créer les notifications
     const notifications = []
 
     // Notification pour le client
-    notifications.push(prisma.notification.create({
+    notifications.push(db.notification.create({
       data: {
-        userId: delivery.announcement.client.userId,
+        userId: delivery.announcement.authorId,
         type: hasIssues ? 'DELIVERY_COMPLETED_WITH_ISSUES' : 'DELIVERY_COMPLETED',
-        title: hasIssues ? 'Livraison termin�e avec signalements' : 'Livraison termin�e',
+        title: hasIssues ? 'Livraison terminée avec signalements' : 'Livraison terminée',
         message: hasIssues 
-          ? `Votre livraison a �t� effectu�e avec quelques signalements. Consultez les d�tails.`
-          : `Votre livraison a �t� effectu�e avec succ�s par ${delivery.deliverer?.profile?.firstName || 'votre livreur'}.`,
-        data: {
+          ? `Votre livraison a été terminée mais des problèmes ont été signalés.`
+          : `Votre livraison a été terminée avec succès !`,
+        data: JSON.stringify({
           deliveryId: delivery.id,
-          delivererId: delivery.deliverer.userId,
           hasIssues,
-          validatedAt: new Date()
-        }
+          issues: validatedData.issues
+        }),
+        isRead: false
       }
     }))
 
     // Notification pour le livreur
-    notifications.push(prisma.notification.create({
+    notifications.push(db.notification.create({
       data: {
-        userId: delivery.deliverer.userId,
-        type: 'DELIVERY_PAYMENT_RECEIVED',
-        title: 'Paiement re�u',
-        message: `Vous avez re�u ${delivererCommission}� pour la livraison termin�e.`,
-        data: {
+        userId: user.id,
+        type: 'DELIVERY_VALIDATED',
+        title: 'Livraison validée',
+        message: `Vous avez validé la livraison et gagné ${delivererCommission}€ de commission.`,
+        data: JSON.stringify({
           deliveryId: delivery.id,
-          amount: delivererCommission,
-          paymentId: delivererPayment.id
-        }
+          commission: delivererCommission
+        }),
+        isRead: false
       }
     }))
 
+    // Exécuter toutes les notifications
     await Promise.all(notifications)
 
-    // Log de l'action pour audit
-    await prisma.auditLog.create({
-      data: {
-        userId: user.id,
-        action: 'DELIVERY_VALIDATED',
-        entity: 'Delivery',
-        entityId: delivery.id,
-        details: {
-          validationCode: validatedData.validationCode,
-          finalStatus,
-          hasIssues,
-          issuesCount: validatedData.issues?.length || 0,
-          commissionPaid: delivererCommission,
-          clientId: delivery.announcement.client.userId
-        }
-      }
-    })
+    console.log('✅ Livraison validée avec succès')
 
     return NextResponse.json({
       success: true,
-      message: hasIssues 
-        ? 'Livraison valid�e avec signalements'
-        : 'Livraison valid�e avec succ�s',
       delivery: {
         id: updatedDelivery.id,
         status: updatedDelivery.status,
-        validatedAt: updatedDelivery.validatedAt,
-        completedAt: updatedDelivery.completedAt,
-        hasIssues
+        actualDeliveryDate: updatedDelivery.actualDeliveryDate?.toISOString()
       },
+      commission: delivererCommission,
       payment: {
-        commission: delivererCommission,
-        paymentId: delivererPayment.id,
-        currency: 'EUR'
-      },
-      nextSteps: hasIssues 
-        ? ['Client notifi� des signalements', 'R�solution en cours']
-        : ['Livraison termin�e', '�valuation disponible']
+        id: delivererPayment.id,
+        amount: delivererPayment.amount,
+        status: delivererPayment.status
+      }
     })
 
   } catch (error) {
+    console.error('❌ Erreur validation livraison:', error)
+    
     if (error instanceof z.ZodError) {
-      return NextResponse.json({
-        error: 'Validation error',
-        details: error.errors
-      }, { status: 400 })
+      return NextResponse.json(
+        { error: 'Invalid request data', details: error.errors },
+        { status: 400 }
+      )
     }
-    return handleApiError(error, 'validating delivery')
+
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    )
   }
 }
 
-// GET - Obtenir les informations de validation d'une livraison
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+// GET - Récupérer les informations de validation d'une livraison
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const user = await getUser(request)
+    const user = await getUserFromSession(request)
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const deliveryId = params.id
+    if (user.role !== 'DELIVERER') {
+      return NextResponse.json({ error: 'Forbidden - DELIVERER role required' }, { status: 403 })
+    }
 
-    // R�cup�rer la livraison avec les informations de validation
-    const delivery = await prisma.delivery.findUnique({
-      where: { id: deliveryId },
-      include: {
-        deliverer: {
-          include: {
-            user: {
-              select: { id: true, profile: { select: { firstName: true, lastName: true } } }
-            }
-          }
-        },
-        announcement: {
-          include: {
-            client: {
-              include: {
-                user: {
-                  select: { id: true, profile: { select: { firstName: true, lastName: true } } }
-                }
-              }
-            }
-          }
-        },
-        validationAttempts: {
-          orderBy: { attemptedAt: 'desc' },
-          take: 10
-        }
+    const { id: deliveryId } = await params
+
+    const delivery = await db.delivery.findFirst({
+      where: { 
+        id: deliveryId,
+        delivererId: user.id
+      },
+      select: {
+        id: true,
+        status: true,
+        validationCode: true,
+        actualDeliveryDate: true
       }
     })
 
     if (!delivery) {
-      return NextResponse.json({ error: 'Delivery not found' }, { status: 404 })
+      return NextResponse.json({ error: 'Delivery not found or not authorized' }, { status: 404 })
     }
-
-    // V�rifier les permissions
-    const canView = user.role === 'ADMIN' || 
-                   delivery.deliverer.userId === user.id ||
-                   delivery.announcement.client.userId === user.id
-
-    if (!canView) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
-    }
-
-    // Compter les tentatives �chou�es r�centes
-    const recentFailedAttempts = delivery.validationAttempts.filter(
-      attempt => !attempt.success && 
-      attempt.attemptedAt > new Date(Date.now() - 30 * 60 * 1000)
-    ).length
-
-    const isLocked = recentFailedAttempts >= 3
-    const lockUntil = isLocked ? new Date(Date.now() + 30 * 60 * 1000) : null
 
     return NextResponse.json({
       delivery: {
         id: delivery.id,
         status: delivery.status,
-        canValidate: delivery.status === 'IN_TRANSIT' && !isLocked,
-        validatedAt: delivery.validatedAt,
-        completedAt: delivery.completedAt,
         hasValidationCode: !!delivery.validationCode,
-        deliveryProof: delivery.deliveryProof ? JSON.parse(delivery.deliveryProof) : null,
-        issues: delivery.issues ? JSON.parse(delivery.issues) : null
-      },
-      validation: {
-        attemptsRemaining: Math.max(0, 3 - recentFailedAttempts),
-        isLocked,
-        lockUntil,
-        totalAttempts: delivery.validationAttempts.length,
-        lastAttempt: delivery.validationAttempts[0] || null
-      },
-      permissions: {
-        canValidate: user.role === 'DELIVERER' && delivery.deliverer.userId === user.id,
-        canViewCode: user.role === 'ADMIN' || delivery.announcement.client.userId === user.id,
-        canViewAttempts: user.role === 'ADMIN'
-      },
-      // Code visible seulement pour le client et admin
-      ...(user.role === 'ADMIN' || delivery.announcement.client.userId === user.id ? {
-        validationCode: delivery.validationCode
-      } : {})
+        actualDeliveryDate: delivery.actualDeliveryDate?.toISOString()
+      }
     })
 
   } catch (error) {
-    return handleApiError(error, 'fetching delivery validation info')
+    console.error('❌ Erreur récupération validation:', error)
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    )
   }
 }

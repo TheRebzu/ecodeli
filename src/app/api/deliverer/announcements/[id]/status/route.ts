@@ -13,7 +13,7 @@ export async function PUT(
 
   try {
     const { delivererId, status } = await request.json();
-    const announcementId = params.id;
+    const { id: announcementId } = await params;
 
     // Vérifier que l'utilisateur est bien le livreur
     const deliverer = await db.deliverer.findFirst({

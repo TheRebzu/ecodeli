@@ -14,7 +14,9 @@ export async function GET(
 
     const booking = await db.booking.findFirst({
       where: {
-        id: params.id,
+        const { id } = await params;
+
+        id: id,
         clientId: session.user.id
       },
       include: {
@@ -46,7 +48,7 @@ export async function GET(
       return NextResponse.json({ error: 'Booking not found' }, { status: 404 })
     }
 
-    // Transformer les données pour correspondre à l'interface frontend
+    // Transformer les donnï¿½es pour correspondre ï¿½ l'interface frontend
     const transformedBooking = {
       id: booking.id,
       serviceType: booking.serviceType,
@@ -99,10 +101,12 @@ export async function PUT(
 
     const body = await request.json()
     
-    // Vérifier que la réservation appartient au client
+    // Vï¿½rifier que la rï¿½servation appartient au client
     const existingBooking = await db.booking.findFirst({
       where: {
-        id: params.id,
+        const { id } = await params;
+
+        id: id,
         clientId: session.user.id
       }
     })
@@ -111,14 +115,15 @@ export async function PUT(
       return NextResponse.json({ error: 'Booking not found' }, { status: 404 })
     }
 
-    // Vérifier que la réservation peut être modifiée
+    // Vï¿½rifier que la rï¿½servation peut ï¿½tre modifiï¿½e
     if (existingBooking.status !== 'PENDING' && existingBooking.status !== 'CONFIRMED') {
       return NextResponse.json({ error: 'Booking cannot be modified' }, { status: 400 })
     }
 
-    // Mettre à jour la réservation
+    // Mettre ï¿½ jour la rï¿½servation
     const updatedBooking = await db.booking.update({
-      where: { id: params.id },
+      where: { const { id } = await params;
+ id: id },
       data: {
         ...body,
         updatedAt: new Date()

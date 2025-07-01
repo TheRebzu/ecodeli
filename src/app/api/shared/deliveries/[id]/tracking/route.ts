@@ -19,7 +19,7 @@ export async function GET(
       return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
     }
 
-    const deliveryId = params.id
+    const { id: deliveryId } = await params
 
     // Vérifier les permissions d'accès à cette livraison
     const hasAccess = await checkDeliveryAccess(deliveryId, session.user.id, session.user.role)
@@ -139,7 +139,7 @@ export async function POST(
       return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
     }
 
-    const deliveryId = params.id
+    const { id: deliveryId } = await params
     const body = await request.json()
 
     // Validation des données de mise à jour
@@ -213,7 +213,7 @@ export async function PUT(
       return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
     }
 
-    const deliveryId = params.id
+    const { id: deliveryId } = await params
     const body = await request.json()
 
     // Validation de la géolocalisation

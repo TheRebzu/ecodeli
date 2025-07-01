@@ -14,7 +14,7 @@ import Link from "next/link";
 
 interface Delivery {
   id: string;
-  status: 'PENDING' | 'ACCEPTED' | 'IN_PROGRESS' | 'DELIVERED' | 'CANCELLED';
+  status: 'PENDING' | 'ACCEPTED' | 'IN_TRANSIT' | 'DELIVERED' | 'CANCELLED';
   announcementTitle: string;
   scheduledDate?: string;
   actualDelivery?: string;
@@ -69,7 +69,7 @@ export default function DeliveryList({ clientId }: DeliveryListProps) {
     switch (status) {
       case 'PENDING': return 'bg-yellow-100 text-yellow-800';
       case 'ACCEPTED': return 'bg-blue-100 text-blue-800';
-      case 'IN_PROGRESS': return 'bg-purple-100 text-purple-800';
+      case 'IN_TRANSIT': return 'bg-purple-100 text-purple-800';
       case 'DELIVERED': return 'bg-green-100 text-green-800';
       case 'CANCELLED': return 'bg-red-100 text-red-800';
       default: return 'bg-gray-100 text-gray-800';
@@ -80,7 +80,7 @@ export default function DeliveryList({ clientId }: DeliveryListProps) {
     switch (status) {
       case 'PENDING': return <Calendar className="h-4 w-4" />;
       case 'ACCEPTED': return <CheckCircle className="h-4 w-4" />;
-      case 'IN_PROGRESS': return <Truck className="h-4 w-4" />;
+      case 'IN_TRANSIT': return <Truck className="h-4 w-4" />;
       case 'DELIVERED': return <CheckCircle className="h-4 w-4" />;
       case 'CANCELLED': return <XCircle className="h-4 w-4" />;
       default: return <Calendar className="h-4 w-4" />;
@@ -123,7 +123,7 @@ export default function DeliveryList({ clientId }: DeliveryListProps) {
     }
   };
 
-  const activeDeliveries = deliveries.filter(d => ['PENDING', 'ACCEPTED', 'IN_PROGRESS'].includes(d.status));
+  const activeDeliveries = deliveries.filter(d => ['PENDING', 'ACCEPTED', 'IN_TRANSIT'].includes(d.status));
   const completedDeliveries = deliveries.filter(d => ['DELIVERED', 'CANCELLED'].includes(d.status));
 
   if (isLoading) {

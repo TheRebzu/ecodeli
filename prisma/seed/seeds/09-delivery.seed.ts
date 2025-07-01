@@ -42,7 +42,7 @@ export async function seedDeliveries(ctx: SeedContext) {
     const delivererFee = basePrice - platformFee
     
     // Déterminer le statut (utiliser les valeurs d'enum correctes)
-    const statuses = ['PENDING', 'ACCEPTED', 'IN_PROGRESS', 'DELIVERED']
+    const statuses = ['PENDING', 'ACCEPTED', 'IN_TRANSIT', 'DELIVERED']
     const status = statuses[Math.floor(Math.random() * statuses.length)]
     
     // Dates réalistes
@@ -132,7 +132,7 @@ export async function seedDeliveries(ctx: SeedContext) {
       }
       
     } catch (error) {
-      console.log(`   Error creating delivery for announcement ${announcement.id}:`, error.message)
+      console.log(`   Error creating delivery for announcement ${announcement.id}:`, error instanceof Error ? error.message : 'Unknown error')
     }
   }
   

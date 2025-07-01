@@ -27,7 +27,7 @@ const proofOfDeliverySchema = z.object({
 // GET - Détails d'une livraison spécifique
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth()
@@ -39,7 +39,7 @@ export async function GET(
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
-    const deliveryId = params.id
+    const { id: deliveryId } = await params
 
     // Récupérer la livraison avec toutes les relations
     const delivery = await prisma.delivery.findFirst({
@@ -122,7 +122,7 @@ export async function GET(
 // POST - Valider une livraison avec le code à 6 chiffres
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth()
@@ -134,7 +134,7 @@ export async function POST(
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
-    const deliveryId = params.id
+    const { id: deliveryId } = await params
     const body = await request.json()
     const validatedData = validateDeliverySchema.parse(body)
 

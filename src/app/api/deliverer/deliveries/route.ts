@@ -150,7 +150,6 @@ export async function GET(request: NextRequest) {
     const formattedDeliveries = deliveries.map(delivery => ({
       id: delivery.id,
       status: delivery.status,
-      validationCode: delivery.validationCode,
       pickupDate: delivery.pickupDate?.toISOString(),
       deliveryDate: delivery.deliveryDate?.toISOString(),
       actualDeliveryDate: delivery.actualDeliveryDate?.toISOString(),

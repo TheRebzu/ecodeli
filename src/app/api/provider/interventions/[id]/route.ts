@@ -13,7 +13,7 @@ export async function GET(
       return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
     }
     
-    const interventionId = params.id
+    const { id: interventionId } = await params
 
     const intervention = await prisma.booking.findUnique({
       where: { id: interventionId },
@@ -85,7 +85,7 @@ export async function PATCH(
       return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
     }
     
-    const interventionId = params.id
+    const { id: interventionId } = await params
     const { status, completionReport } = await request.json()
 
     // V�rifier que l'intervention existe et appartient au prestataire

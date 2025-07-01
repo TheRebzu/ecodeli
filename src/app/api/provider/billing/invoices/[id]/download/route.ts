@@ -33,7 +33,9 @@ export async function GET(
     // Vérifier que la facture appartient bien au prestataire
     const invoice = await prisma.invoice.findUnique({
       where: {
-        id: params.id,
+        const { id } = await params;
+
+        id: id,
         providerId: provider.id
       }
     })

@@ -3,108 +3,102 @@ import { getUserFromSession } from '@/lib/auth/utils'
 import { db } from '@/lib/db'
 
 export async function GET(request: NextRequest) {
-  const user = await getUserFromSession(request)
-  if (!user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
-
   try {
-    const { searchParams } = new URL(request.url)
-    const status = searchParams.get('status')
-    const page = parseInt(searchParams.get('page') || '1')
-    const limit = parseInt(searchParams.get('limit') || '10')
-    const offset = (page - 1) * limit
+    console.log('👤 [GET /api/client/deliveries] Début de la requête')
+    
+    const user = await getUserFromSession(request)
+    if (!user) {
+      console.log('❌ Utilisateur non authentifié')
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
 
-    // Construire les filtres
-    const where: any = {
+    if (user.role !== 'CLIENT') {
+      console.log('❌ Rôle incorrect:', user.role)
+      return NextResponse.json({ error: 'Forbidden - CLIENT role required' }, { status: 403 })
+    }
+
+    console.log('✅ Utilisateur client authentifié:', user.id)
+
+    // Récupérer les paramètres de requête
+    const { searchParams } = new URL(request.url)
+    const page = parseInt(searchParams.get('page') || '1')
+    const limit = parseInt(searchParams.get('limit') || '20')
+    const status = searchParams.get('status')
+
+    console.log('📋 Paramètres de requête:', { page, limit, status })
+
+    // Construire les conditions de filtrage
+    const whereConditions: any = {
       announcement: {
-        clientId: user.id
+        authorId: user.id
       }
     }
 
     if (status) {
-      where.status = status
+      whereConditions.status = status
     }
 
     // Récupérer les livraisons
-    const [deliveries, total] = await Promise.all([
-      db.delivery.findMany({
-        where,
-        include: {
-          announcement: {
-            select: {
-              id: true,
-              title: true,
-              pickupAddress: true,
-              deliveryAddress: true,
-              basePrice: true,
-              finalPrice: true
-            }
-          },
-          deliverer: {
-            select: {
-              id: true,
-              userId: true
-            }
-          },
-          tracking: {
-            orderBy: { createdAt: 'desc' },
-            take: 1
+    const deliveries = await db.delivery.findMany({
+      where: whereConditions,
+      include: {
+        announcement: {
+          select: {
+            title: true,
+            pickupAddress: true,
+            deliveryAddress: true,
+            price: true
           }
         },
-        orderBy: { createdAt: 'desc' },
-        skip: offset,
-        take: limit
-      }),
-      db.delivery.count({ where })
-    ])
-
-    // Récupérer les informations des livreurs
-    const delivererIds = deliveries.map(d => d.deliverer?.userId).filter(Boolean)
-    const delivererUsers = await db.user.findMany({
-      where: { id: { in: delivererIds } },
-      select: { id: true, name: true, phone: true, image: true }
+        deliverer: {
+          include: {
+            user: {
+              include: {
+                profile: {
+                  select: {
+                    firstName: true,
+                    lastName: true,
+                    phone: true
+                  }
+                }
+              }
+            }
+          }
+        },
+        ProofOfDelivery: {
+          select: {
+            photoUrl: true,
+            notes: true,
+            uploadedAt: true
+          }
+        }
+      },
+      orderBy: {
+        createdAt: 'desc'
+      },
+      skip: (page - 1) * limit,
+      take: limit
     })
-    
-    const delivererMap = new Map(delivererUsers.map(user => [user.id, user]))
 
-    // Transformer les données
-    const transformedDeliveries = deliveries.map(delivery => {
-      const delivererUser = delivery.deliverer?.userId ? delivererMap.get(delivery.deliverer.userId) : null
-      
-      return {
-        id: delivery.id,
-        announcementId: delivery.announcement.id,
-        announcementTitle: delivery.announcement.title,
-        status: delivery.status,
-        delivererName: delivererUser?.name,
-        delivererPhone: delivererUser?.phone,
-        delivererAvatar: delivererUser?.image,
-        pickupAddress: delivery.announcement.pickupAddress,
-        deliveryAddress: delivery.announcement.deliveryAddress,
-        scheduledDate: delivery.scheduledDate?.toISOString(),
-        price: delivery.announcement.finalPrice || delivery.announcement.basePrice,
-        validationCode: delivery.validationCode,
-        trackingUrl: `/client/deliveries/${delivery.id}/tracking`,
-        estimatedDelivery: delivery.estimatedDelivery?.toISOString(),
-        actualDelivery: delivery.actualDelivery?.toISOString(),
-        rating: delivery.rating,
-        review: delivery.review,
-        createdAt: delivery.createdAt.toISOString()
-      }
+    // Compter le total pour la pagination
+    const total = await db.delivery.count({
+      where: whereConditions
     })
+
+    console.log(`✅ ${deliveries.length} livraisons récupérées sur ${total} total`)
 
     return NextResponse.json({
-      deliveries: transformedDeliveries,
+      deliveries,
       pagination: {
         page,
         limit,
         total,
-        totalPages: Math.ceil(total / limit)
+        pages: Math.ceil(total / limit)
       }
     })
+
   } catch (error) {
-    console.error('Error fetching client deliveries:', error)
+    console.error('❌ Erreur récupération livraisons client:', error)
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

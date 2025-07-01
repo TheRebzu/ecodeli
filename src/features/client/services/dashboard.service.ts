@@ -159,7 +159,7 @@ export class ClientDashboardService {
       safeCount(prisma.delivery.count({
         where: {
           announcement: { authorId: userId },
-          status: { in: ['PENDING', 'ACCEPTED', 'IN_PROGRESS'] }
+          status: { in: ['PENDING', 'ACCEPTED', 'IN_TRANSIT'] }
         }
       })),
       
@@ -387,7 +387,7 @@ export class ClientDashboardService {
       const deliveries = await prisma.delivery.findMany({
         where: {
           announcement: { authorId: userId },
-          status: { in: ['PENDING', 'ACCEPTED', 'IN_PROGRESS'] }
+          status: { in: ['PENDING', 'ACCEPTED', 'IN_TRANSIT'] }
         },
         take: limit,
         include: {

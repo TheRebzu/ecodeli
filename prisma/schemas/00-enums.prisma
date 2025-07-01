@@ -67,7 +67,8 @@ enum AnnouncementStatus {
 enum DeliveryStatus {
   PENDING
   ACCEPTED
-  IN_PROGRESS
+  PICKED_UP
+  IN_TRANSIT
   DELIVERED
   CANCELLED
   FAILED

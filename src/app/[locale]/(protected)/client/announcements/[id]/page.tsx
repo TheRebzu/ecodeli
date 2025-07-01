@@ -4,6 +4,42 @@ import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import Link from 'next/link'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogDescription, 
+  DialogFooter, 
+  DialogHeader, 
+  DialogTitle 
+} from '@/components/ui/dialog'
+import { 
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
+import { Textarea } from '@/components/ui/textarea'
+import { 
+  CheckCircle, 
+  XCircle, 
+  AlertTriangle, 
+  Package, 
+  Clock,
+  MapPin,
+  User,
+  Phone,
+  MessageCircle,
+  RefreshCw
+} from 'lucide-react'
+import { toast } from 'sonner'
 
 interface Announcement {
   id: string
@@ -59,7 +95,25 @@ interface Announcement {
     }
   }[]
   reviews?: any[]
-  delivery?: any
+  delivery?: {
+    id: string
+    status: string
+    validationCode?: string
+    deliverer?: {
+      id: string
+      name: string
+      profile?: {
+        firstName: string
+        lastName: string
+        phone?: string
+      }
+    }
+    proofOfDelivery?: {
+      photos?: string[]
+      notes?: string
+      createdAt: string
+    }
+  }
   attachments?: any[]
 }
 
@@ -70,6 +124,11 @@ export default function AnnouncementDetailPage() {
   const [announcement, setAnnouncement] = useState<Announcement | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [showValidationDialog, setShowValidationDialog] = useState(false)
+  const [showProblemDialog, setShowProblemDialog] = useState(false)
+  const [validationCode, setValidationCode] = useState('')
+  const [problemReason, setProblemReason] = useState('')
+  const [actionLoading, setActionLoading] = useState(false)
 
   useEffect(() => {
     if (params.id) {
@@ -77,18 +136,44 @@ export default function AnnouncementDetailPage() {
     }
   }, [params.id])
 
+  // Rafraîchir automatiquement les données de livraison en cours
+  useEffect(() => {
+    if (announcement?.delivery?.status === 'IN_TRANSIT') {
+      const interval = setInterval(() => {
+        console.log('🔄 Auto-refresh: Livraison en cours')
+        fetchAnnouncement(params.id as string)
+      }, 30000) // Rafraîchir toutes les 30 secondes
+
+      return () => clearInterval(interval)
+    }
+  }, [announcement?.delivery?.status, params.id])
+
   const fetchAnnouncement = async (id: string) => {
     try {
       setLoading(true)
+      console.log('🔄 Fetching announcement:', id)
+      
       const response = await fetch(`/api/client/announcements/${id}`)
+      console.log('📡 Response status:', response.status)
       
       if (!response.ok) {
         throw new Error('Annonce non trouvée')
       }
 
       const data = await response.json()
+      console.log('📦 Announcement data:', data)
+      
+      if (data.delivery) {
+        console.log('📋 Delivery data:', {
+          id: data.delivery.id,
+          status: data.delivery.status,
+          validationCode: data.delivery.validationCode
+        })
+      }
+      
       setAnnouncement(data)
     } catch (err) {
+      console.error('❌ Error fetching announcement:', err)
       setError(err instanceof Error ? err.message : 'Erreur inconnue')
     } finally {
       setLoading(false)
@@ -109,10 +194,69 @@ export default function AnnouncementDetailPage() {
     }
   }
 
+  const validateDelivery = async () => {
+    if (!announcement?.delivery?.id) return
+
+    try {
+      setActionLoading(true)
+      const response = await fetch(`/api/client/deliveries/${announcement.delivery.id}/validate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ validationCode })
+      })
+
+      if (response.ok) {
+        toast.success('Livraison validée avec succès !')
+        setShowValidationDialog(false)
+        setValidationCode('')
+        await fetchAnnouncement(params.id as string)
+      } else {
+        const errorData = await response.json()
+        toast.error(errorData.error || 'Code de validation incorrect')
+      }
+    } catch (error) {
+      console.error('Erreur lors de la validation:', error)
+      toast.error('Erreur lors de la validation')
+    } finally {
+      setActionLoading(false)
+    }
+  }
+
+  const reportProblem = async () => {
+    if (!announcement?.delivery?.id) return
+
+    try {
+      setActionLoading(true)
+      const response = await fetch(`/api/client/deliveries/${announcement.delivery.id}/report-problem`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reason: problemReason })
+      })
+
+      if (response.ok) {
+        toast.success('Problème signalé, notre équipe va vous contacter')
+        setShowProblemDialog(false)
+        setProblemReason('')
+        await fetchAnnouncement(params.id as string)
+      } else {
+        const errorData = await response.json()
+        toast.error(errorData.error || 'Erreur lors du signalement')
+      }
+    } catch (error) {
+      console.error('Erreur lors du signalement:', error)
+      toast.error('Erreur lors du signalement')
+    } finally {
+      setActionLoading(false)
+    }
+  }
+
   const getStatusColor = (status: string) => {
     const colors = {
       'ACTIVE': 'bg-green-100 text-green-800',
       'MATCHED': 'bg-blue-100 text-blue-800',
+      'IN_PROGRESS': 'bg-yellow-100 text-yellow-800',
+      'IN_TRANSIT': 'bg-yellow-100 text-yellow-800',
+      'DELIVERED': 'bg-green-100 text-green-800',
       'COMPLETED': 'bg-gray-100 text-gray-800',
       'CANCELLED': 'bg-red-100 text-red-800'
     }
@@ -123,6 +267,9 @@ export default function AnnouncementDetailPage() {
     const labels = {
       'ACTIVE': 'Active',
       'MATCHED': 'Matchée',
+      'IN_PROGRESS': 'En cours de livraison',
+      'IN_TRANSIT': 'En cours de livraison',
+      'DELIVERED': 'Livrée',
       'COMPLETED': 'Terminée',
       'CANCELLED': 'Annulée'
     }
@@ -182,8 +329,8 @@ export default function AnnouncementDetailPage() {
             <div>
               <h1 className="text-3xl font-bold text-gray-900">{announcement.title}</h1>
               <div className="flex items-center space-x-3 mt-2">
-                <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(announcement.status)}`}>
-                  {getStatusLabel(announcement.status)}
+                <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(announcement.delivery?.status || announcement.status)}`}>
+                  {getStatusLabel(announcement.delivery?.status || announcement.status)}
                 </span>
                 {announcement.isUrgent && (
                   <span className="px-2 py-1 bg-red-100 text-red-800 rounded-full text-xs font-medium">
@@ -231,6 +378,177 @@ export default function AnnouncementDetailPage() {
             </div>
           </div>
         </div>
+
+        {/* Section Livraison Terminée */}
+        {announcement.delivery && announcement.delivery.status === 'DELIVERED' && (
+          <Card className="mb-6 border-l-4 border-l-green-500">
+            <CardHeader>
+              <CardTitle className="flex items-center text-green-600">
+                <CheckCircle className="w-5 h-5 mr-2" />
+                Livraison terminée
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="bg-green-50 p-4 rounded-lg">
+                  <div className="flex items-center space-x-3 mb-3">
+                    <CheckCircle className="w-5 h-5 text-green-600" />
+                    <span className="font-medium text-green-900">Livraison réussie !</span>
+                  </div>
+                  <p className="text-green-700 text-sm">
+                    Votre colis a été livré avec succès. Merci d'avoir utilisé EcoDeli !
+                  </p>
+                </div>
+
+                {announcement.delivery.deliverer && (
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <div className="flex items-center space-x-3 mb-2">
+                      <User className="w-4 h-4 text-gray-500" />
+                      <span className="font-medium">Livreur</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm">
+                        {announcement.delivery.deliverer.profile?.firstName} {announcement.delivery.deliverer.profile?.lastName}
+                      </span>
+                    </div>
+                  </div>
+                )}
+
+                <div className="flex space-x-3">
+                  <Button 
+                    onClick={() => window.location.reload()}
+                    className="flex-1 bg-green-600 hover:bg-green-700"
+                  >
+                    <RefreshCw className="w-4 h-4 mr-2" />
+                    Actualiser
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Section Validation de Livraison - Style Uber Eats */}
+        {announcement.delivery && announcement.delivery.status === 'IN_TRANSIT' && (
+          <Card className="mb-6 border-l-4 border-l-blue-500">
+            <CardHeader>
+              <CardTitle className="flex items-center text-blue-600">
+                <Package className="w-5 h-5 mr-2" />
+                Validation de la livraison
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="bg-blue-50 p-4 rounded-lg">
+                  <div className="flex items-center space-x-3 mb-3">
+                    <Clock className="w-5 h-5 text-blue-600" />
+                    <span className="font-medium text-blue-900">Votre livreur arrive bientôt</span>
+                  </div>
+                  <p className="text-blue-700 text-sm">
+                    Le livreur va vous demander le code de validation pour confirmer la livraison.
+                  </p>
+                </div>
+
+                {announcement.delivery.deliverer && (
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <div className="flex items-center space-x-3 mb-2">
+                      <User className="w-4 h-4 text-gray-500" />
+                      <span className="font-medium">Livreur assigné</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm">
+                        {announcement.delivery.deliverer.profile?.firstName} {announcement.delivery.deliverer.profile?.lastName}
+                      </span>
+                      {announcement.delivery.deliverer.profile?.phone && (
+                        <a 
+                          href={`tel:${announcement.delivery.deliverer.profile.phone}`}
+                          className="flex items-center space-x-1 text-blue-600 hover:text-blue-700"
+                        >
+                          <Phone className="w-4 h-4" />
+                          <span className="text-sm">Appeler</span>
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                <div className="bg-yellow-50 p-4 rounded-lg">
+                  <div className="flex items-center space-x-3 mb-2">
+                    <AlertTriangle className="w-4 h-4 text-yellow-600" />
+                    <span className="font-medium text-yellow-900">Code de validation</span>
+                  </div>
+                  
+                  {/* Debug info */}
+                  <div className="mb-3 p-2 bg-gray-100 rounded text-xs">
+                    <div>Status: {announcement.delivery?.status}</div>
+                    <div>Validation Code: {announcement.delivery?.validationCode || 'NULL'}</div>
+                    <div>Has Code: {announcement.delivery?.validationCode ? 'YES' : 'NO'}</div>
+                  </div>
+                  
+                  <div className="text-center">
+                    <div className="text-2xl font-mono font-bold text-yellow-800 bg-white p-3 rounded border-2 border-yellow-200">
+                      {announcement.delivery.validationCode || 'XXXXXX'}
+                    </div>
+                    <p className="text-sm text-yellow-700 mt-2">
+                      Donnez ce code au livreur pour confirmer la réception
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex space-x-3">
+                  <Button 
+                    onClick={() => setShowValidationDialog(true)}
+                    className="flex-1 bg-green-600 hover:bg-green-700"
+                  >
+                    <CheckCircle className="w-4 h-4 mr-2" />
+                    Confirmer la livraison
+                  </Button>
+                  <Button 
+                    onClick={() => setShowProblemDialog(true)}
+                    variant="outline"
+                    className="flex-1 border-red-300 text-red-600 hover:bg-red-50"
+                  >
+                    <XCircle className="w-4 h-4 mr-2" />
+                    Signaler un problème
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Preuve de livraison si disponible */}
+        {announcement.delivery?.proofOfDelivery && (
+          <Card className="mb-6 border-l-4 border-l-green-500">
+            <CardHeader>
+              <CardTitle className="flex items-center text-green-600">
+                <CheckCircle className="w-5 h-5 mr-2" />
+                Preuve de livraison
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {announcement.delivery.proofOfDelivery.photos && announcement.delivery.proofOfDelivery.photos.length > 0 && (
+                  <div>
+                    <img 
+                      src={announcement.delivery.proofOfDelivery.photos[0]} 
+                      alt="Preuve de livraison"
+                      className="w-full max-w-md rounded-lg border"
+                    />
+                  </div>
+                )}
+                {announcement.delivery.proofOfDelivery.notes && (
+                  <div className="bg-gray-50 p-3 rounded">
+                    <p className="text-sm text-gray-700">{announcement.delivery.proofOfDelivery.notes}</p>
+                  </div>
+                )}
+                <p className="text-xs text-gray-500">
+                  Livré le {new Date(announcement.delivery.proofOfDelivery.createdAt).toLocaleString()}
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Détails de l'annonce */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -380,6 +698,70 @@ export default function AnnouncementDetailPage() {
           </div>
         </div>
       </div>
+
+      {/* Dialog de validation */}
+      <Dialog open={showValidationDialog} onOpenChange={setShowValidationDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirmer la livraison</DialogTitle>
+            <DialogDescription>
+              Entrez le code de validation fourni par le livreur pour confirmer la réception
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <Input
+              placeholder="Code à 6 chiffres"
+              value={validationCode}
+              onChange={(e) => setValidationCode(e.target.value)}
+              className="text-center font-mono text-lg"
+              maxLength={6}
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowValidationDialog(false)}>
+              Annuler
+            </Button>
+            <Button
+              onClick={validateDelivery}
+              disabled={!validationCode.trim() || validationCode.length !== 6 || actionLoading}
+            >
+              {actionLoading ? 'Validation...' : 'Confirmer'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog de signalement de problème */}
+      <Dialog open={showProblemDialog} onOpenChange={setShowProblemDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Signaler un problème</DialogTitle>
+            <DialogDescription>
+              Décrivez le problème rencontré avec cette livraison
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <Textarea
+              placeholder="Décrivez le problème (ex: colis endommagé, livreur en retard, mauvaise adresse...)"
+              value={problemReason}
+              onChange={(e) => setProblemReason(e.target.value)}
+              rows={4}
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowProblemDialog(false)}>
+              Annuler
+            </Button>
+            <Button
+              onClick={reportProblem}
+              disabled={!problemReason.trim() || actionLoading}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              {actionLoading ? 'Envoi...' : 'Signaler'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
-}
+} 

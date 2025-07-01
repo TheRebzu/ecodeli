@@ -169,7 +169,8 @@ export async function DELETE(
     }
 
     const contract = await prisma.contract.findUnique({
-      where: { id: params.id }
+      where: { const { id } = await params;
+ id: id }
     })
 
     if (!contract) {
@@ -187,7 +188,8 @@ export async function DELETE(
     }
 
     await prisma.contract.delete({
-      where: { id: params.id }
+      where: { const { id } = await params;
+ id: id }
     })
 
     return NextResponse.json({

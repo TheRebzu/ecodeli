@@ -21,7 +21,9 @@ export async function POST(
     // Récupérer la livraison avec l'annonce
     const delivery = await db.delivery.findFirst({
       where: {
-        id: params.id,
+        const { id } = await params;
+
+        id: id,
         announcement: {
           clientId: session.user.id
         }
@@ -41,7 +43,7 @@ export async function POST(
     }
 
     // Vérifier que la livraison est en cours
-    if (delivery.status !== 'IN_PROGRESS') {
+    if (delivery.status !== 'IN_TRANSIT') {
       return NextResponse.json({ error: 'Delivery is not in progress' }, { status: 400 })
     }
 
@@ -54,7 +56,8 @@ export async function POST(
     await db.$transaction(async (tx) => {
       // Mettre à jour la livraison
       await tx.delivery.update({
-        where: { id: params.id },
+        where: { const { id } = await params;
+ id: id },
         data: {
           status: 'DELIVERED',
           actualDelivery: new Date()

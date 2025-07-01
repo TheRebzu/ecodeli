@@ -4,7 +4,7 @@ import { db } from '@/lib/db'
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const user = await getUserFromSession(request)
@@ -12,22 +12,13 @@ export async function POST(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const deliveryId = params.id
-
-    // Récupérer le profil livreur
-    const deliverer = await db.deliverer.findUnique({
-      where: { userId: user.id }
-    })
-
-    if (!deliverer) {
-      return NextResponse.json({ error: 'Profil livreur non trouvé' }, { status: 404 })
-    }
+    const { id: deliveryId } = await params
 
     // Vérifier que la livraison existe et appartient au livreur
     const delivery = await db.delivery.findFirst({
       where: {
         id: deliveryId,
-        delivererId: deliverer.id,
+        delivererId: user.id,
         status: 'ACCEPTED'
       }
     })

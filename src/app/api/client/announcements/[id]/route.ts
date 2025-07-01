@@ -48,7 +48,20 @@ export async function GET(
           }
         },
         delivery: {
-          include: {
+          select: {
+            id: true,
+            status: true,
+            trackingNumber: true,
+            validationCode: true,
+            pickupDate: true,
+            deliveryDate: true,
+            actualDeliveryDate: true,
+            price: true,
+            delivererFee: true,
+            platformFee: true,
+            insuranceFee: true,
+            createdAt: true,
+            updatedAt: true,
             deliverer: {
               select: {
                 id: true,
@@ -66,6 +79,13 @@ export async function GET(
             tracking: {
               orderBy: { timestamp: 'desc' },
               take: 10
+            },
+            ProofOfDelivery: {
+              select: {
+                photos: true,
+                notes: true,
+                createdAt: true
+              }
             }
           }
         },

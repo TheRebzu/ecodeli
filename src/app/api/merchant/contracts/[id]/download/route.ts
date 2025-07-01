@@ -14,7 +14,7 @@ export async function GET(
   }
 
   try {
-    const contractId = params.id;
+    const { id: contractId } = await params;
 
     const merchant = await db.merchant.findFirst({
       where: { userId: user.id }

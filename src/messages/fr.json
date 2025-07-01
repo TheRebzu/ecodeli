@@ -1752,22 +1752,200 @@
         "opportunity_accepted": "Opportunité acceptée avec succès"
       }
     },
-    "deliveries": {
+    "delivery": {
       "title": "Mes livraisons",
       "description": "Gérez vos livraisons en cours",
       "status": {
         "pending": "En attente",
         "accepted": "Acceptée",
-        "picked_up": "Récupérée",
-        "in_transit": "En transit",
+        "in_progress": "En cours",
         "delivered": "Livrée",
         "cancelled": "Annulée"
       },
-      "no_deliveries": "Aucune livraison en cours",
-      "validate": "Valider la livraison",
-      "start": "Démarrer",
-      "pickup": "Récupérer",
-      "deliver": "Livrer"
+      "pickup": "Collecte",
+      "delivery": "Livraison",
+      "deliverer": "Livreur",
+      "proof": {
+        "title": "Preuve de livraison",
+        "notes": "Notes du livreur",
+        "uploaded_at": "Uploadé le"
+      },
+      "validation": {
+        "accept": "Accepter la livraison",
+        "reject": "Rejeter la livraison",
+        "rating": "Note",
+        "review": "Avis",
+        "review_placeholder": "Partagez votre expérience...",
+        "rejection_reason_placeholder": "Expliquez pourquoi vous rejetez cette livraison...",
+        "cancel": "Annuler",
+        "confirm_accept": "Confirmer l'acceptation",
+        "confirm_reject": "Confirmer le rejet",
+        "loading": "Validation en cours...",
+        "optional": "Optionnel",
+        "dialog": {
+          "accept_title": "Accepter la livraison",
+          "accept_description": "Confirmez que vous avez bien reçu votre livraison et donnez une note au livreur",
+          "reject_title": "Rejeter la livraison",
+          "reject_description": "Expliquez pourquoi vous rejetez cette livraison"
+        },
+        "success": {
+          "accepted": "Livraison acceptée avec succès",
+          "rejected": "Livraison rejetée avec succès"
+        },
+        "error": {
+          "failed": "Échec de la validation"
+        },
+        "status": {
+          "accepted": "Livraison acceptée",
+          "rejected": "Livraison rejetée"
+        }
+      }
+    },
+    "deliveries": {
+      "page": {
+        "title": "Mes livraisons",
+        "description": "Gérez toutes vos livraisons"
+      },
+      "auth": {
+        "required_title": "Authentification requise",
+        "required_description": "Vous devez être connecté pour accéder à cette page"
+      },
+      "tabs": {
+        "active": "En cours",
+        "completed": "Terminées",
+        "all": "Toutes"
+      },
+      "status": {
+        "pending": "En attente",
+        "accepted": "Acceptée",
+        "picked_up": "Collectée",
+        "in_transit": "En cours",
+        "delivered": "Livrée",
+        "cancelled": "Annulée"
+      },
+      "actions": {
+        "accept": "Accepter",
+        "pickup": "Collecter",
+        "start": "Démarrer",
+        "validate": "Valider",
+        "cancel": "Annuler",
+        "problem": "Problème",
+        "loading": "Chargement...",
+        "proof": "Preuve"
+      },
+      "validation": {
+        "dialog": {
+          "title": "Valider la livraison",
+          "description": "Entrez le code de validation fourni par le client pour confirmer la livraison",
+          "code_placeholder": "Code à 6 chiffres",
+          "cancel": "Annuler",
+          "confirm": "Valider"
+        },
+        "success": "Livraison validée avec succès !",
+        "error": "Code de validation incorrect"
+      },
+      "problem": {
+        "dialog": {
+          "title": "Signaler un problème",
+          "description": "Décrivez le problème rencontré avec cette livraison",
+          "types": {
+            "client_absent": "Client absent",
+            "wrong_address": "Mauvaise adresse",
+            "package_damaged": "Colis endommagé",
+            "access_denied": "Accès refusé",
+            "other": "Autre problème"
+          },
+          "notes_placeholder": "Décrivez le problème en détail...",
+          "cancel": "Annuler",
+          "report": "Signaler"
+        },
+        "success": "Problème signalé, notre équipe va vous contacter",
+        "error": "Erreur lors du signalement du problème"
+      },
+      "proof": {
+        "dialog": {
+          "title": "Ajouter une preuve de livraison",
+          "description": "Ajoutez une photo et/ou des notes pour confirmer la livraison",
+          "photo_label": "Photo de la livraison",
+          "notes_label": "Notes (optionnel)",
+          "notes_placeholder": "Commentaires sur la livraison...",
+          "cancel": "Annuler",
+          "upload": "Ajouter la preuve"
+        },
+        "success": "Preuve de livraison ajoutée avec succès",
+        "error": "Erreur lors de l'ajout de la preuve"
+      },
+      "filters": {
+        "title": "Filtres",
+        "search_placeholder": "Rechercher dans les livraisons...",
+        "all": "Toutes",
+        "today": "Aujourd'hui",
+        "week": "Cette semaine",
+        "month": "Ce mois"
+      },
+      "empty": {
+        "title": "Aucune livraison",
+        "description": "Vous n'avez pas encore de livraisons assignées",
+        "no_active_deliveries": "Aucune livraison active",
+        "active_description": "Vous n'avez pas de livraisons en cours actuellement",
+        "no_completed_deliveries": "Aucune livraison terminée",
+        "completed_description": "Vos livraisons terminées apparaîtront ici"
+      },
+      "details": {
+        "client": "Client",
+        "pickup": "Collecte",
+        "delivery": "Livraison",
+        "scheduled": "Programmé",
+        "package": "Colis",
+        "instructions": "Instructions"
+      },
+      "client": "Client",
+      "pickup": "Collecte",
+      "delivery": "Livraison",
+      "scheduled": "Programmé",
+      "completed_at": "Terminé le",
+      "actions": {
+        "contact": "Contacter",
+        "cancel": "Annuler"
+      },
+      "error": {
+        "fetch_failed": "Échec du chargement des livraisons",
+        "status_update_failed": "Échec de la mise à jour du statut",
+        "validation_failed": "Échec de la validation",
+        "cancel_failed": "Échec de l'annulation"
+      },
+      "success": {
+        "delivery_validated": "Livraison validée avec succès !",
+        "delivery_cancelled": "Livraison annulée avec succès",
+        "status_updated_picked_up": "Colis récupéré avec succès",
+        "status_updated_in_transit": "Livraison démarrée avec succès"
+      },
+      "contact": {
+        "dialog": {
+          "title": "Contacter le client",
+          "description": "Vous pouvez contacter le client via téléphone ou message",
+          "close": "Fermer"
+        }
+      },
+      "cancel": {
+        "dialog": {
+          "title": "Annuler la livraison",
+          "description": "Veuillez indiquer une raison valable pour annuler cette livraison. Cette information sera transmise au client et à notre équipe.",
+          "important_title": "Important",
+          "important_message": "L'annulation d'une livraison peut impacter votre note et vos futurs matchs. Assurez-vous d'avoir une raison valable.",
+          "reason_label": "Raison de l'annulation *",
+          "reason_placeholder": "Ex: Problème de véhicule, urgence personnelle, adresse inaccessible, conditions météo...",
+          "min_chars": "Minimum 10 caractères requis",
+          "back": "Retour",
+          "cancel_button": "Annuler la livraison",
+          "cancelling": "Annulation...",
+          "error": {
+            "no_reason": "Veuillez indiquer une raison pour l'annulation",
+            "general": "Erreur lors de l'annulation"
+          },
+          "success": "Livraison annulée avec succès"
+        }
+      }
     },
     "wallet": {
       "title": "Mon portefeuille",

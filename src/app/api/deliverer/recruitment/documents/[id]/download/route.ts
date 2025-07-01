@@ -13,7 +13,7 @@ export async function GET(
   }
 
   try {
-    const documentId = params.id;
+    const { id: documentId } = await params;
 
     // Récupérer le document
     const document = await db.delivererRecruitmentDocument.findUnique({

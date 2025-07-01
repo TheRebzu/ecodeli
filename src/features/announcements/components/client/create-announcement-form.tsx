@@ -182,8 +182,8 @@ export function CreateAnnouncementForm({ onSuccess, initialData }: CreateAnnounc
         duration: 5000,
       })
 
-      onSuccess?.(result.id)
-      router.push(`/client/announcements/${result.id}`)
+      onSuccess?.(result.announcement.id)
+      router.push(`/client/announcements/${result.announcement.id}`)
 
     } catch (error) {
       console.error('Error creating announcement:', error)

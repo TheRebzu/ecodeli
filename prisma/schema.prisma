@@ -2651,7 +2651,8 @@ enum AnnouncementStatus {
 enum DeliveryStatus {
   PENDING
   ACCEPTED
-  IN_PROGRESS
+  PICKED_UP
+  IN_TRANSIT
   DELIVERED
   CANCELLED
   FAILED
@@ -3060,4 +3061,13 @@ enum ProposalStatus {
   DECLINE
   EXPIRED
   CANCELLED
+}
+
+model DeliveryValidationAttempt {
+  id            String   @id @default(cuid())
+  deliveryId    String
+  attemptedCode String
+  success       Boolean
+  attemptedAt   DateTime
+  attemptedBy   String
 }

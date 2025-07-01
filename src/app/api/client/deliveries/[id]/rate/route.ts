@@ -19,10 +19,12 @@ export async function POST(
       return NextResponse.json({ error: 'Invalid rating' }, { status: 400 })
     }
 
-    // Récupérer la livraison
+    // Rï¿½cupï¿½rer la livraison
     const delivery = await db.delivery.findFirst({
       where: {
-        id: params.id,
+        const { id } = await params;
+
+        id: id,
         announcement: {
           clientId: session.user.id
         },
@@ -38,16 +40,17 @@ export async function POST(
       return NextResponse.json({ error: 'Delivery not found or not delivered' }, { status: 404 })
     }
 
-    // Vérifier si déjà noté
+    // Vï¿½rifier si dï¿½jï¿½ notï¿½
     if (delivery.rating) {
       return NextResponse.json({ error: 'Delivery already rated' }, { status: 400 })
     }
 
-    // Transaction pour noter la livraison et mettre à jour le livreur
+    // Transaction pour noter la livraison et mettre ï¿½ jour le livreur
     await db.$transaction(async (tx) => {
-      // Mettre à jour la livraison avec la note
+      // Mettre ï¿½ jour la livraison avec la note
       await tx.delivery.update({
-        where: { id: params.id },
+        where: { const { id } = await params;
+ id: id },
         data: {
           rating,
           review,
@@ -55,7 +58,7 @@ export async function POST(
         }
       })
 
-      // Créer un review
+      // Crï¿½er un review
       await tx.review.create({
         data: {
           clientId: session.user.id,
@@ -74,7 +77,7 @@ export async function POST(
 
       const averageRating = delivererReviews.reduce((sum, r) => sum + r.rating, 0) / delivererReviews.length
 
-      // Mettre à jour la note du livreur
+      // Mettre ï¿½ jour la note du livreur
       await tx.deliverer.update({
         where: { id: delivery.delivererId! },
         data: { rating: averageRating }
@@ -85,8 +88,8 @@ export async function POST(
         data: {
           userId: delivery.deliverer!.userId,
           type: 'REVIEW_RECEIVED',
-          title: 'Nouvelle évaluation',
-          message: `Vous avez reçu une note de ${rating}/5 pour votre livraison.`,
+          title: 'Nouvelle ï¿½valuation',
+          message: `Vous avez reï¿½u une note de ${rating}/5 pour votre livraison.`,
           status: 'UNREAD'
         }
       })
@@ -94,7 +97,7 @@ export async function POST(
 
     return NextResponse.json({ 
       success: true,
-      message: 'Évaluation enregistrée avec succès'
+      message: 'ï¿½valuation enregistrï¿½e avec succï¿½s'
     })
   } catch (error) {
     console.error('Error rating delivery:', error)

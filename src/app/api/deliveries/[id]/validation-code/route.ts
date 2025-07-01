@@ -14,7 +14,7 @@ export async function GET(
       return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
     }
 
-    const deliveryId = params.id
+    const { id: deliveryId } = await params
 
     // Vérifier que l'utilisateur est le client propriétaire
     if (session.user.role !== 'CLIENT') {
@@ -62,7 +62,7 @@ export async function POST(
       return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
     }
 
-    const deliveryId = params.id
+    const { id: deliveryId } = await params
 
     // Vérifier que l'utilisateur est le client propriétaire
     if (session.user.role !== 'CLIENT') {

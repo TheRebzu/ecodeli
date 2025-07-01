@@ -30,7 +30,7 @@ export async function GET(
       return ApiResponse.forbidden('Access restricted to merchants')
     }
 
-    const orderId = params.id
+    const { id: orderId } = await params
 
     // Get merchant
     const merchant = await prisma.merchant.findUnique({
@@ -270,7 +270,7 @@ export async function PUT(
       return ApiResponse.forbidden('Access restricted to merchants')
     }
 
-    const orderId = params.id
+    const { id: orderId } = await params
     const body = await request.json()
     const validatedData = updateOrderSchema.parse(body)
 
@@ -397,7 +397,7 @@ export async function DELETE(
       return ApiResponse.forbidden('Access restricted to merchants')
     }
 
-    const orderId = params.id
+    const { id: orderId } = await params
 
     // Get merchant
     const merchant = await prisma.merchant.findUnique({

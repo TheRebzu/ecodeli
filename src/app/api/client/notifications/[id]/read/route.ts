@@ -12,7 +12,7 @@ export async function POST(
       return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
     }
 
-    const notificationId = params.id
+    const { id: notificationId } = await params
 
     const notification = await db.notification.findFirst({
       where: {

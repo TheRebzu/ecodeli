@@ -34,7 +34,8 @@ export async function GET(
     }
 
     const ticket = await prisma.supportTicket.findUnique({
-      where: { id: params.id },
+      where: { const { id } = await params;
+ id: id },
       include: {
         author: {
           include: { profile: true }
@@ -166,7 +167,8 @@ export async function PATCH(
     const validatedData = updateTicketSchema.parse(data)
 
     const ticket = await prisma.supportTicket.update({
-      where: { id: params.id },
+      where: { const { id } = await params;
+ id: id },
       data: {
         ...validatedData,
         updatedAt: new Date()
@@ -228,7 +230,8 @@ export async function DELETE(
     }
 
     await prisma.supportTicket.delete({
-      where: { id: params.id }
+      where: { const { id } = await params;
+ id: id }
     })
 
     return NextResponse.json({

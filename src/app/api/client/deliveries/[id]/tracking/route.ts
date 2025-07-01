@@ -21,7 +21,9 @@ export async function GET(
     // Vérifier que la livraison appartient au client
     const delivery = await prisma.delivery.findFirst({
       where: {
-        id: params.id,
+        const { id } = await params;
+
+        id: id,
         announcement: {
           authorId: session.user.id
         }

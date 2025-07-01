@@ -22,7 +22,9 @@ export async function POST(
     // Vérifier que la réservation appartient au client
     const booking = await db.booking.findFirst({
       where: {
-        id: params.id,
+        const { id } = await params;
+
+        id: id,
         clientId: session.user.id,
         status: 'COMPLETED'
       },
@@ -44,7 +46,8 @@ export async function POST(
     await db.$transaction(async (tx) => {
       // Mettre à jour la réservation avec la note
       await tx.booking.update({
-        where: { id: params.id },
+        where: { const { id } = await params;
+ id: id },
         data: {
           rating,
           review,

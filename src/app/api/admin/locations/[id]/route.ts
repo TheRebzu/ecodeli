@@ -8,7 +8,8 @@ export async function GET(
 ) {
   try {
     const warehouse = await prisma.location.findUnique({
-      where: { id: params.id },
+      where: { const { id } = await params;
+ id: id },
       include: {
         warehouse: true,
         storageBoxes: true
@@ -40,7 +41,8 @@ export async function PUT(
 
     // Vérifier que l'entrepôt existe
     const existingLocation = await prisma.location.findUnique({
-      where: { id: params.id },
+      where: { const { id } = await params;
+ id: id },
       include: { warehouse: true }
     })
 
@@ -50,7 +52,8 @@ export async function PUT(
 
     // Mettre à jour la location
     const updatedLocation = await prisma.location.update({
-      where: { id: params.id },
+      where: { const { id } = await params;
+ id: id },
       data: {
         name,
         address,
@@ -92,7 +95,8 @@ export async function PATCH(
 
     // Vérifier que l'entrepôt existe
     const existingLocation = await prisma.location.findUnique({
-      where: { id: params.id }
+      where: { const { id } = await params;
+ id: id }
     })
 
     if (!existingLocation) {
@@ -101,7 +105,8 @@ export async function PATCH(
 
     // Mettre à jour le statut actif/inactif
     const updatedLocation = await prisma.location.update({
-      where: { id: params.id },
+      where: { const { id } = await params;
+ id: id },
       data: { isActive }
     })
 
@@ -126,7 +131,8 @@ export async function DELETE(
   try {
     // Vérifier que l'entrepôt existe
     const existingLocation = await prisma.location.findUnique({
-      where: { id: params.id },
+      where: { const { id } = await params;
+ id: id },
       include: {
         storageBoxes: {
           include: {
@@ -181,7 +187,8 @@ export async function DELETE(
       }),
       // Supprimer la location
       prisma.location.delete({
-        where: { id: params.id }
+        where: { const { id } = await params;
+ id: id }
       })
     ])
 

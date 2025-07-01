@@ -17,7 +17,9 @@ export async function POST(
     // Vérifier que la réservation appartient au client
     const booking = await db.booking.findFirst({
       where: {
-        id: params.id,
+        const { id } = await params;
+
+        id: id,
         clientId: session.user.id
       }
     })
@@ -45,7 +47,8 @@ export async function POST(
 
     // Mettre à jour la réservation
     const updatedBooking = await db.booking.update({
-      where: { id: params.id },
+      where: { const { id } = await params;
+ id: id },
       data: {
         status: 'CANCELLED',
         cancelReason: reason,

@@ -17,7 +17,9 @@ export async function POST(
     // Vérifier que l'annonce appartient à l'utilisateur
     const announcement = await db.announcement.findFirst({
       where: {
-        id: params.id,
+        const { id } = await params;
+
+        id: id,
         authorId: session.user.id,
         status: 'ACTIVE'
       }

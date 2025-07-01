@@ -14,7 +14,7 @@ export async function GET(
   }
 
   try {
-    const billingId = params.id;
+    const { id: billingId } = await params;
 
     const merchant = await db.merchant.findFirst({
       where: { userId: user.id }

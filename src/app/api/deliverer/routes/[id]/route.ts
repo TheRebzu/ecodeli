@@ -53,7 +53,9 @@ export async function GET(
 
     const route = await prisma.route.findFirst({
       where: {
-        id: params.id,
+        const { id } = await params;
+
+        id: id,
         delivererId: deliverer.id
       },
       include: {
@@ -119,7 +121,9 @@ export async function PUT(
     // Vérifier que la route appartient au livreur
     const existingRoute = await prisma.route.findFirst({
       where: {
-        id: params.id,
+        const { id } = await params;
+
+        id: id,
         delivererId: deliverer.id
       }
     })
@@ -151,7 +155,8 @@ export async function PUT(
     }
 
     const updatedRoute = await prisma.route.update({
-      where: { id: params.id },
+      where: { const { id } = await params;
+ id: id },
       data: {
         ...validatedData,
         ...(validatedData.departureDate && { departureDate: new Date(validatedData.departureDate) }),
@@ -204,7 +209,9 @@ export async function DELETE(
     // Vérifier que la route appartient au livreur
     const existingRoute = await prisma.route.findFirst({
       where: {
-        id: params.id,
+        const { id } = await params;
+
+        id: id,
         delivererId: deliverer.id
       }
     })
@@ -231,7 +238,8 @@ export async function DELETE(
     }
 
     await prisma.route.delete({
-      where: { id: params.id }
+      where: { const { id } = await params;
+ id: id }
     })
 
     return NextResponse.json({ message: 'Route deleted successfully' })

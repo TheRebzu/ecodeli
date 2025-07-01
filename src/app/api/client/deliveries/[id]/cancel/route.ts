@@ -18,10 +18,12 @@ export async function POST(
       return NextResponse.json({ error: 'Cancellation reason required' }, { status: 400 })
     }
 
-    // Récupérer la livraison
+    // Rï¿½cupï¿½rer la livraison
     const delivery = await db.delivery.findFirst({
       where: {
-        id: params.id,
+        const { id } = await params;
+
+        id: id,
         announcement: {
           clientId: session.user.id
         }
@@ -40,7 +42,7 @@ export async function POST(
       return NextResponse.json({ error: 'Delivery not found' }, { status: 404 })
     }
 
-    // Vérifier que la livraison peut être annulée
+    // Vï¿½rifier que la livraison peut ï¿½tre annulï¿½e
     if (delivery.status === 'CANCELLED' || delivery.status === 'DELIVERED') {
       return NextResponse.json({ error: 'Delivery cannot be cancelled' }, { status: 400 })
     }
@@ -59,9 +61,10 @@ export async function POST(
 
     // Transaction pour annuler la livraison
     await db.$transaction(async (tx) => {
-      // Mettre à jour la livraison
+      // Mettre ï¿½ jour la livraison
       await tx.delivery.update({
-        where: { id: params.id },
+        where: { const { id } = await params;
+ id: id },
         data: {
           status: 'CANCELLED',
           cancelReason: reason.trim(),
@@ -70,7 +73,7 @@ export async function POST(
         }
       })
 
-      // Remettre l'annonce en mode ACTIVE si elle était en cours
+      // Remettre l'annonce en mode ACTIVE si elle ï¿½tait en cours
       if (delivery.announcement.status === 'IN_PROGRESS') {
         await tx.announcement.update({
           where: { id: delivery.announcementId },
@@ -80,21 +83,21 @@ export async function POST(
         })
       }
 
-      // Libérer le livreur si assigné
+      // Libï¿½rer le livreur si assignï¿½
       if (delivery.delivererId) {
         // Notification pour le livreur
         await tx.notification.create({
           data: {
             userId: delivery.deliverer!.userId,
             type: 'DELIVERY_CANCELLED',
-            title: 'Livraison annulée',
-            message: `Le client a annulé la livraison "${delivery.announcement.title}". Raison: ${reason.trim()}`,
+            title: 'Livraison annulï¿½e',
+            message: `Le client a annulï¿½ la livraison "${delivery.announcement.title}". Raison: ${reason.trim()}`,
             status: 'UNREAD'
           }
         })
       }
 
-      // Si frais d'annulation, créer un paiement
+      // Si frais d'annulation, crï¿½er un paiement
       if (cancellationFee > 0) {
         await tx.payment.create({
           data: {
@@ -115,8 +118,8 @@ export async function POST(
       success: true,
       cancellationFee,
       message: cancellationFee > 0 
-        ? `Livraison annulée. Frais d'annulation: ${cancellationFee}¬`
-        : 'Livraison annulée sans frais'
+        ? `Livraison annulï¿½e. Frais d'annulation: ${cancellationFee}ï¿½`
+        : 'Livraison annulï¿½e sans frais'
     })
   } catch (error) {
     console.error('Error cancelling delivery:', error)

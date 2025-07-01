@@ -15,7 +15,9 @@ export async function GET(
     // Vérifier que la réservation appartient au client
     const booking = await db.booking.findFirst({
       where: {
-        id: params.id,
+        const { id } = await params;
+
+        id: id,
         clientId: session.user.id
       }
     })
@@ -76,7 +78,9 @@ export async function POST(
     // Vérifier que la réservation appartient au client
     const booking = await db.booking.findFirst({
       where: {
-        id: params.id,
+        const { id } = await params;
+
+        id: id,
         clientId: session.user.id
       },
       include: {

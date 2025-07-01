@@ -222,7 +222,7 @@ export default function ClientTrackingPage() {
                       </div>
 
                       {/* Code de validation */}
-                      {delivery.validationCode && delivery.status === 'IN_PROGRESS' && (
+                      {delivery.validationCode && delivery.status === 'IN_TRANSIT' && (
                         <div>
                           <h5 className="font-medium text-gray-900 mb-2">🔑 Code de validation</h5>
                           <div className="p-3 bg-green-50 rounded-lg text-center">
