@@ -22,7 +22,7 @@ const terminationSchema = z.object({
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth()
@@ -31,7 +31,7 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const contract = await ContractService.getContractById(params.id)
+    const contract = await ContractService.getContractById((await params).id)
 
     if (!contract) {
       return NextResponse.json(
@@ -56,7 +56,7 @@ export async function GET(
  */
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth()
@@ -74,7 +74,7 @@ export async function PUT(
         const validatedData = signatureSchema.parse(body)
         
         const contract = await ContractService.signByAdmin(
-          params.id,
+          (await params).id,
           session.user.id,
           {
             signature: validatedData.signature,
@@ -98,7 +98,7 @@ export async function PUT(
         })
         
         await ContractService.terminateContract(
-          params.id,
+          (await params).id,
           validatedData.terminatedBy,
           validatedData.reason,
           validatedData.effectiveDate ? new Date(validatedData.effectiveDate) : undefined
@@ -111,7 +111,7 @@ export async function PUT(
       }
 
       case 'validate': {
-        const validation = await ContractService.validateContract(params.id)
+        const validation = await ContractService.validateContract((await params).id)
         
         return NextResponse.json({
           success: true,
@@ -159,7 +159,7 @@ export async function PUT(
 // DELETE - Supprimer un contrat (uniquement si DRAFT)
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth()

@@ -2,7 +2,6 @@ import { NextRequest } from 'next/server'
 import { db } from '@/lib/db'
 import { auth } from '@/lib/auth'
 import { headers } from 'next/headers'
-import { getToken } from 'next-auth/jwt'
 
 /**
  * Utilitaires d'authentification compatibles EcoDeli + NextAuth
@@ -171,16 +170,14 @@ export const VALIDATION_STATUS = {
 
 /**
  * Récupère l'utilisateur courant pour API Routes
- * - Utilise NextAuth JWT token pour récupérer la session
+ * - Utilise Better Auth pour récupérer la session
  */
 export async function getCurrentUserAPI(request: NextRequest) {
   try {
-    const token = await getToken({ 
-      req: request,
-      secret: process.env.NEXTAUTH_SECRET 
-    })
+    // Utiliser Better Auth pour obtenir la session
+    const session = await auth()
 
-    if (!token?.email) {
+    if (!session?.user) {
       return null
     }
 
@@ -194,7 +191,7 @@ export async function getCurrentUserAPI(request: NextRequest) {
     }
 
     const user = await db.user.findUnique({
-      where: { email: token.email },
+      where: { id: session.user.id },
       include: includeRelations
     })
 

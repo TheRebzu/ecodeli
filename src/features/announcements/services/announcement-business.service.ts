@@ -12,7 +12,7 @@ import {
   SubscriptionLimits,
   RouteMatch
 } from '../types/announcement.types'
-import { notificationService } from '@/features/notifications/services/notification.service'
+import { NotificationService } from '@/features/notifications/services/notification.service'
 
 class AnnouncementBusinessService {
   
@@ -434,15 +434,15 @@ class AnnouncementBusinessService {
         })
 
         // Envoyer notification push au livreur via OneSignal
-        await notificationService.sendPushNotification(
+        await NotificationService.notifyDeliveryOpportunity(
           match.deliverer.id,
-          'Nouvelle opportunité de livraison',
-          `Une annonce correspond à votre trajet (${Math.round(match.matchScore)}% de compatibilité)`,
+          announcementId,
           {
-            type: 'ANNOUNCEMENT_MATCH',
-            announcementId: announcementId,
-            routeId: match.routeId,
-            score: match.matchScore
+            title: 'Nouvelle opportunité de livraison',
+            pickupLocation: 'Adresse de récupération',
+            deliveryLocation: 'Adresse de livraison',
+            price: 0, // À récupérer depuis l'annonce
+            desiredDate: new Date()
           }
         )
       }

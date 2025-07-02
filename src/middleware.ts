@@ -11,6 +11,13 @@ const intlMiddleware = createIntlMiddleware({
 export default async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname
   
+  // Rewrite legacy uploads URLs to API routes
+  if (pathname.startsWith('/uploads/documents/')) {
+    const filename = pathname.replace('/uploads/documents/', '')
+    const newUrl = new URL(`/api/uploads/documents/${filename}`, request.url)
+    return NextResponse.rewrite(newUrl)
+  }
+  
   // Skip middleware pour API routes et fichiers statiques
   if (
     pathname.startsWith('/api') ||

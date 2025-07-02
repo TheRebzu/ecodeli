@@ -42,8 +42,8 @@ interface DelivererHeaderProps {
 export function DelivererHeader({ 
   user, 
   onLogout, 
-  activeDeliveries = 0,
-  pendingRequests = 0 
+  activeDeliveries,
+  pendingRequests 
 }: DelivererHeaderProps) {
   const t = useTranslations('navigation');
   const common = useTranslations('common');

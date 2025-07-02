@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useTranslations } from "next-intl";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -52,6 +52,7 @@ export default function DocumentManager({ delivererId }: DocumentManagerProps) {
   const [documentTypes, setDocumentTypes] = useState<DocumentType[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState<string | null>(null);
+  const fileInputRefs = useRef<{[key: string]: HTMLInputElement | null}>({});
 
   const fetchDocuments = async () => {
     try {
@@ -72,26 +73,34 @@ export default function DocumentManager({ delivererId }: DocumentManagerProps) {
 
   const uploadDocument = async (file: File, typeId: string) => {
     try {
+      console.log("Starting upload for file:", file.name, "type:", typeId);
       setUploading(typeId);
       const formData = new FormData();
       formData.append("file", file);
       formData.append("typeId", typeId);
 
+      console.log("Sending request to /api/deliverer/documents/upload");
       const response = await fetch("/api/deliverer/documents/upload", {
         method: "POST",
         body: formData,
       });
 
+      console.log("Upload response status:", response.status);
       if (response.ok) {
+        const result = await response.json();
+        console.log("Upload successful:", result);
         toast.success(t("success.document_uploaded"));
         fetchDocuments();
       } else {
+        const errorData = await response.text();
+        console.error("Upload failed with status:", response.status, "error:", errorData);
         toast.error(t("error.upload_failed"));
       }
     } catch (error) {
       console.error("Error uploading document:", error);
       toast.error(t("error.upload_failed"));
     } finally {
+      console.log("Upload process finished for type:", typeId);
       setUploading(null);
     }
   };
@@ -120,7 +129,7 @@ export default function DocumentManager({ delivererId }: DocumentManagerProps) {
 
   const getStatusBadge = (status: string) => {
     const statusConfig = {
-      validated: { color: "bg-green-100 text-green-800", icon: CheckCircle, label: t("status.validated") },
+      approved: { color: "bg-green-100 text-green-800", icon: CheckCircle, label: t("status.validated") },
       pending: { color: "bg-yellow-100 text-yellow-800", icon: Clock, label: t("status.pending") },
       rejected: { color: "bg-red-100 text-red-800", icon: XCircle, label: t("status.rejected") },
       expired: { color: "bg-gray-100 text-gray-800", icon: AlertCircle, label: t("status.expired") },
@@ -185,7 +194,7 @@ export default function DocumentManager({ delivererId }: DocumentManagerProps) {
               <div>
                 <p className="text-sm text-gray-600">{t("stats.validated")}</p>
                 <p className="text-xl font-bold">
-                  {documents.filter(d => d.status === 'validated').length}
+                  {documents.filter(d => d.status === 'approved').length}
                 </p>
               </div>
             </div>
@@ -223,11 +232,11 @@ export default function DocumentManager({ delivererId }: DocumentManagerProps) {
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center space-x-2">
-              <AlertCircle className="w-5 h-5 text-orange-600" />
+              <AlertCircle className="w-5 h-5 text-gray-600" />
               <div>
                 <p className="text-sm text-gray-600">{t("stats.expired")}</p>
                 <p className="text-xl font-bold">
-                  {documents.filter(d => isDocumentExpired(d)).length}
+                  {documents.filter(d => d.status === 'expired').length}
                 </p>
               </div>
             </div>
@@ -315,18 +324,23 @@ export default function DocumentManager({ delivererId }: DocumentManagerProps) {
 
                     {(expired || document.status === 'rejected') && (
                       <div className="flex justify-center">
-                        <label className="cursor-pointer">
+                        <div>
                           <input
+                            ref={(el) => { fileInputRefs.current[`replace-${type.id}`] = el; }}
                             type="file"
                             className="hidden"
                             accept={type.allowedFormats.map(f => `.${f}`).join(",")}
                             onChange={(e) => {
+                              console.log("Replace file input onChange triggered", e.target.files);
                               const file = e.target.files?.[0];
                               if (file) {
+                                console.log("Replace file selected:", file.name, file.size);
                                 if (file.size > type.maxSize) {
+                                  console.log("Replace file too large:", file.size, "max:", type.maxSize);
                                   toast.error(t("error.file_too_large"));
                                   return;
                                 }
+                                console.log("Calling uploadDocument for replace with:", file.name, type.id);
                                 uploadDocument(file, type.id);
                               }
                             }}
@@ -336,6 +350,13 @@ export default function DocumentManager({ delivererId }: DocumentManagerProps) {
                             size="sm"
                             disabled={uploading === type.id}
                             className="w-full"
+                            onClick={() => {
+                              console.log("Replace button clicked for type:", type.id);
+                              const fileInput = fileInputRefs.current[`replace-${type.id}`];
+                              console.log("Replace file input element:", fileInput);
+                              fileInput?.click();
+                              console.log("Replace file input click triggered");
+                            }}
                           >
                             {uploading === type.id ? (
                               <Clock className="w-4 h-4 mr-2 animate-spin" />
@@ -344,24 +365,29 @@ export default function DocumentManager({ delivererId }: DocumentManagerProps) {
                             )}
                             {t("replace_document")}
                           </Button>
-                        </label>
+                        </div>
                       </div>
                     )}
                   </div>
                 ) : (
                   <div className="flex justify-center">
-                    <label className="cursor-pointer">
+                    <div>
                       <input
+                        ref={(el) => { fileInputRefs.current[type.id] = el; }}
                         type="file"
                         className="hidden"
                         accept={type.allowedFormats.map(f => `.${f}`).join(",")}
                         onChange={(e) => {
+                          console.log("File input onChange triggered", e.target.files);
                           const file = e.target.files?.[0];
                           if (file) {
+                            console.log("File selected:", file.name, file.size);
                             if (file.size > type.maxSize) {
+                              console.log("File too large:", file.size, "max:", type.maxSize);
                               toast.error(t("error.file_too_large"));
                               return;
                             }
+                            console.log("Calling uploadDocument with:", file.name, type.id);
                             uploadDocument(file, type.id);
                           }
                         }}
@@ -371,6 +397,13 @@ export default function DocumentManager({ delivererId }: DocumentManagerProps) {
                         size="sm"
                         disabled={uploading === type.id}
                         className="w-full"
+                        onClick={() => {
+                          console.log("Upload button clicked for type:", type.id);
+                          const fileInput = fileInputRefs.current[type.id];
+                          console.log("File input element:", fileInput);
+                          fileInput?.click();
+                          console.log("File input click triggered");
+                        }}
                       >
                         {uploading === type.id ? (
                           <Clock className="w-4 h-4 mr-2 animate-spin" />
@@ -379,7 +412,7 @@ export default function DocumentManager({ delivererId }: DocumentManagerProps) {
                         )}
                         {t("upload_document")}
                       </Button>
-                    </label>
+                    </div>
                   </div>
                 )}
               </CardContent>

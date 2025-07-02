@@ -39,7 +39,7 @@ interface AdminHeaderProps {
 /**
  * Header pour les administrateurs
  */
-export function AdminHeader({ user, onLogout, pendingValidations = 0, systemAlerts = 0 }: AdminHeaderProps) {
+export function AdminHeader({ user, onLogout, pendingValidations, systemAlerts }: AdminHeaderProps) {
   const t = useTranslations('navigation');
   const common = useTranslations('common');
   const admin = useTranslations('admin');

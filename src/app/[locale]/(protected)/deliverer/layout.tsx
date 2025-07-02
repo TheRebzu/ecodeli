@@ -40,9 +40,9 @@ export default function DelivererLayout({ children }: DelivererLayoutProps) {
     setMobileMenuOpen(!mobileMenuOpen)
   }
 
-  // Mock data - replace with real API calls
-  const activeDeliveries = 2
-  const pendingRequests = 5
+  // TODO: Get real data from API
+  const activeDeliveries = 0
+  const pendingRequests = 0
 
   if (isLoading) {
     return (
@@ -89,8 +89,8 @@ export default function DelivererLayout({ children }: DelivererLayoutProps) {
           user={{
             name: user.name || '',
             email: user.email,
-            rating: 4.8, // TODO: Get from API
-            isVerified: true // TODO: Get from API
+            rating: undefined, // TODO: Get from API
+            isVerified: undefined // TODO: Get from API
           }}
           onLogout={handleLogout}
           activeDeliveries={activeDeliveries}

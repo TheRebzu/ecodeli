@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { prisma } from '@/lib/db'
-import { getCurrentUser } from '@/lib/auth/utils'
-import { EcoDeliNotifications } from '@/features/notifications/services/notification.service'
+import { getCurrentUser, requireRole } from '@/lib/auth/utils'
+import { NotificationService } from '@/features/notifications/services/notification.service'
+import { DocumentType } from '@prisma/client'
 
 /**
  * Schéma de validation pour approuver/rejeter un document
@@ -19,7 +20,7 @@ const validateDocumentSchema = z.object({
  */
 export async function POST(request: NextRequest) {
   try {
-    const user = await getCurrentUser(request)
+    const user = await getCurrentUser()
     
     if (!user || user.role !== 'ADMIN') {
       return NextResponse.json(
@@ -49,20 +50,17 @@ export async function POST(request: NextRequest) {
     const updatedDocument = await prisma.document.update({
       where: { id: documentId },
       data: {
-        status: action,
+        validationStatus: action,
         validatedBy: user.id,
         validatedAt: new Date(),
         rejectionReason: action === 'REJECTED' ? reason : null
       },
       include: {
-        profile: {
-          include: {
-            user: {
-              select: {
-                email: true,
-                role: true
-              }
-            }
+        user: {
+          select: {
+            id: true,
+            email: true,
+            role: true
           }
         }
       }
@@ -72,20 +70,20 @@ export async function POST(request: NextRequest) {
     if (action === 'APPROVED') {
       const userDocuments = await prisma.document.findMany({
         where: {
-          profileId: updatedDocument.profileId
+          userId: updatedDocument.userId
         }
       })
 
-      const allApproved = userDocuments.every(doc => doc.status === 'APPROVED')
+      const allApproved = userDocuments.every(doc => doc.validationStatus === 'APPROVED')
       
       if (allApproved) {
         // Activer l'utilisateur selon son rôle
-        const userRole = updatedDocument.profile.user.role
+        const userRole = updatedDocument.user.role
         
         switch (userRole) {
           case 'DELIVERER':
             await prisma.deliverer.update({
-              where: { userId: updatedDocument.profile.userId },
+              where: { userId: updatedDocument.userId },
               data: { 
                 isActive: true,
                 validationStatus: 'VALIDATED'
@@ -95,7 +93,7 @@ export async function POST(request: NextRequest) {
             
           case 'PROVIDER':
             await prisma.provider.update({
-              where: { userId: updatedDocument.profile.userId },
+              where: { userId: updatedDocument.userId },
               data: { 
                 isActive: true,
                 validationStatus: 'VALIDATED'
@@ -106,10 +104,35 @@ export async function POST(request: NextRequest) {
 
         // Mettre à jour le statut de validation de l'utilisateur
         await prisma.user.update({
-          where: { id: updatedDocument.profile.userId },
-          data: { validationStatus: 'VALIDATED' }
+          where: { id: updatedDocument.userId },
+          data: { 
+            validationStatus: 'VALIDATED',
+            isActive: true
+          }
         })
+
+        // Notification d'activation complète
+        try {
+          await NotificationService.notifyAccountActivated(
+            updatedDocument.userId, 
+            userRole === 'DELIVERER' ? 'deliverer' : 'provider'
+          )
+        } catch (notifError) {
+          console.warn('Erreur notification OneSignal activation:', notifError)
+        }
       }
+    }
+
+    // Notification pour la validation individuelle du document
+    try {
+      await NotificationService.notifyDocumentValidation(
+        updatedDocument.userId,
+        updatedDocument.type,
+        action,
+        action === 'REJECTED' ? reason : undefined
+      )
+    } catch (notifError) {
+      console.warn('Erreur notification OneSignal validation:', notifError)
     }
 
     return NextResponse.json({
@@ -142,14 +165,12 @@ export async function GET(request: NextRequest) {
 
     // Construire les filtres
     const where: any = {
-      status: status as any
+      validationStatus: status as any
     }
 
     if (userRole) {
-      where.profile = {
-        user: {
-          role: userRole
-        }
+      where.user = {
+        role: userRole
       }
     }
 
@@ -158,16 +179,18 @@ export async function GET(request: NextRequest) {
       prisma.document.findMany({
         where,
         include: {
-          profile: {
+          user: {
+            select: {
+              id: true,
+              email: true,
+              role: true,
+              validationStatus: true
+            },
             include: {
-              user: {
+              profile: {
                 select: {
-                  id: true,
-                  email: true,
                   firstName: true,
-                  lastName: true,
-                  role: true,
-                  status: true
+                  lastName: true
                 }
               }
             }
@@ -204,9 +227,9 @@ export async function GET(request: NextRequest) {
  * Vérifier si tous les documents obligatoires sont validés
  */
 async function checkAllDocumentsValidated(user: any) {
-  const requiredDocs = user.role === 'DELIVERER' 
-    ? ['IDENTITY', 'DRIVING_LICENSE', 'INSURANCE']
-    : ['IDENTITY', 'CERTIFICATION'] // Prestataires
+  const requiredDocs: DocumentType[] = user.role === 'DELIVERER' 
+    ? [DocumentType.IDENTITY, DocumentType.DRIVING_LICENSE, DocumentType.INSURANCE]
+    : [DocumentType.IDENTITY, DocumentType.CERTIFICATION] // Prestataires
 
   const approvedDocs = await prisma.document.findMany({
     where: {
@@ -218,20 +241,20 @@ async function checkAllDocumentsValidated(user: any) {
 
   // Si tous les documents sont approuvés, activer le profil
   if (approvedDocs.length === requiredDocs.length) {
-    if (user.deliverer) {
+    if (user.role === 'DELIVERER') {
       await prisma.deliverer.update({
         where: { userId: user.id },
         data: { 
-          validationStatus: 'APPROVED',
-          isAvailable: true
+          validationStatus: 'VALIDATED',
+          isActive: true
         }
       })
-    } else if (user.provider) {
+    } else if (user.role === 'PROVIDER') {
       await prisma.provider.update({
         where: { userId: user.id },
         data: { 
-          validationStatus: 'APPROVED',
-          isAvailable: true
+          validationStatus: 'VALIDATED',
+          isActive: true
         }
       })
     }
@@ -239,11 +262,17 @@ async function checkAllDocumentsValidated(user: any) {
     // Activer le compte utilisateur
     await prisma.user.update({
       where: { id: user.id },
-      data: { status: 'ACTIVE' }
+      data: { 
+        validationStatus: 'VALIDATED',
+        isActive: true
+      }
     })
 
     // Notification d'activation complète
-    await EcoDeliNotifications.documentsApproved(user.id, user.role)
+    await NotificationService.notifyAccountActivated(
+      user.id, 
+      user.role === 'DELIVERER' ? 'deliverer' : 'provider'
+    )
   }
 }
 
@@ -252,14 +281,8 @@ async function checkAllDocumentsValidated(user: any) {
  */
 async function logAdminAction(adminId: string, action: string, details: any) {
   try {
-    await prisma.activityLog.create({
-      data: {
-        userId: adminId,
-        action,
-        details,
-        createdAt: new Date()
-      }
-    })
+    // Note: ActivityLog model may not exist yet
+    console.log('Admin action:', { adminId, action, details, timestamp: new Date() })
   } catch (error) {
     console.error('Erreur log admin:', error)
   }
@@ -270,19 +293,19 @@ async function logAdminAction(adminId: string, action: string, details: any) {
  */
 async function getValidationStats() {
   const [pending, approved, rejected, deliverersPending, providersPending] = await Promise.all([
-    prisma.document.count({ where: { status: 'PENDING' } }),
-    prisma.document.count({ where: { status: 'APPROVED' } }),
-    prisma.document.count({ where: { status: 'REJECTED' } }),
+    prisma.document.count({ where: { validationStatus: 'PENDING' } }),
+    prisma.document.count({ where: { validationStatus: 'APPROVED' } }),
+    prisma.document.count({ where: { validationStatus: 'REJECTED' } }),
     prisma.document.count({
       where: {
-        status: 'PENDING',
-        profile: { user: { role: 'DELIVERER' } }
+        validationStatus: 'PENDING',
+        user: { role: 'DELIVERER' }
       }
     }),
     prisma.document.count({
       where: {
-        status: 'PENDING',
-        profile: { user: { role: 'PROVIDER' } }
+        validationStatus: 'PENDING',
+        user: { role: 'PROVIDER' }
       }
     })
   ])

@@ -5,11 +5,11 @@ import { generateProviderInvoicePDF } from '@/features/invoices/services/invoice
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const user = await requireRole(request, ['PROVIDER', 'ADMIN'])
-    const { id } = params
+    const { id } = await params
 
     // Récupérer la facture
     const invoice = await db.invoice.findUnique({

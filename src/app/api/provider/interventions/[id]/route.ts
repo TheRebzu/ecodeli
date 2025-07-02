@@ -4,7 +4,7 @@ import { requireRole } from '@/lib/auth/utils'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const user = await requireRole(request, ['PROVIDER']).catch(() => null)
@@ -76,7 +76,7 @@ export async function GET(
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const user = await requireRole(request, ['PROVIDER']).catch(() => null)

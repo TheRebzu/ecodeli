@@ -7,7 +7,7 @@ import { prisma } from '@/lib/db'
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     console.log('🔍 Vérification authentification admin (user/[id])...')
@@ -91,7 +91,7 @@ export async function GET(
  */
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     console.log('🔍 Vérification authentification admin (PUT user/[id])...')

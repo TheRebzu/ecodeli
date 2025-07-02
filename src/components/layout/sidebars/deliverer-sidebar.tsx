@@ -66,7 +66,7 @@ export function DelivererSidebar({ collapsed, user }: DelivererSidebarProps) {
       label: 'Livraisons',
       href: '/deliverer/deliveries',
       icon: Package,
-      badge: 3,
+      badge: undefined,
       submenu: [
         {
           label: 'En cours',
@@ -84,7 +84,7 @@ export function DelivererSidebar({ collapsed, user }: DelivererSidebarProps) {
       label: 'Opportunités',
       href: '/deliverer/opportunities',
       icon: TrendingUp,
-      badge: 12
+      badge: undefined
     },
     {
       label: 'Trajets',

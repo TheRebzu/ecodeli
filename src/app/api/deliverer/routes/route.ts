@@ -61,8 +61,8 @@ export async function GET(request: NextRequest) {
       delivererId: user.id
     }
 
-    if (params.isActive !== undefined) where.isActive = params.isActive
-    if (params.isRecurring !== undefined) where.isRecurring = params.isRecurring
+    if ((await params).isActive !== undefined) where.isActive = (await params).isActive
+    if ((await params).isRecurring !== undefined) where.isRecurring = (await params).isRecurring
 
     // Récupérer les routes
     const routes = await db.delivererRoute.findMany({
@@ -89,11 +89,11 @@ export async function GET(request: NextRequest) {
           }
         }
       },
-      orderBy: params.sortBy === 'createdAt' ? { createdAt: params.sortOrder } :
-               params.sortBy === 'startDate' ? { startDate: params.sortOrder } :
-               { title: params.sortOrder },
-      skip: (params.page - 1) * params.limit,
-      take: params.limit
+      orderBy: (await params).sortBy === 'createdAt' ? { createdAt: (await params).sortOrder } :
+               (await params).sortBy === 'startDate' ? { startDate: (await params).sortOrder } :
+               { title: (await params).sortOrder },
+      skip: ((await params).page - 1) * (await params).limit,
+      take: (await params).limit
     })
 
     // Formater les données
@@ -156,12 +156,12 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       routes: formattedRoutes,
       pagination: {
-        page: params.page,
-        limit: params.limit,
+        page: (await params).page,
+        limit: (await params).limit,
         total,
-        totalPages: Math.ceil(total / params.limit),
-        hasNext: params.page < Math.ceil(total / params.limit),
-        hasPrev: params.page > 1
+        totalPages: Math.ceil(total / (await params).limit),
+        hasNext: (await params).page < Math.ceil(total / (await params).limit),
+        hasPrev: (await params).page > 1
       },
       stats
     })

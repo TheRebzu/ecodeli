@@ -34,8 +34,8 @@ import { cn } from '@/lib/utils';
 export function ProviderHeader({
   user,
   onLogout,
-  upcomingBookings = 0,
-  pendingRequests = 0,
+  upcomingBookings,
+  pendingRequests,
   className
 }: ProviderHeaderProps) {
   const t = useTranslations('navigation');

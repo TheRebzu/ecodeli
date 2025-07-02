@@ -39,38 +39,38 @@ export async function GET(request: NextRequest) {
     // Construire la clause WHERE
     const where: any = { clientId: user.id }
     
-    if (params.status) where.status = params.status
-    if (params.type) where.type = params.type
-    if (params.urgency) where.urgency = params.urgency
-    if (params.isRecurring !== undefined) where.isRecurring = params.isRecurring
-    if (params.city) {
-      where.address = { contains: params.city, mode: 'insensitive' }
+    if ((await params).status) where.status = (await params).status
+    if ((await params).type) where.type = (await params).type
+    if ((await params).urgency) where.urgency = (await params).urgency
+    if ((await params).isRecurring !== undefined) where.isRecurring = (await params).isRecurring
+    if ((await params).city) {
+      where.address = { contains: (await params).city, mode: 'insensitive' }
     }
     
     // Filtres de budget
-    if (params.budgetMin || params.budgetMax) {
+    if ((await params).budgetMin || (await params).budgetMax) {
       where.budget = {}
-      if (params.budgetMin) where.budget.gte = params.budgetMin
-      if (params.budgetMax) where.budget.lte = params.budgetMax
+      if ((await params).budgetMin) where.budget.gte = (await params).budgetMin
+      if ((await params).budgetMax) where.budget.lte = (await params).budgetMax
     }
     
     // Filtres de date
-    if (params.dateFrom || params.dateTo) {
+    if ((await params).dateFrom || (await params).dateTo) {
       where.scheduledAt = {}
-      if (params.dateFrom) where.scheduledAt.gte = new Date(params.dateFrom)
-      if (params.dateTo) where.scheduledAt.lte = new Date(params.dateTo)
+      if ((await params).dateFrom) where.scheduledAt.gte = new Date((await params).dateFrom)
+      if ((await params).dateTo) where.scheduledAt.lte = new Date((await params).dateTo)
     }
 
     // Construire l'ordre de tri
     const orderBy: any = {}
-    if (params.sortBy === 'scheduledAt') {
-      orderBy.scheduledAt = params.sortOrder
-    } else if (params.sortBy === 'budget') {
-      orderBy.budget = params.sortOrder
-    } else if (params.sortBy === 'urgency') {
-      orderBy.urgency = params.sortOrder
+    if ((await params).sortBy === 'scheduledAt') {
+      orderBy.scheduledAt = (await params).sortOrder
+    } else if ((await params).sortBy === 'budget') {
+      orderBy.budget = (await params).sortOrder
+    } else if ((await params).sortBy === 'urgency') {
+      orderBy.urgency = (await params).sortOrder
     } else {
-      orderBy.createdAt = params.sortOrder
+      orderBy.createdAt = (await params).sortOrder
     }
 
     try {
@@ -132,8 +132,8 @@ export async function GET(request: NextRequest) {
             }
           },
           orderBy,
-          skip: (params.page - 1) * params.limit,
-          take: params.limit
+          skip: ((await params).page - 1) * (await params).limit,
+          take: (await params).limit
         }),
         db.serviceRequest.count({ where })
       ])
@@ -183,12 +183,12 @@ export async function GET(request: NextRequest) {
           handymanDetails: service.handymanDetails ? JSON.parse(service.handymanDetails) : null
         })),
         pagination: {
-          page: params.page,
-          limit: params.limit,
+          page: (await params).page,
+          limit: (await params).limit,
           total,
-          totalPages: Math.ceil(total / params.limit),
-          hasNext: params.page < Math.ceil(total / params.limit),
-          hasPrev: params.page > 1
+          totalPages: Math.ceil(total / (await params).limit),
+          hasNext: (await params).page < Math.ceil(total / (await params).limit),
+          hasPrev: (await params).page > 1
         },
         stats: {
           totalBudget: serviceRequests.reduce((sum, s) => sum + Number(s.budget), 0),

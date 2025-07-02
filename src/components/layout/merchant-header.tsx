@@ -34,8 +34,8 @@ import { cn } from '@/lib/utils';
 export function MerchantHeader({
   user,
   onLogout,
-  pendingOrders = 0,
-  newMessages = 0,
+  pendingOrders,
+  newMessages,
   className
 }: MerchantHeaderProps) {
   const t = useTranslations('navigation');

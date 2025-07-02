@@ -50,13 +50,21 @@ interface VerificationStats {
   }
 }
 
-export function UserVerificationsDashboard() {
+interface UserVerificationsDashboardProps {
+  defaultStatus?: string
+  defaultRole?: string
+}
+
+export function UserVerificationsDashboard({ 
+  defaultStatus = 'all',
+  defaultRole = 'all'
+}: UserVerificationsDashboardProps = {}) {
   const [users, setUsers] = useState<UserWithVerification[]>([])
   const [stats, setStats] = useState<VerificationStats | null>(null)
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
-  const [selectedRole, setSelectedRole] = useState<string>('all')
-  const [selectedStatus, setSelectedStatus] = useState<string>('all')
+  const [selectedRole, setSelectedRole] = useState<string>(defaultRole)
+  const [selectedStatus, setSelectedStatus] = useState<string>(defaultStatus)
 
   const fetchData = async () => {
     try {
@@ -222,6 +230,32 @@ export function UserVerificationsDashboard() {
             </Button>
           </div>
         </CardHeader>
+      </Card>
+
+      {/* Onglets par statut */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Filtres par statut</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Tabs value={selectedStatus} onValueChange={setSelectedStatus}>
+            <TabsList className="grid w-full grid-cols-5">
+              <TabsTrigger value="all">Tous</TabsTrigger>
+              <TabsTrigger value="PENDING">
+                En attente ({stats?.pending || 0})
+              </TabsTrigger>
+              <TabsTrigger value="APPROVED">
+                Approuvés ({stats?.approved || 0})
+              </TabsTrigger>
+              <TabsTrigger value="REJECTED">
+                Rejetés ({stats?.rejected || 0})
+              </TabsTrigger>
+              <TabsTrigger value="INCOMPLETE">
+                Incomplets ({stats?.incomplete || 0})
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
+        </CardContent>
       </Card>
 
       {/* Onglets par rôle */}

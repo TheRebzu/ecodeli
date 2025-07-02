@@ -1,8 +1,13 @@
 "use client";
 
-import { useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "@/i18n/navigation";
 import { useAuth } from "@/features/auth/hooks/useAuth";
+import { AdminHeader } from "@/components/layout/admin-header";
+import { AdminSidebar } from "@/components/layout/sidebars/admin-sidebar";
+import { Toaster } from "@/components/ui/toaster";
+import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
+import { cn } from "@/lib/utils";
 
 interface AdminLayoutProps {
   children: React.ReactNode;
@@ -11,6 +16,8 @@ interface AdminLayoutProps {
 export default function AdminLayout({ children }: AdminLayoutProps) {
   const router = useRouter();
   const { user, isLoading: authLoading } = useAuth();
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     if (!authLoading) {
@@ -27,6 +34,35 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       }
     }
   }, [user, authLoading, router]);
+
+  // Close mobile menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = () => {
+      if (mobileMenuOpen) {
+        setMobileMenuOpen(false);
+      }
+    };
+
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, [mobileMenuOpen]);
+
+  const handleLogout = async () => {
+    try {
+      // TODO: Implement proper logout with Better Auth
+      router.push("/fr/login");
+    } catch (error) {
+      console.error('Error during logout:', error);
+    }
+  };
+
+  const toggleMobileMenu = () => {
+    setMobileMenuOpen(!mobileMenuOpen);
+  };
+
+  // TODO: Get real data from API
+  const pendingValidations = 3;
+  const systemAlerts = 1;
 
   if (authLoading) {
     return (
@@ -61,5 +97,49 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     );
   }
 
-  return <div>{children}</div>;
+  return (
+    <SidebarProvider 
+      defaultOpen={!sidebarCollapsed}
+      onOpenChange={(open) => setSidebarCollapsed(!open)}
+    >
+      <div className="flex h-screen bg-background w-full">
+        {/* Sidebar */}
+        <AdminSidebar 
+          collapsed={sidebarCollapsed}
+          user={{
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            avatar: user.avatar,
+            role: user.role,
+            validationStatus: user.validationStatus || 'VALIDATED'
+          }}
+        />
+
+        {/* Main Content */}
+        <SidebarInset className="flex-1 w-full">
+          {/* Header */}
+          <AdminHeader
+            user={{
+              name: user.name || '',
+              email: user.email,
+            }}
+            onLogout={handleLogout}
+            pendingValidations={pendingValidations}
+            systemAlerts={systemAlerts}
+          />
+
+          {/* Page Content */}
+          <main className="flex-1 overflow-auto p-6">
+            <div className="mx-auto max-w-7xl">
+              {children}
+            </div>
+          </main>
+        </SidebarInset>
+
+        {/* Toast Notifications */}
+        <Toaster />
+      </div>
+    </SidebarProvider>
+  );
 }

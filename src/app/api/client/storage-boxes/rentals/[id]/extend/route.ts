@@ -61,7 +61,7 @@ export async function PUT(
     const validatedData = extendSchema.parse(body)
 
     const updatedRental = await StorageBoxService.extendRental(
-      params.id,
+      (await params).id,
       new Date(validatedData.newEndDate)
     )
 

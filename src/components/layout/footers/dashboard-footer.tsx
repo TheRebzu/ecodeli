@@ -171,8 +171,8 @@ export function SessionFooter({
  */
 export function StatsFooter({
   stats = {
-    users: 0,
-    deliveries: 0,
+    users,
+    deliveries,
     uptime: '99.9%'
   },
   className

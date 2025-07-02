@@ -34,12 +34,12 @@ export async function GET(request: NextRequest) {
     
     const processedParams = {
       ...params,
-      minPrice: params.minPrice ? parseFloat(params.minPrice) : undefined,
-      maxPrice: params.maxPrice ? parseFloat(params.maxPrice) : undefined,
-      radius: params.radius ? parseFloat(params.radius) : undefined,
-      tags: params.tags ? params.tags.split(',') : undefined,
-      page: params.page ? parseInt(params.page) : 1,
-      limit: params.limit ? parseInt(params.limit) : 10
+      minPrice: (await params).minPrice ? parseFloat((await params).minPrice) : undefined,
+      maxPrice: (await params).maxPrice ? parseFloat((await params).maxPrice) : undefined,
+      radius: (await params).radius ? parseFloat((await params).radius) : undefined,
+      tags: (await params).tags ? (await params).tags.split(',') : undefined,
+      page: (await params).page ? parseInt((await params).page) : 1,
+      limit: (await params).limit ? parseInt((await params).limit) : 10
     }
 
     const validatedParams = searchSchema.parse(processedParams)

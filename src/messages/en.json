@@ -28,6 +28,64 @@
     "overview": "Overview",
     "newAnnouncement": "New announcement"
   },
+  "admin": {
+    "navigation": {
+      "dashboard": "Dashboard",
+      "users": {
+        "title": "Users",
+        "all": "All Users",
+        "clients": "Clients",
+        "deliverers": "Deliverers",
+        "merchants": "Merchants",
+        "providers": "Providers"
+      },
+      "verifications": {
+        "title": "Verifications",
+        "pending": "Pending",
+        "approved": "Approved",
+        "rejected": "Rejected",
+        "incomplete": "Incomplete"
+      },
+      "deliveries": {
+        "title": "Deliveries",
+        "active": "Active",
+        "completed": "Completed",
+        "disputes": "Disputes"
+      },
+      "finance": {
+        "title": "Finance",
+        "payments": "Payments",
+        "subscriptions": "Subscriptions",
+        "reports": "Reports"
+      },
+      "analytics": {
+        "title": "Analytics",
+        "overview": "Overview",
+        "users": "Users",
+        "deliveries": "Deliveries",
+        "revenue": "Revenue"
+      },
+      "support": {
+        "title": "Support",
+        "tickets": "Tickets",
+        "chat": "Chat"
+      },
+      "system": {
+        "title": "System",
+        "monitoring": "Monitoring",
+        "logs": "Logs",
+        "settings": "Settings"
+      }
+    },
+    "dashboard": "Dashboard",
+    "users": "Users",
+    "deliveries": "Deliveries",
+    "finance": "Finance",
+    "monitoring": "Monitoring",
+    "admin_panel": "Admin Panel",
+    "system_settings": "System Settings",
+    "system_logs": "System Logs"
+  },
   "common": {
     "profile": "Profile",
     "settings": "Settings",
@@ -331,6 +389,41 @@
         "average_rating": "Average Rating",
         "total_earnings": "Total Earnings",
         "response_time": "Response Time"
+      }
+    },
+    "documents": {
+      "auth": {
+        "required_title": "Authentication required",
+        "required_description": "You must be logged in to access this page"
+      },
+      "stats": {
+        "validated": "Validated",
+        "pending": "Pending",
+        "rejected": "Rejected",
+        "expired": "Expired"
+      },
+      "status": {
+        "validated": "Validated",
+        "pending": "Pending",
+        "rejected": "Rejected",
+        "expired": "Expired"
+      },
+      "required": "Required",
+      "allowed_formats": "Allowed formats",
+      "max_size": "Max size",
+      "expires": "Expires on",
+      "rejection_reason": "Rejection reason",
+      "upload_document": "Upload document",
+      "replace_document": "Replace document",
+      "error": {
+        "fetch_failed": "Error loading documents",
+        "upload_failed": "Error uploading document",
+        "delete_failed": "Error deleting document",
+        "file_too_large": "File too large"
+      },
+      "success": {
+        "document_uploaded": "Document uploaded successfully",
+        "document_deleted": "Document deleted successfully"
       }
     }
   }

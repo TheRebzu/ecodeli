@@ -353,8 +353,7 @@ export function useMobileMenuItems(userRole?: string) {
         {
           key: 'validations',
           label: 'Validations',
-          href: '/admin/validations',
-          badge: 5
+          href: '/admin/validations'
         }
       ]
       

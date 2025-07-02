@@ -4,7 +4,7 @@ import { prisma } from '@/lib/db'
 // GET - Récupérer un entrepôt spécifique
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const warehouse = await prisma.location.findUnique({
@@ -33,7 +33,7 @@ export async function GET(
 // PUT - Modifier un entrepôt
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const body = await request.json()
@@ -87,7 +87,7 @@ export async function PUT(
 // PATCH - Fermer/ouvrir temporairement un entrepôt
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const body = await request.json()
@@ -126,7 +126,7 @@ export async function PATCH(
 // DELETE - Supprimer un entrepôt
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Vérifier que l'entrepôt existe
@@ -173,17 +173,17 @@ export async function DELETE(
       prisma.storageBoxRental.deleteMany({
         where: {
           storageBox: {
-            locationId: params.id
+            locationId: (await params).id
           }
         }
       }),
       // Supprimer les box de stockage
       prisma.storageBox.deleteMany({
-        where: { locationId: params.id }
+        where: { locationId: (await params).id }
       }),
       // Supprimer le warehouse
       prisma.warehouse.deleteMany({
-        where: { locationId: params.id }
+        where: { locationId: (await params).id }
       }),
       // Supprimer la location
       prisma.location.delete({

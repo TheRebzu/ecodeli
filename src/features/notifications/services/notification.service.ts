@@ -490,4 +490,5 @@ export class NotificationService {
 
 // Export par défaut pour l'import simple
 export const notificationService = NotificationService
+export const EcoDeliNotifications = NotificationService
 export default NotificationService

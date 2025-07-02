@@ -60,14 +60,14 @@ export async function GET(request: NextRequest) {
       delivererId: user.id
     }
 
-    if (params.status) {
-      where.status = params.status
+    if ((await params).status) {
+      where.status = (await params).status
     }
 
-    if (params.dateFrom || params.dateTo) {
+    if ((await params).dateFrom || (await params).dateTo) {
       where.createdAt = {}
-      if (params.dateFrom) where.createdAt.gte = new Date(params.dateFrom)
-      if (params.dateTo) where.createdAt.lte = new Date(params.dateTo)
+      if ((await params).dateFrom) where.createdAt.gte = new Date((await params).dateFrom)
+      if ((await params).dateTo) where.createdAt.lte = new Date((await params).dateTo)
     }
 
     console.log('🔍 Clause WHERE pour la requête:', JSON.stringify(where, null, 2))
@@ -129,11 +129,11 @@ export async function GET(request: NextRequest) {
           }
         }
       },
-      orderBy: params.sortBy === 'createdAt' ? { createdAt: params.sortOrder } :
-               params.sortBy === 'pickupDate' ? { pickupDate: params.sortOrder } :
-               { deliveryDate: params.sortOrder },
-      skip: (params.page - 1) * params.limit,
-      take: params.limit
+      orderBy: (await params).sortBy === 'createdAt' ? { createdAt: (await params).sortOrder } :
+               (await params).sortBy === 'pickupDate' ? { pickupDate: (await params).sortOrder } :
+               { deliveryDate: (await params).sortOrder },
+      skip: ((await params).page - 1) * (await params).limit,
+      take: (await params).limit
     })
 
     console.log('📦 Livraisons trouvées:', deliveries.length)
@@ -212,10 +212,10 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       deliveries: formattedDeliveries,
       pagination: {
-        page: params.page,
-        limit: params.limit,
+        page: (await params).page,
+        limit: (await params).limit,
         total,
-        totalPages: Math.ceil(total / params.limit)
+        totalPages: Math.ceil(total / (await params).limit)
       },
       stats: statusStats
     })

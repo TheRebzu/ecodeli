@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
     const monthlyEarnings = await db.payment.aggregate({
       where: {
         userId: user.id,
-        type: 'DELIVERY',
+        deliveryId: { not: null }, // Only delivery-related payments
         status: 'COMPLETED',
         createdAt: {
           gte: startOfMonth,

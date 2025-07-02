@@ -12,7 +12,7 @@ import {
   SubscriptionLimits,
   RouteMatch
 } from '../types/announcement.types'
-import { notificationService } from '@/features/notifications/services/notification.service'
+import { NotificationService } from '@/features/notifications/services/notification.service'
 import { geocodingService } from './geocoding.service'
 import { announcementPaymentService } from './announcement-payment.service'
 import { ValidationCodeService } from '@/features/deliveries/services/validation-code.service'
@@ -503,7 +503,7 @@ class AnnouncementService {
         })
 
         // Envoyer notification push au livreur
-        await notificationService.sendPushNotification(
+        await NotificationService.notifyDeliveryOpportunity(
           match.deliverer.id,
           'Nouvelle opportunité de livraison',
           `Une annonce correspond à votre trajet (${Math.round(match.matchScore)}% de compatibilité)`,
@@ -814,7 +814,7 @@ class AnnouncementService {
 
       // Notifier les parties concernées
       if (announcement.delivererId) {
-        await notificationService.createNotification({
+        await NotificationService.createNotification({
           userId: announcement.delivererId,
           type: 'ANNOUNCEMENT_CANCELLED',
           title: 'Annonce annulée',
@@ -912,7 +912,7 @@ class AnnouncementService {
 
       // Notifier le livreur
       if (announcement.delivererId) {
-        await notificationService.createNotification({
+        await NotificationService.createNotification({
           userId: announcement.delivererId,
           type: 'DELIVERY_VALIDATED',
           title: 'Livraison validée',

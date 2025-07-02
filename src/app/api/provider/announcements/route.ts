@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/db'
-import { notificationService } from '@/features/notifications/services/notification.service'
+import { NotificationService } from '@/features/notifications/services/notification.service'
 
 /**
  * API pour la gestion des annonces de services à la personne par les prestataires

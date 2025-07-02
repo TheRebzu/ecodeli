@@ -26,7 +26,27 @@ import {
 } from '@/components/ui/sidebar'
 import { usePathname } from 'next/navigation'
 import { useState } from 'react'
-import { type BaseSidebarProps, type NavigationItem, type EcoDeliUser } from '../types/layout.types'
+import { type EcoDeliUser } from '../types/layout.types'
+
+// Types temporaires pour ce composant
+interface NavigationItem {
+  key: string
+  label: string
+  href: string
+  icon?: any
+  category?: string
+  badge?: string
+  children?: NavigationItem[]
+}
+
+interface BaseSidebarProps {
+  role: string
+  user: EcoDeliUser
+  navigationItems: NavigationItem[]
+  collapsed?: boolean
+  onToggle?: () => void
+  className?: string
+}
 
 // Configuration des icônes
 const getIcon = (iconName?: string) => {
@@ -115,12 +135,12 @@ export function BaseSidebar({
                 <div className="flex items-center space-x-1">
                   <div className={cn(
                     "w-2 h-2 rounded-full",
-                    user.validationStatus === 'VALIDATED' ? "bg-green-500" : 
-                    user.validationStatus === 'PENDING_VALIDATION' ? "bg-yellow-500" : "bg-gray-400"
+                    user.validationStatus === 'APPROVED' ? "bg-green-500" : 
+                    user.validationStatus === 'PENDING' ? "bg-yellow-500" : "bg-gray-400"
                   )} />
                   <span className="text-xs text-muted-foreground">
-                    {user.validationStatus === 'VALIDATED' ? 'Vérifié' : 
-                     user.validationStatus === 'PENDING_VALIDATION' ? 'En attente' : 'Non vérifié'}
+                    {user.validationStatus === 'APPROVED' ? 'Vérifié' : 
+                     user.validationStatus === 'PENDING' ? 'En attente' : 'Non vérifié'}
                   </span>
                 </div>
               </div>
@@ -151,6 +171,7 @@ export function BaseSidebar({
                       isActive={isItemActive(item)}
                       isExpanded={isGroupExpanded(item.key)}
                       onToggle={() => toggleGroup(item.key)}
+                      pathname={pathname}
                     />
                   ))}
                 </SidebarMenu>
@@ -185,12 +206,14 @@ function NavigationMenuItem({
   item,
   isActive,
   isExpanded,
-  onToggle
+  onToggle,
+  pathname
 }: {
-  item: NavigationItem
+  item: any
   isActive: boolean
   isExpanded: boolean
   onToggle: () => void
+  pathname: string
 }) {
   const hasChildren = item.children && item.children.length > 0
 
@@ -225,7 +248,7 @@ function NavigationMenuItem({
           {/* Sous-menu */}
           {isExpanded && item.children && (
             <SidebarMenuSub>
-              {item.children.map((child) => (
+              {item.children.map((child: NavigationItem) => (
                 <SidebarMenuSubItem key={child.key}>
                   <SidebarMenuSubButton
                     asChild

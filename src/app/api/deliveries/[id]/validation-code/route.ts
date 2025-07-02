@@ -5,7 +5,7 @@ import { db } from '@/lib/db'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const user = await getUserFromSession(request)
@@ -50,7 +50,7 @@ export async function GET(
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const user = await getUserFromSession(request)
@@ -59,18 +59,6 @@ export async function POST(
     }
 
     const { id: deliveryId } = await params
-
-    // Récupérer la livraison
-    const delivery = await db.delivery.findUnique({
-      where: { id: deliveryId },
-      include: {
-        client: true
-      }
-    })
-
-    if (!delivery) {
-      return NextResponse.json({ error: 'Livraison non trouvée' }, { status: 404 })
-    }
 
     // Récupérer la livraison
     const delivery = await db.delivery.findUnique({

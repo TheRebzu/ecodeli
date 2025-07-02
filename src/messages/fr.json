@@ -527,6 +527,64 @@
     "verification": "Vérification",
     "vehicle": "Véhicule"
   },
+  "admin": {
+    "navigation": {
+      "dashboard": "Tableau de bord",
+      "users": {
+        "title": "Utilisateurs",
+        "all": "Tous les utilisateurs",
+        "clients": "Clients",
+        "deliverers": "Livreurs",
+        "merchants": "Commerçants",
+        "providers": "Prestataires"
+      },
+      "verifications": {
+        "title": "Vérifications",
+        "pending": "En attente",
+        "approved": "Approuvées",
+        "rejected": "Rejetées",
+        "incomplete": "Incomplètes"
+      },
+      "deliveries": {
+        "title": "Livraisons",
+        "active": "Actives",
+        "completed": "Terminées",
+        "disputes": "Litiges"
+      },
+      "finance": {
+        "title": "Finance",
+        "payments": "Paiements",
+        "subscriptions": "Abonnements",
+        "reports": "Rapports"
+      },
+      "analytics": {
+        "title": "Analytics",
+        "overview": "Vue d'ensemble",
+        "users": "Utilisateurs",
+        "deliveries": "Livraisons",
+        "revenue": "Revenus"
+      },
+      "support": {
+        "title": "Support",
+        "tickets": "Tickets",
+        "chat": "Chat"
+      },
+      "system": {
+        "title": "Système",
+        "monitoring": "Monitoring",
+        "logs": "Logs",
+        "settings": "Paramètres"
+      }
+    },
+    "dashboard": "Tableau de bord",
+    "users": "Utilisateurs",
+    "deliveries": "Livraisons",
+    "finance": "Finance",
+    "monitoring": "Monitoring",
+    "admin_panel": "Panel Admin",
+    "system_settings": "Paramètres système",
+    "system_logs": "Logs système"
+  },
   "dashboard": {
     "title": "Tableau de bord",
     "welcome": "Bienvenue sur EcoDeli",
@@ -1421,6 +1479,39 @@
         "total_earnings": "Total Gains",
         "response_time": "Temps de Réponse"
       }
+    },
+    "documents": {
+      "title": "Gestion des Documents",
+      "description": "Téléchargez et gérez vos documents justificatifs",
+      "stats": {
+        "validated": "Validés",
+        "pending": "En attente",
+        "rejected": "Rejetés",
+        "expired": "Expirés"
+      },
+      "status": {
+        "validated": "Validé",
+        "pending": "En attente",
+        "rejected": "Rejeté",
+        "expired": "Expiré"
+      },
+      "required": "Requis",
+      "allowed_formats": "Formats autorisés",
+      "max_size": "Taille maximale",
+      "expires": "Expire le",
+      "rejection_reason": "Raison du rejet",
+      "replace_document": "Remplacer le document",
+      "upload_document": "Télécharger un document",
+      "error": {
+        "fetch_failed": "Erreur lors du chargement des documents",
+        "upload_failed": "Erreur lors du téléchargement",
+        "delete_failed": "Erreur lors de la suppression",
+        "file_too_large": "Fichier trop volumineux"
+      },
+      "success": {
+        "document_uploaded": "Document téléchargé avec succès",
+        "document_deleted": "Document supprimé avec succès"
+      }
     }
   },
   "merchant": {
@@ -2083,6 +2174,41 @@
       "title": "Mon planning",
       "availability": "Disponibilités",
       "calendar": "Calendrier"
+    },
+    "documents": {
+      "auth": {
+        "required_title": "Authentification requise",
+        "required_description": "Vous devez être connecté pour accéder à cette page"
+      },
+      "stats": {
+        "validated": "Validés",
+        "pending": "En attente",
+        "rejected": "Rejetés",
+        "expired": "Expirés"
+      },
+      "status": {
+        "validated": "Validé",
+        "pending": "En attente",
+        "rejected": "Rejeté",
+        "expired": "Expiré"
+      },
+      "required": "Obligatoire",
+      "allowed_formats": "Formats autorisés",
+      "max_size": "Taille maximum",
+      "expires": "Expire le",
+      "rejection_reason": "Motif du rejet",
+      "upload_document": "Télécharger le document",
+      "replace_document": "Remplacer le document",
+      "error": {
+        "fetch_failed": "Erreur lors du chargement des documents",
+        "upload_failed": "Erreur lors du téléchargement",
+        "delete_failed": "Erreur lors de la suppression",
+        "file_too_large": "Fichier trop volumineux"
+      },
+      "success": {
+        "document_uploaded": "Document téléchargé avec succès",
+        "document_deleted": "Document supprimé avec succès"
+      }
     }
   },
   "pages": {

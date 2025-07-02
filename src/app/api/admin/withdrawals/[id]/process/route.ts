@@ -32,7 +32,7 @@ export async function PUT(
     const validatedData = processWithdrawalSchema.parse(body)
 
     const processedWithdrawal = await WalletService.processWithdrawal(
-      params.id,
+      (await params).id,
       validatedData.status,
       session.user.id,
       validatedData.notes

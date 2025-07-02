@@ -1,7 +1,7 @@
 import { stripe } from '@/lib/stripe'
 import { prisma } from '@/lib/db'
 import { logger } from '@/lib/logger'
-import { notificationService } from '@/features/notifications/services/notification.service'
+import { NotificationService } from '@/features/notifications/services/notification.service'
 
 export interface CreatePaymentIntentInput {
   announcementId: string
@@ -254,13 +254,13 @@ export class AnnouncementPaymentService {
 
       // Envoyer notifications
       await Promise.all([
-        notificationService.notifyPaymentReceived(
+        NotificationService.notifyPaymentReceived(
           payment.userId,
           payment.amount,
           'Paiement annonce débité avec succès',
           'delivery'
         ),
-        payment.delivery ? notificationService.notifyPaymentReceived(
+        payment.delivery ? NotificationService.notifyPaymentReceived(
           payment.delivery.delivererId,
           this.calculateDelivererFee(payment.amount),
           'Paiement de livraison reçu',
@@ -335,7 +335,7 @@ export class AnnouncementPaymentService {
       })
 
       // Notifier le client
-      await notificationService.createNotification({
+      await NotificationService.createNotification({
         userId: payment.userId,
         type: 'PAYMENT_REFUNDED',
         title: 'Remboursement effectué',

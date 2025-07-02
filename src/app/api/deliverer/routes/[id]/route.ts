@@ -31,7 +31,7 @@ const updateRouteSchema = z.object({
 // GET - Récupérer une route spécifique
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth()
@@ -95,7 +95,7 @@ export async function GET(
 // PUT - Mettre à jour une route
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth()
@@ -186,7 +186,7 @@ export async function PUT(
 // DELETE - Supprimer une route
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth()

@@ -19,24 +19,22 @@ interface Document {
   id: string;
   type: string;
   name: string;
-  fileName: string;
-  fileUrl: string;
+  filename: string;
   status: "pending" | "approved" | "rejected" | "expired";
-  submittedAt: string;
-  reviewedAt?: string;
-  expiryDate?: string;
-  rejectionReason?: string;
-  required: boolean;
+  uploadedAt: string;
+  validatedAt?: string;
+  expiresAt?: string;
+  rejectedReason?: string;
+  size: number;
+  url: string;
 }
 
 const REQUIRED_DOCUMENTS = [
-  { type: "identity_card", name: "Carte d'identité", required: true },
-  { type: "driving_license", name: "Permis de conduire", required: true },
-  { type: "insurance", name: "Assurance véhicule", required: true },
-  { type: "vehicle_registration", name: "Carte grise", required: true },
-  { type: "criminal_record", name: "Casier judiciaire", required: true },
-  { type: "social_security", name: "Attestation sécurité sociale", required: false },
-  { type: "bank_details", name: "RIB", required: true }
+  { type: "IDENTITY", name: "Pièce d'identité", required: true },
+  { type: "DRIVING_LICENSE", name: "Permis de conduire", required: true },
+  { type: "INSURANCE", name: "Attestation d'assurance", required: true },
+  { type: "VEHICLE_REGISTRATION", name: "Carte grise", required: false },
+  { type: "CERTIFICATION", name: "Certifications professionnelles", required: false }
 ];
 
 export default function DelivererDocumentsManager({ delivererId }: DelivererDocumentsManagerProps) {
@@ -46,6 +44,22 @@ export default function DelivererDocumentsManager({ delivererId }: DelivererDocu
   const [uploadingDocument, setUploadingDocument] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [selectedDocumentType, setSelectedDocumentType] = useState<string>("");
+
+  // Fonction helper pour les traductions avec fallback
+  const translate = (key: string, fallback?: string) => {
+    try {
+      const result = t(key);
+      // Si la traduction retourne la clé elle-même, c'est qu'elle n'existe pas
+      if (result === key) {
+        console.warn(`Translation missing for key: ${key}, using fallback: ${fallback}`);
+        return fallback || key;
+      }
+      return result;
+    } catch (error) {
+      console.warn(`Translation error for key: ${key}, using fallback: ${fallback}`);
+      return fallback || key;
+    }
+  };
 
   useEffect(() => {
     fetchDocuments();
@@ -108,7 +122,7 @@ export default function DelivererDocumentsManager({ delivererId }: DelivererDocu
   };
 
   const getDocumentStatus = (doc: Document) => {
-    if (doc.expiryDate && new Date(doc.expiryDate) < new Date()) {
+    if (doc.expiresAt && new Date(doc.expiresAt) < new Date()) {
       return { status: "expired", color: "bg-orange-100 text-orange-800", icon: Clock };
     }
 
@@ -119,7 +133,15 @@ export default function DelivererDocumentsManager({ delivererId }: DelivererDocu
       expired: { status: "expired", color: "bg-orange-100 text-orange-800", icon: AlertTriangle }
     };
 
-    return statusConfig[doc.status];
+    const result = statusConfig[doc.status as keyof typeof statusConfig];
+    
+    // Si le statut n'est pas reconnu, retourner pending par défaut
+    if (!result) {
+      console.warn(`Unknown document status: ${doc.status}, defaulting to pending`);
+      return statusConfig.pending;
+    }
+    
+    return result;
   };
 
   const getDocumentByType = (type: string) => {
@@ -207,32 +229,40 @@ export default function DelivererDocumentsManager({ delivererId }: DelivererDocu
                     <div className="flex items-center gap-2">
                       <StatusIcon className="h-4 w-4" />
                       <Badge className={statusInfo?.color}>
-                        {t(`status.${statusInfo?.status}`)}
+                        {statusInfo?.status ? 
+                          translate(`status.${statusInfo.status}`, 
+                            statusInfo.status === 'approved' ? 'Approuvé' :
+                            statusInfo.status === 'pending' ? 'En attente' :
+                            statusInfo.status === 'rejected' ? 'Rejeté' :
+                            statusInfo.status === 'expired' ? 'Expiré' : 'Inconnu'
+                          ) : 
+                          translate("status.pending", "En attente")
+                        }
                       </Badge>
                     </div>
                     
                     <div className="text-sm text-gray-600">
-                      <p>{t("submitted_at")}: {new Date(document.submittedAt).toLocaleDateString()}</p>
-                      {document.expiryDate && (
-                        <p>{t("expires_at")}: {new Date(document.expiryDate).toLocaleDateString()}</p>
+                      <p>{t("uploaded_at")}: {new Date(document.uploadedAt).toLocaleDateString()}</p>
+                      {document.expiresAt && (
+                        <p>{t("expires_at")}: {new Date(document.expiresAt).toLocaleDateString()}</p>
                       )}
                     </div>
 
-                    {document.rejectionReason && (
+                    {document.rejectedReason && (
                       <div className="p-3 bg-red-50 border border-red-200 rounded">
-                        <p className="text-sm text-red-800">{t("rejection_reason")}: {document.rejectionReason}</p>
+                        <p className="text-sm text-red-800">{t("rejected_reason")}: {document.rejectedReason}</p>
                       </div>
                     )}
 
                     <div className="flex gap-2">
                       <Button variant="outline" size="sm" asChild>
-                        <a href={document.fileUrl} target="_blank" rel="noopener noreferrer">
+                        <a href={document.url} target="_blank" rel="noopener noreferrer">
                           <Eye className="h-3 w-3 mr-1" />
                           {t("actions.view")}
                         </a>
                       </Button>
                       <Button variant="outline" size="sm" asChild>
-                        <a href={document.fileUrl} download>
+                        <a href={document.url} download>
                           <Download className="h-3 w-3 mr-1" />
                           {t("actions.download")}
                         </a>

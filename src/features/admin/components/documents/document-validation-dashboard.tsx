@@ -151,7 +151,7 @@ export function DocumentValidationDashboard({ initialUserId }: DocumentValidatio
       const response = await fetch('/api/admin/documents/validate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ documentId, status, notes })
+        body: JSON.stringify({ documentId, action: status, reason: notes })
       })
 
       const data = await response.json()
@@ -161,7 +161,7 @@ export function DocumentValidationDashboard({ initialUserId }: DocumentValidatio
         await fetchStats()
         setSelectedDocument(null)
       } else {
-        console.error('Erreur validation:', data.message)
+        console.error('Erreur validation:', data.error || data.message || 'Erreur inconnue')
       }
     } catch (error) {
       console.error('Erreur validation document:', error)

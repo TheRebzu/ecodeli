@@ -37,9 +37,9 @@ export async function GET(request: NextRequest) {
     }
 
     // Calculer le progrès de validation
-    const requiredDocuments = ['IDENTITY_CARD', 'DRIVING_LICENSE', 'VEHICLE_REGISTRATION', 'INSURANCE'];
+    const requiredDocuments = ['IDENTITY', 'DRIVING_LICENSE', 'VEHICLE_REGISTRATION', 'INSURANCE'];
     const uploadedDocuments = deliverer.user.documents.length;
-    const approvedDocuments = deliverer.user.documents.filter(d => d.status === 'APPROVED').length;
+    const approvedDocuments = deliverer.user.documents.filter(d => d.validationStatus === 'APPROVED').length;
     
     let validationProgress = 0;
     validationProgress += Math.min(uploadedDocuments / requiredDocuments.length, 1) * 50; // 50% pour upload
@@ -70,7 +70,7 @@ export async function GET(request: NextRequest) {
         type: doc.type,
         name: getDocumentTypeName(doc.type),
         fileName: doc.filename,
-        status: doc.status,
+        status: doc.validationStatus,
         uploadedAt: doc.createdAt.toISOString(),
         rejectionReason: doc.rejectionReason,
         downloadUrl: `/api/documents/${doc.id}/download`
@@ -202,12 +202,11 @@ export async function POST(request: NextRequest) {
 
 function getDocumentTypeName(type: string): string {
   const documentTypes = {
-    'IDENTITY_CARD': 'Pièce d\'identité',
+    'IDENTITY': 'Pièce d\'identité',
     'DRIVING_LICENSE': 'Permis de conduire',
     'VEHICLE_REGISTRATION': 'Carte grise',
     'INSURANCE': 'Attestation d\'assurance',
-    'ADDRESS_PROOF': 'Justificatif de domicile',
-    'CERTIFICATION': 'Certification',
+    'CERTIFICATION': 'Certifications professionnelles',
     'CONTRACT': 'Contrat'
   };
   

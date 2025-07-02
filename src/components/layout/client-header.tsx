@@ -49,7 +49,7 @@ export function ClientHeader({
   user, 
   onLogout, 
   onMenuToggle,
-  notificationCount = 0 
+  notificationCount 
 }: ClientHeaderProps) {
   const t = useTranslations();
 

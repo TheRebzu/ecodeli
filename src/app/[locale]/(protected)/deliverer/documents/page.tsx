@@ -33,7 +33,7 @@ export default function DelivererDocumentsPage() {
         description="Gérez vos documents justificatifs et votre candidature de livreur"
       />
       
-      <Tabs defaultValue="candidacy" className="space-y-4">
+      <Tabs defaultValue="documents" className="space-y-4">
         <TabsList>
           <TabsTrigger value="candidacy">Candidature</TabsTrigger>
           <TabsTrigger value="documents">Gestion Documents</TabsTrigger>

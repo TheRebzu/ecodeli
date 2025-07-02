@@ -10,7 +10,7 @@ import { join } from 'path'
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth()
@@ -23,7 +23,7 @@ export async function DELETE(
       return NextResponse.json({ error: 'Accès non autorisé' }, { status: 403 })
     }
 
-    const { id } = params
+    const { id } = await params
 
     // Vérifier que le document existe et appartient au prestataire
     const document = await prisma.document.findFirst({

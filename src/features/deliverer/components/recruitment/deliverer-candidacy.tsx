@@ -96,21 +96,43 @@ export function DelivererCandidacy() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'APPROVED': return 'bg-green-100 text-green-800'
-      case 'REJECTED': return 'bg-red-100 text-red-800'
-      case 'PENDING': return 'bg-yellow-100 text-yellow-800'
-      case 'SUBMITTED': return 'bg-blue-100 text-blue-800'
-      default: return 'bg-gray-100 text-gray-800'
+      case 'APPROVED':
+      case 'approved':
+        return 'bg-green-100 text-green-800'
+      case 'REJECTED':
+      case 'rejected':
+        return 'bg-red-100 text-red-800'
+      case 'PENDING':
+      case 'pending':
+        return 'bg-yellow-100 text-yellow-800'
+      case 'EXPIRED':
+      case 'expired':
+        return 'bg-gray-100 text-gray-800'
+      case 'SUBMITTED':
+        return 'bg-blue-100 text-blue-800'
+      default:
+        return 'bg-gray-100 text-gray-800'
     }
   }
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'APPROVED': return <CheckCircle className="w-4 h-4" />
-      case 'REJECTED': return <XCircle className="w-4 h-4" />
-      case 'PENDING': return <Clock className="w-4 h-4" />
-      case 'SUBMITTED': return <Clock className="w-4 h-4" />
-      default: return <AlertCircle className="w-4 h-4" />
+      case 'APPROVED':
+      case 'approved':
+        return <CheckCircle className="w-4 h-4" />
+      case 'REJECTED':
+      case 'rejected':
+        return <XCircle className="w-4 h-4" />
+      case 'PENDING':
+      case 'pending':
+        return <Clock className="w-4 h-4" />
+      case 'EXPIRED':
+      case 'expired':
+        return <AlertCircle className="w-4 h-4" />
+      case 'SUBMITTED':
+        return <Clock className="w-4 h-4" />
+      default:
+        return <AlertCircle className="w-4 h-4" />
     }
   }
 
@@ -136,11 +158,22 @@ export function DelivererCandidacy() {
 
   const getStatusLabel = (status: string) => {
     switch (status) {
-      case 'APPROVED': return 'Approuvé'
-      case 'REJECTED': return 'Rejeté'
-      case 'PENDING': return 'En attente'
-      case 'SUBMITTED': return 'Soumis'
-      default: return 'Inconnu'
+      case 'APPROVED':
+      case 'approved':
+        return 'Approuvé'
+      case 'REJECTED':
+      case 'rejected':
+        return 'Rejeté'
+      case 'PENDING':
+      case 'pending':
+        return 'En attente'
+      case 'EXPIRED':
+      case 'expired':
+        return 'Expiré'
+      case 'SUBMITTED':
+        return 'Soumis'
+      default:
+        return 'Inconnu'
     }
   }
 

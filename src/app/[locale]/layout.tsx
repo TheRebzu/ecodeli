@@ -3,7 +3,6 @@ import type { Metadata } from "next"
 import { NextIntlClientProvider } from "next-intl"
 import { getMessages } from "next-intl/server"
 import { notFound } from "next/navigation"
-import { AuthProvider } from "@/lib/auth-provider"
 import { LayoutProvider } from "@/components/layout/providers/layout-provider"
 import "../globals.css"
 
@@ -48,19 +47,13 @@ export default async function LocaleLayout({
   const messages = await getMessages()
 
   return (
-    <html lang={locale} suppressHydrationWarning>
-      <body className="font-sans antialiased" suppressHydrationWarning>
-        <NextIntlClientProvider messages={messages}>
-          <LayoutProvider 
-            initialLocale={locale}
-            initialTheme="system"
-          >
-            <AuthProvider>
-              {children}
-            </AuthProvider>
-          </LayoutProvider>
-        </NextIntlClientProvider>
-      </body>
-    </html>
+    <NextIntlClientProvider messages={messages}>
+      <LayoutProvider 
+        initialLocale={locale}
+        initialTheme="system"
+      >
+        {children}
+      </LayoutProvider>
+    </NextIntlClientProvider>
   )
 }

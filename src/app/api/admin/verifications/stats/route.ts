@@ -23,9 +23,9 @@ export async function GET(request: NextRequest) {
   try {
     // Statistiques des vérifications par statut
     const stats = await prisma.document.groupBy({
-      by: ['status'],
+      by: ['validationStatus'],
       _count: {
-        status: true
+        validationStatus: true
       }
     })
 
@@ -42,16 +42,27 @@ export async function GET(request: NextRequest) {
       }
     })
 
+    const statusCounts = stats.reduce((acc, stat) => {
+      acc[stat.validationStatus] = stat._count.validationStatus
+      return acc
+    }, {} as Record<string, number>)
+
+    const roleCounts = roleStats.reduce((acc, stat) => {
+      acc[stat.role] = stat._count.role
+      return acc
+    }, {} as Record<string, number>)
+
     const formattedStats = {
-      total: stats.reduce((acc, stat) => acc + stat._count.status, 0),
-      byStatus: stats.reduce((acc, stat) => {
-        acc[stat.status] = stat._count.status
-        return acc
-      }, {} as Record<string, number>),
-      byRole: roleStats.reduce((acc, stat) => {
-        acc[stat.role] = stat._count.role
-        return acc
-      }, {} as Record<string, number>)
+      total: stats.reduce((acc, stat) => acc + stat._count.validationStatus, 0),
+      pending: (statusCounts.PENDING || 0) + (statusCounts.PENDING_DOCUMENTS || 0) + (statusCounts.PENDING_VALIDATION || 0),
+      approved: (statusCounts.APPROVED || 0) + (statusCounts.VALIDATED || 0),
+      rejected: statusCounts.REJECTED || 0,
+      incomplete: statusCounts.SUSPENDED || 0,
+      byRole: {
+        DELIVERER: roleCounts.DELIVERER || 0,
+        PROVIDER: roleCounts.PROVIDER || 0,
+        MERCHANT: roleCounts.MERCHANT || 0
+      }
     }
 
     return NextResponse.json({

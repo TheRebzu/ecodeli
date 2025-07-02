@@ -24,7 +24,7 @@ const resolveTicketSchema = z.object({
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth()
@@ -113,7 +113,7 @@ export async function GET(
  */
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth()
@@ -134,7 +134,7 @@ export async function PATCH(
       const validatedData = replySchema.parse(data)
       
       const message = await TicketService.replyToTicket(
-        params.id,
+        (await params).id,
         session.user.id,
         validatedData.content,
         validatedData.isInternal
@@ -151,7 +151,7 @@ export async function PATCH(
       const validatedData = resolveTicketSchema.parse(data)
       
       const ticket = await TicketService.resolveTicket(
-        params.id,
+        (await params).id,
         session.user.id,
         validatedData.resolution
       )
@@ -220,7 +220,7 @@ export async function PATCH(
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth()

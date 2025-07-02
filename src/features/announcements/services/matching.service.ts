@@ -1,6 +1,6 @@
 import { prisma } from '@/lib/db'
 import { AnnouncementType } from '../schemas/announcement.schema'
-import { notificationService } from '@/features/notifications/services/notification.service'
+import { NotificationService } from '@/features/notifications/services/notification.service'
 
 interface MatchingResult {
   routeId: string
@@ -356,11 +356,16 @@ class MatchingService {
         desiredDate: announcement.desiredDate.toISOString()
       }
 
-      await notificationService.sendPushNotification(
+      await NotificationService.notifyDeliveryOpportunity(
         deliverer.id,
-        title,
-        message,
-        data
+        announcement.id,
+        {
+          title: announcement.title,
+          pickupLocation: announcement.pickupAddress,
+          deliveryLocation: announcement.deliveryAddress,
+          price: announcement.finalPrice || announcement.basePrice,
+          desiredDate: announcement.pickupDate || announcement.deliveryDate || new Date()
+        }
       )
 
       // Marquer comme notifié
