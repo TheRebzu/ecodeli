@@ -3,7 +3,7 @@ import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/db'
 
 /**
- * GET - Récupérer les gains et rapports pour une période
+ * GET - Exporter les gains en CSV
  */
 export async function GET(request: NextRequest) {
   try {
@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
     
     const startDate = searchParams.get('startDate')
     const endDate = searchParams.get('endDate')
-    const status = searchParams.get('status')
+    const format = searchParams.get('format') || 'csv'
 
     if (!startDate || !endDate) {
       return NextResponse.json(
@@ -38,22 +38,15 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Construire les conditions de filtrage
-    const whereConditions: any = {
-      delivererId: deliverer.userId,
-      createdAt: {
-        gte: new Date(startDate),
-        lte: new Date(endDate)
-      }
-    }
-
-    if (status && status !== 'all') {
-      whereConditions.status = status.toUpperCase()
-    }
-
     // Récupérer les livraisons avec gains
     const deliveries = await prisma.delivery.findMany({
-      where: whereConditions,
+      where: {
+        delivererId: deliverer.userId,
+        createdAt: {
+          gte: new Date(startDate),
+          lte: new Date(endDate)
+        }
+      },
       include: {
         announcement: {
           select: {
@@ -97,66 +90,60 @@ export async function GET(request: NextRequest) {
         amount: amount,
         commission: commission,
         netAmount: netAmount,
-        status: delivery.status.toLowerCase(),
+        status: delivery.status,
         date: delivery.createdAt.toISOString(),
         paidAt: delivery.payment?.createdAt?.toISOString()
       }
     })
 
-    // Calculer les statistiques du rapport
-    const totalEarnings = earnings.reduce((sum, earning) => sum + earning.amount, 0)
-    const totalCommission = earnings.reduce((sum, earning) => sum + earning.commission, 0)
-    const netEarnings = earnings.reduce((sum, earning) => sum + earning.netAmount, 0)
-    const totalDeliveries = earnings.length
-    const averagePerDelivery = totalDeliveries > 0 ? netEarnings / totalDeliveries : 0
+    if (format === 'csv') {
+      // Générer CSV
+      const csvHeaders = [
+        'ID Livraison',
+        'Titre Annonce',
+        'Client',
+        'Montant Total',
+        'Commission',
+        'Gain Net',
+        'Statut',
+        'Date Livraison',
+        'Date Paiement'
+      ]
 
-    // Répartition par statut
-    const earningsByStatus = {
-      completed: earnings.filter(e => e.status === 'delivered').reduce((sum, e) => sum + e.netAmount, 0),
-      pending: earnings.filter(e => e.status === 'pending').reduce((sum, e) => sum + e.netAmount, 0),
-      processing: earnings.filter(e => e.status === 'in_transit').reduce((sum, e) => sum + e.netAmount, 0)
-    }
+      const csvRows = earnings.map(earning => [
+        earning.deliveryId,
+        `"${earning.announcementTitle}"`,
+        `"${earning.clientName}"`,
+        earning.amount.toFixed(2),
+        earning.commission.toFixed(2),
+        earning.netAmount.toFixed(2),
+        earning.status,
+        new Date(earning.date).toLocaleDateString('fr-FR'),
+        earning.paidAt ? new Date(earning.paidAt).toLocaleDateString('fr-FR') : ''
+      ])
 
-    // Répartition mensuelle
-    const earningsByMonth = earnings.reduce((acc, earning) => {
-      const month = new Date(earning.date).toLocaleDateString('fr-FR', { year: 'numeric', month: 'long' })
-      const existing = acc.find(item => item.month === month)
-      
-      if (existing) {
-        existing.earnings += earning.netAmount
-        existing.deliveries += 1
-      } else {
-        acc.push({
-          month,
-          earnings: earning.netAmount,
-          deliveries: 1
-        })
-      }
-      
-      return acc
-    }, [] as Array<{ month: string; earnings: number; deliveries: number }>)
+      const csvContent = [csvHeaders, ...csvRows]
+        .map(row => row.join(','))
+        .join('\n')
 
-    const report = {
-      totalEarnings,
-      totalCommission,
-      netEarnings,
-      totalDeliveries,
-      averagePerDelivery,
-      earningsByStatus,
-      earningsByMonth
+      return new NextResponse(csvContent, {
+        headers: {
+          'Content-Type': 'text/csv',
+          'Content-Disposition': `attachment; filename="gains-${startDate}-${endDate}.csv"`
+        }
+      })
     }
 
     return NextResponse.json({
       success: true,
-      earnings,
-      report
+      earnings
     })
 
   } catch (error) {
-    console.error('Error generating earnings report:', error)
+    console.error('Error exporting earnings:', error)
     return NextResponse.json(
-      { error: 'Erreur lors de la génération du rapport' },
+      { error: 'Erreur lors de l\'export' },
       { status: 500 }
     )
   }
-}
+} 

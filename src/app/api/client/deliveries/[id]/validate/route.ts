@@ -93,7 +93,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         clientRating: validatedData.rating,
         clientReview: validatedData.review,
         clientIssues: validatedData.issues ? JSON.stringify(validatedData.issues) : null,
-        completedAt: validatedData.validated ? new Date() : null,
+
         actualDeliveryDate: validatedData.validated ? new Date() : null
       }
     })
@@ -192,7 +192,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         status: updatedDelivery.status,
         clientValidated: updatedDelivery.clientValidated,
         clientValidatedAt: updatedDelivery.clientValidatedAt?.toISOString(),
-        completedAt: updatedDelivery.completedAt?.toISOString()
+        completedAt: updatedDelivery.actualDeliveryDate?.toISOString()
       }
     })
 

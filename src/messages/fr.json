@@ -1387,7 +1387,41 @@
     "timing": "Timing",
     "capacit_3": "Capacité",
     "prix_6": "Prix",
-    "fr76_1234_5678_9012": "FR76 1234 5678 9012 3456 7890 123"
+    "fr76_1234_5678_9012": "FR76 1234 5678 9012 3456 7890 123",
+    "profile": {
+      "title": "Mon Profil Livreur",
+      "description": "Gérez vos informations personnelles et professionnelles",
+      "personal_info": "Informations Personnelles",
+      "professional_info": "Informations Professionnelles",
+      "documents": "Documents",
+      "statistics": "Statistiques",
+      "routes": "Mes Routes",
+      "vehicle_info": "Informations Véhicule",
+      "contact_info": "Informations de Contact",
+      "validation_status": "Statut de Validation",
+      "edit_profile": "Modifier le Profil",
+      "save_changes": "Enregistrer les Modifications",
+      "upload_document": "Télécharger un Document",
+      "view_document": "Voir le Document",
+      "download_document": "Télécharger le Document",
+      "document_status": {
+        "pending": "En attente",
+        "approved": "Approuvé",
+        "rejected": "Rejeté"
+      },
+      "vehicle_types": {
+        "car": "Voiture",
+        "motorcycle": "Moto",
+        "bike": "Vélo",
+        "truck": "Camion"
+      },
+      "stats": {
+        "total_deliveries": "Total Livraisons",
+        "average_rating": "Note Moyenne",
+        "total_earnings": "Total Gains",
+        "response_time": "Temps de Réponse"
+      }
+    }
   },
   "merchant": {
     "espace_commerant": "Espace Commerçant",
@@ -1982,7 +2016,62 @@
       "pending": "En attente",
       "withdraw": "Retirer",
       "history": "Historique",
-      "no_transactions": "Aucune transaction"
+      "no_transactions": "Aucune transaction",
+      "page": {
+        "title": "Mes Gains",
+        "description": "Suivez vos gains et générez des rapports détaillés"
+      },
+      "stats": {
+        "current_balance": "Solde actuel",
+        "available_balance": "Solde disponible",
+        "total_earnings": "Gains totaux",
+        "all_time": "Tous temps",
+        "net_earnings": "Gains nets",
+        "after_commission": "Après commission",
+        "average_per_delivery": "Moyenne/Livraison",
+        "per_delivery": "Par livraison",
+        "commission": "Commission",
+        "platform_fees": "Frais de plateforme"
+      },
+      "filters": {
+        "title": "Filtres",
+        "start_date": "Date de début",
+        "end_date": "Date de fin",
+        "status": "Statut",
+        "all_statuses": "Tous les statuts",
+        "completed": "Terminé",
+        "pending": "En attente",
+        "processing": "En cours",
+        "export": "Exporter"
+      },
+      "tabs": {
+        "list": "Liste des Gains",
+        "analytics": "Analyses"
+      },
+      "earnings": {
+        "title": "Détail des Gains",
+        "client": "Client",
+        "commission": "Commission",
+        "no_earnings": "Aucun gain trouvé pour cette période",
+        "paid_on": "Payé le"
+      },
+      "analytics": {
+        "title": "Analyses des Gains",
+        "status_breakdown": "Répartition par Statut",
+        "completed": "Terminés",
+        "pending": "En attente",
+        "processing": "En cours",
+        "monthly_evolution": "Évolution Mensuelle",
+        "deliveries": "livraisons",
+        "no_data": "Aucune donnée d'analyse disponible"
+      },
+      "export": {
+        "success": "Export téléchargé avec succès",
+        "error": "Erreur lors de l'export"
+      },
+      "error": {
+        "fetch_failed": "Erreur lors du chargement des gains"
+      }
     },
     "routes": {
       "title": "Mes trajets",

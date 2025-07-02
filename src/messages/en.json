@@ -231,7 +231,62 @@
       "pending": "Pending",
       "withdraw": "Withdraw",
       "history": "History",
-      "no_transactions": "No transactions"
+      "no_transactions": "No transactions",
+      "page": {
+        "title": "My Earnings",
+        "description": "Track your earnings and generate detailed reports"
+      },
+      "stats": {
+        "current_balance": "Current balance",
+        "available_balance": "Available balance",
+        "total_earnings": "Total earnings",
+        "all_time": "All time",
+        "net_earnings": "Net earnings",
+        "after_commission": "After commission",
+        "average_per_delivery": "Average/Delivery",
+        "per_delivery": "Per delivery",
+        "commission": "Commission",
+        "platform_fees": "Platform fees"
+      },
+      "filters": {
+        "title": "Filters",
+        "start_date": "Start date",
+        "end_date": "End date",
+        "status": "Status",
+        "all_statuses": "All statuses",
+        "completed": "Completed",
+        "pending": "Pending",
+        "processing": "Processing",
+        "export": "Export"
+      },
+      "tabs": {
+        "list": "Earnings List",
+        "analytics": "Analytics"
+      },
+      "earnings": {
+        "title": "Earnings Details",
+        "client": "Client",
+        "commission": "Commission",
+        "no_earnings": "No earnings found for this period",
+        "paid_on": "Paid on"
+      },
+      "analytics": {
+        "title": "Earnings Analytics",
+        "status_breakdown": "Status Breakdown",
+        "completed": "Completed",
+        "pending": "Pending",
+        "processing": "Processing",
+        "monthly_evolution": "Monthly Evolution",
+        "deliveries": "deliveries",
+        "no_data": "No analytics data available"
+      },
+      "export": {
+        "success": "Export downloaded successfully",
+        "error": "Error during export"
+      },
+      "error": {
+        "fetch_failed": "Error loading earnings"
+      }
     },
     "routes": {
       "title": "My routes",
@@ -243,6 +298,40 @@
       "title": "My schedule",
       "availability": "Availability",
       "calendar": "Calendar"
+    },
+    "profile": {
+      "title": "My Deliverer Profile",
+      "description": "Manage your personal and professional information",
+      "personal_info": "Personal Information",
+      "professional_info": "Professional Information",
+      "documents": "Documents",
+      "statistics": "Statistics",
+      "routes": "My Routes",
+      "vehicle_info": "Vehicle Information",
+      "contact_info": "Contact Information",
+      "validation_status": "Validation Status",
+      "edit_profile": "Edit Profile",
+      "save_changes": "Save Changes",
+      "upload_document": "Upload Document",
+      "view_document": "View Document",
+      "download_document": "Download Document",
+      "document_status": {
+        "pending": "Pending",
+        "approved": "Approved",
+        "rejected": "Rejected"
+      },
+      "vehicle_types": {
+        "car": "Car",
+        "motorcycle": "Motorcycle",
+        "bike": "Bike",
+        "truck": "Truck"
+      },
+      "stats": {
+        "total_deliveries": "Total Deliveries",
+        "average_rating": "Average Rating",
+        "total_earnings": "Total Earnings",
+        "response_time": "Response Time"
+      }
     }
   }
 }

@@ -7,25 +7,24 @@ import { z } from 'zod'
 const createRouteSchema = z.object({
   name: z.string().min(1, 'Le nom de la route est requis'),
   description: z.string().optional(),
-  departureLocation: z.object({
-    address: z.string(),
-    latitude: z.number(),
-    longitude: z.number()
-  }),
-  arrivalLocation: z.object({
-    address: z.string(), 
-    latitude: z.number(),
-    longitude: z.number()
-  }),
-  departureTime: z.string().datetime(),
-  arrivalTime: z.string().datetime(),
+  startAddress: z.string().min(1, 'L\'adresse de départ est requise'),
+  startLatitude: z.number(),
+  startLongitude: z.number(),
+  endAddress: z.string().min(1, 'L\'adresse d\'arrivée est requise'),
+  endLatitude: z.number(),
+  endLongitude: z.number(),
+  startDate: z.string().datetime(),
+  endDate: z.string().datetime(),
   isRecurring: z.boolean().default(false),
   recurringPattern: z.string().optional(), // DAILY, WEEKLY, MONTHLY
-  recurringDays: z.array(z.number()).optional(), // jours de la semaine
-  maxCapacity: z.number().min(1).default(5),
+  maxPackages: z.number().min(1).default(5),
+  maxWeight: z.number().min(0).optional(),
+  maxVolume: z.number().min(0).optional(),
   vehicleType: z.string().default('CAR'),
-  pricePerKm: z.number().min(0).optional(),
-  isActive: z.boolean().default(true)
+  isActive: z.boolean().default(true),
+  autoAccept: z.boolean().default(false),
+  maxDetour: z.number().min(0).default(5.0),
+  acceptedTypes: z.array(z.string()).default([])
 })
 
 // Schema pour filtres
@@ -34,7 +33,7 @@ const routesFiltersSchema = z.object({
   limit: z.coerce.number().min(1).max(50).default(20),
   isActive: z.coerce.boolean().optional(),
   isRecurring: z.coerce.boolean().optional(),
-  sortBy: z.enum(['createdAt', 'departureTime', 'name']).default('departureTime'),
+  sortBy: z.enum(['createdAt', 'startDate', 'title']).default('startDate'),
   sortOrder: z.enum(['asc', 'desc']).default('asc')
 })
 
@@ -45,15 +44,6 @@ export async function GET(request: NextRequest) {
     const user = await getUserFromSession(request)
     if (!user || user.role !== 'DELIVERER') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
-    // Récupérer le profil livreur
-    const deliverer = await db.deliverer.findUnique({
-      where: { userId: user.id }
-    })
-
-    if (!deliverer) {
-      return NextResponse.json({ error: 'Profil livreur non trouvé' }, { status: 404 })
     }
 
     const { searchParams } = new URL(request.url)
@@ -68,17 +58,17 @@ export async function GET(request: NextRequest) {
 
     // Construire la clause WHERE
     const where: any = {
-      delivererId: deliverer.id
+      delivererId: user.id
     }
 
     if (params.isActive !== undefined) where.isActive = params.isActive
     if (params.isRecurring !== undefined) where.isRecurring = params.isRecurring
 
     // Récupérer les routes
-    const routes = await db.route.findMany({
+    const routes = await db.delivererRoute.findMany({
       where,
       include: {
-        announcements: {
+        matches: {
           include: {
             announcement: {
               select: {
@@ -95,13 +85,13 @@ export async function GET(request: NextRequest) {
         },
         _count: {
           select: {
-            announcements: true
+            matches: true
           }
         }
       },
       orderBy: params.sortBy === 'createdAt' ? { createdAt: params.sortOrder } :
-               params.sortBy === 'departureTime' ? { departureTime: params.sortOrder } :
-               { name: params.sortOrder },
+               params.sortBy === 'startDate' ? { startDate: params.sortOrder } :
+               { title: params.sortOrder },
       skip: (params.page - 1) * params.limit,
       take: params.limit
     })
@@ -109,30 +99,36 @@ export async function GET(request: NextRequest) {
     // Formater les données
     const formattedRoutes = routes.map(route => ({
       id: route.id,
-      name: route.name,
+      name: route.title || 'Route sans titre',
       description: route.description,
-      departureLocation: route.departureLocation,
-      arrivalLocation: route.arrivalLocation,
-      departureTime: route.departureTime.toISOString(),
-      arrivalTime: route.arrivalTime.toISOString(),
+      departureLocation: {
+        address: route.startAddress,
+        latitude: route.startLatitude,
+        longitude: route.startLongitude
+      },
+      arrivalLocation: {
+        address: route.endAddress,
+        latitude: route.endLatitude,
+        longitude: route.endLongitude
+      },
+      departureTime: route.startDate.toISOString(),
+      arrivalTime: route.endDate.toISOString(),
       isRecurring: route.isRecurring,
       recurringPattern: route.recurringPattern,
-      recurringDays: route.recurringDays,
-      maxCapacity: route.maxCapacity,
+      maxCapacity: route.maxPackages,
       vehicleType: route.vehicleType,
-      pricePerKm: route.pricePerKm ? Number(route.pricePerKm) : null,
       isActive: route.isActive,
       createdAt: route.createdAt.toISOString(),
       
       // Statistiques
-      currentLoad: route.announcements.length,
-      availableSpots: route.maxCapacity - route.announcements.length,
-      totalEarnings: route.announcements.reduce((sum, match) => 
+      currentLoad: route.matches.length,
+      availableSpots: route.maxPackages - route.matches.length,
+      totalEarnings: route.matches.reduce((sum, match) => 
         sum + Number(match.announcement.basePrice || 0), 0
       ),
       
       // Annonces associées
-      announcements: route.announcements.map(match => ({
+      announcements: route.matches.map(match => ({
         id: match.announcement.id,
         title: match.announcement.title,
         type: match.announcement.type,
@@ -140,19 +136,19 @@ export async function GET(request: NextRequest) {
         pickupAddress: match.announcement.pickupAddress,
         deliveryAddress: match.announcement.deliveryAddress,
         status: match.announcement.status,
-        matchScore: match.matchScore
+        matchScore: match.globalScore
       }))
     }))
 
-    const total = await db.route.count({ where })
+    const total = await db.delivererRoute.count({ where })
 
     // Statistiques
     const stats = {
       total,
-      active: await db.route.count({ where: { ...where, isActive: true } }),
-      recurring: await db.route.count({ where: { ...where, isRecurring: true } }),
-      totalCapacity: routes.reduce((sum, route) => sum + route.maxCapacity, 0),
-      totalMatches: routes.reduce((sum, route) => sum + route.announcements.length, 0)
+      active: await db.delivererRoute.count({ where: { ...where, isActive: true } }),
+      recurring: await db.delivererRoute.count({ where: { ...where, isRecurring: true } }),
+      totalCapacity: routes.reduce((sum, route) => sum + route.maxPackages, 0),
+      totalMatches: routes.reduce((sum, route) => sum + route.matches.length, 0)
     }
 
     console.log(`✅ Trouvé ${formattedRoutes.length} routes sur ${total} total`)
@@ -188,35 +184,33 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Récupérer le profil livreur
-    const deliverer = await db.deliverer.findUnique({
-      where: { userId: user.id }
-    })
-
-    if (!deliverer) {
-      return NextResponse.json({ error: 'Profil livreur non trouvé' }, { status: 404 })
-    }
-
     const body = await request.json()
     const validatedData = createRouteSchema.parse(body)
 
     // Créer la route
-    const newRoute = await db.route.create({
+    const newRoute = await db.delivererRoute.create({
       data: {
-        delivererId: deliverer.id,
-        name: validatedData.name,
+        delivererId: user.id,
+        title: validatedData.name,
         description: validatedData.description,
-        departureLocation: validatedData.departureLocation as any,
-        arrivalLocation: validatedData.arrivalLocation as any,
-        departureTime: new Date(validatedData.departureTime),
-        arrivalTime: new Date(validatedData.arrivalTime),
+        startAddress: validatedData.startAddress,
+        startLatitude: validatedData.startLatitude,
+        startLongitude: validatedData.startLongitude,
+        endAddress: validatedData.endAddress,
+        endLatitude: validatedData.endLatitude,
+        endLongitude: validatedData.endLongitude,
+        startDate: new Date(validatedData.startDate),
+        endDate: new Date(validatedData.endDate),
         isRecurring: validatedData.isRecurring,
         recurringPattern: validatedData.recurringPattern,
-        recurringDays: validatedData.recurringDays,
-        maxCapacity: validatedData.maxCapacity,
+        maxPackages: validatedData.maxPackages,
+        maxWeight: validatedData.maxWeight,
+        maxVolume: validatedData.maxVolume,
         vehicleType: validatedData.vehicleType,
-        pricePerKm: validatedData.pricePerKm,
-        isActive: validatedData.isActive
+        isActive: validatedData.isActive,
+        autoAccept: validatedData.autoAccept,
+        maxDetour: validatedData.maxDetour,
+        acceptedTypes: validatedData.acceptedTypes as any
       }
     })
 
@@ -226,18 +220,24 @@ export async function POST(request: NextRequest) {
       success: true,
       route: {
         id: newRoute.id,
-        name: newRoute.name,
+        name: newRoute.title,
         description: newRoute.description,
-        departureLocation: newRoute.departureLocation,
-        arrivalLocation: newRoute.arrivalLocation,
-        departureTime: newRoute.departureTime.toISOString(),
-        arrivalTime: newRoute.arrivalTime.toISOString(),
+        departureLocation: {
+          address: newRoute.startAddress,
+          latitude: newRoute.startLatitude,
+          longitude: newRoute.startLongitude
+        },
+        arrivalLocation: {
+          address: newRoute.endAddress,
+          latitude: newRoute.endLatitude,
+          longitude: newRoute.endLongitude
+        },
+        departureTime: newRoute.startDate.toISOString(),
+        arrivalTime: newRoute.endDate.toISOString(),
         isRecurring: newRoute.isRecurring,
         recurringPattern: newRoute.recurringPattern,
-        recurringDays: newRoute.recurringDays,
-        maxCapacity: newRoute.maxCapacity,
+        maxCapacity: newRoute.maxPackages,
         vehicleType: newRoute.vehicleType,
-        pricePerKm: newRoute.pricePerKm ? Number(newRoute.pricePerKm) : null,
         isActive: newRoute.isActive,
         createdAt: newRoute.createdAt.toISOString()
       },

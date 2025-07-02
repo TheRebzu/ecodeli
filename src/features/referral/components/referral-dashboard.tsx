@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
 import { Copy, Share2, Gift, Users, TrendingUp, Link, Trophy, Star, Mail, MessageSquare } from 'lucide-react'
-import { toast } from '@/hooks/use-toast'
+import { toast } from '@/components/ui/use-toast'
 
 interface ReferralStats {
   totalReferrals: number

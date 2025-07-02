@@ -2,8 +2,10 @@
 
 import { useAuth } from "@/hooks/use-auth";
 import DocumentManager from "@/features/deliverer/components/documents/document-manager";
+import { DelivererCandidacy } from "@/features/deliverer/components/recruitment/deliverer-candidacy";
 import { PageHeader } from "@/components/layout/page-header";
 import { useTranslations } from "next-intl";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function DelivererDocumentsPage() {
   const { user } = useAuth();
@@ -27,11 +29,24 @@ export default function DelivererDocumentsPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title={t("page.title")}
-        description={t("page.description")}
+        title="Documents et Candidature"
+        description="Gérez vos documents justificatifs et votre candidature de livreur"
       />
       
-      <DocumentManager delivererId={user.id} />
+      <Tabs defaultValue="candidacy" className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="candidacy">Candidature</TabsTrigger>
+          <TabsTrigger value="documents">Gestion Documents</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="candidacy" className="space-y-4">
+          <DelivererCandidacy />
+        </TabsContent>
+
+        <TabsContent value="documents" className="space-y-4">
+          <DocumentManager delivererId={user.id} />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

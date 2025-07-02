@@ -146,10 +146,10 @@ export async function GET(
         })
       }
 
-      if (order.delivery.completedAt) {
+      if (order.delivery.actualDeliveryDate) {
         timeline.push({
           status: 'DELIVERED',
-          timestamp: order.delivery.completedAt,
+          timestamp: order.delivery.actualDeliveryDate,
           description: 'Package delivered'
         })
       }
@@ -226,7 +226,7 @@ export async function GET(
         scheduledAt: order.delivery.scheduledAt,
         acceptedAt: order.delivery.acceptedAt,
         pickedUpAt: order.delivery.pickedUpAt,
-        completedAt: order.delivery.completedAt,
+        completedAt: order.delivery.actualDeliveryDate,
         tracking: order.delivery.tracking
       } : null,
       

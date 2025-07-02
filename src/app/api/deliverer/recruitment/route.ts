@@ -17,64 +17,69 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    // Récupérer la candidature de recrutement
-    const application = await db.delivererRecruitment.findFirst({
+    // Récupérer le profil livreur
+    const deliverer = await db.deliverer.findFirst({
       where: { userId },
       include: {
-        documents: {
-          orderBy: { uploadedAt: 'desc' }
+        user: {
+          include: {
+            profile: true,
+            documents: {
+              orderBy: { createdAt: 'desc' }
+            }
+          }
         }
       }
     });
 
-    if (!application) {
+    if (!deliverer) {
       return NextResponse.json({ application: null });
     }
 
     // Calculer le progrès de validation
     const requiredDocuments = ['IDENTITY_CARD', 'DRIVING_LICENSE', 'VEHICLE_REGISTRATION', 'INSURANCE'];
-    const uploadedDocuments = application.documents.length;
-    const approvedDocuments = application.documents.filter(d => d.status === 'APPROVED').length;
+    const uploadedDocuments = deliverer.user.documents.length;
+    const approvedDocuments = deliverer.user.documents.filter(d => d.status === 'APPROVED').length;
     
     let validationProgress = 0;
     validationProgress += Math.min(uploadedDocuments / requiredDocuments.length, 1) * 50; // 50% pour upload
     validationProgress += (approvedDocuments / requiredDocuments.length) * 50; // 50% pour approbation
 
     const transformedApplication = {
-      id: application.id,
-      status: application.status,
+      id: deliverer.id,
+      status: deliverer.validationStatus,
       personalInfo: {
-        firstName: application.firstName,
-        lastName: application.lastName,
-        email: application.email,
-        phone: application.phone,
-        address: application.address,
-        dateOfBirth: application.dateOfBirth?.toISOString().split('T')[0],
-        nationality: application.nationality,
+        firstName: deliverer.user.profile?.firstName || '',
+        lastName: deliverer.user.profile?.lastName || '',
+        email: deliverer.user.email,
+        phone: deliverer.user.profile?.phone || '',
+        address: deliverer.user.profile?.address || '',
+        dateOfBirth: deliverer.user.profile?.dateOfBirth?.toISOString().split('T')[0] || '',
+        nationality: deliverer.user.profile?.country || 'FR',
       },
       professionalInfo: {
-        vehicleType: application.vehicleType,
-        vehicleModel: application.vehicleModel,
-        licenseNumber: application.licenseNumber,
-        experience: application.experience,
-        availability: application.availability || [],
-        preferredZones: application.preferredZones || [],
+        vehicleType: deliverer.vehicleType || '',
+        vehicleModel: deliverer.licensePlate || '',
+        licenseNumber: deliverer.licensePlate || '',
+        experience: deliverer.totalDeliveries || 0,
+        availability: deliverer.availability || [],
+        preferredZones: deliverer.preferredZones || [],
       },
-      documents: application.documents.map(doc => ({
+      documents: deliverer.user.documents.map(doc => ({
         id: doc.id,
         type: doc.type,
-        name: doc.name,
-        fileName: doc.fileName,
+        name: getDocumentTypeName(doc.type),
+        fileName: doc.filename,
         status: doc.status,
-        uploadedAt: doc.uploadedAt.toISOString(),
+        uploadedAt: doc.createdAt.toISOString(),
         rejectionReason: doc.rejectionReason,
-        downloadUrl: `/api/deliverer/recruitment/documents/${doc.id}/download`
+        downloadUrl: `/api/documents/${doc.id}/download`
       })),
-      createdAt: application.createdAt.toISOString(),
-      updatedAt: application.updatedAt.toISOString(),
-      submittedAt: application.submittedAt?.toISOString(),
-      reviewedAt: application.reviewedAt?.toISOString(),
-      rejectionReason: application.rejectionReason,
+      createdAt: deliverer.createdAt.toISOString(),
+      updatedAt: deliverer.updatedAt.toISOString(),
+      submittedAt: deliverer.validationStatus === 'APPROVED' ? deliverer.updatedAt.toISOString() : null,
+      reviewedAt: deliverer.validationStatus === 'APPROVED' ? deliverer.updatedAt.toISOString() : null,
+      rejectionReason: deliverer.validationStatus === 'REJECTED' ? 'Documents incomplets ou invalides' : null,
       validationProgress: Math.round(validationProgress)
     };
 
@@ -103,46 +108,60 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    // Vérifier si une candidature existe déjà
-    let application = await db.delivererRecruitment.findFirst({
+    // Vérifier si un profil livreur existe déjà
+    let deliverer = await db.deliverer.findFirst({
       where: { userId }
     });
 
-    const applicationData = {
+    // Mettre à jour ou créer le profil utilisateur
+    await db.profile.upsert({
+      where: { userId },
+      update: {
+        firstName: personalInfo.firstName,
+        lastName: personalInfo.lastName,
+        phone: personalInfo.phone,
+        address: personalInfo.address,
+        dateOfBirth: personalInfo.dateOfBirth ? new Date(personalInfo.dateOfBirth) : null,
+        country: personalInfo.nationality,
+      },
+      create: {
+        userId,
+        firstName: personalInfo.firstName,
+        lastName: personalInfo.lastName,
+        phone: personalInfo.phone,
+        address: personalInfo.address,
+        dateOfBirth: personalInfo.dateOfBirth ? new Date(personalInfo.dateOfBirth) : null,
+        country: personalInfo.nationality,
+      }
+    });
+
+    const delivererData = {
       userId,
-      firstName: personalInfo.firstName,
-      lastName: personalInfo.lastName,
-      email: personalInfo.email,
-      phone: personalInfo.phone,
-      address: personalInfo.address,
-      dateOfBirth: personalInfo.dateOfBirth ? new Date(personalInfo.dateOfBirth) : null,
-      nationality: personalInfo.nationality,
       vehicleType: professionalInfo.vehicleType,
-      vehicleModel: professionalInfo.vehicleModel,
-      licenseNumber: professionalInfo.licenseNumber,
-      experience: professionalInfo.experience,
-      availability: professionalInfo.availability,
-      preferredZones: professionalInfo.preferredZones,
-      status: submit ? 'SUBMITTED' : 'DRAFT',
-      submittedAt: submit ? new Date() : null,
+      licensePlate: professionalInfo.licenseNumber,
+      maxWeight: professionalInfo.maxWeight || 50,
+      maxVolume: professionalInfo.maxVolume || 100,
+      validationStatus: submit ? 'PENDING' : 'PENDING',
+      availability: professionalInfo.availability || [],
+      preferredZones: professionalInfo.preferredZones || [],
     };
 
-    if (application) {
+    if (deliverer) {
       // Ne permettre la modification que si le statut le permet
-      if (application.status === 'APPROVED') {
+      if (deliverer.validationStatus === 'APPROVED') {
         return NextResponse.json(
           { error: 'Cannot modify approved application' },
           { status: 400 }
         );
       }
 
-      application = await db.delivererRecruitment.update({
-        where: { id: application.id },
-        data: applicationData
+      deliverer = await db.deliverer.update({
+        where: { id: deliverer.id },
+        data: delivererData
       });
     } else {
-      application = await db.delivererRecruitment.create({
-        data: applicationData
+      deliverer = await db.deliverer.create({
+        data: delivererData
       });
     }
 
@@ -159,7 +178,7 @@ export async function POST(request: NextRequest) {
         title: 'Nouvelle candidature livreur',
         message: `${personalInfo.firstName} ${personalInfo.lastName} a soumis une candidature de livreur`,
         priority: 'MEDIUM' as const,
-        metadata: { applicationId: application.id }
+        metadata: { delivererId: deliverer.id }
       }));
 
       await db.notification.createMany({
@@ -169,7 +188,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ 
       success: true, 
-      applicationId: application.id,
+      applicationId: deliverer.id,
       message: submit ? 'Application submitted successfully' : 'Application saved successfully'
     });
   } catch (error) {
@@ -179,4 +198,18 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
+}
+
+function getDocumentTypeName(type: string): string {
+  const documentTypes = {
+    'IDENTITY_CARD': 'Pièce d\'identité',
+    'DRIVING_LICENSE': 'Permis de conduire',
+    'VEHICLE_REGISTRATION': 'Carte grise',
+    'INSURANCE': 'Attestation d\'assurance',
+    'ADDRESS_PROOF': 'Justificatif de domicile',
+    'CERTIFICATION': 'Certification',
+    'CONTRACT': 'Contrat'
+  };
+  
+  return documentTypes[type as keyof typeof documentTypes] || type;
 }

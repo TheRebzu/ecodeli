@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { requireRole } from '@/lib/auth/utils';
+import { getUserFromSession } from '@/lib/auth/utils';
 import { db } from '@/lib/db';
 import { z } from 'zod';
 
@@ -15,120 +15,81 @@ const opportunitiesFiltersSchema = z.object({
   sortOrder: z.string().nullable().transform(val => val || 'desc').pipe(z.enum(['asc', 'desc']))
 });
 
-export async function GET(request: NextRequest) {
-  try {
-    const user = await requireRole(request, ['DELIVERER']);
-    const { searchParams } = new URL(request.url);
-    const params = opportunitiesFiltersSchema.parse({
-      page: searchParams.get('page'),
-      limit: searchParams.get('limit'),
-      maxDistance: searchParams.get('maxDistance'),
-      minPrice: searchParams.get('minPrice'),
-      maxPrice: searchParams.get('maxPrice'),
-      type: searchParams.get('type'),
-      urgentOnly: searchParams.get('urgentOnly'),
-      sortBy: searchParams.get('sortBy'),
-      sortOrder: searchParams.get('sortOrder')
-    });
+const DEFAULT_PAGE = 1;
+const DEFAULT_LIMIT = 20;
 
-    const deliverer = await db.deliverer.findUnique({
-      where: { userId: user.id },
+export async function GET(request: NextRequest) {
+  const user = await getUserFromSession(request);
+  if (!user || user.role !== 'DELIVERER') {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  try {
+    const { searchParams } = new URL(request.url);
+    const page = parseInt(searchParams.get('page') || `${DEFAULT_PAGE}`);
+    const limit = parseInt(searchParams.get('limit') || `${DEFAULT_LIMIT}`);
+    const type = searchParams.get('type');
+    const minPrice = searchParams.get('minPrice') ? parseFloat(searchParams.get('minPrice')!) : undefined;
+    const maxPrice = searchParams.get('maxPrice') ? parseFloat(searchParams.get('maxPrice')!) : undefined;
+    const urgentOnly = searchParams.get('urgentOnly') === 'true';
+    const sortBy = searchParams.get('sortBy') || 'createdAt';
+    const sortOrder = searchParams.get('sortOrder') === 'asc' ? 'asc' : 'desc';
+
+    // Préparer le filtre principal
+    const where: any = {
+      status: 'ACTIVE',
+      delivery: null
+    };
+    if (type) where.type = type;
+    if (urgentOnly) where.isUrgent = true;
+    if (minPrice || maxPrice) {
+      where.basePrice = {};
+      if (minPrice) where.basePrice.gte = minPrice;
+      if (maxPrice) where.basePrice.lte = maxPrice;
+    }
+
+    // Compter le total pour la pagination
+    const total = await db.announcement.count({ where });
+
+    // Récupérer les opportunités paginées
+    const opportunities = await db.announcement.findMany({
+      where,
+      orderBy: { [sortBy]: sortOrder },
+      skip: (page - 1) * limit,
+      take: limit,
       include: {
-        user: { select: { id: true, profile: { select: { city: true, address: true } } } }
+        author: { select: { id: true, name: true, profile: true } }
       }
     });
-    if (!deliverer) {
-      return NextResponse.json({ error: 'Profil livreur non trouvé' }, { status: 404 });
-    }
 
-    const where: any = { status: 'ACTIVE' };
-    if (params.type) where.type = params.type;
-    if (params.urgentOnly) where.isUrgent = true;
-    if (params.minPrice || params.maxPrice) {
-      where.basePrice = {};
-      if (params.minPrice) where.basePrice.gte = params.minPrice;
-      if (params.maxPrice) where.basePrice.lte = params.maxPrice;
-    }
+    // (Optionnel) Matching géographique :
+    // Si vous avez les coordonnées du livreur et des annonces, calculez la distance ici
+    // const deliverer = await db.deliverer.findUnique({ where: { userId: user.id } })
+    // const delivererCoords = deliverer?.coordinates
+    // ...
 
-    const announcements = await db.announcement.findMany({
-      where,
-      include: {
-        author: { include: { profile: { select: { firstName: true, lastName: true, avatar: true } } } },
-        PackageAnnouncement: { select: { weight: true, length: true, width: true, height: true, fragile: true, insuredValue: true } },
-        delivery: { select: { id: true, delivererId: true, status: true } },
-        matches: { where: { delivererId: user.id }, select: { id: true, status: true } },
-        _count: { select: { matches: true, reviews: true, attachments: true, tracking: true } }
-      },
-      orderBy: params.sortBy === 'createdAt' ? { createdAt: params.sortOrder } :
-               params.sortBy === 'price' ? { basePrice: params.sortOrder } :
-               { createdAt: 'desc' },
-      skip: (params.page - 1) * params.limit,
-      take: params.limit
-    });
-
-    // Filtrage JS pour éviter les erreurs Prisma sur les relations optionnelles
-    const filteredAnnouncements = announcements.filter(a => {
-      if (a.delivery && (a.delivery.delivererId === user.id || ['ACCEPTED', 'IN_PROGRESS'].includes(a.delivery.status))) return false;
-      if (a.matches && a.matches.length > 0) return false;
-      return true;
-    });
-
-    // Calcul de la distance simulée (à remplacer par géoloc réelle)
-    const delivererLat = 48.8566;
-    const delivererLng = 2.3522;
-    const opportunitiesWithDistance = filteredAnnouncements.map(announcement => {
-      const distance = calculateDistance(
-        delivererLat,
-        delivererLng,
-        announcement.pickupLatitude || 48.8566,
-        announcement.pickupLongitude || 2.3522
-      );
-      return {
-        id: announcement.id,
-        title: announcement.title,
-        description: announcement.description,
-        type: announcement.type,
-        status: announcement.status,
-        basePrice: Number(announcement.basePrice),
-        finalPrice: Number(announcement.finalPrice || announcement.basePrice),
-        currency: announcement.currency,
-        isUrgent: announcement.isUrgent,
-        pickupAddress: announcement.pickupAddress,
-        deliveryAddress: announcement.deliveryAddress,
-        createdAt: announcement.createdAt.toISOString(),
-        distance: Math.round(distance * 10) / 10,
-        estimatedEarnings: Number(announcement.basePrice),
-        client: {
-          id: announcement.author.id,
-          name: announcement.author.profile ? `${announcement.author.profile.firstName || ''} ${announcement.author.profile.lastName || ''}`.trim() : announcement.author.email,
-          avatar: announcement.author.profile?.avatar
-        }
-      };
-    });
-
-    const finalOpportunities = opportunitiesWithDistance.filter(opp => opp.distance <= params.maxDistance);
-    if (params.sortBy === 'distance') {
-      finalOpportunities.sort((a, b) => params.sortOrder === 'asc' ? a.distance - b.distance : b.distance - a.distance);
-    }
+    // Statistiques pour le front
+    const urgentCount = await db.announcement.count({ where: { ...where, isUrgent: true } });
+    const averagePrice = total > 0 ? (await db.announcement.aggregate({ where, _avg: { basePrice: true } }))._avg.basePrice || 0 : 0;
 
     return NextResponse.json({
-      opportunities: finalOpportunities,
+      opportunities,
       pagination: {
-        page: params.page,
-        limit: params.limit,
-        total: finalOpportunities.length,
-        totalPages: Math.ceil(finalOpportunities.length / params.limit),
-        hasNext: params.page < Math.ceil(finalOpportunities.length / params.limit),
-        hasPrev: params.page > 1
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+        hasNext: page < Math.ceil(total / limit),
+        hasPrev: page > 1
       },
       stats: {
-        totalOpportunities: finalOpportunities.length,
-        urgentCount: finalOpportunities.filter(o => o.isUrgent).length,
-        averagePrice: finalOpportunities.length > 0 ? finalOpportunities.reduce((sum, o) => sum + o.basePrice, 0) / finalOpportunities.length : 0
+        totalOpportunities: total,
+        urgentCount,
+        averagePrice
       }
     });
   } catch (error) {
-    console.error('❌ Erreur récupération opportunités:', error);
+    console.error('Error fetching opportunities:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

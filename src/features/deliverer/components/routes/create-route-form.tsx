@@ -108,29 +108,26 @@ export function CreateRouteForm({ onSuccess }: CreateRouteFormProps) {
     try {
       setLoading(true)
 
-      // Construire l'objet de données avec les bonnes structures
+      // Construire l'objet de données avec les bonnes structures pour l'API
       const routeData = {
         name: data.name,
         description: data.description,
-        departureLocation: {
-          address: data.departureAddress,
-          latitude: data.departureLatitude,
-          longitude: data.departureLongitude
-        },
-        arrivalLocation: {
-          address: data.arrivalAddress,
-          latitude: data.arrivalLatitude,
-          longitude: data.arrivalLongitude
-        },
-        departureTime: new Date(`1970-01-01T${data.departureTime}:00`).toISOString(),
-        arrivalTime: new Date(`1970-01-01T${data.arrivalTime}:00`).toISOString(),
+        startAddress: data.departureAddress,
+        startLatitude: data.departureLatitude,
+        startLongitude: data.departureLongitude,
+        endAddress: data.arrivalAddress,
+        endLatitude: data.arrivalLatitude,
+        endLongitude: data.arrivalLongitude,
+        startDate: new Date(`1970-01-01T${data.departureTime}:00`).toISOString(),
+        endDate: new Date(`1970-01-01T${data.arrivalTime}:00`).toISOString(),
         isRecurring: data.isRecurring,
         recurringPattern: data.isRecurring ? data.recurringPattern : undefined,
-        recurringDays: data.isRecurring ? data.recurringDays : undefined,
-        maxCapacity: data.maxCapacity,
+        maxPackages: data.maxCapacity,
         vehicleType: data.vehicleType,
-        pricePerKm: data.pricePerKm,
-        isActive: data.isActive
+        isActive: data.isActive,
+        autoAccept: false,
+        maxDetour: 5.0,
+        acceptedTypes: []
       }
 
       const response = await fetch('/api/deliverer/routes', {

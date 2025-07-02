@@ -10,7 +10,6 @@ import { getToken } from 'next-auth/jwt'
 
 /**
  * Récupérer l'utilisateur depuis la session - API Routes NextAuth
- * @deprecated Utiliser getCurrentUserAPI à la place
  */
 export async function getUserFromSession(request: NextRequest) {
   return getCurrentUserAPI(request)
