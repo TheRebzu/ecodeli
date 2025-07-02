@@ -18,23 +18,16 @@ export async function POST(
       return NextResponse.json({ error: 'Invalid validation code' }, { status: 400 })
     }
 
+    const { id } = await params
+
     // Récupérer la livraison avec l'annonce
     const delivery = await db.delivery.findFirst({
       where: {
-        const { id } = await params;
-
         id: id,
-        announcement: {
-          clientId: session.user.id
-        }
+        clientId: session.user.id
       },
       include: {
-        announcement: true,
-        deliverer: {
-          include: {
-            user: true
-          }
-        }
+        announcement: true
       }
     })
 
@@ -56,11 +49,10 @@ export async function POST(
     await db.$transaction(async (tx) => {
       // Mettre à jour la livraison
       await tx.delivery.update({
-        where: { const { id } = await params;
- id: id },
+        where: { id: id },
         data: {
           status: 'DELIVERED',
-          actualDelivery: new Date()
+          actualDeliveryDate: new Date()
         }
       })
 
@@ -75,9 +67,7 @@ export async function POST(
       // Créer un paiement pour le livreur (si pas déjà fait)
       const existingPayment = await tx.payment.findFirst({
         where: {
-          deliveryId: delivery.id,
-          recipientId: delivery.delivererId,
-          type: 'DELIVERY_PAYMENT'
+          deliveryId: delivery.id
         }
       })
 
@@ -85,13 +75,11 @@ export async function POST(
         await tx.payment.create({
           data: {
             deliveryId: delivery.id,
-            payerId: session.user.id,
-            recipientId: delivery.delivererId!,
-            amount: delivery.announcement.price,
+            userId: delivery.delivererId!,
+            amount: delivery.price,
             currency: 'EUR',
-            type: 'DELIVERY_PAYMENT',
             status: 'PENDING',
-            description: `Paiement pour livraison: ${delivery.announcement.title}`
+            paymentMethod: 'wallet'
           }
         })
       }
@@ -102,8 +90,8 @@ export async function POST(
           userId: delivery.delivererId!,
           type: 'DELIVERY_CONFIRMED',
           title: 'Livraison confirmée',
-          message: `Le client a confirmé la réception de "${delivery.announcement.title}". Paiement en cours.`,
-          status: 'UNREAD'
+          message: `Le client a confirmé la réception de la livraison. Paiement en cours.`,
+          isRead: false
         }
       })
     })

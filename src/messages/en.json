@@ -184,13 +184,40 @@
     "deliveries": {
       "title": "My deliveries",
       "description": "Manage your ongoing deliveries",
+      "active": {
+        "title": "Active deliveries",
+        "count": "delivery(ies)",
+        "empty": {
+          "title": "No active deliveries",
+          "description": "You currently have no ongoing deliveries. Check out new opportunities.",
+          "action": "View opportunities"
+        }
+      },
       "status": {
         "pending": "Pending",
         "accepted": "Accepted",
         "picked_up": "Picked up",
-        "in_transit": "In transit",
+        "inTransit": "In transit",
         "delivered": "Delivered",
         "cancelled": "Cancelled"
+      },
+      "pickup": {
+        "title": "Pickup"
+      },
+      "delivery": {
+        "title": "Delivery"
+      },
+      "client": {
+        "info": "Client information"
+      },
+      "validationCode": {
+        "title": "Validation code",
+        "description": "Code to request from client upon delivery"
+      },
+      "actions": {
+        "viewDetails": "View details",
+        "startDelivery": "Start delivery",
+        "updateStatus": "Update status"
       },
       "no_deliveries": "No ongoing deliveries",
       "validate": "Validate delivery",

@@ -539,12 +539,7 @@
       "bookService": "Réserver un service",
       "trackDelivery": "Suivre une livraison"
     },
-    "deliverer": {
-      "title": "Tableau de bord Livreur",
-      "availableAnnouncements": "Annonces disponibles",
-      "activeDeliveries": "Livraisons en cours",
-      "earnings": "Gains"
-    },
+
     "merchant": {
       "title": "Tableau de bord Commerçant",
       "orders": "Commandes",
@@ -1308,6 +1303,40 @@
     "gains_ce_mois": "Gains ce Mois",
     "en_attente": "En Attente",
     "note_moyenne": "Note Moyenne",
+    "deliveries": {
+      "active": {
+        "title": "Livraisons actives",
+        "count": "livraison(s)",
+        "empty": {
+          "title": "Aucune livraison active",
+          "description": "Vous n'avez actuellement aucune livraison en cours. Consultez les nouvelles opportunités.",
+          "action": "Voir les opportunités"
+        }
+      },
+      "status": {
+        "accepted": "Acceptée",
+        "inTransit": "En transit",
+        "delivered": "Livrée"
+      },
+      "pickup": {
+        "title": "Récupération"
+      },
+      "delivery": {
+        "title": "Livraison"
+      },
+      "client": {
+        "info": "Informations client"
+      },
+      "validationCode": {
+        "title": "Code de validation",
+        "description": "Code à demander au client à la livraison"
+      },
+      "actions": {
+        "viewDetails": "Voir les détails",
+        "startDelivery": "Commencer la livraison",
+        "updateStatus": "Mettre à jour le statut"
+      }
+    },
     "actions_rapides_1": "Actions Rapides",
     "livraisons_en_cours": "Livraisons en Cours",
     "opportunits_recommandes": "Opportunités Recommandées",

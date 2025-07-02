@@ -45,57 +45,36 @@ export async function GET(
     const delivery = await prisma.delivery.findFirst({
       where: {
         id: deliveryId,
-        deliverer: {
-          userId: session.user.id
-        }
+        delivererId: session.user.id
       },
       include: {
         announcement: {
           include: {
-            client: {
+            author: {
               include: {
-                user: {
-                  select: {
-                    id: true,
-                    email: true,
-                    profile: {
-                      select: {
-                        firstName: true,
-                        lastName: true,
-                        phone: true,
-                        address: true,
-                        city: true,
-                        postalCode: true
-                      }
-                    }
-                  }
-                }
+                profile: true
               }
             }
+          }
+        },
+        client: {
+          include: {
+            profile: true
           }
         },
         deliverer: {
           include: {
-            user: {
-              select: {
-                profile: {
-                  select: {
-                    firstName: true,
-                    lastName: true,
-                    phone: true
-                  }
-                }
-              }
-            }
+            profile: true
           }
         },
         payment: true,
-        proofOfDelivery: true,
-        validationCodes: {
-          orderBy: { createdAt: 'desc' }
-        },
-        history: {
-          orderBy: { createdAt: 'desc' }
+        validations: true,
+        history: true,
+        tracking: {
+          orderBy: {
+            timestamp: 'desc'
+          },
+          take: 10
         }
       }
     })
@@ -106,8 +85,8 @@ export async function GET(
 
     return NextResponse.json({
       delivery,
-      canValidate: delivery.status === 'IN_TRANSIT' || delivery.status === 'PICKED_UP',
-      validationCodeRequired: !delivery.proofOfDelivery?.validatedWithCode
+      canValidate: ['IN_TRANSIT', 'PICKED_UP', 'ACCEPTED'].includes(delivery.status),
+      validationCodeRequired: delivery.validationCode && delivery.status !== 'DELIVERED'
     })
 
   } catch (error) {
@@ -142,18 +121,26 @@ export async function POST(
     const delivery = await prisma.delivery.findFirst({
       where: {
         id: deliveryId,
-        deliverer: {
-          userId: session.user.id
-        }
+        delivererId: session.user.id
       },
       include: {
         announcement: {
           include: {
-            client: {
+            author: {
               include: {
-                user: true
+                profile: true
               }
             }
+          }
+        },
+        client: {
+          include: {
+            profile: true
+          }
+        },
+        deliverer: {
+          include: {
+            profile: true
           }
         }
       }
@@ -164,9 +151,9 @@ export async function POST(
     }
 
     // Vérifier que la livraison peut être validée
-    if (!['PICKED_UP', 'IN_TRANSIT'].includes(delivery.status)) {
+    if (!['PICKED_UP', 'IN_TRANSIT', 'ACCEPTED'].includes(delivery.status)) {
       return NextResponse.json(
-        { error: 'Delivery cannot be validated in current status' },
+        { error: `Delivery cannot be validated in current status: ${delivery.status}` },
         { status: 400 }
       )
     }
@@ -210,7 +197,7 @@ export async function POST(
 
       // Mettre à jour les statistiques du livreur
       await tx.deliverer.update({
-        where: { id: delivery.delivererId },
+        where: { userId: delivery.delivererId },
         data: {
           totalDeliveries: {
             increment: 1
