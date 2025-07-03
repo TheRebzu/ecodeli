@@ -14,6 +14,8 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
+    console.log('🔍 Recherche livraisons actives pour livreur:', session.user.id)
+    
     // Récupérer les livraisons actives du livreur
     const activeDeliveries = await db.delivery.findMany({
       where: {
@@ -42,6 +44,26 @@ export async function GET(request: NextRequest) {
       orderBy: {
         createdAt: 'asc'
       }
+    })
+
+    console.log('📦 Livraisons actives trouvées:', activeDeliveries.length)
+    activeDeliveries.forEach(delivery => {
+      console.log(`  - ${delivery.id}: ${delivery.status}`)
+    })
+
+    // Debug: Vérifier toutes les livraisons du livreur
+    const allDeliveries = await db.delivery.findMany({
+      where: {
+        delivererId: session.user.id
+      },
+      select: {
+        id: true,
+        status: true
+      }
+    })
+    console.log('🔍 Toutes les livraisons du livreur:', allDeliveries.length)
+    allDeliveries.forEach(delivery => {
+      console.log(`  - ${delivery.id}: ${delivery.status}`)
     })
 
     // Formatter les données pour le frontend

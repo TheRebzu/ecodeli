@@ -4,7 +4,7 @@ import { db } from '@/lib/db'
 import { z } from 'zod'
 
 const updateStatusSchema = z.object({
-  status: z.enum(['accepted', 'picked_up', 'in_transit', 'delivered', 'cancelled'])
+  status: z.enum(['PENDING', 'ACCEPTED', 'PICKED_UP', 'IN_TRANSIT', 'DELIVERED', 'CANCELLED', 'FAILED'])
 })
 
 export async function PUT(
@@ -66,11 +66,11 @@ export async function PUT(
 
     // Vérifier les transitions de statut autorisées
     const allowedTransitions: Record<string, string[]> = {
-      'accepted': ['picked_up', 'cancelled'],
-      'picked_up': ['in_transit', 'cancelled'],
-      'in_transit': ['delivered', 'cancelled'],
-      'delivered': [],
-      'cancelled': []
+      'ACCEPTED': ['PICKED_UP', 'CANCELLED'],
+      'PICKED_UP': ['IN_TRANSIT', 'CANCELLED'],
+      'IN_TRANSIT': ['DELIVERED', 'CANCELLED'],
+      'DELIVERED': [],
+      'CANCELLED': []
     }
 
     const currentStatus = existingDelivery.status
@@ -89,12 +89,12 @@ export async function PUT(
       where: { id: deliveryId },
       data: {
         status,
-        ...(status === 'picked_up' && { pickupDate: new Date() }),
-        ...(status === 'delivered' && { 
+        ...(status === 'PICKED_UP' && { pickupDate: new Date() }),
+        ...(status === 'DELIVERED' && { 
           deliveryDate: new Date(),
           actualDeliveryDate: new Date()
         }),
-        ...(status === 'cancelled' && { cancelledAt: new Date() })
+        ...(status === 'CANCELLED' && { cancelledAt: new Date() })
       },
       include: {
         announcement: {
@@ -115,14 +115,14 @@ export async function PUT(
 
     // Ajouter une entrée de tracking
     const trackingMessages: Record<string, string> = {
-      'picked_up': 'Colis récupéré par le livreur',
-      'in_transit': 'En cours de livraison',
-      'delivered': 'Livraison terminée avec succès',
-      'cancelled': 'Livraison annulée'
+      'PICKED_UP': 'Colis récupéré par le livreur',
+      'IN_TRANSIT': 'En cours de livraison',
+      'DELIVERED': 'Livraison terminée avec succès',
+      'CANCELLED': 'Livraison annulée'
     }
 
     if (trackingMessages[status]) {
-      await db.deliveryTracking.create({
+      await db.trackingUpdate.create({
         data: {
           deliveryId,
           status,
@@ -133,7 +133,7 @@ export async function PUT(
     }
 
     // Si la livraison est terminée, débloquer le paiement
-    if (status === 'delivered') {
+    if (status === 'DELIVERED') {
       await db.payment.updateMany({
         where: {
           deliveryId,

@@ -1,10 +1,11 @@
 'use client'
 
 import { useTranslations } from 'next-intl'
+import { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { MapPin, Clock, Package, Phone, RefreshCw } from 'lucide-react'
+import { MapPin, Clock, Package, Phone, RefreshCw, Loader2, CheckCircle, AlertCircle } from 'lucide-react'
 import Link from 'next/link'
 import { useActiveDeliveries, type ActiveDelivery } from '@/features/deliverer/hooks/useActiveDeliveries'
 
@@ -37,6 +38,63 @@ function formatDate(date: string | Date | null | undefined): { date: string; tim
 function ActiveDeliveriesContent() {
   const t = useTranslations('deliverer.deliveries')
   const { deliveries, loading, error, refetch } = useActiveDeliveries()
+  const [updatingStatus, setUpdatingStatus] = useState<string | null>(null)
+  const [statusMessage, setStatusMessage] = useState<{ type: 'success' | 'error', message: string } | null>(null)
+
+  const handleUpdateStatus = async (deliveryId: string, currentStatus: string) => {
+    try {
+      setUpdatingStatus(deliveryId)
+      setStatusMessage(null)
+      
+      // Déterminer le prochain statut logique
+      let nextStatus: string
+      let statusLabel: string
+      switch (currentStatus) {
+        case 'ACCEPTED':
+          nextStatus = 'PICKED_UP'
+          statusLabel = 'Récupération du colis'
+          break
+        case 'IN_TRANSIT':
+          nextStatus = 'DELIVERED'
+          statusLabel = 'Livraison terminée'
+          break
+        default:
+          console.error('Statut non géré:', currentStatus)
+          setStatusMessage({ type: 'error', message: 'Statut non géré' })
+          return
+      }
+
+      console.log(`🔄 Mise à jour statut: ${currentStatus} -> ${nextStatus}`)
+
+      const response = await fetch(`/api/deliverer/deliveries/${deliveryId}/status`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ status: nextStatus })
+      })
+
+      if (response.ok) {
+        setStatusMessage({ type: 'success', message: `Statut mis à jour: ${statusLabel}` })
+        // Recharger les livraisons après mise à jour
+        await refetch()
+        // Effacer le message après 3 secondes
+        setTimeout(() => setStatusMessage(null), 3000)
+      } else {
+        const errorData = await response.json()
+        console.error('Erreur mise à jour statut:', errorData)
+        setStatusMessage({ 
+          type: 'error', 
+          message: errorData.error || 'Impossible de mettre à jour le statut' 
+        })
+      }
+    } catch (error) {
+      console.error('Erreur mise à jour statut:', error)
+      setStatusMessage({ type: 'error', message: 'Erreur lors de la mise à jour du statut' })
+    } finally {
+      setUpdatingStatus(null)
+    }
+  }
 
   if (loading) {
     return (
@@ -82,6 +140,21 @@ function ActiveDeliveriesContent() {
         <Card className="border-destructive">
           <CardContent className="text-center py-6">
             <p className="text-destructive">{error}</p>
+          </CardContent>
+        </Card>
+      )}
+
+      {statusMessage && (
+        <Card className={statusMessage.type === 'success' ? 'border-green-500 bg-green-50' : 'border-red-500 bg-red-50'}>
+          <CardContent className="flex items-center space-x-2 py-4">
+            {statusMessage.type === 'success' ? (
+              <CheckCircle className="h-5 w-5 text-green-600" />
+            ) : (
+              <AlertCircle className="h-5 w-5 text-red-600" />
+            )}
+            <p className={statusMessage.type === 'success' ? 'text-green-800' : 'text-red-800'}>
+              {statusMessage.message}
+            </p>
           </CardContent>
         </Card>
       )}
@@ -204,14 +277,38 @@ function ActiveDeliveriesContent() {
                   </Button>
                   
                   {delivery.status === 'ACCEPTED' && (
-                    <Button variant="outline" className="flex-1">
-                      {t('actions.startDelivery')}
+                    <Button 
+                      variant="outline" 
+                      className="flex-1"
+                      onClick={() => handleUpdateStatus(delivery.id, delivery.status)}
+                      disabled={updatingStatus === delivery.id}
+                    >
+                      {updatingStatus === delivery.id ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          Mise à jour...
+                        </>
+                      ) : (
+                        t('actions.startDelivery')
+                      )}
                     </Button>
                   )}
                   
                   {delivery.status === 'IN_TRANSIT' && (
-                    <Button variant="outline" className="flex-1">
-                      {t('actions.updateStatus')}
+                    <Button 
+                      variant="outline" 
+                      className="flex-1"
+                      onClick={() => handleUpdateStatus(delivery.id, delivery.status)}
+                      disabled={updatingStatus === delivery.id}
+                    >
+                      {updatingStatus === delivery.id ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          Mise à jour...
+                        </>
+                      ) : (
+                        t('actions.updateStatus')
+                      )}
                     </Button>
                   )}
                 </div>
