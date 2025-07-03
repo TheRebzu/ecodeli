@@ -1,11 +1,19 @@
-"use client";
+import { setRequestLocale } from "next-intl/server";
+import { ProviderDashboardComplete } from "@/features/provider/components/dashboard/provider-dashboard-complete";
 
-import { ProviderDashboard } from "@/features/provider/components/dashboard/provider-dashboard-complete";
+interface ProviderDashboardPageProps {
+  params: Promise<{ locale: string }>;
+}
 
-export default function ProviderDashboardPage() {
+export default async function ProviderDashboardPage({ 
+  params 
+}: ProviderDashboardPageProps) {
+  const { locale } = await params;
+  await setRequestLocale(locale);
+
   return (
     <div className="container mx-auto py-6">
-      <ProviderDashboard />
+      <ProviderDashboardComplete />
     </div>
   );
 } 

@@ -1,314 +1,391 @@
-'use client'
+'use client';
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { Calendar, Star, Euro, Clock, FileText, CheckCircle, Users } from 'lucide-react'
+import { useEffect, useState } from "react";
+import { useAuth } from "@/hooks/use-auth";
+import { useApi } from "@/hooks/use-api";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { 
+  Calendar, 
+  CheckCircle, 
+  Clock, 
+  DollarSign, 
+  Star, 
+  TrendingUp, 
+  Users, 
+  AlertCircle,
+  MapPin,
+  FileText,
+  Wallet,
+  Award
+} from "lucide-react";
+import Link from "next/link";
+import { toast } from "sonner";
 
-export function ProviderDashboard() {
-  const providerInfo = {
-    status: 'VALIDATED',
-    rating: 4.8,
-    totalInterventions: 156,
-    monthlyEarnings: 2450,
-    services: ['Ménage', 'Jardinage', 'Bricolage']
-  }
+interface ProviderStats {
+  totalServices: number;
+  completedServices: number;
+  pendingServices: number;
+  totalEarnings: number;
+  monthlyEarnings: number;
+  averageRating: number;
+  totalReviews: number;
+  validationStatus: string;
+  nextPayout: string;
+  availableBalance: number;
+}
 
-  const evaluations = [
-    { id: '1', client: 'Marie D.', service: 'Ménage', rating: 5, comment: 'Service parfait, très professionnel', date: '2024-06-28' },
-    { id: '2', client: 'Jean M.', service: 'Jardinage', rating: 4, comment: 'Bon travail, ponctuel', date: '2024-06-25' },
-    { id: '3', client: 'Sophie L.', service: 'Bricolage', rating: 5, comment: 'Excellent artisan, recommande', date: '2024-06-22' }
-  ]
+interface RecentActivity {
+  id: string;
+  type: string;
+  title: string;
+  description: string;
+  timestamp: string;
+  status: string;
+}
 
-  const calendar = [
-    { id: '1', date: '2024-06-29', time: '09:00', client: 'Marie D.', service: 'Ménage', status: 'CONFIRMED', duration: 120 },
-    { id: '2', date: '2024-06-29', time: '14:00', client: 'Pierre L.', service: 'Jardinage', status: 'CONFIRMED', duration: 180 },
-    { id: '3', date: '2024-06-30', time: '10:00', client: 'Anne M.', service: 'Bricolage', status: 'PENDING', duration: 90 }
-  ]
+interface UpcomingIntervention {
+  id: string;
+  serviceName: string;
+  clientName: string;
+  scheduledAt: string;
+  location: string;
+  price: number;
+  status: string;
+}
 
-  const interventions = [
-    { id: '1', client: 'Marie D.', service: 'Ménage', date: '2024-06-28', duration: 120, amount: 60, status: 'COMPLETED' },
-    { id: '2', client: 'Jean M.', service: 'Jardinage', date: '2024-06-27', duration: 180, amount: 90, status: 'COMPLETED' },
-    { id: '3', client: 'Sophie L.', service: 'Bricolage', date: '2024-06-26', duration: 240, amount: 120, status: 'COMPLETED' }
-  ]
+export function ProviderDashboardComplete() {
+  const { user } = useAuth();
+  const { execute } = useApi();
+  const [stats, setStats] = useState<ProviderStats | null>(null);
+  const [recentActivities, setRecentActivities] = useState<RecentActivity[]>([]);
+  const [upcomingInterventions, setUpcomingInterventions] = useState<UpcomingIntervention[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const monthlyInvoice = {
-    id: 'INV-2024-06',
-    period: 'Juin 2024',
-    totalInterventions: 18,
-    totalHours: 72,
-    grossAmount: 2450,
-    commission: 367.5, // 15%
-    netAmount: 2082.5,
-    status: 'GENERATED',
-    paymentDate: '2024-07-01'
+  const get = async (url: string) => {
+    return await execute(url, { method: 'GET' });
+  };
+
+  useEffect(() => {
+    if (user?.id) {
+      fetchDashboardData();
+    }
+  }, [user?.id]);
+
+  const fetchDashboardData = async () => {
+    if (!user?.id) return;
+    
+    try {
+      setLoading(true);
+      const [statsResponse, activitiesResponse, interventionsResponse] = await Promise.all([
+        get(`/api/provider/dashboard/stats?providerId=${user.id}`),
+        get(`/api/provider/dashboard/activities?providerId=${user.id}`),
+        get(`/api/provider/interventions/upcoming?providerId=${user.id}`)
+      ]);
+
+      if (statsResponse) {
+        setStats(statsResponse);
+      }
+      if (activitiesResponse) {
+        setRecentActivities(activitiesResponse.activities || []);
+      }
+      if (interventionsResponse) {
+        setUpcomingInterventions(interventionsResponse.interventions || []);
+      }
+    } catch (error) {
+      console.error("Error fetching dashboard data:", error);
+      toast.error("Erreur lors du chargement des données");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getValidationStatusBadge = (status: string) => {
+    const config = {
+      PENDING: { color: "bg-yellow-100 text-yellow-800", label: "En attente" },
+      APPROVED: { color: "bg-green-100 text-green-800", label: "Validé" },
+      REJECTED: { color: "bg-red-100 text-red-800", label: "Rejeté" }
+    };
+
+    const statusConfig = config[status as keyof typeof config] || config.PENDING;
+    return (
+      <Badge className={statusConfig.color}>
+        {statusConfig.label}
+      </Badge>
+    );
+  };
+
+  const getActivityIcon = (type: string) => {
+    const icons = {
+      service_completed: CheckCircle,
+      booking_received: Calendar,
+      payment_received: DollarSign,
+      review_received: Star,
+      validation_update: AlertCircle,
+    };
+    const Icon = icons[type as keyof typeof icons] || FileText;
+    return <Icon className="h-4 w-4" />;
+  };
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {[1, 2, 3, 4].map(i => (
+            <Card key={i}>
+              <CardContent className="p-6">
+                <div className="animate-pulse space-y-2">
+                  <div className="h-4 bg-gray-200 rounded w-2/3"></div>
+                  <div className="h-8 bg-gray-200 rounded w-full"></div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
+    );
   }
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">Espace Prestataire</h1>
-        <p className="text-muted-foreground">
-          Gérez vos prestations, évaluations et calendrier
-        </p>
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold">Tableau de bord</h1>
+          <p className="text-muted-foreground">
+            Bienvenue sur votre espace prestataire EcoDeli
+          </p>
+        </div>
+        {stats && getValidationStatusBadge(stats.validationStatus)}
       </div>
 
-      {/* Métriques */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Note moyenne</p>
-                <p className="text-2xl font-bold">{providerInfo.rating}/5</p>
-              </div>
-              <Star className="w-8 h-8 text-yellow-600" />
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Interventions total</p>
-                <p className="text-2xl font-bold">{providerInfo.totalInterventions}</p>
-              </div>
-              <CheckCircle className="w-8 h-8 text-green-600" />
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Gains ce mois</p>
-                <p className="text-2xl font-bold">{providerInfo.monthlyEarnings}€</p>
-              </div>
-              <Euro className="w-8 h-8 text-blue-600" />
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Services offerts</p>
-                <p className="text-2xl font-bold">{providerInfo.services.length}</p>
-              </div>
-              <Users className="w-8 h-8 text-purple-600" />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Validation */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <CheckCircle className="w-5 h-5 text-green-600" />
-            Validation du prestataire
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="p-4 bg-green-50 rounded-lg">
-            <h4 className="font-medium text-green-900 mb-2">Profil validé</h4>
-            <p className="text-green-800 text-sm">
-              Votre profil a été vérifié par EcoDeli. Vous pouvez recevoir des demandes de clients.
+      {/* Validation Alert */}
+      {stats && stats.validationStatus !== "APPROVED" && (
+        <Card className="border-yellow-200 bg-yellow-50">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-yellow-800">
+              <AlertCircle className="h-5 w-5" />
+              Validation requise
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-yellow-700 mb-4">
+              Votre profil prestataire nécessite une validation avant de pouvoir recevoir des réservations.
             </p>
-            <div className="mt-3">
-              <p className="text-sm text-green-700">Services validés: {providerInfo.services.join(', ')}</p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+            <Link href="/provider/validation">
+              <Button>Compléter ma candidature</Button>
+            </Link>
+          </CardContent>
+        </Card>
+      )}
 
-      {/* Évaluations */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Suivi des évaluations</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {evaluations.map((evaluation) => (
-              <div key={evaluation.id} className="border rounded-lg p-4">
-                <div className="flex justify-between items-start mb-2">
-                  <div>
-                    <h4 className="font-medium">{evaluation.client}</h4>
-                    <p className="text-sm text-muted-foreground">{evaluation.service}</p>
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Services réalisés</CardTitle>
+            <CheckCircle className="h-4 w-4 text-green-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats?.completedServices || 0}</div>
+            <p className="text-xs text-muted-foreground">
+              {stats?.pendingServices || 0} en cours
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Gains du mois</CardTitle>
+            <DollarSign className="h-4 w-4 text-green-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats?.monthlyEarnings.toFixed(2) || '0.00'}€</div>
+            <p className="text-xs text-muted-foreground">
+              Total: {stats?.totalEarnings.toFixed(2) || '0.00'}€
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Note moyenne</CardTitle>
+            <Star className="h-4 w-4 text-yellow-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats?.averageRating.toFixed(1) || '0.0'}/5</div>
+            <p className="text-xs text-muted-foreground">
+              {stats?.totalReviews || 0} évaluations
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Solde disponible</CardTitle>
+            <Wallet className="h-4 w-4 text-blue-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats?.availableBalance.toFixed(2) || '0.00'}€</div>
+            <p className="text-xs text-muted-foreground">
+              Prochain virement: {stats?.nextPayout ? new Date(stats.nextPayout).toLocaleDateString() : 'N/A'}
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Main Content */}
+      <Tabs defaultValue="overview" className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="overview">Vue d'ensemble</TabsTrigger>
+          <TabsTrigger value="interventions">Interventions</TabsTrigger>
+          <TabsTrigger value="activities">Activités récentes</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="overview" className="space-y-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Performance Chart */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Performance ce mois</CardTitle>
+                <CardDescription>Evolution de vos services et gains</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium">Services complétés</span>
+                    <span className="text-sm">{stats?.completedServices || 0}/{stats?.totalServices || 0}</span>
                   </div>
-                  <div className="flex items-center gap-1">
-                    {[...Array(5)].map((_, i) => (
-                      <Star 
-                        key={i} 
-                        className={`w-4 h-4 ${i < evaluation.rating ? 'text-yellow-500 fill-current' : 'text-gray-300'}`} 
-                      />
-                    ))}
-                    <span className="ml-2 text-sm font-medium">{evaluation.rating}/5</span>
+                  <Progress 
+                    value={stats?.totalServices ? (stats.completedServices / stats.totalServices) * 100 : 0} 
+                    className="h-2"
+                  />
+                  
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium">Objectif mensuel</span>
+                    <span className="text-sm">75%</span>
                   </div>
+                  <Progress value={75} className="h-2" />
                 </div>
-                <p className="text-sm text-gray-600 mb-2">{evaluation.comment}</p>
-                <p className="text-xs text-muted-foreground">
-                  {new Date(evaluation.date).toLocaleDateString('fr-FR')}
-                </p>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+              </CardContent>
+            </Card>
 
-      {/* Calendrier */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Calendar className="w-5 h-5" />
-            Calendrier des disponibilités
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Date</TableHead>
-                <TableHead>Heure</TableHead>
-                <TableHead>Client</TableHead>
-                <TableHead>Service</TableHead>
-                <TableHead>Durée</TableHead>
-                <TableHead>Statut</TableHead>
-                <TableHead>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {calendar.map((appointment) => (
-                <TableRow key={appointment.id}>
-                  <TableCell>{new Date(appointment.date).toLocaleDateString('fr-FR')}</TableCell>
-                  <TableCell>{appointment.time}</TableCell>
-                  <TableCell>{appointment.client}</TableCell>
-                  <TableCell>{appointment.service}</TableCell>
-                  <TableCell>{appointment.duration} min</TableCell>
-                  <TableCell>
-                    <Badge variant={appointment.status === 'CONFIRMED' ? 'default' : 'secondary'}>
-                      {appointment.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <Button variant="outline" size="sm">
-                      Gérer
+            {/* Quick Actions */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Actions rapides</CardTitle>
+                <CardDescription>Accès direct aux fonctionnalités principales</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 gap-4">
+                  <Link href="/provider/calendar">
+                    <Button variant="outline" className="w-full h-auto flex-col py-4">
+                      <Calendar className="h-6 w-6 mb-2" />
+                      <span className="text-sm">Calendrier</span>
                     </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-          <div className="mt-4">
-            <Button>Définir mes disponibilités</Button>
+                  </Link>
+                  
+                  <Link href="/provider/interventions">
+                    <Button variant="outline" className="w-full h-auto flex-col py-4">
+                      <MapPin className="h-6 w-6 mb-2" />
+                      <span className="text-sm">Interventions</span>
+                    </Button>
+                  </Link>
+                  
+                  <Link href="/provider/evaluations">
+                    <Button variant="outline" className="w-full h-auto flex-col py-4">
+                      <Star className="h-6 w-6 mb-2" />
+                      <span className="text-sm">Évaluations</span>
+                    </Button>
+                  </Link>
+                  
+                  <Link href="/provider/earnings">
+                    <Button variant="outline" className="w-full h-auto flex-col py-4">
+                      <DollarSign className="h-6 w-6 mb-2" />
+                      <span className="text-sm">Gains</span>
+                    </Button>
+                  </Link>
+                </div>
+              </CardContent>
+            </Card>
           </div>
-        </CardContent>
-      </Card>
+        </TabsContent>
 
-      {/* Interventions */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Gestion des interventions</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Client</TableHead>
-                <TableHead>Service</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead>Durée</TableHead>
-                <TableHead>Montant</TableHead>
-                <TableHead>Statut</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {interventions.map((intervention) => (
-                <TableRow key={intervention.id}>
-                  <TableCell>{intervention.client}</TableCell>
-                  <TableCell>{intervention.service}</TableCell>
-                  <TableCell>{new Date(intervention.date).toLocaleDateString('fr-FR')}</TableCell>
-                  <TableCell>{intervention.duration} min</TableCell>
-                  <TableCell>{intervention.amount}€</TableCell>
-                  <TableCell>
-                    <Badge className="bg-green-100 text-green-800">{intervention.status}</Badge>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+        <TabsContent value="interventions" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Prochaines interventions</CardTitle>
+              <CardDescription>Vos prestations à venir</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {upcomingInterventions.length === 0 ? (
+                <div className="text-center py-8">
+                  <Calendar className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                  <p className="text-muted-foreground">Aucune intervention prévue</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {upcomingInterventions.map((intervention) => (
+                    <div key={intervention.id} className="flex items-center justify-between p-4 border rounded-lg">
+                      <div className="flex-1">
+                        <h4 className="font-medium">{intervention.serviceName}</h4>
+                        <p className="text-sm text-muted-foreground">
+                          Client: {intervention.clientName}
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          {new Date(intervention.scheduledAt).toLocaleString()} • {intervention.location}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <div className="font-medium">{intervention.price.toFixed(2)}€</div>
+                        <Badge variant="outline">{intervention.status}</Badge>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
 
-      {/* Facturation automatique */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <FileText className="w-5 h-5" />
-            Facturation automatique mensuelle
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="border rounded-lg p-4 bg-blue-50">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <h4 className="font-medium mb-3">Facture {monthlyInvoice.id}</h4>
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span>Période:</span>
-                    <span className="font-medium">{monthlyInvoice.period}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Interventions:</span>
-                    <span>{monthlyInvoice.totalInterventions}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Heures totales:</span>
-                    <span>{monthlyInvoice.totalHours}h</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Montant brut:</span>
-                    <span>{monthlyInvoice.grossAmount}€</span>
-                  </div>
-                  <div className="flex justify-between text-red-600">
-                    <span>Commission EcoDeli (15%):</span>
-                    <span>-{monthlyInvoice.commission}€</span>
-                  </div>
-                  <div className="flex justify-between font-medium text-green-600">
-                    <span>Montant net:</span>
-                    <span>{monthlyInvoice.netAmount}€</span>
-                  </div>
+        <TabsContent value="activities" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Activités récentes</CardTitle>
+              <CardDescription>Historique de vos dernières actions</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {recentActivities.length === 0 ? (
+                <div className="text-center py-8">
+                  <FileText className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                  <p className="text-muted-foreground">Aucune activité récente</p>
                 </div>
-              </div>
-              <div>
-                <h4 className="font-medium mb-3">Virement bancaire</h4>
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span>Statut:</span>
-                    <Badge className="bg-green-100 text-green-800">{monthlyInvoice.status}</Badge>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Date de paiement:</span>
-                    <span>{new Date(monthlyInvoice.paymentDate).toLocaleDateString('fr-FR')}</span>
-                  </div>
+              ) : (
+                <div className="space-y-4">
+                  {recentActivities.map((activity) => (
+                    <div key={activity.id} className="flex items-start gap-4 p-4 border rounded-lg">
+                      <div className="mt-1">
+                        {getActivityIcon(activity.type)}
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="font-medium">{activity.title}</h4>
+                        <p className="text-sm text-muted-foreground">{activity.description}</p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {new Date(activity.timestamp).toLocaleString()}
+                        </p>
+                      </div>
+                      <Badge variant="outline">{activity.status}</Badge>
+                    </div>
+                  ))}
                 </div>
-                <div className="mt-4 space-y-2">
-                  <Button variant="outline" className="w-full">
-                    Télécharger la facture PDF
-                  </Button>
-                  <Button variant="outline" className="w-full">
-                    Historique des factures
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
-  )
-}
+  );
+} 

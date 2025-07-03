@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/db'
 import { requireRole } from '@/lib/auth/utils'
 
@@ -7,20 +8,23 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const user = await requireRole(request, ['PROVIDER']).catch(() => null)
-    
-    if (!user) {
-      return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
+    const session = await auth()
+    if (!session || session.user.role !== 'PROVIDER') {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
-    
+
     const { id: interventionId } = await params
 
     const intervention = await prisma.booking.findUnique({
       where: { id: interventionId },
       include: {
-        client: {
+        client: { 
           include: {
-            profile: true
+            user: {
+              include: {
+                profile: true
+              }
+            }
           }
         },
         service: true,
@@ -32,8 +36,12 @@ export async function GET(
       return NextResponse.json({ error: 'Intervention not found' }, { status: 404 })
     }
 
-    // V�rifier que l'intervention appartient au prestataire
-    if (intervention.providerId !== user.id) {
+    // Vérifier que l'intervention appartient au provider
+    const provider = await prisma.provider.findUnique({
+      where: { userId: session.user.id }
+    })
+
+    if (!provider || intervention.service.providerId !== provider.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
     }
 
@@ -48,9 +56,9 @@ export async function GET(
       endTime: intervention.endTime || '10:00',
       client: {
         id: intervention.client.id,
-        name: `${intervention.client.profile?.firstName || ''} ${intervention.client.profile?.lastName || ''}`.trim() || intervention.client.email,
+        name: `${intervention.client.user.profile?.firstName || ''} ${intervention.client.user.profile?.lastName || ''}`.trim() || intervention.client.email,
         email: intervention.client.email,
-        phone: intervention.client.profile?.phone
+        phone: intervention.client.user.profile?.phone
       },
       location: {
         address: intervention.address || '',
@@ -70,7 +78,10 @@ export async function GET(
 
   } catch (error) {
     console.error('Error fetching intervention:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    )
   }
 }
 
@@ -88,7 +99,7 @@ export async function PATCH(
     const { id: interventionId } = await params
     const { status, completionReport } = await request.json()
 
-    // V�rifier que l'intervention existe et appartient au prestataire
+    // Vérifier que l'intervention existe et appartient au prestataire
     const existingIntervention = await prisma.booking.findUnique({
       where: { id: interventionId }
     })
@@ -101,7 +112,7 @@ export async function PATCH(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
     }
 
-    // Mettre � jour l'intervention
+    // Mettre à jour l'intervention
     const updatedIntervention = await prisma.booking.update({
       where: { id: interventionId },
       data: {
@@ -112,7 +123,11 @@ export async function PATCH(
       include: {
         client: {
           include: {
-            profile: true
+            user: {
+              include: {
+                profile: true
+              }
+            }
           }
         },
         service: true,
@@ -120,14 +135,14 @@ export async function PATCH(
       }
     })
 
-    // Si l'intervention est termin�e, cr�er une notification pour le client
+    // Si l'intervention est terminée, créer une notification pour le client
     if (status === 'completed') {
       await prisma.notification.create({
         data: {
           userId: updatedIntervention.clientId,
           type: 'BOOKING_COMPLETED',
-          title: 'Intervention termin�e',
-          message: `Votre intervention "${updatedIntervention.service?.name || 'Service'}" a �t� termin�e avec succ�s.`,
+          title: 'Intervention terminée',
+          message: `Votre intervention "${updatedIntervention.service?.name || 'Service'}" a été terminée avec succès.`,
           metadata: {
             bookingId: interventionId,
             providerId: user.id
@@ -147,9 +162,9 @@ export async function PATCH(
       endTime: updatedIntervention.endTime || '10:00',
       client: {
         id: updatedIntervention.client.id,
-        name: `${updatedIntervention.client.profile?.firstName || ''} ${updatedIntervention.client.profile?.lastName || ''}`.trim() || updatedIntervention.client.email,
+        name: `${updatedIntervention.client.user.profile?.firstName || ''} ${updatedIntervention.client.user.profile?.lastName || ''}`.trim() || updatedIntervention.client.email,
         email: updatedIntervention.client.email,
-        phone: updatedIntervention.client.profile?.phone
+        phone: updatedIntervention.client.user.profile?.phone
       },
       location: {
         address: updatedIntervention.address || '',

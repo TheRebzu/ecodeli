@@ -37,6 +37,8 @@ export async function POST(request: NextRequest) {
     const file = formData.get('file') as File
     const type = formData.get('type') as string
     const category = (formData.get('category') as string) || 'document'
+    const certificationId = formData.get('certificationId') as string
+    const documentId = formData.get('documentId') as string
 
     if (!file) {
       return NextResponse.json({ error: 'Aucun fichier fourni' }, { status: 400 })
@@ -90,19 +92,64 @@ export async function POST(request: NextRequest) {
     // URL relative pour servir le fichier
     const url = `/uploads/${category}/${session.user.role.toLowerCase()}/${filename}`
 
-    // Enregistrement en base de données
-    const document = await prisma.document.create({
-      data: {
-        userId: session.user.id,
-        type: type as any,
-        filename,
-        originalName: file.name,
-        mimeType: file.type,
-        size: file.size,
-        url,
-        validationStatus: 'PENDING'
+    // Enregistrement ou mise à jour en base de données
+    let document;
+    
+    if (documentId || certificationId) {
+      // Mettre à jour un document existant
+      const existingDoc = await prisma.document.findFirst({
+        where: {
+          OR: [
+            { id: documentId },
+            { id: certificationId }
+          ],
+          userId: session.user.id // Sécurité : s'assurer que le document appartient à l'utilisateur
+        }
+      });
+
+      if (existingDoc) {
+        document = await prisma.document.update({
+          where: { id: existingDoc.id },
+          data: {
+            filename,
+            originalName: file.name,
+            mimeType: file.type,
+            size: file.size,
+            url,
+            validationStatus: 'PENDING',
+            updatedAt: new Date()
+          }
+        });
+      } else {
+        // Créer un nouveau document si pas trouvé
+        document = await prisma.document.create({
+          data: {
+            userId: session.user.id,
+            type: type as any,
+            filename,
+            originalName: file.name,
+            mimeType: file.type,
+            size: file.size,
+            url,
+            validationStatus: 'PENDING'
+          }
+        });
       }
-    })
+    } else {
+      // Créer un nouveau document
+      document = await prisma.document.create({
+        data: {
+          userId: session.user.id,
+          type: type as any,
+          filename,
+          originalName: file.name,
+          mimeType: file.type,
+          size: file.size,
+          url,
+          validationStatus: 'PENDING'
+        }
+      });
+    }
 
     // Log de l'activité
     await prisma.activityLog.create({

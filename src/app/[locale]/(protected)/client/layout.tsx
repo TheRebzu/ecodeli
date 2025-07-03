@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/hooks/use-auth'
-import { ClientHeader } from '@/components/layout/client-header'
+import { ClientHeader } from '@/components/layout/headers/client-header'
 import { ClientSidebar } from '@/components/layout/sidebars/client-sidebar'
 import { TutorialManager } from '@/features/tutorials/components/tutorial-manager'
 import { Toaster } from '@/components/ui/toaster'
@@ -45,12 +45,37 @@ export default function ClientLayout({ children }: ClientLayoutProps) {
     setMobileMenuOpen(!mobileMenuOpen)
   }
 
-  // Simulated notification count (replace with real data)
-  const notificationCount = 3
+  // Mock notifications for demo
+  const mockNotifications = [
+    {
+      id: '1',
+      title: 'Nouvelle livraison',
+      message: 'Votre colis a été pris en charge par un livreur',
+      type: 'info' as const,
+      read: false,
+      createdAt: new Date()
+    },
+    {
+      id: '2',
+      title: 'Paiement effectué',
+      message: 'Votre paiement de 25€ a été confirmé',
+      type: 'success' as const,
+      read: false,
+      createdAt: new Date()
+    },
+    {
+      id: '3',
+      title: 'Service réservé',
+      message: 'Votre réservation de ménage est confirmée',
+      type: 'info' as const,
+      read: true,
+      createdAt: new Date()
+    }
+  ]
 
   if (isLoading) {
     return (
-      <div className="flex h-screen items-center justify-center">
+      <div className="flex h-screen items-center justify-center bg-background">
         <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full" />
       </div>
     )
@@ -62,10 +87,10 @@ export default function ClientLayout({ children }: ClientLayoutProps) {
 
   return (
     <TutorialManager autoStart={true}>
-      <div className="flex h-screen bg-background">
+      <div className="flex h-screen bg-background dark:bg-background">
         {/* Desktop Sidebar */}
         <aside className={cn(
-          "hidden md:flex transition-all duration-300 ease-in-out",
+          "hidden md:flex transition-all duration-300 ease-in-out border-r border-border",
           sidebarCollapsed ? "w-16" : "w-64"
         )}>
           <ClientSidebar 
@@ -78,7 +103,7 @@ export default function ClientLayout({ children }: ClientLayoutProps) {
         {mobileMenuOpen && (
           <div className="fixed inset-0 z-50 md:hidden">
             <div className="absolute inset-0 bg-black/50" onClick={() => setMobileMenuOpen(false)} />
-            <aside className="absolute left-0 top-0 h-full w-64 bg-background">
+            <aside className="absolute left-0 top-0 h-full w-64 bg-background border-r border-border">
               <ClientSidebar 
                 collapsed={false}
                 user={user}
@@ -95,18 +120,20 @@ export default function ClientLayout({ children }: ClientLayoutProps) {
               id: user.id,
               name: user.name || '',
               email: user.email,
-              avatar: '', // Avatar will be loaded from profile
-              subscription: 'FREE' // Default subscription
+              role: user.role,
+              subscription: (user.subscription as 'FREE' | 'STARTER' | 'PREMIUM') || 'FREE',
+              avatar: user.avatar || ''
             }}
-            onLogout={handleLogout}
-            onMenuToggle={toggleMobileMenu}
-            notificationCount={notificationCount}
+            onSidebarToggle={toggleMobileMenu}
+            notifications={mockNotifications}
           />
 
           {/* Page Content */}
-          <main className="flex-1 overflow-auto p-6">
-            <div className="mx-auto max-w-7xl">
-              {children}
+          <main className="flex-1 overflow-auto bg-background dark:bg-background">
+            <div className="p-6">
+              <div className="mx-auto max-w-7xl">
+                {children}
+              </div>
             </div>
           </main>
         </div>

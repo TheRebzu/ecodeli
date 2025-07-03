@@ -1,45 +1,46 @@
 /**
  * Sidebar spécialisée pour les clients EcoDeli avec dark mode
+ * Intègre le tutoriel de première connexion et les notifications
  */
 
-'use client'
+"use client"
 
 import { useState } from 'react'
-import { usePathname } from 'next/navigation'
-import { Link } from '@/i18n/navigation'
+import { useTranslations } from 'next-intl'
+import { Link, usePathname } from '@/i18n/navigation'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Separator } from '@/components/ui/separator'
-import { 
-  LayoutDashboard,
-  FileText,
-  Plus,
-  Clock,
-  CheckCircle,
+import { ThemeToggle } from '@/components/ui/theme-toggle'
+import {
+  // Navigation icons
+  Home,
+  PlusCircle,
+  Package,
+  Calendar,
+  CreditCard,
+  Star,
+  Bell,
+  HelpCircle,
+  Settings,
+  User,
   Truck,
   MapPin,
-  Briefcase,
-  Users,
-  Home,
-  Wrench,
-  Package,
-  Box,
-  Calendar,
-  Crown,
-  CreditCard,
-  History,
-  Star,
-  GraduationCap,
-  HelpCircle,
-  MessageCircle,
-  LifeBuoy,
-  ChevronRight,
+  DollarSign,
+  ShoppingBag,
+  Archive,
   ChevronDown,
-  User
+  ChevronRight,
+  FileText,
+  Wallet,
+  Crown,
+  Clock,
+  TrendingUp
 } from 'lucide-react'
 
+// Types pour la navigation
 interface NavigationItem {
   key: string
   label: string
@@ -54,94 +55,152 @@ interface ClientSidebarProps {
   className?: string
   collapsed?: boolean
   user?: {
+    id: string
+    name?: string
+    email: string
+    role: string
     subscription?: 'FREE' | 'STARTER' | 'PREMIUM'
   }
 }
 
-// Configuration de navigation pour les clients
+// Configuration de la navigation par abonnement
 const getClientNavigation = (subscription?: string): NavigationItem[] => [
-  // Navigation principale
   {
     key: 'dashboard',
     label: 'Tableau de bord',
     href: '/client',
-    icon: LayoutDashboard,
+    icon: Home,
     category: 'main'
   },
-  
-  // Annonces
   {
     key: 'announcements',
-    label: 'Mes annonces',
+    label: 'Annonces',
     href: '/client/announcements',
-    icon: FileText,
+    icon: Package,
     category: 'main',
     children: [
       {
         key: 'create-announcement',
         label: 'Créer une annonce',
         href: '/client/announcements/create',
-        icon: Plus
+        icon: PlusCircle
       },
       {
-        key: 'active-announcements',
-        label: 'Annonces actives',
-        href: '/client/announcements?status=active',
-        icon: Clock
+        key: 'my-announcements',
+        label: 'Mes annonces',
+        href: '/client/announcements/my-announcements',
+        icon: Package,
+        badge: 3
       },
       {
-        key: 'completed-announcements',
-        label: 'Annonces terminées',
-        href: '/client/announcements?status=completed',
-        icon: CheckCircle
+        key: 'announcements-history',
+        label: 'Historique',
+        href: '/client/announcements/history',
+        icon: Archive
       }
     ]
   },
-
-  // Livraisons et suivi
   {
     key: 'deliveries',
-    label: 'Mes livraisons',
+    label: 'Livraisons',
     href: '/client/deliveries',
     icon: Truck,
-    category: 'main'
+    category: 'main',
+    badge: 2,
+    children: [
+      {
+        key: 'active-deliveries',
+        label: 'En cours',
+        href: '/client/deliveries/active',
+        icon: Clock,
+        badge: 2
+      },
+      {
+        key: 'delivery-tracking',
+        label: 'Suivi',
+        href: '/client/deliveries/tracking',
+        icon: MapPin
+      },
+      {
+        key: 'delivery-history',
+        label: 'Historique',
+        href: '/client/deliveries/history',
+        icon: Archive
+      }
+    ]
   },
-  {
-    key: 'tracking',
-    label: 'Suivi en temps réel',
-    href: '/client/tracking',
-    icon: MapPin,
-    category: 'main'
-  },
-
-  // Services (page unifiée)
   {
     key: 'services',
     label: 'Services',
     href: '/client/services',
-    icon: Briefcase,
-    category: 'services'
+    icon: Settings,
+    category: 'services',
+    children: [
+      {
+        key: 'service-bookings',
+        label: 'Réservations',
+        href: '/client/services/bookings',
+        icon: Calendar,
+        badge: 1
+      },
+      {
+        key: 'service-providers',
+        label: 'Prestataires',
+        href: '/client/services/providers',
+        icon: User
+      }
+    ]
   },
-
-  // Stockage (page existante)
   {
     key: 'storage',
-    label: 'Stockage',
+    label: 'Box de stockage',
     href: '/client/storage',
-    icon: Package,
-    category: 'services'
+    icon: Archive,
+    category: 'services',
+    children: [
+      {
+        key: 'storage-boxes',
+        label: 'Mes box',
+        href: '/client/storage/boxes',
+        icon: Package
+      },
+      {
+        key: 'storage-booking',
+        label: 'Réserver',
+        href: '/client/storage/booking',
+        icon: PlusCircle
+      }
+    ]
   },
-
-  // Réservations
   {
-    key: 'bookings',
-    label: 'Mes réservations',
-    href: '/client/bookings',
-    icon: Calendar,
-    category: 'services'
+    key: 'payments',
+    label: 'Paiements',
+    href: '/client/payments',
+    icon: CreditCard,
+    category: 'account',
+    children: [
+      {
+        key: 'payment-methods',
+        label: 'Moyens de paiement',
+        href: '/client/payments/methods',
+        icon: CreditCard
+      },
+      {
+        key: 'payment-history',
+        label: 'Historique',
+        href: '/client/payments/history',
+        icon: FileText
+      }
+    ]
   },
-
-  // Profil et compte
+  {
+    key: 'subscription',
+    label: 'Abonnement',
+    href: '/client/subscription',
+    icon: subscription === 'PREMIUM' ? Crown : subscription === 'STARTER' ? Star : Wallet,
+    category: 'account',
+    badge: subscription === 'FREE' ? 'Gratuit' : subscription === 'STARTER' ? 'Starter' : 'Premium'
+  },
   {
     key: 'profile',
     label: 'Mon profil',
@@ -150,37 +209,12 @@ const getClientNavigation = (subscription?: string): NavigationItem[] => [
     category: 'account'
   },
   {
-    key: 'subscription',
-    label: 'Mon abonnement',
-    href: '/client/subscription',
-    icon: Crown,
-    category: 'account',
-    badge: subscription === 'FREE' ? 'Upgrade' : undefined
-  },
-  {
-    key: 'payments',
-    label: 'Paiements',
-    href: '/client/payments',
-    icon: CreditCard,
-    category: 'account'
-  },
-
-  // Évaluations
-  {
-    key: 'reviews',
-    label: 'Mes évaluations',
-    href: '/client/reviews',
-    icon: Star,
-    category: 'account'
-  },
-
-  // Tutoriel et aide
-  {
-    key: 'tutorial',
-    label: 'Tutoriel',
-    href: '/client/tutorial',
-    icon: GraduationCap,
-    category: 'help'
+    key: 'notifications',
+    label: 'Notifications',
+    href: '/client/notifications',
+    icon: Bell,
+    category: 'help',
+    badge: 5
   },
   {
     key: 'support',
@@ -216,53 +250,56 @@ function NavigationItem({
 }) {
   const Icon = item.icon
   const hasChildren = item.children && item.children.length > 0
-  const indent = level * 16
 
   if (hasChildren) {
     return (
-      <div>
-        <Button
-          variant="ghost"
-          className={cn(
-            "w-full justify-start h-10 px-3",
-            isActive && "bg-accent text-accent-foreground",
-            collapsed && "px-2"
+      <div key={item.key}>
+        <div className={cn(
+          "group relative",
+          level > 0 && "ml-6"
+        )}>
+          <Button
+            variant="ghost"
+            className={cn(
+              "w-full justify-start h-10 px-3",
+              isActive && "bg-accent text-accent-foreground",
+              collapsed && "px-2"
+            )}
+            onClick={onToggle}
+          >
+            <Icon className={cn("h-4 w-4", collapsed ? "" : "mr-3")} />
+            {!collapsed && (
+              <>
+                <span className="flex-1 text-left">{item.label}</span>
+                {item.badge && (
+                  <Badge variant="secondary" className="ml-2 text-xs">
+                    {item.badge}
+                  </Badge>
+                )}
+                {isExpanded ? (
+                  <ChevronDown className="h-4 w-4" />
+                ) : (
+                  <ChevronRight className="h-4 w-4" />
+                )}
+              </>
+            )}
+          </Button>
+          {isExpanded && !collapsed && item.children && (
+            <div className="mt-1 ml-6 space-y-1">
+              {item.children.map((child) => (
+                <NavigationItem
+                  key={child.key}
+                  item={child}
+                  isActive={false}
+                  isExpanded={false}
+                  onToggle={() => {}}
+                  collapsed={false}
+                  level={level + 1}
+                />
+              ))}
+            </div>
           )}
-          style={{ paddingLeft: collapsed ? 8 : 12 + indent }}
-          onClick={onToggle}
-        >
-          <Icon className={cn("h-4 w-4", collapsed ? "" : "mr-3")} />
-          {!collapsed && (
-            <>
-              <span className="flex-1 text-left">{item.label}</span>
-              {item.badge && (
-                <Badge variant="secondary" className="ml-2 text-xs">
-                  {item.badge}
-                </Badge>
-              )}
-              {isExpanded ? (
-                <ChevronDown className="h-4 w-4" />
-              ) : (
-                <ChevronRight className="h-4 w-4" />
-              )}
-            </>
-          )}
-        </Button>
-        {isExpanded && !collapsed && item.children && (
-          <div className="ml-4 space-y-1">
-            {item.children.map((child) => (
-              <NavigationItem
-                key={child.key}
-                item={child}
-                isActive={false}
-                isExpanded={false}
-                onToggle={() => {}}
-                collapsed={false}
-                level={level + 1}
-              />
-            ))}
-          </div>
-        )}
+        </div>
       </div>
     )
   }
@@ -275,7 +312,6 @@ function NavigationItem({
         isActive && "bg-accent text-accent-foreground",
         collapsed && "px-2"
       )}
-      style={{ paddingLeft: collapsed ? 8 : 12 + indent }}
       asChild
     >
       <Link 
@@ -332,10 +368,41 @@ export function ClientSidebar({ className, collapsed = false, user }: ClientSide
 
   return (
     <div className={cn(
-      "flex h-full flex-col border-r bg-background",
+      "flex h-full flex-col border-r bg-background dark:bg-background",
       collapsed ? "w-16" : "w-64",
       className
     )}>
+      {/* Header */}
+      <div className="flex h-16 items-center border-b px-4">
+        {!collapsed ? (
+          <div className="flex items-center gap-2">
+            <Package className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+            <span className="text-lg font-semibold text-blue-800 dark:text-blue-200">EcoDeli</span>
+          </div>
+        ) : (
+          <Package className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+        )}
+      </div>
+
+      {/* User Info */}
+      {!collapsed && user && (
+        <div className="border-b p-4">
+          <div className="flex items-center gap-3">
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900">
+              <User className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-medium">
+                {user.name || user.email}
+              </p>
+              <p className="truncate text-xs text-muted-foreground">
+                Client {user.subscription || 'FREE'}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       <ScrollArea className="flex-1 px-3 py-4">
         <div className="space-y-6">
           {Object.entries(groupedNavigation).map(([category, items]) => (
@@ -363,16 +430,15 @@ export function ClientSidebar({ className, collapsed = false, user }: ClientSide
         </div>
       </ScrollArea>
 
-      {/* Footer avec version */}
+      {/* Footer with theme toggle */}
       {!collapsed && (
         <div className="border-t p-4">
-          <div className="text-center">
-            <p className="text-xs text-muted-foreground">
-              EcoDeli v1.0.0
-            </p>
-            <p className="text-xs text-muted-foreground">
-              Client Dashboard
-            </p>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Settings className="h-4 w-4 text-muted-foreground" />
+              <span className="text-sm text-muted-foreground">Paramètres</span>
+            </div>
+            <ThemeToggle variant="minimal" />
           </div>
         </div>
       )}
