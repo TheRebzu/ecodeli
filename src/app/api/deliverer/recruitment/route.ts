@@ -37,17 +37,62 @@ export async function GET(request: NextRequest) {
     }
 
     // Calculer le progrès de validation
-    const requiredDocuments = ['IDENTITY', 'DRIVING_LICENSE', 'VEHICLE_REGISTRATION', 'INSURANCE'];
-    const uploadedDocuments = deliverer.user.documents.length;
-    const approvedDocuments = deliverer.user.documents.filter(d => d.validationStatus === 'APPROVED').length;
+    const requiredDocuments = ['IDENTITY', 'DRIVING_LICENSE', 'INSURANCE']; // Documents obligatoires seulement
+    const optionalDocuments = ['VEHICLE_REGISTRATION', 'CERTIFICATION']; // Documents optionnels
     
+    // Compter les documents requis uploadés et approuvés
+    const uploadedRequiredDocs = deliverer.user.documents.filter(d => requiredDocuments.includes(d.type)).length;
+    const approvedRequiredDocs = deliverer.user.documents.filter(d => 
+      requiredDocuments.includes(d.type) && d.validationStatus === 'APPROVED'
+    ).length;
+    
+    // Compter les documents optionnels approuvés (bonus)
+    const approvedOptionalDocs = deliverer.user.documents.filter(d => 
+      optionalDocuments.includes(d.type) && d.validationStatus === 'APPROVED'
+    ).length;
+    
+    // Calcul de la progression : 50% pour upload des documents requis + 50% pour approbation
     let validationProgress = 0;
-    validationProgress += Math.min(uploadedDocuments / requiredDocuments.length, 1) * 50; // 50% pour upload
-    validationProgress += (approvedDocuments / requiredDocuments.length) * 50; // 50% pour approbation
+    validationProgress += Math.min(uploadedRequiredDocs / requiredDocuments.length, 1) * 50; // 50% pour upload
+    validationProgress += (approvedRequiredDocs / requiredDocuments.length) * 50; // 50% pour approbation
+    
+    // Bonus pour documents optionnels approuvés (max 10%)
+    const optionalBonus = Math.min(approvedOptionalDocs * 5, 10); // 5% par document optionnel, max 10%
+    validationProgress += optionalBonus;
+    
+    // Limiter à 100%
+    validationProgress = Math.min(validationProgress, 100);
+    
+    // Vérifier si l'utilisateur devrait être automatiquement certifié
+    const shouldBeCertified = approvedRequiredDocs === requiredDocuments.length;
+    const currentStatus = deliverer.validationStatus;
+    
+    // Si tous les documents requis sont approuvés et que le statut n'est pas déjà APPROVED, le mettre à jour
+    if (shouldBeCertified && currentStatus !== 'APPROVED') {
+      await db.deliverer.update({
+        where: { id: deliverer.id },
+        data: { 
+          validationStatus: 'APPROVED',
+          isActive: true
+        }
+      });
+      
+      // Mettre à jour le statut utilisateur aussi
+      await db.user.update({
+        where: { id: userId },
+        data: { 
+          validationStatus: 'VALIDATED',
+          isActive: true
+        }
+      });
+      
+      // Notification d'activation automatique
+      console.log(`Livreur ${userId} automatiquement certifié - tous les documents requis approuvés`);
+    }
 
     const transformedApplication = {
       id: deliverer.id,
-      status: deliverer.validationStatus,
+      status: shouldBeCertified ? 'APPROVED' : deliverer.validationStatus,
       personalInfo: {
         firstName: deliverer.user.profile?.firstName || '',
         lastName: deliverer.user.profile?.lastName || '',
