@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getUserFromSession } from '@/lib/auth/utils'
-import { db } from '@/lib/db'
+import { auth } from '@/lib/auth'
+import { prisma } from '@/lib/db'
 import { z } from 'zod'
 
 // Schema pour créer une route
@@ -37,139 +37,57 @@ const routesFiltersSchema = z.object({
   sortOrder: z.enum(['asc', 'desc']).default('asc')
 })
 
+const routeSchema = z.object({
+  startLocation: z.string().min(5, 'Le point de départ doit faire au moins 5 caractères'),
+  endLocation: z.string().min(5, 'La destination doit faire au moins 5 caractères'),
+  startTime: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Format d\'heure invalide'),
+  endTime: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Format d\'heure invalide'),
+  daysOfWeek: z.array(z.string()).min(1, 'Sélectionnez au moins un jour'),
+  vehicleType: z.enum(['CAR', 'BIKE', 'SCOOTER', 'TRUCK', 'WALKING']),
+  maxDistance: z.number().min(1).max(50),
+  minPrice: z.number().min(5).max(100)
+})
+
 export async function GET(request: NextRequest) {
   try {
-    console.log('🛣️ [GET /api/deliverer/routes] Début de la requête')
-    
-    const user = await getUserFromSession(request)
-    if (!user || user.role !== 'DELIVERER') {
+    const session = await auth()
+    if (!session || session.user.role !== 'DELIVERER') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { searchParams } = new URL(request.url)
-    const params = routesFiltersSchema.parse({
-      page: searchParams.get('page'),
-      limit: searchParams.get('limit'),
-      isActive: searchParams.get('isActive'),
-      isRecurring: searchParams.get('isRecurring'),
-      sortBy: searchParams.get('sortBy'),
-      sortOrder: searchParams.get('sortOrder')
+    const deliverer = await prisma.deliverer.findUnique({
+      where: { userId: session.user.id }
     })
 
-    // Construire la clause WHERE
-    const where: any = {
-      delivererId: user.id
+    if (!deliverer) {
+      return NextResponse.json({ error: 'Deliverer not found' }, { status: 404 })
     }
 
-    if ((await params).isActive !== undefined) where.isActive = (await params).isActive
-    if ((await params).isRecurring !== undefined) where.isRecurring = (await params).isRecurring
-
-    // Récupérer les routes
-    const routes = await db.delivererRoute.findMany({
-      where,
-      include: {
-        matches: {
-          include: {
-            announcement: {
-              select: {
-                id: true,
-                title: true,
-                type: true,
-                basePrice: true,
-                pickupAddress: true,
-                deliveryAddress: true,
-                status: true
-              }
-            }
-          }
-        },
-        _count: {
-          select: {
-            matches: true
-          }
-        }
-      },
-      orderBy: (await params).sortBy === 'createdAt' ? { createdAt: (await params).sortOrder } :
-               (await params).sortBy === 'startDate' ? { startDate: (await params).sortOrder } :
-               { title: (await params).sortOrder },
-      skip: ((await params).page - 1) * (await params).limit,
-      take: (await params).limit
+    const routes = await prisma.delivererRoute.findMany({
+      where: { delivererId: deliverer.id },
+      orderBy: { createdAt: 'desc' }
     })
 
-    // Formater les données
+    // Formater les données pour le front-end
     const formattedRoutes = routes.map(route => ({
       id: route.id,
-      name: route.title || 'Route sans titre',
-      description: route.description,
-      departureLocation: {
-        address: route.startAddress,
-        latitude: route.startLatitude,
-        longitude: route.startLongitude
-      },
-      arrivalLocation: {
-        address: route.endAddress,
-        latitude: route.endLatitude,
-        longitude: route.endLongitude
-      },
-      departureTime: route.startDate.toISOString(),
-      arrivalTime: route.endDate.toISOString(),
-      isRecurring: route.isRecurring,
-      recurringPattern: route.recurringPattern,
-      maxCapacity: route.maxPackages,
+      startLocation: route.startLocation,
+      endLocation: route.endLocation,
+      startTime: route.startTime,
+      endTime: route.endTime,
+      daysOfWeek: route.daysOfWeek,
       vehicleType: route.vehicleType,
+      maxDistance: route.maxDistance,
+      minPrice: route.minPrice,
       isActive: route.isActive,
-      createdAt: route.createdAt.toISOString(),
-      
-      // Statistiques
-      currentLoad: route.matches.length,
-      availableSpots: route.maxPackages - route.matches.length,
-      totalEarnings: route.matches.reduce((sum, match) => 
-        sum + Number(match.announcement.basePrice || 0), 0
-      ),
-      
-      // Annonces associées
-      announcements: route.matches.map(match => ({
-        id: match.announcement.id,
-        title: match.announcement.title,
-        type: match.announcement.type,
-        price: Number(match.announcement.basePrice),
-        pickupAddress: match.announcement.pickupAddress,
-        deliveryAddress: match.announcement.deliveryAddress,
-        status: match.announcement.status,
-        matchScore: match.globalScore
-      }))
+      createdAt: route.createdAt.toISOString()
     }))
 
-    const total = await db.delivererRoute.count({ where })
-
-    // Statistiques
-    const stats = {
-      total,
-      active: await db.delivererRoute.count({ where: { ...where, isActive: true } }),
-      recurring: await db.delivererRoute.count({ where: { ...where, isRecurring: true } }),
-      totalCapacity: routes.reduce((sum, route) => sum + route.maxPackages, 0),
-      totalMatches: routes.reduce((sum, route) => sum + route.matches.length, 0)
-    }
-
-    console.log(`✅ Trouvé ${formattedRoutes.length} routes sur ${total} total`)
-
-    return NextResponse.json({
-      routes: formattedRoutes,
-      pagination: {
-        page: (await params).page,
-        limit: (await params).limit,
-        total,
-        totalPages: Math.ceil(total / (await params).limit),
-        hasNext: (await params).page < Math.ceil(total / (await params).limit),
-        hasPrev: (await params).page > 1
-      },
-      stats
-    })
-
+    return NextResponse.json({ routes: formattedRoutes })
   } catch (error) {
-    console.error('❌ Erreur récupération routes:', error)
+    console.error('Error fetching deliverer routes:', error)
     return NextResponse.json(
-      { error: 'Internal server error', details: error.message },
+      { error: 'Internal server error' },
       { status: 500 }
     )
   }
@@ -177,73 +95,54 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    console.log('🛣️ [POST /api/deliverer/routes] Création de route')
-    
-    const user = await getUserFromSession(request)
-    if (!user || user.role !== 'DELIVERER') {
+    const session = await auth()
+    if (!session || session.user.role !== 'DELIVERER') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     const body = await request.json()
-    const validatedData = createRouteSchema.parse(body)
+    const validatedRoute = routeSchema.parse(body)
 
-    // Créer la route
-    const newRoute = await db.delivererRoute.create({
+    const deliverer = await prisma.deliverer.findUnique({
+      where: { userId: session.user.id }
+    })
+
+    if (!deliverer) {
+      return NextResponse.json({ error: 'Deliverer not found' }, { status: 404 })
+    }
+
+    // Créer le trajet
+    const route = await prisma.delivererRoute.create({
       data: {
-        delivererId: user.id,
-        title: validatedData.name,
-        description: validatedData.description,
-        startAddress: validatedData.startAddress,
-        startLatitude: validatedData.startLatitude,
-        startLongitude: validatedData.startLongitude,
-        endAddress: validatedData.endAddress,
-        endLatitude: validatedData.endLatitude,
-        endLongitude: validatedData.endLongitude,
-        startDate: new Date(validatedData.startDate),
-        endDate: new Date(validatedData.endDate),
-        isRecurring: validatedData.isRecurring,
-        recurringPattern: validatedData.recurringPattern,
-        maxPackages: validatedData.maxPackages,
-        maxWeight: validatedData.maxWeight,
-        maxVolume: validatedData.maxVolume,
-        vehicleType: validatedData.vehicleType,
-        isActive: validatedData.isActive,
-        autoAccept: validatedData.autoAccept,
-        maxDetour: validatedData.maxDetour,
-        acceptedTypes: validatedData.acceptedTypes as any
+        delivererId: deliverer.id,
+        startLocation: validatedRoute.startLocation,
+        endLocation: validatedRoute.endLocation,
+        startTime: validatedRoute.startTime,
+        endTime: validatedRoute.endTime,
+        daysOfWeek: validatedRoute.daysOfWeek,
+        vehicleType: validatedRoute.vehicleType,
+        maxDistance: validatedRoute.maxDistance,
+        minPrice: validatedRoute.minPrice,
+        isActive: true
       }
     })
 
-    console.log('✅ Route créée:', newRoute.id)
-
-    return NextResponse.json({
-      success: true,
+    return NextResponse.json({ 
+      message: 'Route created successfully',
       route: {
-        id: newRoute.id,
-        name: newRoute.title,
-        description: newRoute.description,
-        departureLocation: {
-          address: newRoute.startAddress,
-          latitude: newRoute.startLatitude,
-          longitude: newRoute.startLongitude
-        },
-        arrivalLocation: {
-          address: newRoute.endAddress,
-          latitude: newRoute.endLatitude,
-          longitude: newRoute.endLongitude
-        },
-        departureTime: newRoute.startDate.toISOString(),
-        arrivalTime: newRoute.endDate.toISOString(),
-        isRecurring: newRoute.isRecurring,
-        recurringPattern: newRoute.recurringPattern,
-        maxCapacity: newRoute.maxPackages,
-        vehicleType: newRoute.vehicleType,
-        isActive: newRoute.isActive,
-        createdAt: newRoute.createdAt.toISOString()
-      },
-      message: 'Route créée avec succès'
+        id: route.id,
+        startLocation: route.startLocation,
+        endLocation: route.endLocation,
+        startTime: route.startTime,
+        endTime: route.endTime,
+        daysOfWeek: route.daysOfWeek,
+        vehicleType: route.vehicleType,
+        maxDistance: route.maxDistance,
+        minPrice: route.minPrice,
+        isActive: route.isActive,
+        createdAt: route.createdAt.toISOString()
+      }
     }, { status: 201 })
-
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
@@ -252,9 +151,9 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    console.error('❌ Erreur création route:', error)
+    console.error('Error creating deliverer route:', error)
     return NextResponse.json(
-      { error: 'Internal server error', details: error.message },
+      { error: 'Internal server error' },
       { status: 500 }
     )
   }

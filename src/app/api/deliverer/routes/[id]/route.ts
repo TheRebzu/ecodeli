@@ -6,26 +6,15 @@ import { handleApiError } from '@/lib/utils/api-response'
 
 // Schema de validation pour mise à jour de route
 const updateRouteSchema = z.object({
-  startLocation: z.object({
-    address: z.string().min(10),
-    city: z.string().min(2),
-    postalCode: z.string().min(5),
-    lat: z.number().optional(),
-    lng: z.number().optional()
-  }).optional(),
-  endLocation: z.object({
-    address: z.string().min(10),
-    city: z.string().min(2),
-    postalCode: z.string().min(5),
-    lat: z.number().optional(),
-    lng: z.number().optional()
-  }).optional(),
-  departureDate: z.string().datetime().optional(),
-  arrivalDate: z.string().datetime().optional(),
-  availableWeight: z.number().positive().optional(),
-  availableVolume: z.number().positive().optional(),
-  pricePerKg: z.number().positive().optional(),
-  isActive: z.boolean().optional()
+  isActive: z.boolean().optional(),
+  startLocation: z.string().min(5).optional(),
+  endLocation: z.string().min(5).optional(),
+  startTime: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/).optional(),
+  endTime: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/).optional(),
+  daysOfWeek: z.array(z.string()).optional(),
+  vehicleType: z.enum(['CAR', 'BIKE', 'SCOOTER', 'TRUCK', 'WALKING']).optional(),
+  maxDistance: z.number().min(1).max(50).optional(),
+  minPrice: z.number().min(5).max(100).optional()
 })
 
 // GET - Récupérer une route spécifique
@@ -245,5 +234,123 @@ export async function DELETE(
     return NextResponse.json({ message: 'Route deleted successfully' })
   } catch (error) {
     return handleApiError(error, 'deleting route')
+  }
+}
+
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const session = await auth();
+    if (!session || session.user.role !== 'DELIVERER') {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const body = await request.json();
+    const validatedData = updateRouteSchema.parse(body);
+
+    const deliverer = await prisma.deliverer.findUnique({
+      where: { userId: session.user.id }
+    });
+
+    if (!deliverer) {
+      return NextResponse.json({ error: 'Deliverer not found' }, { status: 404 });
+    }
+
+    // Vérifier que le trajet appartient au livreur
+    const existingRoute = await prisma.delivererRoute.findFirst({
+      where: {
+        id: params.id,
+        delivererId: deliverer.id
+      }
+    });
+
+    if (!existingRoute) {
+      return NextResponse.json({ error: 'Route not found' }, { status: 404 });
+    }
+
+    // Mettre à jour le trajet
+    const updatedRoute = await prisma.delivererRoute.update({
+      where: { id: params.id },
+      data: validatedData
+    });
+
+    return NextResponse.json({ 
+      message: 'Route updated successfully',
+      route: {
+        id: updatedRoute.id,
+        startLocation: updatedRoute.startLocation,
+        endLocation: updatedRoute.endLocation,
+        startTime: updatedRoute.startTime,
+        endTime: updatedRoute.endTime,
+        daysOfWeek: updatedRoute.daysOfWeek,
+        vehicleType: updatedRoute.vehicleType,
+        maxDistance: updatedRoute.maxDistance,
+        minPrice: updatedRoute.minPrice,
+        isActive: updatedRoute.isActive,
+        createdAt: updatedRoute.createdAt.toISOString()
+      }
+    });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        { error: 'Validation error', details: error.errors },
+        { status: 400 }
+      );
+    }
+
+    console.error('Error updating deliverer route:', error);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}
+
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const session = await auth();
+    if (!session || session.user.role !== 'DELIVERER') {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const deliverer = await prisma.deliverer.findUnique({
+      where: { userId: session.user.id }
+    });
+
+    if (!deliverer) {
+      return NextResponse.json({ error: 'Deliverer not found' }, { status: 404 });
+    }
+
+    // Vérifier que le trajet appartient au livreur
+    const existingRoute = await prisma.delivererRoute.findFirst({
+      where: {
+        id: params.id,
+        delivererId: deliverer.id
+      }
+    });
+
+    if (!existingRoute) {
+      return NextResponse.json({ error: 'Route not found' }, { status: 404 });
+    }
+
+    // Supprimer le trajet
+    await prisma.delivererRoute.delete({
+      where: { id: params.id }
+    });
+
+    return NextResponse.json({ 
+      message: 'Route deleted successfully'
+    });
+  } catch (error) {
+    console.error('Error deleting deliverer route:', error);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
   }
 }
