@@ -44,7 +44,7 @@ interface DeliveryDetails {
       firstName: string | null
       lastName: string | null
       phone: string | null
-    }
+    } | null
   }
 }
 
@@ -290,7 +290,11 @@ export default function DeliveryDetailPage({ params }: { params: Promise<{ id: s
               <div>
                 <h4 className="font-medium text-sm text-muted-foreground">Nom</h4>
                 <p className="text-sm">
-                  {delivery.client.profile.firstName} {delivery.client.profile.lastName}
+                  {delivery.client.profile ? (
+                    `${delivery.client.profile.firstName || 'Non renseigné'} ${delivery.client.profile.lastName || 'Non renseigné'}`
+                  ) : (
+                    'Profil non disponible'
+                  )}
                 </p>
               </div>
               
@@ -298,7 +302,9 @@ export default function DeliveryDetailPage({ params }: { params: Promise<{ id: s
                 <h4 className="font-medium text-sm text-muted-foreground">Téléphone</h4>
                 <div className="flex items-center gap-2">
                   <Phone className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm font-mono">{delivery.client.profile.phone}</span>
+                  <span className="text-sm font-mono">
+                    {delivery.client.profile?.phone || 'Non renseigné'}
+                  </span>
                 </div>
               </div>
             </CardContent>

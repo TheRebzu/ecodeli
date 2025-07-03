@@ -93,8 +93,8 @@ export default function ClientDeliveriesPage() {
 
   const filteredDeliveries = deliveries.filter(delivery => {
     const matchesSearch = delivery.announcement.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         delivery.deliverer.user.profile.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         delivery.deliverer.user.profile.lastName.toLowerCase().includes(searchTerm.toLowerCase());
+                         (delivery.deliverer.user.profile?.firstName?.toLowerCase().includes(searchTerm.toLowerCase()) || false) ||
+                         (delivery.deliverer.user.profile?.lastName?.toLowerCase().includes(searchTerm.toLowerCase()) || false);
     
     const matchesTab = activeTab === "active" 
       ? ["PENDING", "ACCEPTED", "IN_TRANSIT"].includes(delivery.status)
@@ -274,7 +274,11 @@ export default function ClientDeliveriesPage() {
                         <User className="w-4 h-4 text-gray-400" />
                         <span className="text-gray-600">{t("deliverer")}:</span>
                         <span>
-                          {delivery.deliverer.user.profile.firstName} {delivery.deliverer.user.profile.lastName}
+                          {delivery.deliverer.user.profile ? (
+                            `${delivery.deliverer.user.profile.firstName || 'Non renseigné'} ${delivery.deliverer.user.profile.lastName || 'Non renseigné'}`
+                          ) : (
+                            'Profil non disponible'
+                          )}
                         </span>
                       </div>
                       <div className="flex items-center space-x-2">

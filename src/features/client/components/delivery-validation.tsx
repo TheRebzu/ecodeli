@@ -158,7 +158,11 @@ export default function DeliveryValidation({ delivery, onValidationComplete }: D
                 <Clock className="w-4 h-4 text-gray-400" />
                 <span className="text-gray-600">{t("deliverer")}:</span>
                 <span>
-                  {delivery.deliverer.user.profile.firstName} {delivery.deliverer.user.profile.lastName}
+                  {delivery.deliverer.user.profile ? (
+                    `${delivery.deliverer.user.profile.firstName || 'Non renseigné'} ${delivery.deliverer.user.profile.lastName || 'Non renseigné'}`
+                  ) : (
+                    'Profil non disponible'
+                  )}
                 </span>
               </div>
             </div>
