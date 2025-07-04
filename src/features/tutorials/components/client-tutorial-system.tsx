@@ -266,7 +266,6 @@ export default function ClientTutorialSystem({ userId, onComplete, forceTutorial
 
   const closeTutorial = () => {
     setIsActive(false);
-    setIsPlaying(false);
     cleanupTutorial();
   };
 

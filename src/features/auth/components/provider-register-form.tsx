@@ -37,7 +37,7 @@ export default function ProviderRegisterForm() {
           password: data.password,
           name: data.businessName,
           role: 'PROVIDER',
-          // Propriétés additionnelles pour Better Auth
+          // Propriétés additionnelles pour NextAuth
           isActive: false,
           validationStatus: 'PENDING'
         })

@@ -219,7 +219,7 @@ alwaysApply: true
 ### Phase 1 : Fondations (Semaines 1-2)
 1. ✅ Setup Next.js 15 + Prisma + PostgreSQL
 2. ✅ Modèles de données complets
-3. ✅ Authentification Better-Auth
+3. ✅ Authentification NextAuth
 4. [ ] Configuration environnements
 
 ### Phase 2 : Mission 1 Core (Semaines 3-6)

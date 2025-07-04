@@ -96,7 +96,7 @@ return NextResponse.json({ message: "Simulated success" })
 ## 🔧 SERVICES OBLIGATOIRES FONCTIONNELS
 
 ### Authentification
-- Better-Auth avec [src/lib/auth.ts](mdc:src/lib/auth.ts)
+- NextAuth avec [src/lib/auth.ts](mdc:src/lib/auth.ts)
 - Sessions réelles avec cookies sécurisés
 - Permissions par rôle vérifiées
 

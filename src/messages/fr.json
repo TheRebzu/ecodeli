@@ -1795,6 +1795,29 @@
       "tabs": {
         "active": "En cours",
         "history": "Historique"
+      },
+      "search_placeholder": "Rechercher dans les livraisons...",
+      "pickup": "Récupération",
+      "delivery": "Livraison",
+      "deliverer": "Livreur",
+      "completed_at": "Livré le",
+      "scheduled_at": "Programmé le",
+      "status": {
+        "pending": "En attente",
+        "accepted": "Acceptée", 
+        "picked_up": "Collectée",
+        "in_transit": "En cours",
+        "delivered": "Livrée",
+        "cancelled": "Annulée"
+      },
+      "actions": {
+        "view_details": "Voir détails",
+        "track": "Suivre",
+        "contact_deliverer": "Contacter le livreur"
+      },
+      "empty": {
+        "title": "Aucune livraison",
+        "description": "Vous n'avez pas encore de livraisons"
       }
     },
     "payments": {

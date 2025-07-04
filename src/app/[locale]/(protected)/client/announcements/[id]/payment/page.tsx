@@ -45,6 +45,7 @@ function PaymentForm({ announcement, onSuccess }: { announcement: Announcement, 
       // Créer l'intent de paiement
       const response = await fetch(`/api/client/announcements/${announcement.id}/create-payment-intent`, {
         method: 'POST',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           amount: Math.round(announcement.price * 100), // Convertir en centimes
@@ -73,6 +74,7 @@ function PaymentForm({ announcement, onSuccess }: { announcement: Announcement, 
         // Paiement depuis le portefeuille
         const walletResponse = await fetch(`/api/client/announcements/${announcement.id}/pay-from-wallet`, {
           method: 'POST',
+          credentials: 'include',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             amount: announcement.price
@@ -211,10 +213,17 @@ export default function AnnouncementPaymentPage() {
   const fetchAnnouncement = async (id: string) => {
     try {
       setLoading(true)
-      const response = await fetch(`/api/client/announcements/${id}`)
+      const response = await fetch(`/api/client/announcements/${id}`, {
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      })
       
       if (!response.ok) {
-        throw new Error('Annonce non trouvée')
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.error || 'Annonce non trouvée')
       }
 
       const data = await response.json()

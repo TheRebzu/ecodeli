@@ -23,7 +23,7 @@ EcoDeli est une plateforme de crowdshipping éco-responsable qui met en relation
 - **Framework** : Next.js 15 (App Router)
 - **Language** : TypeScript
 - **Base de données** : PostgreSQL + Prisma
-- **Authentification** : Better-Auth
+- **Authentification** : NextAuth.js
 - **API** : Next.js API Routes
 - **État global** : Zustand
 - **Formulaires** : React Hook Form + Zod
@@ -132,7 +132,7 @@ Les traductions sont dans `src/messages/` et peuvent être étendues facilement.
 
 ## 🔐 Authentification
 
-EcoDeli utilise Better-Auth avec 5 rôles utilisateurs :
+EcoDeli utilise NextAuth.js avec 5 rôles utilisateurs :
 - `CLIENT` - Clients particuliers
 - `DELIVERER` - Livreurs occasionnels  
 - `MERCHANT` - Commerçants partenaires

@@ -11,7 +11,7 @@ alwaysApply: true
 - **Node.js** pour le runtime
 
 ## Authentification
-- **Better-Auth** pour la gestion complète de l'authentification
+- **NextAuth.js** pour la gestion complète de l'authentification
 - Support des 5 rôles : CLIENT, DELIVERER, MERCHANT, PROVIDER, ADMIN
 - Sessions sécurisées avec cookies
 
@@ -65,7 +65,8 @@ alwaysApply: true
 {
   "next": "^15.0.0",
   "@auth/core": "latest",
-  "better-auth": "latest",
+  "next-auth": "^5.0.0-beta.29",
+  "@auth/prisma-adapter": "latest",
   "prisma": "latest",
   "@prisma/client": "latest",
   "zustand": "latest",

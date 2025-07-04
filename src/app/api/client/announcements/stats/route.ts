@@ -1,20 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '@/lib/auth'
+import { requireRole } from '@/lib/auth/utils'
 import { db } from '@/lib/db'
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await auth()
-    if (!session?.user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+    const user = await requireRole(request, ['CLIENT'])
 
     // Récupérer toutes les annonces du client
     const announcements = await db.announcement.findMany({
-      where: { authorId: session.user.id },
+      where: { authorId: user.id },
       include: {
-        payments: {
-          where: { status: 'COMPLETED' }
+        delivery: {
+          include: {
+            payment: {
+              where: { status: 'COMPLETED' }
+            }
+          }
         }
       }
     })
@@ -24,18 +25,20 @@ export async function GET(request: NextRequest) {
       active: announcements.filter(a => a.status === 'ACTIVE').length,
       matched: announcements.filter(a => a.status === 'MATCHED').length,
       completed: announcements.filter(a => a.status === 'COMPLETED').length,
+      inProgress: announcements.filter(a => a.status === 'IN_PROGRESS').length,
+      totalAnnouncements: announcements.length,
       totalSaved: 0
     }
 
     // Calculer les économies réalisées (exemple: 20% d'économie par rapport aux services traditionnels)
     const totalSpent = announcements
-      .filter(a => a.status === 'COMPLETED')
+      .filter(a => a.status === 'COMPLETED' && a.delivery?.payment)
       .reduce((sum, announcement) => {
-        const paid = announcement.payments.reduce((total, payment) => total + payment.amount, 0)
-        return sum + paid
+        const paid = announcement.delivery?.payment?.amount || 0
+        return sum + Number(paid)
       }, 0)
 
-    stats.totalSaved = Math.round(totalSpent * 0.2) // 20% d'économie
+    stats.totalSaved = Math.round(totalSpent * 0.2) // 20% d'économie simulée
 
     return NextResponse.json(stats)
   } catch (error) {

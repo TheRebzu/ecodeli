@@ -1,6 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getUserFromSession } from '@/lib/auth/utils'
 import { db } from '@/lib/db'
+import { z } from 'zod'
+
+// Schema pour créer un paiement
+const createPaymentSchema = z.object({
+  announcementId: z.string().optional(),
+  bookingId: z.string().optional(),
+  amount: z.number().positive('Le montant doit être positif'),
+  currency: z.string().default('EUR'),
+  paymentMethod: z.string().default('stripe'),
+  description: z.string().optional(),
+  metadata: z.object({
+    type: z.string().optional(),
+    description: z.string().optional()
+  }).optional()
+})
 
 export async function GET(request: NextRequest) {
   const user = await getUserFromSession(request)
@@ -158,6 +173,128 @@ export async function GET(request: NextRequest) {
     })
   } catch (error) {
     console.error('Error fetching payments:', error)
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    )
+  }
+}
+
+// POST - Créer un nouveau paiement
+export async function POST(request: NextRequest) {
+  try {
+    console.log('💳 [POST /api/client/payments] Début de la requête')
+    
+    const user = await getUserFromSession(request)
+    if (!user) {
+      console.log('❌ Utilisateur non authentifié')
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    if (user.role !== 'CLIENT') {
+      console.log('❌ Rôle incorrect:', user.role)
+      return NextResponse.json({ error: 'Forbidden - CLIENT role required' }, { status: 403 })
+    }
+
+    const body = await request.json()
+    const validatedData = createPaymentSchema.parse(body)
+
+    console.log('📝 Données de paiement reçues:', {
+      amount: validatedData.amount,
+      currency: validatedData.currency,
+      announcementId: validatedData.announcementId,
+      bookingId: validatedData.bookingId
+    })
+
+    // Vérifier que l'annonce ou la réservation existe si spécifiée
+    if (validatedData.announcementId) {
+      const announcement = await db.announcement.findFirst({
+        where: {
+          id: validatedData.announcementId,
+          authorId: user.id
+        }
+      })
+
+      if (!announcement) {
+        return NextResponse.json({ 
+          error: 'Annonce non trouvée ou non autorisée' 
+        }, { status: 404 })
+      }
+    }
+
+    if (validatedData.bookingId) {
+      const booking = await db.booking.findFirst({
+        where: {
+          id: validatedData.bookingId,
+          clientId: user.id
+        }
+      })
+
+      if (!booking) {
+        return NextResponse.json({ 
+          error: 'Réservation non trouvée ou non autorisée' 
+        }, { status: 404 })
+      }
+    }
+
+    // Simuler l'intégration Stripe (à remplacer par la vraie intégration)
+    const stripePaymentId = `pi_test_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+    
+    // Créer le paiement en base
+    const payment = await db.payment.create({
+      data: {
+        userId: user.id,
+        announcementId: validatedData.announcementId,
+        bookingId: validatedData.bookingId,
+        amount: validatedData.amount,
+        currency: validatedData.currency,
+        status: 'COMPLETED', // Simulé comme réussi
+        paymentMethod: validatedData.paymentMethod,
+        stripePaymentId: stripePaymentId,
+        paidAt: new Date(),
+        metadata: {
+          type: validatedData.metadata?.type || 'DELIVERY',
+          description: validatedData.description || `Paiement ${validatedData.amount}€`,
+          ...validatedData.metadata
+        }
+      }
+    })
+
+    console.log(`✅ Paiement créé avec succès: ${payment.id}`)
+    console.log(`💳 Stripe Payment ID: ${stripePaymentId}`)
+
+    // TODO: Intégrer avec la vraie API Stripe
+    // const stripePayment = await stripe.paymentIntents.create({
+    //   amount: Math.round(validatedData.amount * 100), // Convertir en centimes
+    //   currency: validatedData.currency,
+    //   metadata: {
+    //     userId: user.id,
+    //     announcementId: validatedData.announcementId,
+    //     bookingId: validatedData.bookingId
+    //   }
+    // })
+
+    return NextResponse.json({
+      payment: {
+        id: payment.id,
+        amount: payment.amount,
+        currency: payment.currency,
+        status: payment.status,
+        stripePaymentId: payment.stripePaymentId,
+        paidAt: payment.paidAt?.toISOString(),
+        createdAt: payment.createdAt.toISOString()
+      }
+    }, { status: 201 })
+
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json({
+        error: 'Données invalides',
+        details: error.errors
+      }, { status: 400 })
+    }
+
+    console.error('❌ Erreur création paiement:', error)
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

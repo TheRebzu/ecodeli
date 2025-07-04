@@ -23,9 +23,9 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Deliverer not found' }, { status: 404 })
     }
 
-    // Construire les filtres
+    // Construire les filtres avec les bonnes valeurs d'enum
     const where: any = {
-      status: status || { in: ['PENDING', 'ACCEPTED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED'] }
+      status: status || { in: ['ACTIVE', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED'] }
     }
 
     if (type) {
@@ -33,9 +33,9 @@ export async function GET(request: NextRequest) {
     }
 
     // Pour les annonces disponibles, exclure celles déjà acceptées par ce livreur
-    if (!status || status === 'PENDING') {
+    if (!status || status === 'ACTIVE') {
       where.delivererId = null
-    } else if (status === 'ACCEPTED' || status === 'IN_PROGRESS') {
+    } else if (status === 'IN_PROGRESS') {
       where.delivererId = deliverer.id
     }
 
@@ -43,24 +43,24 @@ export async function GET(request: NextRequest) {
     const announcements = await db.announcement.findMany({
       where,
       include: {
-        client: {
+        author: {
           include: {
-            user: {
+            profile: {
               select: {
-                name: true,
-                email: true
+                firstName: true,
+                lastName: true
               }
             }
           }
         },
         _count: {
           select: {
-            deliveries: true
+            matches: true
           }
         }
       },
       orderBy: [
-        { urgencyLevel: 'desc' },
+        { isUrgent: 'desc' },
         { createdAt: 'desc' }
       ]
     })
@@ -76,10 +76,12 @@ export async function GET(request: NextRequest) {
       deliveryAddress: announcement.deliveryAddress,
       estimatedPrice: announcement.finalPrice || announcement.basePrice,
       estimatedDuration: announcement.estimatedDuration || 30,
-      urgencyLevel: announcement.urgencyLevel || 'medium',
+      isUrgent: announcement.isUrgent || false,
       createdAt: announcement.createdAt.toISOString(),
-      scheduledDate: announcement.scheduledDate?.toISOString(),
-      clientName: announcement.client.user.name || 'Anonymous'
+      pickupDate: announcement.pickupDate?.toISOString(),
+      clientName: announcement.author.profile 
+        ? `${announcement.author.profile.firstName || ''} ${announcement.author.profile.lastName || ''}`.trim()
+        : announcement.author.email
     }))
 
     return NextResponse.json({

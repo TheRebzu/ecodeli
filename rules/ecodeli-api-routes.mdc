@@ -13,7 +13,7 @@ alwaysApply: true
 ├── register/route.ts       # POST - Inscription utilisateur
 ├── login/route.ts          # POST - Connexion
 ├── logout/route.ts         # POST - Déconnexion
-└── [...all]/route.ts       # Better-Auth configuration
+└── [...nextauth]/route.ts  # NextAuth configuration
 ```
 
 ### 2. Gestion Utilisateurs

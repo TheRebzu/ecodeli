@@ -85,7 +85,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
 
   const handleLogout = async () => {
     try {
-      // TODO: Implement proper logout with Better Auth
+              // TODO: Implement proper logout with NextAuth
       router.push("/fr/login");
     } catch (error) {
       console.error('Error during logout:', error);

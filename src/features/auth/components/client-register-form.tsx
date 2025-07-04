@@ -57,7 +57,7 @@ export function ClientRegisterForm() {
           password: apiData.password,
           name: `${apiData.firstName} ${apiData.lastName}`,
           role: apiData.role,
-          // Propriétés additionnelles pour Better Auth
+          // Propriétés additionnelles pour NextAuth
           isActive: true,
           validationStatus: 'APPROVED'
         })

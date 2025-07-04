@@ -1,6 +1,6 @@
 // API Upload de fichiers sécurisé EcoDeli
 import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '@/lib/auth'
+import { getUserFromSession } from '@/lib/auth/utils'
 import { prisma } from '@/lib/db'
 import { writeFile, mkdir } from 'fs/promises'
 import { join } from 'path'
@@ -28,8 +28,8 @@ const MAX_FILE_SIZES = {
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await auth()
-    if (!session) {
+    const user = await getUserFromSession(request)
+    if (!user) {
       return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
     }
 
@@ -75,10 +75,10 @@ export async function POST(request: NextRequest) {
     const timestamp = Date.now()
     const randomId = Math.random().toString(36).substring(2, 15)
     const extension = file.name.split('.').pop()
-    const filename = `${session.user.id}_${timestamp}_${randomId}.${extension}`
+    const filename = `${user.id}_${timestamp}_${randomId}.${extension}`
 
     // Correction : upload dans public/uploads
-    const uploadDir = join(process.cwd(), 'public', 'uploads', category, session.user.role.toLowerCase())
+    const uploadDir = join(process.cwd(), 'public', 'uploads', category, user.role.toLowerCase())
     if (!existsSync(uploadDir)) {
       await mkdir(uploadDir, { recursive: true })
     }
@@ -90,7 +90,7 @@ export async function POST(request: NextRequest) {
     await writeFile(filepath, buffer)
 
     // URL relative pour servir le fichier
-    const url = `/uploads/${category}/${session.user.role.toLowerCase()}/${filename}`
+    const url = `/uploads/${category}/${user.role.toLowerCase()}/${filename}`
 
     // Enregistrement ou mise à jour en base de données
     let document;
@@ -103,7 +103,7 @@ export async function POST(request: NextRequest) {
             { id: documentId },
             { id: certificationId }
           ],
-          userId: session.user.id // Sécurité : s'assurer que le document appartient à l'utilisateur
+          userId: user.id // Sécurité : s'assurer que le document appartient à l'utilisateur
         }
       });
 
@@ -124,7 +124,7 @@ export async function POST(request: NextRequest) {
         // Créer un nouveau document si pas trouvé
         document = await prisma.document.create({
           data: {
-            userId: session.user.id,
+            userId: user.id,
             type: type as any,
             filename,
             originalName: file.name,
@@ -139,7 +139,7 @@ export async function POST(request: NextRequest) {
       // Créer un nouveau document
       document = await prisma.document.create({
         data: {
-          userId: session.user.id,
+          userId: user.id,
           type: type as any,
           filename,
           originalName: file.name,
@@ -151,63 +151,10 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Log de l'activité
-    await prisma.activityLog.create({
-      data: {
-        userId: session.user.id,
-        action: 'UPLOAD_DOCUMENT',
-        entityType: 'DOCUMENT',
-        entityId: document.id,
-        metadata: {
-          filename: file.name,
-          type,
-          category,
-          size: file.size
-        },
-        ipAddress: request.headers.get('x-forwarded-for') || 'unknown',
-        userAgent: request.headers.get('user-agent') || 'unknown'
-      }
-    })
+    console.log(`✅ Document uploadé avec succès: ${document.id}`)
 
-    // Notification pour validation admin (si document nécessite validation)
-    if (['IDENTITY', 'DRIVING_LICENSE', 'INSURANCE', 'CERTIFICATION'].includes(type)) {
-      await prisma.notification.create({
-        data: {
-          userId: session.user.id,
-          type: 'DOCUMENT_UPLOADED',
-          title: 'Document en attente de validation',
-          message: `Votre document ${file.name} a été téléchargé et est en attente de validation par notre équipe.`,
-          data: {
-            documentId: document.id,
-            documentType: type,
-            filename: file.name
-          }
-        }
-      })
-
-      // Notification pour les admins
-      const admins = await prisma.user.findMany({
-        where: { role: 'ADMIN' },
-        select: { id: true }
-      })
-
-      for (const admin of admins) {
-        await prisma.notification.create({
-          data: {
-            userId: admin.id,
-            type: 'DOCUMENT_PENDING_VALIDATION',
-            title: 'Nouveau document à valider',
-            message: `Un nouveau document ${type} de ${session.user.email} nécessite une validation.`,
-            data: {
-              documentId: document.id,
-              userId: session.user.id,
-              userEmail: session.user.email,
-              documentType: type
-            }
-          }
-        })
-      }
-    }
+    // TODO: Ajouter notifications et logs d'activité quand les tables seront créées
+    // Note: activityLog et notification tables non implémentées pour l'instant
 
     return NextResponse.json({
       success: true,
@@ -224,7 +171,7 @@ export async function POST(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Erreur upload:', error)
+    console.error('❌ Erreur upload:', error)
     return NextResponse.json(
       { error: 'Erreur lors du téléchargement' },
       { status: 500 }
@@ -234,8 +181,8 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await auth()
-    if (!session) {
+    const user = await getUserFromSession(request)
+    if (!user) {
       return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
     }
 
@@ -244,7 +191,7 @@ export async function GET(request: NextRequest) {
     const status = searchParams.get('status')
 
     // Récupérer les documents de l'utilisateur
-    const where: any = { userId: session.user.id }
+    const where: any = { userId: user.id }
     
     if (type) {
       where.type = type
@@ -265,9 +212,6 @@ export async function GET(request: NextRequest) {
         url: true,
         size: true,
         validationStatus: true,
-        validatedAt: true,
-        rejectionReason: true,
-        expirationDate: true,
         createdAt: true,
         updatedAt: true
       }
@@ -279,7 +223,7 @@ export async function GET(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Erreur récupération documents:', error)
+    console.error('❌ Erreur récupération documents:', error)
     return NextResponse.json(
       { error: 'Erreur lors de la récupération des documents' },
       { status: 500 }
@@ -289,8 +233,8 @@ export async function GET(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
-    const session = await auth()
-    if (!session) {
+    const user = await getUserFromSession(request)
+    if (!user) {
       return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
     }
 
@@ -305,7 +249,7 @@ export async function DELETE(request: NextRequest) {
     const document = await prisma.document.findFirst({
       where: {
         id: documentId,
-        userId: session.user.id
+        userId: user.id
       }
     })
 
@@ -314,7 +258,7 @@ export async function DELETE(request: NextRequest) {
     }
 
     // Ne pas permettre la suppression de documents validés (sauf admin)
-    if (document.validationStatus === 'APPROVED' && session.user.role !== 'ADMIN') {
+    if (document.validationStatus === 'APPROVED' && user.role !== 'ADMIN') {
       return NextResponse.json(
         { error: 'Impossible de supprimer un document validé' },
         { status: 403 }
@@ -329,19 +273,7 @@ export async function DELETE(request: NextRequest) {
     // TODO: Supprimer aussi le fichier physique
     // unlink(join(process.cwd(), document.url))
 
-    // Log de l'activité
-    await prisma.activityLog.create({
-      data: {
-        userId: session.user.id,
-        action: 'DELETE_DOCUMENT',
-        entityType: 'DOCUMENT',
-        entityId: documentId,
-        metadata: {
-          filename: document.originalName,
-          type: document.type
-        }
-      }
-    })
+    console.log(`✅ Document supprimé: ${documentId}`)
 
     return NextResponse.json({
       success: true,
@@ -349,7 +281,7 @@ export async function DELETE(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Erreur suppression document:', error)
+    console.error('❌ Erreur suppression document:', error)
     return NextResponse.json(
       { error: 'Erreur lors de la suppression' },
       { status: 500 }

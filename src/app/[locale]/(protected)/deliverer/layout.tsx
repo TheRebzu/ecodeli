@@ -40,14 +40,6 @@ export default function DelivererLayout({ children }: DelivererLayoutProps) {
     setMobileMenuOpen(!mobileMenuOpen)
   }
 
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-  // TODO: Get real data from API
-  const activeDeliveries = 0
-  const pendingRequests = 0
-=======
-=======
->>>>>>> Stashed changes
   // Mock notifications for deliverer
   const mockNotifications = [
     {
@@ -75,10 +67,6 @@ export default function DelivererLayout({ children }: DelivererLayoutProps) {
       createdAt: new Date()
     }
   ]
-<<<<<<< Updated upstream
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
 
   if (isLoading) {
     return (
@@ -136,22 +124,11 @@ export default function DelivererLayout({ children }: DelivererLayoutProps) {
             id: user.id,
             name: user.name || user.email.split('@')[0],
             email: user.email,
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-            rating: undefined, // TODO: Get from API
-            isVerified: undefined // TODO: Get from API
-=======
-=======
->>>>>>> Stashed changes
             role: user.role,
             isValidated: true, // This would come from user profile
             rating: 4.8, // This would come from user profile
             nfcCardId: 'NFC-001', // This would come from user profile
             avatar: '' // Avatar would be loaded from profile
-<<<<<<< Updated upstream
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
           }}
           onSidebarToggle={toggleMobileMenu}
           notifications={mockNotifications}

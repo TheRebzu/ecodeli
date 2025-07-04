@@ -39,7 +39,7 @@ export function DelivererRegisterForm() {
           password: data.password,
           name: data.name,
           role: 'DELIVERER',
-          // Propriétés additionnelles pour Better Auth
+          // Propriétés additionnelles pour NextAuth
           isActive: false,
           validationStatus: 'PENDING'
         })

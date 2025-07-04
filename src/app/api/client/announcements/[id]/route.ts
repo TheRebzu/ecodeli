@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '@/lib/auth'
+import { requireRole } from '@/lib/auth/utils'
 import { prisma } from '@/lib/db'
 import { z } from 'zod'
 
@@ -9,15 +9,12 @@ const updateAnnouncementSchema = z.object({
   description: z.string().min(20, 'La description doit faire au moins 20 caractères').optional(),
   pickupAddress: z.string().min(10, 'Adresse de récupération requise').optional(),
   deliveryAddress: z.string().min(10, 'Adresse de livraison requise').optional(),
-  weight: z.number().positive('Le poids doit être positif').optional(),
-  dimensions: z.string().optional(),
-  pickupDate: z.string().datetime('Date de récupération invalide').optional(),
-  deliveryDeadline: z.string().datetime('Date limite de livraison invalide').optional(),
-  price: z.number().positive('Le prix doit être positif').optional(),
-  isFragile: z.boolean().optional(),
-  requiresSpecialHandling: z.boolean().optional(),
-  instructions: z.string().optional(),
-  status: z.enum(['ACTIVE', 'PAUSED', 'CANCELLED']).optional()
+  basePrice: z.number().positive('Le prix doit être positif').optional(),
+  isUrgent: z.boolean().optional(),
+  isFlexibleDate: z.boolean().optional(),
+  specialInstructions: z.string().optional(),
+  type: z.enum(['PACKAGE_DELIVERY', 'PERSON_TRANSPORT', 'AIRPORT_TRANSFER', 'SHOPPING', 'INTERNATIONAL_PURCHASE', 'PET_SITTING', 'HOME_SERVICE', 'CART_DROP']).optional(),
+  status: z.enum(['DRAFT', 'ACTIVE', 'MATCHED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED']).optional()
 })
 
 // GET - Détails d'une annonce spécifique
@@ -27,83 +24,79 @@ export async function GET(
 ) {
   try {
     const { id } = await params
-    const session = await auth()
-    if (!session?.user || session.user.role !== 'CLIENT') {
-      return NextResponse.json({ error: 'Accès refusé - Rôle CLIENT requis' }, { status: 403 })
-    }
+    const user = await requireRole(request, ['CLIENT'])
 
     const announcement = await prisma.announcement.findFirst({
       where: {
         id,
-        authorId: session.user.id
+        authorId: user.id
       },
       include: {
-        _count: {
-          select: { 
-            reviews: true,
-            matches: true,
-            attachments: true,
-            notifications: true,
-            tracking: true
+        author: {
+          include: {
+            profile: true
           }
         },
+        Client: {
+          include: {
+            user: {
+              include: {
+                profile: true
+              }
+            }
+          }
+        },
+        Merchant: {
+          include: {
+            user: {
+              include: {
+                profile: true
+              }
+            }
+          }
+        },
+        PackageAnnouncement: true,
+        ServiceAnnouncement: true,
         delivery: {
-          select: {
-            id: true,
-            status: true,
-            trackingNumber: true,
-            validationCode: true,
-            pickupDate: true,
-            deliveryDate: true,
-            actualDeliveryDate: true,
-            price: true,
-            delivererFee: true,
-            platformFee: true,
-            insuranceFee: true,
-            createdAt: true,
-            updatedAt: true,
+          include: {
             deliverer: {
-              select: {
-                id: true,
-                name: true,
-                profile: {
-                  select: {
-                    firstName: true,
-                    lastName: true,
-                    avatar: true,
-                    phone: true
-                  }
-                }
+              include: {
+                profile: true
               }
             },
             tracking: {
               orderBy: { timestamp: 'desc' },
               take: 10
-            },
-            ProofOfDelivery: {
-              select: {
-                photos: true,
-                notes: true,
-                createdAt: true
-              }
             }
           }
+        },
+        matches: {
+          include: {
+            route: {
+              include: {
+                deliverer: {
+                  include: {
+                    profile: true
+                  }
+                }
+              }
+            },
+            deliverer: {
+              include: {
+                profile: true
+              }
+            }
+          },
+          orderBy: { globalScore: 'desc' },
+          take: 10
         },
         reviews: {
           include: {
             client: {
               include: {
                 user: {
-                  select: {
-                    id: true,
-                    name: true,
-                    profile: {
-                      select: {
-                        firstName: true,
-                        lastName: true,
-                        avatar: true
-                      }
-                    }
+                  include: {
+                    profile: true
                   }
                 }
               }
@@ -122,7 +115,136 @@ export async function GET(
       )
     }
 
-    return NextResponse.json(announcement)
+    // Transformer les données pour correspondre au format attendu par le frontend
+    const transformedAnnouncement = {
+      id: announcement.id,
+      title: announcement.title,
+      description: announcement.description,
+      type: announcement.type,
+      status: announcement.status,
+      price: announcement.basePrice,
+      currency: announcement.currency,
+      urgent: announcement.isUrgent,
+      flexibleDates: announcement.isFlexibleDate,
+      specialInstructions: announcement.specialInstructions,
+      viewCount: announcement.viewCount || 0,
+      createdAt: announcement.createdAt,
+      updatedAt: announcement.updatedAt,
+      publishedAt: announcement.publishedAt,
+      desiredDate: announcement.pickupDate || announcement.createdAt,
+
+      // Informations auteur (CORRECTION: inclure l'auteur principal)
+      author: announcement.author ? {
+        id: announcement.author.id,
+        email: announcement.author.email,
+        profile: announcement.author.profile
+      } : null,
+      
+      // Transformation des adresses au format attendu
+      startLocation: {
+        address: announcement.pickupAddress,
+        city: announcement.pickupAddress?.split(',')[1]?.trim() || '',
+        postalCode: '',
+        country: 'FR',
+        lat: announcement.pickupLatitude,
+        lng: announcement.pickupLongitude
+      },
+      endLocation: {
+        address: announcement.deliveryAddress,
+        city: announcement.deliveryAddress?.split(',')[1]?.trim() || '',
+        postalCode: '',
+        country: 'FR',
+        lat: announcement.deliveryLatitude,
+        lng: announcement.deliveryLongitude
+      },
+
+      // Détails du client/merchant
+      client: announcement.Client ? {
+        id: announcement.Client.userId,
+        profile: announcement.Client.user.profile
+      } : null,
+      
+      merchant: announcement.Merchant ? {
+        id: announcement.Merchant.userId,
+        profile: {
+          firstName: announcement.Merchant.user.profile?.firstName,
+          lastName: announcement.Merchant.user.profile?.lastName,
+          businessName: announcement.Merchant.companyName,
+          avatar: announcement.Merchant.user.profile?.avatar
+        }
+      } : null,
+
+      // Détails du colis si applicable
+      packageDetails: announcement.PackageAnnouncement ? {
+        weight: announcement.PackageAnnouncement.weight,
+        length: announcement.PackageAnnouncement.length,
+        width: announcement.PackageAnnouncement.width,
+        height: announcement.PackageAnnouncement.height,
+        fragile: announcement.PackageAnnouncement.fragile,
+        requiresInsurance: announcement.PackageAnnouncement.requiresInsurance,
+        insuredValue: announcement.PackageAnnouncement.insuredValue,
+        content: announcement.PackageAnnouncement.specialInstructions || 'Contenu non spécifié'
+      } : null,
+
+      // Détails du service si applicable
+      serviceDetails: announcement.ServiceAnnouncement ? {
+        serviceType: announcement.ServiceAnnouncement.serviceType,
+        numberOfPeople: announcement.ServiceAnnouncement.numberOfPeople,
+        duration: announcement.ServiceAnnouncement.duration,
+        recurringService: announcement.ServiceAnnouncement.recurringService,
+        recurringPattern: announcement.ServiceAnnouncement.recurringPattern,
+        specialRequirements: announcement.ServiceAnnouncement.specialRequirements
+      } : null,
+
+      // Informations de livraison
+      delivery: announcement.delivery ? {
+        id: announcement.delivery.id,
+        status: announcement.delivery.status,
+        trackingNumber: announcement.delivery.trackingNumber,
+        deliverer: announcement.delivery.deliverer ? {
+          id: announcement.delivery.deliverer.id,
+          profile: announcement.delivery.deliverer.profile
+        } : null
+      } : null,
+
+      // Correspondances de trajets
+      routeMatches: announcement.matches.map(match => ({
+        id: match.id,
+        routeId: match.routeId,
+        announcementId: match.announcementId,
+        matchScore: Math.round(match.globalScore),
+        isNotified: !!match.notifiedAt,
+        notifiedAt: match.notifiedAt,
+        createdAt: match.createdAt,
+        route: match.route ? {
+          id: match.route.id,
+          delivererId: match.route.delivererId,
+          startLocation: {
+            address: match.route.startAddress,
+            lat: match.route.startLatitude,
+            lng: match.route.startLongitude
+          },
+          endLocation: {
+            address: match.route.endAddress,
+            lat: match.route.endLatitude,
+            lng: match.route.endLongitude
+          },
+          departureTime: match.route.startDate,
+          deliverer: match.route.deliverer ? {
+            id: match.route.deliverer.id,
+            profile: match.route.deliverer.profile
+          } : null
+        } : null
+      })),
+
+      // Évaluations
+      reviews: announcement.reviews,
+      
+      // Pièces jointes
+      attachments: announcement.attachments
+    }
+
+    return NextResponse.json(transformedAnnouncement)
 
   } catch (error) {
     console.error('Erreur récupération annonce:', error)
@@ -140,16 +262,13 @@ export async function PUT(
 ) {
   try {
     const { id } = await params
-    const session = await auth()
-    if (!session?.user || session.user.role !== 'CLIENT') {
-      return NextResponse.json({ error: 'Accès refusé - Rôle CLIENT requis' }, { status: 403 })
-    }
+    const user = await requireRole(request, ['CLIENT'])
 
     // Vérifier que l'annonce existe et appartient au client
     const existingAnnouncement = await prisma.announcement.findFirst({
       where: {
         id,
-        authorId: session.user.id
+        authorId: user.id
       },
       include: {
         delivery: true
@@ -172,28 +291,22 @@ export async function PUT(
     }
 
     const body = await request.json()
-    const validatedData = updateAnnouncementSchema.parse(body)
-
-    // Valider les dates si elles sont modifiées
-    if (validatedData.pickupDate || validatedData.deliveryDeadline) {
-      const pickupDate = new Date(validatedData.pickupDate || existingAnnouncement.pickupDate)
-      const deliveryDeadline = new Date(validatedData.deliveryDeadline || existingAnnouncement.deliveryDeadline)
-      const now = new Date()
-
-      if (pickupDate <= now) {
-        return NextResponse.json(
-          { error: 'La date de récupération doit être future' },
-          { status: 400 }
-        )
-      }
-
-      if (deliveryDeadline <= pickupDate) {
-        return NextResponse.json(
-          { error: 'La date limite doit être après la récupération' },
-          { status: 400 }
-        )
-      }
+    
+    // Transformer les données du frontend vers le format Prisma
+    const transformedData = {
+      title: body.title,
+      description: body.description,
+      type: body.type,
+      pickupAddress: body.startLocation?.address || body.pickupAddress,
+      deliveryAddress: body.endLocation?.address || body.deliveryAddress,
+      basePrice: body.price || body.basePrice,
+      isUrgent: body.urgent !== undefined ? body.urgent : body.isUrgent,
+      isFlexibleDate: body.flexibleDates !== undefined ? body.flexibleDates : body.isFlexibleDate,
+      specialInstructions: body.specialInstructions,
+      status: body.status
     }
+
+    const validatedData = updateAnnouncementSchema.parse(transformedData)
 
     // Mettre à jour l'annonce
     const updatedAnnouncement = await prisma.announcement.update({
@@ -201,11 +314,6 @@ export async function PUT(
       data: {
         ...validatedData,
         updatedAt: new Date()
-      },
-      include: {
-        _count: {
-          select: { applications: true }
-        }
       }
     })
 
@@ -234,16 +342,13 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params
-    const session = await auth()
-    if (!session?.user || session.user.role !== 'CLIENT') {
-      return NextResponse.json({ error: 'Accès refusé - Rôle CLIENT requis' }, { status: 403 })
-    }
+    const user = await requireRole(request, ['CLIENT'])
 
     // Vérifier que l'annonce existe et appartient au client
     const announcement = await prisma.announcement.findFirst({
       where: {
         id,
-        authorId: session.user.id
+        authorId: user.id
       },
       include: {
         delivery: true

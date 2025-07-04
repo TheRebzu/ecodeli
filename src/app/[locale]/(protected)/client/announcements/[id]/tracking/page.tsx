@@ -84,10 +84,17 @@ export default function AnnouncementTrackingPage() {
   const fetchTrackingData = async (id: string) => {
     try {
       setLoading(true)
-      const response = await fetch(`/api/client/announcements/${id}/tracking`)
+      const response = await fetch(`/api/client/announcements/${id}/tracking`, {
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      })
       
       if (!response.ok) {
-        throw new Error('Données de suivi non trouvées')
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.error || 'Données de suivi non trouvées')
       }
 
       const data = await response.json()
@@ -102,7 +109,13 @@ export default function AnnouncementTrackingPage() {
   const refreshTrackingData = async (id: string) => {
     try {
       setRefreshing(true)
-      const response = await fetch(`/api/client/announcements/${id}/tracking`)
+      const response = await fetch(`/api/client/announcements/${id}/tracking`, {
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      })
       
       if (response.ok) {
         const data = await response.json()

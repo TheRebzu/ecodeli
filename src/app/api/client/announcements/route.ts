@@ -5,7 +5,7 @@ import { db } from '@/lib/db'
 
 export async function GET(request: NextRequest) {
   try {
-    console.log('🔍 [GET /api/client/announcements] Début de la requête')
+    console.log('🔍 [GET /api/client/announcements] Début de la requête - TRANSPORT D\'OBJETS UNIQUEMENT')
     
     const user = await requireRole(request, ['CLIENT'])
 
@@ -19,6 +19,7 @@ export async function GET(request: NextRequest) {
       limit: searchParams.get('limit'),
       status: searchParams.get('status'),
       type: searchParams.get('type'),
+      deliveryType: searchParams.get('deliveryType'),
       priceMin: searchParams.get('priceMin'),
       priceMax: searchParams.get('priceMax'),
       city: searchParams.get('city'),
@@ -31,45 +32,47 @@ export async function GET(request: NextRequest) {
 
     console.log('📝 Paramètres de recherche:', params)
 
-    // Construire la clause WHERE
+    // Construire la clause WHERE pour ANNONCES UNIQUEMENT
     const where: any = { authorId: user.id }
     
-    if ((await params).status) where.status = (await params).status
-    if ((await params).type) where.type = (await params).type
-    if ((await params).urgent !== undefined) where.isUrgent = (await params).urgent
-    if ((await params).city) {
+    if (params.status) where.status = params.status
+    if (params.type) where.type = params.type
+    if (params.urgent !== undefined) where.isUrgent = params.urgent
+    if (params.city) {
       where.OR = [
-        { pickupAddress: { contains: (await params).city, mode: 'insensitive' } },
-        { deliveryAddress: { contains: (await params).city, mode: 'insensitive' } }
+        { pickupAddress: { contains: params.city, mode: 'insensitive' } },
+        { deliveryAddress: { contains: params.city, mode: 'insensitive' } }
       ]
     }
     
     // Filtres de prix
-    if ((await params).priceMin || (await params).priceMax) {
+    if (params.priceMin || params.priceMax) {
       where.basePrice = {}
-      if ((await params).priceMin) where.basePrice.gte = (await params).priceMin
-      if ((await params).priceMax) where.basePrice.lte = (await params).priceMax
+      if (params.priceMin) where.basePrice.gte = params.priceMin
+      if (params.priceMax) where.basePrice.lte = params.priceMax
     }
     
     // Filtres de date
-    if ((await params).dateFrom || (await params).dateTo) {
+    if (params.dateFrom || params.dateTo) {
       where.pickupDate = {}
-      if ((await params).dateFrom) where.pickupDate.gte = new Date((await params).dateFrom)
-      if ((await params).dateTo) where.pickupDate.lte = new Date((await params).dateTo)
+      if (params.dateFrom) where.pickupDate.gte = new Date(params.dateFrom)
+      if (params.dateTo) where.pickupDate.lte = new Date(params.dateTo)
     }
 
     // Construire l'ordre de tri
     const orderBy: any = {}
-    if ((await params).sortBy === 'desiredDate') {
-      orderBy.pickupDate = (await params).sortOrder
-    } else if ((await params).sortBy === 'price') {
-      orderBy.basePrice = (await params).sortOrder
+    if (params.sortBy === 'pickupDate') {
+      orderBy.pickupDate = params.sortOrder
+    } else if (params.sortBy === 'basePrice') {
+      orderBy.basePrice = params.sortOrder
+    } else if (params.sortBy === 'distance') {
+      orderBy.distance = params.sortOrder
     } else {
-      orderBy.createdAt = (await params).sortOrder
+      orderBy.createdAt = params.sortOrder
     }
 
     try {
-      console.log('🔍 Requête base de données avec filtres avancés...')
+      console.log('🔍 Requête base de données avec filtres pour transport d\'objets...')
       
       const [announcements, total] = await Promise.all([
         db.announcement.findMany({
@@ -98,17 +101,19 @@ export async function GET(request: NextRequest) {
                 width: true,
                 height: true,
                 fragile: true,
-                insuredValue: true
+                insuredValue: true,
+                specialInstructions: true
               }
             },
             delivery: {
               select: {
                 id: true,
                 status: true,
+                trackingNumber: true,
                 deliverer: {
                   select: {
                     id: true,
-                    name: true,
+                    email: true,
                     profile: {
                       select: {
                         firstName: true,
@@ -130,13 +135,13 @@ export async function GET(request: NextRequest) {
             }
           },
           orderBy,
-          skip: ((await params).page - 1) * (await params).limit,
-          take: (await params).limit
+          skip: (params.page - 1) * params.limit,
+          take: params.limit
         }),
         db.announcement.count({ where })
       ])
 
-      console.log(`✅ Trouvé ${announcements.length} annonces sur ${total} total`)
+      console.log(`✅ Trouvé ${announcements.length} annonces de transport sur ${total} total`)
 
       const result = {
         announcements: announcements.map(announcement => ({
@@ -148,25 +153,43 @@ export async function GET(request: NextRequest) {
           basePrice: Number(announcement.basePrice),
           finalPrice: Number(announcement.finalPrice || announcement.basePrice),
           currency: announcement.currency,
+          isPriceNegotiable: announcement.isPriceNegotiable,
+          
+          // Adresses de transport
           pickupAddress: announcement.pickupAddress,
           deliveryAddress: announcement.deliveryAddress,
-          startLocation: {
-            address: announcement.pickupAddress,
-            city: announcement.pickupAddress.split(',').pop()?.trim() || 'Paris'
-          },
-          endLocation: {
-            address: announcement.deliveryAddress,
-            city: announcement.deliveryAddress.split(',').pop()?.trim() || 'Lyon'
-          },
+          pickupLatitude: announcement.pickupLatitude,
+          pickupLongitude: announcement.pickupLongitude,
+          deliveryLatitude: announcement.deliveryLatitude,
+          deliveryLongitude: announcement.deliveryLongitude,
+          distance: announcement.distance,
+          
+          // Dates de livraison
           pickupDate: announcement.pickupDate?.toISOString(),
           deliveryDate: announcement.deliveryDate?.toISOString(),
-          createdAt: announcement.createdAt.toISOString(),
-          updatedAt: announcement.updatedAt.toISOString(),
+          isFlexibleDate: announcement.isFlexibleDate,
+          
+          // Métadonnées
           isUrgent: announcement.isUrgent,
+          requiresInsurance: announcement.requiresInsurance,
+          allowsPartialDelivery: announcement.allowsPartialDelivery,
           viewCount: announcement.viewCount,
-          packageDetails: announcement.packageAnnouncement,
+          matchCount: announcement.matchCount,
+          estimatedDuration: announcement.estimatedDuration,
+          specialInstructions: announcement.specialInstructions,
+          customerNotes: announcement.customerNotes,
+          
+          // Relations
+          packageDetails: announcement.PackageAnnouncement,
           _count: announcement._count,
           delivery: announcement.delivery || null,
+          
+          // Timestamps
+          createdAt: announcement.createdAt.toISOString(),
+          updatedAt: announcement.updatedAt.toISOString(),
+          publishedAt: announcement.publishedAt?.toISOString(),
+          expiresAt: announcement.expiresAt?.toISOString(),
+          
           author: {
             id: announcement.author.id,
             name: announcement.author.profile 
@@ -176,12 +199,12 @@ export async function GET(request: NextRequest) {
           }
         })),
         pagination: {
-          page: (await params).page,
-          limit: (await params).limit,
+          page: params.page,
+          limit: params.limit,
           total,
-          totalPages: Math.ceil(total / (await params).limit),
-          hasNext: (await params).page < Math.ceil(total / (await params).limit),
-          hasPrev: (await params).page > 1
+          totalPages: Math.ceil(total / params.limit),
+          hasNext: params.page < Math.ceil(total / params.limit),
+          hasPrev: params.page > 1
         },
         stats: {
           totalValue: announcements.reduce((sum, a) => sum + Number(a.basePrice), 0),
@@ -201,24 +224,24 @@ export async function GET(request: NextRequest) {
 
       return NextResponse.json(result)
       
-    } catch (dbError) {
-      console.error('❌ Erreur base de données:', dbError)
-      return NextResponse.json({ 
-        error: 'Database error', 
-        details: dbError.message 
-      }, { status: 500 })
-    }
+          } catch (dbError: any) {
+        console.error('❌ Erreur base de données:', dbError)
+        return NextResponse.json({ 
+          error: 'Database error', 
+          details: dbError?.message || 'Unknown database error'
+        }, { status: 500 })
+      }
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('❌ Erreur générale GET announcements:', error)
     
     // Si c'est une erreur d'authentification, retourner 403
-    if (error.message?.includes('Accès refusé')) {
+    if (error?.message?.includes('Accès refusé')) {
       return NextResponse.json({ error: error.message }, { status: 403 })
     }
     
     return NextResponse.json(
-      { error: 'Internal server error', details: error.message },
+      { error: 'Internal server error', details: error?.message || 'Unknown error' },
       { status: 500 }
     )
   }
@@ -226,7 +249,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    console.log('🔍 [POST /api/client/announcements] Début de la requête')
+    console.log('🔍 [POST /api/client/announcements] Création d\'annonce - TRANSPORT D\'OBJETS UNIQUEMENT')
     
     const user = await requireRole(request, ['CLIENT'])
 
@@ -239,23 +262,52 @@ export async function POST(request: NextRequest) {
       const validatedData = createAnnouncementSchema.parse(body)
       console.log('✅ Données validées avec succès')
       
-      console.log('🔍 Création de l\'annonce en base...')
+      console.log('🔍 Création de l\'annonce de transport en base...')
       
+      // Préparer les données selon le type d'annonce
+      const announcementData: any = {
+        title: validatedData.title,
+        description: validatedData.description,
+        type: validatedData.type,
+        basePrice: validatedData.basePrice,
+        currency: validatedData.currency,
+        isPriceNegotiable: validatedData.isPriceNegotiable,
+        authorId: user.id,
+        
+        // Adresses obligatoires
+        pickupAddress: validatedData.pickupAddress,
+        deliveryAddress: validatedData.deliveryAddress,
+        pickupLatitude: validatedData.pickupLatitude,
+        pickupLongitude: validatedData.pickupLongitude,
+        deliveryLatitude: validatedData.deliveryLatitude,
+        deliveryLongitude: validatedData.deliveryLongitude,
+        
+        // Dates
+        pickupDate: new Date(validatedData.pickupDate),
+        deliveryDate: validatedData.deliveryDate ? new Date(validatedData.deliveryDate) : null,
+        isFlexibleDate: validatedData.isFlexibleDate,
+        
+        // Options
+        isUrgent: validatedData.isUrgent,
+        requiresInsurance: validatedData.requiresInsurance,
+        allowsPartialDelivery: validatedData.allowsPartialDelivery,
+        
+        // Instructions
+        specialInstructions: validatedData.specialInstructions,
+        customerNotes: validatedData.customerNotes,
+        
+        status: 'ACTIVE',
+        publishedAt: new Date(),
+        
+        // Stocker les détails spécifiques selon le type
+        packageDetails: validatedData.packageDetails || null,
+        shoppingDetails: validatedData.shoppingDetails || null,
+        internationalPurchaseDetails: validatedData.internationalPurchaseDetails || null,
+        cartDropDetails: validatedData.cartDropDetails || null
+      }
+
       const announcement = await db.announcement.create({
-        data: {
-          title: validatedData.title,
-          description: validatedData.description,
-          type: validatedData.type,
-          basePrice: validatedData.price,
-          currency: validatedData.currency,
-          authorId: user.id,
-          pickupAddress: validatedData.pickupAddress || validatedData.startLocation?.address || '',
-          deliveryAddress: validatedData.deliveryAddress || validatedData.endLocation?.address || '',
-          pickupDate: validatedData.desiredDate ? new Date(validatedData.desiredDate) : null,
-          status: 'ACTIVE',
-          packageDetails: validatedData.type === 'PACKAGE_DELIVERY' ? validatedData.packageDetails : null,
-          isUrgent: validatedData.urgent || false
-        },
+        data: announcementData,
         include: {
           author: {
             include: {
@@ -264,19 +316,20 @@ export async function POST(request: NextRequest) {
               }
             }
           },
-          attachments: {
+          PackageAnnouncement: {
             select: {
-              id: true,
-              url: true,
-              filename: true,
-              mimeType: true,
-              size: true
+              weight: true,
+              length: true,
+              width: true,
+              height: true,
+              fragile: true,
+              insuredValue: true
             }
           }
         }
       })
 
-      console.log('✅ Annonce créée avec succès:', announcement.id)
+      console.log('✅ Annonce de transport créée avec succès:', announcement.id)
       
       const result = {
         announcement: {
@@ -285,17 +338,18 @@ export async function POST(request: NextRequest) {
           description: announcement.description,
           type: announcement.type,
           status: announcement.status,
-          price: Number(announcement.basePrice),
+          basePrice: Number(announcement.basePrice),
           currency: announcement.currency,
-          startLocation: {
-            address: announcement.pickupAddress,
-            city: announcement.pickupAddress.split(',').pop()?.trim() || 'Paris'
-          },
-          endLocation: {
-            address: announcement.deliveryAddress,
-            city: announcement.deliveryAddress.split(',').pop()?.trim() || 'Lyon'
-          },
-          scheduledAt: announcement.pickupDate?.toISOString(),
+          isPriceNegotiable: announcement.isPriceNegotiable,
+          pickupAddress: announcement.pickupAddress,
+          deliveryAddress: announcement.deliveryAddress,
+          pickupDate: announcement.pickupDate?.toISOString(),
+          deliveryDate: announcement.deliveryDate?.toISOString(),
+          isFlexibleDate: announcement.isFlexibleDate,
+          isUrgent: announcement.isUrgent,
+          requiresInsurance: announcement.requiresInsurance,
+          allowsPartialDelivery: announcement.allowsPartialDelivery,
+          packageDetails: announcement.PackageAnnouncement,
           createdAt: announcement.createdAt.toISOString(),
           updatedAt: announcement.updatedAt.toISOString(),
           author: {
@@ -310,24 +364,24 @@ export async function POST(request: NextRequest) {
       
       return NextResponse.json(result, { status: 201 })
       
-    } catch (validationError) {
+    } catch (validationError: any) {
       console.error('❌ Erreur validation/création:', validationError)
       return NextResponse.json({ 
         error: 'Validation or creation error', 
-        details: validationError.message 
+        details: validationError?.message || 'Validation failed'
       }, { status: 400 })
     }
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('❌ Erreur générale POST announcements:', error)
     
     // Si c'est une erreur d'authentification, retourner 403
-    if (error.message?.includes('Accès refusé')) {
+    if (error?.message?.includes('Accès refusé')) {
       return NextResponse.json({ error: error.message }, { status: 403 })
     }
     
     return NextResponse.json(
-      { error: 'Internal server error', details: error.message },
+      { error: 'Internal server error', details: error?.message || 'Unknown error' },
       { status: 500 }
     )
   }

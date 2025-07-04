@@ -15,41 +15,73 @@ import {
   User,
   CheckCircle,
   XCircle,
-  AlertCircle
+  AlertCircle,
+  Eye,
+  MapIcon,
+  Phone
 } from "lucide-react";
 import { toast } from "sonner";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
 import DeliveryValidation from "@/features/client/components/delivery-validation";
 
 interface Delivery {
   id: string;
+  announcementId: string;
+  announcementTitle: string;
   status: string;
+  delivererName: string | null;
+  delivererPhone: string | null;
+  delivererAvatar: string | null;
+  pickupAddress: string;
+  deliveryAddress: string;
+  scheduledDate: string | null;
+  price: number;
+  validationCode: string | null;
+  trackingNumber: string | null;
+  trackingUrl: string;
+  estimatedDelivery: string | null;
+  actualDelivery: string | null;
+  lastTracking: any;
+  proofOfDelivery: {
+    id: string;
+    photos: string[];
+    notes: string | null;
+    recipientName: string | null;
+    validatedWithCode: boolean;
+    validatedWithNFC: boolean;
+    uploadedAt: string | null;
+  } | null;
+  createdAt: string;
+}
+
+// Adaptateur pour convertir la nouvelle structure vers l'ancienne pour le composant DeliveryValidation
+const adaptDeliveryForValidation = (delivery: Delivery) => ({
+  id: delivery.id,
+  status: delivery.status,
   announcement: {
-    title: string;
-    pickupAddress: string;
-    deliveryAddress: string;
-    price: number;
-  };
+    title: delivery.announcementTitle,
+    pickupAddress: delivery.pickupAddress,
+    deliveryAddress: delivery.deliveryAddress,
+  },
   deliverer: {
     user: {
       profile: {
-        firstName: string;
-        lastName: string;
-        phone?: string;
-      };
-    };
-  };
-  ProofOfDelivery?: {
-    photoUrl: string;
-    notes: string;
-    uploadedAt: string;
-  };
-  createdAt: string;
-  scheduledAt: string;
-  completedAt?: string;
-}
+        firstName: delivery.delivererName?.split(' ')[0] || 'Non',
+        lastName: delivery.delivererName?.split(' ').slice(1).join(' ') || 'renseigné',
+      },
+    },
+  },
+  ProofOfDelivery: delivery.proofOfDelivery ? {
+    photoUrl: delivery.proofOfDelivery.photos[0] || '',
+    notes: delivery.proofOfDelivery.notes || '',
+    uploadedAt: delivery.proofOfDelivery.uploadedAt || delivery.createdAt,
+  } : undefined,
+});
 
 export default function ClientDeliveriesPage() {
   const t = useTranslations("client.deliveries");
+  const router = useRouter();
   const [deliveries, setDeliveries] = useState<Delivery[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -92,9 +124,8 @@ export default function ClientDeliveriesPage() {
   };
 
   const filteredDeliveries = deliveries.filter(delivery => {
-    const matchesSearch = delivery.announcement.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         (delivery.deliverer.user.profile?.firstName?.toLowerCase().includes(searchTerm.toLowerCase()) || false) ||
-                         (delivery.deliverer.user.profile?.lastName?.toLowerCase().includes(searchTerm.toLowerCase()) || false);
+    const matchesSearch = delivery.announcementTitle.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         (delivery.delivererName?.toLowerCase().includes(searchTerm.toLowerCase()) || false);
     
     const matchesTab = activeTab === "active" 
       ? ["PENDING", "ACCEPTED", "IN_TRANSIT"].includes(delivery.status)
@@ -221,11 +252,97 @@ export default function ClientDeliveriesPage() {
             </Card>
           ) : (
             filteredDeliveries.map((delivery) => (
-              <DeliveryValidation
-                key={delivery.id}
-                delivery={delivery}
-                onValidationComplete={fetchDeliveries}
-              />
+              <Card key={delivery.id} className="border-l-4 border-l-blue-500">
+                <CardHeader>
+                  <CardTitle className="flex items-center justify-between">
+                    <span className="flex items-center">
+                      <Package className="w-5 h-5 mr-2" />
+                      {delivery.announcementTitle}
+                    </span>
+                    {getStatusBadge(delivery.status)}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                    <div className="space-y-2">
+                      <div className="flex items-center space-x-2">
+                        <MapPin className="w-4 h-4 text-gray-400" />
+                        <span className="text-gray-600">{t("pickup")}:</span>
+                        <span className="truncate">{delivery.pickupAddress}</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <MapPin className="w-4 h-4 text-gray-400" />
+                        <span className="text-gray-600">{t("delivery")}:</span>
+                        <span className="truncate">{delivery.deliveryAddress}</span>
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex items-center space-x-2">
+                        <User className="w-4 h-4 text-gray-400" />
+                        <span className="text-gray-600">{t("deliverer")}:</span>
+                        <span>{delivery.delivererName || 'En attente'}</span>
+                      </div>
+                      {delivery.scheduledDate && (
+                        <div className="flex items-center space-x-2">
+                          <Clock className="w-4 h-4 text-gray-400" />
+                          <span className="text-gray-600">{t("scheduled_at")}:</span>
+                          <span>{new Date(delivery.scheduledDate).toLocaleDateString()}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Boutons d'action */}
+                  <div className="flex flex-wrap gap-2 pt-2 border-t">
+                    <Link href={`/fr/client/deliveries/${delivery.id}`}>
+                      <Button variant="outline" size="sm" className="flex items-center gap-2">
+                        <Eye className="w-4 h-4" />
+                        {t("actions.view_details")}
+                      </Button>
+                    </Link>
+                    
+                    {["ACCEPTED", "IN_TRANSIT"].includes(delivery.status) && (
+                      <Link href={`/fr/client/deliveries/${delivery.id}/tracking`}>
+                        <Button variant="outline" size="sm" className="flex items-center gap-2">
+                          <MapIcon className="w-4 h-4" />
+                          {t("actions.track")}
+                        </Button>
+                      </Link>
+                    )}
+                    
+                    {delivery.delivererPhone && ["ACCEPTED", "IN_TRANSIT"].includes(delivery.status) && (
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="flex items-center gap-2"
+                        onClick={() => {
+                          if (delivery.delivererPhone) {
+                            window.open(`tel:${delivery.delivererPhone}`, '_self');
+                          }
+                        }}
+                      >
+                        <Phone className="w-4 h-4" />
+                        {t("actions.contact_deliverer")}
+                      </Button>
+                    )}
+                  </div>
+
+                  {/* Code de validation si livraison en cours */}
+                  {delivery.status === "IN_TRANSIT" && delivery.validationCode && (
+                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                      <div className="flex items-center gap-2 mb-2">
+                        <AlertCircle className="w-4 h-4 text-yellow-600" />
+                        <span className="text-sm font-medium text-yellow-800">
+                          Code de validation à donner au livreur
+                        </span>
+                      </div>
+                      <div className="bg-white border rounded px-3 py-2 font-mono text-lg font-bold text-center">
+                        {delivery.validationCode}
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
             ))
           )}
         </TabsContent>
@@ -250,7 +367,7 @@ export default function ClientDeliveriesPage() {
                   <CardTitle className="flex items-center justify-between">
                     <span className="flex items-center">
                       <Package className="w-5 h-5 mr-2" />
-                      {delivery.announcement.title}
+                      {delivery.announcementTitle}
                     </span>
                     {getStatusBadge(delivery.status)}
                   </CardTitle>
@@ -261,12 +378,12 @@ export default function ClientDeliveriesPage() {
                       <div className="flex items-center space-x-2">
                         <MapPin className="w-4 h-4 text-gray-400" />
                         <span className="text-gray-600">{t("pickup")}:</span>
-                        <span>{delivery.announcement.pickupAddress}</span>
+                        <span>{delivery.pickupAddress}</span>
                       </div>
                       <div className="flex items-center space-x-2">
                         <MapPin className="w-4 h-4 text-gray-400" />
                         <span className="text-gray-600">{t("delivery")}:</span>
-                        <span>{delivery.announcement.deliveryAddress}</span>
+                        <span>{delivery.deliveryAddress}</span>
                       </div>
                     </div>
                     <div className="space-y-2">
@@ -274,19 +391,15 @@ export default function ClientDeliveriesPage() {
                         <User className="w-4 h-4 text-gray-400" />
                         <span className="text-gray-600">{t("deliverer")}:</span>
                         <span>
-                          {delivery.deliverer.user.profile ? (
-                            `${delivery.deliverer.user.profile.firstName || 'Non renseigné'} ${delivery.deliverer.user.profile.lastName || 'Non renseigné'}`
-                          ) : (
-                            'Profil non disponible'
-                          )}
+                          {delivery.delivererName || 'Non renseigné'}
                         </span>
                       </div>
                       <div className="flex items-center space-x-2">
                         <Clock className="w-4 h-4 text-gray-400" />
                         <span className="text-gray-600">{t("completed_at")}:</span>
                         <span>
-                          {delivery.completedAt 
-                            ? new Date(delivery.completedAt).toLocaleDateString()
+                          {delivery.actualDelivery 
+                            ? new Date(delivery.actualDelivery).toLocaleDateString()
                             : new Date(delivery.createdAt).toLocaleDateString()
                           }
                         </span>
@@ -294,33 +407,48 @@ export default function ClientDeliveriesPage() {
                     </div>
                   </div>
 
+                  {/* Boutons d'action pour l'historique */}
+                  <div className="flex flex-wrap gap-2 pt-2 border-t">
+                    <Link href={`/fr/client/deliveries/${delivery.id}`}>
+                      <Button variant="outline" size="sm" className="flex items-center gap-2">
+                        <Eye className="w-4 h-4" />
+                        {t("actions.view_details")}
+                      </Button>
+                    </Link>
+                  </div>
+
                   {/* Preuve de livraison si disponible */}
-                  {delivery.ProofOfDelivery && (
+                  {delivery.proofOfDelivery && (
                     <div className="border rounded-lg p-4 bg-gray-50">
                       <h4 className="font-medium mb-3 flex items-center">
                         <AlertCircle className="w-4 h-4 mr-2" />
                         Preuve de livraison
                       </h4>
                       
-                      {delivery.ProofOfDelivery.photoUrl && (
-                        <div className="mb-3">
-                          <img 
-                            src={delivery.ProofOfDelivery.photoUrl} 
-                            alt="Preuve de livraison"
-                            className="w-full max-w-md rounded-lg border"
-                          />
+                      {delivery.proofOfDelivery.photos && delivery.proofOfDelivery.photos.length > 0 && (
+                        <div className="mb-3 grid grid-cols-2 gap-2">
+                          {delivery.proofOfDelivery.photos.map((photo, index) => (
+                            <img 
+                              key={index}
+                              src={photo} 
+                              alt={`Preuve de livraison ${index + 1}`}
+                              className="w-full rounded-lg border"
+                            />
+                          ))}
                         </div>
                       )}
                       
-                      {delivery.ProofOfDelivery.notes && (
+                      {delivery.proofOfDelivery.notes && (
                         <p className="text-sm text-gray-600 mb-2">
-                          <strong>Notes:</strong> {delivery.ProofOfDelivery.notes}
+                          <strong>Notes:</strong> {delivery.proofOfDelivery.notes}
                         </p>
                       )}
                       
-                      <p className="text-xs text-gray-500">
-                        Uploadé le: {new Date(delivery.ProofOfDelivery.uploadedAt).toLocaleString()}
-                      </p>
+                      {delivery.proofOfDelivery.uploadedAt && (
+                        <p className="text-xs text-gray-500">
+                          Uploadé le: {new Date(delivery.proofOfDelivery.uploadedAt).toLocaleString()}
+                        </p>
+                      )}
                     </div>
                   )}
                 </CardContent>

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '@/lib/auth'
+import { getUserFromSession } from '@/lib/auth/utils'
 import { z } from 'zod'
 import { TutorialService } from '@/features/tutorials/services/tutorial.service'
 
@@ -24,14 +24,14 @@ const skipStepSchema = z.object({
  */
 export async function GET(request: NextRequest) {
   try {
-    const session = await auth()
+    const user = await getUserFromSession(request)
     
-    if (!session?.user) {
+    if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     // Si l'utilisateur n'est pas CLIENT, retourner une réponse neutre
-    if (session.user.role !== 'CLIENT') {
+    if (user.role !== 'CLIENT') {
       return NextResponse.json({
         success: true,
         tutorialRequired: false,
@@ -45,7 +45,7 @@ export async function GET(request: NextRequest) {
     switch (action) {
       case 'required':
         // Vérifier si le tutoriel est requis
-        const isRequired = await TutorialService.isTutorialRequired(session.user.id)
+        const isRequired = await TutorialService.isTutorialRequired(user.id)
         return NextResponse.json({
           success: true,
           tutorialRequired: isRequired
@@ -53,7 +53,7 @@ export async function GET(request: NextRequest) {
 
       case 'steps':
         // Récupérer les étapes du tutoriel
-        const steps = await TutorialService.getClientTutorialSteps(session.user.id)
+        const steps = await TutorialService.getClientTutorialSteps(user.id)
         return NextResponse.json({
           success: true,
           steps
@@ -61,7 +61,7 @@ export async function GET(request: NextRequest) {
 
       case 'progress':
         // Récupérer la progression
-        const progress = await TutorialService.getTutorialProgress(session.user.id)
+        const progress = await TutorialService.getTutorialProgress(user.id)
         return NextResponse.json({
           success: true,
           progress
@@ -71,9 +71,9 @@ export async function GET(request: NextRequest) {
         try {
           // Récupérer toutes les informations du tutoriel
           const [required, tutorialSteps, tutorialProgress] = await Promise.all([
-            TutorialService.isTutorialRequired(session.user.id),
-            TutorialService.getClientTutorialSteps(session.user.id),
-            TutorialService.getTutorialProgress(session.user.id)
+            TutorialService.isTutorialRequired(user.id),
+            TutorialService.getClientTutorialSteps(user.id),
+            TutorialService.getTutorialProgress(user.id)
           ])
 
           return NextResponse.json({
@@ -123,14 +123,14 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
-    const session = await auth()
+    const user = await getUserFromSession(request)
     
-    if (!session?.user) {
+    if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     // Si l'utilisateur n'est pas CLIENT, retourner une réponse neutre
-    if (session.user.role !== 'CLIENT') {
+    if (user.role !== 'CLIENT') {
       return NextResponse.json({
         success: true,
         message: 'Action non applicable pour ce type d\'utilisateur'
@@ -143,7 +143,7 @@ export async function POST(request: NextRequest) {
     switch (action) {
       case 'start':
         // Démarrer le tutoriel
-        await TutorialService.startTutorial(session.user.id)
+        await TutorialService.startTutorial(user.id)
         return NextResponse.json({
           success: true,
           message: 'Tutoriel démarré'
@@ -154,7 +154,7 @@ export async function POST(request: NextRequest) {
         const body = await request.json()
         const stepData = completeStepSchema.parse(body)
         await TutorialService.completeStep(
-          session.user.id,
+          user.id,
           stepData.stepId,
           stepData.timeSpent
         )
@@ -168,7 +168,7 @@ export async function POST(request: NextRequest) {
         // Passer une étape
         const body = await request.json()
         const skipData = skipStepSchema.parse(body)
-        await TutorialService.skipStep(session.user.id, skipData.stepId)
+        await TutorialService.skipStep(user.id, skipData.stepId)
         return NextResponse.json({
           success: true,
           message: 'Étape passée'
@@ -179,7 +179,7 @@ export async function POST(request: NextRequest) {
         // Terminer le tutoriel complet
         const body = await request.json()
         const completionData = completeTutorialSchema.parse(body)
-        await TutorialService.completeTutorial(session.user.id, completionData)
+        await TutorialService.completeTutorial(user.id, completionData)
         return NextResponse.json({
           success: true,
           message: 'Tutoriel terminé avec succès'
@@ -188,7 +188,7 @@ export async function POST(request: NextRequest) {
 
       case 'reset':
         // Réinitialiser le tutoriel (pour les tests)
-        await TutorialService.resetTutorial(session.user.id)
+        await TutorialService.resetTutorial(user.id)
         return NextResponse.json({
           success: true,
           message: 'Tutoriel réinitialisé'
@@ -209,7 +209,7 @@ export async function POST(request: NextRequest) {
           
           // Si le tutoriel est marqué comme complété, appeler completeTutorial
           if (body.isCompleted) {
-            await TutorialService.completeTutorial(session.user.id, {
+            await TutorialService.completeTutorial(user.id, {
               totalTimeSpent: 0,
               stepsCompleted: progress.completedSteps.map((_, i) => i + 1),
               feedback: 'Tutoriel complété via interface',
@@ -217,7 +217,7 @@ export async function POST(request: NextRequest) {
             })
           } else {
             // Note: Il manque updateTutorialProgress dans TutorialService, on utilise startTutorial pour initialiser
-            await TutorialService.startTutorial(session.user.id)
+            await TutorialService.startTutorial(user.id)
           }
           
           return NextResponse.json({

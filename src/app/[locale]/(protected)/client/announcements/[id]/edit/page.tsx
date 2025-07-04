@@ -2,497 +2,728 @@
 
 import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
+import { useAuth } from '@/hooks/use-auth'
 import { useTranslations } from 'next-intl'
+import { PageHeader } from '@/components/layout/page-header'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
+import { Checkbox } from '@/components/ui/checkbox'
+import { useToast } from '@/components/ui/use-toast'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
+import { updateAnnouncementSchema, type UpdateAnnouncementInput, AnnouncementType, AnnouncementStatus } from '@/features/announcements/schemas/announcement.schema'
+import { Announcement } from '@/features/announcements/types/announcement.types'
+import { Package, Users, Plane, ShoppingCart, Globe, Home, Heart, ShoppingCartIcon, ArrowLeft, Save, Edit, MapPin, Calendar, Clock, DollarSign, AlertCircle } from 'lucide-react'
 import Link from 'next/link'
+import { Switch } from '@/components/ui/switch'
+import { Separator } from '@/components/ui/separator'
 
-const editAnnouncementSchema = z.object({
-  title: z.string().min(5, 'Le titre doit faire au moins 5 caractères').max(100),
-  description: z.string().min(20, 'La description doit faire au moins 20 caractères').max(1000),
-  serviceType: z.enum(['PACKAGE_DELIVERY', 'HOME_SERVICE', 'CART_DROP', 'SHOPPING', 'PET_CARE']),
-  pickupAddress: z.string().min(10, 'Adresse de collecte requise'),
-  deliveryAddress: z.string().min(10, 'Adresse de livraison requise'),
-  weight: z.number().positive('Le poids doit être positif').max(50, 'Maximum 50kg'),
-  dimensions: z.string().optional(),
-  price: z.number().positive('Le prix doit être positif').max(10000, 'Prix maximum 10,000€'),
-  pickupDate: z.string(),
-  deliveryDeadline: z.string(),
-  fragile: z.boolean().default(false),
-  urgent: z.boolean().default(false),
-  specialInstructions: z.string().max(500).optional()
-})
-
-type EditAnnouncementData = z.infer<typeof editAnnouncementSchema>
-
-interface Announcement {
-  id: string
-  title: string
-  description: string
-  serviceType: string
-  pickupAddress: string
-  deliveryAddress: string
-  weight: number
-  dimensions?: string
-  price: number
-  pickupDate: string
-  deliveryDeadline: string
-  fragile: boolean
-  urgent: boolean
-  specialInstructions?: string
-  status: string
-}
+const announcementTypes = [
+  {
+    value: 'PACKAGE_DELIVERY',
+    label: 'Transport de colis',
+    description: 'Livraison de colis (intégral ou partiel)',
+    icon: Package,
+    color: 'bg-blue-500'
+  },
+  {
+    value: 'PERSON_TRANSPORT',
+    label: 'Transport de personnes',
+    description: 'Transport quotidien de personnes',
+    icon: Users,
+    color: 'bg-green-500'
+  },
+  {
+    value: 'AIRPORT_TRANSFER',
+    label: 'Transfert aéroport',
+    description: 'Transport vers/depuis l\'aéroport',
+    icon: Plane,
+    color: 'bg-purple-500'
+  },
+  {
+    value: 'SHOPPING',
+    label: 'Courses',
+    description: 'Courses avec liste fournie au livreur',
+    icon: ShoppingCart,
+    color: 'bg-orange-500'
+  },
+  {
+    value: 'INTERNATIONAL_PURCHASE',
+    label: 'Achats internationaux',
+    description: 'Achats depuis l\'étranger',
+    icon: Globe,
+    color: 'bg-red-500'
+  },
+  {
+    value: 'HOME_SERVICE',
+    label: 'Services à domicile',
+    description: 'Ménage, jardinage, bricolage...',
+    icon: Home,
+    color: 'bg-yellow-500'
+  },
+  {
+    value: 'PET_SITTING',
+    label: 'Garde d\'animaux',
+    description: 'Garde d\'animaux à domicile',
+    icon: Heart,
+    color: 'bg-pink-500'
+  },
+  {
+    value: 'CART_DROP',
+    label: 'Lâcher de chariot',
+    description: 'Livraison à domicile depuis magasin',
+    icon: ShoppingCartIcon,
+    color: 'bg-indigo-500'
+  }
+]
 
 export default function EditAnnouncementPage() {
-  const params = useParams()
+  const { id } = useParams()
+  const { user } = useAuth()
   const router = useRouter()
-  const t = useTranslations()
+  const t = useTranslations('client.announcements')
+  const { toast } = useToast()
+  
   const [announcement, setAnnouncement] = useState<Announcement | null>(null)
   const [loading, setLoading] = useState(true)
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [saving, setSaving] = useState(false)
+  const [selectedType, setSelectedType] = useState<string>('')
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-    reset,
-    watch,
-    setValue
-  } = useForm<EditAnnouncementData>({
-    resolver: zodResolver(editAnnouncementSchema)
+  const form = useForm<UpdateAnnouncementInput>({
+    resolver: zodResolver(updateAnnouncementSchema),
+    defaultValues: {
+      id: id as string,
+      title: '',
+      description: '',
+      type: 'PACKAGE_DELIVERY',
+      price: 0,
+      currency: 'EUR',
+      urgent: false,
+      flexibleDates: false,
+      specialInstructions: '',
+      startLocation: {
+        address: '',
+        city: '',
+        postalCode: '',
+        country: 'FR'
+      },
+      endLocation: {
+        address: '',
+        city: '',
+        postalCode: '',
+        country: 'FR'
+      }
+    }
   })
 
-  const weight = watch('weight')
-
   useEffect(() => {
-    if (params.id) {
-      fetchAnnouncement(params.id as string)
+    if (id && user) {
+      fetchAnnouncement()
     }
-  }, [params.id])
+  }, [id, user])
 
-  const fetchAnnouncement = async (id: string) => {
+  const fetchAnnouncement = async () => {
     try {
       setLoading(true)
-      const response = await fetch(`/api/client/announcements/${id}`)
-      
+      const response = await fetch(`/api/client/announcements/${id}`, {
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+
       if (!response.ok) {
-        throw new Error('Annonce non trouvée')
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.error || 'Erreur lors de la récupération de l\'annonce')
       }
 
       const data = await response.json()
       setAnnouncement(data)
-      
-      // Préremplit le formulaire
-      reset({
+      setSelectedType(data.type)
+
+      // Remplir le formulaire avec les données existantes
+      form.reset({
+        id: id,
         title: data.title,
         description: data.description,
-        serviceType: data.serviceType,
-        pickupAddress: data.pickupAddress,
-        deliveryAddress: data.deliveryAddress,
-        weight: data.weight,
-        dimensions: data.dimensions || '',
+        type: data.type as AnnouncementType,
         price: data.price,
-        pickupDate: new Date(data.pickupDate).toISOString().slice(0, 16),
-        deliveryDeadline: new Date(data.deliveryDeadline).toISOString().slice(0, 16),
-        fragile: data.fragile || false,
-        urgent: data.urgent || false,
-        specialInstructions: data.specialInstructions || ''
+        currency: data.currency,
+        urgent: data.urgent,
+        flexibleDates: data.flexibleDates,
+        specialInstructions: data.specialInstructions || '',
+        desiredDate: data.desiredDate ? new Date(data.desiredDate).toISOString().slice(0, 16) : undefined,
+        startLocation: data.startLocation,
+        endLocation: data.endLocation,
+        packageDetails: data.packageDetails
       })
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erreur inconnue')
+    } catch (error) {
+      console.error('Erreur:', error)
+      toast({
+        title: "Erreur",
+        description: "Impossible de charger l'annonce",
+        variant: "destructive",
+      })
     } finally {
       setLoading(false)
     }
   }
 
-  const getSuggestedPrice = (weight: number) => {
-    if (weight <= 2) return 8
-    if (weight <= 5) return 12
-    if (weight <= 10) return 18
-    if (weight <= 20) return 25
-    return Math.ceil(weight * 1.5)
-  }
-
-  const onSubmit = async (data: EditAnnouncementData) => {
-    setIsSubmitting(true)
-    setError(null)
-
+  const onSubmit = async (data: any) => {
     try {
-      const response = await fetch(`/api/client/announcements/${params.id}`, {
+      setSaving(true)
+      const response = await fetch(`/api/client/announcements/${id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
       })
 
-      const result = await response.json()
-
       if (!response.ok) {
-        setError(result.error || 'Une erreur est survenue')
-        return
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.error || 'Erreur lors de la mise à jour')
       }
 
-      // Redirection vers le détail
-      router.push(`/client/announcements/${params.id}`)
-    } catch (err) {
-      setError('Une erreur est survenue lors de la modification')
+      const result = await response.json()
+      
+      toast({
+        title: "Succès",
+        description: "Annonce mise à jour avec succès",
+      })
+
+      router.push(`/client/announcements/${id}`)
+    } catch (error) {
+      console.error('Erreur:', error)
+      toast({
+        title: "Erreur",
+        description: "Impossible de mettre à jour l'annonce",
+        variant: "destructive",
+      })
     } finally {
-      setIsSubmitting(false)
+      setSaving(false)
     }
   }
 
-  const serviceTypes = [
-    { value: 'PACKAGE_DELIVERY', label: '📦 Livraison de colis', description: 'Envoi de colis, documents, objets' },
-    { value: 'HOME_SERVICE', label: '🛠️ Service à domicile', description: 'Nettoyage, jardinage, bricolage, réparations' },
-    { value: 'CART_DROP', label: '🛒 Lâcher de chariot', description: 'Livraison depuis un magasin partenaire' },
-    { value: 'SHOPPING', label: '🛒 Courses', description: 'Faire les courses pour le client' },
-    { value: 'PET_CARE', label: '🐕 Garde d\'animaux', description: 'Promenade, garde d\'animaux' }
+  const getTypeOptions = () => [
+    { value: 'PACKAGE_DELIVERY', label: 'Livraison de colis' },
+    { value: 'PERSON_TRANSPORT', label: 'Transport de personne' },
+    { value: 'AIRPORT_TRANSFER', label: 'Transfert aéroport' },
+    { value: 'SHOPPING', label: 'Courses' },
+    { value: 'INTERNATIONAL_PURCHASE', label: 'Achat international' },
+    { value: 'PET_SITTING', label: 'Garde d\'animaux' },
+    { value: 'HOME_SERVICE', label: 'Service à domicile' },
+    { value: 'CART_DROP', label: 'Lâcher de chariot' },
   ]
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 p-6">
-        <div className="max-w-4xl mx-auto">
-          <div className="animate-pulse">
-            <div className="h-8 bg-gray-200 rounded w-1/3 mb-4"></div>
-            <div className="bg-white rounded-lg p-6 space-y-4">
-              <div className="h-6 bg-gray-200 rounded w-2/3"></div>
-              <div className="h-4 bg-gray-200 rounded w-full"></div>
-              <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-            </div>
-          </div>
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Chargement de l'annonce...</p>
         </div>
       </div>
     )
   }
 
-  if (error || !announcement) {
+  if (!announcement) {
     return (
-      <div className="min-h-screen bg-gray-50 p-6">
-        <div className="max-w-4xl mx-auto">
-          <div className="bg-white rounded-lg p-8 text-center">
-            <div className="text-red-600 text-lg mb-2">❌</div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">Erreur</h3>
-            <p className="text-gray-600 mb-4">{error}</p>
-            <Link
-              href="/client/announcements"
-              className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700"
-            >
-              Retour aux annonces
-            </Link>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
-  if (announcement.status !== 'ACTIVE') {
-    return (
-      <div className="min-h-screen bg-gray-50 p-6">
-        <div className="max-w-4xl mx-auto">
-          <div className="bg-white rounded-lg p-8 text-center">
-            <div className="text-yellow-600 text-lg mb-2">⚠️</div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">Modification impossible</h3>
-            <p className="text-gray-600 mb-4">
-              Cette annonce ne peut plus être modifiée car elle n'est plus active.
-            </p>
-            <Link
-              href={`/client/announcements/${announcement.id}`}
-              className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700"
-            >
-              Voir l'annonce
-            </Link>
-          </div>
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
+          <h2 className="text-2xl font-semibold text-gray-900 mb-2">
+            Annonce non trouvée
+          </h2>
+          <p className="text-gray-600 mb-4">
+            Cette annonce n'existe pas ou a été supprimée
+          </p>
+          <Button onClick={() => router.push('/client/announcements')}>
+            Retour aux annonces
+          </Button>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-4xl mx-auto p-6">
-        {/* Header */}
-        <div className="mb-8">
-          <Link 
-            href={`/client/announcements/${announcement.id}`}
-            className="text-green-600 hover:text-green-700 text-sm font-medium mb-4 inline-block"
-          >
-            ← Retour à l'annonce
-          </Link>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Modifier l'annonce
-          </h1>
-          <p className="text-gray-600">
-            Mettez à jour les informations de votre demande de livraison
-          </p>
-        </div>
+    <div className="space-y-6">
+      <PageHeader
+        title="Modifier l'annonce"
+        description={`Modification de "${announcement.title}"`}
+        action={
+          <div className="flex gap-2">
+            <Link href={`/client/announcements/${id}`}>
+              <Button variant="outline" size="sm">
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Retour
+              </Button>
+            </Link>
+          </div>
+        }
+      />
 
-        {/* Formulaire */}
-        <div className="bg-white rounded-lg shadow-sm border">
-          <div className="p-6">
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-              {error && (
-                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                  <p className="text-sm text-red-600">{error}</p>
-                </div>
-              )}
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Formulaire principal */}
+            <div className="lg:col-span-2 space-y-6">
+              {/* Informations générales */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Edit className="h-5 w-5" />
+                    Informations générales
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <FormField
+                    control={form.control}
+                    name="title"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Titre de l'annonce</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Titre descriptif de votre annonce" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-              {/* Type de service */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-3">
-                  Type de service *
-                </label>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  {serviceTypes.map((type) => (
-                    <label key={type.value} className="relative">
-                      <input
-                        {...register("serviceType")}
-                        type="radio"
-                        value={type.value}
-                        className="sr-only peer"
-                      />
-                      <div className="border-2 border-gray-200 rounded-lg p-4 cursor-pointer peer-checked:border-green-500 peer-checked:bg-green-50 hover:border-green-300 transition-colors">
-                        <h3 className="font-medium text-gray-900 mb-1">{type.label}</h3>
-                        <p className="text-sm text-gray-600">{type.description}</p>
-                      </div>
-                    </label>
-                  ))}
-                </div>
-                {errors.serviceType && (
-                  <p className="mt-1 text-sm text-red-600">{errors.serviceType.message}</p>
-                )}
-              </div>
+                  <FormField
+                    control={form.control}
+                    name="description"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Description</FormLabel>
+                        <FormControl>
+                          <Textarea 
+                            placeholder="Décrivez votre demande en détail..."
+                            className="min-h-[100px]"
+                            {...field} 
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-              {/* Titre */}
-              <div>
-                <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">
-                  Titre de l'annonce *
-                </label>
-                <input
-                  {...register("title")}
-                  type="text"
-                  id="title"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                  placeholder="Ex: Livraison colis Paris → Lyon"
-                />
-                {errors.title && (
-                  <p className="mt-1 text-sm text-red-600">{errors.title.message}</p>
-                )}
-              </div>
+                  <FormField
+                    control={form.control}
+                    name="type"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Type de service</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Sélectionnez le type de service" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {getTypeOptions().map((option) => (
+                              <SelectItem key={option.value} value={option.value}>
+                                {option.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-              {/* Description */}
-              <div>
-                <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
-                  Description détaillée *
-                </label>
-                <textarea
-                  {...register("description")}
-                  id="description"
-                  rows={4}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                  placeholder="Décrivez votre demande, le contenu du colis, les conditions particulières..."
-                />
-                {errors.description && (
-                  <p className="mt-1 text-sm text-red-600">{errors.description.message}</p>
-                )}
-              </div>
+                  <FormField
+                    control={form.control}
+                    name="specialInstructions"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Instructions spéciales (optionnel)</FormLabel>
+                        <FormControl>
+                          <Textarea 
+                            placeholder="Ajoutez des instructions particulières..."
+                            className="min-h-[80px]"
+                            {...field} 
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </CardContent>
+              </Card>
 
               {/* Adresses */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label htmlFor="pickupAddress" className="block text-sm font-medium text-gray-700 mb-1">
-                    Adresse de collecte *
-                  </label>
-                  <textarea
-                    {...register("pickupAddress")}
-                    id="pickupAddress"
-                    rows={2}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                    placeholder="Adresse complète de collecte"
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <MapPin className="h-5 w-5" />
+                    Adresses
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <FormField
+                    control={form.control}
+                    name="startLocation.address"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Adresse de départ</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Adresse complète de départ" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
                   />
-                  {errors.pickupAddress && (
-                    <p className="mt-1 text-sm text-red-600">{errors.pickupAddress.message}</p>
-                  )}
-                </div>
 
-                <div>
-                  <label htmlFor="deliveryAddress" className="block text-sm font-medium text-gray-700 mb-1">
-                    Adresse de livraison *
-                  </label>
-                  <textarea
-                    {...register("deliveryAddress")}
-                    id="deliveryAddress"
-                    rows={2}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                    placeholder="Adresse complète de livraison"
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="startLocation.city"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Ville de départ</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Ville" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="startLocation.postalCode"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Code postal</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Code postal" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  <Separator />
+
+                  <FormField
+                    control={form.control}
+                    name="endLocation.address"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Adresse d'arrivée</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Adresse complète d'arrivée" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
                   />
-                  {errors.deliveryAddress && (
-                    <p className="mt-1 text-sm text-red-600">{errors.deliveryAddress.message}</p>
-                  )}
-                </div>
-              </div>
 
-              {/* Détails du colis */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div>
-                  <label htmlFor="weight" className="block text-sm font-medium text-gray-700 mb-1">
-                    Poids (kg) *
-                  </label>
-                  <input
-                    {...register("weight", { 
-                      valueAsNumber: true,
-                      onChange: (e) => {
-                        const newWeight = parseFloat(e.target.value) || 1
-                        setValue('price', getSuggestedPrice(newWeight))
-                      }
-                    })}
-                    type="number"
-                    step="0.1"
-                    min="0.1"
-                    max="50"
-                    id="weight"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="endLocation.city"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Ville d'arrivée</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Ville" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="endLocation.postalCode"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Code postal</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Code postal" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Détails du colis (si applicable) */}
+              {form.watch('type') === 'PACKAGE_DELIVERY' && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Package className="h-5 w-5" />
+                      Détails du colis
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="packageDetails.weight"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Poids (kg)</FormLabel>
+                            <FormControl>
+                              <Input 
+                                type="number" 
+                                step="0.1"
+                                placeholder="0.0"
+                                {...field}
+                                onChange={(e) => field.onChange(parseFloat(e.target.value))}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="packageDetails.fragile"
+                        render={({ field }) => (
+                          <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                            <div className="space-y-0.5">
+                              <FormLabel className="text-base">Fragile</FormLabel>
+                              <p className="text-sm text-muted-foreground">
+                                Le colis nécessite une manipulation délicate
+                              </p>
+                            </div>
+                            <FormControl>
+                              <Switch
+                                checked={field.value}
+                                onCheckedChange={field.onChange}
+                              />
+                            </FormControl>
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="packageDetails.length"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Longueur (cm)</FormLabel>
+                            <FormControl>
+                              <Input 
+                                type="number" 
+                                placeholder="0"
+                                {...field}
+                                onChange={(e) => field.onChange(parseInt(e.target.value))}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="packageDetails.width"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Largeur (cm)</FormLabel>
+                            <FormControl>
+                              <Input 
+                                type="number" 
+                                placeholder="0"
+                                {...field}
+                                onChange={(e) => field.onChange(parseInt(e.target.value))}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="packageDetails.height"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Hauteur (cm)</FormLabel>
+                            <FormControl>
+                              <Input 
+                                type="number" 
+                                placeholder="0"
+                                {...field}
+                                onChange={(e) => field.onChange(parseInt(e.target.value))}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+
+                    <FormField
+                      control={form.control}
+                      name="packageDetails.content"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Contenu du colis</FormLabel>
+                          <FormControl>
+                            <Textarea 
+                              placeholder="Décrivez le contenu du colis..."
+                              className="min-h-[80px]"
+                              {...field} 
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+
+            {/* Sidebar */}
+            <div className="space-y-6">
+              {/* Planification */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Calendar className="h-5 w-5" />
+                    Planification
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <FormField
+                    control={form.control}
+                    name="desiredDate"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Date souhaitée</FormLabel>
+                        <FormControl>
+                          <Input 
+                            type="datetime-local" 
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
                   />
-                  {errors.weight && (
-                    <p className="mt-1 text-sm text-red-600">{errors.weight.message}</p>
-                  )}
-                </div>
 
-                <div>
-                  <label htmlFor="dimensions" className="block text-sm font-medium text-gray-700 mb-1">
-                    Dimensions (cm)
-                  </label>
-                  <input
-                    {...register("dimensions")}
-                    type="text"
-                    id="dimensions"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                    placeholder="Ex: 30x20x15"
+                  <FormField
+                    control={form.control}
+                    name="flexibleDates"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                        <div className="space-y-0.5">
+                          <FormLabel className="text-base">Dates flexibles</FormLabel>
+                          <p className="text-sm text-muted-foreground">
+                            Accepter des dates proches
+                          </p>
+                        </div>
+                        <FormControl>
+                          <Switch
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                      </FormItem>
+                    )}
                   />
-                </div>
+                </CardContent>
+              </Card>
 
-                <div>
-                  <label htmlFor="price" className="block text-sm font-medium text-gray-700 mb-1">
-                    Prix proposé (€) *
-                  </label>
-                  <input
-                    {...register("price", { valueAsNumber: true })}
-                    type="number"
-                    step="0.5"
-                    min="1"
-                    max="10000"
-                    id="price"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              {/* Tarification */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <DollarSign className="h-5 w-5" />
+                    Tarification
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <FormField
+                    control={form.control}
+                    name="price"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Prix (€)</FormLabel>
+                        <FormControl>
+                          <Input 
+                            type="number" 
+                            step="0.01"
+                            placeholder="0.00"
+                            {...field}
+                            onChange={(e) => field.onChange(parseFloat(e.target.value))}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
                   />
-                  <p className="mt-1 text-xs text-gray-500">
-                    Suggéré: {getSuggestedPrice(weight || 1)}€
-                  </p>
-                  {errors.price && (
-                    <p className="mt-1 text-sm text-red-600">{errors.price.message}</p>
-                  )}
-                </div>
-              </div>
 
-              {/* Dates */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label htmlFor="pickupDate" className="block text-sm font-medium text-gray-700 mb-1">
-                    Date de collecte souhaitée *
-                  </label>
-                  <input
-                    {...register("pickupDate")}
-                    type="datetime-local"
-                    id="pickupDate"
-                    min={new Date().toISOString().slice(0, 16)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  <FormField
+                    control={form.control}
+                    name="urgent"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                        <div className="space-y-0.5">
+                          <FormLabel className="text-base">Urgent</FormLabel>
+                          <p className="text-sm text-muted-foreground">
+                            Annonce prioritaire (supplément)
+                          </p>
+                        </div>
+                        <FormControl>
+                          <Switch
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                      </FormItem>
+                    )}
                   />
-                  {errors.pickupDate && (
-                    <p className="mt-1 text-sm text-red-600">{errors.pickupDate.message}</p>
-                  )}
-                </div>
+                </CardContent>
+              </Card>
 
-                <div>
-                  <label htmlFor="deliveryDeadline" className="block text-sm font-medium text-gray-700 mb-1">
-                    Échéance de livraison *
-                  </label>
-                  <input
-                    {...register("deliveryDeadline")}
-                    type="datetime-local"
-                    id="deliveryDeadline"
-                    min={new Date().toISOString().slice(0, 16)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                  />
-                  {errors.deliveryDeadline && (
-                    <p className="mt-1 text-sm text-red-600">{errors.deliveryDeadline.message}</p>
-                  )}
-                </div>
-              </div>
-
-              {/* Instructions spéciales */}
-              <div>
-                <label htmlFor="specialInstructions" className="block text-sm font-medium text-gray-700 mb-1">
-                  Instructions spéciales
-                </label>
-                <textarea
-                  {...register("specialInstructions")}
-                  id="specialInstructions"
-                  rows={3}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                  placeholder="Instructions particulières pour la livraison..."
-                />
-                {errors.specialInstructions && (
-                  <p className="mt-1 text-sm text-red-600">{errors.specialInstructions.message}</p>
-                )}
-              </div>
-
-              {/* Options */}
-              <div className="space-y-3">
-                <div className="flex items-center">
-                  <input
-                    {...register("fragile")}
-                    type="checkbox"
-                    id="fragile"
-                    className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
-                  />
-                  <label htmlFor="fragile" className="ml-2 text-sm text-gray-700">
-                    📦 Colis fragile (manipulation avec précaution)
-                  </label>
-                </div>
-
-                <div className="flex items-center">
-                  <input
-                    {...register("urgent")}
-                    type="checkbox"
-                    id="urgent"
-                    className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
-                  />
-                  <label htmlFor="urgent" className="ml-2 text-sm text-gray-700">
-                    ⚡ Livraison urgente (+20% sur le prix)
-                  </label>
-                </div>
-              </div>
-
-              {/* Boutons */}
-              <div className="flex items-center justify-end space-x-4 pt-6 border-t">
-                <Link
-                  href={`/client/announcements/${announcement.id}`}
-                  className="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
-                >
-                  Annuler
-                </Link>
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                >
-                  {isSubmitting ? 'Modification en cours...' : 'Sauvegarder les modifications'}
-                </button>
-              </div>
-            </form>
+              {/* Actions */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Actions</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <Button 
+                    type="submit" 
+                    className="w-full"
+                    disabled={saving}
+                  >
+                    <Save className="h-4 w-4 mr-2" />
+                    {saving ? 'Enregistrement...' : 'Enregistrer les modifications'}
+                  </Button>
+                  
+                  <Link href={`/client/announcements/${id}`}>
+                    <Button variant="outline" className="w-full">
+                      Annuler
+                    </Button>
+                  </Link>
+                </CardContent>
+              </Card>
+            </div>
           </div>
-        </div>
-      </div>
+        </form>
+      </Form>
     </div>
   )
 }

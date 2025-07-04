@@ -128,7 +128,7 @@
       "Bash(/tmp/jq:*)",
       "Bash(sudo cp:*)",
       "Bash(export:*)",
-      "Bash(npx @better-auth/cli generate:*)",
+
       "Bash(npm run:*)",
       "Bash(tasklist)",
       "Bash(PGPASSWORD=Amine2004 psql -h localhost -U postgres -d ecodeli -c \"UPDATE \\\"User\\\" SET \\\"isActive\\\" = true, \\\"validationStatus\\\" = 'VALIDATED' WHERE email = 'client1@test.com';\")",

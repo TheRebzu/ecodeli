@@ -241,7 +241,7 @@ export const auditLog = {
 
 ### Structure Données EcoDeli
 - [src/lib/db.ts](mdc:src/lib/db.ts) - Configuration Prisma
-- [src/lib/auth.ts](mdc:src/lib/auth.ts) - Authentification Better-Auth
+- [src/lib/auth.ts](mdc:src/lib/auth.ts) - Authentification NextAuth
 - [src/lib/validation.ts](mdc:src/lib/validation.ts) - Schémas de validation
 - [src/lib/logger.ts](mdc:src/lib/logger.ts) - Système de logs
 

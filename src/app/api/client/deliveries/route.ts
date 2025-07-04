@@ -38,56 +38,10 @@ export async function GET(request: NextRequest) {
       whereConditions.status = status
     }
 
-    // Récupérer les livraisons
-<<<<<<< Updated upstream
-    const deliveries = await db.delivery.findMany({
-      where: whereConditions,
-      include: {
-        announcement: {
-          select: {
-            title: true,
-            pickupAddress: true,
-            deliveryAddress: true,
-            price: true
-          }
-        },
-        deliverer: {
-          include: {
-            user: {
-              include: {
-                profile: {
-                  select: {
-                    firstName: true,
-                    lastName: true,
-                    phone: true
-                  }
-                }
-              }
-            }
-          }
-        },
-        ProofOfDelivery: {
-          select: {
-            photoUrl: true,
-            notes: true,
-            uploadedAt: true
-          }
-        }
-      },
-      orderBy: {
-        createdAt: 'desc'
-      },
-      skip: (page - 1) * limit,
-      take: limit
-    })
-
-    // Compter le total pour la pagination
-    const total = await db.delivery.count({
-      where: whereConditions
-=======
+    // Récupérer les livraisons avec optimisation
     const [deliveries, total] = await Promise.all([
       db.delivery.findMany({
-        where,
+        where: whereConditions,
         include: {
           announcement: {
             select: {
@@ -95,17 +49,15 @@ export async function GET(request: NextRequest) {
               title: true,
               pickupAddress: true,
               deliveryAddress: true,
-              basePrice: true,
-              finalPrice: true
+              basePrice: true
             }
           },
           deliverer: {
-            select: {
-              id: true,
-              name: true,
-              email: true,
+            include: {
               profile: {
                 select: {
+                  firstName: true,
+                  lastName: true,
                   phone: true,
                   avatar: true
                 }
@@ -115,43 +67,65 @@ export async function GET(request: NextRequest) {
           tracking: {
             orderBy: { timestamp: 'desc' },
             take: 1
+          },
+          ProofOfDelivery: {
+            select: {
+              id: true,
+              photos: true,
+              notes: true,
+              recipientName: true,
+              validatedWithCode: true,
+              validatedWithNFC: true,
+              createdAt: true
+            }
           }
         },
         orderBy: { createdAt: 'desc' },
-        skip: offset,
+        skip: (page - 1) * limit,
         take: limit
       }),
-      db.delivery.count({ where })
+      db.delivery.count({
+        where: whereConditions
+      })
     ])
 
-    // Transformer les données
-    const transformedDeliveries = deliveries.map(delivery => {
-      return {
-        id: delivery.id,
-        announcementId: delivery.announcement.id,
-        announcementTitle: delivery.announcement.title,
-        status: delivery.status,
-        delivererName: delivery.deliverer?.name,
-        delivererPhone: delivery.deliverer?.profile?.phone,
-        delivererAvatar: delivery.deliverer?.profile?.avatar,
-        pickupAddress: delivery.announcement.pickupAddress,
-        deliveryAddress: delivery.announcement.deliveryAddress,
-        scheduledDate: delivery.pickupDate?.toISOString(),
-        price: delivery.price,
-        validationCode: delivery.validationCode,
-        trackingUrl: `/client/deliveries/${delivery.id}/tracking`,
-        estimatedDelivery: delivery.deliveryDate?.toISOString(),
-        actualDelivery: delivery.actualDeliveryDate?.toISOString(),
-        lastTracking: delivery.tracking?.[0] || null,
-        createdAt: delivery.createdAt.toISOString()
-      }
->>>>>>> Stashed changes
-    })
+    // Transformer les données pour le frontend
+    const transformedDeliveries = deliveries.map(delivery => ({
+      id: delivery.id,
+      announcementId: delivery.announcement.id,
+      announcementTitle: delivery.announcement.title,
+      status: delivery.status,
+      delivererName: delivery.deliverer ? 
+        `${delivery.deliverer.profile?.firstName || ''} ${delivery.deliverer.profile?.lastName || ''}`.trim() : 
+        null,
+      delivererPhone: delivery.deliverer?.profile?.phone,
+      delivererAvatar: delivery.deliverer?.profile?.avatar,
+      pickupAddress: delivery.announcement.pickupAddress,
+      deliveryAddress: delivery.announcement.deliveryAddress,
+      scheduledDate: delivery.pickupDate?.toISOString(),
+      price: delivery.announcement.basePrice,
+      validationCode: delivery.validationCode,
+      trackingNumber: delivery.trackingNumber,
+      trackingUrl: `/client/deliveries/${delivery.id}/tracking`,
+      estimatedDelivery: delivery.deliveryDate?.toISOString(),
+      actualDelivery: delivery.actualDeliveryDate?.toISOString(),
+      lastTracking: delivery.tracking?.[0] || null,
+      proofOfDelivery: delivery.ProofOfDelivery ? {
+        id: delivery.ProofOfDelivery.id,
+        photos: delivery.ProofOfDelivery.photos || [],
+        notes: delivery.ProofOfDelivery.notes,
+        recipientName: delivery.ProofOfDelivery.recipientName,
+        validatedWithCode: delivery.ProofOfDelivery.validatedWithCode,
+        validatedWithNFC: delivery.ProofOfDelivery.validatedWithNFC,
+        uploadedAt: delivery.ProofOfDelivery.createdAt?.toISOString()
+      } : null,
+      createdAt: delivery.createdAt.toISOString()
+    }))
 
-    console.log(`✅ ${deliveries.length} livraisons récupérées sur ${total} total`)
+    console.log(`✅ ${transformedDeliveries.length} livraisons récupérées sur ${total} total`)
 
     return NextResponse.json({
-      deliveries,
+      deliveries: transformedDeliveries,
       pagination: {
         page,
         limit,

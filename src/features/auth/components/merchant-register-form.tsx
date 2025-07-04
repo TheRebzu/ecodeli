@@ -37,7 +37,7 @@ export function MerchantRegisterForm() {
           password: data.password,
           name: data.businessName,
           role: 'MERCHANT',
-          // Propriétés additionnelles pour Better Auth
+          // Propriétés additionnelles pour NextAuth
           isActive: false,
           validationStatus: 'PENDING'
         })

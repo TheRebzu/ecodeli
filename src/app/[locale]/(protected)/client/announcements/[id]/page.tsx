@@ -2,292 +2,342 @@
 
 import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
+import { useAuth } from '@/hooks/use-auth'
 import { useTranslations } from 'next-intl'
-import Link from 'next/link'
+import { PageHeader } from '@/components/layout/page-header'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogDescription, 
-  DialogFooter, 
-  DialogHeader, 
-  DialogTitle 
-} from '@/components/ui/dialog'
-import { 
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog'
-import { Textarea } from '@/components/ui/textarea'
-import { 
-  CheckCircle, 
-  XCircle, 
-  AlertTriangle, 
-  Package, 
-  Clock,
-  MapPin,
-  User,
-  Phone,
-  MessageCircle,
-  RefreshCw
-} from 'lucide-react'
-import { toast } from 'sonner'
+import { Separator } from '@/components/ui/separator'
+import { useToast } from '@/components/ui/use-toast'
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Package, MapPin, Clock, Euro, AlertCircle, Edit, Trash2, Eye, Users, CheckCircle, XCircle, Calendar, DollarSign, Route, Star, TrendingUp, AlertTriangle, ArrowLeft, MessageCircle, Phone } from 'lucide-react'
+import { Announcement } from '@/features/announcements/types/announcement.types'
+import { format } from 'date-fns'
+import { fr } from 'date-fns/locale'
+import Link from 'next/link'
 
-interface Announcement {
-  id: string
-  title: string
-  description: string
-  type: string
-  pickupAddress: string
-  deliveryAddress: string
-  weight?: number
-  basePrice: number
-  finalPrice: number
-  status: string
-  createdAt: string
-  pickupDate?: string
-  deliveryDate?: string
-  packageDetails?: {
-    fragile?: boolean
-    weight?: number
-    dimensions?: string
+// Fonction utilitaire pour formater les dates de manière sécurisée
+const safeFormatDate = (dateValue: any, formatString: string, fallback: string = 'Date non disponible') => {
+  try {
+    if (!dateValue) return fallback
+    const date = new Date(dateValue)
+    if (isNaN(date.getTime())) return fallback
+    return format(date, formatString, { locale: fr })
+  } catch (error) {
+    console.warn('Erreur de formatage de date:', dateValue, error)
+    return fallback
   }
-  isUrgent: boolean
-  specialInstructions?: string
-  requiresInsurance: boolean
-  _count: {
-    reviews: number
-    matches: number
-    attachments: number
-    tracking: number
-  }
-  matches?: {
-    id: string
-    delivererId: string
-    proposedPrice: number
-    message: string
-    status: string
-    createdAt: string
-    deliverer: {
-      id: string
-      user: {
-        id: string
-        name: string
-        profile?: {
-          firstName: string
-          lastName: string
-          avatar?: string
-          phone?: string
-        }
-      }
-      profile?: {
-        rating: number
-        completedDeliveries: number
-      }
-    }
-  }[]
-  reviews?: any[]
-  delivery?: {
-    id: string
-    status: string
-    validationCode?: string
-    deliverer?: {
-      id: string
-      name: string
-      profile?: {
-        firstName: string
-        lastName: string
-        phone?: string
-      }
-    }
-    proofOfDelivery?: {
-      photos?: string[]
-      notes?: string
-      createdAt: string
-    }
-  }
-  attachments?: any[]
 }
 
+interface AnnouncementDetails {
+  id: string;
+  title: string;
+  description: string;
+  type: string;
+  deliveryType?: string;
+  status: string;
+  
+  // Prix (format API)
+  price?: number;
+  currency: string;
+  
+  // Options (format API)
+  urgent?: boolean;
+  flexibleDates?: boolean;
+  specialInstructions?: string;
+  
+  // Dates
+  createdAt: string;
+  updatedAt: string;
+  publishedAt?: string;
+  desiredDate?: string;
+  viewCount?: number;
+  
+  // Adresses (format API)
+  startLocation?: {
+    address: string;
+    city: string;
+    postalCode: string;
+    country: string;
+    lat?: number;
+    lng?: number;
+  };
+  endLocation?: {
+    address: string;
+    city: string;
+    postalCode: string;
+    country: string;
+    lat?: number;
+    lng?: number;
+  };
+  
+  // Auteur principal (format API)
+  author?: {
+    id: string;
+    email: string;
+    profile?: {
+      firstName?: string;
+      lastName?: string;
+      avatar?: string;
+    };
+  };
+  
+  // Client/Merchant info (format API)
+  client?: {
+    id: string;
+    profile?: {
+      firstName?: string;
+      lastName?: string;
+      avatar?: string;
+    };
+  };
+  merchant?: {
+    id: string;
+    profile?: {
+      firstName?: string;
+      lastName?: string;
+      businessName?: string;
+      avatar?: string;
+    };
+  };
+  
+  // Détails du colis (format API)
+  packageDetails?: {
+    weight: number;
+    length: number;
+    width: number;
+    height: number;
+    fragile: boolean;
+    content: string;
+    requiresInsurance: boolean;
+    insuredValue?: number;
+  };
+  
+  // Détails du service (format API)
+  serviceDetails?: {
+    serviceType: string;
+    numberOfPeople?: number;
+    duration?: number;
+    recurringService?: boolean;
+    recurringPattern?: string;
+    specialRequirements?: string;
+  };
+  
+  // Correspondances de trajets (format API)
+  routeMatches?: Array<{
+    id: string;
+    routeId: string;
+    announcementId: string;
+    matchScore: number;
+    isNotified: boolean;
+    notifiedAt?: string;
+    createdAt: string;
+    route?: {
+      id: string;
+      delivererId: string;
+      startLocation: {
+        address: string;
+        lat?: number;
+        lng?: number;
+      };
+      endLocation: {
+        address: string;
+        lat?: number;
+        lng?: number;
+      };
+      departureTime: string;
+      deliverer?: {
+        id: string;
+        profile?: {
+          firstName?: string;
+          lastName?: string;
+          avatar?: string;
+        };
+      };
+    };
+  }>;
+  
+  // Livraison (format API)
+  delivery?: {
+    id: string;
+    status: string;
+    trackingNumber?: string;
+    deliverer?: {
+      id: string;
+      profile?: {
+        firstName?: string;
+        lastName?: string;
+        avatar?: string;
+        phone?: string;
+      };
+    };
+  };
+  
+  // Évaluations et pièces jointes
+  reviews?: Array<any>;
+  attachments?: Array<any>;
+}
+
+const statusLabels = {
+  'DRAFT': { label: 'Brouillon', color: 'bg-gray-100 text-gray-800' },
+  'ACTIVE': { label: 'Publiée', color: 'bg-green-100 text-green-800' },
+  'MATCHED': { label: 'Matchée', color: 'bg-blue-100 text-blue-800' },
+  'IN_PROGRESS': { label: 'En cours', color: 'bg-orange-100 text-orange-800' },
+  'COMPLETED': { label: 'Terminée', color: 'bg-green-100 text-green-800' },
+  'CANCELLED': { label: 'Annulée', color: 'bg-red-100 text-red-800' }
+};
+
+const typeLabels = {
+  'PACKAGE_DELIVERY': { label: 'Livraison de colis', icon: Package },
+  'PERSON_TRANSPORT': { label: 'Transport de personnes', icon: Users },
+  'AIRPORT_TRANSFER': { label: 'Transfert aéroport', icon: Users },
+  'SHOPPING': { label: 'Courses', icon: Package },
+  'INTERNATIONAL_PURCHASE': { label: 'Achat international', icon: Package },
+  'PET_SITTING': { label: 'Garde d\'animaux', icon: Package },
+  'HOME_SERVICE': { label: 'Service à domicile', icon: Package },
+  'CART_DROP': { label: 'Lâcher de chariot', icon: Package }
+};
+
+const deliveryTypeLabels = {
+  'FULL': 'Prise en charge intégrale',
+  'PARTIAL': 'Prise en charge partielle',
+  'FINAL': 'Livraison finale'
+};
+
 export default function AnnouncementDetailPage() {
-  const params = useParams()
+  const { id } = useParams()
+  const { user } = useAuth()
   const router = useRouter()
-  const t = useTranslations()
-  const [announcement, setAnnouncement] = useState<Announcement | null>(null)
+  const t = useTranslations('client.announcements')
+  const { toast } = useToast()
+  const [announcement, setAnnouncement] = useState<AnnouncementDetails | null>(null)
   const [loading, setLoading] = useState(true)
+  const [deleting, setDeleting] = useState(false)
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [showValidationDialog, setShowValidationDialog] = useState(false)
-  const [showProblemDialog, setShowProblemDialog] = useState(false)
-  const [validationCode, setValidationCode] = useState('')
-  const [problemReason, setProblemReason] = useState('')
   const [actionLoading, setActionLoading] = useState(false)
 
   useEffect(() => {
-    if (params.id) {
-      fetchAnnouncement(params.id as string)
+    if (id && user) {
+      fetchAnnouncement()
     }
-  }, [params.id])
+  }, [id, user])
 
-  // Rafraîchir automatiquement les données de livraison en cours
-  useEffect(() => {
-    if (announcement?.delivery?.status === 'IN_TRANSIT') {
-      const interval = setInterval(() => {
-        console.log('🔄 Auto-refresh: Livraison en cours')
-        fetchAnnouncement(params.id as string)
-      }, 30000) // Rafraîchir toutes les 30 secondes
-
-      return () => clearInterval(interval)
-    }
-  }, [announcement?.delivery?.status, params.id])
-
-  const fetchAnnouncement = async (id: string) => {
+  const fetchAnnouncement = async () => {
     try {
       setLoading(true)
-      console.log('🔄 Fetching announcement:', id)
-      
-      const response = await fetch(`/api/client/announcements/${id}`)
-      console.log('📡 Response status:', response.status)
-      
+      const response = await fetch(`/api/client/announcements/${id}`, {
+        method: 'GET',
+        credentials: 'include', // Important : inclure les cookies de session
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      })
+
       if (!response.ok) {
-        throw new Error('Annonce non trouvée')
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.error || 'Annonce non trouvée')
       }
 
       const data = await response.json()
-      console.log('📦 Announcement data:', data)
+      console.log('📡 Données reçues de l\'API:', data)
       
-      if (data.delivery) {
-        console.log('📋 Delivery data:', {
-          id: data.delivery.id,
-          status: data.delivery.status,
-          validationCode: data.delivery.validationCode
-        })
-      }
-      
+      // L'API retourne directement l'annonce transformée
       setAnnouncement(data)
-    } catch (err) {
-      console.error('❌ Error fetching announcement:', err)
-      setError(err instanceof Error ? err.message : 'Erreur inconnue')
+    } catch (err: any) {
+      console.error('❌ Erreur chargement annonce:', err)
+      setError(err.message || 'Erreur de chargement')
     } finally {
       setLoading(false)
     }
   }
 
-  const handleAcceptMatch = async (matchId: string) => {
-    try {
-      const response = await fetch(`/api/client/announcements/${params.id}/matches/${matchId}/accept`, {
-        method: 'POST'
-      })
-
-      if (response.ok) {
-        await fetchAnnouncement(params.id as string)
-      }
-    } catch (error) {
-      console.error('Erreur lors de l\'acceptation:', error)
+  const handleDelete = async () => {
+    if (!announcement || !window.confirm('Êtes-vous sûr de vouloir supprimer cette annonce ?')) {
+      return
     }
-  }
 
-  const validateDelivery = async () => {
-    if (!announcement?.delivery?.id) return
-
+    setActionLoading(true)
     try {
-      setActionLoading(true)
-      const response = await fetch(`/api/client/deliveries/${announcement.delivery.id}/validate`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ validationCode })
+      const response = await fetch(`/api/client/announcements/${id}`, {
+        method: 'DELETE',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json'
+        }
       })
-
+      
       if (response.ok) {
-        toast.success('Livraison validée avec succès !')
-        setShowValidationDialog(false)
-        setValidationCode('')
-        await fetchAnnouncement(params.id as string)
+        router.push('/client/announcements')
       } else {
-        const errorData = await response.json()
-        toast.error(errorData.error || 'Code de validation incorrect')
+        const error = await response.json()
+        alert(`Erreur: ${error.error || 'Impossible de supprimer'}`)
       }
-    } catch (error) {
-      console.error('Erreur lors de la validation:', error)
-      toast.error('Erreur lors de la validation')
+    } catch (err) {
+      console.error('❌ Erreur suppression:', err)
+      alert('Erreur de connexion')
     } finally {
       setActionLoading(false)
     }
   }
 
-  const reportProblem = async () => {
-    if (!announcement?.delivery?.id) return
-
+  const handleAcceptMatch = async (matchId: string) => {
+    setActionLoading(true)
     try {
-      setActionLoading(true)
-      const response = await fetch(`/api/client/deliveries/${announcement.delivery.id}/report-problem`, {
+      const response = await fetch(`/api/client/announcements/${id}/matches/${matchId}/accept`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ reason: problemReason })
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json'
+        }
       })
-
+      
       if (response.ok) {
-        toast.success('Problème signalé, notre équipe va vous contacter')
-        setShowProblemDialog(false)
-        setProblemReason('')
-        await fetchAnnouncement(params.id as string)
+        // Recharger les données
+        window.location.reload()
       } else {
-        const errorData = await response.json()
-        toast.error(errorData.error || 'Erreur lors du signalement')
+        const error = await response.json()
+        alert(`Erreur: ${error.error || 'Impossible d\'accepter'}`)
       }
-    } catch (error) {
-      console.error('Erreur lors du signalement:', error)
-      toast.error('Erreur lors du signalement')
+    } catch (err) {
+      console.error('❌ Erreur acceptation:', err)
+      alert('Erreur de connexion')
     } finally {
       setActionLoading(false)
     }
   }
 
   const getStatusColor = (status: string) => {
-    const colors = {
-      'ACTIVE': 'bg-green-100 text-green-800',
-      'MATCHED': 'bg-blue-100 text-blue-800',
-      'IN_PROGRESS': 'bg-yellow-100 text-yellow-800',
-      'IN_TRANSIT': 'bg-yellow-100 text-yellow-800',
-      'DELIVERED': 'bg-green-100 text-green-800',
-      'COMPLETED': 'bg-gray-100 text-gray-800',
-      'CANCELLED': 'bg-red-100 text-red-800'
-    }
-    return colors[status as keyof typeof colors] || 'bg-gray-100 text-gray-800'
+    const statusInfo = statusLabels[status as keyof typeof statusLabels]
+    return statusInfo ? statusInfo.color : 'bg-gray-100 text-gray-800'
   }
 
-  const getStatusLabel = (status: string) => {
-    const labels = {
-      'ACTIVE': 'Active',
-      'MATCHED': 'Matchée',
-      'IN_PROGRESS': 'En cours de livraison',
-      'IN_TRANSIT': 'En cours de livraison',
-      'DELIVERED': 'Livrée',
-      'COMPLETED': 'Terminée',
-      'CANCELLED': 'Annulée'
+  const getStatusIcon = (status: string) => {
+    const statusInfo = statusLabels[status as keyof typeof statusLabels]
+    if (statusInfo) {
+      if (status === 'ACTIVE') return <CheckCircle className="h-4 w-4" />
+      if (status === 'IN_PROGRESS') return <Clock className="h-4 w-4" />
+      if (status === 'COMPLETED') return <CheckCircle className="h-4 w-4" />
+      if (status === 'CANCELLED') return <XCircle className="h-4 w-4" />
+      if (status === 'MATCHED') return <Users className="h-4 w-4" />
     }
-    return labels[status as keyof typeof labels] || status
+    return <AlertCircle className="h-4 w-4" />
+  }
+
+  const getTypeLabel = (type: string) => {
+    const typeInfo = typeLabels[type as keyof typeof typeLabels]
+    return typeInfo ? typeInfo.label : type
   }
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 p-6">
-        <div className="max-w-4xl mx-auto">
-          <div className="animate-pulse">
-            <div className="h-8 bg-gray-200 rounded w-1/3 mb-4"></div>
-            <div className="bg-white rounded-lg p-6 space-y-4">
-              <div className="h-6 bg-gray-200 rounded w-2/3"></div>
-              <div className="h-4 bg-gray-200 rounded w-full"></div>
-              <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-            </div>
-          </div>
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Chargement de l'annonce...</p>
         </div>
       </div>
     )
@@ -295,473 +345,705 @@ export default function AnnouncementDetailPage() {
 
   if (error || !announcement) {
     return (
-      <div className="min-h-screen bg-gray-50 p-6">
-        <div className="max-w-4xl mx-auto">
-          <div className="bg-white rounded-lg p-8 text-center">
-            <div className="text-red-600 text-lg mb-2">❌</div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">Erreur</h3>
-            <p className="text-gray-600 mb-4">{error}</p>
-            <Link
-              href="/client/announcements"
-              className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700"
-            >
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <AlertTriangle className="h-12 w-12 text-red-500 mx-auto mb-4" />
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">
+            Annonce non trouvée
+          </h2>
+          <p className="text-gray-600 mb-4">
+            {error || "Cette annonce n'existe pas ou a été supprimée."}
+          </p>
+          <Link href="/client/announcements">
+            <Button variant="outline">
+              <ArrowLeft className="h-4 w-4 mr-2" />
               Retour aux annonces
-            </Link>
-          </div>
+            </Button>
+          </Link>
         </div>
       </div>
     )
   }
 
+  const statusInfo = statusLabels[announcement.status as keyof typeof statusLabels]
+  const typeInfo = typeLabels[announcement.type as keyof typeof typeLabels]
+  const TypeIcon = typeInfo?.icon || Package
+
+  // Actions disponibles selon le statut
+  const canEdit = announcement.status === 'DRAFT'
+  const canDelete = ['DRAFT', 'ACTIVE'].includes(announcement.status)
+  const canViewCandidates = announcement.status === 'ACTIVE' && announcement.routeMatches && announcement.routeMatches.length > 0
+  const hasDelivery = ['MATCHED', 'IN_PROGRESS', 'COMPLETED'].includes(announcement.status)
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-4xl mx-auto p-6">
-        {/* Header */}
-        <div className="mb-6">
-          <Link
-            href="/client/announcements"
-            className="text-green-600 hover:text-green-700 text-sm font-medium mb-4 inline-block"
-          >
-            ← Retour aux annonces
-          </Link>
-          
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">{announcement.title}</h1>
-              <div className="flex items-center space-x-3 mt-2">
-                <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(announcement.delivery?.status || announcement.status)}`}>
-                  {getStatusLabel(announcement.delivery?.status || announcement.status)}
-                </span>
-                {announcement.isUrgent && (
-                  <span className="px-2 py-1 bg-red-100 text-red-800 rounded-full text-xs font-medium">
-                    ⚡ Urgent
-                  </span>
-                )}
-                {announcement.packageDetails?.fragile && (
-                  <span className="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs font-medium">
-                    📦 Fragile
-                  </span>
-                )}
-                {announcement.requiresInsurance && (
-                  <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">
-                    🛡️ Assuré
-                  </span>
-                )}
-              </div>
-            </div>
-            
-            <div className="flex space-x-2">
-              {announcement.status === 'ACTIVE' && (
-                <>
-                  <Link
-                    href={`/client/announcements/${announcement.id}/edit`}
-                    className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700"
-                  >
-                    Modifier
-                  </Link>
-                  <Link
-                    href={`/client/announcements/${announcement.id}/payment`}
-                    className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700"
-                  >
-                    Payer
-                  </Link>
-                </>
-              )}
-              {announcement.status === 'MATCHED' && (
-                <Link
-                  href={`/client/announcements/${announcement.id}/tracking`}
-                  className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
-                >
-                  Suivre
-                </Link>
-              )}
-            </div>
+    <div className="space-y-6">
+      <PageHeader
+        title={announcement.title}
+        description={`Annonce créée le ${safeFormatDate(announcement.createdAt, 'dd MMMM yyyy')}`}
+        action={
+          <div className="flex gap-2">
+            <Link href="/client/announcements">
+              <Button variant="outline">
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Retour
+              </Button>
+            </Link>
+            {canEdit && (
+              <Link href={`/client/announcements/${id}/edit`}>
+                <Button variant="outline">
+                  <Edit className="h-4 w-4 mr-2" />
+                  Modifier
+                </Button>
+              </Link>
+            )}
+            {canViewCandidates && (
+              <Link href={`/client/announcements/${id}/candidates`}>
+                <Button>
+                  <Users className="h-4 w-4 mr-2" />
+                  Voir candidats ({announcement.routeMatches?.length})
+                </Button>
+              </Link>
+            )}
+            {canDelete && (
+              <Button variant="destructive" onClick={handleDelete} disabled={actionLoading}>
+                <Trash2 className="h-4 w-4 mr-2" />
+                Supprimer
+              </Button>
+            )}
           </div>
-        </div>
+        }
+      />
 
-        {/* Section Livraison Terminée */}
-        {announcement.delivery && announcement.delivery.status === 'DELIVERED' && (
-          <Card className="mb-6 border-l-4 border-l-green-500">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Informations principales */}
+        <div className="lg:col-span-2 space-y-6">
+          <Card>
             <CardHeader>
-              <CardTitle className="flex items-center text-green-600">
-                <CheckCircle className="w-5 h-5 mr-2" />
-                Livraison terminée
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="bg-green-50 p-4 rounded-lg">
-                  <div className="flex items-center space-x-3 mb-3">
-                    <CheckCircle className="w-5 h-5 text-green-600" />
-                    <span className="font-medium text-green-900">Livraison réussie !</span>
-                  </div>
-                  <p className="text-green-700 text-sm">
-                    Votre colis a été livré avec succès. Merci d'avoir utilisé EcoDeli !
-                  </p>
-                </div>
-
-                {announcement.delivery.deliverer && (
-                  <div className="bg-gray-50 p-4 rounded-lg">
-                    <div className="flex items-center space-x-3 mb-2">
-                      <User className="w-4 h-4 text-gray-500" />
-                      <span className="font-medium">Livreur</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm">
-                        {announcement.delivery.deliverer.profile?.firstName} {announcement.delivery.deliverer.profile?.lastName}
-                      </span>
-                    </div>
-                  </div>
-                )}
-
-                <div className="flex space-x-3">
-                  <Button 
-                    onClick={() => window.location.reload()}
-                    className="flex-1 bg-green-600 hover:bg-green-700"
-                  >
-                    <RefreshCw className="w-4 h-4 mr-2" />
-                    Actualiser
-                  </Button>
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center gap-2">
+                  <TypeIcon className="h-5 w-5" />
+                  Détails de l'annonce
+                </CardTitle>
+                <div className="flex items-center gap-2">
+                  <Badge className={getStatusColor(announcement.status)}>
+                    {getStatusIcon(announcement.status)}
+                    <span className="ml-1">{statusInfo?.label || announcement.status}</span>
+                  </Badge>
+                  <Badge variant="outline">
+                    {getTypeLabel(announcement.type)}
+                  </Badge>
+                  {announcement.urgent && (
+                    <Badge variant="destructive">
+                      Urgent
+                    </Badge>
+                  )}
                 </div>
               </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Section Validation de Livraison - Style Uber Eats */}
-        {announcement.delivery && announcement.delivery.status === 'IN_TRANSIT' && (
-          <Card className="mb-6 border-l-4 border-l-blue-500">
-            <CardHeader>
-              <CardTitle className="flex items-center text-blue-600">
-                <Package className="w-5 h-5 mr-2" />
-                Validation de la livraison
-              </CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="bg-blue-50 p-4 rounded-lg">
-                  <div className="flex items-center space-x-3 mb-3">
-                    <Clock className="w-5 h-5 text-blue-600" />
-                    <span className="font-medium text-blue-900">Votre livreur arrive bientôt</span>
-                  </div>
-                  <p className="text-blue-700 text-sm">
-                    Le livreur va vous demander le code de validation pour confirmer la livraison.
-                  </p>
+            <CardContent className="space-y-4">
+              <div>
+                <h4 className="font-medium mb-2">Description</h4>
+                <p className="text-gray-600">{announcement.description}</p>
+              </div>
+
+              {announcement.specialInstructions && (
+                <div>
+                  <h4 className="font-medium mb-2">Instructions spéciales</h4>
+                  <p className="text-gray-600">{announcement.specialInstructions}</p>
                 </div>
+              )}
 
-                {announcement.delivery.deliverer && (
-                  <div className="bg-gray-50 p-4 rounded-lg">
-                    <div className="flex items-center space-x-3 mb-2">
-                      <User className="w-4 h-4 text-gray-500" />
-                      <span className="font-medium">Livreur assigné</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm">
-                        {announcement.delivery.deliverer.profile?.firstName} {announcement.delivery.deliverer.profile?.lastName}
-                      </span>
-                      {announcement.delivery.deliverer.profile?.phone && (
-                        <a 
-                          href={`tel:${announcement.delivery.deliverer.profile.phone}`}
-                          className="flex items-center space-x-1 text-blue-600 hover:text-blue-700"
-                        >
-                          <Phone className="w-4 h-4" />
-                          <span className="text-sm">Appeler</span>
-                        </a>
+              <Separator />
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="flex items-center gap-2">
+                  <Calendar className="h-4 w-4 text-gray-500" />
+                  <div>
+                    <p className="text-sm font-medium">Date souhaitée</p>
+                    <p className="text-sm text-gray-600">
+                      {safeFormatDate(
+                        announcement.desiredDate, 
+                        'dd MMMM yyyy à HH:mm'
                       )}
-                    </div>
-                  </div>
-                )}
-
-                <div className="bg-yellow-50 p-4 rounded-lg">
-                  <div className="flex items-center space-x-3 mb-2">
-                    <AlertTriangle className="w-4 h-4 text-yellow-600" />
-                    <span className="font-medium text-yellow-900">Code de validation</span>
-                  </div>
-                  
-                  {/* Debug info */}
-                  <div className="mb-3 p-2 bg-gray-100 rounded text-xs">
-                    <div>Status: {announcement.delivery?.status}</div>
-                    <div>Validation Code: {announcement.delivery?.validationCode || 'NULL'}</div>
-                    <div>Has Code: {announcement.delivery?.validationCode ? 'YES' : 'NO'}</div>
-                  </div>
-                  
-                  <div className="text-center">
-                    <div className="text-2xl font-mono font-bold text-yellow-800 bg-white p-3 rounded border-2 border-yellow-200">
-                      {announcement.delivery.validationCode || 'XXXXXX'}
-                    </div>
-                    <p className="text-sm text-yellow-700 mt-2">
-                      Donnez ce code au livreur pour confirmer la réception
                     </p>
                   </div>
                 </div>
 
-                <div className="flex space-x-3">
-                  <Button 
-                    onClick={() => setShowValidationDialog(true)}
-                    className="flex-1 bg-green-600 hover:bg-green-700"
-                  >
-                    <CheckCircle className="w-4 h-4 mr-2" />
-                    Confirmer la livraison
-                  </Button>
-                  <Button 
-                    onClick={() => setShowProblemDialog(true)}
-                    variant="outline"
-                    className="flex-1 border-red-300 text-red-600 hover:bg-red-50"
-                  >
-                    <XCircle className="w-4 h-4 mr-2" />
-                    Signaler un problème
-                  </Button>
+                <div className="flex items-center gap-2">
+                  <DollarSign className="h-4 w-4 text-gray-500" />
+                  <div>
+                    <p className="text-sm font-medium">Prix</p>
+                    <p className="text-sm text-gray-600">
+                      {(announcement.price || 0)} {announcement.currency || 'EUR'}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <Eye className="h-4 w-4 text-gray-500" />
+                  <div>
+                    <p className="text-sm font-medium">Type de service</p>
+                    <p className="text-sm text-gray-600">
+                      {getTypeLabel(announcement.type)}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <Clock className="h-4 w-4 text-gray-500" />
+                  <div>
+                    <p className="text-sm font-medium">Dates flexibles</p>
+                    <p className="text-sm text-gray-600">
+                      {announcement.flexibleDates ? 'Oui' : 'Non'}
+                    </p>
+                  </div>
                 </div>
               </div>
             </CardContent>
           </Card>
-        )}
 
-        {/* Preuve de livraison si disponible */}
-        {announcement.delivery?.proofOfDelivery && (
-          <Card className="mb-6 border-l-4 border-l-green-500">
+          {/* Adresses */}
+          <Card>
             <CardHeader>
-              <CardTitle className="flex items-center text-green-600">
-                <CheckCircle className="w-5 h-5 mr-2" />
-                Preuve de livraison
+              <CardTitle className="flex items-center gap-2">
+                <MapPin className="h-5 w-5" />
+                Itinéraire
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {announcement.delivery.proofOfDelivery.photos && announcement.delivery.proofOfDelivery.photos.length > 0 && (
-                  <div>
-                    <img 
-                      src={announcement.delivery.proofOfDelivery.photos[0]} 
-                      alt="Preuve de livraison"
-                      className="w-full max-w-md rounded-lg border"
-                    />
-                  </div>
-                )}
-                {announcement.delivery.proofOfDelivery.notes && (
-                  <div className="bg-gray-50 p-3 rounded">
-                    <p className="text-sm text-gray-700">{announcement.delivery.proofOfDelivery.notes}</p>
-                  </div>
-                )}
-                <p className="text-xs text-gray-500">
-                  Livré le {new Date(announcement.delivery.proofOfDelivery.createdAt).toLocaleString()}
+            <CardContent className="space-y-4">
+              <div>
+                <h4 className="font-medium mb-2 text-green-600">📍 Point de départ</h4>
+                <p className="text-gray-600">
+                  {announcement.startLocation?.address || 'Adresse non renseignée'}
+                </p>
+              </div>
+
+              <div className="flex items-center justify-center py-2">
+                <Route className="h-6 w-6 text-blue-500" />
+              </div>
+
+              <div>
+                <h4 className="font-medium mb-2 text-red-600">📍 Point d'arrivée</h4>
+                <p className="text-gray-600">
+                  {announcement.endLocation?.address || 'Adresse non renseignée'}
                 </p>
               </div>
             </CardContent>
           </Card>
-        )}
 
-        {/* Détails de l'annonce */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Informations principales */}
-          <div className="lg:col-span-2 space-y-6">
-            <div className="bg-white rounded-lg p-6 shadow-sm border">
-              <h2 className="text-xl font-semibold mb-4">Détails de la livraison</h2>
-              
-              <div className="space-y-4">
-                <div>
-                  <h3 className="font-medium text-gray-900 mb-2">Description</h3>
-                  <p className="text-gray-600">{announcement.description}</p>
-                </div>
+          {/* Détails du colis si applicable */}
+          {(['PACKAGE_DELIVERY', 'SHOPPING', 'INTERNATIONAL_PURCHASE', 'CART_DROP'].includes(announcement.type)) && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Package className="h-5 w-5" />
+                  Détails du colis
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {announcement.packageDetails ? (
+                  <>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {announcement.packageDetails.weight && (
+                        <div>
+                          <h4 className="font-medium mb-2">Poids</h4>
+                          <p className="text-gray-600">{announcement.packageDetails.weight} kg</p>
+                        </div>
+                      )}
+                      {(announcement.packageDetails.length && announcement.packageDetails.width && announcement.packageDetails.height) && (
+                        <div>
+                          <h4 className="font-medium mb-2">Dimensions</h4>
+                          <p className="text-gray-600">
+                            {announcement.packageDetails.length} x {announcement.packageDetails.width} x {announcement.packageDetails.height} cm
+                          </p>
+                        </div>
+                      )}
+                      {announcement.packageDetails.content && (
+                        <div>
+                          <h4 className="font-medium mb-2">Contenu</h4>
+                          <p className="text-gray-600">{announcement.packageDetails.content}</p>
+                        </div>
+                      )}
+                      <div>
+                        <h4 className="font-medium mb-2">Fragile</h4>
+                        <p className="text-gray-600">
+                          {announcement.packageDetails.fragile ? 'Oui' : 'Non'}
+                        </p>
+                      </div>
+                    </div>
 
+                    {announcement.packageDetails.requiresInsurance && (
+                      <div>
+                        <h4 className="font-medium mb-2">Assurance</h4>
+                        <p className="text-gray-600">
+                          Valeur assurée: {announcement.packageDetails.insuredValue || 0} €
+                        </p>
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <div className="text-center py-4">
+                    <Package className="h-12 w-12 text-gray-400 mx-auto mb-2" />
+                    <p className="text-gray-600 mb-2">Détails du colis non renseignés</p>
+                    <p className="text-sm text-gray-500">
+                      Les informations détaillées du colis (poids, dimensions, contenu) n'ont pas été précisées lors de la création de l'annonce.
+                    </p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Détails du service si applicable */}
+          {announcement.serviceDetails && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Users className="h-5 w-5" />
+                  Détails du service
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <h3 className="font-medium text-gray-900 mb-1">Adresse de collecte</h3>
-                    <p className="text-gray-600">{announcement.pickupAddress}</p>
+                    <h4 className="font-medium mb-2">Type de service</h4>
+                    <p className="text-gray-600">{announcement.serviceDetails.serviceType}</p>
                   </div>
-                  <div>
-                    <h3 className="font-medium text-gray-900 mb-1">Adresse de livraison</h3>
-                    <p className="text-gray-600">{announcement.deliveryAddress}</p>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  {(announcement.weight || announcement.packageDetails?.weight) && (
+                  {announcement.serviceDetails.numberOfPeople && (
                     <div>
-                      <h3 className="font-medium text-gray-900 mb-1">Poids</h3>
-                      <p className="text-gray-600">{announcement.weight || announcement.packageDetails?.weight} kg</p>
+                      <h4 className="font-medium mb-2">Nombre de personnes</h4>
+                      <p className="text-gray-600">{announcement.serviceDetails.numberOfPeople} personnes</p>
                     </div>
                   )}
-                  <div>
-                    <h3 className="font-medium text-gray-900 mb-1">Prix de base</h3>
-                    <p className="text-gray-600">{announcement.basePrice}€</p>
-                  </div>
-                  <div>
-                    <h3 className="font-medium text-gray-900 mb-1">Prix final</h3>
-                    <p className="text-gray-600 font-semibold">{announcement.finalPrice}€</p>
-                  </div>
-                  {announcement.pickupDate && (
+                  {announcement.serviceDetails.duration && (
                     <div>
-                      <h3 className="font-medium text-gray-900 mb-1">Collecte</h3>
-                      <p className="text-gray-600">{new Date(announcement.pickupDate).toLocaleDateString()}</p>
+                      <h4 className="font-medium mb-2">Durée</h4>
+                      <p className="text-gray-600">{announcement.serviceDetails.duration} minutes</p>
                     </div>
                   )}
-                  {announcement.deliveryDate && (
+                  {announcement.serviceDetails.recurringService && (
                     <div>
-                      <h3 className="font-medium text-gray-900 mb-1">Échéance</h3>
-                      <p className="text-gray-600">{new Date(announcement.deliveryDate).toLocaleDateString()}</p>
+                      <h4 className="font-medium mb-2">Service récurrent</h4>
+                      <p className="text-gray-600">
+                        {announcement.serviceDetails.recurringPattern || 'Oui'}
+                      </p>
                     </div>
                   )}
                 </div>
 
-                {announcement.packageDetails?.dimensions && (
-                  <div>
-                    <h3 className="font-medium text-gray-900 mb-1">Dimensions</h3>
-                    <p className="text-gray-600">{announcement.packageDetails.dimensions}</p>
-                  </div>
-                )}
+                                 {announcement.serviceDetails.specialRequirements && (
+                   <div>
+                     <h4 className="font-medium mb-2">Exigences spéciales</h4>
+                     <p className="text-gray-600">{announcement.serviceDetails.specialRequirements}</p>
+                   </div>
+                 )}
+               </CardContent>
+             </Card>
+           )}
 
-                {announcement.specialInstructions && (
-                  <div>
-                    <h3 className="font-medium text-gray-900 mb-1">Instructions spéciales</h3>
-                    <p className="text-gray-600">{announcement.specialInstructions}</p>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Correspondances/Matches */}
-            {announcement.matches && announcement.matches.length > 0 && (
-              <div className="bg-white rounded-lg p-6 shadow-sm border">
-                <h2 className="text-xl font-semibold mb-4">
-                  Livreurs intéressés ({announcement.matches.length})
-                </h2>
-                
-                <div className="space-y-4">
-                  {announcement.matches.map((match) => (
-                    <div key={match.id} className="border rounded-lg p-4">
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <div className="flex items-center space-x-3 mb-2">
-                            <h3 className="font-medium text-gray-900">
-                              {match.deliverer.user.profile?.firstName} {match.deliverer.user.profile?.lastName} 
-                              ({match.deliverer.user.name})
-                            </h3>
-                            {match.deliverer.profile?.rating && (
-                              <span className="text-yellow-500">⭐ {match.deliverer.profile.rating.toFixed(1)}</span>
-                            )}
-                            {match.deliverer.profile?.completedDeliveries && (
-                              <span className="text-sm text-gray-500">
-                                {match.deliverer.profile.completedDeliveries} livraisons
-                              </span>
-                            )}
-                          </div>
-                          {match.message && (
-                            <p className="text-gray-600 mb-2">{match.message}</p>
-                          )}
-                          <div className="flex items-center space-x-4 text-sm text-gray-500">
-                            {match.proposedPrice && (
-                              <span>Prix proposé: {match.proposedPrice}€</span>
-                            )}
-                            <span>Matchée le {new Date(match.createdAt).toLocaleDateString()}</span>
-                          </div>
-                        </div>
-                        
-                        {announcement.status === 'ACTIVE' && match.status === 'PENDING' && (
-                          <button
-                            onClick={() => handleAcceptMatch(match.id)}
-                            className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 ml-4"
-                          >
-                            Accepter
-                          </button>
-                        )}
+          {/* Pièces jointes si disponibles */}
+          {announcement.attachments && announcement.attachments.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Package className="h-5 w-5" />
+                  Pièces jointes ({announcement.attachments.length})
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  {announcement.attachments.map((attachment: any, index: number) => (
+                    <div key={index} className="flex items-center gap-3 p-3 border rounded-lg">
+                      <Package className="h-4 w-4 text-gray-500" />
+                      <div className="flex-1">
+                        <p className="text-sm font-medium">{attachment.filename || `Fichier ${index + 1}`}</p>
+                        <p className="text-xs text-gray-500">{attachment.type || 'Type inconnu'}</p>
                       </div>
+                      {attachment.url && (
+                        <Button variant="ghost" size="sm">
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                      )}
                     </div>
                   ))}
                 </div>
-              </div>
-            )}
-          </div>
+              </CardContent>
+            </Card>
+          )}
 
-          {/* Sidebar */}
-          <div className="space-y-6">
-            <div className="bg-white rounded-lg p-6 shadow-sm border">
-              <h3 className="font-semibold mb-4">Informations</h3>
-              <div className="space-y-3 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-gray-500">Créé le:</span>
-                  <span className="text-gray-900">{new Date(announcement.createdAt).toLocaleDateString()}</span>
+          {/* Évaluations si disponibles */}
+          {announcement.reviews && announcement.reviews.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Star className="h-5 w-5" />
+                  Évaluations ({announcement.reviews.length})
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {announcement.reviews.slice(0, 3).map((review: any, index: number) => (
+                    <div key={index} className="p-3 border rounded-lg">
+                      <div className="flex items-center gap-2 mb-2">
+                        <div className="flex">
+                          {[1, 2, 3, 4, 5].map((star) => (
+                            <Star 
+                              key={star} 
+                              className={`h-4 w-4 ${star <= (review.rating || 0) ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'}`} 
+                            />
+                          ))}
+                        </div>
+                        <span className="text-sm font-medium">{review.rating}/5</span>
+                      </div>
+                      {review.comment && (
+                        <p className="text-sm text-gray-600">"{review.comment}"</p>
+                      )}
+                      <p className="text-xs text-gray-500 mt-2">
+                        {new Date(review.createdAt).toLocaleDateString('fr-FR')}
+                      </p>
+                    </div>
+                  ))}
+                  {announcement.reviews.length > 3 && (
+                    <p className="text-sm text-gray-500 text-center">
+                      +{announcement.reviews.length - 3} autres évaluations
+                    </p>
+                  )}
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-500">Type de service:</span>
-                  <span className="text-gray-900">{announcement.type}</span>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+
+        {/* Sidebar */}
+        <div className="space-y-6">
+          {/* Debug - Données de l'API (temporaire) */}
+          {process.env.NODE_ENV === 'development' && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-xs text-red-600">
+                  🐛 DEBUG - Données API (dev only)
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <details className="text-xs">
+                  <summary className="cursor-pointer font-medium">Voir les données brutes</summary>
+                  <pre className="mt-2 p-2 bg-gray-100 rounded text-xs overflow-auto">
+                    {JSON.stringify(announcement, null, 2)}
+                  </pre>
+                </details>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Informations supplémentaires */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <TrendingUp className="h-5 w-5" />
+                Informations
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+                              <div className="space-y-2">
+                  <p className="text-sm font-medium">Publié le</p>
+                  <p className="text-sm text-gray-600">
+                    {new Date(announcement.createdAt).toLocaleDateString('fr-FR')}
+                  </p>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-500">Correspondances:</span>
-                  <span className="text-gray-900">{announcement._count?.matches || 0}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-500">Avis:</span>
-                  <span className="text-gray-900">{announcement._count?.reviews || 0}</span>
-                </div>
+
+              <div className="space-y-2">
+                <p className="text-sm font-medium">Type de service</p>
+                <p className="text-sm text-gray-600">
+                  {getTypeLabel(announcement.type)}
+                </p>
               </div>
-            </div>
-          </div>
+
+              {announcement.urgent && (
+                <div className="space-y-2">
+                  <p className="text-sm font-medium">Priorité</p>
+                  <Badge variant="destructive" className="text-xs">
+                    Urgent
+                  </Badge>
+                </div>
+              )}
+
+              {announcement.viewCount !== undefined && announcement.viewCount > 0 && (
+                <div className="space-y-2">
+                  <p className="text-sm font-medium">Vues</p>
+                  <p className="text-sm text-gray-600">{announcement.viewCount} vues</p>
+                </div>
+              )}
+
+              <div className="space-y-2">
+                <p className="text-sm font-medium">Statut actuel</p>
+                <Badge className={statusInfo.color}>
+                  {statusInfo.label}
+                </Badge>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Informations sur l'auteur */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Users className="h-5 w-5" />
+                Informations auteur
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {announcement.author?.profile ? (
+                <div className="flex items-center gap-3">
+                  <Avatar>
+                    <AvatarImage src={announcement.author.profile.avatar} />
+                    <AvatarFallback>
+                      {announcement.author.profile.firstName?.[0] || 'U'}{announcement.author.profile.lastName?.[0] || 'E'}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <p className="font-medium">
+                      {announcement.author.profile.firstName && announcement.author.profile.lastName
+                        ? `${announcement.author.profile.firstName} ${announcement.author.profile.lastName}`
+                        : 'Utilisateur anonyme'
+                      }
+                    </p>
+                    <p className="text-sm text-gray-600">Auteur de l'annonce</p>
+                  </div>
+                </div>
+              ) : announcement.client?.profile ? (
+                <div className="flex items-center gap-3">
+                  <Avatar>
+                    <AvatarImage src={announcement.client.profile.avatar} />
+                    <AvatarFallback>
+                      {announcement.client.profile.firstName?.[0] || 'C'}{announcement.client.profile.lastName?.[0] || 'L'}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <p className="font-medium">
+                      {announcement.client.profile.firstName && announcement.client.profile.lastName
+                        ? `${announcement.client.profile.firstName} ${announcement.client.profile.lastName}`
+                        : 'Client anonyme'
+                      }
+                    </p>
+                    <p className="text-sm text-gray-600">Client particulier</p>
+                  </div>
+                </div>
+              ) : announcement.merchant?.profile ? (
+                <div className="flex items-center gap-3">
+                  <Avatar>
+                    <AvatarImage src={announcement.merchant.profile.avatar} />
+                    <AvatarFallback>
+                      {announcement.merchant.profile.businessName?.[0] || 
+                       announcement.merchant.profile.firstName?.[0] || 'M'}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <p className="font-medium">
+                      {announcement.merchant.profile.businessName || 
+                       (announcement.merchant.profile.firstName && announcement.merchant.profile.lastName
+                         ? `${announcement.merchant.profile.firstName} ${announcement.merchant.profile.lastName}`
+                         : 'Commerçant'
+                       )}
+                    </p>
+                    <p className="text-sm text-gray-600">Commerçant partenaire</p>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex items-center gap-3">
+                  <Avatar>
+                    <AvatarFallback>EC</AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <p className="font-medium">Utilisateur EcoDeli</p>
+                    <p className="text-sm text-gray-600">Profil non disponible</p>
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Candidats (si statut ACTIVE) */}
+          {canViewCandidates && announcement.routeMatches && announcement.routeMatches.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Users className="h-5 w-5" />
+                  Correspondances de trajets ({announcement.routeMatches.length})
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <p className="text-sm text-gray-600">
+                    {announcement.routeMatches.length} trajets compatibles trouvés.
+                  </p>
+                  <Link href={`/client/announcements/${id}/candidates`} className="w-full">
+                    <Button className="w-full">
+                      <Users className="h-4 w-4 mr-2" />
+                      Voir tous les candidats
+                    </Button>
+                  </Link>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Actions rapides */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Package className="h-5 w-5" />
+                Actions disponibles
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {/* Boutons selon le statut */}
+              {announcement.status === 'DRAFT' && (
+                <div className="space-y-2">
+                  <Link href={`/client/announcements/${id}/edit`} className="w-full">
+                    <Button variant="outline" className="w-full">
+                      <Edit className="h-4 w-4 mr-2" />
+                      Modifier l'annonce
+                    </Button>
+                  </Link>
+                  <Link href={`/client/announcements/${id}/payment`} className="w-full">
+                    <Button className="w-full">
+                      <DollarSign className="h-4 w-4 mr-2" />
+                      Procéder au paiement
+                    </Button>
+                  </Link>
+                </div>
+              )}
+
+              {announcement.status === 'ACTIVE' && (
+                <div className="space-y-2">
+                  {canViewCandidates && (
+                    <Link href={`/client/announcements/${id}/candidates`} className="w-full">
+                      <Button className="w-full">
+                        <Users className="h-4 w-4 mr-2" />
+                        Voir candidats ({announcement.routeMatches?.length || 0})
+                      </Button>
+                    </Link>
+                  )}
+                  <Link href={`/client/announcements/${id}/tracking`} className="w-full">
+                    <Button variant="outline" className="w-full">
+                      <MapPin className="h-4 w-4 mr-2" />
+                      Suivi en temps réel
+                    </Button>
+                  </Link>
+                </div>
+              )}
+
+              {['MATCHED', 'IN_PROGRESS'].includes(announcement.status) && (
+                <div className="space-y-2">
+                  <Link href={`/client/announcements/${id}/tracking`} className="w-full">
+                    <Button className="w-full">
+                      <MapPin className="h-4 w-4 mr-2" />
+                      Suivre la livraison
+                    </Button>
+                  </Link>
+                  <Link href={`/client/announcements/${id}/validation-code`} className="w-full">
+                    <Button variant="outline" className="w-full">
+                      <Eye className="h-4 w-4 mr-2" />
+                      Code de validation
+                    </Button>
+                  </Link>
+                  {announcement.status === 'MATCHED' && (
+                    <Link href={`/client/announcements/${id}/payment`} className="w-full">
+                      <Button variant="outline" className="w-full">
+                        <DollarSign className="h-4 w-4 mr-2" />
+                        Gérer le paiement
+                      </Button>
+                    </Link>
+                  )}
+                </div>
+              )}
+
+              {announcement.status === 'COMPLETED' && (
+                <div className="space-y-2">
+                  <Link href={`/client/announcements/${id}/tracking`} className="w-full">
+                    <Button variant="outline" className="w-full">
+                      <MapPin className="h-4 w-4 mr-2" />
+                      Voir l'historique
+                    </Button>
+                  </Link>
+                  <Link href={`/client/announcements/${id}/review`} className="w-full">
+                    <Button className="w-full">
+                      <Star className="h-4 w-4 mr-2" />
+                      Évaluer le livreur
+                    </Button>
+                  </Link>
+                </div>
+              )}
+
+              {announcement.status === 'CANCELLED' && (
+                <div className="space-y-2">
+                  <Link href={`/client/announcements/${id}/tracking`} className="w-full">
+                    <Button variant="outline" className="w-full">
+                      <MapPin className="h-4 w-4 mr-2" />
+                      Voir l'historique
+                    </Button>
+                  </Link>
+                  <Alert>
+                    <AlertTriangle className="h-4 w-4" />
+                    <AlertDescription>
+                      Cette annonce a été annulée. Aucune action n'est possible.
+                    </AlertDescription>
+                  </Alert>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Livraison en cours */}
+          {hasDelivery && announcement.delivery && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Package className="h-5 w-5" />
+                  Livraison en cours
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <Alert>
+                  <AlertTriangle className="h-4 w-4" />
+                  <AlertDescription>
+                    Une livraison est associée à cette annonce. Consultez la page de suivi pour plus de détails.
+                  </AlertDescription>
+                </Alert>
+                
+                <Link href={`/client/announcements/${id}/tracking`} className="w-full">
+                  <Button className="w-full">
+                    <MapPin className="h-4 w-4 mr-2" />
+                    Voir le suivi de livraison
+                  </Button>
+                </Link>
+              </CardContent>
+            </Card>
+          )}
         </div>
       </div>
 
-      {/* Dialog de validation */}
-      <Dialog open={showValidationDialog} onOpenChange={setShowValidationDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Confirmer la livraison</DialogTitle>
-            <DialogDescription>
-              Entrez le code de validation fourni par le livreur pour confirmer la réception
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            <Input
-              placeholder="Code à 6 chiffres"
-              value={validationCode}
-              onChange={(e) => setValidationCode(e.target.value)}
-              className="text-center font-mono text-lg"
-              maxLength={6}
-            />
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowValidationDialog(false)}>
-              Annuler
-            </Button>
-            <Button
-              onClick={validateDelivery}
-              disabled={!validationCode.trim() || validationCode.length !== 6 || actionLoading}
-            >
-              {actionLoading ? 'Validation...' : 'Confirmer'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Dialog de signalement de problème */}
-      <Dialog open={showProblemDialog} onOpenChange={setShowProblemDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Signaler un problème</DialogTitle>
-            <DialogDescription>
-              Décrivez le problème rencontré avec cette livraison
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            <Textarea
-              placeholder="Décrivez le problème (ex: colis endommagé, livreur en retard, mauvaise adresse...)"
-              value={problemReason}
-              onChange={(e) => setProblemReason(e.target.value)}
-              rows={4}
-            />
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowProblemDialog(false)}>
-              Annuler
-            </Button>
-            <Button
-              onClick={reportProblem}
-              disabled={!problemReason.trim() || actionLoading}
+      {/* Dialog de confirmation de suppression */}
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmer la suppression</AlertDialogTitle>
+            <AlertDialogDescription>
+              Êtes-vous sûr de vouloir supprimer cette annonce ? Cette action est irréversible.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDelete}
               className="bg-red-600 hover:bg-red-700"
+              disabled={actionLoading}
             >
-              {actionLoading ? 'Envoi...' : 'Signaler'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+              {actionLoading ? 'Suppression...' : 'Supprimer'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 } 

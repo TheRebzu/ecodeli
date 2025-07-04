@@ -1,52 +1,121 @@
 import { z } from 'zod'
 
-// Types de services selon le cahier des charges EcoDeli
+// SERVICES - Prestations à la personne selon le cahier des charges EcoDeli
 export const serviceTypeSchema = z.enum([
+  'PERSON_TRANSPORT',       // Transport quotidien de personnes (médecin, travail, gare)
+  'AIRPORT_TRANSFER',       // Transfert aéroport au départ ou à l'arrivée
+  'PET_CARE',              // Garde d'animaux à domicile
   'HOME_CLEANING',         // Ménage à domicile
-  'GARDENING',            // Jardinage et entretien extérieur
-  'HANDYMAN',             // Bricolage et petites réparations
-  'PET_SITTING',          // Garde d'animaux de compagnie
-  'PET_WALKING',          // Promenade d'animaux
-  'TUTORING',             // Cours particuliers
-  'BEAUTY_HOME',          // Soins esthétiques à domicile
-  'PERSONAL_SHOPPING',    // Courses personnalisées
-  'ELDERLY_CARE',         // Accompagnement personnes âgées
-  'CHILDCARE',            // Garde d'enfants
-  'HOUSE_SITTING',        // Surveillance de domicile
-  'MOVING_HELP',          // Aide au déménagement
-  'ASSEMBLY',             // Montage de meubles
-  'COOKING',              // Cuisine à domicile
-  'PERSONAL_TRAINING'     // Coach sportif à domicile
+  'GARDENING',             // Jardinage
+  'HANDYMAN',              // Petits travaux ménagers/bricolage
+  'TUTORING',              // Cours particuliers
+  'BEAUTY',                // Soins/beauté
+  'HEALTHCARE'             // Soins à domicile
 ])
 
 export type ServiceType = z.infer<typeof serviceTypeSchema>
 
 // Statuts des services
 export const serviceStatusSchema = z.enum([
-  'DRAFT',           // Brouillon
-  'ACTIVE',          // Publiée et visible
-  'BOOKED',          // Réservée par un prestataire
-  'IN_PROGRESS',     // En cours de réalisation
-  'COMPLETED',       // Terminée
-  'CANCELLED',       // Annulée
-  'PENDING_REVIEW'   // En attente d'évaluation
+  'DRAFT',         // Brouillon
+  'ACTIVE',        // Service actif et disponible
+  'BOOKED',        // Réservé
+  'IN_PROGRESS',   // En cours d'intervention
+  'COMPLETED',     // Intervention terminée
+  'CANCELLED'      // Annulé
 ])
 
 export type ServiceStatus = z.infer<typeof serviceStatusSchema>
 
-// Fréquences pour services récurrents
-export const serviceFrequencySchema = z.enum([
-  'ONE_TIME',        // Ponctuel
-  'WEEKLY',          // Hebdomadaire
-  'BIWEEKLY',        // Toutes les 2 semaines
-  'MONTHLY',         // Mensuel
-  'QUARTERLY'        // Trimestriel
+// Catégories de services pour la classification
+export const serviceCategorySchema = z.enum([
+  'TRANSPORT',     // Transport de personnes
+  'HOME_CARE',     // Soins à domicile
+  'MAINTENANCE',   // Maintenance et réparations
+  'EDUCATION',     // Éducation et formation
+  'PERSONAL_CARE', // Soins personnels
+  'PET_SERVICES'   // Services pour animaux
 ])
 
-export type ServiceFrequency = z.infer<typeof serviceFrequencySchema>
+export type ServiceCategory = z.infer<typeof serviceCategorySchema>
 
-// Schema de base pour les services
-export const baseServiceSchema = z.object({
+// Schéma pour l'adresse du service
+export const serviceLocationSchema = z.object({
+  address: z.string().min(10, 'Adresse complète requise'),
+  city: z.string().min(2, 'Ville requise'),
+  postalCode: z.string().min(5, 'Code postal requis'),
+  country: z.string().default('FR'),
+  lat: z.number().optional(),
+  lng: z.number().optional(),
+  accessInstructions: z.string().max(200).optional()
+})
+
+export type ServiceLocation = z.infer<typeof serviceLocationSchema>
+
+// Détails pour le transport de personnes
+export const personTransportDetailsSchema = z.object({
+  numberOfPeople: z.number().positive().max(8, 'Maximum 8 personnes'),
+  hasSpecialNeeds: z.boolean().default(false),
+  wheelchairAccess: z.boolean().default(false),
+  luggageCount: z.number().min(0).max(10).default(0),
+  vehicleType: z.enum(['CAR', 'VAN', 'MINIBUS']).default('CAR'),
+  duration: z.number().positive().max(480, 'Maximum 8 heures'), // en minutes
+  waitingTime: z.number().min(0).max(120).default(0), // temps d'attente en minutes
+  returnTrip: z.boolean().default(false)
+})
+
+export type PersonTransportDetails = z.infer<typeof personTransportDetailsSchema>
+
+// Détails pour la garde d'animaux
+export const petCareDetailsSchema = z.object({
+  petType: z.enum(['DOG', 'CAT', 'BIRD', 'FISH', 'RABBIT', 'OTHER']),
+  petName: z.string().min(1, 'Nom de l\'animal requis'),
+  petAge: z.number().positive().max(30),
+  petWeight: z.number().positive().max(100), // en kg
+  specialNeeds: z.string().max(300).optional(),
+  feedingInstructions: z.string().max(300).optional(),
+  medicationRequired: z.boolean().default(false),
+  medicationInstructions: z.string().max(300).optional(),
+  emergency_contact: z.string().min(10, 'Contact d\'urgence requis'),
+  duration: z.number().positive().max(1440, 'Maximum 24 heures'), // en minutes
+  overnight: z.boolean().default(false)
+})
+
+export type PetCareDetails = z.infer<typeof petCareDetailsSchema>
+
+// Détails pour les services à domicile
+export const homeServiceDetailsSchema = z.object({
+  serviceType: z.enum(['CLEANING', 'GARDENING', 'HANDYMAN', 'TUTORING', 'BEAUTY', 'HEALTHCARE']),
+  duration: z.number().positive().max(480, 'Maximum 8 heures'), // en minutes
+  materialsProvided: z.boolean().default(false),
+  materialsNeeded: z.array(z.string()).optional(),
+  roomsCount: z.number().positive().max(20).optional(), // pour ménage
+  gardenSize: z.number().positive().max(5000).optional(), // en m² pour jardinage
+  taskDescription: z.string().min(10, 'Description détaillée requise'),
+  skillLevel: z.enum(['BASIC', 'INTERMEDIATE', 'ADVANCED']).default('BASIC'),
+  certificationRequired: z.boolean().default(false),
+  frequencyType: z.enum(['ONE_TIME', 'WEEKLY', 'MONTHLY']).default('ONE_TIME')
+})
+
+export type HomeServiceDetails = z.infer<typeof homeServiceDetailsSchema>
+
+// Détails pour le transfert aéroport
+export const airportTransferDetailsSchema = z.object({
+  airportCode: z.string().length(3, 'Code aéroport sur 3 lettres requis'),
+  flightNumber: z.string().min(3, 'Numéro de vol requis'),
+  transferType: z.enum(['TO_AIRPORT', 'FROM_AIRPORT', 'ROUND_TRIP']),
+  numberOfPeople: z.number().positive().max(8),
+  luggageCount: z.number().min(0).max(10),
+  meetingPoint: z.string().min(5, 'Point de rencontre requis'),
+  flightTime: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Format HH:MM requis'),
+  waitingTime: z.number().min(0).max(180).default(30), // temps d'attente en minutes
+  vehicleType: z.enum(['CAR', 'VAN', 'LUXURY']).default('CAR')
+})
+
+export type AirportTransferDetails = z.infer<typeof airportTransferDetailsSchema>
+
+// Schema principal pour création de service
+export const createServiceSchema = z.object({
   title: z.string()
     .min(5, 'Le titre doit faire au moins 5 caractères')
     .max(100, 'Le titre ne peut dépasser 100 caractères'),
@@ -54,140 +123,118 @@ export const baseServiceSchema = z.object({
     .min(20, 'La description doit faire au moins 20 caractères')
     .max(1000, 'La description ne peut dépasser 1000 caractères'),
   type: serviceTypeSchema,
-  location: z.object({
-    address: z.string().min(10, 'Adresse complète requise'),
-    city: z.string().min(2, 'Ville requise'),
-    postalCode: z.string().min(5, 'Code postal requis'),
-    floor: z.string().optional(),
-    accessCode: z.string().optional(),
-    lat: z.number().optional(),
-    lng: z.number().optional()
-  }),
-  scheduledAt: z.string().datetime('Date et heure invalides'),
-  duration: z.number()
-    .positive('La durée doit être positive')
-    .max(480, 'Durée maximum 8 heures'), // en minutes
-  budget: z.number()
-    .positive('Le budget doit être positif')
-    .max(5000, 'Budget maximum 5,000€'),
-  isRecurring: z.boolean().default(false),
-  frequency: serviceFrequencySchema.optional(),
-  specificRequirements: z.string().max(500).optional(),
-  providerGender: z.enum(['MALE', 'FEMALE', 'NO_PREFERENCE']).optional(),
-  urgency: z.enum(['LOW', 'NORMAL', 'HIGH', 'URGENT']).default('NORMAL')
-})
-
-// Détails spécifiques pour le ménage
-export const cleaningDetailsSchema = z.object({
-  surfaceArea: z.number().positive('Surface requise').max(1000), // m²
-  rooms: z.number().positive().max(20),
-  bathrooms: z.number().min(0).max(10),
-  hasBalcony: z.boolean().default(false),
-  hasPets: z.boolean().default(false),
-  hasChildren: z.boolean().default(false),
-  preferredProducts: z.enum(['ECO', 'STANDARD', 'BRING_OWN']).optional(),
-  tasks: z.array(z.enum([
-    'DUSTING', 'VACUUMING', 'MOPPING', 'BATHROOMS', 'KITCHEN', 
-    'WINDOWS', 'IRONING', 'FRIDGE_CLEANING', 'OVEN_CLEANING'
-  ])).min(1, 'Au moins une tâche requise'),
-  specialInstructions: z.string().max(300).optional()
-})
-
-// Détails pour le jardinage
-export const gardeningDetailsSchema = z.object({
-  gardenSize: z.number().positive('Taille du jardin requise').max(10000), // m²
-  gardenType: z.enum(['LAWN', 'VEGETABLES', 'FLOWERS', 'MIXED']),
-  tasks: z.array(z.enum([
-    'MOWING', 'WEEDING', 'PRUNING', 'PLANTING', 'WATERING', 
-    'FERTILIZING', 'LEAF_REMOVAL', 'HEDGE_TRIMMING'
-  ])).min(1, 'Au moins une tâche requise'),
-  hasTools: z.boolean().default(false),
-  seasonalWork: z.boolean().default(false),
-  plantingPreferences: z.string().max(200).optional()
-})
-
-// Détails pour garde d'animaux
-export const petCareDetailsSchema = z.object({
-  pets: z.array(z.object({
-    name: z.string().min(1, 'Nom requis'),
-    type: z.enum(['DOG', 'CAT', 'BIRD', 'FISH', 'RABBIT', 'OTHER']),
-    breed: z.string().optional(),
-    age: z.number().min(0).max(30),
-    weight: z.number().positive().optional(),
-    medications: z.string().optional(),
-    specialNeeds: z.string().optional()
-  })).min(1, 'Au moins un animal requis'),
-  serviceType: z.enum(['SITTING', 'WALKING', 'FEEDING', 'OVERNIGHT']),
-  duration: z.number().positive().max(14), // jours pour garde prolongée
-  hasYard: z.boolean().default(false),
-  emergencyContact: z.object({
-    name: z.string().min(2),
-    phone: z.string().min(10)
-  })
-})
-
-// Détails pour bricolage
-export const handymanDetailsSchema = z.object({
-  tasks: z.array(z.enum([
-    'PLUMBING', 'ELECTRICAL', 'PAINTING', 'CARPENTRY', 'ASSEMBLY',
-    'INSTALLATION', 'REPAIR', 'MAINTENANCE'
-  ])).min(1, 'Au moins une tâche requise'),
-  complexity: z.enum(['SIMPLE', 'MEDIUM', 'COMPLEX']),
-  materialsProvided: z.boolean().default(false),
-  toolsRequired: z.array(z.string()).optional(),
-  urgency: z.enum(['NORMAL', 'URGENT', 'EMERGENCY']).default('NORMAL'),
-  photos: z.array(z.string()).optional() // URLs des photos du problème
-})
-
-// Schema pour création de service
-export const createServiceSchema = z.object({
-  title: z.string().min(5).max(100),
-  description: z.string().min(20).max(1000),
-  type: serviceTypeSchema,
-  location: z.object({
-    address: z.string().min(10),
-    city: z.string().min(2),
-    postalCode: z.string().min(5),
-    floor: z.string().optional(),
-    accessCode: z.string().optional()
-  }),
-  scheduledAt: z.string().datetime(),
-  duration: z.number().positive().max(480),
-  budget: z.number().positive().max(5000),
-  isRecurring: z.boolean().default(false),
-  frequency: serviceFrequencySchema.optional(),
-  specificRequirements: z.string().max(500).optional(),
-  providerGender: z.enum(['MALE', 'FEMALE', 'NO_PREFERENCE']).optional(),
-  urgency: z.enum(['LOW', 'NORMAL', 'HIGH', 'URGENT']).default('NORMAL'),
+  category: serviceCategorySchema,
   
-  // Détails spécifiques selon le type
-  cleaningDetails: cleaningDetailsSchema.optional(),
-  gardeningDetails: gardeningDetailsSchema.optional(),
+  // Localisation
+  location: serviceLocationSchema,
+  
+  // Planning
+  scheduledDate: z.string().min(1, 'Date programmée requise'),
+  startTime: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Format HH:MM requis'),
+  estimatedDuration: z.number().positive().max(480, 'Maximum 8 heures'), // en minutes
+  isFlexibleTime: z.boolean().default(false),
+  
+  // Tarification
+  basePrice: z.number().positive('Le prix doit être positif').max(1000, 'Prix maximum 1,000€'),
+  currency: z.string().default('EUR'),
+  priceUnit: z.enum(['FLAT', 'HOURLY', 'DAILY']).default('FLAT'),
+  isPriceNegotiable: z.boolean().default(false),
+  
+  // Options
+  isUrgent: z.boolean().default(false),
+  requiresCertification: z.boolean().default(false),
+  allowsReschedule: z.boolean().default(true),
+  
+  // Détails spécifiques selon le type de service
+  personTransportDetails: personTransportDetailsSchema.optional(),
   petCareDetails: petCareDetailsSchema.optional(),
-  handymanDetails: handymanDetailsSchema.optional()
+  homeServiceDetails: homeServiceDetailsSchema.optional(),
+  airportTransferDetails: airportTransferDetailsSchema.optional(),
+  
+  // Instructions et notes
+  specialRequirements: z.string().max(500).optional(),
+  clientNotes: z.string().max(300).optional(),
+  accessInstructions: z.string().max(200).optional()
+}).refine((data) => {
+  // Validation conditionnelle selon le type de service
+  if (data.type === 'PERSON_TRANSPORT' && !data.personTransportDetails) {
+    return false
+  }
+  if (data.type === 'PET_CARE' && !data.petCareDetails) {
+    return false
+  }
+  if (['HOME_CLEANING', 'GARDENING', 'HANDYMAN', 'TUTORING', 'BEAUTY', 'HEALTHCARE'].includes(data.type) && !data.homeServiceDetails) {
+    return false
+  }
+  if (data.type === 'AIRPORT_TRANSFER' && !data.airportTransferDetails) {
+    return false
+  }
+  return true
+}, {
+  message: "Les détails spécifiques sont requis selon le type de service"
+})
+
+// Schema pour mise à jour de service
+export const updateServiceSchema = z.object({
+  id: z.string().min(1, 'ID requis'),
+  title: z.string().min(5).max(100).optional(),
+  description: z.string().min(20).max(1000).optional(),
+  type: serviceTypeSchema.optional(),
+  category: serviceCategorySchema.optional(),
+  location: serviceLocationSchema.optional(),
+  scheduledDate: z.string().optional(),
+  startTime: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/).optional(),
+  estimatedDuration: z.number().positive().max(480).optional(),
+  isFlexibleTime: z.boolean().optional(),
+  basePrice: z.number().positive().max(1000).optional(),
+  currency: z.string().optional(),
+  priceUnit: z.enum(['FLAT', 'HOURLY', 'DAILY']).optional(),
+  isPriceNegotiable: z.boolean().optional(),
+  isUrgent: z.boolean().optional(),
+  requiresCertification: z.boolean().optional(),
+  allowsReschedule: z.boolean().optional(),
+  specialRequirements: z.string().max(500).optional(),
+  clientNotes: z.string().max(300).optional(),
+  accessInstructions: z.string().max(200).optional(),
+  status: serviceStatusSchema.optional(),
+  // Détails optionnels selon le type
+  personTransportDetails: personTransportDetailsSchema.optional(),
+  petCareDetails: petCareDetailsSchema.optional(),
+  homeServiceDetails: homeServiceDetailsSchema.optional(),
+  airportTransferDetails: airportTransferDetailsSchema.optional()
 })
 
 // Schema pour recherche de services
 export const searchServicesSchema = z.object({
-  page: z.coerce.number().min(1).default(1),
-  limit: z.coerce.number().min(1).max(50).default(10),
-  type: serviceTypeSchema.optional(),
-  status: serviceStatusSchema.optional(),
-  city: z.string().optional(),
-  budgetMin: z.coerce.number().positive().optional(),
-  budgetMax: z.coerce.number().positive().optional(),
-  dateFrom: z.string().datetime().optional(),
-  dateTo: z.string().datetime().optional(),
-  isRecurring: z.coerce.boolean().optional(),
-  urgency: z.enum(['LOW', 'NORMAL', 'HIGH', 'URGENT']).optional(),
-  sortBy: z.enum(['createdAt', 'scheduledAt', 'budget', 'urgency']).default('createdAt'),
-  sortOrder: z.enum(['asc', 'desc']).default('desc')
+  page: z.string().nullable().transform(val => val ? parseInt(val) : 1).pipe(z.number().min(1)),
+  limit: z.string().nullable().transform(val => val ? parseInt(val) : 20).pipe(z.number().min(1).max(50)),
+  type: z.string().nullable().transform(val => val || undefined).pipe(serviceTypeSchema.optional()),
+  category: z.string().nullable().transform(val => val || undefined).pipe(serviceCategorySchema.optional()),
+  status: z.string().nullable().transform(val => val || undefined).pipe(serviceStatusSchema.optional()),
+  clientId: z.string().nullable().optional(),
+  providerId: z.string().nullable().optional(),
+  priceMin: z.string().nullable().transform(val => val ? parseFloat(val) : undefined).pipe(z.number().positive().optional()),
+  priceMax: z.string().nullable().transform(val => val ? parseFloat(val) : undefined).pipe(z.number().positive().optional()),
+  city: z.string().nullable().optional(),
+  dateFrom: z.string().nullable().optional(),
+  dateTo: z.string().nullable().optional(),
+  urgent: z.string().nullable().transform(val => val === 'true').pipe(z.boolean().optional()),
+  requiresCertification: z.string().nullable().transform(val => val === 'true').pipe(z.boolean().optional()),
+  sortBy: z.string().nullable().transform(val => val || 'createdAt').pipe(z.enum(['createdAt', 'scheduledDate', 'basePrice', 'duration'])),
+  sortOrder: z.string().nullable().transform(val => val || 'desc').pipe(z.enum(['asc', 'desc']))
+})
+
+// Schema pour matching avec prestataires
+export const providerMatchingSchema = z.object({
+  serviceId: z.string().min(1),
+  maxDistance: z.number().positive().max(100).default(25), // km
+  minMatchScore: z.number().min(0).max(100).default(70),
+  requiresCertification: z.boolean().default(false),
+  notifyProviders: z.boolean().default(true)
 })
 
 // Types d'export
 export type CreateServiceInput = z.infer<typeof createServiceSchema>
+export type UpdateServiceInput = z.infer<typeof updateServiceSchema>
 export type SearchServicesInput = z.infer<typeof searchServicesSchema>
-export type CleaningDetails = z.infer<typeof cleaningDetailsSchema>
-export type GardeningDetails = z.infer<typeof gardeningDetailsSchema>
-export type PetCareDetails = z.infer<typeof petCareDetailsSchema>
-export type HandymanDetails = z.infer<typeof handymanDetailsSchema>
+export type ProviderMatchingInput = z.infer<typeof providerMatchingSchema>

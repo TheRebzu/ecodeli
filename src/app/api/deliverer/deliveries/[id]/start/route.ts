@@ -24,7 +24,7 @@ export async function POST(
       where: {
         id: deliveryId,
         delivererId: user.id,
-        status: 'PICKED_UP'
+        status: { in: ['ACCEPTED', 'PICKED_UP'] } // Accepter les deux statuts
       },
       include: {
         announcement: true,
@@ -43,9 +43,16 @@ export async function POST(
       }, { status: 404 })
     }
 
-    // Générer un code de validation unique
-    const validationCode = generateValidationCode()
-    console.log(`🔐 Code de validation généré: ${validationCode}`)
+    // Générer un code de validation unique si pas déjà généré
+    const validationCode = delivery.validationCode || generateValidationCode()
+    console.log(`🔐 Code de validation: ${validationCode}`)
+
+    // Déterminer le message selon le statut précédent
+    const previousStatus = delivery.status
+    const isFromAccepted = previousStatus === 'ACCEPTED'
+    const message = isFromAccepted 
+      ? 'Livraison démarrée - En cours de transport'
+      : 'Livraison en cours de transport - Code de validation généré'
 
     // Mettre à jour le statut de la livraison
     const updatedDelivery = await db.$transaction(async (tx) => {
@@ -62,7 +69,7 @@ export async function POST(
         data: {
           deliveryId,
           status: 'IN_TRANSIT',
-          message: 'Livraison en cours de transport - Code de validation généré',
+          message: message,
           location: delivery.currentLocation ? JSON.stringify(delivery.currentLocation) : null,
           isAutomatic: false
         }
@@ -73,10 +80,10 @@ export async function POST(
         data: {
           deliveryId,
           action: 'START_DELIVERY',
-          description: 'Livraison démarrée par le livreur - Code de validation généré',
+          description: `Livraison démarrée par le livreur - Transition ${previousStatus} → IN_TRANSIT`,
           createdBy: user.id,
           metadata: {
-            previousStatus: 'PICKED_UP',
+            previousStatus: previousStatus,
             newStatus: 'IN_TRANSIT',
             validationCode: validationCode,
             timestamp: new Date().toISOString()
@@ -89,9 +96,14 @@ export async function POST(
 
     return NextResponse.json({
       success: true,
-      delivery: updatedDelivery,
+      delivery: {
+        id: updatedDelivery.id,
+        status: updatedDelivery.status,
+        validationCode: validationCode,
+        previousStatus: previousStatus
+      },
       validationCode: validationCode,
-      message: 'Livraison démarrée avec succès - Code de validation généré'
+      message: `Livraison démarrée avec succès (${previousStatus} → IN_TRANSIT)`
     })
 
   } catch (error) {

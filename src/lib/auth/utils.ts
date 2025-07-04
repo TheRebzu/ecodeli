@@ -108,7 +108,37 @@ export function canAccessResource(userRole: string, resourceOwner: string, userI
  * Middleware de vérification des rôles pour API routes
  */
 export async function requireRole(request: NextRequest, allowedRoles: string[]) {
-  // Récupérer l'utilisateur via la session NextAuth
+  // En mode test, utiliser l'email de test
+  if (process.env.NODE_ENV === 'development') {
+    const testUserEmail = request.headers.get('X-Test-User-Email')
+    
+    if (testUserEmail) {
+      console.log('🧪 Mode test détecté, utilisation de l\'email:', testUserEmail)
+      
+      const testUser = await db.user.findUnique({
+        where: { email: testUserEmail },
+        include: {
+          profile: true,
+          client: true,
+          deliverer: true,
+          merchant: true,
+          provider: true,
+          admin: true
+        }
+      })
+      
+      if (testUser) {
+        if (!hasPermission(testUser.role, allowedRoles)) {
+          throw new Error(`Accès refusé - Permissions insuffisantes. Rôle: ${testUser.role}, Requis: ${allowedRoles.join(', ')}`)
+        }
+        
+        console.log('✅ Utilisateur test authentifié:', testUser.email, testUser.role)
+        return testUser
+      }
+    }
+  }
+
+  // Récupérer l'utilisateur via la session NextAuth normale
   const user = await getCurrentUserAPI(request)
   
   if (!user) {
@@ -170,11 +200,38 @@ export const VALIDATION_STATUS = {
 
 /**
  * Récupère l'utilisateur courant pour API Routes
- * - Utilise Better Auth pour récupérer la session
+ * - Utilise NextAuth pour récupérer la session
+ * - Supporte les tests avec X-Test-User-Email
  */
 export async function getCurrentUserAPI(request: NextRequest) {
   try {
-    // Utiliser Better Auth pour obtenir la session
+    // En mode test, utiliser l'email de test
+    if (process.env.NODE_ENV === 'development') {
+      const testUserEmail = request.headers.get('X-Test-User-Email')
+      
+      if (testUserEmail) {
+        console.log('🧪 Mode test détecté dans getCurrentUserAPI, utilisation de l\'email:', testUserEmail)
+        
+        const testUser = await db.user.findUnique({
+          where: { email: testUserEmail },
+          include: {
+            profile: true,
+            client: true,
+            deliverer: true,
+            merchant: true,
+            provider: true,
+            admin: true
+          }
+        })
+        
+        if (testUser) {
+          console.log('✅ Utilisateur test trouvé dans getCurrentUserAPI:', testUser.email, testUser.role)
+          return testUser
+        }
+      }
+    }
+
+    // Utiliser NextAuth pour obtenir la session normale
     const session = await auth()
 
     if (!session?.user) {

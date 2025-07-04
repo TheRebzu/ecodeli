@@ -10,7 +10,7 @@ Le système de seed EcoDeli a été développé pour créer un environnement de 
 
 1. **00-cleanup.seed.ts** - Nettoyage complet de la base de données
 2. **01-users.seed.ts** - Création de 25 utilisateurs avec profils
-3. **02-auth.seed.ts** - Sessions Better-Auth pour utilisateurs actifs
+3. **02-auth.seed.ts** - Sessions NextAuth pour utilisateurs actifs
 4. **03-client.seed.ts** - Profils clients avec abonnements (FREE, STARTER, PREMIUM)
 5. **04-deliverer.seed.ts** - Profils livreurs avec véhicules et disponibilités
 6. **05-merchant.seed.ts** - Profils commerçants avec contrats et horaires
@@ -39,7 +39,7 @@ Ces seeds n'ont pas pu être implémentés car les tables correspondantes n'exis
 - **21-certifications.seed.ts** - Certifications prestataires (tables Certification, ProviderSkill manquantes)
 - **23-referral.seed.ts** - Parrainage (tables ReferralProgram, Referral manquantes)
 - **24-disputes.seed.ts** - Litiges (tables Dispute, DisputeResolution manquantes)
-- **25-better-auth.seed.ts** - Configuration finale auth (non nécessaire)
+- **25-nextauth.seed.ts** - Configuration finale auth (non nécessaire)
 
 ## Fonctionnalités clés implémentées
 

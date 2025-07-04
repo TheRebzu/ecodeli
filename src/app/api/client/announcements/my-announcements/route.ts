@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '@/lib/auth'
+import { requireRole } from '@/lib/auth/utils'
 import { prisma } from '@/lib/db'
 import { z } from 'zod'
 
@@ -23,16 +23,9 @@ const querySchema = z.object({
 export async function GET(request: NextRequest) {
   try {
     // Vérification de l'authentification
-    const session = await auth()
+    const user = await requireRole(request, ['CLIENT'])
     
-    if (!session?.user || session.user.role !== 'CLIENT') {
-      return NextResponse.json(
-        { error: 'Accès refusé - Rôle CLIENT requis' }, 
-        { status: 403 }
-      )
-    }
-    
-    const userId = session.user.id
+    const userId = user.id
 
     // Validation des paramètres de requête
     const { searchParams } = new URL(request.url)

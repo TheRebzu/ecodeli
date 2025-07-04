@@ -14,6 +14,14 @@ const deliveriesFiltersSchema = z.object({
   sortOrder: z.enum(['asc', 'desc']).default('desc')
 })
 
+// Schema pour créer une livraison (accepter une annonce)
+const createDeliverySchema = z.object({
+  announcementId: z.string().min(1, 'ID de l\'annonce requis'),
+  proposedPrice: z.number().min(0).optional(),
+  estimatedPickupTime: z.string().optional(),
+  notes: z.string().max(500).optional()
+})
+
 export async function GET(request: NextRequest) {
   try {
     console.log('🚚 [GET /api/deliverer/deliveries] Début de la requête')
@@ -222,6 +230,178 @@ export async function GET(request: NextRequest) {
 
   } catch (error) {
     console.error('❌ Erreur récupération livraisons:', error)
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    )
+  }
+}
+
+// POST - Accepter une annonce et créer une livraison
+export async function POST(request: NextRequest) {
+  try {
+    console.log('🚚 [POST /api/deliverer/deliveries] Début de la requête')
+    
+    const user = await getUserFromSession(request)
+    if (!user) {
+      console.log('❌ Utilisateur non authentifié')
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    if (user.role !== 'DELIVERER') {
+      console.log('❌ Rôle incorrect:', user.role)
+      return NextResponse.json({ error: 'Forbidden - DELIVERER role required' }, { status: 403 })
+    }
+
+    // Vérifier que le livreur existe et est validé
+    const deliverer = await db.deliverer.findUnique({
+      where: { userId: user.id }
+    })
+
+    if (!deliverer) {
+      return NextResponse.json({ error: 'Profil livreur non trouvé' }, { status: 404 })
+    }
+
+    if (deliverer.validationStatus !== 'VALIDATED') {
+      return NextResponse.json({ 
+        error: 'Votre profil doit être validé pour accepter des livraisons' 
+      }, { status: 403 })
+    }
+
+    const body = await request.json()
+    const validatedData = createDeliverySchema.parse(body)
+
+    console.log('📝 Données de création de livraison:', validatedData)
+
+    // Vérifier que l'annonce existe et est disponible
+    const announcement = await db.announcement.findUnique({
+      where: { id: validatedData.announcementId },
+      include: {
+        author: {
+          include: {
+            profile: true
+          }
+        }
+      }
+    })
+
+    if (!announcement) {
+      return NextResponse.json({ error: 'Annonce non trouvée' }, { status: 404 })
+    }
+
+    if (announcement.status !== 'ACTIVE') {
+      return NextResponse.json({ 
+        error: 'Cette annonce n\'est plus disponible' 
+      }, { status: 400 })
+    }
+
+    // Vérifier qu'il n'y a pas déjà une livraison pour cette annonce
+    const existingDelivery = await db.delivery.findFirst({
+      where: { 
+        announcementId: validatedData.announcementId,
+        status: { not: 'CANCELLED' }
+      }
+    })
+
+    if (existingDelivery) {
+      return NextResponse.json({ 
+        error: 'Cette annonce a déjà été acceptée par un autre livreur' 
+      }, { status: 400 })
+    }
+
+    // Générer un code de validation à 6 chiffres
+    const validationCode = Math.floor(100000 + Math.random() * 900000).toString()
+
+    // Créer la livraison
+    const delivery = await db.delivery.create({
+      data: {
+        announcementId: validatedData.announcementId,
+        clientId: announcement.authorId, // ID du client depuis l'annonce
+        delivererId: user.id,
+        status: 'ACCEPTED',
+        price: validatedData.proposedPrice || announcement.finalPrice || announcement.basePrice,
+        delivererFee: (validatedData.proposedPrice || announcement.finalPrice || announcement.basePrice) * 0.8, // 80% pour le livreur
+        platformFee: (validatedData.proposedPrice || announcement.finalPrice || announcement.basePrice) * 0.15, // 15% pour la plateforme
+        insuranceFee: (validatedData.proposedPrice || announcement.finalPrice || announcement.basePrice) * 0.05, // 5% pour l'assurance
+        validationCode: validationCode,
+        pickupDate: validatedData.estimatedPickupTime ? new Date(validatedData.estimatedPickupTime) : null,
+        deliveryDate: validatedData.estimatedPickupTime 
+          ? new Date(new Date(validatedData.estimatedPickupTime).getTime() + 2 * 60 * 60 * 1000) // +2h par défaut
+          : null
+      }
+    })
+
+    // Récupérer la livraison créée avec ses relations
+    const createdDelivery = await db.delivery.findUnique({
+      where: { id: delivery.id },
+      include: {
+        announcement: {
+          include: {
+            author: {
+              include: {
+                profile: true
+              }
+            }
+          }
+        }
+      }
+    })
+
+    // Mettre à jour le statut de l'annonce
+    await db.announcement.update({
+      where: { id: validatedData.announcementId },
+      data: { status: 'IN_PROGRESS' }
+    })
+
+    // Créer un tracking initial
+    await db.trackingUpdate.create({
+      data: {
+        deliveryId: delivery.id,
+        status: 'ACCEPTED',
+        message: 'Livraison acceptée par le livreur',
+        location: 'En attente de récupération',
+        timestamp: new Date()
+      }
+    })
+
+    console.log(`✅ Livraison créée avec succès: ${delivery.id}`)
+    console.log(`📧 Code de validation: ${validationCode}`)
+
+    // TODO: Envoyer une notification au client
+    // TODO: Envoyer le code de validation au client par SMS/email
+
+    return NextResponse.json({
+      delivery: {
+        id: delivery.id,
+        status: delivery.status,
+        price: delivery.price,
+        delivererFee: delivery.delivererFee,
+        validationCode: validationCode,
+        estimatedPickupTime: delivery.pickupDate?.toISOString(),
+        createdAt: delivery.createdAt.toISOString(),
+        announcement: {
+          id: createdDelivery.announcement.id,
+          title: createdDelivery.announcement.title,
+          pickupAddress: createdDelivery.announcement.pickupAddress,
+          deliveryAddress: createdDelivery.announcement.deliveryAddress,
+          client: {
+            name: createdDelivery.announcement.author.profile 
+              ? `${createdDelivery.announcement.author.profile.firstName || ''} ${createdDelivery.announcement.author.profile.lastName || ''}`.trim()
+              : createdDelivery.announcement.author.email
+          }
+        }
+      }
+    }, { status: 201 })
+
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json({
+        error: 'Données invalides',
+        details: error.errors
+      }, { status: 400 })
+    }
+
+    console.error('❌ Erreur création livraison:', error)
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

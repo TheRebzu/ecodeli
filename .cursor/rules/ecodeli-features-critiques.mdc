@@ -218,7 +218,7 @@ psql -h localhost -U postgres -d ecodeli -c "SELECT COUNT(*) FROM users WHERE ro
 ### Phase 1 : Fondations (Semaine 1-2)
 1. Setup Next.js 15 + TypeScript
 2. Configuration Prisma + PostgreSQL
-3. Authentification Better-Auth
+3. Authentification NextAuth
 4. Modèles de données complets
 
 ### Phase 2 : API Core (Semaine 3-4)

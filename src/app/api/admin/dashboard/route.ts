@@ -57,7 +57,8 @@ export async function GET(request: NextRequest) {
         where: {
           OR: [
             { status: 'ACCEPTED' },
-            { status: 'IN_PROGRESS' }
+            { status: 'IN_TRANSIT' },
+            { status: 'PICKED_UP' }
           ]
         }
       }),

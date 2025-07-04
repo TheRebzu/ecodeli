@@ -49,7 +49,7 @@ MAX_RECORDS=10 npm run seed
 #### Phase 1 : Base
 1. ✅ `00-cleanup.seed.ts` - Nettoyage base de données
 2. ✅ `01-users.seed.ts` - Création des 25 utilisateurs (5 par rôle)
-3. ✅ `02-auth.seed.ts` - Sessions Better-Auth
+3. ✅ `02-auth.seed.ts` - Sessions NextAuth
 4. ✅ `03-client.seed.ts` - Profils clients avec abonnements
 5. ✅ `04-deliverer.seed.ts` - Profils livreurs avec véhicules
 6. ✅ `05-merchant.seed.ts` - Profils commerçants avec contrats

@@ -142,7 +142,7 @@ Premium (€19.99/mois) :
 - **Node.js** pour le runtime
 
 #### Authentification
-- **Better-Auth** pour la gestion complète de l'authentification
+- **NextAuth.js** pour la gestion complète de l'authentification
 - Support des 5 rôles : CLIENT, DELIVERER, MERCHANT, PROVIDER, ADMIN
 - Sessions sécurisées avec cookies
 
@@ -206,7 +206,7 @@ Premium (€19.99/mois) :
 ├── register/route.ts       # POST - Inscription utilisateur
 ├── login/route.ts          # POST - Connexion
 ├── logout/route.ts         # POST - Déconnexion
-└── [...all]/route.ts       # Better-Auth configuration
+└── [...nextauth]/route.ts  # NextAuth configuration
 ```
 
 #### 2. Gestion Utilisateurs
@@ -1029,7 +1029,7 @@ return NextResponse.json({ message: "Simulated success" })
 ### Phase 1 : Fondations (Semaines 1-2)
 1. ✅ Setup Next.js 15 + Prisma + PostgreSQL
 2. ✅ Modèles de données complets
-3. ✅ Authentification Better-Auth
+3. ✅ Authentification NextAuth
 4. [ ] Configuration environnements
 
 ### Phase 2 : Mission 1 Core (Semaines 3-6)
