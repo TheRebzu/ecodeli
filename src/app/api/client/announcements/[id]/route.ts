@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getUserFromSession } from '@/lib/auth/utils'
+import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/db'
 import { z } from 'zod'
 
@@ -27,15 +27,15 @@ export async function GET(
 ) {
   try {
     const { id } = await params
-    const user = await getUserFromSession(request)
-    if (!user || user.role !== 'CLIENT') {
+    const session = await auth()
+    if (!session?.user || session.user.role !== 'CLIENT') {
       return NextResponse.json({ error: 'Accès refusé - Rôle CLIENT requis' }, { status: 403 })
     }
 
     const announcement = await prisma.announcement.findFirst({
       where: {
         id,
-        authorId: user.id
+        authorId: session.user.id
       },
       include: {
         _count: {
@@ -140,8 +140,8 @@ export async function PUT(
 ) {
   try {
     const { id } = await params
-    const user = await getUserFromSession(request)
-    if (!user || user.role !== 'CLIENT') {
+    const session = await auth()
+    if (!session?.user || session.user.role !== 'CLIENT') {
       return NextResponse.json({ error: 'Accès refusé - Rôle CLIENT requis' }, { status: 403 })
     }
 
@@ -149,7 +149,7 @@ export async function PUT(
     const existingAnnouncement = await prisma.announcement.findFirst({
       where: {
         id,
-        authorId: user.id
+        authorId: session.user.id
       },
       include: {
         delivery: true
@@ -234,8 +234,8 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params
-    const user = await getUserFromSession(request)
-    if (!user || user.role !== 'CLIENT') {
+    const session = await auth()
+    if (!session?.user || session.user.role !== 'CLIENT') {
       return NextResponse.json({ error: 'Accès refusé - Rôle CLIENT requis' }, { status: 403 })
     }
 
@@ -243,7 +243,7 @@ export async function DELETE(
     const announcement = await prisma.announcement.findFirst({
       where: {
         id,
-        authorId: user.id
+        authorId: session.user.id
       },
       include: {
         delivery: true

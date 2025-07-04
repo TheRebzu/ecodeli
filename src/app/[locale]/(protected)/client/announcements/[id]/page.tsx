@@ -687,11 +687,11 @@ export default function AnnouncementDetailPage() {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-500">Correspondances:</span>
-                  <span className="text-gray-900">{announcement._count.matches}</span>
+                  <span className="text-gray-900">{announcement._count?.matches || 0}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-500">Avis:</span>
-                  <span className="text-gray-900">{announcement._count.reviews}</span>
+                  <span className="text-gray-900">{announcement._count?.reviews || 0}</span>
                 </div>
               </div>
             </div>

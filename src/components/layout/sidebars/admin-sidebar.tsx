@@ -1,4 +1,5 @@
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 "use client";
 
 import { useTranslations } from 'next-intl';
@@ -225,6 +226,8 @@ export function AdminSidebar({ user, collapsed, onToggle, className }: AdminSide
     />
   );
 =======
+=======
+>>>>>>> Stashed changes
 "use client"
 
 import { useState } from 'react'
@@ -654,5 +657,8 @@ export function AdminSidebar({ collapsed, user }: AdminSidebarProps) {
       )}
     </div>
   )
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
 } 

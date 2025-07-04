@@ -4,16 +4,22 @@ import { useState, useEffect } from "react";
 import { useRouter } from "@/i18n/navigation";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 import { AdminHeader } from "@/components/layout/admin-header";
 import { AdminSidebar } from "@/components/layout/sidebars/admin-sidebar";
 import { Toaster } from "@/components/ui/toaster";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
 =======
+=======
+>>>>>>> Stashed changes
 import { AdminHeader } from '@/components/layout/headers/admin-header';
 import { AdminSidebar } from '@/components/layout/sidebars/admin-sidebar';
 import { Toaster } from '@/components/ui/toaster';
 import { cn } from '@/lib/utils';
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
 
 interface AdminLayoutProps {
@@ -26,7 +32,10 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 =======
+=======
+>>>>>>> Stashed changes
 
   // Close mobile menu when clicking outside
   useEffect(() => {
@@ -39,6 +48,9 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     document.addEventListener('click', handleClickOutside);
     return () => document.removeEventListener('click', handleClickOutside);
   }, [mobileMenuOpen]);
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
 
   useEffect(() => {
@@ -57,6 +69,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     }
   }, [user, authLoading, router]);
 
+<<<<<<< Updated upstream
 <<<<<<< Updated upstream
   // Close mobile menu when clicking outside
   useEffect(() => {
@@ -81,15 +94,20 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
 
 =======
 >>>>>>> Stashed changes
+=======
+>>>>>>> Stashed changes
   const toggleMobileMenu = () => {
     setMobileMenuOpen(!mobileMenuOpen);
   };
 
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
   // TODO: Get real data from API
   const pendingValidations = 3;
   const systemAlerts = 1;
 =======
+=======
+>>>>>>> Stashed changes
   // Mock notifications for admin
   const mockNotifications = [
     {
@@ -120,6 +138,9 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       priority: 'medium' as const
     }
   ];
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
 
   if (authLoading) {
@@ -156,6 +177,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   }
 
   return (
+<<<<<<< Updated upstream
 <<<<<<< Updated upstream
     <SidebarProvider 
       defaultOpen={!sidebarCollapsed}
@@ -201,6 +223,8 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       </div>
     </SidebarProvider>
 =======
+=======
+>>>>>>> Stashed changes
     <div className="flex h-screen bg-background dark:bg-background">
       {/* Desktop Sidebar */}
       <aside className={cn(
@@ -255,6 +279,9 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       {/* Toast Notifications */}
       <Toaster />
     </div>
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
   );
 }
