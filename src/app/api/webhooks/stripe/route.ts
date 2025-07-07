@@ -4,6 +4,7 @@ import { headers } from 'next/headers'
 import Stripe from 'stripe'
 import { db as prisma } from '@/lib/db'
 import { OneSignalService } from '@/lib/onesignal'
+import { SubscriptionService } from '@/features/payments/services/subscription.service'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2024-06-20'
@@ -36,15 +37,15 @@ export async function POST(request: NextRequest) {
         break
 
       case 'customer.subscription.created':
-        await handleSubscriptionCreated(event.data.object as Stripe.Subscription)
+        await handleSubscriptionCreated(event.data.object)
         break
 
       case 'customer.subscription.updated':
-        await handleSubscriptionUpdated(event.data.object as Stripe.Subscription)
+        await handleSubscriptionUpdated(event.data.object)
         break
 
       case 'customer.subscription.deleted':
-        await handleSubscriptionCancelled(event.data.object as Stripe.Subscription)
+        await handleSubscriptionCancelled(event.data.object)
         break
 
       case 'invoice.payment_succeeded':
@@ -295,7 +296,7 @@ async function handlePaymentFailed(paymentIntent: Stripe.PaymentIntent) {
   }
 }
 
-async function handleSubscriptionCreated(subscription: Stripe.Subscription) {
+async function handleSubscriptionCreated(subscription: any) {
   try {
     const customerId = subscription.customer as string
     
@@ -340,7 +341,7 @@ async function handleSubscriptionCreated(subscription: Stripe.Subscription) {
   }
 }
 
-async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
+async function handleSubscriptionUpdated(subscription: any) {
   try {
     const customerId = subscription.customer as string
     
@@ -370,7 +371,7 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
   }
 }
 
-async function handleSubscriptionCancelled(subscription: Stripe.Subscription) {
+async function handleSubscriptionCancelled(subscription: any) {
   try {
     const customerId = subscription.customer as string
     
