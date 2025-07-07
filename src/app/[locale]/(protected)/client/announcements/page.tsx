@@ -280,9 +280,13 @@ export default function ClientAnnouncementsPage() {
         
       case 'MATCHED':
       case 'IN_PROGRESS':
-        // Suivre la livraison
+        // Suivre la livraison - utiliser le tracking d'annonce si pas d'ID de livraison
+        const trackingUrl = announcement.delivery?.id 
+          ? `/client/deliveries/${announcement.delivery.id}`
+          : `/client/announcements/${announcement.id}/tracking`;
+        
         actions.push(
-          <Link key="track" href={`/client/deliveries/${announcement.delivery?.id}`}>
+          <Link key="track" href={trackingUrl}>
             <Button size="sm">
               <MapPin className="h-4 w-4 mr-1" />
               Suivre livraison
@@ -293,7 +297,7 @@ export default function ClientAnnouncementsPage() {
         
       case 'COMPLETED':
         // Voir le détail ou évaluer
-        if (announcement.delivery) {
+        if (announcement.delivery?.id) {
           actions.push(
             <Link key="review" href={`/client/deliveries/${announcement.delivery.id}/review`}>
               <Button variant="outline" size="sm">

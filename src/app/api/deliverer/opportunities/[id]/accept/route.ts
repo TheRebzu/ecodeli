@@ -24,8 +24,17 @@ export async function POST(
     console.log('✅ Livreur authentifié:', user.id)
     console.log('📦 Annonce à accepter:', announcementId)
 
-    // Validation du body de la requête
-    const body = await request.json()
+    // Validation du body de la requête (optionnel pour cette action)
+    let body = {}
+    try {
+      const requestText = await request.text()
+      if (requestText.trim()) {
+        body = JSON.parse(requestText)
+      }
+    } catch (e) {
+      // Si pas de JSON valide, utiliser un objet vide (acceptable pour cette action)
+      body = {}
+    }
     console.log('📝 Body reçu:', body)
     
     const validatedData = acceptOpportunitySchema.parse(body)
@@ -138,8 +147,9 @@ export async function POST(
       )
     }
 
-    // Vérifier que le livreur est validé
-    if (deliverer.validationStatus !== 'VALIDATED') {
+    // Vérifier que le livreur est validé (APPROVED ou VALIDATED)
+    const validStatuses = ['APPROVED', 'VALIDATED', 'ACTIVE']
+    if (!validStatuses.includes(deliverer.validationStatus)) {
       console.log('❌ Livreur non validé, statut:', deliverer.validationStatus)
       return NextResponse.json(
         { error: 'Votre compte doit être validé pour accepter des livraisons' },

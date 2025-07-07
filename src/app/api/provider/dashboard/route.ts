@@ -17,7 +17,10 @@ export async function GET(request: NextRequest) {
       include: {
         user: {
           include: {
-            profile: true
+            profile: true,
+            documents: {
+              where: { validationStatus: 'APPROVED' }
+            }
           }
         },
         services: {
@@ -42,9 +45,6 @@ export async function GET(request: NextRequest) {
               }
             }
           }
-        },
-        documents: {
-          where: { isActive: true }
         }
       }
     })
@@ -53,25 +53,10 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Profil prestataire non trouvé' }, { status: 404 })
     }
 
-    // Récupérer les demandes de services
-    const serviceRequests = await db.serviceRequest.findMany({
+    // Récupérer les réservations de services
+    const bookings = await db.booking.findMany({
       where: {
-        OR: [
-          {
-            assignedProviderId: provider.id
-          },
-          {
-            AND: [
-              { assignedProviderId: null },
-              { status: 'ACTIVE' },
-              {
-                serviceType: {
-                  in: provider.services.map(s => s.serviceType)
-                }
-              }
-            ]
-          }
-        ]
+        providerId: provider.id
       },
       include: {
         client: {
@@ -83,9 +68,7 @@ export async function GET(request: NextRequest) {
             }
           }
         },
-        applications: {
-          where: { providerId: provider.id }
-        }
+        service: true
       },
       orderBy: { createdAt: 'desc' },
       take: 10
@@ -96,9 +79,9 @@ export async function GET(request: NextRequest) {
     thisMonth.setDate(1)
     thisMonth.setHours(0, 0, 0, 0)
 
-    const completedServices = await db.serviceRequest.findMany({
+    const completedServices = await db.booking.findMany({
       where: {
-        assignedProviderId: provider.id,
+        providerId: provider.id,
         status: 'COMPLETED'
       },
       include: {
@@ -107,7 +90,7 @@ export async function GET(request: NextRequest) {
     })
 
     const thisMonthServices = completedServices.filter(s => 
-      new Date(s.completedAt || s.updatedAt) >= thisMonth
+      new Date(s.updatedAt) >= thisMonth
     )
 
     const totalEarnings = completedServices.reduce((sum, service) => {
@@ -129,23 +112,13 @@ export async function GET(request: NextRequest) {
       ? provider.reviews.reduce((sum, review) => sum + review.rating, 0) / provider.reviews.length
       : 0
 
-    // Disponibilités cette semaine
-    const startOfWeek = new Date()
-    startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay())
-    startOfWeek.setHours(0, 0, 0, 0)
-
-    const endOfWeek = new Date(startOfWeek)
-    endOfWeek.setDate(endOfWeek.getDate() + 7)
-
+    // Disponibilités récurrentes par jour de la semaine
     const availabilities = await db.providerAvailability.findMany({
       where: {
         providerId: provider.id,
-        date: {
-          gte: startOfWeek,
-          lt: endOfWeek
-        }
+        isActive: true
       },
-      orderBy: { date: 'asc' }
+      orderBy: { dayOfWeek: 'asc' }
     })
 
     const result = {
@@ -186,10 +159,10 @@ export async function GET(request: NextRequest) {
           isActive: service.isActive
         })),
         
-        documents: provider.documents.map(doc => ({
+        documents: provider.user.documents.map(doc => ({
           id: doc.id,
           type: doc.type,
-          status: doc.status,
+          validationStatus: doc.validationStatus,
           validatedAt: doc.validatedAt?.toISOString()
         }))
       },
@@ -202,35 +175,32 @@ export async function GET(request: NextRequest) {
         averageRating: Number(averageRating.toFixed(1)),
         totalReviews: provider.reviews.length,
         activeServices: provider.services.filter(s => s.isActive).length,
-        pendingRequests: serviceRequests.filter(r => r.status === 'ACTIVE' && !r.assignedProviderId).length,
-        assignedRequests: serviceRequests.filter(r => r.assignedProviderId === provider.id && ['BOOKED', 'IN_PROGRESS'].includes(r.status)).length
+        pendingRequests: bookings.filter(r => r.status === 'PENDING').length,
+        assignedRequests: bookings.filter(r => ['CONFIRMED', 'IN_PROGRESS'].includes(r.status)).length
       },
       
-      recentRequests: serviceRequests.map(request => ({
-        id: request.id,
-        title: request.title,
-        description: request.description,
-        serviceType: request.serviceType,
-        status: request.status,
-        budget: Number(request.budget),
-        duration: request.duration,
-        scheduledAt: request.scheduledAt?.toISOString(),
-        isRecurring: request.isRecurring,
-        urgency: request.urgency,
-        address: request.address,
-        city: request.city,
-        createdAt: request.createdAt.toISOString(),
+      recentBookings: bookings.map(booking => ({
+        id: booking.id,
+        status: booking.status,
+        scheduledDate: booking.scheduledDate.toISOString(),
+        scheduledTime: booking.scheduledTime,
+        duration: booking.duration,
+        totalPrice: Number(booking.totalPrice),
+        notes: booking.notes,
+        createdAt: booking.createdAt.toISOString(),
         
         client: {
-          id: request.client.id,
-          name: request.client.user.profile 
-            ? `${request.client.user.profile.firstName || ''} ${request.client.user.profile.lastName || ''}`.trim()
-            : request.client.user.email,
-          rating: request.client.rating
+          id: booking.client.id,
+          name: booking.client.user.profile 
+            ? `${booking.client.user.profile.firstName || ''} ${booking.client.user.profile.lastName || ''}`.trim()
+            : booking.client.user.email
         },
         
-        hasApplied: request.applications.length > 0,
-        isAssigned: request.assignedProviderId === provider.id
+        service: {
+          id: booking.service.id,
+          name: booking.service.name,
+          type: booking.service.serviceType
+        }
       })),
       
       recentReviews: provider.reviews.map(review => ({
@@ -247,12 +217,10 @@ export async function GET(request: NextRequest) {
       
       weeklyAvailabilities: availabilities.map(avail => ({
         id: avail.id,
-        date: avail.date.toISOString(),
+        dayOfWeek: avail.dayOfWeek,
         startTime: avail.startTime,
         endTime: avail.endTime,
-        isAvailable: avail.isAvailable,
-        maxServices: avail.maxServices,
-        currentBookings: avail.currentBookings
+        isActive: avail.isActive
       }))
     }
 

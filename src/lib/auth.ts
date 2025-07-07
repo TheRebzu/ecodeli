@@ -4,10 +4,14 @@ import { NextAuthConfig } from "next-auth"
 import CredentialsProvider from "next-auth/providers/credentials"
 import { db } from "@/lib/db"
 import bcrypt from "bcryptjs"
-import { UserRole } from "@prisma/client"
+import type { UserRole } from "@prisma/client"
 
 export const config = {
   adapter: PrismaAdapter(db), // Activer l'adapter pour synchroniser avec la DB
+  trustHost: true, // Correction pour NextAuth v5
+  experimental: {
+    enableWebAuthn: false
+  },
   providers: [
     CredentialsProvider({
       name: "credentials",
