@@ -24,18 +24,17 @@ export async function POST(
     console.log('✅ Livreur authentifié:', user.id)
     console.log('📦 Annonce à accepter:', announcementId)
 
-    // Validation du body de la requête avec gestion des cas vides
+    // Validation du body de la requête (optionnel pour cette action)
     let body = {}
     try {
-      const contentLength = request.headers.get('content-length')
-      if (contentLength && parseInt(contentLength) > 0) {
-        body = await request.json()
+      const requestText = await request.text()
+      if (requestText.trim()) {
+        body = JSON.parse(requestText)
       }
-    } catch (error) {
-      // Si le parsing JSON échoue, on utilise un objet vide car tous les champs sont optionnels
-      console.log('⚠️ Parsing JSON échoué, utilisation d\'un objet vide:', error instanceof Error ? error.message : 'Unknown error')
+    } catch (e) {
+      // Si pas de JSON valide, utiliser un objet vide (acceptable pour cette action)
+      body = {}
     }
-    
     console.log('📝 Body reçu:', body)
     
     const validatedData = acceptOpportunitySchema.parse(body)
@@ -148,8 +147,9 @@ export async function POST(
       )
     }
 
-    // Vérifier que le livreur est validé
-    if (deliverer.validationStatus !== 'VALIDATED') {
+    // Vérifier que le livreur est validé (APPROVED ou VALIDATED)
+    const validStatuses = ['APPROVED', 'VALIDATED', 'ACTIVE']
+    if (!validStatuses.includes(deliverer.validationStatus)) {
       console.log('❌ Livreur non validé, statut:', deliverer.validationStatus)
       return NextResponse.json(
         { error: 'Votre compte doit être validé pour accepter des livraisons' },

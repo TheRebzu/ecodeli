@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
         contract: true,
         announcements: {
           include: {
-            deliveries: {
+            delivery: {
               include: {
                 payment: true
               }
@@ -48,7 +48,7 @@ export async function GET(request: NextRequest) {
         }
       },
       include: {
-        deliveries: {
+        delivery: {
           include: {
             payment: true
           }
@@ -60,16 +60,18 @@ export async function GET(request: NextRequest) {
       totalAnnouncements: allAnnouncements.length,
       activeAnnouncements: allAnnouncements.filter(a => a.status === 'ACTIVE').length,
       completedDeliveries: allAnnouncements.filter(a => 
-        a.deliveries.some(d => d.status === 'DELIVERED')
+        a.delivery && a.delivery.status === 'DELIVERED'
       ).length,
       totalRevenue: allAnnouncements.reduce((sum, announcement) => {
-        const deliveredAmount = announcement.deliveries
-          .filter(d => d.status === 'DELIVERED' && d.payment?.status === 'PAID')
-          .reduce((deliverySum, delivery) => deliverySum + Number(delivery.payment?.amount || 0), 0)
-        return sum + deliveredAmount
+        if (announcement.delivery && 
+            announcement.delivery.status === 'DELIVERED' && 
+            announcement.delivery.payment?.status === 'PAID') {
+          return sum + Number(announcement.delivery.payment?.amount || 0)
+        }
+        return sum
       }, 0),
       pendingDeliveries: allAnnouncements.filter(a => 
-        a.deliveries.some(d => ['ACCEPTED', 'PICKED_UP', 'IN_TRANSIT'].includes(d.status))
+        a.delivery && ['ACCEPTED', 'PICKED_UP', 'IN_TRANSIT'].includes(a.delivery.status)
       ).length
     }
 
@@ -85,13 +87,15 @@ export async function GET(request: NextRequest) {
     const monthlyStats = {
       announcements: thisMonthAnnouncements.length,
       revenue: thisMonthAnnouncements.reduce((sum, announcement) => {
-        const deliveredAmount = announcement.deliveries
-          .filter(d => d.status === 'DELIVERED' && d.payment?.status === 'PAID')
-          .reduce((deliverySum, delivery) => deliverySum + Number(delivery.payment?.amount || 0), 0)
-        return sum + deliveredAmount
+        if (announcement.delivery && 
+            announcement.delivery.status === 'DELIVERED' && 
+            announcement.delivery.payment?.status === 'PAID') {
+          return sum + Number(announcement.delivery.payment?.amount || 0)
+        }
+        return sum
       }, 0),
       deliveries: thisMonthAnnouncements.filter(a => 
-        a.deliveries.some(d => d.status === 'DELIVERED')
+        a.delivery && a.delivery.status === 'DELIVERED'
       ).length
     }
 
@@ -103,16 +107,12 @@ export async function GET(request: NextRequest) {
           role: 'MERCHANT'
         }
       },
-      include: {
-        deliveries: {
+              include: {
+                  delivery: {
           include: {
             deliverer: {
               include: {
-                user: {
-                  include: {
-                    profile: true
-                  }
-                }
+                profile: true
               }
             },
             payment: true
@@ -121,7 +121,7 @@ export async function GET(request: NextRequest) {
         _count: {
           select: {
             matches: true,
-            views: true
+            reviews: true
           }
         }
       },
@@ -157,7 +157,7 @@ export async function GET(request: NextRequest) {
           id: merchant.contract.id,
           type: merchant.contract.type,
           status: merchant.contract.status,
-          startDate: merchant.contract.startDate.toISOString(),
+          startDate: merchant.contract.startDate?.toISOString(),
           endDate: merchant.contract.endDate?.toISOString(),
           monthlyFee: Number(merchant.contract.monthlyFee),
           commissionRate: Number(merchant.contract.commissionRate)
@@ -189,24 +189,24 @@ export async function GET(request: NextRequest) {
         createdAt: announcement.createdAt.toISOString(),
         
         stats: {
-          views: announcement._count.views,
+          reviews: announcement._count.reviews,
           matches: announcement._count.matches,
-          hasDeliverer: announcement.deliveries.length > 0
+          hasDeliverer: !!announcement.delivery
         },
         
-        delivery: announcement.deliveries.length > 0 ? {
-          id: announcement.deliveries[0].id,
-          status: announcement.deliveries[0].status,
-          deliverer: announcement.deliveries[0].deliverer ? {
-            name: announcement.deliveries[0].deliverer.user.profile 
-              ? `${announcement.deliveries[0].deliverer.user.profile.firstName || ''} ${announcement.deliveries[0].deliverer.user.profile.lastName || ''}`.trim()
-              : announcement.deliveries[0].deliverer.user.email,
-            phone: announcement.deliveries[0].deliverer.user.profile?.phone
+        delivery: announcement.delivery ? {
+          id: announcement.delivery.id,
+          status: announcement.delivery.status,
+          deliverer: announcement.delivery.deliverer ? {
+            name: announcement.delivery.deliverer.profile 
+              ? `${announcement.delivery.deliverer.profile.firstName || ''} ${announcement.delivery.deliverer.profile.lastName || ''}`.trim()
+              : announcement.delivery.deliverer.email,
+            phone: announcement.delivery.deliverer.profile?.phone
           } : null,
-          payment: announcement.deliveries[0].payment ? {
-            amount: Number(announcement.deliveries[0].payment.amount),
-            status: announcement.deliveries[0].payment.status,
-            paidAt: announcement.deliveries[0].payment.paidAt?.toISOString()
+          payment: announcement.delivery.payment ? {
+            amount: Number(announcement.delivery.payment.amount),
+            status: announcement.delivery.payment.status,
+            paidAt: announcement.delivery.payment.paidAt?.toISOString()
           } : null
         } : null
       }))

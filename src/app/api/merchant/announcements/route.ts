@@ -91,7 +91,7 @@ export async function GET(request: NextRequest) {
     const announcements = await db.announcement.findMany({
       where,
       include: {
-        deliveries: {
+        delivery: {
           include: {
             deliverer: {
               include: {
@@ -157,31 +157,31 @@ export async function GET(request: NextRequest) {
       },
       
       // Livraison associée
-      delivery: announcement.deliveries.length > 0 ? {
-        id: announcement.deliveries[0].id,
-        status: announcement.deliveries[0].status,
-        validationCode: announcement.deliveries[0].validationCode,
-        actualPickupTime: announcement.deliveries[0].actualPickupTime?.toISOString(),
-        actualDeliveryTime: announcement.deliveries[0].actualDeliveryTime?.toISOString(),
+      delivery: announcement.delivery ? {
+        id: announcement.delivery.id,
+        status: announcement.delivery.status,
+        validationCode: announcement.delivery.validationCode,
+        actualPickupTime: announcement.delivery.actualPickupTime?.toISOString(),
+        actualDeliveryTime: announcement.delivery.actualDeliveryTime?.toISOString(),
         
-        deliverer: announcement.deliveries[0].deliverer ? {
-          id: announcement.deliveries[0].deliverer.id,
-          name: announcement.deliveries[0].deliverer.user.profile 
-            ? `${announcement.deliveries[0].deliverer.user.profile.firstName || ''} ${announcement.deliveries[0].deliverer.user.profile.lastName || ''}`.trim()
-            : announcement.deliveries[0].deliverer.user.email,
-          phone: announcement.deliveries[0].deliverer.user.profile?.phone
+        deliverer: announcement.delivery.deliverer ? {
+          id: announcement.delivery.deliverer.id,
+          name: announcement.delivery.deliverer.user.profile 
+            ? `${announcement.delivery.deliverer.user.profile.firstName || ''} ${announcement.delivery.deliverer.user.profile.lastName || ''}`.trim()
+            : announcement.delivery.deliverer.user.email,
+          phone: announcement.delivery.deliverer.user.profile?.phone
         } : null,
         
-        payment: announcement.deliveries[0].payment ? {
-          amount: Number(announcement.deliveries[0].payment.amount),
-          status: announcement.deliveries[0].payment.status,
-          paidAt: announcement.deliveries[0].payment.paidAt?.toISOString()
+        payment: announcement.delivery.payment ? {
+          amount: Number(announcement.delivery.payment.amount),
+          status: announcement.delivery.payment.status,
+          paidAt: announcement.delivery.payment.paidAt?.toISOString()
         } : null,
         
-        lastTracking: announcement.deliveries[0].tracking.length > 0 ? {
-          status: announcement.deliveries[0].tracking[0].status,
-          message: announcement.deliveries[0].tracking[0].message,
-          createdAt: announcement.deliveries[0].tracking[0].createdAt.toISOString()
+        lastTracking: announcement.delivery.tracking.length > 0 ? {
+          status: announcement.delivery.tracking[0].status,
+          message: announcement.delivery.tracking[0].message,
+          createdAt: announcement.delivery.tracking[0].createdAt.toISOString()
         } : null
       } : null
     }))

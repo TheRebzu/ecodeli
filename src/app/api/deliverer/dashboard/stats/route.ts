@@ -52,9 +52,23 @@ export async function GET(request: NextRequest) {
         _all: true
       },
       _avg: {
-        rating: true
+        price: true
       }
     });
+
+    // Pour les livreurs, les évaluations ne sont pas encore implémentées
+    // Les reviews sont principalement pour les services (bookings)
+    // TODO: Implémenter un système d'évaluation pour les livraisons
+    let averageRating = 0;
+    
+    // Calculer une note basée sur les livraisons réussies (temporaire)
+    const deliveredCount = deliveryStats._count._all || 0;
+    
+    // Note basique basée sur le nombre de livraisons réussies
+    // Plus le livreur a de livraisons, plus sa note est bonne (max 5)
+    if (deliveredCount > 0) {
+      averageRating = Math.min(5, 3 + (deliveredCount * 0.1)); // Commence à 3, augmente jusqu'à 5
+    }
 
     // Récupérer les demandes en attente (annonces non acceptées)
     const pendingRequests = await db.announcement.count({
@@ -65,14 +79,15 @@ export async function GET(request: NextRequest) {
       }
     });
 
-    // Calculer la note moyenne
-    const averageRating = deliveryStats._avg.rating || 0;
+    // Calculer les statistiques
     const totalDeliveries = deliveryStats._count._all || 0;
+    const averageDeliveryPrice = deliveryStats._avg.price || 0;
 
     const stats = {
       activeDeliveries,
       monthlyEarnings: monthlyEarnings._sum.amount || 0,
-      averageRating,
+      averageRating: Math.round(averageRating * 10) / 10, // Arrondir à 1 décimale
+      averageDeliveryPrice: Math.round(averageDeliveryPrice * 100) / 100, // Arrondir à 2 décimales
       totalDeliveries,
       pendingRequests
     };

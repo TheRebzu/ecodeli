@@ -1,15 +1,1107 @@
-src/app/[locale]/(protected)/client/announcements//
-├── create/
+src/app//
+├── api/
+│   ├── admin/
+│   │   ├── activate-user/
+│   │   ├── announcements/
+│   │   │   ├── analytics/
+│   │   │   │   └── route.ts*
+│   │   │   ├── [id]/
+│   │   │   │   └── route.ts*
+│   │   │   └── route.ts*
+│   │   ├── billing/
+│   │   │   └── trigger-monthly/
+│   │   │       └── route.ts*
+│   │   ├── configuration/
+│   │   │   └── history/
+│   │   ├── contracts/
+│   │   │   ├── active/
+│   │   │   │   └── route.ts*
+│   │   │   ├── [id]/
+│   │   │   │   └── route.ts*
+│   │   │   ├── route.ts*
+│   │   │   └── templates/
+│   │   │       └── route.ts*
+│   │   ├── dashboard/
+│   │   │   ├── kpi/
+│   │   │   │   └── route.ts*
+│   │   │   └── route.ts*
+│   │   ├── deliveries/
+│   │   │   ├── issues/
+│   │   │   │   └── route.ts*
+│   │   │   └── route.ts*
+│   │   ├── documents/
+│   │   │   ├── pending/
+│   │   │   │   └── route.ts*
+│   │   │   ├── stats/
+│   │   │   │   └── route.ts*
+│   │   │   └── validate/
+│   │   │       └── route.ts*
+│   │   ├── finance/
+│   │   │   ├── export/
+│   │   │   │   └── route.ts*
+│   │   │   ├── reconciliation/
+│   │   │   │   └── route.ts*
+│   │   │   ├── reports/
+│   │   │   │   └── route.ts*
+│   │   │   ├── route.ts*
+│   │   │   ├── stats/
+│   │   │   │   └── route.ts*
+│   │   │   └── trends/
+│   │   │       └── route.ts*
+│   │   ├── locations/
+│   │   │   ├── [id]/
+│   │   │   │   └── route.ts*
+│   │   │   ├── pricing/
+│   │   │   │   └── route.ts*
+│   │   │   └── route.ts*
+│   │   ├── moderation/
+│   │   │   ├── auto/
+│   │   │   │   └── route.ts*
+│   │   │   └── route.ts*
+│   │   ├── monitoring/
+│   │   │   ├── alerts/
+│   │   │   │   └── route.ts*
+│   │   │   ├── logs/
+│   │   │   │   └── route.ts*
+│   │   │   ├── metrics/
+│   │   │   │   └── route.ts*
+│   │   │   ├── route.ts*
+│   │   │   └── services/
+│   │   │       └── route.ts*
+│   │   ├── payments/
+│   │   │   ├── refunds/
+│   │   │   │   └── route.ts*
+│   │   │   └── route.ts*
+│   │   ├── seed-announcements/
+│   │   │   └── route.ts*
+│   │   ├── services/
+│   │   │   ├── categories/
+│   │   │   │   └── route.ts*
+│   │   │   └── pricing/
+│   │   │       └── route.ts*
+│   │   ├── settings/
+│   │   │   ├── integrations/
+│   │   │   │   └── route.ts*
+│   │   │   ├── route.ts*
+│   │   │   ├── test-smtp/
+│   │   │   │   └── route.ts*
+│   │   │   └── translations/
+│   │   │       └── route.ts*
+│   │   ├── tests/
+│   │   │   ├── email/
+│   │   │   │   └── route.ts*
+│   │   │   └── notification/
+│   │   │       └── route.ts*
+│   │   ├── users/
+│   │   │   ├── export/
+│   │   │   │   └── route.ts*
+│   │   │   ├── [id]/
+│   │   │   │   ├── route.ts*
+│   │   │   │   └── validate/
+│   │   │   │       └── route.ts*
+│   │   │   └── route.ts*
+│   │   ├── verifications/
+│   │   │   ├── stats/
+│   │   │   │   └── route.ts*
+│   │   │   └── users/
+│   │   │       └── route.ts*
+│   │   └── withdrawals/
+│   │       ├── [id]/
+│   │       │   └── process/
+│   │       │       └── route.ts*
+│   │       └── route.ts*
+│   ├── auth/
+│   │   ├── check-user-status/
+│   │   ├── cleanup/
+│   │   │   └── route.ts*
+│   │   ├── forgot-password/
+│   │   ├── get-session/
+│   │   ├── login/
+│   │   ├── logout/
+│   │   ├── me/
+│   │   ├── [...nextauth]/
+│   │   │   └── route.ts*
+│   │   ├── register/
+│   │   │   └── route.ts*
+│   │   ├── resend-verification/
+│   │   ├── reset-password/
+│   │   ├── session/
+│   │   ├── validate-documents/
+│   │   ├── validate-user/
+│   │   ├── validation-status/
+│   │   └── verify-email/
+│   ├── client/
+│   │   ├── announcements/
+│   │   │   ├── [id]/
+│   │   │   │   ├── cancel/
+│   │   │   │   │   └── route.ts*
+│   │   │   │   ├── create-payment-intent/
+│   │   │   │   │   └── route.ts*
+│   │   │   │   ├── invoice/
+│   │   │   │   │   └── route.ts*
+│   │   │   │   ├── pay-from-wallet/
+│   │   │   │   │   └── route.ts*
+│   │   │   │   ├── payment/
+│   │   │   │   │   └── route.ts*
+│   │   │   │   ├── route.ts*
+│   │   │   │   ├── tracking/
+│   │   │   │   │   └── route.ts*
+│   │   │   │   ├── validate/
+│   │   │   │   │   └── route.ts*
+│   │   │   │   └── validation-code/
+│   │   │   │       └── route.ts*
+│   │   │   ├── my-announcements/
+│   │   │   │   └── route.ts*
+│   │   │   ├── route.ts*
+│   │   │   └── stats/
+│   │   │       └── route.ts*
+│   │   ├── bookings/
+│   │   │   ├── available-providers/
+│   │   │   │   └── route.ts*
+│   │   │   ├── available-slots/
+│   │   │   │   └── route.ts*
+│   │   │   ├── [id]/
+│   │   │   │   ├── cancel/
+│   │   │   │   │   └── route.ts*
+│   │   │   │   ├── messages/
+│   │   │   │   │   └── route.ts*
+│   │   │   │   ├── rate/
+│   │   │   │   │   └── route.ts*
+│   │   │   │   └── route.ts*
+│   │   │   └── route.ts*
+│   │   ├── dashboard/
+│   │   │   └── route.ts*
+│   │   ├── deliveries/
+│   │   │   ├── [id]/
+│   │   │   │   ├── cancel/
+│   │   │   │   │   └── route.ts*
+│   │   │   │   ├── confirm/
+│   │   │   │   │   └── route.ts*
+│   │   │   │   ├── rate/
+│   │   │   │   │   └── route.ts*
+│   │   │   │   ├── route.ts*
+│   │   │   │   ├── tracking/
+│   │   │   │   │   └── route.ts*
+│   │   │   │   └── validate/
+│   │   │   │       └── route.ts*
+│   │   │   └── route.ts*
+│   │   ├── merchants/
+│   │   │   └── cart-drop/
+│   │   ├── notifications/
+│   │   │   ├── [id]/
+│   │   │   │   └── read/
+│   │   │   │       └── route.ts*
+│   │   │   ├── mark-all-read/
+│   │   │   │   └── route.ts*
+│   │   │   ├── route.ts*
+│   │   │   └── settings/
+│   │   │       └── route.ts*
+│   │   ├── orders/
+│   │   │   └── route.ts*
+│   │   ├── payments/
+│   │   │   ├── export/
+│   │   │   │   └── route.ts*
+│   │   │   ├── [paymentId]/
+│   │   │   │   ├── details/
+│   │   │   │   │   └── route.ts*
+│   │   │   │   └── invoice/
+│   │   │   │       └── route.ts*
+│   │   │   ├── route.ts*
+│   │   │   └── subscription/
+│   │   │       └── route.ts*
+│   │   ├── profile/
+│   │   │   └── route.ts*
+│   │   ├── reviews/
+│   │   │   └── route.ts*
+│   │   ├── service-requests/
+│   │   │   └── route.ts*
+│   │   ├── services/
+│   │   │   └── route.ts*
+│   │   ├── storage-boxes/
+│   │   │   ├── [id]/
+│   │   │   │   ├── qr/
+│   │   │   │   │   └── route.ts*
+│   │   │   │   └── route.ts*
+│   │   │   ├── nearby/
+│   │   │   │   └── route.ts*
+│   │   │   ├── rent/
+│   │   │   │   └── route.ts*
+│   │   │   ├── rentals/
+│   │   │   │   ├── [id]/
+│   │   │   │   │   └── extend/
+│   │   │   │   │       └── route.ts*
+│   │   │   │   └── route.ts*
+│   │   │   └── route.ts*
+│   │   ├── subscription/
+│   │   │   └── route.ts*
+│   │   └── tutorial/
+│   │       ├── check/
+│   │       │   └── route.ts*
+│   │       ├── complete/
+│   │       │   └── route.ts*
+│   │       ├── progress/
+│   │       │   └── route.ts*
+│   │       └── route.ts*
+│   ├── cron/
+│   │   ├── analytics/
+│   │   │   └── route.ts*
+│   │   ├── cleanup/
+│   │   │   └── route.ts*
+│   │   ├── monthly-billing/
+│   │   │   └── route.ts*
+│   │   ├── notifications/
+│   │   │   └── route.ts*
+│   │   ├── process-payments/
+│   │   │   └── route.ts*
+│   │   ├── provider-billing/
+│   │   │   └── route.ts*
+│   │   └── provider-monthly-billing/
+│   │       └── route.ts*
+│   ├── deliverer/
+│   │   ├── announcements/
+│   │   │   ├── [id]/
+│   │   │   │   ├── accept/
+│   │   │   │   │   └── route.ts*
+│   │   │   │   ├── route.ts*
+│   │   │   │   └── status/
+│   │   │   │       └── route.ts*
+│   │   │   └── route.ts*
+│   │   ├── dashboard/
+│   │   │   ├── route.ts*
+│   │   │   └── stats/
+│   │   │       └── route.ts*
+│   │   ├── deliveries/
+│   │   │   ├── active/
+│   │   │   │   └── route.ts*
+│   │   │   ├── history/
+│   │   │   │   └── route.ts*
+│   │   │   ├── [id]/
+│   │   │   │   ├── cancel/
+│   │   │   │   │   └── route.ts*
+│   │   │   │   ├── generate-code/
+│   │   │   │   │   └── route.ts*
+│   │   │   │   ├── handover/
+│   │   │   │   │   └── route.ts*
+│   │   │   │   ├── pickup/
+│   │   │   │   │   └── route.ts*
+│   │   │   │   ├── proof/
+│   │   │   │   │   └── route.ts*
+│   │   │   │   ├── route.ts*
+│   │   │   │   ├── start/
+│   │   │   │   │   └── route.ts*
+│   │   │   │   ├── status/
+│   │   │   │   │   └── route.ts*
+│   │   │   │   ├── steps/
+│   │   │   │   │   └── route.ts*
+│   │   │   │   └── validate/
+│   │   │   │       └── route.ts*
+│   │   │   └── route.ts*
+│   │   ├── documents/
+│   │   │   ├── [id]/
+│   │   │   │   └── route.ts*
+│   │   │   ├── route.ts*
+│   │   │   └── upload/
+│   │   │       └── route.ts*
+│   │   ├── opportunities/
+│   │   │   ├── [id]/
+│   │   │   │   └── accept/
+│   │   │   │       └── route.ts*
+│   │   │   └── route.ts*
+│   │   ├── profile/
+│   │   │   └── route.ts*
+│   │   ├── recruitment/
+│   │   │   ├── documents/
+│   │   │   │   ├── [id]/
+│   │   │   │   │   └── download/
+│   │   │   │   │       └── route.ts*
+│   │   │   │   └── route.ts*
+│   │   │   └── route.ts*
+│   │   ├── reviews/
+│   │   │   └── route.ts*
+│   │   ├── route-optimization/
+│   │   │   └── route.ts*
+│   │   ├── routes/
+│   │   │   ├── [id]/
+│   │   │   │   └── route.ts*
+│   │   │   ├── optimize/
+│   │   │   │   └── route.ts*
+│   │   │   └── route.ts*
+│   │   ├── settings/
+│   │   │   └── route.ts*
+│   │   ├── support/
+│   │   │   └── route.ts*
+│   │   ├── tracking/
+│   │   │   └── route.ts*
+│   │   └── wallet/
+│   │       ├── balance/
+│   │       │   └── route.ts*
+│   │       ├── earnings/
+│   │       │   ├── export/
+│   │       │   │   └── route.ts*
+│   │       │   └── route.ts*
+│   │       ├── operations/
+│   │       │   └── route.ts*
+│   │       ├── route.ts*
+│   │       ├── withdraw/
+│   │       │   └── route.ts*
+│   │       └── withdrawals/
+│   │           └── route.ts*
+│   ├── deliveries/
+│   │   └── [id]/
+│   │       ├── validate/
+│   │       │   └── route.ts*
+│   │       └── validation-code/
+│   │           └── route.ts*
+│   ├── documents/
+│   │   └── generate/
+│   │       └── route.ts*
+│   ├── health/
+│   │   └── route.ts*
+│   ├── insurance/
+│   │   ├── claims/
+│   │   │   └── route.ts*
+│   │   └── warranties/
+│   │       └── route.ts*
+│   ├── merchant/
+│   │   ├── analytics/
+│   │   │   ├── customers/
+│   │   │   │   └── route.ts*
+│   │   │   └── sales/
+│   │   │       └── route.ts*
+│   │   ├── announcements/
+│   │   │   ├── bulk/
+│   │   │   │   └── route.ts*
+│   │   │   ├── [id]/
+│   │   │   │   └── route.ts*
+│   │   │   └── route.ts*
+│   │   ├── billing/
+│   │   │   ├── [id]/
+│   │   │   │   └── download/
+│   │   │   │       └── route.ts*
+│   │   │   ├── invoices/
+│   │   │   │   └── route.ts*
+│   │   │   └── route.ts*
+│   │   ├── cart-drop/
+│   │   │   ├── orders/
+│   │   │   │   └── [id]/
+│   │   │   │       └── status/
+│   │   │   ├── schedule/
+│   │   │   │   └── route.ts*
+│   │   │   ├── settings/
+│   │   │   │   └── route.ts*
+│   │   │   ├── slots/
+│   │   │   ├── time-slots/
+│   │   │   └── zones/
+│   │   ├── contract/
+│   │   │   └── sign/
+│   │   │       └── route.ts*
+│   │   ├── contracts/
+│   │   │   ├── [id]/
+│   │   │   │   └── download/
+│   │   │   │       └── route.ts*
+│   │   │   └── route.ts*
+│   │   ├── dashboard/
+│   │   │   └── route.ts*
+│   │   ├── orders/
+│   │   │   └── [id]/
+│   │   │       ├── prepare/
+│   │   │       │   └── route.ts*
+│   │   │       └── route.ts*
+│   │   └── settings/
+│   ├── provider/
+│   │   ├── announcements/
+│   │   │   └── route.ts*
+│   │   ├── applications/
+│   │   │   └── route.ts*
+│   │   ├── availability/
+│   │   │   ├── route.ts*
+│   │   │   └── sync/
+│   │   │       └── route.ts*
+│   │   ├── billing/
+│   │   │   ├── [id]/
+│   │   │   │   └── download/
+│   │   │   │       └── route.ts*
+│   │   │   ├── invoices/
+│   │   │   │   ├── [id]/
+│   │   │   │   │   └── download/
+│   │   │   │   │       └── route.ts*
+│   │   │   │   └── route.ts*
+│   │   │   ├── monthly/
+│   │   │   │   └── route.ts*
+│   │   │   ├── preview/
+│   │   │   │   └── route.ts*
+│   │   │   ├── route.ts*
+│   │   │   └── stats/
+│   │   │       └── route.ts*
+│   │   ├── bookings/
+│   │   │   ├── [id]/
+│   │   │   │   └── route.ts*
+│   │   │   └── upcoming/
+│   │   │       └── route.ts*
+│   │   ├── certifications/
+│   │   │   ├── route.ts*
+│   │   │   ├── validate/
+│   │   │   │   └── route.ts*
+│   │   │   └── verify/
+│   │   │       └── route.ts*
+│   │   ├── dashboard/
+│   │   │   ├── activities/
+│   │   │   │   └── route.ts*
+│   │   │   ├── route.ts*
+│   │   │   └── stats/
+│   │   │       └── route.ts*
+│   │   ├── documents/
+│   │   │   ├── [id]/
+│   │   │   │   └── route.ts*
+│   │   │   └── route.ts*
+│   │   ├── earnings/
+│   │   │   ├── route.ts*
+│   │   │   ├── summary/
+│   │   │   │   └── route.ts*
+│   │   │   ├── transactions/
+│   │   │   │   └── route.ts*
+│   │   │   └── withdraw/
+│   │   │       └── route.ts*
+│   │   ├── evaluations/
+│   │   │   ├── [id]/
+│   │   │   │   └── respond/
+│   │   │   │       └── route.ts*
+│   │   │   ├── route.ts*
+│   │   │   └── stats/
+│   │   │       └── route.ts*
+│   │   ├── interventions/
+│   │   │   ├── [id]/
+│   │   │   │   ├── complete/
+│   │   │   │   │   └── route.ts*
+│   │   │   │   ├── report/
+│   │   │   │   │   └── route.ts*
+│   │   │   │   └── route.ts*
+│   │   │   └── route.ts*
+│   │   ├── invoices/
+│   │   │   └── route.ts*
+│   │   ├── onboarding/
+│   │   │   └── route.ts*
+│   │   ├── profile/
+│   │   │   └── route.ts*
+│   │   ├── rates/
+│   │   │   └── route.ts*
+│   │   ├── ratings/
+│   │   │   ├── response/
+│   │   │   │   └── route.ts*
+│   │   │   └── route.ts*
+│   │   ├── reviews/
+│   │   │   └── route.ts*
+│   │   ├── services/
+│   │   │   ├── categories/
+│   │   │   │   └── route.ts*
+│   │   │   ├── [id]/
+│   │   │   │   ├── route.ts*
+│   │   │   │   └── validate/
+│   │   │   │       └── route.ts*
+│   │   │   ├── rates/
+│   │   │   │   └── route.ts*
+│   │   │   └── route.ts*
+│   │   └── validation/
+│   │       ├── documents/
+│   │       ├── [id]/
+│   │       ├── overview/
+│   │       │   └── route.ts*
+│   │       ├── profile/
+│   │       │   ├── route.ts*
+│   │       │   └── submit/
+│   │       │       └── route.ts*
+│   │       └── submit/
+│   │           └── route.ts*
+│   ├── public/
+│   │   ├── pricing/
+│   │   │   └── route.ts*
+│   │   ├── services/
+│   │   │   └── route.ts*
+│   │   ├── status/
+│   │   │   └── route.ts*
+│   │   └── zones/
+│   │       └── route.ts*
+│   ├── push/
+│   │   ├── subscribe/
+│   │   │   └── route.ts*
+│   │   ├── test/
+│   │   │   └── route.ts*
+│   │   └── unsubscribe/
+│   │       └── route.ts*
+│   ├── referral/
+│   │   ├── activity/
+│   │   │   └── route.ts*
+│   │   ├── codes/
+│   │   │   ├── route.ts*
+│   │   │   └── validate/
+│   │   │       └── route.ts*
+│   │   ├── programs/
+│   │   │   └── route.ts*
+│   │   └── stats/
+│   │       └── route.ts*
+│   ├── shared/
+│   │   ├── analytics/
+│   │   │   ├── dashboard/
+│   │   │   │   └── route.ts*
+│   │   │   ├── export/
+│   │   │   │   └── route.ts*
+│   │   │   ├── reports/
+│   │   │   │   └── route.ts*
+│   │   │   └── track/
+│   │   │       └── route.ts*
+│   │   ├── announcements/
+│   │   │   ├── bulk/
+│   │   │   │   └── route.ts*
+│   │   │   ├── [id]/
+│   │   │   │   └── route.ts*
+│   │   │   ├── match/
+│   │   │   │   └── route.ts*
+│   │   │   └── search/
+│   │   │       └── route.ts*
+│   │   ├── billing/
+│   │   │   ├── archive/
+│   │   │   │   └── route.ts*
+│   │   │   ├── invoices/
+│   │   │   │   ├── [id]/
+│   │   │   │   │   └── route.ts*
+│   │   │   │   └── route.ts*
+│   │   │   └── monthly/
+│   │   │       └── route.ts*
+│   │   ├── deliveries/
+│   │   │   └── [id]/
+│   │   │       ├── tracking/
+│   │   │       │   └── route.ts*
+│   │   │       └── validate/
+│   │   │           └── route.ts*
+│   │   ├── documents/
+│   │   │   └── [id]/
+│   │   │       └── route.ts*
+│   │   ├── geo/
+│   │   │   ├── distance/
+│   │   │   │   └── route.ts*
+│   │   │   ├── route.ts*
+│   │   │   └── zones/
+│   │   │       └── route.ts*
+│   │   ├── notifications/
+│   │   │   ├── broadcast/
+│   │   │   │   └── route.ts*
+│   │   │   ├── history/
+│   │   │   │   └── route.ts*
+│   │   │   └── preferences/
+│   │   │       └── route.ts*
+│   │   ├── payments/
+│   │   │   ├── refund/
+│   │   │   │   └── route.ts*
+│   │   │   ├── route.ts*
+│   │   │   ├── subscription/
+│   │   │   │   └── route.ts*
+│   │   │   ├── wallet/
+│   │   │   │   └── route.ts*
+│   │   │   └── withdraw/
+│   │   │       └── route.ts*
+│   │   ├── profile/
+│   │   │   ├── documents/
+│   │   │   │   └── route.ts*
+│   │   │   ├── [id]/
+│   │   │   │   └── route.ts*
+│   │   │   ├── route.ts*
+│   │   │   └── validate/
+│   │   │       └── route.ts*
+│   │   ├── service-categories/
+│   │   │   └── route.ts*
+│   │   └── upload/
+│   │       └── validate/
+│   │           └── route.ts*
+│   ├── storage/
+│   │   └── validate-access/
+│   │       └── route.ts*
+│   ├── support/
+│   │   ├── stats/
+│   │   │   └── route.ts*
+│   │   └── tickets/
+│   │       ├── [id]/
+│   │       │   └── route.ts*
+│   │       └── route.ts*
+│   ├── test-direct-db/
+│   ├── upload/
+│   │   └── route.ts*
+│   ├── uploads/
+│   │   └── documents/
+│   │       ├── [filename]/
+│   │       │   └── route.ts*
+│   │       └── [...path]/
+│   │           └── route.ts*
+│   ├── user/
+│   │   └── notification-settings/
+│   │       └── route.ts*
+│   ├── warehouses/
+│   │   ├── [id]/
+│   │   │   └── tracking/
+│   │   │       └── route.ts*
+│   │   └── transfers/
+│   │       └── route.ts*
+│   └── webhooks/
+│       ├── onesignal/
+│       │   └── route.ts*
+│       ├── storage/
+│       │   └── route.ts*
+│       └── stripe/
+│           └── route.ts*
+├── api-docs/
 │   └── page.tsx*
-├── [id]/
-│   ├── edit/
-│   │   └── page.tsx*
+├── favicon.ico*
+├── globals.css*
+├── layout.tsx*
+├── [locale]/
+│   ├── (auth)/
+│   │   ├── forgot-password/
+│   │   │   └── page.tsx*
+│   │   ├── login/
+│   │   │   └── page.tsx*
+│   │   ├── onboarding/
+│   │   │   └── [role]/
+│   │   ├── register/
+│   │   │   ├── client/
+│   │   │   │   └── page.tsx*
+│   │   │   ├── deliverer/
+│   │   │   │   └── page.tsx*
+│   │   │   ├── merchant/
+│   │   │   │   └── page.tsx*
+│   │   │   ├── page.tsx*
+│   │   │   └── [role]/
+│   │   ├── reset-password/
+│   │   │   └── page.tsx*
+│   │   ├── test-login/
+│   │   │   └── page.tsx*
+│   │   ├── validate-user/
+│   │   │   └── page.tsx*
+│   │   └── verify-email/
+│   │       └── page.tsx*
+│   ├── layout.tsx*
+│   ├── not-found.tsx*
 │   ├── page.tsx*
-│   ├── payment/
-│   │   └── page.tsx*
-│   ├── tracking/
-│   │   └── page.tsx*
-│   └── validation-code/
+│   ├── (protected)/
+│   │   ├── admin/
+│   │   │   ├── announcements/
+│   │   │   │   ├── analytics/
+│   │   │   │   ├── components/
+│   │   │   │   │   ├── announcement-analytics.tsx*
+│   │   │   │   │   ├── announcement-details.tsx*
+│   │   │   │   │   └── announcement-form.tsx*
+│   │   │   │   ├── moderation/
+│   │   │   │   └── page.tsx*
+│   │   │   ├── billing/
+│   │   │   │   └── monthly/
+│   │   │   │       └── page.tsx*
+│   │   │   ├── cloud-services/
+│   │   │   ├── contracts/
+│   │   │   │   ├── page.tsx*
+│   │   │   │   └── templates/
+│   │   │   ├── deliveries/
+│   │   │   │   ├── disputes/
+│   │   │   │   ├── issues/
+│   │   │   │   ├── monitoring/
+│   │   │   │   └── page.tsx*
+│   │   │   ├── deliveries-monitoring/
+│   │   │   │   └── page.tsx*
+│   │   │   ├── documents/
+│   │   │   │   └── validation/
+│   │   │   │       └── page.tsx*
+│   │   │   ├── finance/
+│   │   │   │   ├── billing/
+│   │   │   │   │   ├── automatic/
+│   │   │   │   │   ├── merchants/
+│   │   │   │   │   ├── monthly/
+│   │   │   │   │   └── providers/
+│   │   │   │   ├── page.tsx*
+│   │   │   │   ├── payments/
+│   │   │   │   │   ├── refunds/
+│   │   │   │   │   ├── transactions/
+│   │   │   │   │   └── withdrawals/
+│   │   │   │   └── reports/
+│   │   │   ├── infrastructure/
+│   │   │   │   ├── cloud-services/
+│   │   │   │   │   ├── azure/
+│   │   │   │   │   ├── datadog/
+│   │   │   │   │   ├── firebase/
+│   │   │   │   │   └── onesignal/
+│   │   │   │   ├── insurance/
+│   │   │   │   │   ├── claims/
+│   │   │   │   │   ├── policies/
+│   │   │   │   │   └── warranties/
+│   │   │   │   └── warehouses/
+│   │   │   │       └── [id]/
+│   │   │   │           ├── boxes/
+│   │   │   │           ├── inventory/
+│   │   │   │           └── transfers/
+│   │   │   ├── insurance/
+│   │   │   │   └── page.tsx*
+│   │   │   ├── layout.tsx*
+│   │   │   ├── locations/
+│   │   │   │   └── page.tsx*
+│   │   │   ├── monitoring/
+│   │   │   │   └── page.tsx*
+│   │   │   ├── page.tsx*
+│   │   │   ├── referrals/
+│   │   │   │   └── page.tsx*
+│   │   │   ├── services/
+│   │   │   │   ├── categories/
+│   │   │   │   └── pricing/
+│   │   │   ├── settings/
+│   │   │   │   └── page.tsx*
+│   │   │   ├── system/
+│   │   │   │   ├── api/
+│   │   │   │   │   ├── documentation/
+│   │   │   │   │   ├── keys/
+│   │   │   │   │   └── webhooks/
+│   │   │   │   ├── documents/
+│   │   │   │   │   ├── archives/
+│   │   │   │   │   └── validation/
+│   │   │   │   ├── monitoring/
+│   │   │   │   │   ├── alerts/
+│   │   │   │   │   ├── logs/
+│   │   │   │   │   └── performance/
+│   │   │   │   └── settings/
+│   │   │   ├── tests/
+│   │   │   │   └── page.tsx*
+│   │   │   ├── users/
+│   │   │   │   ├── active/
+│   │   │   │   ├── [id]/
+│   │   │   │   │   ├── edit/
+│   │   │   │   │   │   └── page.tsx*
+│   │   │   │   │   ├── page.tsx*
+│   │   │   │   │   └── validate/
+│   │   │   │   ├── page.tsx*
+│   │   │   │   ├── pending/
+│   │   │   │   ├── pending-validation/
+│   │   │   │   └── suspended/
+│   │   │   ├── verifications/
+│   │   │   │   ├── approved/
+│   │   │   │   │   └── page.tsx*
+│   │   │   │   ├── incomplete/
+│   │   │   │   │   └── page.tsx*
+│   │   │   │   ├── page.tsx*
+│   │   │   │   ├── pending/
+│   │   │   │   │   └── page.tsx*
+│   │   │   │   └── rejected/
+│   │   │   │       └── page.tsx*
+│   │   │   └── warehouses/
+│   │   │       └── [id]/
+│   │   ├── client/
+│   │   │   ├── account/
+│   │   │   │   ├── notifications/
+│   │   │   │   ├── profile/
+│   │   │   │   └── referral/
+│   │   │   ├── announcements/
+│   │   │   │   ├── create/
+│   │   │   │   │   └── page.tsx*
+│   │   │   │   ├── [id]/
+│   │   │   │   │   ├── candidates/
+│   │   │   │   │   │   └── page.tsx*
+│   │   │   │   │   ├── edit/
+│   │   │   │   │   │   └── page.tsx*
+│   │   │   │   │   ├── page.tsx*
+│   │   │   │   │   ├── payment/
+│   │   │   │   │   │   └── page.tsx*
+│   │   │   │   │   ├── review/
+│   │   │   │   │   │   └── page.tsx*
+│   │   │   │   │   ├── tracking/
+│   │   │   │   │   │   └── page.tsx*
+│   │   │   │   │   └── validation-code/
+│   │   │   │   │       └── page.tsx*
+│   │   │   │   └── page.tsx*
+│   │   │   ├── bookings/
+│   │   │   │   ├── [id]/
+│   │   │   │   │   ├── cancel/
+│   │   │   │   │   ├── chat/
+│   │   │   │   │   ├── page.tsx*
+│   │   │   │   │   └── rate/
+│   │   │   │   └── page.tsx*
+│   │   │   ├── deliveries/
+│   │   │   │   ├── [id]/
+│   │   │   │   │   ├── dispute/
+│   │   │   │   │   ├── page.tsx*
+│   │   │   │   │   ├── payment-success/
+│   │   │   │   │   │   └── page.tsx*
+│   │   │   │   │   ├── track/
+│   │   │   │   │   ├── tracking/
+│   │   │   │   │   │   └── page.tsx*
+│   │   │   │   │   ├── validate/
+│   │   │   │   │   └── validation-code/
+│   │   │   │   │       └── page.tsx*
+│   │   │   │   └── page.tsx*
+│   │   │   ├── invoice/
+│   │   │   │   └── [paymentId]/
+│   │   │   │       └── page.tsx*
+│   │   │   ├── layout.tsx*
+│   │   │   ├── notifications/
+│   │   │   │   └── page.tsx*
+│   │   │   ├── page.tsx*
+│   │   │   ├── payments/
+│   │   │   │   └── page.tsx*
+│   │   │   ├── profile/
+│   │   │   │   └── page.tsx*
+│   │   │   ├── referral/
+│   │   │   ├── reviews/
+│   │   │   │   └── page.tsx*
+│   │   │   ├── service-requests/
+│   │   │   │   ├── create/
+│   │   │   │   │   └── page.tsx*
+│   │   │   │   └── page.tsx*
+│   │   │   ├── services/
+│   │   │   │   ├── appointments/
+│   │   │   │   │   └── [id]/
+│   │   │   │   ├── [category]/
+│   │   │   │   │   └── book/
+│   │   │   │   ├── courses/
+│   │   │   │   │   ├── create/
+│   │   │   │   │   └── history/
+│   │   │   │   ├── create/
+│   │   │   │   │   └── page.tsx*
+│   │   │   │   ├── international/
+│   │   │   │   │   └── request/
+│   │   │   │   └── page.tsx*
+│   │   │   ├── storage/
+│   │   │   │   ├── map/
+│   │   │   │   ├── page.tsx*
+│   │   │   │   └── rentals/
+│   │   │   │       └── [id]/
+│   │   │   │           ├── access/
+│   │   │   │           └── extend/
+│   │   │   ├── subscription/
+│   │   │   │   └── page.tsx*
+│   │   │   ├── support/
+│   │   │   │   ├── faq/
+│   │   │   │   ├── page.tsx*
+│   │   │   │   └── tickets/
+│   │   │   ├── tracking/
+│   │   │   │   └── page.tsx*
+│   │   │   ├── tutorial/
+│   │   │   │   └── page.tsx*
+│   │   │   └── wallet/
+│   │   │       ├── invoices/
+│   │   │       ├── methods/
+│   │   │       └── payments/
+│   │   ├── deliverer/
+│   │   │   ├── announcements/
+│   │   │   │   ├── [id]/
+│   │   │   │   │   └── page.tsx*
+│   │   │   │   └── page.tsx*
+│   │   │   ├── deliveries/
+│   │   │   │   ├── active/
+│   │   │   │   │   └── page.tsx*
+│   │   │   │   ├── history/
+│   │   │   │   │   └── page.tsx*
+│   │   │   │   ├── [id]/
+│   │   │   │   │   ├── handover/
+│   │   │   │   │   ├── page.tsx*
+│   │   │   │   │   ├── pickup/
+│   │   │   │   │   ├── problem/
+│   │   │   │   │   ├── proof/
+│   │   │   │   │   └── validate/
+│   │   │   │   │       └── page.tsx*
+│   │   │   │   ├── packages/
+│   │   │   │   ├── page.tsx*
+│   │   │   │   ├── services/
+│   │   │   │   └── transport/
+│   │   │   ├── documents/
+│   │   │   │   └── page.tsx*
+│   │   │   ├── help/
+│   │   │   │   └── page.tsx*
+│   │   │   ├── layout.tsx*
+│   │   │   ├── nfc-card/
+│   │   │   │   ├── activate/
+│   │   │   │   ├── lost/
+│   │   │   │   └── replace/
+│   │   │   ├── opportunities/
+│   │   │   │   ├── [id]/
+│   │   │   │   │   └── accept/
+│   │   │   │   ├── matching/
+│   │   │   │   └── page.tsx*
+│   │   │   ├── page.tsx*
+│   │   │   ├── planning/
+│   │   │   │   └── page.tsx*
+│   │   │   ├── profile/
+│   │   │   │   └── page.tsx*
+│   │   │   ├── recruitment/
+│   │   │   │   ├── documents/
+│   │   │   │   │   ├── required/
+│   │   │   │   │   ├── status/
+│   │   │   │   │   └── upload/
+│   │   │   │   └── page.tsx*
+│   │   │   ├── routes/
+│   │   │   │   ├── create/
+│   │   │   │   │   └── page.tsx*
+│   │   │   │   ├── declare/
+│   │   │   │   ├── [id]/
+│   │   │   │   │   ├── edit/
+│   │   │   │   │   ├── matches/
+│   │   │   │   │   └── notifications/
+│   │   │   │   ├── my-routes/
+│   │   │   │   │   └── page.tsx*
+│   │   │   │   ├── page.tsx*
+│   │   │   │   └── planning/
+│   │   │   ├── settings/
+│   │   │   │   └── page.tsx*
+│   │   │   ├── transport/
+│   │   │   │   ├── airport/
+│   │   │   │   ├── daily/
+│   │   │   │   ├── medical/
+│   │   │   │   └── services/
+│   │   │   └── wallet/
+│   │   │       ├── earnings/
+│   │   │       │   └── page.tsx*
+│   │   │       ├── page.tsx*
+│   │   │       ├── transactions/
+│   │   │       ├── withdraw/
+│   │   │       └── withdrawals/
+│   │   │           └── page.tsx*
+│   │   ├── merchant/
+│   │   │   ├── analytics/
+│   │   │   │   ├── customers/
+│   │   │   │   ├── deliveries/
+│   │   │   │   └── sales/
+│   │   │   ├── announcements/
+│   │   │   │   ├── create/
+│   │   │   │   │   ├── bulk/
+│   │   │   │   │   ├── cart-drop/
+│   │   │   │   │   ├── single/
+│   │   │   │   │   └── [type]/
+│   │   │   │   ├── [id]/
+│   │   │   │   └── page.tsx*
+│   │   │   ├── billing/
+│   │   │   │   ├── commission/
+│   │   │   │   ├── invoices/
+│   │   │   │   └── page.tsx*
+│   │   │   ├── cart-drop/
+│   │   │   │   ├── orders/
+│   │   │   │   │   └── [id]/
+│   │   │   │   └── settings/
+│   │   │   ├── contract/
+│   │   │   │   ├── download/
+│   │   │   │   ├── sign/
+│   │   │   │   └── view/
+│   │   │   ├── contracts/
+│   │   │   │   └── page.tsx*
+│   │   │   ├── layout.tsx*
+│   │   │   ├── page.tsx*
+│   │   │   ├── payments/
+│   │   │   ├── settings/
+│   │   │   └── zones/
+│   │   │       ├── [id]/
+│   │   │       │   └── edit/
+│   │   │       └── page.tsx*
+│   │   └── provider/
+│   │       ├── archives/
+│   │       ├── billing/
+│   │       │   ├── archives/
+│   │       │   │   └── page.tsx*
+│   │       │   ├── monthly/
+│   │       │   │   ├── current/
+│   │       │   │   │   └── page.tsx*
+│   │       │   │   └── page.tsx*
+│   │       │   └── page.tsx*
+│   │       ├── bookings/
+│   │       │   ├── [id]/
+│   │       │   ├── page.tsx*
+│   │       │   └── upcoming/
+│   │       │       └── page.tsx*
+│   │       ├── calendar/
+│   │       │   ├── availability/
+│   │       │   ├── page.tsx*
+│   │       │   └── sync/
+│   │       ├── documents/
+│   │       │   └── page.tsx*
+│   │       ├── earnings/
+│   │       │   └── page.tsx*
+│   │       ├── evaluations/
+│   │       │   ├── page.tsx*
+│   │       │   └── stats/
+│   │       │       └── page.tsx*
+│   │       ├── interventions/
+│   │       │   ├── [id]/
+│   │       │   │   ├── complete/
+│   │       │   │   ├── report/
+│   │       │   │   └── start/
+│   │       │   └── page.tsx*
+│   │       ├── layout.tsx*
+│   │       ├── onboarding/
+│   │       │   └── page.tsx*
+│   │       ├── page.tsx*
+│   │       ├── reviews/
+│   │       │   └── page.tsx*
+│   │       └── validation/
+│   │           ├── certifications/
+│   │           │   └── page.tsx*
+│   │           ├── page.tsx*
+│   │           ├── profile/
+│   │           │   └── page.tsx*
+│   │           ├── rates/
+│   │           │   └── page.tsx*
+│   │           └── services/
+│   │               └── page.tsx*
+│   └── (public)/
+│       ├── 403/
+│       │   └── page.tsx*
+│       ├── about/
+│       │   └── page.tsx*
+│       ├── become/
+│       │   ├── deliverer/
+│       │   └── [role]/
+│       ├── become-delivery/
+│       │   └── page.tsx*
+│       ├── blog/
+│       │   ├── page.tsx*
+│       │   └── [slug]/
+│       │       └── page.tsx*
+│       ├── contact/
+│       │   └── page.tsx*
+│       ├── developers/
+│       │   ├── api/
+│       │   ├── api-docs/
+│       │   │   └── page.tsx*
+│       │   ├── api-keys/
+│       │   │   └── page.tsx*
+│       │   ├── api-manual/
+│       │   │   └── page.tsx*
+│       │   ├── examples/
+│       │   ├── page.tsx*
+│       │   └── webhooks/
+│       ├── error.tsx*
+│       ├── faq/
+│       │   └── page.tsx*
+│       ├── layout.tsx*
+│       ├── legal/
+│       │   ├── cgu/
+│       │   │   └── page.tsx*
+│       │   ├── cgv/
+│       │   │   └── page.tsx*
+│       │   ├── cookies/
+│       │   ├── page.tsx*
+│       │   ├── privacy/
+│       │   └── terms/
+│       ├── loading.tsx*
+│       ├── page.tsx*
+│       ├── partners/
+│       │   ├── merchants/
+│       │   │   └── page.tsx*
+│       │   ├── page.tsx*
+│       │   └── providers/
+│       │       └── page.tsx*
+│       ├── pricing/
+│       │   └── page.tsx*
+│       ├── privacy/
+│       │   └── page.tsx*
+│       ├── services/
+│       │   └── page.tsx*
+│       ├── shipping/
+│       │   └── page.tsx*
+│       ├── terms/
+│       │   └── page.tsx*
+│       ├── tracking/
+│       │   └── [code]/
+│       └── unauthorized/
+│           └── page.tsx*
 └── page.tsx*
 
-7 directories, 6 files
+670 directories, 435 files
