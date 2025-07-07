@@ -24,8 +24,18 @@ export async function POST(
     console.log('✅ Livreur authentifié:', user.id)
     console.log('📦 Annonce à accepter:', announcementId)
 
-    // Validation du body de la requête
-    const body = await request.json()
+    // Validation du body de la requête avec gestion des cas vides
+    let body = {}
+    try {
+      const contentLength = request.headers.get('content-length')
+      if (contentLength && parseInt(contentLength) > 0) {
+        body = await request.json()
+      }
+    } catch (error) {
+      // Si le parsing JSON échoue, on utilise un objet vide car tous les champs sont optionnels
+      console.log('⚠️ Parsing JSON échoué, utilisation d\'un objet vide:', error instanceof Error ? error.message : 'Unknown error')
+    }
+    
     console.log('📝 Body reçu:', body)
     
     const validatedData = acceptOpportunitySchema.parse(body)

@@ -3,24 +3,12 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "@/i18n/navigation";
 import { useAuth } from "@/features/auth/hooks/useAuth";
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-import { AdminHeader } from "@/components/layout/admin-header";
-import { AdminSidebar } from "@/components/layout/sidebars/admin-sidebar";
-import { Toaster } from "@/components/ui/toaster";
-import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
-import { cn } from "@/lib/utils";
-=======
-=======
->>>>>>> Stashed changes
 import { AdminHeader } from '@/components/layout/headers/admin-header';
 import { AdminSidebar } from '@/components/layout/sidebars/admin-sidebar';
 import { Toaster } from '@/components/ui/toaster';
+import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import { cn } from '@/lib/utils';
-<<<<<<< Updated upstream
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
+import { type EcoDeliUser } from '@/components/layout/types/layout.types';
 
 interface AdminLayoutProps {
   children: React.ReactNode;
@@ -31,11 +19,6 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   const { user, isLoading: authLoading } = useAuth();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-=======
-=======
->>>>>>> Stashed changes
 
   // Close mobile menu when clicking outside
   useEffect(() => {
@@ -48,10 +31,6 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     document.addEventListener('click', handleClickOutside);
     return () => document.removeEventListener('click', handleClickOutside);
   }, [mobileMenuOpen]);
-<<<<<<< Updated upstream
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
 
   useEffect(() => {
     if (!authLoading) {
@@ -69,45 +48,48 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     }
   }, [user, authLoading, router]);
 
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-  // Close mobile menu when clicking outside
-  useEffect(() => {
-    const handleClickOutside = () => {
-      if (mobileMenuOpen) {
-        setMobileMenuOpen(false);
-      }
-    };
-
-    document.addEventListener('click', handleClickOutside);
-    return () => document.removeEventListener('click', handleClickOutside);
-  }, [mobileMenuOpen]);
-
-  const handleLogout = async () => {
-    try {
-              // TODO: Implement proper logout with NextAuth
-      router.push("/fr/login");
-    } catch (error) {
-      console.error('Error during logout:', error);
-    }
-  };
-
-=======
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
   const toggleMobileMenu = () => {
     setMobileMenuOpen(!mobileMenuOpen);
   };
 
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-  // TODO: Get real data from API
-  const pendingValidations = 3;
-  const systemAlerts = 1;
-=======
-=======
->>>>>>> Stashed changes
+  // Convert AuthUser to EcoDeliUser format
+  const convertToEcoDeliUser = (authUser: typeof user): EcoDeliUser | null => {
+    if (!authUser) return null;
+    
+    return {
+      id: authUser.id,
+      email: authUser.email,
+      name: authUser.firstName && authUser.lastName 
+        ? `${authUser.firstName} ${authUser.lastName}`
+        : authUser.email.split('@')[0],
+      avatar: '',
+      role: authUser.role as EcoDeliUser['role'],
+      profile: {
+        firstName: authUser.firstName,
+        lastName: authUser.lastName,
+        phone: authUser.phone,
+        verified: authUser.emailVerified || false
+      },
+      subscription: {
+        plan: 'PREMIUM', // Admin always has premium access
+        status: 'active'
+      },
+      stats: {
+        totalDeliveries: 0,
+        totalEarnings: 0,
+        rating: 5,
+        completionRate: 100
+      },
+      emailVerified: authUser.emailVerified || false,
+      isActive: authUser.status === 'ACTIVE' || authUser.status === 'VERIFIED',
+      validationStatus: 'APPROVED', // Admin is always approved
+      subscriptionPlan: 'PREMIUM',
+      rating: 5
+    };
+  };
+
+  const ecoDeliUser = convertToEcoDeliUser(user);
+
   // Mock notifications for admin
   const mockNotifications = [
     {
@@ -138,10 +120,6 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       priority: 'medium' as const
     }
   ];
-<<<<<<< Updated upstream
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
 
   if (authLoading) {
     return (
@@ -154,7 +132,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     );
   }
 
-  if (!user) {
+  if (!user || !ecoDeliUser) {
     return (
       <div className="min-h-screen bg-background dark:bg-background flex items-center justify-center">
         <div className="text-center">
@@ -177,43 +155,49 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   }
 
   return (
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-    <SidebarProvider 
-      defaultOpen={!sidebarCollapsed}
-      onOpenChange={(open) => setSidebarCollapsed(!open)}
-    >
-      <div className="flex h-screen bg-background w-full">
-        {/* Sidebar */}
+    <SidebarProvider defaultOpen={!sidebarCollapsed}>
+      <div className="flex h-screen bg-background dark:bg-background">
+        {/* Desktop Sidebar */}
         <AdminSidebar 
+          user={ecoDeliUser}
           collapsed={sidebarCollapsed}
-          user={{
-            id: user.id,
-            name: user.name,
-            email: user.email,
-            avatar: user.avatar,
-            role: user.role,
-            validationStatus: user.validationStatus || 'VALIDATED'
-          }}
         />
 
+        {/* Mobile Sidebar Overlay */}
+        {mobileMenuOpen && (
+          <div className="fixed inset-0 z-50 md:hidden">
+            <div className="absolute inset-0 bg-black/50" onClick={() => setMobileMenuOpen(false)} />
+            <aside className="absolute left-0 top-0 h-full w-64 bg-background border-r border-border">
+              <AdminSidebar 
+                user={ecoDeliUser}
+                collapsed={false}
+              />
+            </aside>
+          </div>
+        )}
+
         {/* Main Content */}
-        <SidebarInset className="flex-1 w-full">
+        <SidebarInset className="flex-1 flex flex-col min-w-0">
           {/* Header */}
           <AdminHeader
             user={{
-              name: user.name || '',
+              id: user.id,
+              name: user.email.split('@')[0], // Use email prefix as name fallback
               email: user.email,
+              role: user.role,
+              adminLevel: 'SUPER_ADMIN', // This would come from user profile
+              avatar: '' // Avatar would be loaded from profile
             }}
-            onLogout={handleLogout}
-            pendingValidations={pendingValidations}
-            systemAlerts={systemAlerts}
+            onSidebarToggle={toggleMobileMenu}
+            notifications={mockNotifications}
           />
 
           {/* Page Content */}
-          <main className="flex-1 overflow-auto p-6">
-            <div className="mx-auto max-w-7xl">
-              {children}
+          <main className="flex-1 overflow-auto bg-background dark:bg-background">
+            <div className="p-6">
+              <div className="mx-auto max-w-7xl">
+                {children}
+              </div>
             </div>
           </main>
         </SidebarInset>
@@ -222,66 +206,5 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         <Toaster />
       </div>
     </SidebarProvider>
-=======
-=======
->>>>>>> Stashed changes
-    <div className="flex h-screen bg-background dark:bg-background">
-      {/* Desktop Sidebar */}
-      <aside className={cn(
-        "hidden md:flex transition-all duration-300 ease-in-out border-r border-border",
-        sidebarCollapsed ? "w-16" : "w-64"
-      )}>
-        <AdminSidebar 
-          collapsed={sidebarCollapsed}
-          user={user}
-        />
-      </aside>
-
-      {/* Mobile Sidebar Overlay */}
-      {mobileMenuOpen && (
-        <div className="fixed inset-0 z-50 md:hidden">
-          <div className="absolute inset-0 bg-black/50" onClick={() => setMobileMenuOpen(false)} />
-          <aside className="absolute left-0 top-0 h-full w-64 bg-background border-r border-border">
-            <AdminSidebar 
-              collapsed={false}
-              user={user}
-            />
-          </aside>
-        </div>
-      )}
-
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col min-w-0">
-        {/* Header */}
-        <AdminHeader
-          user={{
-            id: user.id,
-            name: user.email.split('@')[0], // Use email prefix as name fallback
-            email: user.email,
-            role: user.role,
-            adminLevel: 'SUPER_ADMIN', // This would come from user profile
-            avatar: '' // Avatar would be loaded from profile
-          }}
-          onSidebarToggle={toggleMobileMenu}
-          notifications={mockNotifications}
-        />
-
-        {/* Page Content */}
-        <main className="flex-1 overflow-auto bg-background dark:bg-background">
-          <div className="p-6">
-            <div className="mx-auto max-w-7xl">
-              {children}
-            </div>
-          </div>
-        </main>
-      </div>
-
-      {/* Toast Notifications */}
-      <Toaster />
-    </div>
-<<<<<<< Updated upstream
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
   );
 }

@@ -301,9 +301,7 @@ export async function POST(request: NextRequest) {
         
         // Stocker les détails spécifiques selon le type
         packageDetails: validatedData.packageDetails || null,
-        shoppingDetails: validatedData.shoppingDetails || null,
-        internationalPurchaseDetails: validatedData.internationalPurchaseDetails || null,
-        cartDropDetails: validatedData.cartDropDetails || null
+        shoppingDetails: validatedData.shoppingDetails || validatedData.internationalPurchaseDetails || validatedData.cartDropDetails || null
       }
 
       const announcement = await db.announcement.create({

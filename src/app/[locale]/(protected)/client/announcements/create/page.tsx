@@ -343,9 +343,9 @@ export default function CreateAnnouncementPage() {
                 <Label htmlFor="pickupDate">Date de récupération *</Label>
                 <Input
                   id="pickupDate"
-                  type="datetime-local"
+                  type="date"
                   {...register('pickupDate')}
-                  min={new Date().toISOString().slice(0, 16)}
+                  min={new Date().toISOString().slice(0, 10)}
                   className={errors.pickupDate ? 'border-red-500' : ''}
                 />
                 {errors.pickupDate && (
@@ -357,9 +357,9 @@ export default function CreateAnnouncementPage() {
                 <Label htmlFor="deliveryDate">Date de livraison souhaitée</Label>
                 <Input
                   id="deliveryDate"
-                  type="datetime-local"
+                  type="date"
                   {...register('deliveryDate')}
-                  min={new Date().toISOString().slice(0, 16)}
+                  min={new Date().toISOString().slice(0, 10)}
                 />
               </div>
 

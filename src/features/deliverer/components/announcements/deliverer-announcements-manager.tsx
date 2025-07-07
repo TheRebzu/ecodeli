@@ -86,17 +86,33 @@ export default function DelivererAnnouncementsManager({ delivererId }: Deliverer
 
   const handleAcceptAnnouncement = async (announcementId: string) => {
     try {
+      console.log('🚚 Acceptation d\'annonce:', { announcementId, delivererId });
+      
       const response = await fetch(`/api/deliverer/announcements/${announcementId}/accept`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ delivererId })
       });
 
+      console.log('📡 Réponse API:', response.status, response.statusText);
+
       if (response.ok) {
+        const result = await response.json();
+        console.log('✅ Acceptation réussie:', result);
         await fetchAnnouncements();
+      } else {
+        const errorText = await response.text();
+        console.error('❌ Erreur API:', response.status, errorText);
+        
+        try {
+          const errorJson = JSON.parse(errorText);
+          console.error('❌ Détails erreur:', errorJson);
+        } catch (e) {
+          console.error('❌ Réponse non-JSON:', errorText);
+        }
       }
     } catch (error) {
-      console.error("Error accepting announcement:", error);
+      console.error("❌ Error accepting announcement:", error);
     }
   };
 
