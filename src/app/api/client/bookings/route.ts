@@ -42,10 +42,16 @@ export async function GET(request: NextRequest) {
               user: {
                 select: {
                   id: true,
-                  firstName: true,
-                  lastName: true,
+                  name: true,
                   email: true,
-                  profilePhoto: true
+                  image: true,
+                  profile: {
+                    select: {
+                      firstName: true,
+                      lastName: true,
+                      avatar: true
+                    }
+                  }
                 }
               }
             }
@@ -70,16 +76,18 @@ export async function GET(request: NextRequest) {
     const transformedBookings = bookings.map(booking => ({
       id: booking.id,
       providerId: booking.provider.id,
-      providerName: `${booking.provider.user.firstName} ${booking.provider.user.lastName}`,
+      providerName: booking.provider.user.profile 
+        ? `${booking.provider.user.profile.firstName || ''} ${booking.provider.user.profile.lastName || ''}`.trim()
+        : booking.provider.user.name || 'Prestataire',
       serviceId: booking.service?.id || '',
       serviceName: booking.service?.name || 'Service',
       date: booking.scheduledDate.toISOString().split('T')[0],
       startTime: booking.scheduledTime,
       endTime: `${parseInt(booking.scheduledTime.split(':')[0]) + Math.floor(booking.duration / 60)}:${booking.scheduledTime.split(':')[1]}`,
       status: booking.status.toLowerCase(),
-      location: typeof booking.address === 'object' ? 
-        `${booking.address.address}, ${booking.address.city}` : 
-        booking.address?.toString() || 'Non spécifié',
+      location: typeof booking.address === 'object' && booking.address && 'address' in booking.address
+        ? `${booking.address.address}, ${booking.address.city}` 
+        : booking.address?.toString() || 'Non spécifié',
       price: booking.totalPrice,
       notes: booking.notes,
       specialRequests: '',
@@ -118,12 +126,17 @@ export async function POST(request: NextRequest) {
       clientId,
       providerId,
       serviceId,
-      date,
+      startDate,
+      endDate,
       timeSlot,
       location,
       homeService,
       notes,
-      specialRequests
+      specialRequests,
+      durationDays,
+      timeSlotHours,
+      totalPrice: providedTotalPrice,
+      priceBreakdown
     } = body
 
     // Vérifier que le prestataire et le service existent
@@ -133,8 +146,14 @@ export async function POST(request: NextRequest) {
         include: { 
           user: {
             select: {
-              firstName: true,
-              lastName: true
+              id: true,
+              name: true,
+              profile: {
+                select: {
+                  firstName: true,
+                  lastName: true
+                }
+              }
             }
           }
         }
@@ -152,23 +171,67 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Service not found' }, { status: 404 })
     }
 
+    // Vérifier que le client existe
+    const finalUserId = clientId || user.id
+    let clientToUse = await db.client.findUnique({
+      where: { userId: finalUserId }
+    })
+
+    if (!clientToUse) {
+      // Si le profil client n'existe pas, le créer automatiquement
+      clientToUse = await db.client.create({
+        data: {
+          userId: finalUserId,
+          subscriptionPlan: 'FREE'
+        }
+      })
+      console.log('✅ Profil client créé automatiquement:', clientToUse.id)
+    } else {
+      console.log('✅ Profil client trouvé:', clientToUse.id)
+    }
+    
     // Extraire l'heure de début du timeSlot
     const [startTime, endTime] = timeSlot.split('-')
-    const duration = service.duration || 60
+    const calculatedDurationDays = durationDays || 1
+    const slotHours = timeSlotHours || 1
+    
+    // Utiliser le prix calculé côté frontend ou recalculer
+    let finalTotalPrice = providedTotalPrice;
+    if (!finalTotalPrice) {
+      // Recalcul de sécurité côté serveur
+      switch (service.priceUnit) {
+        case 'HOUR':
+          finalTotalPrice = service.basePrice * slotHours * calculatedDurationDays;
+          break;
+        case 'DAY':
+          finalTotalPrice = service.basePrice * calculatedDurationDays;
+          break;
+        case 'FLAT':
+          finalTotalPrice = service.basePrice * (calculatedDurationDays > 1 ? calculatedDurationDays : 1);
+          break;
+        default:
+          finalTotalPrice = service.basePrice * calculatedDurationDays;
+      }
+    }
 
     // Créer la réservation
     const booking = await db.booking.create({
       data: {
-        clientId: clientId || user.id,
+        clientId: clientToUse.id,
         providerId,
         serviceId,
         status: 'PENDING',
-        scheduledDate: new Date(date),
+        scheduledDate: new Date(startDate),
         scheduledTime: startTime,
-        duration,
+        duration: service.duration || (slotHours * 60), // Convertir heures en minutes
         address: { address: location, city: '', postalCode: '', lat: 0, lng: 0 },
-        totalPrice: service.basePrice,
-        notes: notes || null
+        totalPrice: finalTotalPrice,
+        notes: [
+          notes,
+          `Période : du ${startDate} au ${endDate} (${calculatedDurationDays} jour${calculatedDurationDays > 1 ? 's' : ''})`,
+          `Créneau : ${timeSlot} (${slotHours}h par jour)`,
+          priceBreakdown ? `Détail prix : ${priceBreakdown}` : ''
+        ].filter(Boolean).join('\n\n')
       },
       include: {
         provider: {
@@ -178,8 +241,14 @@ export async function POST(request: NextRequest) {
             averageRating: true,
             user: {
               select: {
-                firstName: true,
-                lastName: true
+                id: true,
+                name: true,
+                profile: {
+                  select: {
+                    firstName: true,
+                    lastName: true
+                  }
+                }
               }
             }
           }
@@ -197,9 +266,14 @@ export async function POST(request: NextRequest) {
     const transformedBooking = {
       id: booking.id,
       providerId: booking.provider.id,
-      providerName: `${booking.provider.user.firstName} ${booking.provider.user.lastName}`,
+      providerName: booking.provider.user.profile 
+        ? `${booking.provider.user.profile.firstName || ''} ${booking.provider.user.profile.lastName || ''}`.trim()
+        : booking.provider.user.name || 'Prestataire',
       serviceId: booking.service.id,
       serviceName: booking.service.name,
+      startDate: startDate,
+      endDate: endDate,
+      durationDays: calculatedDurationDays,
       date: booking.scheduledDate.toISOString().split('T')[0],
       startTime: booking.scheduledTime,
       endTime: endTime,

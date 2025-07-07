@@ -254,7 +254,7 @@ export async function POST(
         id: announcement.author.id,
         name: announcement.author.profile 
           ? `${announcement.author.profile.firstName || ''} ${announcement.author.profile.lastName || ''}`.trim()
-          : announcement.author.email,
+          : 'Client',
         phone: announcement.author.profile?.phone
       }
     }

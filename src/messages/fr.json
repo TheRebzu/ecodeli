@@ -595,7 +595,63 @@
       "quickActions": "Actions rapides",
       "createAnnouncement": "Créer une annonce",
       "bookService": "Réserver un service",
-      "trackDelivery": "Suivre une livraison"
+      "trackDelivery": "Suivre une livraison",
+      "services": {
+        "title": "Services Disponibles",
+        "description": "Découvrez tous les services proposés par nos prestataires qualifiés",
+        "loading": "Chargement des services...",
+        "noServices": "Aucun service trouvé",
+        "tryDifferentCriteria": "Essayez de modifier vos critères de recherche",
+        "search": {
+          "title": "Rechercher des services",
+          "placeholder": "Rechercher un service, prestataire...",
+          "allCategories": "Toutes les catégories",
+          "filters": "Filtres",
+          "priceMin": "Prix min",
+          "priceMax": "Prix max",
+          "city": "Ville",
+          "cityPlaceholder": "Paris...",
+          "sortBy": "Trier par",
+          "sortOrder": "Ordre",
+          "desc": "Décroissant",
+          "asc": "Croissant"
+        },
+        "stats": {
+          "available": "Services disponibles",
+          "avgPrice": "Prix moyen",
+          "priceRange": "Fourchette de prix",
+          "categories": "Catégories"
+        },
+        "sortOptions": {
+          "created": "Plus récents",
+          "price": "Prix",
+          "rating": "Note",
+          "name": "Nom"
+        },
+        "service": {
+          "viewDetails": "Voir détails",
+          "book": "Réserver",
+          "missions": "missions",
+          "bookingAdvance": "Réservation {hours}h à l'avance",
+          "about": "À propos du prestataire",
+          "close": "Fermer",
+          "bookThis": "Réserver ce service",
+          "details": {
+            "description": "Description",
+            "price": "Prix",
+            "duration": "Durée",
+            "minutes": "minutes",
+            "bookingDelay": "Délais de réservation",
+            "between": "Entre {min}h et {max}h à l'avance",
+            "requirements": "Prérequis"
+          }
+        },
+        "pagination": {
+          "previous": "Précédent",
+          "next": "Suivant",
+          "page": "Page {current} sur {total}"
+        }
+      }
     },
 
     "merchant": {
@@ -608,7 +664,60 @@
       "title": "Tableau de bord Prestataire",
       "nextBookings": "Prochains rendez-vous",
       "calendar": "Calendrier",
-      "reviews": "Avis clients"
+      "reviews": "Avis clients",
+      "services": {
+        "title": "Mes Services",
+        "description": "Gérez vos services et leurs paramètres de réservation",
+        "loading": "Chargement des services...",
+        "noServices": "Aucun service",
+        "createFirst": "Commencez par créer votre premier service",
+        "newService": "Nouveau Service",
+        "createService": "Créer un service",
+        "editService": "Modifier le service",
+        "deleteConfirm": "Êtes-vous sûr de vouloir supprimer ce service ?",
+        "form": {
+          "name": "Nom du service",
+          "namePlaceholder": "Ex: Ménage à domicile",
+          "category": "Catégorie",
+          "selectCategory": "Sélectionner une catégorie",
+          "description": "Description",
+          "descriptionPlaceholder": "Décrivez votre service en détail",
+          "price": "Prix",
+          "priceUnit": "Unité",
+          "duration": "Durée (min)",
+          "minAdvance": "Délai min (heures)",
+          "maxAdvance": "Délai max (heures)",
+          "isActive": "Service actif",
+          "cancel": "Annuler",
+          "save": "Sauvegarder",
+          "create": "Créer le service"
+        },
+        "stats": {
+          "total": "Services totaux",
+          "active": "Services actifs",
+          "avgPrice": "Prix moyen",
+          "avgDuration": "Durée moyenne"
+        },
+        "table": {
+          "service": "Service",
+          "category": "Catégorie",
+          "price": "Prix",
+          "duration": "Durée",
+          "status": "Statut",
+          "actions": "Actions",
+          "active": "Actif",
+          "inactive": "Inactif",
+          "variable": "Variable",
+          "edit": "Modifier",
+          "delete": "Supprimer"
+        },
+        "priceUnits": {
+          "hour": "Par heure",
+          "flat": "Forfait",
+          "day": "Par jour",
+          "km": "Par kilomètre"
+        }
+      }
     },
     "admin": {
       "title": "Administration EcoDeli",

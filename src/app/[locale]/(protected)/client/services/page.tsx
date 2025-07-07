@@ -1,7 +1,7 @@
 "use client";
 
 import { useAuth } from "@/hooks/use-auth";
-import ClientServicesManager from "@/features/client/components/services/client-services-manager";
+import ServicesBrowser from "@/features/client/components/services/services-browser";
 import { PageHeader } from "@/components/layout/page-header";
 import { useTranslations } from "next-intl";
 
@@ -12,12 +12,12 @@ export default function ClientServicesPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title={t("page.title")}
-        description={t("page.description")}
+        title="Services Disponibles"
+        description="Découvrez tous les services proposés par nos prestataires qualifiés"
       />
       
       {user && (
-        <ClientServicesManager clientId={user.id} />
+        <ServicesBrowser clientId={user.id} />
       )}
     </div>
   );

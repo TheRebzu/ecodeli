@@ -18,7 +18,7 @@ const updateServiceSchema = z.object({
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth();
@@ -29,12 +29,14 @@ export async function GET(
       );
     }
 
+    const { id } = await params;
+
     const service = await prisma.service.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         provider: {
           include: {
-            profile: true,
+            user: true,
           },
         },
       },
@@ -59,7 +61,7 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth();
@@ -70,14 +72,24 @@ export async function PUT(
       );
     }
 
+    const { id } = await params;
     const body = await request.json();
     const validatedData = updateServiceSchema.parse(body);
 
     // Vérifier que le service appartient au prestataire
     const service = await prisma.service.findFirst({
       where: {
-        id: params.id,
-        providerId: session.user.id,
+        id,
+        provider: {
+          userId: session.user.id,
+        },
+      },
+      include: {
+        provider: {
+          include: {
+            user: true,
+          },
+        },
       },
     });
 
@@ -90,14 +102,8 @@ export async function PUT(
 
     // Mettre à jour le service
     const updatedService = await prisma.service.update({
-      where: { id: params.id },
-      data: {
-        ...validatedData,
-        // Reset validation status if major changes
-        validationStatus: validatedData.name || validatedData.description || validatedData.basePrice 
-          ? "PENDING" 
-          : service.validationStatus,
-      },
+      where: { id },
+      data: validatedData,
     });
 
     return NextResponse.json(updatedService);
@@ -119,7 +125,7 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth();
@@ -130,11 +136,15 @@ export async function DELETE(
       );
     }
 
+    const { id } = await params;
+
     // Vérifier que le service appartient au prestataire
     const service = await prisma.service.findFirst({
       where: {
-        id: params.id,
-        providerId: session.user.id,
+        id,
+        provider: {
+          userId: session.user.id,
+        },
       },
     });
 
@@ -148,7 +158,7 @@ export async function DELETE(
     // Vérifier qu'il n'y a pas de réservations actives
     const activeBookings = await prisma.booking.count({
       where: {
-        serviceId: params.id,
+        serviceId: id,
         status: {
           in: ["PENDING", "CONFIRMED", "IN_PROGRESS"],
         },
@@ -164,10 +174,9 @@ export async function DELETE(
 
     // Désactiver le service au lieu de le supprimer
     const deletedService = await prisma.service.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         isActive: false,
-        deletedAt: new Date(),
       },
     });
 

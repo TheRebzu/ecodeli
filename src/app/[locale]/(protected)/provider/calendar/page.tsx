@@ -1,5 +1,3 @@
-"use client";
-
 import { setRequestLocale } from "next-intl/server";
 import { ProviderCalendar } from "@/features/provider/components/calendar/provider-calendar";
 
