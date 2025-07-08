@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/db'
 import { OneSignalService } from '@/lib/onesignal'
+import { EmailService } from '@/lib/email'
 
 export interface NotificationData {
   userId: string
@@ -234,6 +235,104 @@ export class NotificationService {
       )
     } catch (error) {
       console.error('Erreur notification OneSignal booking:', error)
+    }
+  }
+
+  // Nouvelle fonction pour notification complète de réservation avec emails
+  static async notifyBookingCreated(
+    bookingData: {
+      bookingId: string
+      clientId: string
+      clientName: string
+      clientEmail: string
+      providerId: string
+      providerName: string
+      providerEmail: string
+      serviceName: string
+      scheduledDate: string
+      scheduledTime: string
+      location: string
+      totalPrice: number
+      notes?: string
+    }
+  ) {
+    try {
+      // 1. Notification push au prestataire
+      await this.notifyNewBooking(
+        bookingData.providerId,
+        bookingData.bookingId,
+        {
+          serviceName: bookingData.serviceName,
+          clientName: bookingData.clientName,
+          scheduledDate: bookingData.scheduledDate,
+          price: bookingData.totalPrice
+        }
+      )
+
+      // 2. Notification de confirmation au client
+      await this.createNotification({
+        userId: bookingData.clientId,
+        type: 'BOOKING_CREATED',
+        title: '📅 Réservation créée',
+        message: `Votre réservation "${bookingData.serviceName}" a été envoyée au prestataire.`,
+        data: {
+          bookingId: bookingData.bookingId,
+          serviceName: bookingData.serviceName,
+          providerName: bookingData.providerName
+        },
+        sendPush: true,
+        priority: 'medium'
+      })
+
+      // 3. EMAIL RÉEL - Confirmation au client
+      try {
+        await EmailService.sendBookingConfirmationEmail(
+          bookingData.clientEmail,
+          {
+            clientName: bookingData.clientName,
+            serviceName: bookingData.serviceName,
+            providerName: bookingData.providerName,
+            scheduledDate: bookingData.scheduledDate,
+            scheduledTime: bookingData.scheduledTime,
+            location: bookingData.location,
+            totalPrice: bookingData.totalPrice,
+            bookingId: bookingData.bookingId,
+            notes: bookingData.notes
+          }
+        )
+        console.log('✅ Email de confirmation envoyé au client:', bookingData.clientEmail)
+      } catch (emailError) {
+        console.error('❌ Erreur envoi email client:', emailError)
+        // Continuer même si l'email échoue
+      }
+
+      // 4. EMAIL RÉEL - Notification au prestataire
+      try {
+        await EmailService.sendNewBookingNotificationEmail(
+          bookingData.providerEmail,
+          {
+            providerName: bookingData.providerName,
+            clientName: bookingData.clientName,
+            serviceName: bookingData.serviceName,
+            scheduledDate: bookingData.scheduledDate,
+            scheduledTime: bookingData.scheduledTime,
+            location: bookingData.location,
+            totalPrice: bookingData.totalPrice,
+            bookingId: bookingData.bookingId,
+            notes: bookingData.notes
+          }
+        )
+        console.log('✅ Email de notification envoyé au prestataire:', bookingData.providerEmail)
+      } catch (emailError) {
+        console.error('❌ Erreur envoi email prestataire:', emailError)
+        // Continuer même si l'email échoue
+      }
+
+      console.log('🎉 Toutes les notifications de réservation envoyées (push + email)')
+      
+    } catch (error) {
+      console.error('❌ Erreur dans notifyBookingCreated:', error)
+      throw error
     }
   }
 

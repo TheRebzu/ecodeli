@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getUserFromSession } from '@/lib/auth/utils'
 import { db } from '@/lib/db'
+import { NotificationService } from '@/features/notifications/services/notification.service'
 
 export async function GET(request: NextRequest) {
   try {
@@ -261,6 +262,54 @@ export async function POST(request: NextRequest) {
         }
       }
     })
+
+    // NOUVEAU : Envoyer les notifications ET emails promises
+    try {
+      // Récupérer les emails du client et du prestataire
+      const [clientUser, providerUser] = await Promise.all([
+        db.user.findUnique({
+          where: { id: finalUserId },
+          select: { email: true, name: true }
+        }),
+        db.user.findUnique({
+          where: { id: provider.user.id },
+          select: { email: true, name: true }
+        })
+      ])
+
+      if (!clientUser?.email || !providerUser?.email) {
+        throw new Error('Emails manquants pour l\'envoi des notifications')
+      }
+
+      // Utiliser la nouvelle fonction complète avec emails
+      await NotificationService.notifyBookingCreated({
+        bookingId: booking.id,
+        clientId: finalUserId,
+        clientName: user.name || 'Client',
+        clientEmail: clientUser.email,
+        providerId: provider.user.id,
+        providerName: provider.user.profile 
+          ? `${provider.user.profile.firstName || ''} ${provider.user.profile.lastName || ''}`.trim()
+          : provider.user.name || 'Prestataire',
+        providerEmail: providerUser.email,
+        serviceName: service.name,
+        scheduledDate: new Date(startDate).toLocaleDateString('fr-FR'),
+        scheduledTime: startTime,
+        location: location,
+        totalPrice: finalTotalPrice,
+        notes: [
+          notes,
+          `Période : du ${startDate} au ${endDate} (${calculatedDurationDays} jour${calculatedDurationDays > 1 ? 's' : ''})`,
+          `Créneau : ${timeSlot} (${slotHours}h par jour)`,
+          priceBreakdown ? `Détail prix : ${priceBreakdown}` : ''
+        ].filter(Boolean).join('\n\n')
+      })
+
+      console.log('✅ Notifications ET emails envoyés pour la réservation:', booking.id)
+    } catch (notificationError) {
+      console.error('❌ Erreur envoi notifications/emails:', notificationError)
+      // Ne pas faire échouer la réservation pour une erreur de notification
+    }
 
     // Transformer les données pour la réponse
     const transformedBooking = {

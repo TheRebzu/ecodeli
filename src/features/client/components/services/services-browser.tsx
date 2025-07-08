@@ -311,7 +311,7 @@ export default function ServicesBrowser({ clientId }: ServicesBrowserProps) {
         setShowBookingDialog(false);
         setBookingService(null);
         // Afficher un message de succès avec plus de détails
-        alert(`Réservation créée avec succès !\n${priceInfo.details}\nVous recevrez une confirmation par email.`);
+        alert(`🎉 Réservation créée avec succès !\n\n${priceInfo.details}\n\n📧 Un email de confirmation a été envoyé à votre adresse.\n📱 Le prestataire recevra également une notification.`);
       } else {
         const error = await response.json();
         alert(`Erreur lors de la réservation: ${error.message || 'Erreur inconnue'}`);

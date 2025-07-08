@@ -12,71 +12,135 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    const { id } = await params;
+
+    console.log('🔍 Recherche booking avec:')
+    console.log('- Booking ID:', id)
+    console.log('- User ID (session):', session.user.id)
+    console.log('- User role:', session.user.role)
+
+    // Vérifier si l'utilisateur a bien un profil Client
+    const userClient = await db.client.findFirst({
+      where: { userId: session.user.id },
+      select: { id: true, userId: true }
+    })
+    console.log('- User has Client profile:', userClient ? `Yes (${userClient.id})` : 'No')
+
     const booking = await db.booking.findFirst({
       where: {
-        const { id } = await params;
-
         id: id,
-        clientId: session.user.id
+        client: {
+          userId: session.user.id
+        }
       },
       include: {
+        client: {
+          select: {
+            id: true,
+            userId: true
+          }
+        },
         provider: {
           select: {
             id: true,
-            name: true,
-            email: true,
-            phone: true,
-            avatar: true,
-            rating: true
-          }
-        },
-        messages: {
-          include: {
-            sender: {
+            averageRating: true,
+            businessName: true,
+            user: {
               select: {
                 id: true,
-                name: true
+                name: true,
+                email: true,
+                image: true,
+                profile: {
+                  select: {
+                    phone: true
+                  }
+                }
               }
             }
-          },
-          orderBy: { createdAt: 'asc' }
+          }
+        },
+        service: {
+          select: {
+            id: true,
+            name: true,
+            description: true,
+            basePrice: true
+          }
         }
       }
     })
 
     if (!booking) {
+      // Vérifier si la booking existe sans filtre clientId
+      const anyBooking = await db.booking.findUnique({
+        where: { id },
+        select: { 
+          id: true, 
+          clientId: true, 
+          status: true,
+          client: {
+            select: {
+              userId: true,
+              user: {
+                select: {
+                  email: true,
+                  role: true
+                }
+              }
+            }
+          }
+        }
+      })
+      
+      console.log('❌ Booking non trouvée avec clientId. Vérification:')
+      if (anyBooking) {
+        console.log('- Booking existe avec clientId:', anyBooking.clientId)
+        console.log('- Client user ID:', anyBooking.client?.userId)
+        console.log('- Client user email:', anyBooking.client?.user.email)
+        console.log('- Session user ID:', session.user.id)
+        console.log('- Direct clientId match?', anyBooking.clientId === session.user.id)
+        console.log('- Via client.userId match?', anyBooking.client?.userId === session.user.id)
+        console.log('- User has Client ID:', userClient?.id)
+        console.log('- Booking clientId:', anyBooking.clientId)
+        console.log('- Should use clientId:', userClient?.id)
+      } else {
+        console.log('- Booking n\'existe pas du tout avec ID:', id)
+      }
+      
       return NextResponse.json({ error: 'Booking not found' }, { status: 404 })
     }
 
     // Transformer les donn�es pour correspondre � l'interface frontend
     const transformedBooking = {
       id: booking.id,
-      serviceType: booking.serviceType,
-      providerId: booking.provider.id,
-      providerName: booking.provider.name,
-      providerEmail: booking.provider.email,
-      providerPhone: booking.provider.phone,
-      providerRating: booking.provider.rating || 0,
-      providerAvatar: booking.provider.avatar,
-      scheduledDate: booking.scheduledDate.toISOString(),
-      duration: booking.duration,
-      price: booking.price,
       status: booking.status,
-      location: booking.location,
-      description: booking.description,
+      scheduledAt: booking.scheduledDate.toISOString(),
+      totalPrice: booking.totalPrice,
+      service: {
+        name: booking.service?.name || 'Service',
+        description: booking.service?.description || '',
+        duration: booking.duration,
+        price: booking.service?.basePrice || booking.totalPrice,
+        provider: {
+          user: {
+            profile: {
+              firstName: booking.provider.user.name?.split(' ')[0] || booking.provider.businessName || 'Provider',
+              lastName: booking.provider.user.name?.split(' ')[1] || ''
+            }
+          }
+        }
+      },
+      providerId: booking.provider.id,
+      providerName: booking.provider.user.name || booking.provider.businessName || 'Provider',
+      providerEmail: booking.provider.user.email,
+      providerPhone: booking.provider.user.profile?.phone,
+      providerRating: booking.provider.averageRating || 0,
+      providerAvatar: booking.provider.user.image,
+      address: booking.address,
       notes: booking.notes,
-      cancelReason: booking.cancelReason,
-      completedAt: booking.completedAt?.toISOString(),
-      rating: booking.rating,
-      review: booking.review,
       createdAt: booking.createdAt.toISOString(),
-      messages: booking.messages.map(msg => ({
-        id: msg.id,
-        senderId: msg.senderId,
-        senderName: msg.sender.name,
-        message: msg.content,
-        timestamp: msg.createdAt.toISOString()
-      }))
+      updatedAt: booking.updatedAt.toISOString()
     }
 
     return NextResponse.json(transformedBooking)
@@ -99,15 +163,16 @@ export async function PUT(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    const { id } = await params;
     const body = await request.json()
     
     // V�rifier que la r�servation appartient au client
     const existingBooking = await db.booking.findFirst({
       where: {
-        const { id } = await params;
-
         id: id,
-        clientId: session.user.id
+        client: {
+          userId: session.user.id
+        }
       }
     })
 
@@ -122,20 +187,44 @@ export async function PUT(
 
     // Mettre � jour la r�servation
     const updatedBooking = await db.booking.update({
-      where: { const { id } = await params;
- id: id },
+      where: { id: id },
       data: {
         ...body,
         updatedAt: new Date()
       },
       include: {
+        client: {
+          select: {
+            id: true,
+            userId: true
+          }
+        },
         provider: {
           select: {
             id: true,
+            averageRating: true,
+            businessName: true,
+            user: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+                image: true,
+                profile: {
+                  select: {
+                    phone: true
+                  }
+                }
+              }
+            }
+          }
+        },
+        service: {
+          select: {
+            id: true,
             name: true,
-            email: true,
-            phone: true,
-            rating: true
+            description: true,
+            basePrice: true
           }
         }
       }

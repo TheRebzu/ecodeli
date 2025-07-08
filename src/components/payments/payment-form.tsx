@@ -48,7 +48,7 @@ export function PaymentForm({
       const { error: confirmError } = await stripe.confirmPayment({
         elements,
         confirmParams: {
-          return_url: `${window.location.origin}/payment-success`,
+          return_url: `${window.location.origin}${window.location.pathname.includes('/fr/') ? '/fr' : '/en'}/payment-success`,
         },
       })
 
