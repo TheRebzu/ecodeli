@@ -78,10 +78,10 @@ export async function POST(
       return NextResponse.json({ error: 'Booking not found' }, { status: 404 })
     }
 
-    // Mettre à jour le paiement et la réservation
+    // Mettre à jour le paiement et synchroniser automatiquement
     await db.$transaction(async (tx) => {
       // Mettre à jour le paiement
-      await tx.payment.update({
+      const updatedPayment = await tx.payment.update({
         where: { bookingId: booking.id },
         data: {
           status: 'COMPLETED',
@@ -94,45 +94,11 @@ export async function POST(
         }
       })
 
-      // Mettre à jour le statut de la réservation si nécessaire
-      if (booking.status === 'PENDING') {
-        await tx.booking.update({
-          where: { id: booking.id },
-          data: { status: 'CONFIRMED' }
-        })
-      }
-
-      // Créer une notification pour le prestataire
-      await tx.notification.create({
-        data: {
-          userId: booking.provider.user.id,
-          type: 'PAYMENT_RECEIVED',
-          title: 'Paiement reçu',
-          message: `Vous avez reçu un paiement de ${session.amount_total! / 100}€ pour votre service.`,
-          isRead: false,
-          data: {
-            bookingId: booking.id,
-            amount: session.amount_total! / 100,
-            sessionId: sessionId
-          }
-        }
-      })
-
-      // Créer une notification pour le client
-      await tx.notification.create({
-        data: {
-          userId: user.id,
-          type: 'PAYMENT_COMPLETED',
-          title: 'Paiement confirmé',
-          message: `Votre paiement de ${session.amount_total! / 100}€ a été confirmé. Le prestataire va vous contacter.`,
-          isRead: false,
-          data: {
-            bookingId: booking.id,
-            amount: session.amount_total! / 100,
-            sessionId: sessionId
-          }
-        }
-      })
+      // Import du service de synchronisation
+      const { BookingSyncService } = await import('@/features/bookings/services/booking-sync.service')
+      
+      // Synchroniser automatiquement le statut de la réservation
+      await BookingSyncService.syncBookingOnPaymentChange(updatedPayment.id, 'COMPLETED')
     })
 
     // Préparer les détails du paiement pour le frontend

@@ -142,15 +142,34 @@ export async function GET(request: NextRequest) {
       }
     });
 
+    // Compter le nombre total d'avis pour les évaluations
+    const totalReviews = await prisma.review.count({
+      where: {
+        providerId: provider.id
+      }
+    });
+
+    // Prochaine date de paiement (30 de chaque mois)
+    const nextMonth = new Date();
+    nextMonth.setMonth(nextMonth.getMonth() + 1);
+    nextMonth.setDate(30);
+    const nextPayout = nextMonth.toISOString();
+
+    // Statut de validation du provider
+    const validationStatus = provider.validationStatus || 'PENDING';
+
     return NextResponse.json({
-      totalBookings,
-      activeBookings,
-      completedBookings,
-      upcomingBookings,
-      monthlyEarnings: monthlyEarnings._sum.totalPrice || 0,
+      totalServices: totalBookings,
+      completedServices: completedBookings,
+      pendingServices: activeBookings,
       totalEarnings: totalEarnings._sum.totalPrice || 0,
-      availableBalance,
+      monthlyEarnings: monthlyEarnings._sum.totalPrice || 0,
       averageRating: averageRating._avg.rating || 0,
+      totalReviews,
+      validationStatus,
+      nextPayout,
+      availableBalance,
+      upcomingBookings,
       monthlyBookingsData: monthlyBookings
     });
   } catch (error) {

@@ -410,7 +410,7 @@ export class StripeService {
 
       await prisma.$transaction(async (tx) => {
         // Mettre à jour le paiement
-        await tx.payment.update({
+        const updatedPayment = await tx.payment.update({
           where: { id: payment.id },
           data: {
             status: 'COMPLETED',
@@ -427,6 +427,10 @@ export class StripeService {
           await this.processDeliveryPayment(tx, payment.delivery, payment.amount)
         } else if (payment.type === 'SERVICE' && payment.booking) {
           await this.processBookingPayment(tx, payment.booking, payment.amount)
+          
+          // Synchroniser automatiquement le statut de la réservation
+          const { BookingSyncService } = await import('@/features/bookings/services/booking-sync.service')
+          await BookingSyncService.syncBookingOnPaymentChange(updatedPayment.id, 'COMPLETED')
         } else if (payment.type === 'SUBSCRIPTION') {
           await this.processSubscriptionPayment(tx, payment)
         }
@@ -533,11 +537,8 @@ export class StripeService {
       })
     }
 
-    // Confirmer la réservation
-    await tx.booking.update({
-      where: { id: booking.id },
-      data: { status: 'CONFIRMED' }
-    })
+    // Note: Le statut de la réservation sera automatiquement synchronisé 
+    // par BookingSyncService.syncBookingOnPaymentChange() dans handlePaymentSuccess
 
     // Notifications
     await tx.notification.createMany({

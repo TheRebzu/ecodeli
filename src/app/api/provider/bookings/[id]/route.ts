@@ -119,6 +119,20 @@ export async function PUT(
       }
     })
 
+    // Synchroniser automatiquement le paiement si le statut a changé
+    if (body.status && body.status !== booking.status) {
+      const { BookingSyncService } = await import('@/features/bookings/services/booking-sync.service')
+      await BookingSyncService.syncPaymentOnBookingChange(
+        bookingId, 
+        body.status,
+        {
+          updatedByProvider: true,
+          providerId: provider.id,
+          previousStatus: booking.status
+        }
+      )
+    }
+
     return NextResponse.json(updatedBooking)
 
   } catch (error) {

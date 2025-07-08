@@ -135,7 +135,7 @@ export async function GET(request: NextRequest) {
           id: `payment-${payment.id}`,
           type: 'payment_received',
           title: 'Paiement reçu',
-          description: `Paiement de ${payment.amount}€ pour ${payment.booking.service.name}`,
+          description: `Paiement de ${payment.amount}€ pour ${payment.booking.service?.name || 'service'}`,
           timestamp: payment.createdAt.toISOString(),
           status: 'COMPLETED'
         });

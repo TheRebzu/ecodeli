@@ -232,7 +232,7 @@ export class InterventionsService {
       }
     })
 
-    // Mettre à jour le statut de la réservation
+    // Mettre à jour le statut de la réservation et synchroniser automatiquement
     await prisma.booking.update({
       where: { id: intervention.bookingId },
       data: { 
@@ -240,6 +240,18 @@ export class InterventionsService {
         completedAt: endTime
       }
     })
+
+    // Import et utilisation du service de synchronisation
+    const { BookingSyncService } = await import('@/features/bookings/services/booking-sync.service')
+    await BookingSyncService.syncPaymentOnBookingChange(
+      intervention.bookingId, 
+      'COMPLETED',
+      {
+        completedByIntervention: true,
+        interventionId: interventionId,
+        actualDuration
+      }
+    )
 
     // Créer une notification pour le client
     await prisma.notification.create({
