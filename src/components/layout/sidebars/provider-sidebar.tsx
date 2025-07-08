@@ -93,38 +93,16 @@ export function ProviderSidebar({ collapsed, user }: ProviderSidebarProps) {
           icon: BookOpen
         },
         {
-          label: 'Calendrier',
-          href: '/provider/calendar',
-          icon: Calendar
+          label: 'Tarifs',
+          href: '/provider/services/rates',
+          icon: DollarSign
         }
       ]
     },
     {
-      label: 'Validation',
-      href: '/provider/validation',
-      icon: CheckCircle,
-      submenu: [
-        {
-          label: 'Profil',
-          href: '/provider/validation/profile',
-          icon: User
-        },
-        {
-          label: 'Certifications',
-          href: '/provider/validation/certifications',
-          icon: Award
-        },
-        {
-          label: 'Services',
-          href: '/provider/validation/services',
-          icon: Wrench
-        },
-        {
-          label: 'Tarifs',
-          href: '/provider/validation/rates',
-          icon: DollarSign
-        }
-      ]
+      label: 'Calendrier',
+      href: '/provider/calendar',
+      icon: Calendar
     },
     {
       label: 'Gains',
@@ -168,29 +146,29 @@ export function ProviderSidebar({ collapsed, user }: ProviderSidebarProps) {
     {
       label: 'Évaluations',
       href: '/provider/evaluations',
-      icon: Star,
-      submenu: [
-        {
-          label: 'Mes notes',
-          href: '/provider/evaluations/ratings',
-          icon: Star
-        },
-        {
-          label: 'Statistiques',
-          href: '/provider/evaluations/stats',
-          icon: BarChart3
-        }
-      ]
-    },
-    {
-      label: 'Documents',
-      href: '/provider/documents',
-      icon: FileText
+      icon: Star
     },
     {
       label: 'Profil',
       href: '/provider/profile',
-      icon: User
+      icon: User,
+      submenu: [
+        {
+          label: 'Informations',
+          href: '/provider/profile/info',
+          icon: User
+        },
+        {
+          label: 'Documents',
+          href: '/provider/profile/documents',
+          icon: FileText
+        },
+        {
+          label: 'Certifications',
+          href: '/provider/profile/certifications',
+          icon: Award
+        }
+      ]
     }
   ]
 

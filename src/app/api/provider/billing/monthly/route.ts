@@ -1,236 +1,141 @@
-import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
-import { prisma } from "@/lib/db";
-import { startOfMonth, endOfMonth, format } from "date-fns";
-import { fr } from "date-fns/locale";
+import { NextRequest, NextResponse } from 'next/server';
+import { getCurrentUser } from '@/lib/auth/utils';
+import { prisma } from '@/lib/db';
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await auth();
-    if (!session) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
+    const currentUser = await getCurrentUser();
+    if (!currentUser) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const { searchParams } = new URL(request.url);
-    const providerId = searchParams.get("providerId");
-    const monthParam = searchParams.get("month"); // format: YYYY-MM
+    const userId = searchParams.get('userId');
+    const month = parseInt(searchParams.get('month') || '0');
+    const year = parseInt(searchParams.get('year') || '0');
 
-    if (!providerId) {
-      return NextResponse.json(
-        { error: "Provider ID is required" },
-        { status: 400 }
-      );
+    if (!userId || userId !== currentUser.id) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    // Déterminer le mois à afficher
-    const targetDate = monthParam ? new Date(monthParam + "-01") : new Date();
-    const monthStart = startOfMonth(targetDate);
-    const monthEnd = endOfMonth(targetDate);
+    if (!month || !year) {
+      return NextResponse.json({ error: 'Month and year are required' }, { status: 400 });
+    }
 
-    // Récupérer les prestations du mois
+    // Calculate billing period
+    const startDate = new Date(year, month - 1, 1);
+    const endDate = new Date(year, month, 0);
+    
+    // Get completed bookings for the month
     const bookings = await prisma.booking.findMany({
       where: {
         service: {
-          providerId,
+          providerId: userId
         },
-        status: "COMPLETED",
-        completedAt: {
-          gte: monthStart,
-          lte: monthEnd,
-        },
+        status: 'COMPLETED',
+        scheduledDate: {
+          gte: startDate,
+          lte: endDate
+        }
       },
       include: {
-        service: true,
         client: {
-          include: {
-            profile: true,
-          },
+          select: {
+            user: {
+              select: {
+                email: true,
+                profile: {
+                  select: {
+                    firstName: true,
+                    lastName: true
+                  }
+                }
+              }
+            }
+          }
         },
-        payment: true,
-      },
+        service: {
+          select: {
+            name: true,
+            basePrice: true
+          }
+        }
+      }
     });
 
-    // Calculer les détails des services
-    const servicesDetails = bookings.map(booking => {
-      const commission = booking.payment?.amount ? booking.payment.amount * 0.20 : 0; // 20% de commission EcoDeli
-      const netAmount = booking.payment?.amount ? booking.payment.amount - commission : 0;
+    // Calculate totals
+    const totalRevenue = bookings.reduce((sum, booking) => {
+      return sum + (booking.totalPrice || booking.service.basePrice || 0);
+    }, 0);
+
+    const platformCommissionRate = 0.15; // 15% commission
+    const platformFee = totalRevenue * platformCommissionRate;
+    const processingFees = totalRevenue * 0.029; // 2.9% processing
+    const taxRate = 0.20; // 20% VAT
+    const taxAmount = (totalRevenue - platformFee) * taxRate;
+    const netAmount = totalRevenue - platformFee - processingFees - taxAmount;
+
+    // Transform bookings for response
+    const bookingBreakdown = bookings.map(booking => {
+      const amount = booking.totalPrice || booking.service.basePrice || 0;
+      const commission = amount * platformCommissionRate;
+      const clientName = booking.client.user.profile 
+        ? `${booking.client.user.profile.firstName || ''} ${booking.client.user.profile.lastName || ''}`.trim()
+        : booking.client.user.email.split('@')[0];
 
       return {
         id: booking.id,
-        name: booking.service.name,
-        date: booking.scheduledAt.toISOString(),
-        clientName: `${booking.client.profile?.firstName || ""} ${booking.client.profile?.lastName || ""}`.trim() || "Client",
-        amount: booking.payment?.amount || 0,
-        commission,
-        netAmount,
-        status: booking.status as "COMPLETED" | "PENDING",
+        clientName: clientName || 'Client',
+        serviceName: booking.service.name,
+        date: booking.scheduledDate.toISOString(),
+        amount: amount,
+        commission: commission,
+        netAmount: amount - commission
       };
     });
 
-    const totalAmount = servicesDetails.reduce((sum, s) => sum + s.netAmount, 0);
-
-    // Récupérer la dernière facture
-    const lastInvoice = await prisma.invoice.findFirst({
-      where: {
-        providerId,
-        type: "PROVIDER_MONTHLY",
-      },
-      orderBy: {
-        createdAt: "desc",
-      },
-    });
-
-    // Prochaine date de génération (30 du mois à 23h)
-    const nextGenerationDate = new Date();
-    nextGenerationDate.setDate(30);
-    nextGenerationDate.setHours(23, 0, 0, 0);
-    if (nextGenerationDate < new Date()) {
-      nextGenerationDate.setMonth(nextGenerationDate.getMonth() + 1);
-    }
-
-    // Estimation pour le mois prochain
-    const upcomingInvoice = {
-      generationDate: nextGenerationDate.toISOString(),
-      estimatedAmount: totalAmount,
-      servicesCount: servicesDetails.length,
-    };
-
-    // Paramètres de facturation
-    const billingSettings = {
-      autoGeneration: true,
-      generationDay: 30,
-      generationHour: 23,
-      paymentDelay: 5, // 5 jours ouvrés
-    };
-
-    return NextResponse.json({
-      currentMonth: {
-        totalServices: servicesDetails.length,
-        totalAmount,
-        servicesDetails,
-        estimatedPaymentDate: new Date(nextGenerationDate.getTime() + 5 * 24 * 60 * 60 * 1000).toISOString(),
-      },
-      lastInvoice: lastInvoice ? {
-        id: lastInvoice.id,
-        month: new Date(lastInvoice.periodStart).getMonth() + 1,
-        year: new Date(lastInvoice.periodStart).getFullYear(),
-        amount: lastInvoice.totalAmount,
-        status: lastInvoice.status,
-        pdfUrl: lastInvoice.pdfUrl,
-        generatedAt: lastInvoice.createdAt.toISOString(),
-        paidAt: lastInvoice.paidAt?.toISOString(),
-      } : null,
-      upcomingInvoice,
-      billingSettings,
-    });
-  } catch (error) {
-    console.error("Error fetching monthly billing data:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
-  }
-}
-
-// POST - Déclencher manuellement la génération de facture (pour les tests)
-export async function POST(request: NextRequest) {
-  try {
-    const session = await auth();
-    if (!session || (session.user.role !== "ADMIN" && session.user.role !== "PROVIDER")) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
-    }
-
-    const body = await request.json();
-    const { providerId, month } = body;
-
-    if (!providerId || !month) {
-      return NextResponse.json(
-        { error: "Provider ID and month are required" },
-        { status: 400 }
-      );
-    }
-
-    // Cette fonction serait normalement appelée par un CRON job le 30 à 23h
-    // Ici on la déclenche manuellement pour les tests
+    // Determine status
+    const currentDate = new Date();
+    const isCurrentMonth = currentDate.getMonth() === month - 1 && currentDate.getFullYear() === year;
+    const isPastMonth = endDate < currentDate;
     
-    const targetDate = new Date(month + "-01");
-    const monthStart = startOfMonth(targetDate);
-    const monthEnd = endOfMonth(targetDate);
-
-    // Récupérer toutes les prestations du mois
-    const bookings = await prisma.booking.findMany({
-      where: {
-        service: {
-          providerId,
-        },
-        status: "COMPLETED",
-        completedAt: {
-          gte: monthStart,
-          lte: monthEnd,
-        },
-      },
-      include: {
-        service: true,
-        payment: true,
-      },
-    });
-
-    if (bookings.length === 0) {
-      return NextResponse.json(
-        { error: "No completed services found for this month" },
-        { status: 404 }
-      );
+    let status: 'DRAFT' | 'PENDING' | 'GENERATED' | 'SENT' | 'PAID' = 'DRAFT';
+    if (isPastMonth) {
+      status = 'GENERATED'; // Past months are typically generated
+    } else if (isCurrentMonth && currentDate.getDate() >= 28) {
+      status = 'PENDING'; // Ready for generation
     }
 
-    // Calculer le montant total
-    const totalAmount = bookings.reduce((sum, booking) => {
-      const commission = booking.payment?.amount ? booking.payment.amount * 0.20 : 0;
-      return sum + (booking.payment?.amount || 0) - commission;
-    }, 0);
-
-    // Créer la facture
-    const invoice = await prisma.invoice.create({
-      data: {
-        providerId,
-        type: "PROVIDER_MONTHLY",
-        status: "GENERATED",
-        totalAmount,
-        periodStart: monthStart,
-        periodEnd: monthEnd,
-        dueDate: new Date(new Date().getTime() + 30 * 24 * 60 * 60 * 1000), // 30 jours
-        items: {
-          create: bookings.map(booking => ({
-            description: `Service: ${booking.service.name}`,
-            quantity: 1,
-            unitPrice: booking.payment?.amount || 0,
-            totalPrice: booking.payment?.amount || 0,
-          })),
-        },
+    const monthlyBilling = {
+      month: new Date(year, month - 1).toLocaleDateString('fr-FR', { month: 'long' }),
+      year: year,
+      status: status,
+      totalRevenue: totalRevenue,
+      platformFee: platformFee + processingFees,
+      netAmount: netAmount,
+      taxAmount: taxAmount,
+      completedBookings: bookings.length,
+      invoiceNumber: isPastMonth ? `INV-${year}-${month.toString().padStart(2, '0')}-${userId.slice(-6)}` : undefined,
+      generatedAt: isPastMonth ? endDate.toISOString() : undefined,
+      billingPeriod: {
+        startDate: startDate.toISOString(),
+        endDate: endDate.toISOString()
       },
-    });
+      bookingBreakdown: bookingBreakdown,
+      feeBreakdown: {
+        platformCommission: platformFee,
+        processingFees: processingFees,
+        taxAmount: taxAmount,
+        otherFees: 0
+      }
+    };
 
-    // Ici on devrait générer le PDF et l'envoyer par email
-    // Pour l'instant on retourne juste l'invoice créée
+    return NextResponse.json(monthlyBilling);
 
-    return NextResponse.json({
-      message: "Invoice generated successfully",
-      invoice: {
-        id: invoice.id,
-        amount: invoice.totalAmount,
-        status: invoice.status,
-        generatedAt: invoice.createdAt.toISOString(),
-      },
-    });
   } catch (error) {
-    console.error("Error generating monthly invoice:", error);
+    console.error('Error fetching monthly billing:', error);
     return NextResponse.json(
-      { error: "Internal server error" },
+      { error: 'Internal server error' },
       { status: 500 }
     );
   }

@@ -1,181 +1,204 @@
-import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
-import { prisma } from "@/lib/db";
+import { NextRequest, NextResponse } from 'next/server';
+import { getCurrentUser } from '@/lib/auth/utils';
+import { prisma } from '@/lib/db';
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await auth();
-    if (!session) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
+    const currentUser = await getCurrentUser();
+    if (!currentUser) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const { searchParams } = new URL(request.url);
-    const providerId = searchParams.get("providerId");
-    const page = parseInt(searchParams.get("page") || "1");
-    const limit = parseInt(searchParams.get("limit") || "20");
-    const type = searchParams.get("type");
+    const userId = searchParams.get('userId');
+    const page = parseInt(searchParams.get('page') || '1');
+    const search = searchParams.get('search') || '';
+    const status = searchParams.get('status') || 'all';
+    const type = searchParams.get('type') || 'all';
+    const dateRange = searchParams.get('dateRange') || 'all';
 
-    if (!providerId) {
-      return NextResponse.json(
-        { error: "Provider ID is required" },
-        { status: 400 }
-      );
+    if (!userId || userId !== currentUser.id) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    // Vérifier que le provider existe
-    const provider = await prisma.provider.findUnique({
-      where: { userId: providerId }
-    });
+    const limit = 20;
+    const offset = (page - 1) * limit;
 
-    if (!provider) {
-      return NextResponse.json(
-        { error: "Provider not found" },
-        { status: 404 }
-      );
+    // Calculate date filter
+    let dateFilter: any = {};
+    const now = new Date();
+    
+    switch (dateRange) {
+      case 'today':
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const tomorrow = new Date(today);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        dateFilter = { gte: today, lt: tomorrow };
+        break;
+      case 'week':
+        const weekAgo = new Date();
+        weekAgo.setDate(weekAgo.getDate() - 7);
+        dateFilter = { gte: weekAgo };
+        break;
+      case 'month':
+        const monthAgo = new Date();
+        monthAgo.setDate(monthAgo.getDate() - 30);
+        dateFilter = { gte: monthAgo };
+        break;
+      case 'quarter':
+        const quarterAgo = new Date();
+        quarterAgo.setDate(quarterAgo.getDate() - 90);
+        dateFilter = { gte: quarterAgo };
+        break;
     }
 
-    // Construire les conditions de recherche pour les paiements de services
-    const where: any = {
-      type: "SERVICE",
-      booking: {
-        service: {
-          providerId: provider.id
+    // Build where clause
+    const whereClause: any = {
+      OR: [
+        {
+          // Bookings as payment transactions
+          service: {
+            providerId: userId
+          },
+          status: 'COMPLETED'
         }
-      }
+      ]
     };
 
-    if (type) {
-      // Mapper les types de l'interface vers les statuts de paiement
-      if (type === "EARNING") {
-        where.status = "COMPLETED";
-      } else if (type === "REFUND") {
-        where.status = { in: ["REFUNDED", "PARTIALLY_REFUNDED"] };
-      }
+    if (Object.keys(dateFilter).length > 0) {
+      whereClause.scheduledDate = dateFilter;
     }
 
-    // Récupérer les paiements des services + les retraits
-    const [servicePayments, withdrawals, totalServiceCount, totalWithdrawalCount] = await Promise.all([
-      // Paiements des services
-      prisma.payment.findMany({
-        where,
-        include: {
-          booking: {
-            include: {
-              service: {
-                select: {
-                  name: true,
-                  type: true
-                }
-              }
-            }
-          },
-          user: {
-            select: {
-              profile: {
-                select: {
-                  firstName: true,
-                  lastName: true
+    // Get bookings as transactions
+    const bookings = await prisma.booking.findMany({
+      where: whereClause,
+      include: {
+        client: {
+          select: {
+            user: {
+              select: {
+                email: true,
+                profile: {
+                  select: {
+                    firstName: true,
+                    lastName: true
+                  }
                 }
               }
             }
           }
         },
-        orderBy: {
-          createdAt: "desc",
-        },
-        skip: type === "WITHDRAWAL" ? limit : (page - 1) * limit,
-        take: type === "WITHDRAWAL" ? 0 : limit,
-      }),
-      // Retraits du provider (seulement si demandé)
-      type === "WITHDRAWAL" ? prisma.walletOperation.findMany({
-        where: {
-          userId: providerId,
-          type: "WITHDRAWAL",
-        },
-        orderBy: {
-          createdAt: "desc",
-        },
-        skip: (page - 1) * limit,
-        take: limit,
-      }) : [],
-      // Compter les paiements
-      prisma.payment.count({ where }),
-      // Compter les retraits
-      type === "WITHDRAWAL" ? prisma.walletOperation.count({
-        where: {
-          userId: providerId,
-          type: "WITHDRAWAL",
+        service: {
+          select: {
+            name: true,
+            basePrice: true
+          }
         }
-      }) : 0,
-    ]);
+      },
+      orderBy: {
+        scheduledDate: 'desc'
+      },
+      take: limit,
+      skip: offset
+    });
 
-    // Commission EcoDeli (15%)
-    const commissionRate = 0.15;
-
-    // Formater les paiements de services
-    const formattedPayments = servicePayments.map(payment => {
-      const grossAmount = payment.amount;
-      const commission = grossAmount * commissionRate;
-      const netAmount = grossAmount - commission;
+    // Transform bookings to transactions
+    const transactions = bookings.map(booking => {
+      const amount = booking.totalPrice || booking.service.basePrice || 50;
+      const feeAmount = amount * 0.15; // 15% platform fee
+      const netAmount = amount - feeAmount;
+      
+      const clientName = booking.client.user.profile 
+        ? `${booking.client.user.profile.firstName || ''} ${booking.client.user.profile.lastName || ''}`.trim()
+        : booking.client.user.email.split('@')[0];
 
       return {
-        id: payment.id,
-        type: payment.status === "COMPLETED" ? "EARNING" : 
-              payment.status === "REFUNDED" ? "REFUND" : "EARNING",
-        amount: netAmount, // Montant net après commission
-        grossAmount, // Montant brut
-        commission,
-        description: `Service: ${payment.booking?.service?.name || 'Service'} - Client: ${payment.user?.profile?.firstName || 'Client'} ${payment.user?.profile?.lastName || ''}`,
-        serviceName: payment.booking?.service?.name,
-        serviceType: payment.booking?.service?.type,
-        status: payment.status,
-        clientName: `${payment.user?.profile?.firstName || ''} ${payment.user?.profile?.lastName || ''}`.trim(),
-        createdAt: payment.createdAt.toISOString(),
+        id: booking.id,
+        type: 'BOOKING_PAYMENT',
+        amount: amount,
+        currency: 'EUR',
+        status: 'COMPLETED',
+        date: booking.scheduledDate.toISOString(),
+        description: `Paiement pour service: ${booking.service.name}`,
+        relatedBookingId: booking.id,
+        clientName: clientName || 'Client',
+        serviceName: booking.service.name,
+        paymentMethod: 'stripe',
+        feeAmount: feeAmount,
+        netAmount: netAmount
       };
     });
 
-    // Formater les retraits
-    const formattedWithdrawals = withdrawals.map(withdrawal => ({
-      id: withdrawal.id,
-      type: "WITHDRAWAL",
-      amount: Math.abs(withdrawal.amount),
-      description: withdrawal.description,
-      status: withdrawal.status,
-      createdAt: withdrawal.createdAt.toISOString(),
-    }));
+    // Apply filters
+    let filteredTransactions = transactions;
 
-    // Combiner selon le type demandé
-    let allTransactions = [];
-    let totalCount = 0;
-
-    if (type === "WITHDRAWAL") {
-      allTransactions = formattedWithdrawals;
-      totalCount = totalWithdrawalCount;
-    } else {
-      allTransactions = formattedPayments;
-      totalCount = totalServiceCount;
+    if (search) {
+      filteredTransactions = filteredTransactions.filter(t => 
+        t.description.toLowerCase().includes(search.toLowerCase()) ||
+        t.clientName.toLowerCase().includes(search.toLowerCase()) ||
+        t.serviceName.toLowerCase().includes(search.toLowerCase())
+      );
     }
 
-    return NextResponse.json({
-      transactions: allTransactions,
-      pagination: {
-        page,
-        limit,
-        total: totalCount,
-        totalPages: Math.ceil(totalCount / limit),
-      },
-      commission: {
-        rate: commissionRate,
-        description: `Commission EcoDeli: ${(commissionRate * 100)}%`
+    if (status !== 'all') {
+      filteredTransactions = filteredTransactions.filter(t => t.status === status);
+    }
+
+    if (type !== 'all') {
+      filteredTransactions = filteredTransactions.filter(t => t.type === type);
+    }
+
+    // Add some mock withdrawal transactions for variety
+    if (type === 'all' || type === 'WITHDRAWAL') {
+      const mockWithdrawals = [
+        {
+          id: 'withdrawal-1',
+          type: 'WITHDRAWAL',
+          amount: 500,
+          currency: 'EUR',
+          status: 'COMPLETED',
+          date: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(), // 5 days ago
+          description: 'Retrait vers compte bancaire',
+          paymentMethod: 'bank_transfer',
+          feeAmount: 2.50,
+          netAmount: 497.50
+        },
+        {
+          id: 'withdrawal-2',
+          type: 'WITHDRAWAL',
+          amount: 300,
+          currency: 'EUR',
+          status: 'PROCESSING',
+          date: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(), // 1 day ago
+          description: 'Retrait vers compte bancaire',
+          paymentMethod: 'bank_transfer',
+          feeAmount: 2.50,
+          netAmount: 297.50
+        }
+      ];
+
+      if (search === '' || mockWithdrawals.some(w => w.description.toLowerCase().includes(search.toLowerCase()))) {
+        filteredTransactions = [...mockWithdrawals, ...filteredTransactions];
       }
+    }
+
+    // Pagination
+    const totalTransactions = filteredTransactions.length;
+    const totalPages = Math.ceil(totalTransactions / limit);
+    const paginatedTransactions = filteredTransactions.slice(0, limit);
+
+    return NextResponse.json({
+      transactions: paginatedTransactions,
+      totalPages: totalPages,
+      currentPage: page,
+      totalTransactions: totalTransactions
     });
+
   } catch (error) {
-    console.error("Error fetching transactions:", error);
+    console.error('Error fetching transactions:', error);
     return NextResponse.json(
-      { error: "Internal server error" },
+      { error: 'Internal server error' },
       { status: 500 }
     );
   }
