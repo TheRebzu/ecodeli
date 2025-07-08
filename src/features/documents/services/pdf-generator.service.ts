@@ -315,7 +315,7 @@ class PDFGeneratorService {
         },
         paymentInfo: {
           dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 jours
-          paymentMethod: payment.method,
+          paymentMethod: payment.paymentMethod,
           bankDetails: 'IBAN: FR76 1234 5678 9012 3456 78'
         }
       }

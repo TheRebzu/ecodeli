@@ -454,15 +454,22 @@ export function useClientTutorial() {
   }
 
   const completeTutorial = async () => {
-    await execute('/api/client/tutorial?action=complete', {
-      method: 'POST',
-      body: JSON.stringify({ 
-        totalTimeSpent: 0,
-        stepsCompleted: [1, 2, 3, 4, 5],
-        feedback: '',
-        rating: 5
+    try {
+      const result = await execute('/api/client/tutorial?action=complete', {
+        method: 'POST',
+        body: JSON.stringify({ 
+          totalTimeSpent: 0,
+          stepsCompleted: [1, 2, 3, 4, 5],
+          feedback: 'Tutoriel complété',
+          rating: 5
+        })
       })
-    })
+      console.log('Tutorial completion result:', result)
+      return result
+    } catch (error) {
+      console.error('Error completing tutorial:', error)
+      throw error
+    }
   }
 
   const resetTutorial = async () => {

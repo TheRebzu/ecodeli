@@ -11,6 +11,7 @@ model Payment {
   amount            Float
   currency          String              @default("EUR")
   status            PaymentStatus       @default(PENDING)
+  type              PaymentType
   paymentMethod     String              // "STRIPE", "WALLET", "BANK_TRANSFER"
   stripePaymentId   String?             @unique
   stripeSessionId   String?
@@ -32,6 +33,7 @@ model Payment {
   
   @@index([userId])
   @@index([status])
+  @@index([type])
   @@index([paymentMethod])
   @@index([createdAt])
 }

@@ -6,6 +6,8 @@ model Client {
   subscriptionPlan  SubscriptionPlan    @default(FREE)
   subscriptionStart DateTime            @default(now())
   subscriptionEnd   DateTime?
+  stripeCustomerId  String?             @unique
+  stripeSubscriptionId String?          @unique
   tutorialCompleted Boolean             @default(false)
   tutorialCompletedAt DateTime?
   termsAcceptedAt   DateTime            @default(now())
@@ -25,4 +27,6 @@ model Client {
   
   @@index([userId])
   @@index([subscriptionPlan])
+  @@index([stripeCustomerId])
+  @@index([stripeSubscriptionId])
 }

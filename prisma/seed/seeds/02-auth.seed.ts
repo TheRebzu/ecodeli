@@ -12,21 +12,20 @@ export async function seedAuth(ctx: SeedContext) {
   
   // Créer des comptes NextAuth pour tous les utilisateurs
   for (const user of users) {
-    // Créer un compte credentials pour chaque utilisateur (requis par NextAuth)
+    // Créer un compte credentials pour chaque utilisateur (requis par Better Auth)
     const account = await prisma.account.create({
       data: {
         userId: user.id,
-        accountId: user.email, // Utiliser l'email comme accountId
-        providerId: 'credentials', // providerId pour credentials
+        provider: 'credentials', // provider pour credentials
+        providerAccountId: user.email, // Utiliser l'email comme providerAccountId
+        type: 'credentials', // Type requis par Better Auth
         // Les champs optionnels pour credentials provider
-        accessToken: null,
-        refreshToken: null,
-        idToken: null,
-        accessTokenExpiresAt: null,
-        refreshTokenExpiresAt: null,
-        scope: null,
-        password: null,
-        updatedAt: new Date()
+        access_token: null,
+        refresh_token: null,
+        id_token: null,
+        expires_at: null,
+        token_type: null,
+        session_state: null
       }
     })
     accounts.push(account)
@@ -39,9 +38,8 @@ export async function seedAuth(ctx: SeedContext) {
       const session = await prisma.session.create({
         data: {
           userId: user.id,
-          token: sessionToken,
-          expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 jours
-          updatedAt: new Date()
+          sessionToken: sessionToken,
+          expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // 30 jours
         }
       })
       sessions.push(session)

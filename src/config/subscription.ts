@@ -30,7 +30,7 @@ export const SUBSCRIPTION_PLANS: Record<string, SubscriptionPlan> = {
     price: 9.90,
     currency: 'EUR',
     interval: 'month',
-    stripePriceId: process.env.STRIPE_STARTER_PRICE_ID || null,
+    stripePriceId: process.env.STRIPE_STARTER_PRICE_ID || 'price_1RiXwZGhcgIsYtVUxr7wg44d',
     features: {
       insurance: 115, // €/envoi
       discount: 5, // %
@@ -49,7 +49,7 @@ export const SUBSCRIPTION_PLANS: Record<string, SubscriptionPlan> = {
     price: 19.99,
     currency: 'EUR',
     interval: 'month',
-    stripePriceId: process.env.STRIPE_PREMIUM_PRICE_ID || null,
+    stripePriceId: process.env.STRIPE_PREMIUM_PRICE_ID || 'price_1RiXwZGhcgIsYtVUnNUIAomh',
     features: {
       insurance: 3000, // €/envoi max (au-delà +75€)
       discount: 9, // %

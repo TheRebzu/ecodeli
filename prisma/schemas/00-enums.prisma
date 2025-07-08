@@ -92,6 +92,15 @@ enum PaymentStatus {
   PARTIALLY_REFUNDED
 }
 
+enum PaymentType {
+  DELIVERY
+  SERVICE
+  SUBSCRIPTION
+  REFUND
+  COMMISSION
+  WITHDRAWAL
+}
+
 enum SubscriptionPlan {
   FREE
   STARTER

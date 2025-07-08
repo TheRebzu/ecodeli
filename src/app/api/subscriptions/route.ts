@@ -21,10 +21,14 @@ export async function GET(request: NextRequest) {
 
     const subscription = await SubscriptionService.getUserSubscription(user.id)
     const availablePlans = SubscriptionService.getAvailablePlans()
+    
+    // Extract usage stats from subscription if available
+    const usage = subscription?.usage || null
 
     return NextResponse.json({
       subscription,
-      availablePlans
+      availablePlans,
+      usage
     })
 
   } catch (error) {
@@ -43,9 +47,18 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    // Debug logs pour identifier le problème
+    console.log('🔍 Subscription POST - User info:', {
+      id: user.id,
+      email: user.email,
+      role: user.role,
+      type: typeof user.role,
+      isClient: user.role === 'CLIENT'
+    })
+
     if (user.role !== 'CLIENT') {
       return NextResponse.json(
-        { error: 'Only clients can subscribe' },
+        { error: `Only clients can create subscriptions. Current role: ${user.role}` },
         { status: 403 }
       )
     }

@@ -119,11 +119,12 @@ export class StripeService {
           status: 'PENDING'
         },
         create: {
+          userId: userId,
           amount: totalAmount,
           currency: 'EUR',
           status: 'PENDING',
           type: 'DELIVERY',
-          method: 'CARD',
+          paymentMethod: 'CARD',
           clientId: delivery.clientId,
           deliveryId,
           stripePaymentId: paymentIntent.id,
@@ -195,11 +196,12 @@ export class StripeService {
       // Enregistrer le paiement
       await prisma.payment.create({
         data: {
+          userId: userId,
           amount,
           currency: 'EUR',
           status: 'PENDING',
           type: 'SUBSCRIPTION',
-          method: 'CARD',
+          paymentMethod: 'CARD',
           clientId: user.client!.id,
           stripePaymentId: paymentIntent.id,
           metadata: {
@@ -299,11 +301,12 @@ export class StripeService {
           status: 'PENDING'
         },
         create: {
+          userId: userId,
           amount: totalAmount,
           currency: 'EUR',
           status: 'PENDING',
           type: 'SERVICE',
-          method: 'CARD',
+          paymentMethod: 'CARD',
           clientId: booking.clientId,
           bookingId,
           stripePaymentId: paymentIntent.id,

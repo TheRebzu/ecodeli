@@ -258,12 +258,32 @@ export class SubscriptionService {
    */
   static async getUserSubscription(userId: string): Promise<UserSubscription | null> {
     try {
-      const client = await prisma.client.findUnique({
+      let client = await prisma.client.findUnique({
         where: { userId },
         include: { user: true }
       })
 
-      if (!client) return null
+      // Create a default FREE subscription if client doesn't exist
+      if (!client) {
+        const user = await prisma.user.findUnique({
+          where: { id: userId }
+        })
+
+        if (!user || user.role !== 'CLIENT') {
+          return null
+        }
+
+        // Create default client profile with FREE subscription
+        client = await prisma.client.create({
+          data: {
+            userId,
+            subscriptionPlan: 'FREE',
+            subscriptionStart: new Date(),
+            subscriptionEnd: null
+          },
+          include: { user: true }
+        })
+      }
 
       const usage = await this.calculateUsageStats(userId)
       const now = new Date()
@@ -295,54 +315,78 @@ export class SubscriptionService {
     thisMonth: SubscriptionUsage
     lastMonth: SubscriptionUsage
   }> {
-    const now = new Date()
-    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
-    const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1)
+    try {
+      const now = new Date()
+      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
+      const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1)
 
-    const [thisMonthDeliveries, lastMonthDeliveries] = await Promise.all([
-      prisma.delivery.findMany({
-        where: {
-          clientId: userId,
-          createdAt: { gte: startOfMonth }
-        },
-        include: {
-          announcement: true,
-          payment: true
-        }
-      }),
-      prisma.delivery.findMany({
-        where: {
-          clientId: userId,
-          createdAt: {
-            gte: startOfLastMonth,
-            lt: startOfMonth
+      // Chercher les livraisons basées sur les annonces créées par l'utilisateur
+      const [thisMonthDeliveries, lastMonthDeliveries] = await Promise.all([
+        prisma.delivery.findMany({
+          where: {
+            announcement: {
+              authorId: userId
+            },
+            createdAt: { gte: startOfMonth }
+          },
+          include: {
+            announcement: true,
+            payment: true
           }
-        },
-        include: {
-          announcement: true,
-          payment: true
+        }),
+        prisma.delivery.findMany({
+          where: {
+            announcement: {
+              authorId: userId
+            },
+            createdAt: {
+              gte: startOfLastMonth,
+              lt: startOfMonth
+            }
+          },
+          include: {
+            announcement: true,
+            payment: true
+          }
+        })
+      ])
+
+      const calculateStats = (deliveries: any[]): SubscriptionUsage => {
+        return {
+          deliveries: deliveries.length,
+          savings: deliveries.reduce((total, delivery) => {
+            const basePrice = delivery.announcement?.basePrice || delivery.price || 0
+            const finalPrice = delivery.announcement?.finalPrice || delivery.price || basePrice
+            return total + Math.max(0, basePrice - finalPrice)
+          }, 0),
+          priorityShipments: deliveries.filter(d => d.announcement?.isUrgent || d.announcement?.priority === 'HIGH').length,
+          insuranceUsed: deliveries.reduce((total, delivery) => {
+            return total + (delivery.payment?.insuranceClaim || delivery.insuranceFee || 0)
+          }, 0)
         }
-      })
-    ])
-
-    const calculateStats = (deliveries: any[]): SubscriptionUsage => {
-      return {
-        deliveries: deliveries.length,
-        savings: deliveries.reduce((total, delivery) => {
-          const basePrice = delivery.announcement?.basePrice || 0
-          const finalPrice = delivery.announcement?.finalPrice || basePrice
-          return total + (basePrice - finalPrice)
-        }, 0),
-        priorityShipments: deliveries.filter(d => d.announcement?.isUrgent).length,
-        insuranceUsed: deliveries.reduce((total, delivery) => {
-          return total + (delivery.payment?.insuranceClaim || 0)
-        }, 0)
       }
-    }
 
-    return {
-      thisMonth: calculateStats(thisMonthDeliveries),
-      lastMonth: calculateStats(lastMonthDeliveries)
+      return {
+        thisMonth: calculateStats(thisMonthDeliveries),
+        lastMonth: calculateStats(lastMonthDeliveries)
+      }
+    } catch (error) {
+      console.error('Error calculating usage stats:', error)
+      // Return default stats in case of error
+      return {
+        thisMonth: {
+          deliveries: 0,
+          savings: 0,
+          priorityShipments: 0,
+          insuranceUsed: 0
+        },
+        lastMonth: {
+          deliveries: 0,
+          savings: 0,
+          priorityShipments: 0,
+          insuranceUsed: 0
+        }
+      }
     }
   }
 
