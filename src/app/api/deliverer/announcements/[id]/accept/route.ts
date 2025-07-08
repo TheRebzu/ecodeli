@@ -108,22 +108,22 @@ export async function POST(
 
     // Utiliser une transaction pour assurer la cohérence
     const result = await db.$transaction(async (tx) => {
-      // Accepter l'annonce - Corriger: utiliser IN_PROGRESS
+      // Accepter l'annonce - Définir statut PENDING_PAYMENT pour attendre le paiement
       const updatedAnnouncement = await tx.announcement.update({
         where: { id: announcementId },
         data: {
           delivererId: user.id, // Utiliser directement l'ID utilisateur
-          status: 'IN_PROGRESS' // Corriger: utiliser IN_PROGRESS au lieu de ACCEPTED
+          status: 'PENDING_PAYMENT' // Attendre le paiement du client
         }
       });
 
-      // Créer une livraison
+      // Créer une livraison avec statut PENDING (en attente de paiement)
       const delivery = await tx.delivery.create({
         data: {
           announcementId: announcementId,
           clientId: announcement.authorId, // Utiliser authorId directement
           delivererId: user.id, // Utiliser l'ID utilisateur directement
-          status: 'ACCEPTED', // Pour Delivery, ACCEPTED existe
+          status: 'PENDING', // En attente de paiement
           validationCode: validationCode,
           pickupDate: announcement.pickupDate || new Date(),
           deliveryDate: announcement.deliveryDate || new Date(Date.now() + 2 * 60 * 60 * 1000), // +2h par défaut
@@ -134,17 +134,21 @@ export async function POST(
         }
       });
 
-      // Notifier le client - Corriger: utiliser authorId directement
+      // Notifier le client qu'il doit payer
       await tx.notification.create({
         data: {
           userId: announcement.authorId, // Utiliser authorId directement
-          type: 'DELIVERY',
-          title: 'Livreur assigné',
-          message: `Un livreur a accepté votre annonce "${announcement.title}"`,
+          type: 'PAYMENT',
+          title: 'Paiement requis - Livreur trouvé !',
+          message: `Un livreur a accepté votre annonce "${announcement.title}". Procédez au paiement pour confirmer la livraison.`,
           data: {
             announcementId: announcementId,
             deliveryId: delivery.id,
-            delivererId: user.id
+            delivererId: user.id,
+            paymentRequired: true,
+            amount: announcement.finalPrice || announcement.basePrice,
+            paymentUrl: `/client/deliveries/${delivery.id}/payment`,
+            urgentAction: true
           }
         }
       });

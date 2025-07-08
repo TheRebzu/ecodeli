@@ -58,6 +58,7 @@ enum AnnouncementType {
 enum AnnouncementStatus {
   DRAFT
   ACTIVE
+  PENDING_PAYMENT
   IN_PROGRESS
   COMPLETED
   CANCELLED

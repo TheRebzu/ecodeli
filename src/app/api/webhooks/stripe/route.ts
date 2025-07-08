@@ -165,54 +165,79 @@ async function handleDeliveryPaymentSucceeded(payment: any, paymentIntent: Strip
   const platformFee = amount * 0.15 // 15% pour la plateforme
   const delivererFee = amount - platformFee
 
-  // Mettre � jour la livraison
-  await prisma.delivery.update({
-    where: { id: delivery.id },
-    data: {
-      delivererFee,
-      platformFee,
-      status: 'ACCEPTED' // Le livreur peut maintenant commencer
-    }
-  })
-
-  // Cr�diter le portefeuille du livreur
-  await prisma.walletOperation.create({
-    data: {
-              walletId: delivery.deliverer?.wallet?.id || '',
-        userId: delivery.deliverer?.id || '',
-      type: 'CREDIT',
-      amount: delivererFee,
-      description: `Paiement livraison: ${delivery.announcement.title}`,
-      reference: delivery.id,
-      status: 'COMPLETED',
-      executedAt: new Date()
-    }
-  })
-
-  // Mettre � jour le solde du portefeuille
-  await prisma.wallet.update({
-          where: { userId: delivery.deliverer?.id || '' },
-    data: {
-      balance: {
-        increment: delivererFee
+  // Utiliser une transaction pour assurer la cohérence
+  await prisma.$transaction(async (tx) => {
+    // Mettre à jour la livraison - maintenant ACCEPTED (prêt pour récupération)
+    await tx.delivery.update({
+      where: { id: delivery.id },
+      data: {
+        delivererFee,
+        platformFee,
+        status: 'ACCEPTED' // Le livreur peut maintenant commencer
       }
-    }
+    })
+
+    // Mettre à jour l'annonce - maintenant IN_PROGRESS (paiement confirmé)
+    await tx.announcement.update({
+      where: { id: delivery.announcementId },
+      data: {
+        status: 'IN_PROGRESS' // Paiement confirmé, livraison peut commencer
+      }
+    })
+
+    // Vérifier si le livreur a un portefeuille, sinon le créer
+    const delivererWallet = await tx.wallet.upsert({
+      where: { userId: delivery.delivererId },
+      update: {
+        balance: {
+          increment: delivererFee
+        }
+      },
+      create: {
+        userId: delivery.delivererId,
+        balance: delivererFee,
+        currency: 'EUR'
+      }
+    })
+
+    // Créer l'opération de portefeuille (sera payé après validation)
+    await tx.walletOperation.create({
+      data: {
+        walletId: delivererWallet.id,
+        userId: delivery.delivererId,
+        type: 'CREDIT',
+        amount: delivererFee,
+        description: `Paiement livraison: ${delivery.announcement.title}`,
+        reference: delivery.id,
+        status: 'PENDING', // Sera confirmé après validation de livraison
+        scheduledAt: new Date() // Disponible immédiatement mais retenu
+      }
+    })
   })
 
   // Notification au livreur
-  await OneSignalService.notifyPaymentReceived(
-          delivery.deliverer?.id || '',
-    delivererFee,
-    `Livraison: ${delivery.announcement.title}`,
-    'delivery'
+  await OneSignalService.sendToUser(
+    delivery.delivererId,
+    'Paiement confirmé - Récupération autorisée !',
+    `Le client a payé pour "${delivery.announcement.title}". Vous pouvez maintenant récupérer le colis.`,
+    {
+      type: 'payment_confirmed',
+      deliveryId: delivery.id,
+      amount: delivererFee,
+      action: 'start_pickup'
+    }
   )
 
   // Notification au client
-  await OneSignalService.notifyDeliveryUpdate(
+  await OneSignalService.sendToUser(
     delivery.clientId,
-    delivery.id,
-    'PAYMENT_CONFIRMED',
-    'Votre paiement a �t� confirm�. Le livreur va maintenant r�cup�rer votre colis.'
+    'Paiement confirmé - Livraison en cours',
+    'Votre paiement a été confirmé. Le livreur va maintenant récupérer votre colis.',
+    {
+      type: 'payment_confirmed',
+      deliveryId: delivery.id,
+      trackingUrl: `/client/deliveries/${delivery.id}/tracking`
+    }
   )
 }
 

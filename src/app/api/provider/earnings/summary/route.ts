@@ -23,6 +23,18 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    // Vérifier que le provider existe
+    const provider = await prisma.provider.findUnique({
+      where: { userId: providerId }
+    });
+
+    if (!provider) {
+      return NextResponse.json(
+        { error: "Provider not found" },
+        { status: 404 }
+      );
+    }
+
     // Dates pour les calculs
     const now = new Date();
     const currentMonthStart = startOfMonth(now);
@@ -30,12 +42,19 @@ export async function GET(request: NextRequest) {
     const previousMonthStart = startOfMonth(subMonths(now, 1));
     const previousMonthEnd = endOfMonth(subMonths(now, 1));
 
-    // Gains du mois en cours
-    const currentMonthEarnings = await prisma.transaction.aggregate({
+    // Commission EcoDeli par défaut (15%)
+    const commissionRate = 0.15;
+
+    // Gains du mois en cours (paiements des services complétés)
+    const currentMonthPayments = await prisma.payment.aggregate({
       where: {
-        providerId,
-        type: "EARNING",
         status: "COMPLETED",
+        type: "SERVICE",
+        booking: {
+          service: {
+            providerId: provider.id
+          }
+        },
         createdAt: {
           gte: currentMonthStart,
           lte: currentMonthEnd,
@@ -47,11 +66,15 @@ export async function GET(request: NextRequest) {
     });
 
     // Gains du mois précédent
-    const previousMonthEarnings = await prisma.transaction.aggregate({
+    const previousMonthPayments = await prisma.payment.aggregate({
       where: {
-        providerId,
-        type: "EARNING",
         status: "COMPLETED",
+        type: "SERVICE",
+        booking: {
+          service: {
+            providerId: provider.id
+          }
+        },
         createdAt: {
           gte: previousMonthStart,
           lte: previousMonthEnd,
@@ -62,34 +85,42 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    // Total des gains
-    const totalEarnings = await prisma.transaction.aggregate({
+    // Total des gains (tous les paiements complétés)
+    const totalPayments = await prisma.payment.aggregate({
       where: {
-        providerId,
-        type: "EARNING",
         status: "COMPLETED",
+        type: "SERVICE",
+        booking: {
+          service: {
+            providerId: provider.id
+          }
+        },
       },
       _sum: {
         amount: true,
       },
     });
 
-    // Montant en attente
-    const pendingAmount = await prisma.transaction.aggregate({
+    // Montant en attente (paiements en cours)
+    const pendingPayments = await prisma.payment.aggregate({
       where: {
-        providerId,
-        type: "EARNING",
-        status: "PENDING",
+        status: { in: ["PENDING", "PROCESSING"] },
+        type: "SERVICE",
+        booking: {
+          service: {
+            providerId: provider.id
+          }
+        },
       },
       _sum: {
         amount: true,
       },
     });
 
-    // Total des retraits
-    const totalWithdrawals = await prisma.transaction.aggregate({
+    // Total des retraits effectués via WalletOperation
+    const totalWithdrawalsAgg = await prisma.walletOperation.aggregate({
       where: {
-        providerId,
+        userId: providerId,
         type: "WITHDRAWAL",
         status: "COMPLETED",
       },
@@ -99,9 +130,9 @@ export async function GET(request: NextRequest) {
     });
 
     // Dernier retrait
-    const lastWithdrawal = await prisma.transaction.findFirst({
+    const lastWithdrawal = await prisma.walletOperation.findFirst({
       where: {
-        providerId,
+        userId: providerId,
         type: "WITHDRAWAL",
         status: "COMPLETED",
       },
@@ -110,20 +141,40 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    // Calculer le montant disponible pour le retrait
-    const availableForWithdrawal = 
-      (totalEarnings._sum.amount || 0) - 
-      (totalWithdrawals._sum.amount || 0) - 
-      (pendingAmount._sum.amount || 0);
+    // Calculer les montants nets (après commission EcoDeli)
+    const grossCurrentMonth = currentMonthPayments._sum.amount || 0;
+    const grossPreviousMonth = previousMonthPayments._sum.amount || 0;
+    const grossTotalEarnings = totalPayments._sum.amount || 0;
+    const grossPendingAmount = pendingPayments._sum.amount || 0;
+
+    const netCurrentMonth = grossCurrentMonth * (1 - commissionRate);
+    const netPreviousMonth = grossPreviousMonth * (1 - commissionRate);
+    const netTotalEarnings = grossTotalEarnings * (1 - commissionRate);
+    const netPendingAmount = grossPendingAmount * (1 - commissionRate);
+
+    const totalWithdrawals = Math.abs(totalWithdrawalsAgg._sum.amount || 0);
+    const availableForWithdrawal = Math.max(0, netTotalEarnings - totalWithdrawals);
 
     return NextResponse.json({
-      currentMonth: currentMonthEarnings._sum.amount || 0,
-      previousMonth: previousMonthEarnings._sum.amount || 0,
-      totalEarnings: totalEarnings._sum.amount || 0,
-      pendingAmount: pendingAmount._sum.amount || 0,
-      availableForWithdrawal: Math.max(0, availableForWithdrawal),
+      currentMonth: netCurrentMonth,
+      previousMonth: netPreviousMonth,
+      totalEarnings: netTotalEarnings,
+      pendingAmount: netPendingAmount,
+      availableForWithdrawal,
+      grossEarnings: {
+        currentMonth: grossCurrentMonth,
+        previousMonth: grossPreviousMonth,
+        total: grossTotalEarnings,
+        pending: grossPendingAmount,
+      },
+      commission: {
+        rate: commissionRate,
+        currentMonth: grossCurrentMonth * commissionRate,
+        previousMonth: grossPreviousMonth * commissionRate,
+        total: grossTotalEarnings * commissionRate,
+      },
       lastWithdrawal: lastWithdrawal ? {
-        amount: lastWithdrawal.amount,
+        amount: Math.abs(lastWithdrawal.amount),
         date: lastWithdrawal.createdAt.toISOString(),
         status: lastWithdrawal.status,
       } : null,

@@ -4,19 +4,15 @@ import { prisma } from "@/lib/db";
 import { z } from "zod";
 
 const withdrawSchema = z.object({
+  providerId: z.string(),
   amount: z.number().positive("Le montant doit être positif"),
-  bankDetails: z.object({
-    iban: z.string().min(15, "IBAN invalide"),
-    bankName: z.string().min(2, "Nom de la banque requis"),
-    accountHolder: z.string().min(2, "Titulaire du compte requis"),
-  }),
 });
 
 // POST - Demande de retrait de gains
 export async function POST(request: NextRequest) {
   try {
     const session = await auth();
-    if (!session || session.user.role !== "PROVIDER") {
+    if (!session) {
       return NextResponse.json(
         { error: "Unauthorized" },
         { status: 401 }
@@ -24,15 +20,20 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { amount, bankDetails } = withdrawSchema.parse(body);
+    const { providerId, amount } = withdrawSchema.parse(body);
 
-    // Trouver le provider
-    const provider = await prisma.provider.findFirst({
-      where: {
-        OR: [
-          { userId: session.user.id }
-        ]
-      },
+    // Vérifier que l'utilisateur demande un retrait pour lui-même
+    if (providerId !== session.user.id && session.user.role !== "ADMIN") {
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 403 }
+      );
+    }
+
+    // Vérifier que le provider existe
+    const provider = await prisma.provider.findUnique({
+      where: { userId: providerId },
+      include: { user: true }
     });
 
     if (!provider) {
@@ -50,34 +51,32 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Calculer le solde disponible
-    const totalEarningsResult = await prisma.payment.aggregate({
-      where: {
-        booking: {
-          service: {
-            providerId: provider.id
-          }
-        },
-        status: "COMPLETED"
-      },
-      _sum: {
-        amount: true
-      }
-    });
-
-    const totalWithdrawalsResult = await prisma.providerWithdrawal.aggregate({
+    // Calculer le solde disponible basé sur les factures payées
+    const totalEarningsAgg = await prisma.providerMonthlyInvoice.aggregate({
       where: {
         providerId: provider.id,
-        status: {
-          in: ["PENDING", "COMPLETED"]
-        }
+        status: "PAID",
       },
       _sum: {
-        amount: true
-      }
+        netAmount: true,
+      },
     });
 
-    const availableBalance = (totalEarningsResult._sum.amount || 0) - (totalWithdrawalsResult._sum.amount || 0);
+    // Total des retraits déjà effectués
+    const totalWithdrawalsAgg = await prisma.walletOperation.aggregate({
+      where: {
+        userId: providerId,
+        type: "WITHDRAWAL",
+        status: { in: ["PENDING", "COMPLETED"] },
+      },
+      _sum: {
+        amount: true,
+      },
+    });
+
+    const totalEarnings = totalEarningsAgg._sum.netAmount || 0;
+    const totalWithdrawals = Math.abs(totalWithdrawalsAgg._sum.amount || 0);
+    const availableBalance = totalEarnings - totalWithdrawals;
 
     if (amount > availableBalance) {
       return NextResponse.json(
@@ -98,31 +97,28 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Créer la demande de retrait
-    const withdrawal = await prisma.providerWithdrawal.create({
+    // Créer l'opération de retrait dans WalletOperation
+    const withdrawal = await prisma.walletOperation.create({
       data: {
-        providerId: provider.id,
-        amount,
-        bankDetails,
+        userId: providerId,
+        walletId: provider.user.id, // Utiliser l'ID utilisateur comme walletId temporaire
+        type: "WITHDRAWAL",
+        amount: -amount, // Montant négatif pour un retrait
+        description: `Retrait de gains - ${amount}€`,
         status: "PENDING",
-        requestedAt: new Date(),
-        // Simuler un délai de traitement de 2-5 jours ouvrés
-        estimatedProcessingDate: new Date(Date.now() + (2 + Math.random() * 3) * 24 * 60 * 60 * 1000),
       },
     });
 
     // Créer une notification pour le provider
     await prisma.notification.create({
       data: {
-        userId: session.user.id,
+        userId: providerId,
         title: "Demande de retrait enregistrée",
         content: `Votre demande de retrait de ${amount}€ a été enregistrée et sera traitée sous 2-5 jours ouvrés.`,
-        type: "PROVIDER_WITHDRAWAL",
-        priority: "LOW",
+        type: "PAYMENT",
         data: {
           withdrawalId: withdrawal.id,
           amount,
-          bankDetails,
           action: "WITHDRAWAL_REQUESTED",
         },
       },
@@ -139,9 +135,8 @@ export async function POST(request: NextRequest) {
         data: {
           userId: admin.id,
           title: "Nouvelle demande de retrait prestataire",
-          content: `${provider.businessName} a demandé un retrait de ${amount}€. Solde disponible: ${availableBalance}€`,
-          type: "PROVIDER_WITHDRAWAL",
-          priority: "MEDIUM",
+          content: `${provider.businessName || provider.user.profile?.firstName} a demandé un retrait de ${amount}€. Solde disponible: ${availableBalance}€`,
+          type: "PAYMENT",
           data: {
             providerId: provider.id,
             withdrawalId: withdrawal.id,
@@ -157,10 +152,9 @@ export async function POST(request: NextRequest) {
       message: "Withdrawal request submitted successfully",
       withdrawal: {
         id: withdrawal.id,
-        amount: withdrawal.amount,
+        amount: Math.abs(withdrawal.amount),
         status: withdrawal.status,
-        estimatedProcessingDate: withdrawal.estimatedProcessingDate,
-        requestedAt: withdrawal.requestedAt,
+        requestedAt: withdrawal.createdAt,
       },
       newBalance: availableBalance - amount,
     });
@@ -184,7 +178,7 @@ export async function POST(request: NextRequest) {
 export async function GET(request: NextRequest) {
   try {
     const session = await auth();
-    if (!session || session.user.role !== "PROVIDER") {
+    if (!session) {
       return NextResponse.json(
         { error: "Unauthorized" },
         { status: 401 }
@@ -192,57 +186,65 @@ export async function GET(request: NextRequest) {
     }
 
     const { searchParams } = new URL(request.url);
+    const providerId = searchParams.get("providerId");
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '10');
     const status = searchParams.get('status');
 
-    // Trouver le provider
-    const provider = await prisma.provider.findFirst({
-      where: {
-        OR: [
-          { userId: session.user.id }
-        ]
-      },
-    });
-
-    if (!provider) {
+    if (!providerId) {
       return NextResponse.json(
-        { error: "Provider not found" },
-        { status: 404 }
+        { error: "Provider ID is required" },
+        { status: 400 }
       );
     }
 
-    // Construire la requête de filtrage
-    const whereClause: any = {
-      providerId: provider.id
+    // Vérifier les permissions
+    if (providerId !== session.user.id && session.user.role !== "ADMIN") {
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 403 }
+      );
+    }
+
+    // Construire la condition de recherche
+    const where: any = {
+      userId: providerId,
+      type: "WITHDRAWAL",
     };
 
     if (status) {
-      whereClause.status = status;
+      where.status = status;
     }
 
-    // Récupérer les retraits
-    const withdrawals = await prisma.providerWithdrawal.findMany({
-      where: whereClause,
-      orderBy: {
-        requestedAt: 'desc'
-      },
-      skip: (page - 1) * limit,
-      take: limit,
-    });
+    // Récupérer l'historique des retraits
+    const [withdrawals, totalCount] = await Promise.all([
+      prisma.walletOperation.findMany({
+        where,
+        orderBy: {
+          createdAt: "desc",
+        },
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
+      prisma.walletOperation.count({ where }),
+    ]);
 
-    const totalCount = await prisma.providerWithdrawal.count({
-      where: whereClause
-    });
+    const formattedWithdrawals = withdrawals.map(withdrawal => ({
+      id: withdrawal.id,
+      amount: Math.abs(withdrawal.amount),
+      status: withdrawal.status,
+      description: withdrawal.description,
+      requestedAt: withdrawal.createdAt.toISOString(),
+      executedAt: withdrawal.executedAt?.toISOString(),
+    }));
 
     return NextResponse.json({
-      withdrawals,
+      withdrawals: formattedWithdrawals,
       pagination: {
-        currentPage: page,
+        page,
+        limit,
+        total: totalCount,
         totalPages: Math.ceil(totalCount / limit),
-        totalCount,
-        hasNext: page * limit < totalCount,
-        hasPrev: page > 1,
       },
     });
   } catch (error) {

@@ -26,9 +26,9 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Vérifier que le provider existe
+    // Vérifier que le provider existe en utilisant l'userId
     const provider = await prisma.provider.findUnique({
-      where: { id: providerId },
+      where: { userId: providerId },
     });
 
     if (!provider) {
@@ -38,9 +38,9 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Construire les conditions de recherche
+    // Construire les conditions de recherche avec l'ID du provider
     const where: any = {
-      providerId,
+      providerId: provider.id,
     }
 
     if (status) {

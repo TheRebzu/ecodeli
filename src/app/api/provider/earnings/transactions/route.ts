@@ -25,57 +25,152 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Construire les conditions de recherche
+    // Vérifier que le provider existe
+    const provider = await prisma.provider.findUnique({
+      where: { userId: providerId }
+    });
+
+    if (!provider) {
+      return NextResponse.json(
+        { error: "Provider not found" },
+        { status: 404 }
+      );
+    }
+
+    // Construire les conditions de recherche pour les paiements de services
     const where: any = {
-      providerId,
+      type: "SERVICE",
+      booking: {
+        service: {
+          providerId: provider.id
+        }
+      }
     };
 
     if (type) {
-      where.type = type;
+      // Mapper les types de l'interface vers les statuts de paiement
+      if (type === "EARNING") {
+        where.status = "COMPLETED";
+      } else if (type === "REFUND") {
+        where.status = { in: ["REFUNDED", "PARTIALLY_REFUNDED"] };
+      }
     }
 
-    // Récupérer les transactions
-    const [transactions, totalCount] = await Promise.all([
-      prisma.transaction.findMany({
+    // Récupérer les paiements des services + les retraits
+    const [servicePayments, withdrawals, totalServiceCount, totalWithdrawalCount] = await Promise.all([
+      // Paiements des services
+      prisma.payment.findMany({
         where,
         include: {
-          provider: {
+          booking: {
             include: {
-              profile: true,
-            },
+              service: {
+                select: {
+                  name: true,
+                  type: true
+                }
+              }
+            }
           },
+          user: {
+            select: {
+              profile: {
+                select: {
+                  firstName: true,
+                  lastName: true
+                }
+              }
+            }
+          }
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+        skip: type === "WITHDRAWAL" ? limit : (page - 1) * limit,
+        take: type === "WITHDRAWAL" ? 0 : limit,
+      }),
+      // Retraits du provider (seulement si demandé)
+      type === "WITHDRAWAL" ? prisma.walletOperation.findMany({
+        where: {
+          userId: providerId,
+          type: "WITHDRAWAL",
         },
         orderBy: {
           createdAt: "desc",
         },
         skip: (page - 1) * limit,
         take: limit,
-      }),
-      prisma.transaction.count({ where }),
+      }) : [],
+      // Compter les paiements
+      prisma.payment.count({ where }),
+      // Compter les retraits
+      type === "WITHDRAWAL" ? prisma.walletOperation.count({
+        where: {
+          userId: providerId,
+          type: "WITHDRAWAL",
+        }
+      }) : 0,
     ]);
 
-    // Formater les données
-    const formattedTransactions = transactions.map(transaction => ({
-      id: transaction.id,
-      type: transaction.type,
-      amount: transaction.amount,
-      description: transaction.description,
-      status: transaction.status,
-      referenceId: transaction.referenceId,
-      referenceType: transaction.referenceType,
-      createdAt: transaction.createdAt.toISOString(),
-      // Ajouter le nom du service si c'est lié à une réservation
-      serviceName: transaction.description,
+    // Commission EcoDeli (15%)
+    const commissionRate = 0.15;
+
+    // Formater les paiements de services
+    const formattedPayments = servicePayments.map(payment => {
+      const grossAmount = payment.amount;
+      const commission = grossAmount * commissionRate;
+      const netAmount = grossAmount - commission;
+
+      return {
+        id: payment.id,
+        type: payment.status === "COMPLETED" ? "EARNING" : 
+              payment.status === "REFUNDED" ? "REFUND" : "EARNING",
+        amount: netAmount, // Montant net après commission
+        grossAmount, // Montant brut
+        commission,
+        description: `Service: ${payment.booking?.service?.name || 'Service'} - Client: ${payment.user?.profile?.firstName || 'Client'} ${payment.user?.profile?.lastName || ''}`,
+        serviceName: payment.booking?.service?.name,
+        serviceType: payment.booking?.service?.type,
+        status: payment.status,
+        clientName: `${payment.user?.profile?.firstName || ''} ${payment.user?.profile?.lastName || ''}`.trim(),
+        createdAt: payment.createdAt.toISOString(),
+      };
+    });
+
+    // Formater les retraits
+    const formattedWithdrawals = withdrawals.map(withdrawal => ({
+      id: withdrawal.id,
+      type: "WITHDRAWAL",
+      amount: Math.abs(withdrawal.amount),
+      description: withdrawal.description,
+      status: withdrawal.status,
+      createdAt: withdrawal.createdAt.toISOString(),
     }));
 
+    // Combiner selon le type demandé
+    let allTransactions = [];
+    let totalCount = 0;
+
+    if (type === "WITHDRAWAL") {
+      allTransactions = formattedWithdrawals;
+      totalCount = totalWithdrawalCount;
+    } else {
+      allTransactions = formattedPayments;
+      totalCount = totalServiceCount;
+    }
+
     return NextResponse.json({
-      transactions: formattedTransactions,
+      transactions: allTransactions,
       pagination: {
         page,
         limit,
         total: totalCount,
         totalPages: Math.ceil(totalCount / limit),
       },
+      commission: {
+        rate: commissionRate,
+        description: `Commission EcoDeli: ${(commissionRate * 100)}%`
+      }
     });
   } catch (error) {
     console.error("Error fetching transactions:", error);
