@@ -65,11 +65,12 @@ export function TutorialManager({
     return <>{children}</>
   }
 
-  // Afficher le tutoriel si requis ou forcé
-  const shouldShowTutorial = forceShow || (
-    isOpen && 
-    tutorialState.tutorialRequired && 
-    !tutorialState.progress?.isCompleted
+  // Afficher le tutoriel si requis ou forcé, MAIS pas s'il est déjà complété
+  const shouldShowTutorial = !tutorialState.progress?.isCompleted && (
+    forceShow || (
+      isOpen && 
+      tutorialState.tutorialRequired
+    )
   )
 
   if (!shouldShowTutorial) {

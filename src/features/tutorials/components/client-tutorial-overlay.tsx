@@ -123,15 +123,22 @@ export function ClientTutorialOverlay({
     try {
       await onStepComplete(activeStep.id, timeSpent)
       
+      // Vérifier si on vient de compléter la dernière étape obligatoire
+      const remainingMandatorySteps = steps.filter(s => s.mandatory && !s.completed && s.id !== activeStep.id)
+      const isLastMandatoryStep = activeStep.mandatory && remainingMandatorySteps.length === 0
+      
       // Passer à l'étape suivante ou terminer
-      if (isLastStep || completedMandatory === mandatorySteps.length - 1) {
+      if (isLastStep || isLastMandatoryStep) {
         setShowFeedback(true)
       } else {
-        const nextMandatoryStep = steps.find(s => s.mandatory && !s.completed)
+        const nextMandatoryStep = steps.find(s => s.mandatory && !s.completed && s.id !== activeStep.id)
         if (nextMandatoryStep) {
           const nextIndex = steps.findIndex(s => s.id === nextMandatoryStep.id)
           setActiveStepIndex(nextIndex)
           setStepStartTime(Date.now())
+        } else {
+          // Plus d'étapes obligatoires, afficher le feedback
+          setShowFeedback(true)
         }
       }
     } catch (error) {
