@@ -21,10 +21,8 @@ export function useProviderDocuments() {
     try {
       const data = await request('/api/upload', {
         method: 'POST',
-        data: formData,
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        }
+        data: formData
+        // Remove the headers - let the browser set Content-Type with boundary for FormData
       })
       await fetchDocuments() // Refresh après upload
       return data

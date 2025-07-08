@@ -53,6 +53,12 @@ export class OneSignalService {
     options?: Partial<NotificationData>
   ): Promise<OneSignalResponse> {
     try {
+      // Vérifier si OneSignal est configuré
+      if (!this.config.appId || this.config.appId === 'your-onesignal-app-id' || !this.config.restApiKey || this.config.restApiKey === 'your-onesignal-api-key') {
+        console.warn('OneSignal not configured, skipping notification')
+        return { id: 'skipped', recipients: 0 }
+      }
+
       const notification: NotificationData = {
         headings: { fr: title, en: title },
         contents: { fr: message, en: message },
@@ -71,8 +77,10 @@ export class OneSignalService {
       const response = await this.makeRequest('/notifications', 'POST', notification)
       return response
     } catch (error) {
-      console.error('Erreur envoi notification OneSignal:', error)
-      throw error
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+      console.warn('OneSignal notification skipped due to error:', errorMessage)
+      // Retourner une réponse par défaut au lieu de throw
+      return { id: 'error', recipients: 0, errors: [errorMessage] }
     }
   }
 
@@ -87,6 +95,12 @@ export class OneSignalService {
     options?: Partial<NotificationData>
   ): Promise<OneSignalResponse> {
     try {
+      // Vérifier si OneSignal est configuré
+      if (!this.config.appId || this.config.appId === 'your-onesignal-app-id' || !this.config.restApiKey || this.config.restApiKey === 'your-onesignal-api-key') {
+        console.warn('OneSignal not configured, skipping segment notification')
+        return { id: 'skipped', recipients: 0 }
+      }
+
       const notification: NotificationData = {
         headings: { fr: title, en: title },
         contents: { fr: message, en: message },
@@ -105,8 +119,9 @@ export class OneSignalService {
       const response = await this.makeRequest('/notifications', 'POST', notification)
       return response
     } catch (error) {
-      console.error('Erreur envoi notification segment OneSignal:', error)
-      throw error
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+      console.warn('OneSignal segment notification skipped due to error:', errorMessage)
+      return { id: 'error', recipients: 0, errors: [errorMessage] }
     }
   }
 
@@ -121,6 +136,12 @@ export class OneSignalService {
     options?: Partial<NotificationData>
   ): Promise<OneSignalResponse> {
     try {
+      // Vérifier si OneSignal est configuré
+      if (!this.config.appId || this.config.appId === 'your-onesignal-app-id' || !this.config.restApiKey || this.config.restApiKey === 'your-onesignal-api-key') {
+        console.warn('OneSignal not configured, skipping filtered notification')
+        return { id: 'skipped', recipients: 0 }
+      }
+
       const notification: NotificationData = {
         headings: { fr: title, en: title },
         contents: { fr: message, en: message },
@@ -138,8 +159,9 @@ export class OneSignalService {
       const response = await this.makeRequest('/notifications', 'POST', notification)
       return response
     } catch (error) {
-      console.error('Erreur envoi notification filtrée OneSignal:', error)
-      throw error
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+      console.warn('OneSignal filtered notification skipped due to error:', errorMessage)
+      return { id: 'error', recipients: 0, errors: [errorMessage] }
     }
   }
 
@@ -372,6 +394,12 @@ export class OneSignalService {
     email?: string
   }): Promise<any> {
     try {
+      // Vérifier si OneSignal est configuré
+      if (!this.config.appId || this.config.appId === 'your-onesignal-app-id' || !this.config.restApiKey || this.config.restApiKey === 'your-onesignal-api-key') {
+        console.warn('OneSignal not configured, skipping user upsert')
+        return { success: false, reason: 'not_configured' }
+      }
+
       const response = await this.makeRequest(`/players/${userId}`, 'PUT', {
         app_id: this.config.appId,
         external_user_id: userId,
@@ -379,8 +407,9 @@ export class OneSignalService {
       })
       return response
     } catch (error) {
-      console.error('Erreur mise à jour utilisateur OneSignal:', error)
-      throw error
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+      console.warn('OneSignal user upsert skipped due to error:', errorMessage)
+      return { success: false, reason: 'error', error: errorMessage }
     }
   }
 
@@ -400,21 +429,35 @@ export class OneSignalService {
    */
   static async getNotificationStats(notificationId: string): Promise<any> {
     try {
+      // Vérifier si OneSignal est configuré
+      if (!this.config.appId || this.config.appId === 'your-onesignal-app-id' || !this.config.restApiKey || this.config.restApiKey === 'your-onesignal-api-key') {
+        console.warn('OneSignal not configured, skipping notification stats')
+        return { success: false, reason: 'not_configured' }
+      }
+
       const response = await this.makeRequest(`/notifications/${notificationId}`)
       return response
     } catch (error) {
-      console.error('Erreur récupération stats notification:', error)
-      throw error
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+      console.warn('OneSignal notification stats skipped due to error:', errorMessage)
+      return { success: false, reason: 'error', error: errorMessage }
     }
   }
 
   static async getAppStats(): Promise<any> {
     try {
+      // Vérifier si OneSignal est configuré
+      if (!this.config.appId || this.config.appId === 'your-onesignal-app-id' || !this.config.restApiKey || this.config.restApiKey === 'your-onesignal-api-key') {
+        console.warn('OneSignal not configured, skipping app stats')
+        return { success: false, reason: 'not_configured' }
+      }
+
       const response = await this.makeRequest(`/apps/${this.config.appId}`)
       return response
     } catch (error) {
-      console.error('Erreur récupération stats app:', error)
-      throw error
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+      console.warn('OneSignal app stats skipped due to error:', errorMessage)
+      return { success: false, reason: 'error', error: errorMessage }
     }
   }
 
