@@ -28,8 +28,14 @@ import {
   Package,
   Star,
   AlertTriangle,
-  Info
+  Info,
+  Loader2
 } from "lucide-react"
+import { loadStripe } from '@stripe/stripe-js'
+import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js'
+
+// Load Stripe
+const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
 
 interface Subscription {
   id: string
@@ -108,11 +114,123 @@ const plans = {
   }
 }
 
+// Payment Form Component
+function PaymentForm({ planId, onSuccess, onError }: {
+  planId: 'STARTER' | 'PREMIUM'
+  onSuccess: () => void
+  onError: (error: string) => void
+}) {
+  const stripe = useStripe()
+  const elements = useElements()
+  const [isProcessing, setIsProcessing] = useState(false)
+
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault()
+    
+    if (!stripe || !elements) {
+      onError('Stripe not loaded')
+      return
+    }
+
+    setIsProcessing(true)
+
+    try {
+      // Create payment intent
+      const response = await fetch('/api/subscriptions/create-payment-intent', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ planId })
+      })
+
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.error || 'Failed to create payment intent')
+      }
+
+      const { clientSecret } = await response.json()
+
+      // Confirm payment
+      const cardElement = elements.getElement(CardElement)
+      if (!cardElement) {
+        throw new Error('Card element not found')
+      }
+
+      const result = await stripe.confirmCardPayment(clientSecret, {
+        payment_method: {
+          card: cardElement
+        }
+      })
+
+      if (result.error) {
+        onError(result.error.message || 'Payment failed')
+      } else {
+        // Create subscription
+        const subscriptionResponse = await fetch('/api/subscriptions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            planId,
+            paymentMethodId: result.paymentIntent.payment_method
+          })
+        })
+
+        if (subscriptionResponse.ok) {
+          onSuccess()
+        } else {
+          const error = await subscriptionResponse.json()
+          onError(error.error || 'Failed to create subscription')
+        }
+      }
+    } catch (error) {
+      onError(error instanceof Error ? error.message : 'Payment failed')
+    } finally {
+      setIsProcessing(false)
+    }
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="p-4 border rounded-lg">
+        <CardElement
+          options={{
+            style: {
+              base: {
+                fontSize: '16px',
+                color: '#424770',
+                '::placeholder': {
+                  color: '#aab7c4',
+                },
+              },
+            },
+          }}
+        />
+      </div>
+      <Button 
+        type="submit" 
+        disabled={!stripe || isProcessing}
+        className="w-full"
+      >
+        {isProcessing ? (
+          <>
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            Processing...
+          </>
+        ) : (
+          `Subscribe to ${plans[planId].name} - €${plans[planId].price}/month`
+        )}
+      </Button>
+    </form>
+  )
+}
+
 export default function ClientSubscriptionPage() {
   const [subscription, setSubscription] = useState<Subscription | null>(null)
   const [usageStats, setUsageStats] = useState<UsageStats | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isChanging, setIsChanging] = useState(false)
+  const [showPaymentForm, setShowPaymentForm] = useState<'STARTER' | 'PREMIUM' | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  const [success, setSuccess] = useState<string | null>(null)
 
   const t = useTranslations()
 
@@ -123,61 +241,80 @@ export default function ClientSubscriptionPage() {
   const fetchSubscriptionData = async () => {
     setIsLoading(true)
     try {
-      const response = await fetch('/api/client/subscription')
+      const response = await fetch('/api/subscriptions')
       
       if (response.ok) {
         const data = await response.json()
         setSubscription(data.subscription)
-        setUsageStats(data.usageStats)
+        setUsageStats(data.usage || data.usageStats)
+      } else {
+        const error = await response.json()
+        setError(error.error || 'Failed to load subscription data')
       }
     } catch (error) {
-      console.error('Erreur récupération abonnement:', error)
+      console.error('Error fetching subscription:', error)
+      setError('Failed to load subscription data')
     } finally {
       setIsLoading(false)
     }
   }
 
   const changePlan = async (newPlan: string) => {
-    setIsChanging(true)
-    try {
-      const response = await fetch('/api/client/subscription', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ plan: newPlan })
-      })
+    if (newPlan === 'FREE') {
+      // Direct change to free plan
+      setIsChanging(true)
+      try {
+        const response = await fetch('/api/subscriptions', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ planId: newPlan })
+        })
 
-      if (response.ok) {
-        const data = await response.json()
-        setSubscription(data.subscription)
-        alert(`Abonnement changé pour ${plans[newPlan as keyof typeof plans].name} !`)
-      } else {
-        const error = await response.json()
-        alert(`Erreur: ${error.error}`)
+        if (response.ok) {
+          setSuccess(`Successfully changed to ${plans[newPlan as keyof typeof plans].name} plan!`)
+          fetchSubscriptionData()
+        } else {
+          const error = await response.json()
+          setError(error.error || 'Failed to change plan')
+        }
+      } catch (error) {
+        console.error('Error changing plan:', error)
+        setError('Failed to change plan')
+      } finally {
+        setIsChanging(false)
       }
-    } catch (error) {
-      console.error('Erreur changement abonnement:', error)
-      alert('Erreur lors du changement d\'abonnement')
-    } finally {
-      setIsChanging(false)
+    } else {
+      // Show payment form for paid plans
+      setShowPaymentForm(newPlan as 'STARTER' | 'PREMIUM')
     }
+  }
+
+  const handlePaymentSuccess = () => {
+    setShowPaymentForm(null)
+    setSuccess(`Successfully subscribed to ${showPaymentForm} plan!`)
+    fetchSubscriptionData()
+  }
+
+  const handlePaymentError = (errorMessage: string) => {
+    setError(errorMessage)
   }
 
   const cancelSubscription = async () => {
     try {
-      const response = await fetch('/api/client/subscription', {
+      const response = await fetch('/api/subscriptions', {
         method: 'DELETE'
       })
 
       if (response.ok) {
-        alert('Abonnement annulé. Il restera actif jusqu\'à la fin de la période.')
+        setSuccess('Subscription cancelled. It will remain active until the end of the current period.')
         fetchSubscriptionData()
       } else {
         const error = await response.json()
-        alert(`Erreur: ${error.error}`)
+        setError(error.error || 'Failed to cancel subscription')
       }
     } catch (error) {
-      console.error('Erreur annulation:', error)
-      alert('Erreur lors de l\'annulation')
+      console.error('Error cancelling subscription:', error)
+      setError('Failed to cancel subscription')
     }
   }
 
@@ -186,7 +323,7 @@ export default function ClientSubscriptionPage() {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Chargement de votre abonnement...</p>
+          <p className="text-gray-600">Loading your subscription...</p>
         </div>
       </div>
     )
@@ -205,6 +342,71 @@ export default function ClientSubscriptionPage() {
           </p>
         </div>
 
+        {/* Error/Success Messages */}
+        {error && (
+          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+            <div className="flex items-center">
+              <AlertTriangle className="h-5 w-5 text-red-600 mr-2" />
+              <p className="text-red-800">{error}</p>
+            </div>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={() => setError(null)}
+              className="mt-2"
+            >
+              Dismiss
+            </Button>
+          </div>
+        )}
+
+        {success && (
+          <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+            <div className="flex items-center">
+              <Check className="h-5 w-5 text-green-600 mr-2" />
+              <p className="text-green-800">{success}</p>
+            </div>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={() => setSuccess(null)}
+              className="mt-2"
+            >
+              Dismiss
+            </Button>
+          </div>
+        )}
+
+        {/* Payment Form Modal */}
+        {showPaymentForm && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white p-6 rounded-lg max-w-md w-full mx-4">
+              <h3 className="text-lg font-semibold mb-4">
+                Subscribe to {plans[showPaymentForm].name}
+              </h3>
+              <p className="text-gray-600 mb-4">
+                €{plans[showPaymentForm].price}/month
+              </p>
+              
+              <Elements stripe={stripePromise}>
+                <PaymentForm
+                  planId={showPaymentForm}
+                  onSuccess={handlePaymentSuccess}
+                  onError={handlePaymentError}
+                />
+              </Elements>
+
+              <Button
+                variant="outline"
+                className="w-full mt-4"
+                onClick={() => setShowPaymentForm(null)}
+              >
+                Cancel
+              </Button>
+            </div>
+          </div>
+        )}
+
         <Tabs defaultValue="current" className="space-y-6">
           <TabsList className="grid grid-cols-3 w-full max-w-md">
             <TabsTrigger value="current">Mon Plan</TabsTrigger>
@@ -212,7 +414,7 @@ export default function ClientSubscriptionPage() {
             <TabsTrigger value="usage">Utilisation</TabsTrigger>
           </TabsList>
 
-          {/* Onglet Plan Actuel */}
+          {/* Current Plan Tab */}
           <TabsContent value="current" className="space-y-6">
             {subscription && (
               <Card className="border-2 border-blue-500 bg-gradient-to-br from-blue-50 to-white">
@@ -292,7 +494,7 @@ export default function ClientSubscriptionPage() {
             )}
           </TabsContent>
 
-          {/* Onglet Comparaison */}
+          {/* Compare Plans Tab */}
           <TabsContent value="compare" className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {Object.entries(plans).map(([planKey, plan]) => (
@@ -355,7 +557,7 @@ export default function ClientSubscriptionPage() {
             </div>
           </TabsContent>
 
-          {/* Onglet Utilisation */}
+          {/* Usage Tab */}
           <TabsContent value="usage" className="space-y-6">
             {usageStats && (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -419,7 +621,7 @@ export default function ClientSubscriptionPage() {
               </div>
             )}
 
-            {/* Actions de gestion */}
+            {/* Subscription Management */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center space-x-2">
