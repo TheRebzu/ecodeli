@@ -1893,6 +1893,50 @@
       "tabs": {
         "active": "Actives",
         "history": "Historique"
+      },
+      "actions": {
+        "cancel": "Annuler",
+        "rate": "Noter",
+        "pay": "Payer"
+      },
+      "status": {
+        "pending": "En attente",
+        "confirmed": "Confirmée", 
+        "in_progress": "En cours",
+        "completed": "Terminée",
+        "cancelled": "Annulée"
+      },
+      "empty": {
+        "no_active_bookings": "Aucune réservation active",
+        "book_service_description": "Réservez un service pour commencer",
+        "no_past_bookings": "Aucune réservation passée",
+        "past_bookings_description": "Vos réservations terminées apparaîtront ici"
+      },
+      "dialogs": {
+        "cancel": {
+          "title": "Annuler la réservation",
+          "description": "Êtes-vous sûr de vouloir annuler cette réservation ?",
+          "keep": "Garder la réservation",
+          "confirm": "Annuler la réservation"
+        },
+        "rating": {
+          "title": "Noter le service",
+          "description": "Comment s'est passée votre expérience ?",
+          "rating_label": "Note",
+          "review_label": "Commentaire (optionnel)",
+          "review_placeholder": "Partagez votre expérience...",
+          "cancel": "Annuler",
+          "submit": "Soumettre la note"
+        }
+      },
+      "success": {
+        "booking_cancelled": "Réservation annulée avec succès",
+        "rating_submitted": "Note soumise avec succès"
+      },
+      "error": {
+        "fetch_failed": "Échec du chargement des réservations",
+        "cancel_failed": "Échec de l'annulation de la réservation",
+        "rating_failed": "Échec de la soumission de la note"
       }
     },
     "deliveries": {

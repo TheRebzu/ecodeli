@@ -6,7 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Calendar, Clock, MapPin, Phone, Star, X } from "lucide-react";
+import { Calendar, Clock, MapPin, Phone, Star, X, CreditCard } from "lucide-react";
+import Link from "next/link";
 import {
   Dialog,
   DialogContent,
@@ -37,6 +38,14 @@ interface Booking {
   rating?: number;
   review?: string;
   createdAt: string;
+  payment?: {
+    id: string;
+    status: string;
+    amount: number;
+    paymentMethod: string;
+    paidAt?: string;
+  } | null;
+  isPaid?: boolean;
 }
 
 export default function BookingList({ clientId }: BookingListProps) {
@@ -214,6 +223,14 @@ export default function BookingList({ clientId }: BookingListProps) {
                       {booking.price}€
                     </span>
                     <div className="space-x-2">
+                      {!booking.isPaid && ["pending", "confirmed"].includes(booking.status) && (
+                        <Link href={`/client/bookings/${booking.id}/payment`}>
+                          <Button size="sm" className="bg-blue-600 hover:bg-blue-700">
+                            <CreditCard className="h-4 w-4 mr-1" />
+                            {t("actions.pay")}
+                          </Button>
+                        </Link>
+                      )}
                       {booking.status === "pending" && (
                         <Button
                           variant="destructive"

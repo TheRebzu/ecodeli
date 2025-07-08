@@ -1,372 +1,294 @@
-'use client'
+"use client";
 
-import { useEffect, useState } from 'react'
-import { useParams, useRouter } from 'next/navigation'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Separator } from '@/components/ui/separator'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { 
-  CalendarIcon, 
-  ClockIcon, 
-  CreditCardIcon,
-  CheckIcon,
-  AlertCircleIcon,
-  ArrowLeftIcon
-} from 'lucide-react'
-import { useTranslations } from 'next-intl'
-import { useToast } from '@/components/ui/use-toast'
-import { PaymentForm } from '@/components/payments/payment-form'
-import { loadStripe } from '@stripe/stripe-js'
-import { Elements } from '@stripe/react-stripe-js'
+import { useEffect, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
+import { PageHeader } from "@/components/layout/page-header";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { toast } from "sonner";
+import { Calendar, Clock, MapPin, User, CreditCard, ArrowLeft } from "lucide-react";
+import Link from "next/link";
 
-// Initialiser Stripe
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
-
-interface BookingPayment {
-  id: string
-  status: string
-  scheduledAt: string
-  totalPrice: number
-  service: {
-    name: string
-    description: string
-    duration: number
-    price: number
-    provider: {
-      user: {
-        profile: {
-          firstName: string
-          lastName: string
-        }
-      }
-    }
-  }
+interface BookingDetails {
+  id: string;
+  providerName: string;
+  serviceType: string;
+  serviceName: string;
+  scheduledDate: string;
+  scheduledTime: string;
+  location: string;
+  price: number;
+  status: string;
+  notes?: string;
   payment?: {
-    id: string
-    status: string
-    amount: number
-  }
+    status: string;
+    amount: number;
+  } | null;
+  isPaid?: boolean;
 }
 
 export default function BookingPaymentPage() {
-  const params = useParams()
-  const router = useRouter()
-  const t = useTranslations('client.bookings')
-  const { toast } = useToast()
-  const [booking, setBooking] = useState<BookingPayment | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [paymentLoading, setPaymentLoading] = useState(false)
-  const [clientSecret, setClientSecret] = useState<string | null>(null)
+  const params = useParams();
+  const router = useRouter();
+  const t = useTranslations("client.bookings");
+  const [booking, setBooking] = useState<BookingDetails | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [paying, setPaying] = useState(false);
 
-  const bookingId = params.id as string
+  const bookingId = params.id as string;
 
   useEffect(() => {
-    fetchBookingDetails()
-  }, [bookingId])
+    fetchBookingDetails();
+  }, [bookingId]);
 
   const fetchBookingDetails = async () => {
     try {
-      const response = await fetch(`/api/client/bookings/${bookingId}`)
-      if (!response.ok) {
-        throw new Error('Failed to fetch booking')
-      }
-      const data = await response.json()
-      setBooking(data)
+      setLoading(true);
       
-      // Si le booking est confirmé, créer le Payment Intent
-      if (data.status === 'CONFIRMED') {
-        await createPaymentIntent()
-      }
-    } catch (error) {
-      console.error('Error fetching booking:', error)
-      toast({
-        title: "Error",
-        description: "Failed to load booking details",
-        variant: "destructive"
-      })
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const createPaymentIntent = async () => {
-    try {
-      const response = await fetch(`/api/client/bookings/${bookingId}/create-payment-intent`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
+      const apiUrl = `/api/client/bookings/${bookingId}`;
+      console.log('🔗 [Payment Page] Fetching from URL:', apiUrl);
+      console.log('🔗 [Payment Page] Booking ID:', bookingId);
+      
+      const response = await fetch(apiUrl);
+      if (response.ok) {
+        const data = await response.json();
+        console.log('📝 [Payment Page] API Response:', data);
+        console.log('📝 [Payment Page] Booking data:', data.booking);
+        
+        setBooking(data.booking);
+        
+        // Redirect if already paid
+        if (data.booking?.isPaid) {
+          toast.info("Cette réservation est déjà payée");
+          router.push("/client/bookings");
+          return;
         }
-      })
-      
-      if (!response.ok) {
-        throw new Error('Failed to create payment intent')
+      } else {
+        console.error('❌ [Payment Page] API Error:', response.status, response.statusText);
+        toast.error("Impossible de charger les détails de la réservation");
+        router.push("/client/bookings");
       }
-      
-      const data = await response.json()
-      setClientSecret(data.clientSecret)
     } catch (error) {
-      console.error('Error creating payment intent:', error)
-      toast({
-        title: "Payment Setup Error",
-        description: "Failed to initialize payment. Please try again.",
-        variant: "destructive"
-      })
+      console.error("Error fetching booking details:", error);
+      toast.error("Erreur lors du chargement");
+      router.push("/client/bookings");
+    } finally {
+      setLoading(false);
     }
-  }
+  };
 
-  const handlePaymentSuccess = async (paymentData: any) => {
+  const handlePayment = async () => {
+    if (!booking) return;
+
     try {
-      setPaymentLoading(true)
+      setPaying(true);
       
-      // Update booking status to paid/in progress
-      const response = await fetch(`/api/client/bookings/${bookingId}`, {
-        method: 'PUT',
+      // Create Stripe checkout session
+      const response = await fetch(`/api/client/bookings/${bookingId}/payment`, {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json'
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          status: 'IN_PROGRESS',
-          paymentId: paymentData.paymentId
-        })
-      })
+          amount: booking.price,
+          currency: "EUR",
+          bookingId: booking.id
+        }),
+      });
 
-      if (!response.ok) {
-        throw new Error('Failed to update booking status')
+      if (response.ok) {
+        const data = await response.json();
+        
+        // Redirect to Stripe checkout
+        if (data.checkoutUrl) {
+          window.location.href = data.checkoutUrl;
+        } else {
+          toast.error("Erreur lors de la création du paiement");
+        }
+      } else {
+        const errorData = await response.json();
+        toast.error(errorData.error || "Erreur lors du paiement");
       }
-
-      toast({
-        title: "Payment Successful! 🎉",
-        description: "Your booking has been paid and confirmed. The provider will contact you soon."
-      })
-
-      // Redirect to booking details
-      router.push(`/client/bookings/${bookingId}`)
-
     } catch (error) {
-      console.error('Error updating booking after payment:', error)
-      toast({
-        title: "Warning",
-        description: "Payment was processed but booking status update failed. Please contact support.",
-        variant: "destructive"
-      })
+      console.error("Error processing payment:", error);
+      toast.error("Erreur lors du traitement du paiement");
     } finally {
-      setPaymentLoading(false)
+      setPaying(false);
     }
+  };
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <PageHeader
+          title="Paiement en cours..."
+          description="Chargement des détails"
+        />
+        <Card>
+          <CardContent className="p-6">
+            <div className="animate-pulse space-y-4">
+              <div className="h-4 bg-gray-200 rounded w-1/3"></div>
+              <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+              <div className="h-3 bg-gray-200 rounded w-1/4"></div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
   }
 
-  const handlePaymentError = (error: any) => {
-    console.error('Payment error:', error)
-    toast({
-      title: "Payment Failed",
-      description: "There was an issue processing your payment. Please try again.",
-      variant: "destructive"
-    })
+  if (!booking) {
+    console.log('❌ [Payment Page] Booking is null/undefined:', booking);
+    console.log('❌ [Payment Page] Loading state:', loading);
+    return (
+      <div className="space-y-6">
+        <PageHeader
+          title="Réservation introuvable"
+          description="Cette réservation n'existe pas ou n'est plus disponible"
+        />
+        <Card>
+          <CardContent className="text-center py-12">
+            <p className="text-gray-600 mb-4">
+              La réservation demandée est introuvable.
+            </p>
+            <Link href="/client/bookings">
+              <Button>
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Retour aux réservations
+              </Button>
+            </Link>
+          </CardContent>
+        </Card>
+      </div>
+    );
   }
 
   const getStatusBadge = (status: string) => {
     const statusConfig = {
-      'PENDING': { color: 'bg-yellow-100 text-yellow-800', text: 'Pending' },
-      'CONFIRMED': { color: 'bg-green-100 text-green-800', text: 'Confirmed - Payment Required' },
-      'IN_PROGRESS': { color: 'bg-blue-100 text-blue-800', text: 'In Progress' },
-      'COMPLETED': { color: 'bg-gray-100 text-gray-800', text: 'Completed' },
-      'CANCELLED': { color: 'bg-red-100 text-red-800', text: 'Cancelled' }
-    }
-
-    const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.PENDING
-    return (
-      <Badge className={config.color}>
-        {config.text}
-      </Badge>
-    )
-  }
-
-  if (loading) {
-    return (
-      <div className="container mx-auto p-6">
-        <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-        </div>
-      </div>
-    )
-  }
-
-  if (!booking) {
-    return (
-      <div className="container mx-auto p-6">
-        <Card>
-          <CardContent className="flex items-center justify-center h-64">
-            <div className="text-center">
-              <AlertCircleIcon className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-semibold mb-2">Booking Not Found</h3>
-              <p className="text-muted-foreground">The requested booking could not be found.</p>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    )
-  }
-
-  // If booking is not confirmed, redirect to booking details
-  if (booking.status !== 'CONFIRMED') {
-    return (
-      <div className="container mx-auto p-6">
-        <Card>
-          <CardContent className="flex items-center justify-center h-64">
-            <div className="text-center">
-              <AlertCircleIcon className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-semibold mb-2">Payment Not Required</h3>
-              <p className="text-muted-foreground mb-4">
-                This booking is not ready for payment or has already been paid.
-              </p>
-              <Button onClick={() => router.push(`/client/bookings/${bookingId}`)}>
-                View Booking Details
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    )
-  }
+      pending: { color: "bg-yellow-100 text-yellow-800", label: "En attente" },
+      confirmed: { color: "bg-blue-100 text-blue-800", label: "Confirmé" },
+      in_progress: { color: "bg-purple-100 text-purple-800", label: "En cours" },
+      completed: { color: "bg-green-100 text-green-800", label: "Terminé" },
+      cancelled: { color: "bg-red-100 text-red-800", label: "Annulé" },
+    };
+    
+    const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.pending;
+    return <Badge className={config.color}>{config.label}</Badge>;
+  };
 
   return (
-    <div className="container mx-auto p-6 max-w-4xl">
-      <div className="mb-6">
-        <Button 
-          variant="ghost" 
-          onClick={() => router.push(`/client/bookings/${bookingId}`)}
-          className="mb-4"
-        >
-          <ArrowLeftIcon className="h-4 w-4 mr-2" />
-          Back to Booking
-        </Button>
-        <h1 className="text-3xl font-bold">Complete Your Payment</h1>
-        <p className="text-muted-foreground mt-2">
-          Your booking has been accepted by the provider. Complete payment to finalize your booking.
-        </p>
-      </div>
+    <div className="space-y-6">
+      <PageHeader
+        title="Paiement du service"
+        description="Finalisez le paiement de votre réservation"
+        action={
+          <Link href="/client/bookings">
+            <Button variant="outline">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Retour
+            </Button>
+          </Link>
+        }
+      />
 
-      <div className="grid gap-6 lg:grid-cols-2">
-        {/* Booking Summary */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Booking Details */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center justify-between">
-              Booking Summary
+              <span>Détails de la réservation</span>
               {getStatusBadge(booking.status)}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div>
-              <h3 className="font-semibold text-lg">{booking.service.name}</h3>
-              <p className="text-muted-foreground">{booking.service.description}</p>
+            <div className="flex items-center text-sm">
+              <User className="h-4 w-4 mr-2 text-gray-400" />
+              <span className="font-medium">Prestataire:</span>
+              <span className="ml-2">{booking.providerName}</span>
             </div>
 
-            <Separator />
-
-            <div className="space-y-3">
-              <div className="flex items-center gap-2">
-                <CalendarIcon className="h-4 w-4 text-muted-foreground" />
-                <span>{new Date(booking.scheduledAt).toLocaleDateString()}</span>
-              </div>
-              
-              <div className="flex items-center gap-2">
-                <ClockIcon className="h-4 w-4 text-muted-foreground" />
-                <span>
-                  {new Date(booking.scheduledAt).toLocaleTimeString()} 
-                  ({booking.service.duration} minutes)
-                </span>
-              </div>
+            <div className="flex items-center text-sm">
+              <span className="font-medium">Service:</span>
+              <span className="ml-2">{booking.serviceName || booking.serviceType}</span>
             </div>
 
-            <Separator />
-
-            {/* Provider Info */}
-            <div>
-              <h4 className="font-semibold mb-2">Provider</h4>
-              <div className="flex items-center gap-3">
-                <Avatar className="h-8 w-8">
-                  <AvatarFallback>
-                    {booking.service.provider.user.profile.firstName?.[0]}
-                    {booking.service.provider.user.profile.lastName?.[0]}
-                  </AvatarFallback>
-                </Avatar>
-                <span>
-                  {booking.service.provider.user.profile.firstName} {booking.service.provider.user.profile.lastName}
-                </span>
-              </div>
+            <div className="flex items-center text-sm">
+              <Calendar className="h-4 w-4 mr-2 text-gray-400" />
+              <span className="font-medium">Date:</span>
+              <span className="ml-2">
+                {new Date(booking.scheduledDate).toLocaleDateString("fr-FR")} à {booking.scheduledTime}
+              </span>
             </div>
 
-            <Separator />
-
-            {/* Payment Summary */}
-            <div className="space-y-2">
-              <div className="flex justify-between">
-                <span>Service Price</span>
-                <span>€{booking.service.price}</span>
-              </div>
-              <div className="flex justify-between font-semibold text-lg border-t pt-2">
-                <span>Total Amount</span>
-                <span>€{booking.totalPrice}</span>
-              </div>
+            <div className="flex items-center text-sm">
+              <MapPin className="h-4 w-4 mr-2 text-gray-400" />
+              <span className="font-medium">Lieu:</span>
+              <span className="ml-2">{booking.location}</span>
             </div>
-          </CardContent>
-        </Card>
 
-        {/* Payment Form */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <CreditCardIcon className="h-5 w-5" />
-              Payment Details
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {clientSecret ? (
-              <Elements 
-                stripe={stripePromise}
-                options={{
-                  clientSecret,
-                  appearance: {
-                    theme: 'stripe',
-                    variables: {
-                      colorPrimary: '#16a34a',
-                    }
-                  }
-                }}
-              >
-                <PaymentForm
-                  amount={booking.totalPrice}
-                  currency="EUR"
-                  description={`Payment for ${booking.service.name}`}
-                  onSuccess={handlePaymentSuccess}
-                  onError={handlePaymentError}
-                />
-              </Elements>
-            ) : (
-              <div className="flex items-center justify-center py-8">
-                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
-                <span className="ml-2">Initializing payment...</span>
+            {booking.notes && (
+              <div className="p-3 bg-gray-50 rounded">
+                <span className="font-medium text-sm">Notes:</span>
+                <p className="text-sm text-gray-700 mt-1">{booking.notes}</p>
               </div>
             )}
           </CardContent>
         </Card>
-      </div>
 
-      {/* Security Notice */}
-      <Card className="mt-6">
-        <CardContent className="pt-6">
-          <div className="flex items-start gap-3">
-            <CheckIcon className="h-5 w-5 text-green-600 mt-0.5" />
-            <div>
-              <h4 className="font-semibold mb-1">Secure Payment</h4>
-              <p className="text-sm text-muted-foreground">
-                Your payment is processed securely through Stripe. Your card information is encrypted and never stored on our servers.
+        {/* Payment Details */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <CreditCard className="h-5 w-5 mr-2" />
+              Récapitulatif du paiement
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="border-t border-b py-4 space-y-2">
+              <div className="flex justify-between items-center">
+                <span>Montant du service</span>
+                <span className="font-medium">{booking.price.toFixed(2)} €</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span>Frais de traitement</span>
+                <span className="font-medium">0,00 €</span>
+              </div>
+            </div>
+
+            <div className="flex justify-between items-center text-lg font-semibold">
+              <span>Total à payer</span>
+              <span className="text-green-600">{booking.price.toFixed(2)} €</span>
+            </div>
+
+            <div className="space-y-3 pt-4">
+              <Button
+                onClick={handlePayment}
+                disabled={paying}
+                className="w-full bg-green-600 hover:bg-green-700"
+                size="lg"
+              >
+                {paying ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    Traitement en cours...
+                  </>
+                ) : (
+                  <>
+                    <CreditCard className="h-4 w-4 mr-2" />
+                    Payer {booking.price.toFixed(2)} €
+                  </>
+                )}
+              </Button>
+
+              <p className="text-xs text-gray-500 text-center">
+                Paiement sécurisé via Stripe. Vos données de carte sont protégées.
               </p>
             </div>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      </div>
     </div>
-  )
+  );
 } 

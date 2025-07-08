@@ -12,6 +12,7 @@ export async function POST(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    const { id } = await params
     const { rating, review } = await request.json()
 
     // Validation
@@ -19,17 +20,25 @@ export async function POST(
       return NextResponse.json({ error: 'Invalid rating' }, { status: 400 })
     }
 
+    // Récupérer le profil client
+    const client = await db.client.findUnique({
+      where: { userId: session.user.id }
+    })
+
+    if (!client) {
+      return NextResponse.json({ error: 'Client profile not found' }, { status: 404 })
+    }
+
     // Vérifier que la réservation appartient au client
     const booking = await db.booking.findFirst({
       where: {
-        const { id } = await params;
-
         id: id,
-        clientId: session.user.id,
+        clientId: client.id,
         status: 'COMPLETED'
       },
       include: {
-        provider: true
+        provider: true,
+        review: true
       }
     })
 
@@ -38,32 +47,20 @@ export async function POST(
     }
 
     // Vérifier si déjà noté
-    if (booking.rating) {
+    if (booking.review) {
       return NextResponse.json({ error: 'Booking already rated' }, { status: 400 })
     }
 
-    // Transaction pour mettre à jour la réservation et le rating du prestataire
+    // Transaction pour créer le review et mettre à jour la note du prestataire
     await db.$transaction(async (tx) => {
-      // Mettre à jour la réservation avec la note
-      await tx.booking.update({
-        where: { const { id } = await params;
- id: id },
-        data: {
-          rating,
-          review,
-          ratedAt: new Date()
-        }
-      })
-
       // Créer un review
       await tx.review.create({
         data: {
-          clientId: session.user.id,
+          clientId: client.id,
           providerId: booking.providerId,
           bookingId: booking.id,
           rating,
-          comment: review,
-          serviceType: booking.serviceType
+          comment: review
         }
       })
 
@@ -77,18 +74,18 @@ export async function POST(
       // Mettre à jour la note du prestataire
       await tx.provider.update({
         where: { id: booking.providerId },
-        data: { rating: averageRating }
+        data: { averageRating: averageRating }
       })
     })
 
     // Créer une notification pour le prestataire
     await db.notification.create({
       data: {
-        userId: booking.providerId,
+        userId: booking.provider.userId,
         type: 'REVIEW_RECEIVED',
         title: 'Nouvelle évaluation',
         message: `Vous avez reçu une note de ${rating}/5 pour votre service.`,
-        status: 'UNREAD'
+        isRead: false
       }
     })
 

@@ -11,7 +11,7 @@ export async function GET(request: NextRequest) {
     }
 
     const { searchParams } = new URL(request.url)
-    const clientId = searchParams.get('clientId')
+    const clientIdParam = searchParams.get('clientId')
     const status = searchParams.get('status')
     const serviceType = searchParams.get('serviceType')
     const dateFrom = searchParams.get('dateFrom')
@@ -19,7 +19,28 @@ export async function GET(request: NextRequest) {
     const page = parseInt(searchParams.get('page') || '1')
     const limit = parseInt(searchParams.get('limit') || '10')
 
-    const filters: any = { clientId: clientId || user.id }
+    // Récupérer le profil client
+    const finalUserId = clientIdParam || user.id
+    const client = await db.client.findUnique({
+      where: { userId: finalUserId }
+    })
+
+    if (!client) {
+      console.log(`❌ Aucun profil client trouvé pour userId: ${finalUserId}`)
+      return NextResponse.json({
+        bookings: [],
+        pagination: {
+          page,
+          limit,
+          total: 0,
+          totalPages: 0
+        }
+      })
+    }
+
+    console.log(`✅ Profil client trouvé: ${client.id} pour userId: ${finalUserId}`)
+
+    const filters: any = { clientId: client.id }
     
     if (status) {
       filters.status = status
@@ -30,6 +51,8 @@ export async function GET(request: NextRequest) {
       if (dateFrom) filters.scheduledDate.gte = new Date(dateFrom)
       if (dateTo) filters.scheduledDate.lte = new Date(dateTo)
     }
+
+    console.log(`🔍 Recherche avec filtres:`, filters)
 
     const [bookings, total] = await Promise.all([
       db.booking.findMany({
@@ -64,6 +87,15 @@ export async function GET(request: NextRequest) {
               type: true
             }
           },
+          payment: {
+            select: {
+              id: true,
+              status: true,
+              amount: true,
+              paymentMethod: true,
+              paidAt: true
+            }
+          },
           review: true
         },
         orderBy: { createdAt: 'desc' },
@@ -72,6 +104,8 @@ export async function GET(request: NextRequest) {
       }),
       db.booking.count({ where: filters })
     ])
+
+    console.log(`📋 Réservations trouvées: ${bookings.length} sur un total de ${total}`)
 
     // Transformer les données pour correspondre à l'interface frontend
     const transformedBookings = bookings.map(booking => ({
@@ -94,7 +128,16 @@ export async function GET(request: NextRequest) {
       specialRequests: '',
       rating: booking.review?.rating,
       review: booking.review?.comment,
-      createdAt: booking.createdAt.toISOString()
+      createdAt: booking.createdAt.toISOString(),
+      // Payment information
+      payment: booking.payment ? {
+        id: booking.payment.id,
+        status: booking.payment.status,
+        amount: booking.payment.amount,
+        paymentMethod: booking.payment.paymentMethod,
+        paidAt: booking.payment.paidAt?.toISOString()
+      } : null,
+      isPaid: booking.payment?.status === 'COMPLETED'
     }))
 
     return NextResponse.json({

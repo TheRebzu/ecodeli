@@ -117,6 +117,50 @@
       "tabs": {
         "active": "Active",
         "history": "History"
+      },
+      "actions": {
+        "cancel": "Cancel",
+        "rate": "Rate",
+        "pay": "Pay"
+      },
+      "status": {
+        "pending": "Pending",
+        "confirmed": "Confirmed", 
+        "in_progress": "In Progress",
+        "completed": "Completed",
+        "cancelled": "Cancelled"
+      },
+      "empty": {
+        "no_active_bookings": "No active bookings",
+        "book_service_description": "Book a service to get started",
+        "no_past_bookings": "No past bookings",
+        "past_bookings_description": "Your completed bookings will appear here"
+      },
+      "dialogs": {
+        "cancel": {
+          "title": "Cancel booking",
+          "description": "Are you sure you want to cancel this booking?",
+          "keep": "Keep booking",
+          "confirm": "Cancel booking"
+        },
+        "rating": {
+          "title": "Rate service",
+          "description": "How was your experience?",
+          "rating_label": "Rating",
+          "review_label": "Review (optional)",
+          "review_placeholder": "Share your experience...",
+          "cancel": "Cancel",
+          "submit": "Submit rating"
+        }
+      },
+      "success": {
+        "booking_cancelled": "Booking cancelled successfully",
+        "rating_submitted": "Rating submitted successfully"
+      },
+      "error": {
+        "fetch_failed": "Failed to load bookings",
+        "cancel_failed": "Failed to cancel booking",
+        "rating_failed": "Failed to submit rating"
       }
     },
     "deliveries": {
