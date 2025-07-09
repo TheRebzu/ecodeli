@@ -78,9 +78,31 @@ const getClientNavigation = (subscription?: string): NavigationItem[] => [
     badge: 2
   },
   {
+    key: 'tracking',
+    label: 'Suivi en temps réel',
+    href: '/client/tracking',
+    icon: Truck,
+    category: 'main'
+  },
+  // Services
+  {
     key: 'services',
     label: 'Services',
     href: '/client/services',
+    icon: Calendar,
+    category: 'services'
+  },
+  {
+    key: 'service-requests',
+    label: 'Demandes de services',
+    href: '/client/service-requests',
+    icon: Calendar,
+    category: 'services'
+  },
+  {
+    key: 'bookings',
+    label: 'Mes réservations',
+    href: '/client/bookings',
     icon: Calendar,
     category: 'services'
   },
@@ -99,6 +121,20 @@ const getClientNavigation = (subscription?: string): NavigationItem[] => [
     icon: subscription === 'PREMIUM' ? Crown : subscription === 'STARTER' ? Star : Wallet,
     category: 'account',
     badge: subscription === 'FREE' ? 'Gratuit' : subscription === 'STARTER' ? 'Starter' : 'Premium'
+  },
+  {
+    key: 'payments',
+    label: 'Paiements',
+    href: '/client/payments',
+    icon: Wallet,
+    category: 'account'
+  },
+  {
+    key: 'invoice',
+    label: 'Factures',
+    href: '/client/invoice',
+    icon: Wallet,
+    category: 'account'
   },
   {
     key: 'profile',
@@ -123,6 +159,13 @@ const getClientNavigation = (subscription?: string): NavigationItem[] => [
     icon: Bell,
     category: 'help',
     badge: 5
+  },
+  {
+    key: 'reviews',
+    label: 'Mes avis',
+    href: '/client/reviews',
+    icon: Star,
+    category: 'help'
   },
   {
     key: 'support',

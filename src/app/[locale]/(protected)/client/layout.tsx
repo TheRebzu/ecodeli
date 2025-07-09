@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '@/hooks/use-auth'
 import { ClientHeader } from '@/components/layout/headers/client-header'
 import { ClientSidebar } from '@/components/layout/sidebars/client-sidebar'
@@ -13,7 +13,7 @@ interface ClientLayoutProps {
 }
 
 export default function ClientLayout({ children }: ClientLayoutProps) {
-  const { user, isLoading, isAuthenticated, signOut } = useAuth()
+  const { user, isLoading, isAuthenticated, signOut, refetch } = useAuth()
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
@@ -73,6 +73,11 @@ export default function ClientLayout({ children }: ClientLayoutProps) {
     }
   ]
 
+  // Callback pour rafraîchir la session après tutoriel
+  const handleTutorialComplete = useCallback(async () => {
+    await refetch()
+  }, [refetch])
+
   if (isLoading) {
     return (
       <div className="flex h-screen items-center justify-center bg-background">
@@ -86,7 +91,7 @@ export default function ClientLayout({ children }: ClientLayoutProps) {
   }
 
   return (
-    <TutorialManager autoStart={true}>
+    <TutorialManager autoStart={true} onTutorialComplete={handleTutorialComplete}>
       <div className="flex h-screen bg-background dark:bg-background">
         {/* Desktop Sidebar */}
         <aside className={cn(
@@ -95,7 +100,13 @@ export default function ClientLayout({ children }: ClientLayoutProps) {
         )}>
           <ClientSidebar 
             collapsed={sidebarCollapsed}
-            user={user}
+            user={{
+              id: user.id,
+              name: user.name || undefined,
+              email: user.email,
+              role: user.role,
+              subscription: (user.subscription as 'FREE' | 'STARTER' | 'PREMIUM') || 'FREE',
+            }}
           />
         </aside>
 
@@ -106,7 +117,13 @@ export default function ClientLayout({ children }: ClientLayoutProps) {
             <aside className="absolute left-0 top-0 h-full w-64 bg-background border-r border-border">
               <ClientSidebar 
                 collapsed={false}
-                user={user}
+                user={{
+                  id: user.id,
+                  name: user.name || undefined,
+                  email: user.email,
+                  role: user.role,
+                  subscription: (user.subscription as 'FREE' | 'STARTER' | 'PREMIUM') || 'FREE',
+                }}
               />
             </aside>
           </div>
@@ -122,7 +139,7 @@ export default function ClientLayout({ children }: ClientLayoutProps) {
               email: user.email,
               role: user.role,
               subscription: (user.subscription as 'FREE' | 'STARTER' | 'PREMIUM') || 'FREE',
-              avatar: user.avatar || ''
+              avatar: (user.avatar as string) || ''
             }}
             onSidebarToggle={toggleMobileMenu}
             notifications={mockNotifications}

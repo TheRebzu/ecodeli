@@ -224,7 +224,16 @@ export class TutorialService {
         select: { tutorialCompleted: true }
       })
 
-      const isCompleted = tutorialProgress?.isCompleted || client?.tutorialCompleted || false
+      // Vérifier si tous les étapes obligatoires sont complétées
+      const allMandatoryCompleted = mandatorySteps > 0 && completedMandatory === mandatorySteps
+      
+      // Auto-complete si tous les étapes obligatoires sont faits mais pas encore marqué comme complet
+      if (allMandatoryCompleted && !client?.tutorialCompleted && !tutorialProgress?.isCompleted) {
+        console.log(`Auto-completing tutorial for user ${userId} - all mandatory steps completed`)
+        await this.autoCompleteTutorial(userId)
+      }
+
+      const isCompleted = tutorialProgress?.isCompleted || client?.tutorialCompleted || allMandatoryCompleted
 
       return {
         userId,
@@ -243,6 +252,25 @@ export class TutorialService {
     } catch (error) {
       console.error('Erreur récupération progression tutoriel:', error)
       throw error
+    }
+  }
+
+  /**
+   * Auto-compléter le tutoriel quand tous les étapes obligatoires sont faits
+   */
+  private static async autoCompleteTutorial(userId: string): Promise<void> {
+    try {
+      const steps = await this.getClientTutorialSteps(userId)
+      const completedStepIds = steps.filter(s => s.completed).map(s => s.id)
+      const totalTimeSpent = steps.reduce((total, step) => total + step.timeSpent, 0)
+
+      await this.completeTutorial(userId, {
+        totalTimeSpent,
+        stepsCompleted: completedStepIds
+      })
+
+    } catch (error) {
+      console.error('Erreur auto-completion tutoriel:', error)
     }
   }
 
@@ -382,6 +410,16 @@ export class TutorialService {
 
       if (client?.tutorialCompleted) {
         return
+      }
+
+      // Vérifier que tous les étapes obligatoires sont complétées
+      const steps = await this.getClientTutorialSteps(userId)
+      const mandatorySteps = steps.filter(s => s.mandatory)
+      const completedMandatory = mandatorySteps.filter(s => s.completed).length
+      
+      if (completedMandatory < mandatorySteps.length) {
+        console.warn(`Tutoriel completion demandé mais seulement ${completedMandatory}/${mandatorySteps.length} étapes obligatoires complétées`)
+        // Ne pas faire échouer, mais log l'avertissement
       }
 
       await db.$transaction(async (tx) => {

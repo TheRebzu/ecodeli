@@ -74,20 +74,38 @@ export function ClientTutorialOverlay({
   const [feedback, setFeedback] = useState('')
   const [rating, setRating] = useState<number>(0)
   const [showFeedback, setShowFeedback] = useState(false)
+  const [localSteps, setLocalSteps] = useState<TutorialStep[]>(steps)
 
-  const activeStep = steps[activeStepIndex]
-  const isLastStep = activeStepIndex === steps.length - 1
-  const mandatorySteps = steps.filter(s => s.mandatory)
+  // Update local steps when props change
+  useEffect(() => {
+    setLocalSteps(steps)
+  }, [steps])
+
+  // Check if all mandatory steps are completed and show feedback
+  useEffect(() => {
+    const allMandatoryCompleted = localSteps
+      .filter(s => s.mandatory)
+      .every(s => s.completed)
+    
+    if (allMandatoryCompleted && !showFeedback) {
+      console.log('All mandatory steps completed, showing feedback form')
+      setShowFeedback(true)
+    }
+  }, [localSteps, showFeedback])
+
+  const activeStep = localSteps[activeStepIndex]
+  const isLastStep = activeStepIndex === localSteps.length - 1
+  const mandatorySteps = localSteps.filter(s => s.mandatory)
   const completedMandatory = mandatorySteps.filter(s => s.completed).length
 
   // Mettre à jour l'étape active quand currentStep change
   useEffect(() => {
-    const stepIndex = steps.findIndex(s => s.id === currentStep)
+    const stepIndex = localSteps.findIndex(s => s.id === currentStep)
     if (stepIndex !== -1) {
       setActiveStepIndex(stepIndex)
       setStepStartTime(Date.now())
     }
-  }, [currentStep, steps])
+  }, [currentStep, localSteps])
 
   // Empêcher la fermeture si le tutoriel est obligatoire
   useEffect(() => {
@@ -123,21 +141,36 @@ export function ClientTutorialOverlay({
     try {
       await onStepComplete(activeStep.id, timeSpent)
       
-      // Vérifier si on vient de compléter la dernière étape obligatoire
-      const remainingMandatorySteps = steps.filter(s => s.mandatory && !s.completed && s.id !== activeStep.id)
-      const isLastMandatoryStep = activeStep.mandatory && remainingMandatorySteps.length === 0
+      // Update local state to mark step as completed
+      setLocalSteps(prev => prev.map(step => 
+        step.id === activeStep.id 
+          ? { ...step, completed: true, timeSpent }
+          : step
+      ))
       
-      // Passer à l'étape suivante ou terminer
-      if (isLastStep || isLastMandatoryStep) {
+      // Check if all mandatory steps are completed
+      const updatedSteps = localSteps.map(step => 
+        step.id === activeStep.id 
+          ? { ...step, completed: true, timeSpent }
+          : step
+      )
+      
+      const allMandatoryCompleted = updatedSteps
+        .filter(s => s.mandatory)
+        .every(s => s.completed)
+      
+      // Show feedback if all mandatory steps are done or if it's the last step
+      if (allMandatoryCompleted || isLastStep) {
         setShowFeedback(true)
       } else {
-        const nextMandatoryStep = steps.find(s => s.mandatory && !s.completed && s.id !== activeStep.id)
+        // Find next mandatory step
+        const nextMandatoryStep = updatedSteps.find(s => s.mandatory && !s.completed)
         if (nextMandatoryStep) {
-          const nextIndex = steps.findIndex(s => s.id === nextMandatoryStep.id)
+          const nextIndex = updatedSteps.findIndex(s => s.id === nextMandatoryStep.id)
           setActiveStepIndex(nextIndex)
           setStepStartTime(Date.now())
         } else {
-          // Plus d'étapes obligatoires, afficher le feedback
+          // No more mandatory steps, show feedback
           setShowFeedback(true)
         }
       }
@@ -151,7 +184,7 @@ export function ClientTutorialOverlay({
     
     try {
       const totalTimeSpent = Date.now() - totalStartTime
-      const completedStepIds = steps.filter(s => s.completed).map(s => s.id)
+      const completedStepIds = localSteps.filter(s => s.completed).map(s => s.id)
       
       await onTutorialComplete({
         totalTimeSpent,
@@ -176,7 +209,7 @@ export function ClientTutorialOverlay({
   }
 
   const handleNextStep = () => {
-    if (activeStepIndex < steps.length - 1) {
+    if (activeStepIndex < localSteps.length - 1) {
       setActiveStepIndex(activeStepIndex + 1)
       setStepStartTime(Date.now())
     }
@@ -482,7 +515,7 @@ export function ClientTutorialOverlay({
                   <div>
                     <h1 className="text-lg font-semibold">Tutoriel EcoDeli</h1>
                     <p className="text-sm text-gray-500">
-                      Étape {activeStepIndex + 1} sur {steps.length}
+                      Étape {activeStepIndex + 1} sur {localSteps.length}
                     </p>
                   </div>
                 </div>
@@ -539,7 +572,7 @@ export function ClientTutorialOverlay({
                   </Button>
 
                   <div className="flex items-center space-x-2">
-                    {steps.map((step, index) => (
+                    {localSteps.map((step, index) => (
                       <div
                         key={step.id}
                         className={`w-2 h-2 rounded-full ${
@@ -553,17 +586,31 @@ export function ClientTutorialOverlay({
                     ))}
                   </div>
 
-                  {isLastStep ? (
-                    <Button onClick={handleStepComplete} className="flex items-center">
-                      Terminer
-                      <Check className="w-4 h-4 ml-2" />
-                    </Button>
-                  ) : (
-                    <Button onClick={handleStepComplete} className="flex items-center">
-                      Suivant
-                      <ChevronRight className="w-4 h-4 ml-2" />
-                    </Button>
-                  )}
+                  <div className="flex items-center space-x-2">
+                    {/* Debug button for testing */}
+                    {process.env.NODE_ENV === 'development' && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setShowFeedback(true)}
+                        className="text-xs"
+                      >
+                        Debug: Show Feedback
+                      </Button>
+                    )}
+                    
+                    {isLastStep ? (
+                      <Button onClick={handleStepComplete} className="flex items-center">
+                        Terminer
+                        <Check className="w-4 h-4 ml-2" />
+                      </Button>
+                    ) : (
+                      <Button onClick={handleStepComplete} className="flex items-center">
+                        Suivant
+                        <ChevronRight className="w-4 h-4 ml-2" />
+                      </Button>
+                    )}
+                  </div>
                 </div>
               )}
             </motion.div>

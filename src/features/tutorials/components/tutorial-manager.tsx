@@ -9,12 +9,14 @@ interface TutorialManagerProps {
   children: React.ReactNode
   autoStart?: boolean
   forceShow?: boolean
+  onTutorialComplete?: () => void | Promise<void>
 }
 
 export function TutorialManager({ 
   children, 
   autoStart = true, 
-  forceShow = false 
+  forceShow = false,
+  onTutorialComplete
 }: TutorialManagerProps) {
   const { user } = useAuth()
   const {
@@ -77,6 +79,14 @@ export function TutorialManager({
     return <>{children}</>
   }
 
+  // Handler pour la complétion du tutoriel
+  const handleTutorialComplete = async (data: any) => {
+    await completeTutorial(data)
+    if (onTutorialComplete) {
+      await onTutorialComplete()
+    }
+  }
+
   return (
     <>
       {children}
@@ -95,7 +105,7 @@ export function TutorialManager({
           subscriptionPlan: 'FREE' // À récupérer depuis le profil client
         }}
         onStepComplete={completeStep}
-        onTutorialComplete={completeTutorial}
+        onTutorialComplete={handleTutorialComplete}
         onClose={tutorialState.settings.blockingOverlay ? undefined : closeTutorial}
       />
     </>

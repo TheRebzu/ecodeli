@@ -1,132 +1,83 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getUserFromSession } from '@/lib/auth/utils'
-import { db } from '@/lib/db'
+import { NextRequest, NextResponse } from 'next/server';
+import { getCurrentUser } from '@/lib/auth/utils';
+import { prisma } from '@/lib/db';
 
+// GET - Récupérer l'abonnement actuel du client
 export async function GET(request: NextRequest) {
-  const user = await getUserFromSession(request)
-  if (!user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
-
   try {
-    // Récupérer l'abonnement client
-    const clientProfile = await db.client.findUnique({
-      where: { userId: user.id }
-    })
-
-    if (!clientProfile) {
-      return NextResponse.json({ error: 'Client profile not found' }, { status: 404 })
+    const user = await getCurrentUser();
+    if (!user) {
+      return NextResponse.json(
+        { error: 'Non autorisé' },
+        { status: 401 }
+      );
     }
 
-    // Calculer les statistiques d'utilisation
-    const currentMonth = new Date()
-    currentMonth.setDate(1)
-    currentMonth.setHours(0, 0, 0, 0)
-
-    const lastMonth = new Date(currentMonth)
-    lastMonth.setMonth(lastMonth.getMonth() - 1)
-
-    const [thisMonthStats, lastMonthStats] = await Promise.all([
-      // Stats du mois en cours
-      db.delivery.findMany({
-        where: {
-          announcement: {
-            clientId: user.id
-          },
-          createdAt: {
-            gte: currentMonth
-          }
-        },
-        include: {
-          announcement: true,
-          payment: true
-        }
-      }),
-      // Stats du mois dernier
-      db.delivery.findMany({
-        where: {
-          announcement: {
-            clientId: user.id
-          },
-          createdAt: {
-            gte: lastMonth,
-            lt: currentMonth
-          }
-        },
-        include: {
-          announcement: true,
-          payment: true
-        }
-      })
-    ])
-
-    // Calculer les économies réalisées ce mois
-    const thisMonthSavings = thisMonthStats.reduce((total, delivery) => {
-      const originalPrice = delivery.announcement.finalPrice || delivery.announcement.basePrice
-      const subscriptionDiscount = clientProfile.subscriptionPlan === 'STARTER' ? 0.05 : 
-                                   clientProfile.subscriptionPlan === 'PREMIUM' ? 0.09 : 0
-      return total + (originalPrice * subscriptionDiscount)
-    }, 0)
-
-    const lastMonthSavings = lastMonthStats.reduce((total, delivery) => {
-      const originalPrice = delivery.announcement.finalPrice || delivery.announcement.basePrice
-      const subscriptionDiscount = clientProfile.subscriptionPlan === 'STARTER' ? 0.05 : 
-                                   clientProfile.subscriptionPlan === 'PREMIUM' ? 0.09 : 0
-      return total + (originalPrice * subscriptionDiscount)
-    }, 0)
-
-    // Compter les envois prioritaires (urgents)
-    const priorityShipments = thisMonthStats.filter(delivery => 
-      delivery.announcement.isUrgent
-    ).length
-
-    // Calculer l'assurance utilisée
-    const insuranceUsed = thisMonthStats.reduce((total, delivery) => {
-      if (delivery.payment?.insuranceClaim) {
-        return total + delivery.payment.insuranceClaim
-      }
-      return total
-    }, 0)
-
-    const usageStats = {
-      thisMonth: {
-        deliveries: thisMonthStats.length,
-        savings: Math.round(thisMonthSavings * 100) / 100,
-        priorityShipments,
-        insuranceUsed: Math.round(insuranceUsed * 100) / 100
+    // Récupérer l'abonnement actuel
+    const subscription = await prisma.subscription.findFirst({
+      where: {
+        userId: user.id,
+        status: 'active',
       },
-      lastMonth: {
-        deliveries: lastMonthStats.length,
-        savings: Math.round(lastMonthSavings * 100) / 100
-      }
+      orderBy: {
+        startDate: 'desc',
+      },
+    });
+
+    // Si pas d'abonnement actif, créer un abonnement FREE par défaut
+    if (!subscription) {
+      const freeSubscription = await prisma.subscription.create({
+        data: {
+          userId: user.id,
+          plan: 'FREE',
+          status: 'active',
+          startDate: new Date(),
+        },
+      });
+
+      return NextResponse.json({
+        subscription: {
+          id: freeSubscription.id,
+          plan: freeSubscription.plan,
+          status: freeSubscription.status,
+          startDate: freeSubscription.startDate.toISOString(),
+          endDate: freeSubscription.endDate?.toISOString(),
+          nextBillingDate: null, // Pas de facturation pour FREE
+        },
+      });
     }
 
-    // Transformer les données d'abonnement
-    const subscription = {
-      id: clientProfile.id,
-      plan: clientProfile.subscriptionPlan,
-      status: clientProfile.subscriptionEnd && clientProfile.subscriptionEnd < new Date() ? 'expired' : 'active',
-      startDate: clientProfile.subscriptionStart.toISOString(),
-      endDate: clientProfile.subscriptionEnd?.toISOString() || null,
-      autoRenew: clientProfile.subscriptionPlan !== 'FREE'
+    // Calculer la prochaine date de facturation
+    let nextBillingDate = null;
+    if (subscription.plan !== 'FREE') {
+      const startDate = new Date(subscription.startDate);
+      const nextBilling = new Date(startDate);
+      nextBilling.setMonth(nextBilling.getMonth() + 1);
+      nextBillingDate = nextBilling.toISOString();
     }
 
     return NextResponse.json({
-      subscription,
-      usageStats
-    })
+      subscription: {
+        id: subscription.id,
+        plan: subscription.plan,
+        status: subscription.status,
+        startDate: subscription.startDate.toISOString(),
+        endDate: subscription.endDate?.toISOString(),
+        nextBillingDate,
+      },
+    });
   } catch (error) {
-    console.error('Error fetching subscription:', error)
+    console.error('Error fetching subscription:', error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Erreur lors de la récupération de l\'abonnement' },
       { status: 500 }
-    )
+    );
   }
 }
 
 export async function PUT(request: NextRequest) {
   try {
-    const user = await getUserFromSession(request)
+    const user = await getCurrentUser();
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
@@ -137,7 +88,7 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid plan' }, { status: 400 })
     }
 
-    const clientProfile = await db.client.findUnique({
+    const clientProfile = await prisma.client.findUnique({
       where: { userId: user.id }
     })
 
@@ -150,7 +101,7 @@ export async function PUT(request: NextRequest) {
 
     if (plan === 'FREE') {
       // Annuler l'abonnement payant
-      await db.client.update({
+      await prisma.client.update({
         where: { id: clientProfile.id },
         data: {
           subscriptionPlan: 'FREE',
@@ -172,7 +123,7 @@ export async function PUT(request: NextRequest) {
       endDate.setMonth(endDate.getMonth() + 1)
 
       // Mettre à jour l'abonnement
-      const updatedClient = await db.client.update({
+      const updatedClient = await prisma.client.update({
         where: { id: clientProfile.id },
         data: {
           subscriptionPlan: plan,
@@ -191,7 +142,7 @@ export async function PUT(request: NextRequest) {
       }
 
       // Créer un paiement pour l'abonnement
-      await db.payment.create({
+      await prisma.payment.create({
         data: {
           userId: user.id,
           clientId: clientProfile.id,
@@ -221,12 +172,12 @@ export async function PUT(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
-    const user = await getUserFromSession(request)
+    const user = await getCurrentUser();
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const clientProfile = await db.client.findUnique({
+    const clientProfile = await prisma.client.findUnique({
       where: { userId: user.id }
     })
 
@@ -238,7 +189,7 @@ export async function DELETE(request: NextRequest) {
     // On ne change pas immédiatement en FREE, on garde le plan actuel jusqu'à la fin
     // mais on note que c'est annulé en ajoutant une date de fin si elle n'existe pas
     const endDate = clientProfile.subscriptionEnd || new Date()
-    await db.client.update({
+    await prisma.client.update({
       where: { id: clientProfile.id },
       data: {
         subscriptionEnd: endDate
