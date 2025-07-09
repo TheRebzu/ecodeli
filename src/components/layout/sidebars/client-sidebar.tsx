@@ -26,7 +26,8 @@ import {
   Crown,
   Star,
   Wallet,
-  BookOpen
+  BookOpen,
+  MessageSquare
 } from 'lucide-react'
 
 // Types pour la navigation
@@ -97,6 +98,13 @@ const getClientNavigation = (subscription?: string): NavigationItem[] => [
     label: 'Demandes de services',
     href: '/client/service-requests',
     icon: Calendar,
+    category: 'services'
+  },
+  {
+    key: 'applications',
+    label: 'Candidatures reçues',
+    href: '/client/applications',
+    icon: MessageSquare,
     category: 'services'
   },
   {

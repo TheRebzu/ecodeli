@@ -80,19 +80,61 @@ export async function GET(request: NextRequest) {
 
     // Filtrer par types de services que le prestataire propose
     const providerServiceTypes = provider.services.map(s => s.type)
+    console.log('🔍 Types de services du prestataire:', providerServiceTypes)
+    
     if (providerServiceTypes.length > 0) {
-      // Utiliser array_contains au lieu de in pour les champs JSON
-      where.OR = providerServiceTypes.map(serviceType => ({
-        serviceDetails: {
-          path: ['serviceType'],
-          equals: serviceType
+      // Filtrer par ServiceAnnouncement.serviceType au lieu de serviceDetails JSON
+      where.ServiceAnnouncement = {
+        serviceType: {
+          in: providerServiceTypes
         }
-      }))
+      }
     }
+
+    // Exclure les demandes auxquelles le prestataire a déjà candidaté
+    where.NOT = {
+      applications: {
+        some: {
+          providerId: provider.id
+        }
+      }
+    }
+
+    console.log('🔍 Filtres WHERE appliqués:', JSON.stringify(where, null, 2))
 
     console.log('🔍 Requête base de données demandes de services avec filtres...')
 
     try {
+      // Debug: Vérifier toutes les demandes de services existantes
+      const allServiceRequests = await db.announcement.findMany({
+        where: { type: 'HOME_SERVICE' },
+        include: {
+          ServiceAnnouncement: true,
+          author: {
+            include: {
+              profile: {
+                select: {
+                  firstName: true,
+                  lastName: true,
+                  avatar: true
+                }
+              }
+            }
+          }
+        }
+      })
+      
+      console.log('🔍 Toutes les demandes de services HOME_SERVICE:', allServiceRequests.length)
+      allServiceRequests.forEach((req, index) => {
+        console.log(`🔍 Service request ${index + 1}:`, {
+          id: req.id,
+          title: req.title,
+          status: req.status,
+          serviceType: req.ServiceAnnouncement?.serviceType,
+          authorId: req.authorId
+        })
+      })
+
       const [serviceRequests, total] = await Promise.all([
         db.announcement.findMany({
           where,
@@ -107,6 +149,16 @@ export async function GET(request: NextRequest) {
                     city: true
                   }
                 }
+              }
+            },
+            ServiceAnnouncement: true, // Inclure les détails de service
+            applications: {
+              where: {
+                providerId: provider.id
+              },
+              select: {
+                id: true,
+                status: true
               }
             },
             _count: {
@@ -132,25 +184,43 @@ export async function GET(request: NextRequest) {
 
       console.log(`✅ Demandes de services trouvées: ${serviceRequests.length} sur un total de ${total}`)
 
+      // Debug: Afficher les données du premier service request
+      if (serviceRequests.length > 0) {
+        console.log('🔍 Premier service request - Données client:', {
+          id: serviceRequests[0].id,
+          title: serviceRequests[0].title,
+          author: serviceRequests[0].author,
+          authorProfile: serviceRequests[0].author?.profile,
+          serviceAnnouncement: serviceRequests[0].ServiceAnnouncement,
+          hasApplication: serviceRequests[0].applications.length > 0
+        })
+      }
+
+      // Debug: Vérifier que les candidatures sont bien exclues
+      console.log('🔍 Vérification filtrage candidatures:')
+      serviceRequests.forEach((req, index) => {
+        console.log(`  - ${index + 1}. "${req.title}" - Candidatures: ${req.applications.length}`)
+      })
+
       // Transformer les données pour correspondre à l'interface frontend
       const transformedRequests = serviceRequests.map(request => ({
         id: request.id,
         title: request.title,
         description: request.description,
-        serviceType: request.serviceDetails?.serviceType || 'HOME_SERVICE',
+        serviceType: request.ServiceAnnouncement?.serviceType || 'HOME_SERVICE',
         status: request.status,
         budget: request.basePrice,
-        estimatedDuration: request.serviceDetails?.estimatedDuration || 60,
-        scheduledAt: request.scheduledAt?.toISOString() || new Date().toISOString(),
-        isRecurring: request.serviceDetails?.isRecurring || false,
-        frequency: request.serviceDetails?.frequency,
+        estimatedDuration: request.ServiceAnnouncement?.duration || 60,
+        scheduledAt: request.pickupDate?.toISOString() || new Date().toISOString(),
+        isRecurring: request.ServiceAnnouncement?.recurringService || false,
+        frequency: request.ServiceAnnouncement?.recurringPattern,
         urgency: request.isUrgent ? 'URGENT' : 'NORMAL',
         location: request.location ? {
-          address: request.location.address || '',
-          city: request.location.city || '',
-          postalCode: request.location.postalCode || '',
-          latitude: request.location.latitude,
-          longitude: request.location.longitude
+          address: (request.location as any)?.address || '',
+          city: (request.location as any)?.city || '',
+          postalCode: (request.location as any)?.postalCode || '',
+          latitude: (request.location as any)?.latitude,
+          longitude: (request.location as any)?.longitude
         } : undefined,
         createdAt: request.createdAt.toISOString(),
         updatedAt: request.updatedAt.toISOString(),
@@ -163,8 +233,20 @@ export async function GET(request: NextRequest) {
             avatar: request.author.profile?.avatar
           }
         },
+        hasApplied: request.applications.length > 0, // Normalement toujours false maintenant
         _count: request._count
       }))
+
+      // Debug: Afficher les données transformées
+      if (transformedRequests.length > 0) {
+        console.log('🔍 Premier service request transformé - Données client:', {
+          id: transformedRequests[0].id,
+          title: transformedRequests[0].title,
+          client: transformedRequests[0].client,
+          clientProfile: transformedRequests[0].client?.profile,
+          serviceType: transformedRequests[0].serviceType
+        })
+      }
 
       return NextResponse.json({
         serviceRequests: transformedRequests,

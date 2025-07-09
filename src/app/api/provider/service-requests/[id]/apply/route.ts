@@ -120,10 +120,9 @@ export async function POST(
         data: {
           userId: serviceRequest.authorId,
           title: 'Nouvelle candidature reçue',
-          content: `Un prestataire a candidaté à votre demande "${serviceRequest.title}"`,
+          message: `Un prestataire a candidaté à votre demande "${serviceRequest.title}"`,
           type: 'SERVICE_APPLICATION',
-          priority: 'MEDIUM',
-          metadata: {
+          data: {
             serviceRequestId: serviceRequestId,
             applicationId: application.id,
             providerId: provider.id
@@ -136,9 +135,9 @@ export async function POST(
         data: {
           userId: user.id,
           title: 'Candidature envoyée',
-          content: `Votre candidature pour "${serviceRequest.title}" a été envoyée avec succès`,
+          message: `Votre candidature pour "${serviceRequest.title}" a été envoyée avec succès`,
           type: 'SERVICE_APPLICATION_SENT',
-          priority: 'LOW'
+          data: {}
         }
       })
 

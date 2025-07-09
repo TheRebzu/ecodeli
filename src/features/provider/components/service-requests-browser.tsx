@@ -70,6 +70,16 @@ export function ServiceRequestsBrowser() {
   const handleApply = async () => {
     if (!selectedServiceRequest) return
 
+    // Validation côté client
+    if (!applicationForm.message.trim() || applicationForm.message.length < 10) {
+      toast({
+        title: 'Message invalide',
+        description: 'Le message doit faire au moins 10 caractères',
+        variant: 'destructive'
+      })
+      return
+    }
+
     const success = await applyToServiceRequest(selectedServiceRequest.id, applicationForm)
     
     if (success) {
@@ -107,6 +117,14 @@ export function ServiceRequestsBrowser() {
     const typeInfo = getServiceTypeInfo(serviceRequest.serviceType)
     const urgencyInfo = getUrgencyInfo(serviceRequest.urgency)
 
+    // Debug: Afficher les données du client
+    console.log('🔍 ServiceRequestCard - Données client:', {
+      id: serviceRequest.id,
+      title: serviceRequest.title,
+      client: serviceRequest.client,
+      clientProfile: serviceRequest.client?.profile
+    })
+
     return (
       <Card className="h-full">
         <CardHeader className="pb-3">
@@ -118,7 +136,7 @@ export function ServiceRequestsBrowser() {
                 <div className="flex items-center gap-2 text-sm text-gray-600">
                   <User className="w-4 h-4" />
                   <span>
-                    {serviceRequest.client?.profile.firstName} {serviceRequest.client?.profile.lastName}
+                    {serviceRequest.client?.profile?.firstName || 'Client'} {serviceRequest.client?.profile?.lastName || 'Anonyme'}
                   </span>
                 </div>
               </div>
@@ -340,7 +358,13 @@ export function ServiceRequestsBrowser() {
                   message: e.target.value
                 })}
                 rows={4}
+                className={applicationForm.message.length > 0 && applicationForm.message.length < 10 ? "border-red-500" : ""}
               />
+              {applicationForm.message.length > 0 && applicationForm.message.length < 10 && (
+                <p className="mt-1 text-sm text-red-600">
+                  Le message doit faire au moins 10 caractères
+                </p>
+              )}
             </div>
             
             <div className="flex gap-2 pt-4">
@@ -354,7 +378,7 @@ export function ServiceRequestsBrowser() {
               <Button 
                 onClick={handleApply}
                 className="flex-1"
-                disabled={!applicationForm.message.trim()}
+                disabled={!applicationForm.message.trim() || applicationForm.message.length < 10}
               >
                 Envoyer candidature
               </Button>

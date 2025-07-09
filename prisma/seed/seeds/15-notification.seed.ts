@@ -207,7 +207,7 @@ export async function seedNotifications(ctx: SeedContext) {
         userId: user.id,
         type: 'SYSTEM',
         title: notificationTemplates.SYSTEM.WELCOME.title,
-        content: notificationTemplates.SYSTEM.WELCOME.content,
+        message: notificationTemplates.SYSTEM.WELCOME.content,
         priority: notificationTemplates.SYSTEM.WELCOME.priority,
         status: 'READ', // Anciennes notifications déjà lues
         readAt: new Date(user.createdAt.getTime() + 60 * 60 * 1000), // Lue 1h après inscription
@@ -237,7 +237,7 @@ export async function seedNotifications(ctx: SeedContext) {
           userId: client.id,
           type: 'DELIVERY',
           title: notificationTemplates.DELIVERY.DELIVERY_ACCEPTED.title,
-          content: notificationTemplates.DELIVERY.DELIVERY_ACCEPTED.content
+          message: notificationTemplates.DELIVERY.DELIVERY_ACCEPTED.content
             .replace('{destination}', delivery.deliveryCity)
             .replace('{deliverer}', deliverer.user.profile?.firstName || 'un livreur'),
           priority: 'high',
@@ -261,7 +261,7 @@ export async function seedNotifications(ctx: SeedContext) {
           userId: client.id,
           type: 'DELIVERY',
           title: notificationTemplates.DELIVERY.DELIVERY_COLLECTED.title,
-          content: notificationTemplates.DELIVERY.DELIVERY_COLLECTED.content,
+          message: notificationTemplates.DELIVERY.DELIVERY_COLLECTED.content,
           priority: 'normal',
           status: 'READ',
           readAt: delivery.actualPickupAt || new Date(),
@@ -283,7 +283,7 @@ export async function seedNotifications(ctx: SeedContext) {
           userId: client.id,
           type: 'DELIVERY',
           title: notificationTemplates.DELIVERY.DELIVERY_COMPLETED.title,
-          content: notificationTemplates.DELIVERY.DELIVERY_COMPLETED.content
+          message: notificationTemplates.DELIVERY.DELIVERY_COMPLETED.content
             .replace('{code}', delivery.validationCode),
           priority: 'high',
           status: 'READ',
@@ -304,7 +304,7 @@ export async function seedNotifications(ctx: SeedContext) {
           userId: deliverer.user.id,
           type: 'PAYMENT',
           title: notificationTemplates.PAYMENT.PAYMENT_RECEIVED.title,
-          content: notificationTemplates.PAYMENT.PAYMENT_RECEIVED.content
+          message: notificationTemplates.PAYMENT.PAYMENT_RECEIVED.content
             .replace('{amount}', delivery.delivererEarnings.toString()),
           priority: 'normal',
           status: Math.random() > 0.3 ? 'READ' : 'UNREAD',
@@ -337,7 +337,7 @@ export async function seedNotifications(ctx: SeedContext) {
           userId: provider.user.id,
           type: 'BOOKING',
           title: notificationTemplates.BOOKING.NEW_BOOKING.title,
-          content: notificationTemplates.BOOKING.NEW_BOOKING.content
+          message: notificationTemplates.BOOKING.NEW_BOOKING.content
             .replace('{service}', service?.name || 'service')
             .replace('{date}', booking.scheduledDate.toLocaleDateString('fr-FR')),
           priority: 'high',
@@ -363,7 +363,7 @@ export async function seedNotifications(ctx: SeedContext) {
           userId: booking.clientId,
           type: 'BOOKING',
           title: notificationTemplates.BOOKING.BOOKING_CONFIRMED.title,
-          content: notificationTemplates.BOOKING.BOOKING_CONFIRMED.content
+          message: notificationTemplates.BOOKING.BOOKING_CONFIRMED.content
             .replace('{service}', service?.name || 'service'),
           priority: 'normal',
           status: 'READ',
@@ -388,7 +388,7 @@ export async function seedNotifications(ctx: SeedContext) {
           userId: deliverer.id,
           type: 'VALIDATION',
           title: notificationTemplates.VALIDATION.ACCOUNT_ACTIVATED.title,
-          content: notificationTemplates.VALIDATION.ACCOUNT_ACTIVATED.content,
+          message: notificationTemplates.VALIDATION.ACCOUNT_ACTIVATED.content,
           priority: 'high',
           status: 'READ',
           readAt: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000),
@@ -404,7 +404,7 @@ export async function seedNotifications(ctx: SeedContext) {
           userId: deliverer.id,
           type: 'VALIDATION',
           title: notificationTemplates.VALIDATION.DOCUMENT_REJECTED.title,
-          content: notificationTemplates.VALIDATION.DOCUMENT_REJECTED.content
+          message: notificationTemplates.VALIDATION.DOCUMENT_REJECTED.content
             .replace('{document}', 'permis de conduire')
             .replace('{reason}', 'Document illisible'),
           priority: 'high',
@@ -432,7 +432,7 @@ export async function seedNotifications(ctx: SeedContext) {
           userId: providerData.provider.userId,
           type: 'SYSTEM',
           title: notificationTemplates.SYSTEM.MONTHLY_INVOICE.title,
-          content: notificationTemplates.SYSTEM.MONTHLY_INVOICE.content
+          message: notificationTemplates.SYSTEM.MONTHLY_INVOICE.content
             .replace('{month}', monthNames[(currentMonth - 1 + 12) % 12]),
           priority: 'normal',
           status: Math.random() > 0.7 ? 'UNREAD' : 'READ',

@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useRouter } from "next/navigation"
 import { useTranslations } from "next-intl"
-import { createServiceSchema } from '@/features/services/schemas/service.schema'
+import { createServiceRequestSchema } from '@/features/services/schemas/service-request.schema'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -67,7 +67,7 @@ type CreateServiceRequestData = {
 
 export function CreateServiceRequestForm() {
   const [isLoading, setIsLoading] = useState(false)
-  const [selectedType, setSelectedType] = useState('HOME_CLEANING')
+  const [selectedType, setSelectedType] = useState('HOME_SERVICE')
   const router = useRouter()
   const t = useTranslations()
   const { toast } = useToast()
@@ -79,9 +79,9 @@ export function CreateServiceRequestForm() {
     watch,
     setValue
   } = useForm<CreateServiceRequestData>({
-    resolver: zodResolver(createServiceSchema),
+    resolver: zodResolver(createServiceRequestSchema),
     defaultValues: {
-      type: 'HOME_CLEANING',
+      type: 'HOME_SERVICE',
       urgency: 'NORMAL',
       budget: 50,
       duration: 120,
@@ -104,21 +104,14 @@ export function CreateServiceRequestForm() {
   // Suggestion de budget basée sur le type et la durée
   const getSuggestedBudget = (type: string, duration: number) => {
     const rates = {
-      'HOME_CLEANING': 25, // €/heure
-      'GARDENING': 20,
-      'HANDYMAN': 35,
-      'PET_SITTING': 15,
-      'PET_WALKING': 10,
-      'TUTORING': 30,
-      'BEAUTY_HOME': 40,
-      'PERSONAL_SHOPPING': 20,
-      'ELDERLY_CARE': 25,
-      'CHILDCARE': 18,
-      'HOUSE_SITTING': 15,
-      'MOVING_HELP': 25,
-      'ASSEMBLY': 30,
-      'COOKING': 35,
-      'PERSONAL_TRAINING': 45
+      'HOME_SERVICE': 25, // €/heure
+      'PET_CARE': 15,
+      'PERSON_TRANSPORT': 20,
+      'AIRPORT_TRANSFER': 30,
+      'SHOPPING': 15,
+      'INTERNATIONAL_PURCHASE': 25,
+      'CART_DROP': 20,
+      'OTHER': 25
     }
     
     const hourlyRate = rates[type as keyof typeof rates] || 25
@@ -129,6 +122,8 @@ export function CreateServiceRequestForm() {
     setIsLoading(true)
 
     try {
+      console.log('📝 Envoi des données:', data)
+      
       const response = await fetch('/api/client/service-requests', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -136,6 +131,7 @@ export function CreateServiceRequestForm() {
       })
 
       const result = await response.json()
+      console.log('📝 Réponse API:', result)
 
       if (!response.ok) {
         toast({
@@ -153,6 +149,7 @@ export function CreateServiceRequestForm() {
 
       router.push('/client/service-requests')
     } catch (err) {
+      console.error('❌ Erreur lors de la soumission:', err)
       toast({
         title: "❌ Erreur",
         description: 'Une erreur est survenue lors de la création',
@@ -165,67 +162,60 @@ export function CreateServiceRequestForm() {
 
   const serviceTypes = [
     { 
-      value: 'HOME_CLEANING', 
-      label: 'Ménage à domicile', 
+      value: 'HOME_SERVICE', 
+      label: 'Services à domicile', 
       icon: Home, 
-      description: 'Nettoyage, aspirateur, serpillière, rangement',
+      description: 'Ménage, jardinage, bricolage, cours particuliers',
       color: 'bg-blue-500'
     },
     { 
-      value: 'GARDENING', 
-      label: 'Jardinage', 
-      icon: Scissors, 
-      description: 'Tonte, taille, plantations, entretien',
-      color: 'bg-green-500'
-    },
-    { 
-      value: 'HANDYMAN', 
-      label: 'Bricolage', 
-      icon: Wrench, 
-      description: 'Réparations, montage, petits travaux',
-      color: 'bg-orange-500'
-    },
-    { 
-      value: 'PET_SITTING', 
+      value: 'PET_CARE', 
       label: 'Garde d\'animaux', 
       icon: Heart, 
-      description: 'Garde à domicile, alimentation, soins',
+      description: 'Garde à domicile, promenades, soins',
       color: 'bg-pink-500'
     },
     { 
-      value: 'PET_WALKING', 
-      label: 'Promenade d\'animaux', 
-      icon: Heart, 
-      description: 'Sortie et exercice pour vos animaux',
-      color: 'bg-red-500'
+      value: 'PERSON_TRANSPORT', 
+      label: 'Transport de personnes', 
+      icon: Users, 
+      description: 'Accompagnement, transport quotidien',
+      color: 'bg-green-500'
     },
     { 
-      value: 'TUTORING', 
-      label: 'Cours particuliers', 
-      icon: BookOpen, 
-      description: 'Soutien scolaire, formations',
+      value: 'AIRPORT_TRANSFER', 
+      label: 'Transfert aéroport', 
+      icon: Sparkles, 
+      description: 'Transport vers/depuis l\'aéroport',
       color: 'bg-purple-500'
     },
     { 
-      value: 'BEAUTY_HOME', 
-      label: 'Soins esthétiques', 
-      icon: Sparkles, 
-      description: 'Coiffure, manucure, soins à domicile',
-      color: 'bg-violet-500'
-    },
-    { 
-      value: 'ELDERLY_CARE', 
-      label: 'Accompagnement seniors', 
-      icon: Users, 
-      description: 'Aide aux personnes âgées, compagnie',
-      color: 'bg-indigo-500'
-    },
-    { 
-      value: 'PERSONAL_SHOPPING', 
-      label: 'Courses personnalisées', 
+      value: 'SHOPPING', 
+      label: 'Courses', 
       icon: ShoppingCart, 
-      description: 'Achat selon vos préférences spécifiques',
+      description: 'Courses sur mesure, achats',
+      color: 'bg-orange-500'
+    },
+    { 
+      value: 'INTERNATIONAL_PURCHASE', 
+      label: 'Achats internationaux', 
+      icon: BookOpen, 
+      description: 'Import de produits',
+      color: 'bg-red-500'
+    },
+    { 
+      value: 'CART_DROP', 
+      label: 'Lâcher de chariot', 
+      icon: Wrench, 
+      description: 'Livraison depuis magasin',
       color: 'bg-yellow-500'
+    },
+    { 
+      value: 'OTHER', 
+      label: 'Autres services', 
+      icon: Scissors, 
+      description: 'Services personnalisés',
+      color: 'bg-gray-500'
     }
   ]
 

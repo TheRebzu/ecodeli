@@ -98,6 +98,11 @@ export function ProviderSidebar({ collapsed, user }: ProviderSidebarProps) {
           icon: BookOpen
         },
         {
+          label: 'Mes interventions',
+          href: '/provider/interventions',
+          icon: CheckCircle
+        },
+        {
           label: 'Tarifs',
           href: '/provider/services/rates',
           icon: DollarSign

@@ -60,6 +60,20 @@ interface InterventionManagerProps {
   providerId: string;
 }
 
+// Fonction utilitaire robuste pour formater la date
+function formatDate(dateString: string) {
+  if (!dateString) return "-";
+  const date = new Date(dateString);
+  if (isNaN(date.getTime())) return "-";
+  return date.toLocaleDateString('fr-FR', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+}
+
 export function InterventionManager({ providerId }: InterventionManagerProps) {
   const t = useTranslations("provider.interventions");
   const [interventions, setInterventions] = useState<Intervention[]>([]);
@@ -384,7 +398,7 @@ function InterventionCard({ intervention, onStatusUpdate, onViewDetails, onCompl
           <div className="flex items-center gap-2">
             <Calendar className="h-4 w-4 text-gray-500" />
             <span className="text-sm">
-              {new Date(intervention.scheduledDate).toLocaleDateString()}
+              {formatDate(intervention.scheduledDate)}
             </span>
           </div>
           <div className="flex items-center gap-2">
@@ -411,7 +425,7 @@ function InterventionCard({ intervention, onStatusUpdate, onViewDetails, onCompl
               <Eye className="h-4 w-4" />
             </Button>
             
-            {intervention.status === "scheduled" && (
+            {['scheduled', 'confirmed'].includes(intervention.status) && (
               <Button 
                 size="sm" 
                 onClick={() => onStatusUpdate(intervention.id, "in_progress")}
@@ -488,7 +502,7 @@ function InterventionList({
                 </TableCell>
                 <TableCell>{intervention.client.name}</TableCell>
                 <TableCell>
-                  {new Date(intervention.scheduledDate).toLocaleDateString()}
+                  {formatDate(intervention.scheduledDate)}
                 </TableCell>
                 <TableCell>{getStatusBadge(intervention.status)}</TableCell>
                 <TableCell>{intervention.price}€</TableCell>
