@@ -675,6 +675,7 @@ model Provider {
   Availability          Availability[]
   ProviderCertification ProviderCertification[]
   ServiceWarranty       ServiceWarranty[]
+  applications          ServiceApplication[]
 
   @@index([userId])
 }
@@ -703,6 +704,28 @@ model Service {
   @@index([providerId])
   @@index([type])
   @@index([isActive])
+}
+
+model ServiceApplication {
+  id                 String   @id @default(cuid())
+  serviceRequestId   String
+  providerId         String
+  proposedPrice      Float
+  estimatedDuration  Int      // en minutes
+  message            String
+  status             String   @default("PENDING") // PENDING, ACCEPTED, REJECTED, WITHDRAWN
+  availableDates     String[] // dates disponibles pour le prestataire
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  // Relations
+  serviceRequest Announcement @relation(fields: [serviceRequestId], references: [id], onDelete: Cascade)
+  provider       Provider     @relation(fields: [providerId], references: [id], onDelete: Cascade)
+
+  @@index([serviceRequestId])
+  @@index([providerId])
+  @@index([status])
+  @@unique([serviceRequestId, providerId]) // Un prestataire ne peut candidater qu'une fois
 }
 
 model ProviderAvailability {
@@ -928,6 +951,7 @@ model Announcement {
   ReverseAuction      ReverseAuction?
   AnnouncementGroup   AnnouncementGroup[]
   GroupingProposal    GroupingProposal[]
+  applications        ServiceApplication[]
 
   @@index([authorId])
   @@index([delivererId])

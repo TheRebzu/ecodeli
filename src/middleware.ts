@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import createIntlMiddleware from 'next-intl/middleware'
 import { auth } from "@/lib/auth"
+import { db } from "@/lib/db"
 
 const intlMiddleware = createIntlMiddleware({
   locales: ['fr', 'en'],
@@ -102,6 +103,24 @@ export default async function middleware(request: NextRequest) {
       }
       
       const user = session.user
+
+      // Vérification/création automatique du profil utilisateur
+      try {
+        const existingProfile = await db.profile.findUnique({ where: { userId: user.id } })
+        if (!existingProfile) {
+          await db.profile.create({
+            data: {
+              userId: user.id,
+              firstName: user.firstName || '',
+              lastName: user.lastName || '',
+              verified: false
+            }
+          })
+          console.log(`✅ Profil créé automatiquement pour l'utilisateur ${user.id}`)
+        }
+      } catch (profileError) {
+        console.error('Erreur lors de la vérification/création du profil utilisateur:', profileError)
+      }
       
       // Vérifier les permissions selon le rôle (Mission 1)
       const roleChecks = [

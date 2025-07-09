@@ -197,42 +197,42 @@
     "solutions_de_stockage_temporaire": "Solutions de stockage temporaire",
     "4_inscription_et_compte": "4. Inscription et compte utilisateur",
     "5_responsabilits": "5. Responsabilités",
-    "6_contact": "6. Contact",
-    "serviceRequests": {
-      "pageTitle": "Demandes de Services",
-      "pageDescription": "Gérez vos demandes de services à la personne",
-      "title": "Demandes de Services",
-      "description": "Consultez et gérez vos demandes de services à la personne",
-      "createNew": "Créer une nouvelle demande",
-      "noRequests": "Aucune demande de service trouvée",
-      "filters": {
-        "title": "Filtres",
-        "status": "Statut",
-        "type": "Type",
-        "budget": "Budget",
-        "city": "Ville",
-        "date": "Date",
-        "urgency": "Urgence",
-        "recurring": "Récurrent"
-      },
-      "status": {
-        "all": "Tous",
-        "draft": "Brouillon",
-        "active": "Active",
-        "in_progress": "En cours",
-        "completed": "Terminée",
-        "cancelled": "Annulée"
-      },
-      "types": {
-        "all": "Tous les types",
-        "cleaning": "Ménage",
-        "gardening": "Jardinage",
-        "handyman": "Bricolage",
-        "tutoring": "Cours particuliers",
-        "healthcare": "Soins",
-        "beauty": "Beauté",
-        "other": "Autre"
-      }
+    "6_contact": "6. Contact"
+  },
+  "serviceRequests": {
+    "pageTitle": "Demandes de Services",
+    "pageDescription": "Gérez vos demandes de services à la personne",
+    "title": "Demandes de Services",
+    "description": "Consultez et gérez vos demandes de services à la personne",
+    "createNew": "Créer une nouvelle demande",
+    "noRequests": "Aucune demande de service trouvée",
+    "filters": {
+      "title": "Filtres",
+      "status": "Statut",
+      "type": "Type",
+      "budget": "Budget",
+      "city": "Ville",
+      "date": "Date",
+      "urgency": "Urgence",
+      "recurring": "Récurrent"
+    },
+    "status": {
+      "all": "Tous",
+      "draft": "Brouillon",
+      "active": "Active",
+      "in_progress": "En cours",
+      "completed": "Terminée",
+      "cancelled": "Annulée"
+    },
+    "types": {
+      "all": "Tous les types",
+      "cleaning": "Ménage",
+      "gardening": "Jardinage",
+      "handyman": "Bricolage",
+      "tutoring": "Cours particuliers",
+      "healthcare": "Soins",
+      "beauty": "Beauté",
+      "other": "Autre"
     }
   },
   "auth": {

@@ -2,6 +2,7 @@ import { NextRequest } from 'next/server'
 import { db } from '@/lib/db'
 import { auth } from '@/lib/auth'
 import { headers } from 'next/headers'
+import { prisma } from '@/lib/db'
 
 /**
  * Utilitaires d'authentification compatibles EcoDeli + NextAuth
@@ -264,30 +265,65 @@ export async function getCurrentUserAPI(request: NextRequest) {
  * - Utilise NextAuth pour récupérer la session
  */
 export async function getCurrentUser() {
-  try {
-    const session = await auth()
+  const session = await auth()
+  
+  if (!session?.user?.id) {
+    return null
+  }
 
-    if (!session?.user?.email) {
+  try {
+    // Récupérer l'utilisateur avec son profil
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      include: {
+        profile: true,
+        provider: true,
+        deliverer: true,
+        merchant: true,
+        client: true
+      }
+    })
+
+    if (!user) {
       return null
     }
 
-    const includeRelations: any = {
-      profile: true,
-      client: true,
-      deliverer: true,
-      merchant: true,
-      provider: true,
-      admin: true
-    }
+    // Vérifier et réparer automatiquement si l'utilisateur n'a pas de profil
+    if (!user.profile) {
+      console.log(`🔧 Réparation automatique du profil pour l'utilisateur ${user.email} (${user.id})`)
+      
+      const profile = await prisma.profile.create({
+        data: {
+          userId: user.id,
+          firstName: user.email.split('@')[0], // Utiliser la partie avant @ comme prénom par défaut
+          lastName: 'Utilisateur',
+          phone: '0000000000',
+          address: 'Adresse non spécifiée',
+          city: 'Ville non spécifiée',
+          postalCode: '00000',
+          country: 'France',
+          verified: false
+        }
+      })
 
-    const user = await db.user.findUnique({
-      where: { email: session.user.email },
-      include: includeRelations
-    })
+      console.log(`✅ Profil créé pour ${user.email}: ${profile.id}`)
+
+      // Recharger l'utilisateur avec le nouveau profil
+      return await prisma.user.findUnique({
+        where: { id: session.user.id },
+        include: {
+          profile: true,
+          provider: true,
+          deliverer: true,
+          merchant: true,
+          client: true
+        }
+      })
+    }
 
     return user
   } catch (error) {
-    console.error('Error in getCurrentUser:', error)
+    console.error('Erreur lors de la récupération/réparation de l\'utilisateur:', error)
     return null
   }
 } 

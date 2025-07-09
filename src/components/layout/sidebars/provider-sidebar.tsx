@@ -93,6 +93,11 @@ export function ProviderSidebar({ collapsed, user }: ProviderSidebarProps) {
           icon: BookOpen
         },
         {
+          label: 'Demandes de services',
+          href: '/provider/service-requests',
+          icon: BookOpen
+        },
+        {
           label: 'Tarifs',
           href: '/provider/services/rates',
           icon: DollarSign
