@@ -17,12 +17,12 @@ import {
   CheckCircle,
   Search,
   Filter,
-  Refresh,
   Phone,
   Navigation,
   Package,
   User,
-  Calendar
+  Calendar,
+  RotateCcw
 } from "lucide-react";
 import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -377,7 +377,7 @@ export default function DeliveryMonitoringDashboard({ adminId }: DeliveryMonitor
           <div className="flex items-center justify-between">
             <CardTitle>{t("control_panel.title")}</CardTitle>
             <Button onClick={fetchMonitoringData} size="sm">
-              <Refresh className="w-4 h-4 mr-2" />
+                              <RotateCcw className="w-4 h-4 mr-2" />
               {t("control_panel.refresh")}
             </Button>
           </div>

@@ -226,6 +226,52 @@
           "next": "Next",
           "page": "Page {page} of {pages}"
         }
+      },
+      "deliveries": {
+        "monitoring": {
+          "page": {
+            "title": "Delivery Monitoring",
+            "description": "Real-time tracking of deliveries and active deliverers"
+          },
+          "stats": {
+            "active_deliveries": "Active deliveries",
+            "since_yesterday": "since yesterday",
+            "active_deliverers": "Active deliverers",
+            "out_of_total": "out of total",
+            "avg_delivery_time": "Average delivery time",
+            "average_completion": "Average completion rate",
+            "success_rate": "Success rate",
+            "today_deliveries": "Today's deliveries",
+            "pending_deliveries": "Pending deliveries",
+            "completed_today": "Completed today",
+            "cancelled_today": "Cancelled today",
+            "delayed_deliveries": "Delayed deliveries"
+          },
+          "control_panel": {
+            "title": "Control Panel"
+          },
+          "delivery": {
+            "id": "ID",
+            "deliverer": "Deliverer",
+            "client": "Client",
+            "pickup": "Pickup point",
+            "destination": "Destination",
+            "created": "Created on",
+            "estimated": "Estimated for"
+          },
+          "status": {
+            "pending": "Pending",
+            "in_transit": "In transit",
+            "delivered": "Delivered",
+            "cancelled": "Cancelled"
+          },
+          "priority": {
+            "low": "Low",
+            "medium": "Medium",
+            "high": "High",
+            "urgent": "Urgent"
+          }
+        }
       }
     },
     "dashboard": "Dashboard",

@@ -2547,6 +2547,52 @@
           "next": "Suivant",
           "page": "Page {page} sur {pages}"
         }
+      },
+      "deliveries": {
+        "monitoring": {
+          "page": {
+            "title": "Monitoring des Livraisons",
+            "description": "Suivi en temps réel des livraisons et des livreurs actifs"
+          },
+          "stats": {
+            "active_deliveries": "Livraisons actives",
+            "since_yesterday": "depuis hier",
+            "active_deliverers": "Livreurs actifs",
+            "out_of_total": "sur le total",
+            "avg_delivery_time": "Temps moyen de livraison",
+            "average_completion": "Taux de complétion moyen",
+            "success_rate": "Taux de réussite",
+            "today_deliveries": "Livraisons aujourd'hui",
+            "pending_deliveries": "Livraisons en attente",
+            "completed_today": "Terminées aujourd'hui",
+            "cancelled_today": "Annulées aujourd'hui",
+            "delayed_deliveries": "Livraisons en retard"
+          },
+          "control_panel": {
+            "title": "Panneau de Contrôle"
+          },
+          "delivery": {
+            "id": "ID",
+            "deliverer": "Livreur",
+            "client": "Client",
+            "pickup": "Point de collecte",
+            "destination": "Destination",
+            "created": "Créée le",
+            "estimated": "Estimée pour le"
+          },
+          "status": {
+            "pending": "En attente",
+            "in_transit": "En cours",
+            "delivered": "Livrée",
+            "cancelled": "Annulée"
+          },
+          "priority": {
+            "low": "Faible",
+            "medium": "Moyenne",
+            "high": "Élevée",
+            "urgent": "Urgente"
+          }
+        }
       }
     }
   },

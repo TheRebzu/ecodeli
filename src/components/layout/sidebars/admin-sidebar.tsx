@@ -20,7 +20,16 @@ import {
   Database,
   TestTube,
   FileCheck,
-  AlertTriangle
+  AlertTriangle,
+  MessageSquare,
+  CreditCard,
+  MapPin,
+  Monitor,
+  Handshake,
+  FileImage,
+  TrendingUp,
+  Bell,
+  Heart
 } from 'lucide-react';
 import { type EcoDeliUser } from '../types/layout.types';
 
@@ -48,9 +57,7 @@ export function AdminSidebar({ user, collapsed, onToggle, className }: AdminSide
   const common = useTranslations('common');
 
   const navigationItems: NavigationItem[] = [
-    // ===== FONCTIONNALITÉS COMPLÈTES =====
-    
-    // Dashboard principal
+    // ===== DASHBOARD PRINCIPAL =====
     {
       key: 'dashboard',
       label: t('dashboard'),
@@ -58,173 +65,201 @@ export function AdminSidebar({ user, collapsed, onToggle, className }: AdminSide
       icon: <BarChart3 className="h-4 w-4" />,
       category: 'main'
     },
-    
-    // Vérifications et Documents - SYSTÈME COMPLET
+
+    // ===== GESTION DES UTILISATEURS =====
+    {
+      key: 'users',
+      label: 'Gestion Utilisateurs',
+      href: '/admin/users',
+      icon: <Users className="h-4 w-4" />,
+      category: 'users'
+    },
+
+    // ===== VÉRIFICATIONS ET DOCUMENTS =====
     {
       key: 'verifications',
-      label: t('verifications.title'),
+      label: 'Vérifications',
       href: '/admin/verifications',
       icon: <CheckCircle className="h-4 w-4" />,
       category: 'validation',
-      badge: '3', // TODO: dynamic count
+      badge: '3',
       children: [
         {
           key: 'verifications-pending',
-          label: t('verifications.pending'),
+          label: 'En attente',
           href: '/admin/verifications/pending',
           icon: <Clock className="h-4 w-4" />,
           badge: '3'
         },
         {
           key: 'verifications-approved',
-          label: t('verifications.approved'),
+          label: 'Approuvées',
           href: '/admin/verifications/approved',
           icon: <CheckCircle className="h-4 w-4" />
         },
         {
           key: 'verifications-rejected',
-          label: t('verifications.rejected'),
+          label: 'Rejetées',
           href: '/admin/verifications/rejected',
           icon: <FileX className="h-4 w-4" />
-        },
-        {
-          key: 'verifications-incomplete',
-          label: t('verifications.incomplete'),
-          href: '/admin/verifications/incomplete',
-          icon: <AlertTriangle className="h-4 w-4" />
         }
       ]
     },
 
-    // Gestion des utilisateurs - FONCTIONNEL
+    // ===== DOCUMENTS =====
     {
-      key: 'users',
-      label: t('users.title'),
-      href: '/admin/users',
-      icon: <Users className="h-4 w-4" />,
-      category: 'users'
+      key: 'documents',
+      label: 'Documents',
+      href: '/admin/documents',
+      icon: <FileImage className="h-4 w-4" />,
+      category: 'validation'
     },
 
-    // Livraisons - VUE D'ENSEMBLE DISPONIBLE
+    // ===== LIVRAISONS =====
     {
       key: 'deliveries',
-      label: t('deliveries.title'),
+      label: 'Livraisons',
       href: '/admin/deliveries',
       icon: <Package className="h-4 w-4" />,
       category: 'operations'
     },
 
-    // Tests Admin - FONCTIONNEL
+    {
+      key: 'deliveries-monitoring',
+      label: 'Monitoring Livraisons',
+      href: '/admin/deliveries-monitoring',
+      icon: <Monitor className="h-4 w-4" />,
+      category: 'operations'
+    },
+
+    // ===== ANNONCES =====
+    {
+      key: 'announcements',
+      label: 'Annonces',
+      href: '/admin/announcements',
+      icon: <FileText className="h-4 w-4" />,
+      category: 'content'
+    },
+
+    // ===== LITIGES =====
+    {
+      key: 'disputes',
+      label: 'Litiges',
+      href: '/admin/disputes',
+      icon: <MessageSquare className="h-4 w-4" />,
+      category: 'support'
+    },
+
+    // ===== MODÉRATION =====
+    {
+      key: 'moderation',
+      label: 'Modération',
+      href: '/admin/moderation',
+      icon: <Shield className="h-4 w-4" />,
+      category: 'content'
+    },
+
+    // ===== FINANCE =====
+    {
+      key: 'finance',
+      label: 'Finance',
+      href: '/admin/finance',
+      icon: <DollarSign className="h-4 w-4" />,
+      category: 'finance'
+    },
+
+    {
+      key: 'billing',
+      label: 'Facturation',
+      href: '/admin/billing',
+      icon: <CreditCard className="h-4 w-4" />,
+      category: 'finance'
+    },
+
+    // ===== FACTURATION PRESTATAIRES =====
+    {
+      key: 'provider-billing',
+      label: 'Facturation Prestataires',
+      href: '/admin/provider-billing',
+      icon: <TrendingUp className="h-4 w-4" />,
+      category: 'finance'
+    },
+
+    // ===== CONTRATS =====
+    {
+      key: 'contracts',
+      label: 'Contrats',
+      href: '/admin/contracts',
+      icon: <Handshake className="h-4 w-4" />,
+      category: 'business'
+    },
+
+    // ===== ENTREPÔTS =====
+    {
+      key: 'locations',
+      label: 'Entrepôts',
+      href: '/admin/locations',
+      icon: <Building className="h-4 w-4" />,
+      category: 'infrastructure'
+    },
+
+    // ===== ASSURANCE =====
+    {
+      key: 'insurance',
+      label: 'Assurance',
+      href: '/admin/insurance',
+      icon: <Heart className="h-4 w-4" />,
+      category: 'business'
+    },
+
+    // ===== PARRAINAGE =====
+    {
+      key: 'referrals',
+      label: 'Parrainage',
+      href: '/admin/referrals',
+      icon: <UserCheck className="h-4 w-4" />,
+      category: 'marketing'
+    },
+
+    // ===== MONITORING =====
+    {
+      key: 'monitoring',
+      label: 'Monitoring',
+      href: '/admin/monitoring',
+      icon: <Activity className="h-4 w-4" />,
+      category: 'system'
+    },
+
+    // ===== CONFIGURATION SYSTÈME =====
+    {
+      key: 'system-config',
+      label: 'Configuration Système',
+      href: '/admin/system-config',
+      icon: <Settings className="h-4 w-4" />,
+      category: 'system'
+    },
+
+    // ===== PARAMÈTRES =====
+    {
+      key: 'settings',
+      label: 'Paramètres',
+      href: '/admin/settings',
+      icon: <Settings className="h-4 w-4" />,
+      category: 'system'
+    },
+
+    // ===== TESTS =====
     {
       key: 'tests',
       label: 'Tests Admin',
       href: '/admin/tests',
       icon: <TestTube className="h-4 w-4" />,
       category: 'development'
-    },
-
-    // ===== FONCTIONNALITÉS EN DÉVELOPPEMENT =====
-    // Note: Ces sections ont des API mais pas d'interface complète
-
-    // Finance - API DISPONIBLE, interface en cours
-    {
-      key: 'finance',
-      label: t('finance.title') + ' (Dev)',
-      href: '#',
-      icon: <DollarSign className="h-4 w-4" />,
-      category: 'development',
-      disabled: true,
-      children: [
-        {
-          key: 'finance-note',
-          label: 'API disponible - Interface en cours',
-          href: '#',
-          icon: <Database className="h-4 w-4" />,
-          disabled: true
-        }
-      ]
-    },
-
-    // Contrats - API DISPONIBLE
-    {
-      key: 'contracts',
-      label: 'Contrats (API)',
-      href: '#',
-      icon: <FileText className="h-4 w-4" />,
-      category: 'development',
-      disabled: true
-    },
-
-    // Settings/Configuration - API DISPONIBLE
-    {
-      key: 'settings',
-      label: t('system.settings') + ' (API)',
-      href: '#',
-      icon: <Settings className="h-4 w-4" />,
-      category: 'development',
-      disabled: true
-    },
-
-    // ===== ENDPOINTS API DISPONIBLES =====
-    {
-      key: 'api-info',
-      label: '📡 APIs Disponibles',
-      href: '#',
-      icon: <Database className="h-4 w-4" />,
-      category: 'development',
-      disabled: true,
-      children: [
-        {
-          key: 'api-payments',
-          label: '• Payments API',
-          href: '#',
-          icon: <DollarSign className="h-4 w-4" />,
-          disabled: true
-        },
-        {
-          key: 'api-announcements',
-          label: '• Announcements API',
-          href: '#',
-          icon: <Package className="h-4 w-4" />,
-          disabled: true
-        },
-        {
-          key: 'api-services',
-          label: '• Services API',
-          href: '#',
-          icon: <Activity className="h-4 w-4" />,
-          disabled: true
-        },
-        {
-          key: 'api-support',
-          label: '• Support API',
-          href: '#',
-          icon: <FileText className="h-4 w-4" />,
-          disabled: true
-        },
-        {
-          key: 'api-referral',
-          label: '• Referral API',
-          href: '#',
-          icon: <UserCheck className="h-4 w-4" />,
-          disabled: true
-        },
-        {
-          key: 'api-push',
-          label: '• Push Notifications API',
-          href: '#',
-          icon: <Activity className="h-4 w-4" />,
-          disabled: true
-        }
-      ]
     }
   ];
 
   return (
     <BaseSidebar
-      title="EcoDeli Admin"
-      subtitle={`Admin Panel`}
-      icon={<Shield className="h-6 w-6" />}
       role="ADMIN"
       user={user}
       navigationItems={navigationItems}
