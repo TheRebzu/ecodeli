@@ -16,6 +16,15 @@ model Provider {
   activatedAt       DateTime?
   lastActiveAt      DateTime?
   zone              Json?               // Zone de service {coordinates: [], radius: km}
+  
+  // Statut autoentrepreneur obligatoire
+  legalStatus       String              @default("AUTOENTREPRENEUR") // AUTOENTREPRENEUR, SASU, EURL, etc.
+  vatNumber         String?             // Numéro de TVA si applicable
+  insuranceProvider  String?            // Nom de l'assureur
+  insurancePolicy   String?             // Numéro de police d'assurance
+  insuranceExpiry   DateTime?           // Date d'expiration de l'assurance
+  insuranceDocument String?             // URL du document d'assurance
+  
   createdAt         DateTime            @default(now())
   updatedAt         DateTime            @updatedAt
 
@@ -31,8 +40,10 @@ model Provider {
   timeSlots         ProviderTimeSlot[]
   monthlyInvoices   ProviderMonthlyInvoice[]
   availabilityBlocks ProviderAvailabilityBlock[]
+  contracts         ProviderContract[]
 
   @@index([userId])
+  @@index([legalStatus])
 }
 
 model Service {
@@ -179,4 +190,43 @@ model ProviderInvoiceIntervention {
   @@index([invoiceId])
   @@index([interventionId])
   @@unique([invoiceId, interventionId])
+}
+
+model ProviderContract {
+  id                String              @id @default(cuid())
+  providerId        String
+  contractType      ContractType        @default(STANDARD)
+  status            ContractStatus      @default(DRAFT)
+  commissionRate    Float               @default(0.15) // Commission EcoDeli
+  startDate         DateTime
+  endDate           DateTime?
+  signedAt          DateTime?
+  signedByProvider  Boolean             @default(false)
+  signedByEcoDeli   Boolean             @default(false)
+  contractUrl       String?             // URL du PDF du contrat
+  terms             Json?               // Termes et conditions
+  notes             String?
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  // Relations
+  provider          Provider            @relation(fields: [providerId], references: [id], onDelete: Cascade)
+
+  @@index([providerId])
+  @@index([status])
+  @@index([contractType])
+}
+
+enum ContractType {
+  STANDARD
+  PREMIUM
+  CUSTOM
+}
+
+enum ContractStatus {
+  DRAFT
+  PENDING_SIGNATURE
+  ACTIVE
+  EXPIRED
+  TERMINATED
 }

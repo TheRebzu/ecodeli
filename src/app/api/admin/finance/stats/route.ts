@@ -164,7 +164,7 @@ async function calculateFinancialStats(dateRange: { startDate: Date; endDate: Da
       const currentMonth = new Date(endDate.getFullYear(), endDate.getMonth(), 1)
       return paymentDate >= currentMonth && paymentDate <= endDate
     }).length,
-    completed: allPayments.filter(p => p.status === 'PAID').length,
+          completed: allPayments.filter(p => p.status === 'COMPLETED').length,
     pending: allPayments.filter(p => p.status === 'PENDING').length,
     failed: allPayments.filter(p => p.status === 'FAILED').length
   }

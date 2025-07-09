@@ -67,7 +67,7 @@ export async function GET(request: NextRequest) {
     }, 0)
 
     const paidEarnings = completedDeliveries
-      .filter(d => d.payment?.status === 'PAID')
+      .filter(d => d.payment?.status === 'COMPLETED')
       .reduce((sum, delivery) => {
         const price = Number(delivery.announcement.finalPrice || delivery.announcement.basePrice)
         const delivererEarning = price * 0.85

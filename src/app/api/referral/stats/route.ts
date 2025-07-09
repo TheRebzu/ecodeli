@@ -35,7 +35,7 @@ export async function GET(request: NextRequest) {
 
     // Calculer les métriques
     const totalEarnings = referralRewards
-      .filter(reward => reward.status === 'PAID')
+              .filter(reward => reward.status === 'COMPLETED')
       .reduce((sum, reward) => sum + reward.amount, 0)
 
     const pendingRewards = referralRewards

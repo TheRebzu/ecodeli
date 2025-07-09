@@ -23,7 +23,8 @@ export const seedOrder = {
   '09-delivery': ['08-announcement', '04-deliverer'],
   '10a-delivery-validation': ['09-delivery'],
   '10-booking': ['06-provider', '03-client'],
-  '11-payment': ['09-delivery', '10-booking'],
+  '20-provider-bookings': ['10-booking'],
+  '11-payment': ['09-delivery', '10-booking', '20-provider-bookings'],
   '12-invoice': ['11-payment', '10-booking'],
   '13-location': ['01-users'],
   '14-document': ['04-deliverer', '06-provider'],
@@ -122,6 +123,10 @@ export const seedDependencies: SeedDependency[] = [
   {
     name: '10-booking',
     fn: async (ctx) => (await import('../seeds/10-booking.seed')).seedBookings(ctx)
+  },
+  {
+    name: '20-provider-bookings',
+    fn: async (ctx) => (await import('../seeds/20-provider-bookings.seed')).seedProviderBookings()
   },
   {
     name: '11-payment',

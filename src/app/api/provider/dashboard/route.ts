@@ -94,14 +94,14 @@ export async function GET(request: NextRequest) {
     )
 
     const totalEarnings = completedServices.reduce((sum, service) => {
-      if (service.payment?.status === 'PAID') {
+      if (service.payment?.status === 'COMPLETED') {
         return sum + Number(service.payment.amount)
       }
       return sum
     }, 0)
 
     const thisMonthEarnings = thisMonthServices.reduce((sum, service) => {
-      if (service.payment?.status === 'PAID') {
+      if (service.payment?.status === 'COMPLETED') {
         return sum + Number(service.payment.amount)
       }
       return sum

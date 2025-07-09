@@ -11,39 +11,44 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get('userId');
-    const month = parseInt(searchParams.get('month') || '0');
-    const year = parseInt(searchParams.get('year') || '0');
+    const month = parseInt(searchParams.get('month') || String(new Date().getMonth() + 1));
+    const year = parseInt(searchParams.get('year') || String(new Date().getFullYear()));
 
     if (!userId || userId !== currentUser.id) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    if (!month || !year) {
-      return NextResponse.json({ error: 'Month and year are required' }, { status: 400 });
+    // Récupérer le profil prestataire
+    const provider = await prisma.provider.findUnique({
+      where: { userId: currentUser.id }
+    });
+
+    if (!provider) {
+      return NextResponse.json({ error: 'Profil prestataire non trouvé' }, { status: 404 });
     }
 
     // Calculate billing period
     const startDate = new Date(year, month - 1, 1);
     const endDate = new Date(year, month, 0);
     
-    // Get completed bookings for the month
+    // Get completed bookings for the month with PAID payments
     const bookings = await prisma.booking.findMany({
       where: {
-        service: {
-          providerId: userId
-        },
+        providerId: provider.id, // Utiliser providerId au lieu de service.providerId
         status: 'COMPLETED',
         scheduledDate: {
           gte: startDate,
           lte: endDate
+        },
+        payment: {
+          status: 'COMPLETED' // Ne compter que les paiements confirmés
         }
       },
       include: {
         client: {
-          select: {
+          include: {
             user: {
-              select: {
-                email: true,
+              include: {
                 profile: {
                   select: {
                     firstName: true,
@@ -59,13 +64,19 @@ export async function GET(request: NextRequest) {
             name: true,
             basePrice: true
           }
+        },
+        payment: {
+          select: {
+            amount: true,
+            status: true
+          }
         }
       }
     });
 
-    // Calculate totals
+    // Calculate totals using actual payment amounts
     const totalRevenue = bookings.reduce((sum, booking) => {
-      return sum + (booking.totalPrice || booking.service.basePrice || 0);
+      return sum + Number(booking.payment?.amount || 0);
     }, 0);
 
     const platformCommissionRate = 0.15; // 15% commission
@@ -77,7 +88,7 @@ export async function GET(request: NextRequest) {
 
     // Transform bookings for response
     const bookingBreakdown = bookings.map(booking => {
-      const amount = booking.totalPrice || booking.service.basePrice || 0;
+      const amount = Number(booking.payment?.amount || 0);
       const commission = amount * platformCommissionRate;
       const clientName = booking.client.user.profile 
         ? `${booking.client.user.profile.firstName || ''} ${booking.client.user.profile.lastName || ''}`.trim()
@@ -86,7 +97,7 @@ export async function GET(request: NextRequest) {
       return {
         id: booking.id,
         clientName: clientName || 'Client',
-        serviceName: booking.service.name,
+        serviceName: booking.service?.name || 'Service',
         date: booking.scheduledDate.toISOString(),
         amount: amount,
         commission: commission,
@@ -106,16 +117,23 @@ export async function GET(request: NextRequest) {
       status = 'PENDING'; // Ready for generation
     }
 
+    // Calcul du pourcentage d'avancement du mois
+    const today = new Date();
+    const daysInMonth = new Date(year, month, 0).getDate();
+    const dayOfMonth = isCurrentMonth ? today.getDate() : daysInMonth;
+    const monthProgress = Math.round((dayOfMonth / daysInMonth) * 100);
+
     const monthlyBilling = {
       month: new Date(year, month - 1).toLocaleDateString('fr-FR', { month: 'long' }),
       year: year,
       status: status,
+      monthProgress: monthProgress,
       totalRevenue: totalRevenue,
       platformFee: platformFee + processingFees,
       netAmount: netAmount,
       taxAmount: taxAmount,
       completedBookings: bookings.length,
-      invoiceNumber: isPastMonth ? `INV-${year}-${month.toString().padStart(2, '0')}-${userId.slice(-6)}` : undefined,
+      invoiceNumber: isPastMonth ? `INV-${year}-${month.toString().padStart(2, '0')}-${provider.id.slice(-6)}` : undefined,
       generatedAt: isPastMonth ? endDate.toISOString() : undefined,
       billingPeriod: {
         startDate: startDate.toISOString(),

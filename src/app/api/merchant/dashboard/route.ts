@@ -65,7 +65,7 @@ export async function GET(request: NextRequest) {
       totalRevenue: allAnnouncements.reduce((sum, announcement) => {
         if (announcement.delivery && 
             announcement.delivery.status === 'DELIVERED' && 
-            announcement.delivery.payment?.status === 'PAID') {
+            announcement.delivery.payment?.status === 'COMPLETED') {
           return sum + Number(announcement.delivery.payment?.amount || 0)
         }
         return sum
@@ -89,7 +89,7 @@ export async function GET(request: NextRequest) {
       revenue: thisMonthAnnouncements.reduce((sum, announcement) => {
         if (announcement.delivery && 
             announcement.delivery.status === 'DELIVERED' && 
-            announcement.delivery.payment?.status === 'PAID') {
+            announcement.delivery.payment?.status === 'COMPLETED') {
           return sum + Number(announcement.delivery.payment?.amount || 0)
         }
         return sum
