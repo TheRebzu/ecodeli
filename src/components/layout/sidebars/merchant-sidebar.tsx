@@ -177,23 +177,72 @@ export function MerchantSidebar({ collapsed, user }: MerchantSidebarProps) {
       ]
     },
     {
-      label: 'Statistiques',
+      label: 'Analytics',
       href: '/merchant/analytics',
       icon: BarChart3,
       submenu: [
+        {
+          label: 'Vue d\'ensemble',
+          href: '/merchant/analytics',
+          icon: BarChart3
+        },
         {
           label: 'Ventes',
           href: '/merchant/analytics/sales',
           icon: TrendingUp
         },
         {
-          label: 'Produits',
-          href: '/merchant/analytics/products',
-          icon: Package
+          label: 'Clients',
+          href: '/merchant/analytics/customers',
+          icon: User
         },
         {
           label: 'Livraisons',
           href: '/merchant/analytics/deliveries',
+          icon: Truck
+        }
+      ]
+    },
+    {
+      label: 'Clients',
+      href: '/merchant/customers',
+      icon: User,
+      submenu: [
+        {
+          label: 'Base clients',
+          href: '/merchant/customers',
+          icon: User
+        },
+        {
+          label: 'Segmentation',
+          href: '/merchant/customers/segments',
+          icon: BarChart3
+        },
+        {
+          label: 'Communication',
+          href: '/merchant/customers/communication',
+          icon: Bell
+        }
+      ]
+    },
+    {
+      label: 'Inventaire',
+      href: '/merchant/inventory',
+      icon: Package,
+      submenu: [
+        {
+          label: 'Catalogue',
+          href: '/merchant/inventory',
+          icon: Package
+        },
+        {
+          label: 'Stock',
+          href: '/merchant/inventory/stock',
+          icon: Package
+        },
+        {
+          label: 'Fournisseurs',
+          href: '/merchant/inventory/suppliers',
           icon: Truck
         }
       ]

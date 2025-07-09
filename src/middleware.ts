@@ -121,8 +121,9 @@ export default async function middleware(request: NextRequest) {
         }
       }
       
-      // Vérifier si le compte est actif (Mission 1)
-      if (!user.isActive && user.role !== 'ADMIN') {
+      // Vérifier si le compte est actif selon le rôle (Mission 1)
+      const requiresActiveStatus = ['DELIVERER', 'PROVIDER']
+      if (!user.isActive && requiresActiveStatus.includes(user.role)) {
         const locale = pathname.split('/')[1] || 'fr'
         return NextResponse.redirect(new URL(`/${locale}/onboarding`, request.url))
       }

@@ -62,7 +62,10 @@ export const config = {
           validationStatus: user.validationStatus
         })
         
-        if (!user.isActive && user.role !== "ADMIN") {
+        // Règles de validation par rôle
+        const requiresActiveStatus = ['DELIVERER', 'PROVIDER']
+        
+        if (!user.isActive && requiresActiveStatus.includes(user.role)) {
           console.log('Utilisateur bloqué - isActive:', user.isActive, 'role:', user.role)
           throw new Error("Compte en attente de validation")
         }
@@ -86,7 +89,6 @@ export const config = {
   },
   pages: {
     signIn: "/fr/login",
-    signUp: "/fr/register",
     error: "/fr/auth/error",
   },
   callbacks: {
@@ -118,8 +120,10 @@ export const config = {
       return session
     },
     async signIn({ user, account, profile }) {
-      // Vérifier si l'utilisateur est actif
-      if (!user.isActive && user.role !== "ADMIN") {
+      // Règles de validation par rôle
+      const requiresActiveStatus = ['DELIVERER', 'PROVIDER']
+      
+      if (!user.isActive && requiresActiveStatus.includes(user.role)) {
         return false
       }
 
@@ -183,7 +187,7 @@ declare module "next-auth" {
   }
 }
 
-declare module "next-auth/jwt" {
+declare module "@auth/core/jwt" {
   interface JWT {
     role: UserRole
     isActive: boolean
@@ -224,7 +228,10 @@ export async function requireActiveUser() {
     throw new Error("Unauthorized")
   }
   
-  if (!session.user.isActive && session.user.role !== "ADMIN") {
+  // Règles de validation par rôle
+  const requiresActiveStatus = ['DELIVERER', 'PROVIDER']
+  
+  if (!session.user.isActive && requiresActiveStatus.includes(session.user.role)) {
     throw new Error("Account pending validation")
   }
   
