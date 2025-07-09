@@ -259,8 +259,10 @@ model User {
   notifications       Notification[]
 
   // Relations pour litiges et enchères
-  disputesReported     Dispute[]               @relation("DisputeReporter")
-  disputesReceived     Dispute[]               @relation("DisputeReported")
+  disputesAsClient     Dispute[]               @relation("DisputeClient")
+  disputesAsDeliverer  Dispute[]               @relation("DisputeDeliverer")
+  disputesCreated      Dispute[]               @relation("DisputeCreatedBy")
+  disputeTimeline      DisputeTimeline[]       @relation("DisputeTimelineAuthor")
   auctionBids          AuctionBid[]
   deliveryGroups       DeliveryGroup[]
   groupingProposals    GroupingProposal[]
@@ -888,7 +890,6 @@ model Announcement {
   Merchant            Merchant?                  @relation(fields: [merchantId], references: [id])
   merchantId          String?
   Order               Order?
-  Dispute             Dispute[]
   ReverseAuction      ReverseAuction?
   AnnouncementGroup   AnnouncementGroup[]
   GroupingProposal    GroupingProposal[]
@@ -1112,6 +1113,7 @@ model Delivery {
   ProofOfDelivery       ProofOfDelivery?
   SupportTicket         SupportTicket[]
   DeliveryWarranty      DeliveryWarranty?
+  disputes              Dispute[]
 
   @@index([clientId])
   @@index([delivererId])
@@ -3230,47 +3232,43 @@ enum CampaignStatus {
 
 model Dispute {
   id             String          @id @default(cuid())
-  announcementId String
-  reporterId     String
-  reportedUserId String
-  category       DisputeCategory
-  reason         String
+  title          String
   description    String
-  evidenceFiles  String[] // URLs des fichiers de preuve
-  priority       DisputePriority
+  type           DisputeType
   status         DisputeStatus   @default(OPEN)
-  ticketNumber   String          @unique
-
+  priority       DisputePriority @default(MEDIUM)
+  
+  // Parties impliquées
+  clientId       String
+  delivererId    String
+  deliveryId     String
+  amount         Float
+  
   // Résolution
-  resolution         DisputeResolution?
-  adminNotes         String?
-  compensationAmount Float?
-  penaltyAmount      Float?
-  actionTaken        String[] // Actions prises
-
-  // Timestamps et suivi
-  createdAt               DateTime  @default(now())
-  updatedAt               DateTime  @updatedAt
-  estimatedResolutionDate DateTime
-  resolvedAt              DateTime?
-  escalatedAt             DateTime?
-
-  // Assignation
-  lastUpdatedBy    String?
-  resolvedBy       String?
-  escalatedBy      String?
-  escalationReason String?
-
+  resolution     String?
+  resolutionType DisputeResolutionType?
+  compensation   DisputeCompensation?
+  sanction       DisputeSanction?
+  
+  // Timestamps
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  resolvedAt     DateTime?
+  
   // Relations
-  announcement Announcement @relation(fields: [announcementId], references: [id], onDelete: Cascade)
-  reporter     User         @relation("DisputeReporter", fields: [reporterId], references: [id])
-  reportedUser User         @relation("DisputeReported", fields: [reportedUserId], references: [id])
+  client         User            @relation("DisputeClient", fields: [clientId], references: [id])
+  deliverer      User            @relation("DisputeDeliverer", fields: [delivererId], references: [id])
+  delivery       Delivery        @relation(fields: [deliveryId], references: [id])
+  timeline       DisputeTimeline[]
+  createdBy      String?
+  createdByUser  User?           @relation("DisputeCreatedBy", fields: [createdBy], references: [id])
 
-  @@index([announcementId])
   @@index([status])
+  @@index([type])
   @@index([priority])
-  @@index([category])
   @@index([createdAt])
+  @@index([clientId])
+  @@index([delivererId])
 }
 
 // Enchères inversées
@@ -3472,4 +3470,61 @@ enum ProposalStatus {
   DECLINE
   EXPIRED
   CANCELLED
+}
+
+// Timeline des litiges
+model DisputeTimeline {
+  id         String           @id @default(cuid())
+  disputeId  String
+  type       DisputeTimelineType
+  authorId   String
+  content    String
+  status     String?
+  
+  // Timestamps
+  createdAt  DateTime         @default(now())
+  
+  // Relations
+  dispute    Dispute          @relation(fields: [disputeId], references: [id], onDelete: Cascade)
+  author     User             @relation("DisputeTimelineAuthor", fields: [authorId], references: [id])
+
+  @@index([disputeId])
+  @@index([createdAt])
+  @@index([type])
+}
+
+// Enums pour les nouveaux types de litiges
+enum DisputeType {
+  DELIVERY_ISSUE
+  PAYMENT_DISPUTE
+  SERVICE_QUALITY
+  CANCELLATION
+  OTHER
+}
+
+enum DisputeResolutionType {
+  RESOLVED_CLIENT_FAVOR
+  RESOLVED_DELIVERER_FAVOR
+  PARTIAL_RESOLUTION
+  CANCELLED
+}
+
+enum DisputeCompensation {
+  FULL_REFUND
+  PARTIAL_REFUND
+  CREDIT
+  NONE
+}
+
+enum DisputeSanction {
+  WARNING
+  SUSPENSION
+  BAN
+  NONE
+}
+
+enum DisputeTimelineType {
+  COMMENT
+  STATUS_CHANGE
+  RESOLUTION
 }

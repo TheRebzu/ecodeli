@@ -1,0 +1,112 @@
+// Modèle pour les litiges
+model Dispute {
+  id             String          @id @default(cuid())
+  title          String
+  description    String
+  type           DisputeType
+  status         DisputeStatus   @default(OPEN)
+  priority       DisputePriority @default(MEDIUM)
+  
+  // Parties impliquées
+  clientId       String
+  delivererId    String
+  deliveryId     String
+  amount         Float
+  
+  // Résolution
+  resolution     String?
+  resolutionType DisputeResolutionType?
+  compensation   DisputeCompensation?
+  sanction       DisputeSanction?
+  
+  // Timestamps
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  resolvedAt     DateTime?
+  
+  // Relations
+  client         User            @relation("DisputeClient", fields: [clientId], references: [id])
+  deliverer      User            @relation("DisputeDeliverer", fields: [delivererId], references: [id])
+  delivery       Delivery        @relation(fields: [deliveryId], references: [id])
+  timeline       DisputeTimeline[]
+  createdBy      String?
+  createdByUser  User?           @relation("DisputeCreatedBy", fields: [createdBy], references: [id])
+
+  @@index([status])
+  @@index([type])
+  @@index([priority])
+  @@index([createdAt])
+  @@index([clientId])
+  @@index([delivererId])
+}
+
+// Timeline des litiges
+model DisputeTimeline {
+  id         String           @id @default(cuid())
+  disputeId  String
+  type       DisputeTimelineType
+  authorId   String
+  content    String
+  status     String?
+  
+  // Timestamps
+  createdAt  DateTime         @default(now())
+  
+  // Relations
+  dispute    Dispute          @relation(fields: [disputeId], references: [id], onDelete: Cascade)
+  author     User             @relation("DisputeTimelineAuthor", fields: [authorId], references: [id])
+
+  @@index([disputeId])
+  @@index([createdAt])
+  @@index([type])
+}
+
+// Enums pour les litiges
+enum DisputeType {
+  DELIVERY_ISSUE
+  PAYMENT_DISPUTE
+  SERVICE_QUALITY
+  CANCELLATION
+  OTHER
+}
+
+enum DisputeStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
+}
+
+enum DisputePriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum DisputeResolutionType {
+  RESOLVED_CLIENT_FAVOR
+  RESOLVED_DELIVERER_FAVOR
+  PARTIAL_RESOLUTION
+  CANCELLED
+}
+
+enum DisputeCompensation {
+  FULL_REFUND
+  PARTIAL_REFUND
+  CREDIT
+  NONE
+}
+
+enum DisputeSanction {
+  WARNING
+  SUSPENSION
+  BAN
+  NONE
+}
+
+enum DisputeTimelineType {
+  COMMENT
+  STATUS_CHANGE
+  RESOLUTION
+} 
