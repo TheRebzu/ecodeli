@@ -68,10 +68,21 @@ export interface ProviderHeaderProps extends BaseHeaderProps {
   pendingRequests?: number;
 }
 
+// Navigation Item
+export interface NavigationItem {
+  key: string;
+  label: string;
+  href: string;
+  icon?: string;
+  children?: NavigationItem[];
+}
+
 // Public Header
 export interface PublicHeaderProps {
   className?: string;
   showAuth?: boolean;
+  showLanguageSwitcher?: boolean;
+  showThemeToggle?: boolean;
 }
 
 // Page Header

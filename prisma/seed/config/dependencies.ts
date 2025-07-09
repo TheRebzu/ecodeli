@@ -41,6 +41,7 @@ export const seedOrder = {
   '23-referral': ['01-users'],
   '24-disputes': ['09-delivery', '10-booking'],
   '25-analytics': ['09-delivery', '10-booking', '11-payment'],
+  '26-merchant-products': ['05-merchant'],
 }
 
 // Ordre d'exécution calculé automatiquement
@@ -179,5 +180,9 @@ export const seedDependencies: SeedDependency[] = [
   {
     name: '25-analytics',
     fn: async (ctx) => (await import('../seeds/25-analytics.seed')).seedAnalytics(ctx)
+  },
+  {
+    name: '26-merchant-products',
+    fn: async (ctx) => (await import('../seeds/26-merchant-products.seed')).seedMerchantProducts(ctx)
   },
 ] 

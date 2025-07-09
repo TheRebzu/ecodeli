@@ -1,3 +1,5 @@
+'use client'
+
 /**
  * Header public EcoDeli - Version refactorisée
  * Pour les utilisateurs non connectés et les pages publiques
@@ -19,7 +21,7 @@ import {
   NavigationMenuTrigger,
 } from '@/components/ui/navigation-menu'
 import { Button } from '@/components/ui/button'
-import { type PublicHeaderProps, type NavigationItem } from '../types/layout.types'
+import { type PublicHeaderProps, type NavigationItem } from '../types'
 
 // Configuration de navigation publique
 const getPublicNavigation = (t: any): NavigationItem[] => [
@@ -219,9 +221,17 @@ export function PublicHeader({
 
       {/* Menu mobile */}
       <MobileMenu
-        isOpen={mobileMenuOpen}
+        items={navigationItems.map(item => ({
+          key: item.key,
+          label: item.label,
+          href: item.href,
+          children: item.children?.map(child => ({
+            key: child.key,
+            label: child.label,
+            href: child.href
+          }))
+        }))}
         onClose={() => setMobileMenuOpen(false)}
-        navigationItems={navigationItems}
       />
     </>
   )

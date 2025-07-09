@@ -1,3 +1,5 @@
+'use client'
+
 /**
  * Sidebar de base pour EcoDeli
  * Utilise le composant Sidebar de shadcn/ui avec des améliorations spécifiques à EcoDeli

@@ -19,11 +19,43 @@ model Merchant {
   contract          Contract?
   announcements     Announcement[]
   orders            Order[]
+  products          Product[]
   cartDropConfig    CartDropConfig?
   payments          Payment[]           @relation("MerchantPayments")
   
   @@index([userId])
   @@index([siret])
+}
+
+model Product {
+  id                String              @id @default(cuid())
+  merchantId        String
+  name              String
+  description       String?
+  price             Float
+  originalPrice     Float?
+  sku               String?             @unique
+  category          String?
+  brand             String?
+  weight            Float?              // en kg
+  dimensions        Json?               // {length, width, height}
+  images            String[]            // URLs des images
+  isActive          Boolean             @default(true)
+  stockQuantity     Int                 @default(0)
+  minStockAlert     Int                 @default(5)
+  tags              String[]
+  metadata          Json?               // Données supplémentaires
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  // Relations
+  merchant          Merchant            @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  orderItems        OrderItem[]
+
+  @@index([merchantId])
+  @@index([category])
+  @@index([isActive])
+  @@index([sku])
 }
 
 model CartDropConfig {
@@ -71,6 +103,7 @@ model Order {
 model OrderItem {
   id                String              @id @default(cuid())
   orderId           String
+  productId         String?
   name              String
   quantity          Int
   unitPrice         Float
@@ -79,6 +112,8 @@ model OrderItem {
 
   // Relations
   order             Order               @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product           Product?            @relation(fields: [productId], references: [id])
   
   @@index([orderId])
+  @@index([productId])
 }
