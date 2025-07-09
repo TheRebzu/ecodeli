@@ -33,50 +33,25 @@ export async function GET(request: NextRequest) {
 
     console.log('📝 Paramètres de recherche services:', params)
 
-    // Construire la clause WHERE pour SERVICES UNIQUEMENT
-    const where: any = { 
-      client: { userId: user.id } // Services demandés par ce client
+    // Construction des filtres
+    const where: any = {
+      isActive: true
     }
-    
-    if (params.status) where.status = params.status
-    if (params.type) where.type = params.type
-    if (params.category) where.category = params.category
-    if (params.urgent !== undefined) where.isUrgent = params.urgent
-    if (params.requiresCertification !== undefined) where.requiresCertification = params.requiresCertification
-    
-    if (params.city) {
-      where.address = { contains: params.city, mode: 'insensitive' }
+
+    // Filtres optionnels
+    if (params.type) {
+      where.type = params.type
     }
-    
-    // Filtres de prix
+
     if (params.priceMin || params.priceMax) {
       where.basePrice = {}
-      if (params.priceMin) where.basePrice.gte = params.priceMin
-      if (params.priceMax) where.basePrice.lte = params.priceMax
-    }
-    
-    // Filtres de date
-    if (params.dateFrom || params.dateTo) {
-      where.scheduledDate = {}
-      if (params.dateFrom) where.scheduledDate.gte = new Date(params.dateFrom)
-      if (params.dateTo) where.scheduledDate.lte = new Date(params.dateTo)
+      if (params.priceMin) where.basePrice.gte = parseFloat(params.priceMin)
+      if (params.priceMax) where.basePrice.lte = parseFloat(params.priceMax)
     }
 
-    // Construire l'ordre de tri
-    const orderBy: any = {}
-    if (params.sortBy === 'scheduledDate') {
-      orderBy.scheduledDate = params.sortOrder
-    } else if (params.sortBy === 'basePrice') {
-      orderBy.basePrice = params.sortOrder
-    } else if (params.sortBy === 'duration') {
-      orderBy.estimatedDuration = params.sortOrder
-    } else {
-      orderBy.createdAt = params.sortOrder
-    }
+    console.log('🔍 Requête base de données avec filtres pour services à la personne...')
 
     try {
-      console.log('🔍 Requête base de données avec filtres pour services à la personne...')
-      
       const [services, total] = await Promise.all([
         db.service.findMany({
           where,
@@ -86,132 +61,72 @@ export async function GET(request: NextRequest) {
                 user: {
                   include: {
                     profile: {
-                      select: { firstName: true, lastName: true, avatar: true }
+                      select: {
+                        firstName: true,
+                        lastName: true,
+                        avatar: true
+                      }
                     }
                   }
                 }
               }
             },
             bookings: {
-              where: { clientId: user.id },
+              where: {
+                clientId: user.id
+              },
               include: {
                 client: {
                   include: {
-                    profile: {
-                      select: { firstName: true, lastName: true, avatar: true }
+                    user: {
+                      include: {
+                        profile: {
+                          select: {
+                            firstName: true,
+                            lastName: true,
+                            avatar: true
+                          }
+                        }
+                      }
                     }
                   }
                 }
               }
-            },
-            reviews: {
-              where: { clientId: user.id },
-              select: {
-                id: true,
-                rating: true,
-                comment: true,
-                createdAt: true
-              }
             }
           },
-          orderBy,
+          orderBy: {
+            [params.sortBy || 'createdAt']: params.sortOrder || 'desc'
+          },
           skip: (params.page - 1) * params.limit,
           take: params.limit
         }),
         db.service.count({ where })
       ])
 
-      console.log(`✅ Trouvé ${services.length} services à la personne sur ${total} total`)
+      console.log(`✅ Services trouvés: ${services.length} sur un total de ${total}`)
 
-      const result = {
-        services: services.map(service => ({
-          id: service.id,
-          name: service.name,
-          description: service.description,
-          type: service.type,
-          category: service.category,
-          basePrice: Number(service.basePrice),
-          priceUnit: service.priceUnit,
-          duration: service.duration,
-          isActive: service.isActive,
-          averageRating: Number(service.averageRating),
-          totalBookings: service.totalBookings,
-          isUrgent: service.isUrgent || false,
-          requiresCertification: service.requiresCertification || false,
-          createdAt: service.createdAt.toISOString(),
-          updatedAt: service.updatedAt.toISOString(),
-          
-          provider: service.provider ? {
-            id: service.provider.id,
-            businessName: service.provider.businessName,
-            averageRating: Number(service.provider.averageRating),
-            totalBookings: service.provider.totalBookings,
-            user: {
-              id: service.provider.user.id,
-              name: service.provider.user.profile 
-                ? `${service.provider.user.profile.firstName || ''} ${service.provider.user.profile.lastName || ''}`.trim()
-                : service.provider.user.email,
-              avatar: service.provider.user.profile?.avatar
-            }
-          } : null,
-          
-          bookings: service.bookings.map(booking => ({
-            id: booking.id,
-            status: booking.status,
-            scheduledDate: booking.scheduledDate.toISOString(),
-            scheduledTime: booking.scheduledTime,
-            totalPrice: Number(booking.totalPrice),
-            createdAt: booking.createdAt.toISOString()
-          })),
-          
-          reviews: service.reviews
-        })),
-        
+      return NextResponse.json({
+        services,
         pagination: {
           page: params.page,
           limit: params.limit,
           total,
-          totalPages: Math.ceil(total / params.limit),
-          hasNext: params.page < Math.ceil(total / params.limit),
-          hasPrev: params.page > 1
-        },
-        
-        stats: {
-          totalValue: services.reduce((sum, s) => sum + Number(s.basePrice), 0),
-          averagePrice: total > 0 ? services.reduce((sum, s) => sum + Number(s.basePrice), 0) / total : 0,
-          byStatus: await db.booking.groupBy({
-            by: ['status'],
-            where: { clientId: user.id },
-            _count: { status: true }
-          }),
-          byType: await db.service.groupBy({
-            by: ['type'],
-            where: { bookings: { some: { clientId: user.id } } },
-            _count: { type: true }
-          })
+          totalPages: Math.ceil(total / params.limit)
         }
-      }
+      })
 
-      return NextResponse.json(result)
-      
-    } catch (dbError: any) {
+    } catch (dbError) {
       console.error('❌ Erreur base de données:', dbError)
-      return NextResponse.json({ 
-        error: 'Database error', 
-        details: dbError?.message || 'Unknown database error'
-      }, { status: 500 })
+      return NextResponse.json(
+        { error: 'Erreur lors de la récupération des services' },
+        { status: 500 }
+      )
     }
 
-  } catch (error: any) {
-    console.error('❌ Erreur générale GET services:', error)
-    
-    // Si c'est une erreur d'authentification, retourner 403
-    if (error?.message?.includes('Accès refusé')) {
-      return NextResponse.json({ error: error.message }, { status: 403 })
-    }
-    
+  } catch (error) {
+    console.error('❌ Erreur générale:', error)
     return NextResponse.json(
-      { error: 'Internal server error', details: error?.message || 'Unknown error' },
+      { error: 'Erreur interne du serveur' },
       { status: 500 }
     )
   }

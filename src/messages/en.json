@@ -667,5 +667,60 @@
         "document_deleted": "Document deleted successfully"
       }
     }
+  },
+  "serviceRequests": {
+    "pageTitle": "Service Requests",
+    "pageDescription": "Manage your personal service requests",
+    "title": "Service Requests",
+    "description": "View and manage your personal service requests",
+    "createNew": "Create new request",
+    "noRequests": "No service requests found",
+    "filters": {
+      "title": "Filters",
+      "status": "Status",
+      "type": "Type",
+      "budget": "Budget",
+      "city": "City",
+      "date": "Date",
+      "urgency": "Urgency",
+      "recurring": "Recurring"
+    },
+    "status": {
+      "all": "All",
+      "draft": "Draft",
+      "active": "Active",
+      "in_progress": "In Progress",
+      "completed": "Completed",
+      "cancelled": "Cancelled"
+    },
+    "types": {
+      "all": "All types",
+      "cleaning": "Cleaning",
+      "gardening": "Gardening",
+      "handyman": "Handyman",
+      "tutoring": "Tutoring",
+      "healthcare": "Healthcare",
+      "beauty": "Beauty",
+      "other": "Other"
+    }
+  },
+  "services": {
+    "title": "My Service Requests",
+    "subtitle": "Manage your personal service requests",
+    "newRequest": "New request",
+    "loading": "Loading...",
+    "searchPlaceholder": "Search requests...",
+    "allTypes": "All types",
+    "allStatuses": "All statuses",
+    "viewDetails": "View details",
+    "edit": "Edit",
+    "budget": "Budget",
+    "scheduledFor": "Scheduled for",
+    "recurring": "Recurring",
+    "confirmDelete": "Are you sure you want to delete this request?",
+    "deleteSuccess": "Request deleted",
+    "deleteSuccessDesc": "The request has been deleted successfully",
+    "deleteError": "Delete error",
+    "deleteErrorDesc": "An error occurred while deleting the request"
   }
 }

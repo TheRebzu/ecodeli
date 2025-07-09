@@ -3,11 +3,11 @@ import { getTranslations } from "next-intl/server"
 import { ServiceRequestsManager } from "@/features/services/components/service-requests-manager"
 
 export async function generateMetadata(): Promise<Metadata> {
-  const t = await getTranslations()
+  const t = await getTranslations('serviceRequests')
   
   return {
-    title: t("serviceRequests.pageTitle"),
-    description: t("serviceRequests.pageDescription")
+    title: t("pageTitle"),
+    description: t("pageDescription")
   }
 }
 

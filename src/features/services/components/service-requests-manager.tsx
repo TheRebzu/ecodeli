@@ -111,7 +111,7 @@ export function ServiceRequestsManager() {
   const ServiceRequestCard = ({ serviceRequest }: { serviceRequest: ServiceRequest }) => {
     const typeInfo = getServiceTypeInfo(serviceRequest.serviceType)
     const statusInfo = statusConfig[serviceRequest.status as keyof typeof statusConfig]
-    const urgencyInfo = urgencyConfig[serviceRequest.urgency as keyof typeof urgencyConfig]
+    const urgencyInfo = urgencyConfig[serviceRequest.urgency as keyof typeof urgencyConfig] || urgencyConfig.NORMAL
     const Icon = typeInfo.icon
 
     return (
@@ -133,7 +133,7 @@ export function ServiceRequestsManager() {
               <Badge className={statusInfo.color}>
                 {statusInfo.label}
               </Badge>
-              {serviceRequest.urgency !== 'NORMAL' && (
+              {serviceRequest.urgency && serviceRequest.urgency !== 'NORMAL' && urgencyInfo && (
                 <Badge className={`ml-2 ${urgencyInfo.color}`}>
                   {urgencyInfo.label}
                 </Badge>
