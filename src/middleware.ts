@@ -113,7 +113,7 @@ export default async function middleware(request: NextRequest) {
               userId: user.id,
               firstName: user.firstName || '',
               lastName: user.lastName || '',
-              verified: false
+              isVerified: false
             }
           })
           console.log(`✅ Profil créé automatiquement pour l'utilisateur ${user.id}`)

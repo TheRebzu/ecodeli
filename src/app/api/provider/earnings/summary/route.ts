@@ -17,6 +17,15 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
+    // Récupérer le profil Provider
+    const provider = await prisma.provider.findUnique({
+      where: { userId: userId }
+    });
+
+    if (!provider) {
+      return NextResponse.json({ error: 'Provider profile not found' }, { status: 404 });
+    }
+
     // Calculate date ranges
     const now = new Date();
     const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -25,85 +34,108 @@ export async function GET(request: NextRequest) {
     const previousMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0);
     const yearStart = new Date(now.getFullYear(), 0, 1);
 
-    // Get current month bookings
-    const currentMonthBookings = await prisma.booking.findMany({
+    // Get current month interventions
+    const currentMonthInterventions = await prisma.serviceIntervention.findMany({
       where: {
-        service: {
-          providerId: userId
-        },
-        status: 'COMPLETED',
+        providerId: provider.id,
+        status: { in: ['COMPLETED'] }, // Seulement les interventions terminées
         scheduledDate: {
           gte: currentMonthStart,
           lte: currentMonthEnd
         }
       },
       include: {
-        service: {
-          select: {
-            name: true,
-            basePrice: true
-          }
-        }
+        payment: true
       }
     });
 
-    // Get previous month bookings
-    const previousMonthBookings = await prisma.booking.findMany({
+    // Get previous month interventions
+    const previousMonthInterventions = await prisma.serviceIntervention.findMany({
       where: {
-        service: {
-          providerId: userId
-        },
-        status: 'COMPLETED',
+        providerId: provider.id,
+        status: { in: ['COMPLETED'] },
         scheduledDate: {
           gte: previousMonthStart,
           lte: previousMonthEnd
         }
+      },
+      include: {
+        payment: true
       }
     });
 
-    // Get year to date bookings
-    const yearBookings = await prisma.booking.findMany({
+    // Get year to date interventions
+    const yearInterventions = await prisma.serviceIntervention.findMany({
       where: {
-        service: {
-          providerId: userId
-        },
-        status: 'COMPLETED',
+        providerId: provider.id,
+        status: { in: ['COMPLETED'] },
         scheduledDate: {
           gte: yearStart,
           lte: now
         }
       },
       include: {
-        service: {
-          select: {
-            name: true,
-            basePrice: true
-          }
+        payment: true
+      }
+    });
+
+    // Get pending payments (interventions with payments not yet completed)
+    const pendingInterventions = await prisma.serviceIntervention.findMany({
+      where: {
+        providerId: provider.id,
+        status: { in: ['PAYMENT_PENDING', 'IN_PROGRESS'] },
+        scheduledDate: {
+          gte: currentMonthStart,
+          lte: currentMonthEnd
         }
+      },
+      include: {
+        payment: true
       }
     });
 
     // Calculate current month stats
-    const currentMonthEarnings = currentMonthBookings.reduce((sum, booking) => {
-      return sum + (booking.totalPrice || booking.service.basePrice || 0);
+    const currentMonthEarnings = currentMonthInterventions.reduce((sum, intervention) => {
+      return sum + (intervention.payment?.amount || 0);
     }, 0);
 
     const currentMonthNet = currentMonthEarnings * 0.85; // After 15% commission
-    const averageBookingValue = currentMonthBookings.length > 0 ? currentMonthEarnings / currentMonthBookings.length : 0;
+    const averageInterventionValue = currentMonthInterventions.length > 0 ? currentMonthEarnings / currentMonthInterventions.length : 0;
 
     // Calculate previous month stats
-    const previousMonthEarnings = previousMonthBookings.reduce((sum, booking) => {
-      return sum + (booking.totalPrice || 50); // Default amount if not set
+    const previousMonthEarnings = previousMonthInterventions.reduce((sum, intervention) => {
+      return sum + (intervention.payment?.amount || 0);
     }, 0);
 
     // Calculate year stats
-    const yearEarnings = yearBookings.reduce((sum, booking) => {
-      return sum + (booking.totalPrice || booking.service.basePrice || 0);
+    const yearEarnings = yearInterventions.reduce((sum, intervention) => {
+      return sum + (intervention.payment?.amount || 0);
     }, 0);
 
-    // Find best month (mock calculation)
-    const bestMonth = 'Octobre';
-    const bestMonthAmount = yearEarnings * 0.3; // Assume best month is 30% of year total
+    // Calculate pending payments
+    const pendingPaymentsAmount = pendingInterventions.reduce((sum, intervention) => {
+      return sum + (intervention.payment?.amount || 0);
+    }, 0);
+
+    // Find best month (calculate from all months of the year)
+    const monthlyStats = new Map();
+    yearInterventions.forEach(intervention => {
+      const month = new Date(intervention.scheduledDate).getMonth();
+      const monthName = new Date(now.getFullYear(), month, 1).toLocaleDateString('fr-FR', { month: 'long' });
+      const amount = intervention.payment?.amount || 0;
+      
+      if (!monthlyStats.has(monthName)) {
+        monthlyStats.set(monthName, 0);
+      }
+      monthlyStats.set(monthName, monthlyStats.get(monthName) + amount);
+    });
+
+    const bestMonthEntry = Array.from(monthlyStats.entries()).reduce((best, current) => {
+      return current[1] > (best[1] || 0) ? current : best;
+    }, ['Octobre', 0]);
+
+    const bestMonth = bestMonthEntry[0];
+    const bestMonthAmount = bestMonthEntry[1] * 0.85; // After commission
 
     // Generate weekly breakdown (last 4 weeks)
     const weeklyBreakdown = [];
@@ -113,35 +145,35 @@ export async function GET(request: NextRequest) {
       const weekEnd = new Date(now);
       weekEnd.setDate(now.getDate() - (i * 7));
 
-      const weekBookings = currentMonthBookings.filter(booking => {
-        const bookingDate = new Date(booking.scheduledDate);
-        return bookingDate >= weekStart && bookingDate <= weekEnd;
+      const weekInterventions = currentMonthInterventions.filter(intervention => {
+        const interventionDate = new Date(intervention.scheduledDate);
+        return interventionDate >= weekStart && interventionDate <= weekEnd;
       });
 
-      const weekEarnings = weekBookings.reduce((sum, booking) => {
-        return sum + (booking.totalPrice || booking.service.basePrice || 0);
+      const weekEarnings = weekInterventions.reduce((sum, intervention) => {
+        return sum + (intervention.payment?.amount || 0);
       }, 0);
 
       weeklyBreakdown.push({
         week: `Semaine ${4 - i}`,
         earnings: weekEarnings * 0.85, // After commission
-        bookings: weekBookings.length
+        bookings: weekInterventions.length
       });
     }
 
-    // Calculate top services
+    // Calculate top services (based on intervention titles)
     const serviceStats = new Map();
-    currentMonthBookings.forEach(booking => {
-      const serviceName = booking.service.name;
-      const amount = booking.totalPrice || booking.service.basePrice || 0;
+    currentMonthInterventions.forEach(intervention => {
+      const serviceName = intervention.title;
+      const amount = intervention.payment?.amount || 0;
       
       if (!serviceStats.has(serviceName)) {
-        serviceStats.set(serviceName, { earnings: 0, bookings: 0, totalAmount: 0 });
+        serviceStats.set(serviceName, { earnings: 0, interventions: 0, totalAmount: 0 });
       }
       
       const stats = serviceStats.get(serviceName);
       stats.earnings += amount * 0.85; // After commission
-      stats.bookings += 1;
+      stats.interventions += 1;
       stats.totalAmount += amount;
     });
 
@@ -149,26 +181,37 @@ export async function GET(request: NextRequest) {
       .map(([serviceName, stats]) => ({
         serviceName,
         earnings: stats.earnings,
-        bookings: stats.bookings,
-        averageValue: stats.bookings > 0 ? stats.totalAmount / stats.bookings : 0
+        bookings: stats.interventions,
+        averageValue: stats.interventions > 0 ? stats.totalAmount / stats.interventions : 0
       }))
       .sort((a, b) => b.earnings - a.earnings)
       .slice(0, 5);
 
+    // Calculate percentage changes
+    const earningsChange = previousMonthEarnings > 0 
+      ? ((currentMonthEarnings - previousMonthEarnings) / previousMonthEarnings) * 100 
+      : 0;
+    
+    const bookingsChange = previousMonthInterventions.length > 0 
+      ? ((currentMonthInterventions.length - previousMonthInterventions.length) / previousMonthInterventions.length) * 100 
+      : 0;
+
     const summary = {
       currentMonth: {
         totalEarnings: currentMonthNet,
-        completedBookings: currentMonthBookings.length,
-        averageBookingValue: averageBookingValue,
-        pendingPayments: currentMonthNet * 0.1 // 10% pending
+        completedBookings: currentMonthInterventions.length,
+        averageBookingValue: averageInterventionValue,
+        pendingPayments: pendingPaymentsAmount * 0.85, // After commission
+        earningsChange: earningsChange,
+        bookingsChange: bookingsChange
       },
       previousMonth: {
         totalEarnings: previousMonthEarnings * 0.85,
-        completedBookings: previousMonthBookings.length
+        completedBookings: previousMonthInterventions.length
       },
       yearToDate: {
         totalEarnings: yearEarnings * 0.85,
-        completedBookings: yearBookings.length,
+        completedBookings: yearInterventions.length,
         bestMonth: bestMonth,
         bestMonthAmount: bestMonthAmount
       },
@@ -176,7 +219,7 @@ export async function GET(request: NextRequest) {
       topServices: topServices,
       paymentStatus: {
         available: currentMonthNet * 0.7,
-        pending: currentMonthNet * 0.2,
+        pending: pendingPaymentsAmount * 0.85,
         processing: currentMonthNet * 0.1
       }
     };

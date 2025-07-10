@@ -302,7 +302,7 @@ export async function getCurrentUser() {
           city: 'Ville non spécifiée',
           postalCode: '00000',
           country: 'France',
-          verified: false
+          isVerified: false
         }
       })
 
