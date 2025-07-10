@@ -4,7 +4,7 @@ import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useTranslations } from "next-intl"
-import { signIn, getSession } from "next-auth/react"
+import { signIn } from "@/lib/auth"
 import { loginSchema, type LoginData } from "@/features/auth/schemas/auth.schema"
 import { Link, useRouter } from "@/i18n/navigation"
 
@@ -27,7 +27,7 @@ export function LoginForm() {
     setError(null)
 
     try {
-      // Utiliser NextAuth signIn
+      // Utiliser Better Auth signIn
       const result = await signIn('credentials', {
         email: data.email,
         password: data.password,
@@ -40,33 +40,21 @@ export function LoginForm() {
       }
 
       if (result?.ok) {
-        // Récupérer la session pour obtenir les infos utilisateur
-        const session = await getSession()
-        
-        // Vérifier s'il y a un callbackUrl dans l'URL
+        // Récupérer le paramètre redirect de l'URL
         const urlParams = new URLSearchParams(window.location.search)
-        let callbackUrl = urlParams.get('callbackUrl')
+        const redirectUrl = urlParams.get('redirect')
         
-        if (callbackUrl) {
-          window.location.href = callbackUrl
-        } else if (session?.user?.role) {
-          // Rediriger selon le rôle avec locale
-          const locale = window.location.pathname.split('/')[1] || 'fr'
-          const roleRoutes = {
-            'CLIENT': `/${locale}/client`,
-            'DELIVERER': `/${locale}/deliverer`, 
-            'MERCHANT': `/${locale}/merchant`,
-            'PROVIDER': `/${locale}/provider`,
-            'ADMIN': `/${locale}/admin`
-          }
-          window.location.href = roleRoutes[session.user.role as keyof typeof roleRoutes] || `/${locale}/client`
+        if (redirectUrl) {
+          // Rediriger vers l'URL demandée
+          window.location.href = redirectUrl
         } else {
-          // Fallback
+          // Rediriger vers la page d'accueil par défaut
           const locale = window.location.pathname.split('/')[1] || 'fr'
-          window.location.href = `/${locale}/client`
+          window.location.href = `/${locale}`
         }
       }
     } catch (err) {
+      console.error('Erreur de connexion:', err)
       setError(t('auth.login.errors.generic'))
     } finally {
       setIsLoading(false)
