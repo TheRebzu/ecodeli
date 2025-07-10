@@ -12,11 +12,11 @@ const intlMiddleware = createIntlMiddleware({
 // Fonction pour vérifier les permissions par rôle
 function hasRequiredRole(userRole: string, pathname: string): boolean {
   const rolePermissions = {
-    ADMIN: ['/admin/', '/client/', '/deliverer/', '/merchant/', '/provider/'],
-    CLIENT: ['/client/'],
-    DELIVERER: ['/deliverer/'],
-    MERCHANT: ['/merchant/'],
-    PROVIDER: ['/provider/']
+    ADMIN: ['/admin', '/admin/', '/client', '/client/', '/deliverer', '/deliverer/', '/merchant', '/merchant/', '/provider', '/provider/'],
+    CLIENT: ['/client', '/client/'],
+    DELIVERER: ['/deliverer', '/deliverer/'],
+    MERCHANT: ['/merchant', '/merchant/'],
+    PROVIDER: ['/provider', '/provider/']
   }
 
   const userAllowedPaths = rolePermissions[userRole as UserRole] || []
@@ -29,10 +29,10 @@ function hasRequiredRole(userRole: string, pathname: string): boolean {
     pathname,
     pathAfterLocale,
     userAllowedPaths,
-    result: userAllowedPaths.some(path => pathAfterLocale.includes(path))
+    result: userAllowedPaths.some(path => pathAfterLocale.startsWith(path))
   })
   
-  return userAllowedPaths.some(path => pathAfterLocale.includes(path))
+  return userAllowedPaths.some(path => pathAfterLocale.startsWith(path))
 }
 
 // Fonction pour vérifier si l'utilisateur est actif selon son rôle
@@ -248,7 +248,7 @@ export default async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    // Exclure explicitement toutes les API routes
-    '/((?!api|_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml).*)',
-  ]
+    // Match all routes except API, _next, and static files
+    '/((?!api|_next|.*\\..*).*)',
+  ],
 }
