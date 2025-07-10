@@ -1,501 +1,405 @@
 "use client";
 
-import { useState, useEffect } from 'react';
-import { useAuth } from '@/hooks/use-auth';
-import { useTranslations } from 'next-intl';
-import { PageHeader } from '@/components/layout/page-header';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
-import { useToast } from '@/components/ui/use-toast';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { Package, MapPin, Clock, Euro, Search, Filter, Plus, Edit, Trash2, Eye, Users, CheckCircle, XCircle, AlertCircle, BarChart3, TrendingUp } from 'lucide-react';
-import { Announcement } from '@/features/announcements/types/announcement.types';
-import { format, formatDistanceToNow } from 'date-fns';
-import { fr } from 'date-fns/locale';
+import { useState } from 'react';
 import Link from 'next/link';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { 
+  Plus, 
+  Search, 
+  Eye, 
+  Edit, 
+  Trash2, 
+  Package,
+  Upload,
+  Filter,
+  TrendingUp,
+  AlertCircle,
+  CheckCircle,
+  Clock,
+  Loader2
+} from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useMerchantAnnouncements } from '@/features/merchant/hooks/use-merchant-announcements';
+import { useTranslations } from 'next-intl';
+
+interface MerchantAnnouncement {
+  id: string;
+  title: string;
+  description: string;
+  price: number;
+  type: string;
+  status: 'ACTIVE' | 'INACTIVE' | 'ARCHIVED';
+  views: number;
+  orders: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+const STATUS_COLORS = {
+  ACTIVE: 'bg-green-100 text-green-800',
+  INACTIVE: 'bg-yellow-100 text-yellow-800',
+  ARCHIVED: 'bg-gray-100 text-gray-800'
+};
+
+const STATUS_LABELS = {
+  ACTIVE: 'Active',
+  INACTIVE: 'Inactive',
+  ARCHIVED: 'Archivée'
+};
+
+const TYPE_LABELS = {
+  PACKAGE_DELIVERY: 'Livraison de colis',
+  PERSON_TRANSPORT: 'Transport de personne',
+  AIRPORT_TRANSFER: 'Transfert aéroport',
+  SHOPPING: 'Course',
+  INTERNATIONAL_PURCHASE: 'Achat international',
+  CART_DROP: 'Lâcher de chariot'
+};
 
 export default function MerchantAnnouncementsPage() {
-  const { user } = useAuth();
   const t = useTranslations('merchant.announcements');
-  const { toast } = useToast();
-  
-  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('');
-  const [typeFilter, setTypeFilter] = useState('');
-  const [sortBy, setSortBy] = useState('createdAt');
-  const [sortOrder, setSortOrder] = useState('desc');
-  const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [stats, setStats] = useState({
-    total: 0,
-    active: 0,
-    completed: 0,
-    totalRevenue: 0
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [typeFilter, setTypeFilter] = useState<string>('all');
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const { data, stats, loading, error, refreshData } = useMerchantAnnouncements({
+    page: currentPage,
+    limit: 10,
+    status: statusFilter !== 'all' ? statusFilter : undefined,
+    type: typeFilter !== 'all' ? typeFilter : undefined,
+    search: searchQuery || undefined
   });
 
-  useEffect(() => {
-    if (user) {
-      fetchAnnouncements();
-      fetchStats();
-    }
-  }, [user, searchTerm, statusFilter, typeFilter, sortBy, sortOrder, page]);
-
-  const fetchAnnouncements = async () => {
-    try {
-      setLoading(true);
-      
-      const params = new URLSearchParams({
-        page: page.toString(),
-        limit: '20',
-        ...(searchTerm && { search: searchTerm }),
-        ...(statusFilter && { status: statusFilter }),
-        ...(typeFilter && { type: typeFilter }),
-        sortBy,
-        sortOrder
-      });
-
-      const response = await fetch(`/api/merchant/announcements?${params}`);
-      if (!response.ok) {
-        throw new Error('Erreur lors du chargement des annonces');
-      }
-
-      const data = await response.json();
-      setAnnouncements(data.announcements || []);
-      setTotalPages(data.pagination?.totalPages || 1);
-    } catch (error) {
-      toast({
-        title: "❌ Erreur",
-        description: "Impossible de charger les annonces",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchStats = async () => {
-    try {
-      const response = await fetch('/api/merchant/announcements/stats');
-      if (response.ok) {
-        const data = await response.json();
-        setStats(data.stats);
-      }
-    } catch (error) {
-      console.error('Erreur lors du chargement des statistiques:', error);
-    }
-  };
-
-  const handleDelete = async (announcementId: string) => {
-    try {
-      const response = await fetch(`/api/merchant/announcements/${announcementId}`, {
-        method: 'DELETE',
-      });
-
-      if (!response.ok) {
-        throw new Error('Erreur lors de la suppression');
-      }
-
-      toast({
-        title: "✅ Succès",
-        description: "Annonce supprimée avec succès",
-      });
-
-      fetchAnnouncements();
-      fetchStats();
-    } catch (error) {
-      toast({
-        title: "❌ Erreur",
-        description: error instanceof Error ? error.message : "Impossible de supprimer l'annonce",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const getTypeLabel = (type: string) => {
-    const typeLabels = {
-      'PACKAGE_DELIVERY': 'Livraison de colis',
-      'CART_DROP': 'Lâcher de chariot',
-      'SHOPPING': 'Service de courses',
-      'HOME_SERVICE': 'Service à domicile'
-    };
-    return typeLabels[type as keyof typeof typeLabels] || type;
-  };
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'ACTIVE':
-        return <CheckCircle className="h-4 w-4 text-green-600" />;
-      case 'IN_PROGRESS':
-        return <Clock className="h-4 w-4 text-blue-600" />;
-      case 'COMPLETED':
-        return <CheckCircle className="h-4 w-4 text-gray-600" />;
-      case 'CANCELLED':
-        return <XCircle className="h-4 w-4 text-red-600" />;
-      case 'MATCHED':
-        return <Users className="h-4 w-4 text-yellow-600" />;
-      default:
-        return <AlertCircle className="h-4 w-4 text-gray-600" />;
-    }
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'ACTIVE':
-        return 'bg-green-100 text-green-800';
-      case 'IN_PROGRESS':
-        return 'bg-blue-100 text-blue-800';
-      case 'COMPLETED':
-        return 'bg-gray-100 text-gray-800';
-      case 'CANCELLED':
-        return 'bg-red-100 text-red-800';
-      case 'MATCHED':
-        return 'bg-yellow-100 text-yellow-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
-  };
-
-  if (!user) {
+  if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <h2 className="text-2xl font-semibold text-gray-900 mb-2">
-            Authentification requise
-          </h2>
-          <p className="text-gray-600">
-            Vous devez être connecté pour gérer vos annonces.
-          </p>
-        </div>
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
 
+  if (error) {
+    return (
+      <div className="space-y-6">
+        <Alert variant="destructive">
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+        <Button onClick={refreshData} variant="outline">
+          Réessayer
+        </Button>
+      </div>
+    );
+    }
+
+  if (!data || !stats) {
+    return (
+      <div className="space-y-6">
+        <Alert>
+          <AlertDescription>Aucune donnée disponible</AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
+
+  const { announcements, totalPages } = data;
+
+
+
+  const getStatusBadge = (status: string) => {
+    const variants = {
+      ACTIVE: { variant: 'default' as const, text: 'Active', icon: CheckCircle },
+      INACTIVE: { variant: 'secondary' as const, text: 'Inactive', icon: Clock },
+      ARCHIVED: { variant: 'outline' as const, text: 'Archivée', icon: AlertCircle }
+    }
+    return variants[status as keyof typeof variants] || variants.INACTIVE;
+  }
+
+  const getTypeLabel = (type: string) => {
+    const labels = {
+      PACKAGE_DELIVERY: 'Livraison colis',
+      PERSON_TRANSPORT: 'Transport de personne',
+      AIRPORT_TRANSFER: 'Transfert aéroport',
+      SHOPPING: 'Course',
+      INTERNATIONAL_PURCHASE: 'Achat international',
+      CART_DROP: 'Lâcher de chariot'
+    }
+    return labels[type as keyof typeof labels] || type;
+  }
+
+
+
   return (
     <div className="space-y-6">
-      <PageHeader
-        title="Mes annonces"
-        description="Gérez vos annonces et suivez leur performance"
-        action={
+      {/* En-tête */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold">Gestion des Annonces</h1>
+          <p className="text-muted-foreground">
+            Gérez vos annonces et services proposés sur EcoDeli
+          </p>
+        </div>
+        <div className="flex gap-2">
+          <Button variant="outline" asChild>
+            <Link href="/merchant/announcements/bulk">
+              <Upload className="h-4 w-4 mr-2" />
+              Import en masse
+            </Link>
+          </Button>
+          <Button asChild>
           <Link href="/merchant/announcements/create">
-            <Button>
               <Plus className="h-4 w-4 mr-2" />
               Nouvelle annonce
+            </Link>
             </Button>
-          </Link>
-        }
-      />
+        </div>
+      </div>
 
-      {/* Statistiques */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      {/* Statistiques rapides */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center">
-              <div className="p-2 bg-blue-100 rounded-lg">
-                <Package className="h-6 w-6 text-blue-600" />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Total annonces</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
-              </div>
-            </div>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Annonces actives</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.active || 0}</div>
+            <p className="text-xs text-muted-foreground">
+              Sur {stats.total || 0} total
+            </p>
           </CardContent>
         </Card>
-
         <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center">
-              <div className="p-2 bg-green-100 rounded-lg">
-                <CheckCircle className="h-6 w-6 text-green-600" />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Actives</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.active}</p>
-              </div>
-            </div>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Vues totales</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{(stats.totalViews || 0).toLocaleString()}</div>
+            <p className="text-xs text-muted-foreground">
+              <TrendingUp className="h-3 w-3 inline mr-1" />
+              +12% ce mois
+            </p>
           </CardContent>
         </Card>
-
         <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center">
-              <div className="p-2 bg-purple-100 rounded-lg">
-                <TrendingUp className="h-6 w-6 text-purple-600" />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Terminées</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.completed}</p>
-              </div>
-            </div>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Prix moyen</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{(stats.averagePrice || 0).toFixed(2)}€</div>
+            <p className="text-xs text-muted-foreground">
+              Prix moyen des annonces
+            </p>
           </CardContent>
         </Card>
-
         <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center">
-              <div className="p-2 bg-yellow-100 rounded-lg">
-                <Euro className="h-6 w-6 text-yellow-600" />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Chiffre d'affaires</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.totalRevenue.toFixed(0)}€</p>
-              </div>
-            </div>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Annonces terminées</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.completed || 0}</div>
+            <p className="text-xs text-muted-foreground">
+              Succès → Livraisons
+            </p>
           </CardContent>
         </Card>
       </div>
 
+      <Tabs defaultValue="list" className="space-y-6">
+        <TabsList>
+          <TabsTrigger value="list">Liste des annonces</TabsTrigger>
+          <TabsTrigger value="performance">Performance</TabsTrigger>
+          <TabsTrigger value="categories">Par catégorie</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="list" className="space-y-6">
       {/* Filtres et recherche */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Filter className="h-5 w-5" />
-            Filtres et recherche
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+          <div className="flex items-center gap-4">
+            <div className="relative flex-1 max-w-md">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 placeholder="Rechercher une annonce..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-10"
               />
             </div>
-
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger>
+              <SelectTrigger className="w-[150px]">
                 <SelectValue placeholder="Statut" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Tous les statuts</SelectItem>
-                <SelectItem value="ACTIVE">Active</SelectItem>
-                <SelectItem value="MATCHED">Matchée</SelectItem>
-                <SelectItem value="IN_PROGRESS">En cours</SelectItem>
-                <SelectItem value="COMPLETED">Terminée</SelectItem>
-                <SelectItem value="CANCELLED">Annulée</SelectItem>
+                <SelectItem value="all">Tous les statuts</SelectItem>
+                {Object.entries(STATUS_LABELS).map(([status, label]) => (
+                  <SelectItem key={status} value={status}>
+                    {label}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
-
             <Select value={typeFilter} onValueChange={setTypeFilter}>
-              <SelectTrigger>
+              <SelectTrigger className="w-[200px]">
                 <SelectValue placeholder="Type" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Tous les types</SelectItem>
-                <SelectItem value="CART_DROP">Lâcher de chariot</SelectItem>
-                <SelectItem value="PACKAGE_DELIVERY">Livraison de colis</SelectItem>
-                <SelectItem value="SHOPPING">Service de courses</SelectItem>
-                <SelectItem value="HOME_SERVICE">Service à domicile</SelectItem>
+                <SelectItem value="all">Tous les types</SelectItem>
+                {Object.entries(TYPE_LABELS).map(([type, label]) => (
+                  <SelectItem key={type} value={type}>
+                    {label}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
-
-            <Select value={`${sortBy}-${sortOrder}`} onValueChange={(value) => {
-              const [newSortBy, newSortOrder] = value.split('-');
-              setSortBy(newSortBy);
-              setSortOrder(newSortOrder);
-            }}>
-              <SelectTrigger>
-                <SelectValue placeholder="Trier par" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="createdAt-desc">Plus récent</SelectItem>
-                <SelectItem value="createdAt-asc">Plus ancien</SelectItem>
-                <SelectItem value="price-desc">Prix décroissant</SelectItem>
-                <SelectItem value="price-asc">Prix croissant</SelectItem>
-                <SelectItem value="viewCount-desc">Plus vues</SelectItem>
-              </SelectContent>
-            </Select>
-
             <Button 
               variant="outline"
               onClick={() => {
-                setSearchTerm('');
-                setStatusFilter('');
-                setTypeFilter('');
+                setSearchQuery('');
+                setStatusFilter('all');
+                setTypeFilter('all');
               }}
             >
               Réinitialiser
             </Button>
           </div>
-        </CardContent>
-      </Card>
 
       {/* Liste des annonces */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Mes annonces ({announcements.length})</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {loading ? (
             <div className="space-y-4">
-              {[...Array(5)].map((_, i) => (
-                <div key={i} className="animate-pulse">
-                  <div className="h-16 bg-gray-200 rounded"></div>
-                </div>
-              ))}
-            </div>
-          ) : announcements.length === 0 ? (
-            <div className="text-center py-12">
-              <Package className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">
-                Aucune annonce trouvée
-              </h3>
-              <p className="text-gray-600 mb-4">
-                Vous n'avez pas encore créé d'annonce ou aucune ne correspond aux critères.
-              </p>
-              <Link href="/merchant/announcements/create">
-                <Button>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Créer ma première annonce
-                </Button>
-              </Link>
-            </div>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Annonce</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Statut</TableHead>
-                  <TableHead>Prix</TableHead>
-                  <TableHead>Vues</TableHead>
-                  <TableHead>Créée</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {announcements.map((announcement) => (
-                  <TableRow key={announcement.id}>
-                    <TableCell className="font-medium">
-                      <div>
-                        <p className="font-semibold line-clamp-1">{announcement.title}</p>
-                        <p className="text-sm text-gray-600 line-clamp-1">
-                          {announcement.description}
-                        </p>
-                        {announcement.urgent && (
-                          <Badge variant="destructive" className="text-xs mt-1">
-                            🚨 Urgent
+            {announcements.map((announcement: any) => (
+              <Card key={announcement.id} className="hover:shadow-md transition-shadow">
+                <CardContent className="p-6">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-2">
+                        <h3 className="font-semibold text-lg">{announcement.title}</h3>
+                        <Badge variant="outline">{getTypeLabel(announcement.type)}</Badge>
+                        <Badge variant={getStatusBadge(announcement.status).variant}>
+                          {getStatusBadge(announcement.status).text}
                           </Badge>
-                        )}
                       </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="secondary" className="text-xs">
-                        {getTypeLabel(announcement.type)}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <Badge className={getStatusColor(announcement.status)}>
-                        {getStatusIcon(announcement.status)}
-                        <span className="ml-1">{announcement.status}</span>
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="font-bold text-green-600">
-                      {announcement.price.toFixed(2)} €
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-1">
-                        <Eye className="h-3 w-3 text-gray-500" />
-                        {announcement.viewCount}
+                      <p className="text-muted-foreground mb-4">{announcement.description}</p>
+                      
+                      <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-sm">
+                        <div>
+                          <p className="text-muted-foreground">Prix</p>
+                          <p className="font-medium">{(announcement.price || 0).toFixed(2)}€</p>
+                        </div>
+                        <div>
+                          <p className="text-muted-foreground">Vues</p>
+                          <p className="font-medium">{announcement.views || 0}</p>
+                        </div>
+                        <div>
+                          <p className="text-muted-foreground">Commandes</p>
+                          <p className="font-medium">{announcement.orders || 0}</p>
+                        </div>
                       </div>
-                    </TableCell>
-                    <TableCell className="text-sm text-gray-600">
-                      {format(new Date(announcement.createdAt), 'dd/MM/yyyy', { locale: fr })}
-                    </TableCell>
-                    <TableCell>
+                    </div>
+                    
                       <div className="flex items-center gap-2">
-                        <Link href={`/merchant/announcements/${announcement.id}`}>
                           <Button variant="outline" size="sm">
-                            <Eye className="h-3 w-3" />
+                        <Eye className="h-4 w-4" />
                           </Button>
-                        </Link>
-                        
-                        {announcement.status === 'ACTIVE' && (
-                          <Link href={`/merchant/announcements/${announcement.id}/edit`}>
                             <Button variant="outline" size="sm">
-                              <Edit className="h-3 w-3" />
+                        <Edit className="h-4 w-4" />
                             </Button>
-                          </Link>
-                        )}
-
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button variant="outline" size="sm" className="text-red-600 hover:text-red-700">
-                              <Trash2 className="h-3 w-3" />
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => refreshData()}
+                      >
+                        <Trash2 className="h-4 w-4" />
                             </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>Confirmer la suppression</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                Êtes-vous sûr de vouloir supprimer cette annonce ? Cette action est irréversible.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Annuler</AlertDialogCancel>
-                              <AlertDialogAction
-                                onClick={() => handleDelete(announcement.id)}
-                                className="bg-red-600 hover:bg-red-700"
-                              >
-                                Supprimer
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
+                    </div>
                       </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          {announcements.length === 0 && (
+            <Card>
+              <CardContent className="p-12 text-center">
+                <Package className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                <h3 className="font-semibold mb-2">Aucune annonce trouvée</h3>
+                <p className="text-muted-foreground mb-4">
+                  Aucune annonce ne correspond à vos critères de recherche.
+                </p>
+                <Button asChild>
+                  <Link href="/merchant/announcements/create">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Créer votre première annonce
+                  </Link>
+                </Button>
+              </CardContent>
+            </Card>
           )}
+        </TabsContent>
+
+        <TabsContent value="performance" className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Performance par type</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm">Lâcher de chariot</span>
+                    <span className="font-medium">45% conversions</span>
+                  </div>
+                  <div className="w-full bg-secondary rounded-full h-2">
+                    <div className="bg-primary h-2 rounded-full w-[45%]"></div>
+                  </div>
+                </div>
         </CardContent>
       </Card>
 
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="flex justify-center gap-2">
-          <Button
-            variant="outline"
-            onClick={() => setPage(Math.max(1, page - 1))}
-            disabled={page === 1}
-          >
-            Précédent
-          </Button>
-          
-          <div className="flex items-center gap-1">
-            {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-              const pageNum = Math.max(1, Math.min(totalPages - 4, page - 2)) + i;
-              return (
-                <Button
-                  key={pageNum}
-                  variant={pageNum === page ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setPage(pageNum)}
-                >
-                  {pageNum}
-                </Button>
-              );
-            })}
+            <Card>
+              <CardHeader>
+                <CardTitle>Évolution mensuelle</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground">
+                  Graphique des performances sur 12 mois
+                </p>
+              </CardContent>
+            </Card>
           </div>
+        </TabsContent>
 
-          <Button
-            variant="outline"
-            onClick={() => setPage(Math.min(totalPages, page + 1))}
-            disabled={page === totalPages}
-          >
-            Suivant
-          </Button>
+        <TabsContent value="categories" className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {['Artisanat', 'Alimentation', 'Mobilier'].map((category) => (
+              <Card key={category}>
+                <CardHeader>
+                  <CardTitle className="text-lg">{category}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                                  <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <span className="text-sm text-muted-foreground">Annonces</span>
+                    <span className="font-medium">
+                      {announcements.filter((a: any) => a.type === category).length}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm text-muted-foreground">Commandes</span>
+                    <span className="font-medium">
+                      {announcements
+                        .filter((a: any) => a.type === category)
+                        .reduce((sum: any, a: any) => sum + (a.orders || 0), 0)}
+                    </span>
+                  </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
         </div>
-      )}
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

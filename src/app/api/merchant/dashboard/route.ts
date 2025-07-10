@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getUserFromSession } from '@/lib/auth/utils'
-import { db } from '@/lib/db'
+import { MerchantService } from '@/features/merchant/services/merchant.service'
 
 export async function GET(request: NextRequest) {
   try {
@@ -11,34 +11,12 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Récupérer le profil commerçant
-    const merchant = await db.merchant.findUnique({
-      where: { userId: user.id },
-      include: {
-        user: {
-          include: {
-            profile: true
-          }
-        },
-        contract: true,
-        announcements: {
-          include: {
-            delivery: {
-              include: {
-                payment: true
-              }
-            }
-          },
-          orderBy: { createdAt: 'desc' },
-          take: 10
-        }
-      }
-    })
+    // Utilisation du service merchant qui respecte les schémas Prisma fragmentés
+    const dashboardData = await MerchantService.getDashboardData(user.id)
 
-    if (!merchant) {
-      return NextResponse.json({ error: 'Profil commerçant non trouvé' }, { status: 404 })
-    }
+    console.log(`✅ Dashboard data récupéré pour commerçant ${user.id}`)
 
+<<<<<<< Updated upstream
     // Calculer les statistiques
     const allAnnouncements = await db.announcement.findMany({
       where: { 
@@ -215,6 +193,9 @@ export async function GET(request: NextRequest) {
     console.log(`✅ Dashboard data récupéré pour commerçant ${merchant.id}`)
 
     return NextResponse.json(result)
+=======
+    return NextResponse.json(dashboardData)
+>>>>>>> Stashed changes
 
   } catch (error) {
     console.error('❌ Erreur récupération dashboard commerçant:', error)

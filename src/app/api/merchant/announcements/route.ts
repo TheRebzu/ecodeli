@@ -50,6 +50,31 @@ const announcementsFiltersSchema = z.object({
   sortOrder: z.enum(['asc', 'desc']).default('desc')
 })
 
+const createAnnouncementSchema = z.object({
+  title: z.string().min(5).max(200),
+  description: z.string().min(20).max(2000),
+  type: z.enum(['PACKAGE_DELIVERY', 'PERSON_TRANSPORT', 'AIRPORT_TRANSFER', 'SHOPPING', 'INTERNATIONAL_PURCHASE', 'PET_SITTING', 'HOME_SERVICE', 'CART_DROP']),
+  basePrice: z.number().min(0),
+  pickupAddress: z.string().min(10).max(500),
+  deliveryAddress: z.string().min(10).max(500),
+  weight: z.number().min(0.1).optional(),
+  isUrgent: z.boolean().default(false),
+  requiresInsurance: z.boolean().default(false),
+  pickupDate: z.string().datetime().optional(),
+  deliveryDate: z.string().datetime().optional(),
+  specialInstructions: z.string().optional()
+});
+
+const querySchema = z.object({
+  page: z.string().nullable().transform(val => val ? Number(val) : 1),
+  limit: z.string().nullable().transform(val => val ? Number(val) : 20),
+  type: z.string().nullable().optional(),
+  status: z.string().nullable().optional(),
+  sortBy: z.enum(['createdAt', 'basePrice', 'title', 'pickupDate']).nullable().optional(),
+  sortOrder: z.enum(['asc', 'desc']).nullable().optional(),
+  search: z.string().nullable().optional()
+});
+
 export async function GET(request: NextRequest) {
   try {
     console.log('🏪 [GET /api/merchant/announcements] Début de la requête')
@@ -60,18 +85,21 @@ export async function GET(request: NextRequest) {
     }
 
     const { searchParams } = new URL(request.url)
-    const params = announcementsFiltersSchema.parse({
+    const query = querySchema.parse({
       page: searchParams.get('page'),
       limit: searchParams.get('limit'),
-      status: searchParams.get('status'),
       type: searchParams.get('type'),
-      dateFrom: searchParams.get('dateFrom'),
-      dateTo: searchParams.get('dateTo'),
+      status: searchParams.get('status'),
       sortBy: searchParams.get('sortBy'),
-      sortOrder: searchParams.get('sortOrder')
+      sortOrder: searchParams.get('sortOrder'),
+      search: searchParams.get('search')
     })
 
-    // Construire la clause WHERE
+    const page = query.page || 1
+    const limit = Math.min(query.limit || 20, 100)
+    const offset = (page - 1) * limit
+
+    // Construire les filtres
     const where: any = {
       authorId: user.id,
       author: {
@@ -79,152 +107,153 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    if ((await params).status) where.status = (await params).status
-    if ((await params).type) where.type = (await params).type
-    if ((await params).dateFrom || (await params).dateTo) {
-      where.createdAt = {}
-      if ((await params).dateFrom) where.createdAt.gte = new Date((await params).dateFrom)
-      if ((await params).dateTo) where.createdAt.lte = new Date((await params).dateTo)
+    if (query.type) where.type = query.type
+    if (query.status) where.status = query.status
+    if (query.search) {
+      where.OR = [
+        { title: { contains: query.search, mode: 'insensitive' } },
+        { description: { contains: query.search, mode: 'insensitive' } },
+        { pickupAddress: { contains: query.search, mode: 'insensitive' } },
+        { deliveryAddress: { contains: query.search, mode: 'insensitive' } }
+      ]
     }
 
-    // Récupérer les annonces
-    const announcements = await db.announcement.findMany({
+    // Ordre de tri
+    const orderBy: any = {}
+    if (query.sortBy) {
+      orderBy[query.sortBy] = query.sortOrder || 'desc'
+    } else {
+      orderBy.createdAt = 'desc'
+    }
+
+    // Récupérer les annonces avec pagination
+    const [announcements, totalCount] = await Promise.all([
+      db.announcement.findMany({
       where,
-      include: {
-        delivery: {
-          include: {
-            deliverer: {
+        orderBy,
+        skip: offset,
+        take: limit,
               include: {
-                user: {
-                  include: {
-                    profile: true
+          delivery: {
+            include: {
+              deliverer: {
+                select: {
+                  id: true,
+                  profile: {
+                    select: {
+                      firstName: true,
+                      lastName: true
+                    }
                   }
                 }
+              },
+              payment: {
+                select: {
+                  status: true,
+                  amount: true
+                }
               }
-            },
-            payment: true,
-            tracking: {
-              orderBy: { createdAt: 'desc' },
-              take: 1
             }
           }
-        },
-        packageAnnouncement: true,
-        _count: {
-          select: {
-            matches: true,
-            views: true
-          }
         }
-      },
-      orderBy: (await params).sortBy === 'createdAt' ? { createdAt: (await params).sortOrder } :
-               (await params).sortBy === 'pickupDate' ? { pickupDate: (await params).sortOrder } :
-               { basePrice: (await params).sortOrder },
-      skip: ((await params).page - 1) * (await params).limit,
-      take: (await params).limit
+      }),
+      db.announcement.count({ where })
+    ])
+
+    // Calculer les statistiques par type
+    const typeStats = await db.announcement.groupBy({
+      by: ['type'],
+      where: { authorId: user.id },
+      _count: { type: true },
+      _avg: { basePrice: true }
     })
 
-    // Formater les données
-    const formattedAnnouncements = announcements.map(announcement => ({
-      id: announcement.id,
-      title: announcement.title,
-      description: announcement.description,
-      type: announcement.type,
-      status: announcement.status,
-      basePrice: Number(announcement.basePrice),
-      finalPrice: Number(announcement.finalPrice || announcement.basePrice),
-      currency: announcement.currency,
-      isUrgent: announcement.isUrgent,
-      pickupAddress: announcement.pickupAddress,
-      deliveryAddress: announcement.deliveryAddress,
-      pickupDate: announcement.pickupDate?.toISOString(),
-      deliveryDate: announcement.deliveryDate?.toISOString(),
-      specialInstructions: announcement.specialInstructions,
-      createdAt: announcement.createdAt.toISOString(),
-      updatedAt: announcement.updatedAt.toISOString(),
-      
-      // Informations client
-      customerInfo: announcement.customerInfo,
-      orderReference: announcement.orderReference,
-      
-      // Détails du package
-      packageDetails: announcement.packageAnnouncement,
-      
-      // Statistiques
-      stats: {
-        views: announcement._count.views,
-        matches: announcement._count.matches
-      },
-      
-      // Livraison associée
-      delivery: announcement.delivery ? {
-        id: announcement.delivery.id,
-        status: announcement.delivery.status,
-        validationCode: announcement.delivery.validationCode,
-        actualPickupTime: announcement.delivery.actualPickupTime?.toISOString(),
-        actualDeliveryTime: announcement.delivery.actualDeliveryTime?.toISOString(),
-        
-        deliverer: announcement.delivery.deliverer ? {
-          id: announcement.delivery.deliverer.id,
-          name: announcement.delivery.deliverer.user.profile 
-            ? `${announcement.delivery.deliverer.user.profile.firstName || ''} ${announcement.delivery.deliverer.user.profile.lastName || ''}`.trim()
-            : announcement.delivery.deliverer.user.email,
-          phone: announcement.delivery.deliverer.user.profile?.phone
-        } : null,
-        
-        payment: announcement.delivery.payment ? {
-          amount: Number(announcement.delivery.payment.amount),
-          status: announcement.delivery.payment.status,
-          paidAt: announcement.delivery.payment.paidAt?.toISOString()
-        } : null,
-        
-        lastTracking: announcement.delivery.tracking.length > 0 ? {
-          status: announcement.delivery.tracking[0].status,
-          message: announcement.delivery.tracking[0].message,
-          createdAt: announcement.delivery.tracking[0].createdAt.toISOString()
-        } : null
-      } : null
-    }))
-
-    const total = await db.announcement.count({ where })
-
-    // Statistiques rapides
-    const statusStats = await db.announcement.groupBy({
-      by: ['status'],
-      where: {
-        authorId: user.id,
-        author: { role: 'MERCHANT' }
-      },
-      _count: { _all: true }
-    })
-
-    const stats = statusStats.reduce((acc, stat) => {
-      acc[stat.status] = stat._count._all
+    // Statistiques globales
+    const stats = {
+      total: totalCount,
+      active: await db.announcement.count({
+        where: { ...where, status: 'ACTIVE' }
+      }),
+      completed: await db.announcement.count({
+        where: { ...where, status: 'COMPLETED' }
+      }),
+      cancelled: await db.announcement.count({
+        where: { ...where, status: 'CANCELLED' }
+      }),
+      avgPrice: announcements.length > 0 
+        ? announcements.reduce((sum, ann) => sum + ann.basePrice, 0) / announcements.length 
+        : 0,
+      typeBreakdown: typeStats.reduce((acc, stat) => {
+        acc[stat.type] = {
+          count: stat._count.type,
+          avgPrice: stat._avg.basePrice || 0
+        }
       return acc
-    }, {} as Record<string, number>)
+      }, {} as Record<string, any>)
+    }
 
-    console.log(`✅ Trouvé ${formattedAnnouncements.length} annonces sur ${total} total`)
+    const totalPages = Math.ceil(totalCount / limit)
 
     return NextResponse.json({
-      announcements: formattedAnnouncements,
+      success: true,
+      announcements: announcements.map(ann => ({
+        id: ann.id,
+        title: ann.title,
+        description: ann.description,
+        type: ann.type,
+        status: ann.status,
+        basePrice: ann.basePrice,
+        finalPrice: ann.finalPrice,
+        pickupAddress: ann.pickupAddress,
+        deliveryAddress: ann.deliveryAddress,
+        weight: ann.weight,
+        isUrgent: ann.isUrgent,
+        requiresInsurance: ann.requiresInsurance,
+        pickupDate: ann.pickupDate,
+        deliveryDate: ann.deliveryDate,
+        specialInstructions: ann.specialInstructions,
+        createdAt: ann.createdAt,
+        updatedAt: ann.updatedAt,
+        hasDelivery: !!ann.delivery,
+        delivery: ann.delivery ? {
+          id: ann.delivery.id,
+          status: ann.delivery.status,
+          deliverer: ann.delivery.deliverer ? {
+            name: `${ann.delivery.deliverer.profile?.firstName || ''} ${ann.delivery.deliverer.profile?.lastName || ''}`.trim()
+          } : null,
+          payment: ann.delivery.payment ? {
+            status: ann.delivery.payment.status,
+            amount: ann.delivery.payment.amount
+          } : null,
+          pickupDate: ann.delivery.pickupDate,
+          deliveryDate: ann.delivery.deliveryDate,
+          actualDeliveryDate: ann.delivery.actualDeliveryDate
+        } : null
+      })),
       pagination: {
-        page: (await params).page,
-        limit: (await params).limit,
-        total,
-        totalPages: Math.ceil(total / (await params).limit),
-        hasNext: (await params).page < Math.ceil(total / (await params).limit),
-        hasPrev: (await params).page > 1
+        page,
+        limit,
+        total: totalCount,
+        totalPages,
+        hasNext: page < totalPages,
+        hasPrev: page > 1
       },
-      stats: {
-        total,
-        byStatus: stats
-      }
+      stats
     })
 
   } catch (error) {
     console.error('❌ Erreur récupération annonces commerçant:', error)
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        { 
+          error: 'Paramètres de requête invalides',
+          details: error.errors 
+        },
+        { status: 400 }
+      )
+    }
     return NextResponse.json(
-      { error: 'Internal server error', details: error.message },
+      { error: 'Internal server error' },
       { status: 500 }
     )
   }
@@ -241,98 +270,110 @@ export async function POST(request: NextRequest) {
 
     // Vérifier que le commerçant existe et est validé
     const merchant = await db.merchant.findUnique({
-      where: { userId: user.id }
+      where: { userId: user.id },
+      include: {
+        contract: true
+      }
     })
 
     if (!merchant) {
       return NextResponse.json({ error: 'Profil commerçant non trouvé' }, { status: 404 })
     }
 
-    if (!merchant.isValidated) {
+    if (merchant.contractStatus !== 'ACTIVE') {
       return NextResponse.json({ 
-        error: 'Votre compte commerçant doit être validé avant de pouvoir créer des annonces' 
+        error: 'Votre contrat commerçant doit être actif avant de pouvoir créer des annonces' 
       }, { status: 403 })
     }
 
     const body = await request.json()
-    const validatedData = createMerchantAnnouncementSchema.parse(body)
+    const announcementData = createAnnouncementSchema.parse(body)
+
+    // Vérifier les limites du contrat (simplifiées pour l'instant)
+    if (merchant.contract && merchant.contract.status !== 'ACTIVE') {
+      return NextResponse.json({ 
+        error: 'Votre contrat doit être actif pour créer des annonces' 
+      }, { status: 403 })
+    }
+
+    // TODO: Ajouter d'autres vérifications de contrat si nécessaire
 
     // Créer l'annonce
-    const newAnnouncement = await db.$transaction(async (tx) => {
-      // Créer l'annonce principale
-      const announcement = await tx.announcement.create({
-        data: {
-          authorId: user.id,
-          title: validatedData.title,
-          description: validatedData.description,
-          type: validatedData.type,
-          status: 'ACTIVE',
-          basePrice: validatedData.basePrice,
-          currency: 'EUR',
-          isUrgent: validatedData.isUrgent,
-          pickupAddress: validatedData.pickupAddress,
-          pickupLatitude: validatedData.pickupLatitude,
-          pickupLongitude: validatedData.pickupLongitude,
-          deliveryAddress: validatedData.deliveryAddress,
-          deliveryLatitude: validatedData.deliveryLatitude,
-          deliveryLongitude: validatedData.deliveryLongitude,
-          pickupDate: validatedData.pickupDate ? new Date(validatedData.pickupDate) : null,
-          deliveryDate: validatedData.deliveryDate ? new Date(validatedData.deliveryDate) : null,
-          specialInstructions: validatedData.specialInstructions,
-          customerInfo: validatedData.customerInfo as any,
-          orderReference: validatedData.orderReference
-        }
-      })
-
-      // Créer les détails du package si fournis
-      if (validatedData.dimensions || validatedData.totalWeight) {
-        await tx.packageAnnouncement.create({
-          data: {
-            announcementId: announcement.id,
-            weight: validatedData.totalWeight,
-            length: validatedData.dimensions?.length,
-            width: validatedData.dimensions?.width,
-            height: validatedData.dimensions?.height,
-            fragile: validatedData.fragile,
-            insuredValue: validatedData.insuredValue,
-            packageCount: validatedData.packageCount
+    const announcement = await db.announcement.create({
+      data: {
+        ...announcementData,
+        authorId: user.id,
+        status: 'ACTIVE',
+        finalPrice: announcementData.basePrice
+      },
+      include: {
+        author: {
+          include: {
+            merchant: {
+              select: {
+                companyName: true
+              }
+            }
           }
-        })
+        }
       }
-
-      return announcement
     })
 
-    console.log('✅ Annonce commerçant créée:', newAnnouncement.id)
+    // Déclencher le matching avec les livreurs (si applicable)
+    if (announcementData.type === 'PACKAGE_DELIVERY' && 
+        (!announcementData.availableFrom || new Date(announcementData.availableFrom) <= new Date())) {
+      
+      try {
+        // TODO: Appeler le service de matching
+        // await matchingService.triggerMatching(announcement.id)
+        
+        console.log(`🔍 Matching déclenché pour l'annonce ${announcement.id}`)
+      } catch (matchingError) {
+        console.error('Error triggering matching:', matchingError)
+        // Ne pas faire échouer la création pour un problème de matching
+      }
+    }
+
+    // Notification de succès
+    await db.notification.create({
+          data: {
+        userId: user.id,
+        type: 'ANNOUNCEMENT',
+        title: 'Annonce créée avec succès',
+        message: `Votre annonce "${announcement.title}" a été publiée`,
+        priority: 'MEDIUM'
+      }
+    })
 
     return NextResponse.json({
       success: true,
+      message: 'Annonce créée avec succès',
       announcement: {
-        id: newAnnouncement.id,
-        title: newAnnouncement.title,
-        description: newAnnouncement.description,
-        type: newAnnouncement.type,
-        status: newAnnouncement.status,
-        basePrice: Number(newAnnouncement.basePrice),
-        isUrgent: newAnnouncement.isUrgent,
-        pickupAddress: newAnnouncement.pickupAddress,
-        deliveryAddress: newAnnouncement.deliveryAddress,
-        createdAt: newAnnouncement.createdAt.toISOString()
-      },
-      message: 'Annonce créée avec succès'
+        id: announcement.id,
+        title: announcement.title,
+        type: announcement.type,
+        status: announcement.status,
+        basePrice: announcement.basePrice,
+        createdAt: announcement.createdAt
+      }
     }, { status: 201 })
 
   } catch (error) {
+    console.error('❌ Erreur création annonce commerçant:', error)
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: 'Validation error', details: error.errors },
+        {
+          error: 'Données d\'annonce invalides',
+          details: error.errors.map(e => ({
+            field: e.path.join('.'),
+            message: e.message
+          }))
+        },
         { status: 400 }
       )
     }
-
-    console.error('❌ Erreur création annonce commerçant:', error)
     return NextResponse.json(
-      { error: 'Internal server error', details: error.message },
+      { error: 'Internal server error' },
       { status: 500 }
     )
   }

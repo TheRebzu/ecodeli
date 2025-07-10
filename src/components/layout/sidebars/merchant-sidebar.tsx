@@ -11,7 +11,7 @@ import {
   Store,
   Package,
   ShoppingCart,
-  DollarSign,
+  CreditCard,
   FileText,
   BarChart3,
   Settings,
@@ -24,10 +24,18 @@ import {
   Upload,
   TrendingUp,
   Truck,
-  CreditCard,
+  Euro,
   PlusCircle,
-  History
+  History,
+  Calculator,
+  Receipt,
+  MapPin,
+  Plus,
+  Percent,
+  Gift,
+  Target
 } from 'lucide-react'
+
 
 interface MerchantSidebarProps {
   collapsed: boolean
@@ -50,6 +58,7 @@ interface NavigationItem {
 export function MerchantSidebar({ collapsed, user }: MerchantSidebarProps) {
   const pathname = usePathname()
   const [expandedItems, setExpandedItems] = useState<string[]>([])
+  const t = useTranslations('sidebar')
 
   const toggleExpanded = (href: string) => {
     setExpandedItems(prev => 
@@ -59,61 +68,19 @@ export function MerchantSidebar({ collapsed, user }: MerchantSidebarProps) {
     )
   }
 
+  // Navigation selon le cahier des charges EcoDeli 2024-2025
   const navigationItems: NavigationItem[] = [
     {
-      label: 'Tableau de bord',
+      label: 'Dashboard',
       href: '/merchant',
       icon: Home
     },
+    // SERVICE PHARE : Lâcher de chariot (mis en avant)
     {
-      label: 'Produits',
-      href: '/merchant/products',
-      icon: Package,
-      submenu: [
-        {
-          label: 'Mes produits',
-          href: '/merchant/products/list',
-          icon: Package
-        },
-        {
-          label: 'Ajouter',
-          href: '/merchant/products/add',
-          icon: PlusCircle
-        },
-        {
-          label: 'Import bulk',
-          href: '/merchant/products/import',
-          icon: Upload
-        }
-      ]
-    },
-    {
-      label: 'Commandes',
-      href: '/merchant/orders',
-      icon: ShoppingCart,
-      badge: 8,
-      submenu: [
-        {
-          label: 'Nouvelles',
-          href: '/merchant/orders/new',
-          icon: Clock
-        },
-        {
-          label: 'En cours',
-          href: '/merchant/orders/active',
-          icon: Truck
-        },
-        {
-          label: 'Historique',
-          href: '/merchant/orders/history',
-          icon: History
-        }
-      ]
-    },
-    {
-      label: 'Lâcher de chariot',
+      label: 'Lâcher de Chariot',
       href: '/merchant/cart-drop',
       icon: ShoppingCart,
+      badge: 3, // Nouvelles commandes
       submenu: [
         {
           label: 'Configuration',
@@ -121,69 +88,151 @@ export function MerchantSidebar({ collapsed, user }: MerchantSidebarProps) {
           icon: Settings
         },
         {
-          label: 'Zones de livraison',
-          href: '/merchant/cart-drop/zones',
-          icon: Package
+          label: 'Commandes',
+          href: '/merchant/cart-drop/orders',
+          icon: Clock
         },
         {
-          label: 'Créneaux',
-          href: '/merchant/cart-drop/schedules',
-          icon: Clock
+          label: 'Zones de livraison',
+          href: '/merchant/cart-drop/zones',
+          icon: MapPin
         }
       ]
     },
+    // EXIGENCE : Gestion des annonces
     {
-      label: 'Contrats',
+      label: 'Gestion des Annonces',
+      href: '/merchant/announcements',
+      icon: Package,
+      submenu: [
+        {
+          label: 'Toutes les annonces',
+          href: '/merchant/announcements',
+          icon: Package
+        },
+        {
+          label: 'Créer une annonce',
+          href: '/merchant/announcements/create',
+          icon: PlusCircle
+        },
+        {
+          label: 'Import en masse',
+          href: '/merchant/announcements/bulk',
+          icon: Upload
+        }
+      ]
+    },
+    // NOUVEAU : Gestion des promotions et codes promo
+    {
+      label: 'Promotions & Codes Promo',
+      href: '/merchant/promotions',
+      icon: Gift,
+      submenu: [
+        {
+          label: 'Toutes les promotions',
+          href: '/merchant/promotions',
+          icon: Gift
+        },
+        {
+          label: 'Créer une promotion',
+          href: '/merchant/promotions/create',
+          icon: PlusCircle
+        },
+        {
+          label: 'Modèles de campagnes',
+          href: '/merchant/promotions/templates',
+          icon: Target
+        },
+        {
+          label: 'Performances',
+          href: '/merchant/promotions/analytics',
+          icon: BarChart3
+        }
+      ]
+    },
+    // EXIGENCE : Gestion de son contrat
+    {
+      label: 'Gestion des Contrats',
       href: '/merchant/contracts',
       icon: FileText,
       submenu: [
         {
-          label: 'Mon contrat',
-          href: '/merchant/contracts/current',
+          label: 'Mon contrat actuel',
+          href: '/merchant/contracts',
           icon: FileText
         },
         {
-          label: 'Négociation',
-          href: '/merchant/contracts/negotiation',
-          icon: TrendingUp
+          label: 'Conditions tarifaires',
+          href: '/merchant/contracts/pricing',
+          icon: Calculator
         },
         {
-          label: 'Historique',
-          href: '/merchant/contracts/history',
+          label: 'Renouvellement',
+          href: '/merchant/contracts/renewal',
           icon: History
         }
       ]
     },
+    // EXIGENCE : Gestion de la facturation des services demandés
     {
-      label: 'Finances',
-      href: '/merchant/finances',
-      icon: DollarSign,
+      label: 'Facturation Services',
+      href: '/merchant/billing',
+      icon: Receipt,
       submenu: [
         {
-          label: 'Revenus',
-          href: '/merchant/finances/revenue',
-          icon: BarChart3
+          label: 'Toutes les factures',
+          href: '/merchant/billing',
+          icon: Receipt
         },
         {
-          label: 'Paiements',
-          href: '/merchant/finances/payments',
-          icon: CreditCard
+          label: 'Créer une facture',
+          href: '/merchant/billing/create',
+          icon: PlusCircle
         },
         {
-          label: 'Factures',
-          href: '/merchant/finances/invoices',
-          icon: FileText
+          label: 'Paramètres facturation',
+          href: '/merchant/billing/settings',
+          icon: Settings
         }
       ]
     },
+    // EXIGENCE : Accès aux paiements
     {
+<<<<<<< Updated upstream
       label: 'Analytics',
+=======
+      label: 'Accès aux Paiements',
+      href: '/merchant/payments',
+      icon: CreditCard,
+      submenu: [
+        {
+          label: 'Historique paiements',
+          href: '/merchant/payments',
+          icon: History
+        },
+        {
+          label: 'Virements',
+          href: '/merchant/payments/payouts',
+          icon: Euro
+        },
+        {
+          label: 'Paramètres',
+          href: '/merchant/payments/settings',
+          icon: Settings
+        }
+      ]
+    },
+    // Analytics pour pilotage business
+    {
+      label: 'Analytics Business',
+>>>>>>> Stashed changes
       href: '/merchant/analytics',
       icon: BarChart3,
       submenu: [
         {
           label: 'Vue d\'ensemble',
           href: '/merchant/analytics',
+<<<<<<< Updated upstream
           icon: BarChart3
         },
         {
@@ -195,15 +244,25 @@ export function MerchantSidebar({ collapsed, user }: MerchantSidebarProps) {
           label: 'Clients',
           href: '/merchant/analytics/customers',
           icon: User
+=======
+          icon: TrendingUp
         },
         {
-          label: 'Livraisons',
+          label: 'Performance produits',
+          href: '/merchant/analytics/products',
+          icon: Package
+>>>>>>> Stashed changes
+        },
+        {
+          label: 'Analyse livraisons',
           href: '/merchant/analytics/deliveries',
           icon: Truck
         }
       ]
     },
+    // Paramètres compte
     {
+<<<<<<< Updated upstream
       label: 'Clients',
       href: '/merchant/customers',
       icon: User,
@@ -256,6 +315,28 @@ export function MerchantSidebar({ collapsed, user }: MerchantSidebarProps) {
       label: 'Profil',
       href: '/merchant/profile',
       icon: User
+=======
+      label: 'Paramètres',
+      href: '/merchant/settings',
+      icon: Settings,
+      submenu: [
+        {
+          label: 'Profil entreprise',
+          href: '/merchant/settings/profile',
+          icon: User
+        },
+        {
+          label: 'Notifications',
+          href: '/merchant/settings/notifications',
+          icon: Bell
+        },
+        {
+          label: 'Sécurité',
+          href: '/merchant/settings/security',
+          icon: Settings
+        }
+      ]
+>>>>>>> Stashed changes
     }
   ]
 
@@ -344,7 +425,10 @@ export function MerchantSidebar({ collapsed, user }: MerchantSidebarProps) {
         {!collapsed ? (
           <div className="flex items-center gap-2">
             <Store className="h-6 w-6 text-purple-600 dark:text-purple-400" />
-            <span className="text-lg font-semibold text-purple-800 dark:text-purple-200">EcoDeli</span>
+            <div>
+              <span className="text-lg font-semibold text-purple-800 dark:text-purple-200">EcoDeli</span>
+              <div className="text-xs text-muted-foreground">Espace Commerçant</div>
+            </div>
           </div>
         ) : (
           <Store className="h-6 w-6 text-purple-600 dark:text-purple-400" />
@@ -363,21 +447,32 @@ export function MerchantSidebar({ collapsed, user }: MerchantSidebarProps) {
                 {user.name || user.email}
               </p>
               <p className="truncate text-xs text-muted-foreground">
-                Commerçant
+                Commerçant partenaire
               </p>
             </div>
           </div>
         </div>
       )}
 
-      {/* Navigation */}
+      {/* Navigation conforme au cahier des charges */}
       <nav className="flex-1 space-y-1 p-4">
         {navigationItems.map(item => renderNavigationItem(item))}
       </nav>
 
-      {/* Footer with theme toggle */}
+      {/* Footer avec accès rapide */}
       {!collapsed && (
-        <div className="border-t p-4">
+        <div className="border-t p-4 space-y-2">
+          <div className="text-xs text-muted-foreground font-medium">Accès rapide</div>
+          <div className="flex items-center justify-between text-xs">
+            <Link href="/merchant/cart-drop/orders" className="flex items-center gap-1 text-muted-foreground hover:text-foreground">
+              <ShoppingCart className="h-3 w-3" />
+              <span>Commandes</span>
+            </Link>
+            <Link href="/merchant/payments" className="flex items-center gap-1 text-muted-foreground hover:text-foreground">
+              <Euro className="h-3 w-3" />
+              <span>Paiements</span>
+            </Link>
+          </div>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Settings className="h-4 w-4 text-muted-foreground" />
@@ -387,6 +482,8 @@ export function MerchantSidebar({ collapsed, user }: MerchantSidebarProps) {
           </div>
         </div>
       )}
+
+
     </div>
   )
 } 

@@ -37,6 +37,7 @@
     "support": "Support",
     "ecodeli": "EcoDeli",
     "normal": "Normal",
+<<<<<<< Updated upstream
     "urgent": "Urgent",
     "envoyer_un_colis": "Envoyer un colis",
     "services_la_personne": "Services à la personne",
@@ -233,6 +234,23 @@
       "healthcare": "Soins",
       "beauty": "Beauté",
       "other": "Autre"
+=======
+    "urgent": "Urgent"
+  },
+  "merchant": {
+    "dashboard": {
+      "loading": "Chargement du dashboard...",
+      "title": "Dashboard Commerçant",
+      "subtitle": "Bienvenue sur votre espace EcoDeli - Gérez vos activités de crowdshipping"
+    },
+    "promotions": {
+      "title": "Gestion des Promotions",
+      "promotion": {
+        "created": "Promotion créée avec succès",
+        "createError": "Erreur lors de la création de la promotion",
+        "deleteConfirm": "Êtes-vous sûr de vouloir supprimer cette promotion ?"
+      }
+>>>>>>> Stashed changes
     }
   },
   "auth": {
@@ -1638,7 +1656,49 @@
     "tlchargement_en_cours": "Téléchargement en cours...",
     "progression_1": "Progression",
     "aucun_document_tlcharg": "Aucun document téléchargé",
-    "tlcharger": "Télécharger"
+    "tlcharger": "Télécharger",
+    "validation": {
+      "title": "Validation Prestataire",
+      "subtitle": "Suivez votre processus de validation pour devenir prestataire EcoDeli",
+      "loading": "Chargement de votre validation...",
+      "refresh": "Actualiser",
+      "progress": {
+        "title": "Progression de la validation",
+        "description": "Votre avancement dans le processus de validation",
+        "completion": "Progression",
+        "estimated": "Fin estimée",
+        "nextAction": "Prochaine action",
+        "rejectionReason": "Motif de refus"
+      },
+      "tabs": {
+        "overview": "Vue d'ensemble",
+        "steps": "Étapes",
+        "certifications": "Certifications"
+      },
+      "stats": {
+        "status": "Statut",
+        "statusDesc": "Statut de validation actuel",
+        "progress": "Progression",
+        "progressDesc": "Pourcentage d'avancement",
+        "certifications": "Certifications",
+        "certificationsDesc": "Certifications obtenues",
+        "documents": "Documents",
+        "documentsDesc": "Validation des documents"
+      },
+      "current": {
+        "title": "Étape actuelle",
+        "description": "Ce que vous devez faire maintenant",
+        "uploadDocuments": "Télécharger les documents",
+        "startCertifications": "Commencer les certifications",
+        "adminReview": "Votre dossier est en cours d'examen par notre équipe. Vous recevrez une notification dès que la validation sera terminée."
+      },
+      "certifications": {
+        "empty": {
+          "title": "Aucune certification requise",
+          "description": "Aucune certification n'est nécessaire pour vos spécialités actuelles."
+        }
+      }
+    }
   },
   "components": {
     "ecodeli_admin": "EcoDeli Admin",
@@ -2440,6 +2500,7 @@
       "description": "Actualités et conseils pour optimiser vos livraisons écologiques"
     }
   },
+<<<<<<< Updated upstream
   "services": {
     "title": "Mes Demandes de Services",
     "subtitle": "Gérez vos demandes de services à la personne",
@@ -2458,5 +2519,130 @@
     "deleteSuccessDesc": "La demande a été supprimée avec succès",
     "deleteError": "Erreur de suppression",
     "deleteErrorDesc": "Une erreur est survenue lors de la suppression"
+=======
+  "notifications": {
+    "title": "Notifications",
+    "subtitle": "Centre de notifications et alertes métier",
+    "overview": {
+      "title": "Vue d'ensemble",
+      "totalNotifications": "Total des notifications",
+      "unreadNotifications": "Non lues",
+      "alertsActive": "Alertes actives",
+      "averageResponseTime": "Temps de réponse moyen"
+    },
+    "categories": {
+      "ORDERS": "Commandes",
+      "PAYMENTS": "Paiements",
+      "INVENTORY": "Inventaire",
+      "MARKETING": "Marketing",
+      "SYSTEM": "Système",
+      "REPORTS": "Rapports",
+      "ALERTS": "Alertes"
+    },
+    "types": {
+      "NEW_ORDER": "Nouvelle commande",
+      "ORDER_UPDATED": "Commande mise à jour",
+      "ORDER_CANCELLED": "Commande annulée",
+      "PAYMENT_RECEIVED": "Paiement reçu",
+      "PAYMENT_FAILED": "Échec de paiement",
+      "REFUND_PROCESSED": "Remboursement traité",
+      "LOW_STOCK": "Stock faible",
+      "OUT_OF_STOCK": "Rupture de stock",
+      "STOCK_REPLENISHED": "Stock réapprovisionné",
+      "PROMOTION_STARTED": "Promotion démarrée",
+      "PROMOTION_ENDED": "Promotion terminée",
+      "CUSTOMER_REVIEW": "Avis client",
+      "SYSTEM_MAINTENANCE": "Maintenance système",
+      "SECURITY_ALERT": "Alerte sécurité",
+      "BACKUP_COMPLETED": "Sauvegarde terminée",
+      "DAILY_REPORT": "Rapport quotidien",
+      "WEEKLY_REPORT": "Rapport hebdomadaire",
+      "MONTHLY_REPORT": "Rapport mensuel",
+      "PERFORMANCE_ALERT": "Alerte performance",
+      "DELIVERY_DELAYED": "Livraison retardée",
+      "CUSTOMER_COMPLAINT": "Plainte client"
+    },
+    "priority": {
+      "LOW": "Faible",
+      "MEDIUM": "Moyenne",
+      "HIGH": "Élevée",
+      "URGENT": "Urgente"
+    },
+    "status": {
+      "UNREAD": "Non lue",
+      "READ": "Lue",
+      "ARCHIVED": "Archivée"
+    },
+    "list": {
+      "title": "Toutes les notifications",
+      "markAsRead": "Marquer comme lue",
+      "markAllAsRead": "Tout marquer comme lu",
+      "archive": "Archiver",
+      "delete": "Supprimer",
+      "noNotifications": "Aucune notification",
+      "loadMore": "Charger plus",
+      "filters": "Filtres",
+      "search": "Rechercher..."
+    },
+    "preferences": {
+      "title": "Préférences de notifications",
+      "subtitle": "Configurez vos notifications",
+      "channels": {
+        "title": "Canaux de notification",
+        "email": "Email",
+        "sms": "SMS",
+        "push": "Notification push",
+        "inApp": "Dans l'application"
+      },
+      "frequency": {
+        "title": "Fréquence",
+        "IMMEDIATE": "Immédiate",
+        "HOURLY": "Toutes les heures",
+        "DAILY": "Quotidienne",
+        "WEEKLY": "Hebdomadaire"
+      },
+      "quietHours": {
+        "title": "Heures de silence",
+        "enabled": "Activer les heures de silence",
+        "startTime": "Heure de début",
+        "endTime": "Heure de fin"
+      },
+      "save": "Enregistrer les préférences"
+    },
+    "businessAlerts": {
+      "title": "Alertes métier",
+      "subtitle": "Alertes automatiques basées sur vos métriques",
+      "lowStock": {
+        "title": "Stock faible",
+        "description": "Alerte quand le stock atteint un seuil critique",
+        "threshold": "Seuil d'alerte",
+        "enabled": "Activée"
+      },
+      "highOrderVolume": {
+        "title": "Volume de commandes élevé",
+        "description": "Alerte en cas de pic de commandes",
+        "threshold": "Seuil (commandes/heure)",
+        "enabled": "Activée"
+      },
+      "lowRevenue": {
+        "title": "Chiffre d'affaires faible",
+        "description": "Alerte si le CA baisse significativement",
+        "threshold": "Baisse minimum (%)",
+        "enabled": "Activée"
+      },
+      "paymentFailures": {
+        "title": "Échecs de paiement",
+        "description": "Alerte en cas d'échecs de paiement répétés",
+        "threshold": "Nombre d'échecs",
+        "enabled": "Activée"
+      },
+      "actions": {
+        "viewDetails": "Voir les détails",
+        "resolve": "Résoudre",
+        "snooze": "Reporter",
+        "dismiss": "Ignorer"
+      }
+    }
+>>>>>>> Stashed changes
   }
 }

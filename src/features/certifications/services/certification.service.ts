@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/db'
 import { NotificationService } from '@/features/notifications/services/notification.service'
 import { generatePDF } from '@/lib/utils/pdf'
+import { z } from 'zod'
 
 export interface CertificationEnrollment {
   entityType: 'provider' | 'deliverer'
@@ -22,342 +23,866 @@ export interface CertificationStats {
   expiringCount: number
 }
 
+export interface CertificationModule {
+  id: string
+  title: string
+  description: string
+  content: string
+  orderIndex: number
+  estimatedDuration: number
+  isRequired: boolean
+  resources: any[]
+  progress?: ModuleProgress
+}
+
+export interface ModuleProgress {
+  id: string
+  status: 'NOT_STARTED' | 'IN_PROGRESS' | 'COMPLETED' | 'FAILED'
+  startedAt?: Date
+  completedAt?: Date
+  timeSpent: number
+  score?: number
+  attempts: number
+}
+
+export interface CertificationDetails {
+  id: string
+  name: string
+  description: string
+  category: string
+  level: string
+  isRequired: boolean
+  validityDuration?: number
+  price?: number
+  passScore: number
+  maxAttempts: number
+  modules: CertificationModule[]
+  userProgress?: {
+    status: string
+    enrolledAt: Date
+    startedAt?: Date
+    completedAt?: Date
+    score?: number
+    attempts: number
+    certificateUrl?: string
+    isValid: boolean
+    expiresAt?: Date
+  }
+}
+
+export interface ExamQuestion {
+  id: string
+  question: string
+  type: 'multiple_choice' | 'true_false' | 'text'
+  options?: string[]
+  correctAnswer: string | number
+  explanation?: string
+  points: number
+}
+
+export interface ExamSession {
+  id: string
+  certificationId: string
+  sessionNumber: number
+  timeLimit: number
+  questions: ExamQuestion[]
+  startedAt: Date
+  timeRemaining?: number
+}
+
+export interface ExamResult {
+  sessionId: string
+  score: number
+  isPassed: boolean
+  correctAnswers: number
+  totalQuestions: number
+  timeSpent: number
+  feedback: string
+  certificateUrl?: string
+}
+
 export class CertificationService {
   /**
-   * Inscrire un utilisateur à une certification
+   * Récupère toutes les certifications disponibles
    */
-  static async enrollInCertification(enrollment: CertificationEnrollment) {
+  static async getAllCertifications(filters: {
+    category?: string
+    level?: string
+    isRequired?: boolean
+    search?: string
+  } = {}) {
     try {
-      const certification = await prisma.certification.findUnique({
-        where: { id: enrollment.certificationId },
-        include: { modules: true }
-      })
-
-      if (!certification || !certification.isActive) {
-        throw new Error('Certification non disponible')
+      const where: any = {
+        isActive: true
       }
 
-      // Vérifier si déjà inscrit
-      const existingEnrollment = enrollment.entityType === 'provider'
-        ? await prisma.providerCertification.findUnique({
-            where: {
-              providerId_certificationId: {
-                providerId: enrollment.entityId,
-                certificationId: enrollment.certificationId
-              }
-            }
-          })
-        : await prisma.delivererCertification.findUnique({
-            where: {
-              delivererId_certificationId: {
-                delivererId: enrollment.entityId,
-                certificationId: enrollment.certificationId
-              }
-            }
-          })
-
-      if (existingEnrollment) {
-        throw new Error('Déjà inscrit à cette certification')
+      if (filters.category) {
+        where.category = filters.category
       }
 
-      // Créer l'inscription
-      const certificationRecord = enrollment.entityType === 'provider'
-        ? await prisma.providerCertification.create({
-            data: {
-              providerId: enrollment.entityId,
-              certificationId: enrollment.certificationId,
-              status: 'ENROLLED'
-            }
-          })
-        : await prisma.delivererCertification.create({
-            data: {
-              delivererId: enrollment.entityId,
-              certificationId: enrollment.certificationId,
-              status: 'ENROLLED'
-            }
-          })
+      if (filters.level) {
+        where.level = filters.level
+      }
 
-      // Créer le progrès pour chaque module
-      for (const module of certification.modules) {
-        await prisma.moduleProgress.create({
-          data: {
-            moduleId: module.id,
-            ...(enrollment.entityType === 'provider' 
-              ? { providerCertificationId: certificationRecord.id }
-              : { delivererCertificationId: certificationRecord.id }
-            )
+      if (filters.isRequired !== undefined) {
+        where.isRequired = filters.isRequired
+      }
+
+      if (filters.search) {
+        where.OR = [
+          { name: { contains: filters.search, mode: 'insensitive' } },
+          { description: { contains: filters.search, mode: 'insensitive' } }
+        ]
+      }
+
+      const certifications = await prisma.certification.findMany({
+        where,
+        include: {
+          modules: {
+            orderBy: { orderIndex: 'asc' }
+          },
+          _count: {
+            select: {
+              providerCertifications: true,
+              delivererCertifications: true
+            }
           }
-        })
-      }
-
-      // Audit
-      await this.createAuditLog({
-        entityType: enrollment.entityType,
-        entityId: enrollment.entityId,
-        certificationId: enrollment.certificationId,
-        action: 'ENROLLED',
-        newStatus: 'ENROLLED'
+        },
+        orderBy: [
+          { isRequired: 'desc' },
+          { category: 'asc' },
+          { name: 'asc' }
+        ]
       })
 
-      // Notification
-      await NotificationService.createNotification({
-        recipientId: enrollment.entityId,
-        type: 'CERTIFICATION_ENROLLED',
-        title: `Inscription à la certification: ${certification.name}`,
-        content: `Vous êtes maintenant inscrit à la certification "${certification.name}". Commencez votre formation dès maintenant !`,
-        metadata: { certificationId: enrollment.certificationId }
-      })
-
-      return certificationRecord
+      return certifications
 
     } catch (error) {
-      console.error('Erreur lors de l\'inscription à la certification:', error)
+      console.error('Erreur récupération certifications:', error)
       throw error
     }
   }
 
   /**
-   * Démarrer une certification
+   * Récupère les détails d'une certification avec le progrès utilisateur
    */
-  static async startCertification(
-    entityType: 'provider' | 'deliverer',
-    entityId: string,
-    certificationId: string
-  ) {
+  static async getCertificationDetails(
+    certificationId: string, 
+    userId: string, 
+    userType: 'provider' | 'deliverer'
+  ): Promise<CertificationDetails> {
     try {
-      const updateData = {
-        status: 'IN_PROGRESS' as const,
-        startedAt: new Date()
-      }
-
-      const certificationRecord = entityType === 'provider'
-        ? await prisma.providerCertification.update({
-            where: {
-              providerId_certificationId: {
-                providerId: entityId,
-                certificationId
-              }
-            },
-            data: updateData
-          })
-        : await prisma.delivererCertification.update({
-            where: {
-              delivererId_certificationId: {
-                delivererId: entityId,
-                certificationId
-              }
-            },
-            data: updateData
-          })
-
-      await this.createAuditLog({
-        entityType,
-        entityId,
-        certificationId,
-        action: 'STARTED',
-        oldStatus: 'ENROLLED',
-        newStatus: 'IN_PROGRESS'
-      })
-
-      return certificationRecord
-
-    } catch (error) {
-      console.error('Erreur lors du démarrage de la certification:', error)
-      throw error
-    }
-  }
-
-  /**
-   * Compléter un module
-   */
-  static async completeModule(
-    moduleId: string,
-    entityType: 'provider' | 'deliverer',
-    certificationRecordId: string,
-    score?: number
-  ) {
-    try {
-      const updateData = {
-        status: 'COMPLETED' as const,
-        completedAt: new Date(),
-        ...(score && { score })
-      }
-
-      const progress = entityType === 'provider'
-        ? await prisma.moduleProgress.updateMany({
-            where: {
-              moduleId,
-              providerCertificationId: certificationRecordId
-            },
-            data: updateData
-          })
-        : await prisma.moduleProgress.updateMany({
-            where: {
-              moduleId,
-              delivererCertificationId: certificationRecordId
-            },
-            data: updateData
-          })
-
-      // Vérifier si tous les modules sont terminés
-      await this.checkCertificationCompletion(certificationRecordId, entityType)
-
-      return progress
-
-    } catch (error) {
-      console.error('Erreur lors de la complétion du module:', error)
-      throw error
-    }
-  }
-
-  /**
-   * Soumettre un examen
-   */
-  static async submitExam(
-    certificationId: string,
-    entityType: 'provider' | 'deliverer',
-    entityId: string,
-    submission: ExamSubmission
-  ) {
-    try {
-      // Récupérer la certification et les questions
       const certification = await prisma.certification.findUnique({
-        where: { id: certificationId }
+        where: { id: certificationId },
+        include: {
+          modules: {
+            orderBy: { orderIndex: 'asc' }
+          }
+        }
       })
 
       if (!certification) {
         throw new Error('Certification non trouvée')
       }
 
-      // Récupérer l'enregistrement de certification
-      const certificationRecord = entityType === 'provider'
-        ? await prisma.providerCertification.findUnique({
+      // Récupérer le progrès utilisateur
+      let userProgress = null
+      let moduleProgresses: any[] = []
+
+      if (userType === 'provider') {
+        const provider = await prisma.provider.findUnique({
+          where: { userId }
+        })
+
+        if (provider) {
+          userProgress = await prisma.providerCertification.findUnique({
             where: {
               providerId_certificationId: {
-                providerId: entityId,
-                certificationId
-              }
-            }
-          })
-        : await prisma.delivererCertification.findUnique({
-            where: {
-              delivererId_certificationId: {
-                delivererId: entityId,
+                providerId: provider.id,
                 certificationId
               }
             }
           })
 
-      if (!certificationRecord) {
+          if (userProgress) {
+            moduleProgresses = await prisma.moduleProgress.findMany({
+              where: {
+                providerCertificationId: userProgress.id
+              }
+            })
+          }
+        }
+      } else {
+        const deliverer = await prisma.deliverer.findUnique({
+          where: { userId }
+        })
+
+        if (deliverer) {
+          userProgress = await prisma.delivererCertification.findUnique({
+            where: {
+              delivererId_certificationId: {
+                delivererId: deliverer.id,
+                certificationId
+              }
+            }
+          })
+
+          if (userProgress) {
+            moduleProgresses = await prisma.moduleProgress.findMany({
+              where: {
+                delivererCertificationId: userProgress.id
+              }
+            })
+          }
+        }
+      }
+
+      // Mapper les modules avec leur progrès
+      const modulesWithProgress = certification.modules.map(module => {
+        const progress = moduleProgresses.find(p => p.moduleId === module.id)
+        
+        return {
+          ...module,
+          progress: progress ? {
+            id: progress.id,
+            status: progress.status,
+            startedAt: progress.startedAt,
+            completedAt: progress.completedAt,
+            timeSpent: progress.timeSpent,
+            score: progress.score,
+            attempts: progress.attempts
+          } : undefined
+        }
+      })
+
+      return {
+        id: certification.id,
+        name: certification.name,
+        description: certification.description,
+        category: certification.category,
+        level: certification.level,
+        isRequired: certification.isRequired,
+        validityDuration: certification.validityDuration,
+        price: certification.price,
+        passScore: certification.passScore,
+        maxAttempts: certification.maxAttempts,
+        modules: modulesWithProgress,
+        userProgress: userProgress ? {
+          status: userProgress.status,
+          enrolledAt: userProgress.enrolledAt,
+          startedAt: userProgress.startedAt,
+          completedAt: userProgress.completedAt,
+          score: userProgress.score,
+          attempts: userProgress.attempts,
+          certificateUrl: userProgress.certificateUrl,
+          isValid: userProgress.isValid,
+          expiresAt: userProgress.expiresAt
+        } : undefined
+      }
+
+    } catch (error) {
+      console.error('Erreur récupération détails certification:', error)
+      throw error
+    }
+  }
+
+  /**
+   * Inscrit un utilisateur à une certification
+   */
+  static async enrollInCertification(
+    certificationId: string,
+    userId: string,
+    userType: 'provider' | 'deliverer'
+  ) {
+    try {
+      if (userType === 'provider') {
+        const provider = await prisma.provider.findUnique({
+          where: { userId }
+        })
+
+        if (!provider) {
+          throw new Error('Profil prestataire non trouvé')
+        }
+
+        // Vérifier si déjà inscrit
+        const existing = await prisma.providerCertification.findUnique({
+          where: {
+            providerId_certificationId: {
+              providerId: provider.id,
+              certificationId
+            }
+          }
+        })
+
+        if (existing) {
+          throw new Error('Déjà inscrit à cette certification')
+        }
+
+        // Créer l'inscription
+        const enrollment = await prisma.providerCertification.create({
+          data: {
+            providerId: provider.id,
+            certificationId,
+            status: 'ENROLLED'
+          }
+        })
+
+        return enrollment
+
+      } else {
+        const deliverer = await prisma.deliverer.findUnique({
+          where: { userId }
+        })
+
+        if (!deliverer) {
+          throw new Error('Profil livreur non trouvé')
+        }
+
+        const existing = await prisma.delivererCertification.findUnique({
+          where: {
+            delivererId_certificationId: {
+              delivererId: deliverer.id,
+              certificationId
+            }
+          }
+        })
+
+        if (existing) {
+          throw new Error('Déjà inscrit à cette certification')
+        }
+
+        const enrollment = await prisma.delivererCertification.create({
+          data: {
+            delivererId: deliverer.id,
+            certificationId,
+            status: 'ENROLLED'
+          }
+        })
+
+        return enrollment
+      }
+
+    } catch (error) {
+      console.error('Erreur inscription certification:', error)
+      throw error
+    }
+  }
+
+  /**
+   * Démarre un module de certification
+   */
+  static async startModule(
+    certificationId: string,
+    moduleId: string,
+    userId: string,
+    userType: 'provider' | 'deliverer'
+  ) {
+    try {
+      // Récupérer l'inscription utilisateur
+      let userCertification: any = null
+
+      if (userType === 'provider') {
+        const provider = await prisma.provider.findUnique({
+          where: { userId }
+        })
+
+        if (!provider) {
+          throw new Error('Profil prestataire non trouvé')
+        }
+
+        userCertification = await prisma.providerCertification.findUnique({
+          where: {
+            providerId_certificationId: {
+              providerId: provider.id,
+              certificationId
+            }
+          }
+        })
+      } else {
+        const deliverer = await prisma.deliverer.findUnique({
+          where: { userId }
+        })
+
+        if (!deliverer) {
+          throw new Error('Profil livreur non trouvé')
+        }
+
+        userCertification = await prisma.delivererCertification.findUnique({
+          where: {
+            delivererId_certificationId: {
+              delivererId: deliverer.id,
+              certificationId
+            }
+          }
+        })
+      }
+
+      if (!userCertification) {
         throw new Error('Inscription à la certification non trouvée')
       }
 
-      if (certificationRecord.attempts >= certification.maxAttempts) {
+      // Vérifier si le module existe déjà en progrès
+      const existingProgress = await prisma.moduleProgress.findFirst({
+        where: {
+          moduleId,
+          [userType === 'provider' ? 'providerCertificationId' : 'delivererCertificationId']: userCertification.id
+        }
+      })
+
+      if (existingProgress) {
+        // Mettre à jour le statut si pas encore commencé
+        if (existingProgress.status === 'NOT_STARTED') {
+          const updated = await prisma.moduleProgress.update({
+            where: { id: existingProgress.id },
+            data: {
+              status: 'IN_PROGRESS',
+              startedAt: new Date()
+            }
+          })
+          return updated
+        }
+        return existingProgress
+      }
+
+      // Créer le progrès du module
+      const moduleProgress = await prisma.moduleProgress.create({
+        data: {
+          moduleId,
+          [userType === 'provider' ? 'providerCertificationId' : 'delivererCertificationId']: userCertification.id,
+          status: 'IN_PROGRESS',
+          startedAt: new Date()
+        }
+      })
+
+      // Mettre à jour le statut de la certification si c'est le premier module
+      if (userCertification.status === 'ENROLLED') {
+        if (userType === 'provider') {
+          await prisma.providerCertification.update({
+            where: { id: userCertification.id },
+            data: {
+              status: 'IN_PROGRESS',
+              startedAt: new Date()
+            }
+          })
+        } else {
+          await prisma.delivererCertification.update({
+            where: { id: userCertification.id },
+            data: {
+              status: 'IN_PROGRESS',
+              startedAt: new Date()
+            }
+          })
+        }
+      }
+
+      return moduleProgress
+
+    } catch (error) {
+      console.error('Erreur démarrage module:', error)
+      throw error
+    }
+  }
+
+  /**
+   * Complète un module de certification
+   */
+  static async completeModule(
+    certificationId: string,
+    moduleId: string,
+    userId: string,
+    userType: 'provider' | 'deliverer',
+    score: number,
+    timeSpent: number
+  ) {
+    try {
+      // Récupérer l'inscription et le progrès
+      let userCertification: any = null
+      let certificationTable = userType === 'provider' ? 'providerCertification' : 'delivererCertification'
+
+      if (userType === 'provider') {
+        const provider = await prisma.provider.findUnique({
+          where: { userId }
+        })
+
+        userCertification = await prisma.providerCertification.findUnique({
+          where: {
+            providerId_certificationId: {
+              providerId: provider!.id,
+              certificationId
+            }
+          }
+        })
+      } else {
+        const deliverer = await prisma.deliverer.findUnique({
+          where: { userId }
+        })
+
+        userCertification = await prisma.delivererCertification.findUnique({
+          where: {
+            delivererId_certificationId: {
+              delivererId: deliverer!.id,
+              certificationId
+            }
+          }
+        })
+      }
+
+      // Mettre à jour le progrès du module
+      const moduleProgress = await prisma.moduleProgress.updateMany({
+        where: {
+          moduleId,
+          [userType === 'provider' ? 'providerCertificationId' : 'delivererCertificationId']: userCertification.id
+        },
+        data: {
+          status: score >= 70 ? 'COMPLETED' : 'FAILED', // 70% minimum pour réussir un module
+          completedAt: new Date(),
+          score,
+          timeSpent: { increment: timeSpent },
+          attempts: { increment: 1 }
+        }
+      })
+
+      // Vérifier si tous les modules sont terminés
+      const allModules = await prisma.certificationModule.findMany({
+        where: { certificationId },
+        select: { id: true, isRequired: true }
+      })
+
+      const allProgress = await prisma.moduleProgress.findMany({
+        where: {
+          [userType === 'provider' ? 'providerCertificationId' : 'delivererCertificationId']: userCertification.id
+        }
+      })
+
+      // Calculer si la certification est complète
+      const requiredModules = allModules.filter(m => m.isRequired)
+      const completedRequiredModules = allProgress.filter(p => 
+        requiredModules.some(m => m.id === p.moduleId) && p.status === 'COMPLETED'
+      )
+
+      const isComplete = completedRequiredModules.length === requiredModules.length
+
+      if (isComplete) {
+        // Calculer le score moyen
+        const completedModules = allProgress.filter(p => p.status === 'COMPLETED')
+        const averageScore = completedModules.reduce((sum, p) => sum + (p.score || 0), 0) / completedModules.length
+
+        // Récupérer le score minimum requis
+        const certification = await prisma.certification.findUnique({
+          where: { id: certificationId },
+          select: { passScore: true }
+        })
+
+        const isPassed = averageScore >= (certification?.passScore || 80)
+
+        // Mettre à jour la certification
+        const updateData = {
+          status: isPassed ? 'COMPLETED' : 'FAILED',
+          completedAt: new Date(),
+          score: averageScore,
+          isValid: isPassed
+        }
+
+        if (isPassed) {
+          // Générer le certificat et calculer l'expiration
+          const certificateUrl = await this.generateCertificate(userCertification.id, userType)
+          const expiresAt = await this.calculateExpirationDate(certificationId)
+          
+          Object.assign(updateData, {
+            certificateUrl,
+            expiresAt
+          })
+        }
+
+        if (userType === 'provider') {
+          await prisma.providerCertification.update({
+            where: { id: userCertification.id },
+            data: updateData
+          })
+        } else {
+          await prisma.delivererCertification.update({
+            where: { id: userCertification.id },
+            data: updateData
+          })
+        }
+      }
+
+      return {
+        moduleCompleted: true,
+        certificationCompleted: isComplete,
+        score,
+        moduleProgress
+      }
+
+    } catch (error) {
+      console.error('Erreur complétion module:', error)
+      throw error
+    }
+  }
+
+  /**
+   * Génère les questions d'examen pour une certification
+   */
+  static async generateExamQuestions(certificationId: string): Promise<ExamQuestion[]> {
+    // Dans une vraie application, récupérer depuis une base de questions
+    // Pour l'instant, on simule
+    const sampleQuestions: ExamQuestion[] = [
+      {
+        id: '1',
+        question: 'Quelle est la priorité principale d\'EcoDeli ?',
+        type: 'multiple_choice',
+        options: [
+          'Maximiser les profits',
+          'Réduire l\'impact environnemental',
+          'Concurrencer les autres plateformes',
+          'Augmenter la vitesse de livraison'
+        ],
+        correctAnswer: 1,
+        explanation: 'EcoDeli vise avant tout à réduire l\'impact environnemental du transport.',
+        points: 10
+      },
+      {
+        id: '2',
+        question: 'Un prestataire doit-il toujours respecter les horaires convenus ?',
+        type: 'true_false',
+        options: ['Vrai', 'Faux'],
+        correctAnswer: 0,
+        explanation: 'Le respect des horaires est essentiel pour la satisfaction client.',
+        points: 5
+      },
+      {
+        id: '3',
+        question: 'Que faire en cas de problème pendant une intervention ?',
+        type: 'multiple_choice',
+        options: [
+          'Abandonner la mission',
+          'Contacter immédiatement le client et EcoDeli',
+          'Improviser une solution',
+          'Attendre la fin de la journée'
+        ],
+        correctAnswer: 1,
+        explanation: 'La communication est clé en cas de problème.',
+        points: 15
+      }
+    ]
+
+    return sampleQuestions
+  }
+
+  /**
+   * Démarre une session d'examen
+   */
+  static async startExamSession(
+    certificationId: string,
+    userId: string,
+    userType: 'provider' | 'deliverer'
+  ): Promise<ExamSession> {
+    try {
+      // Récupérer l'inscription
+      let userCertification: any = null
+
+      if (userType === 'provider') {
+        const provider = await prisma.provider.findUnique({
+          where: { userId }
+        })
+
+        userCertification = await prisma.providerCertification.findUnique({
+          where: {
+            providerId_certificationId: {
+              providerId: provider!.id,
+              certificationId
+            }
+          }
+        })
+      } else {
+        const deliverer = await prisma.deliverer.findUnique({
+          where: { userId }
+        })
+
+        userCertification = await prisma.delivererCertification.findUnique({
+          where: {
+            delivererId_certificationId: {
+              delivererId: deliverer!.id,
+              certificationId
+            }
+          }
+        })
+      }
+
+      if (!userCertification) {
+        throw new Error('Inscription non trouvée')
+      }
+
+      // Vérifier les tentatives restantes
+      const certification = await prisma.certification.findUnique({
+        where: { id: certificationId }
+      })
+
+      if (userCertification.attempts >= certification!.maxAttempts) {
         throw new Error('Nombre maximum de tentatives atteint')
       }
 
-      // Calculer le score (simulation - à adapter selon la logique métier)
-      const score = this.calculateExamScore(submission.answers)
-      const isPassed = score >= certification.passScore
+      // Générer les questions
+      const questions = await this.generateExamQuestions(certificationId)
 
       // Créer la session d'examen
       const examSession = await prisma.examSession.create({
         data: {
           certificationId,
-          ...(entityType === 'provider' 
-            ? { providerCertificationId: certificationRecord.id }
-            : { delivererCertificationId: certificationRecord.id }
-          ),
-          sessionNumber: certificationRecord.attempts + 1,
-          completedAt: new Date(),
-          timeLimit: 120, // 2 heures par défaut
-          score,
-          isPassed,
-          answers: submission.answers,
-          questions: {} // À adapter selon la logique métier
+          [userType === 'provider' ? 'providerCertificationId' : 'delivererCertificationId']: userCertification.id,
+          sessionNumber: userCertification.attempts + 1,
+          timeLimit: 60, // 60 minutes par défaut
+          questions: questions,
+          answers: {}
         }
       })
 
-      // Mettre à jour l'enregistrement de certification
-      const newStatus = isPassed ? 'COMPLETED' : 'FAILED'
-      const updateData = {
-        attempts: certificationRecord.attempts + 1,
-        score: isPassed ? score : certificationRecord.score,
-        status: newStatus as any,
-        ...(isPassed && {
-          completedAt: new Date(),
-          expiresAt: certification.validityDuration 
-            ? new Date(Date.now() + certification.validityDuration * 30 * 24 * 60 * 60 * 1000)
-            : null,
-          isValid: true
-        })
-      }
-
-      const updatedRecord = entityType === 'provider'
-        ? await prisma.providerCertification.update({
-            where: { id: certificationRecord.id },
-            data: updateData
-          })
-        : await prisma.delivererCertification.update({
-            where: { id: certificationRecord.id },
-            data: updateData
-          })
-
-      // Générer le certificat si réussi
-      if (isPassed) {
-        const certificateUrl = await this.generateCertificate(
-          certificationRecord.id,
-          entityType,
-          certification.name,
-          score
-        )
-
-        await (entityType === 'provider'
-          ? prisma.providerCertification.update({
-              where: { id: certificationRecord.id },
-              data: { certificateUrl }
-            })
-          : prisma.delivererCertification.update({
-              where: { id: certificationRecord.id },
-              data: { certificateUrl }
-            })
-        )
-      }
-
-      // Audit
-      await this.createAuditLog({
-        entityType,
-        entityId,
-        certificationId,
-        action: isPassed ? 'COMPLETED' : 'FAILED',
-        newStatus: newStatus as any,
-        metadata: { score, attempt: certificationRecord.attempts + 1 }
-      })
-
-      // Notification
-      await NotificationService.createNotification({
-        recipientId: entityId,
-        type: isPassed ? 'CERTIFICATION_PASSED' : 'CERTIFICATION_FAILED',
-        title: isPassed 
-          ? `Certification réussie: ${certification.name}`
-          : `Certification échouée: ${certification.name}`,
-        content: isPassed
-          ? `Félicitations ! Vous avez obtenu la certification "${certification.name}" avec un score de ${score}%.`
-          : `Vous avez échoué à la certification "${certification.name}". Score obtenu: ${score}%. Vous pouvez retenter l'examen.`,
-        metadata: { certificationId, score }
-      })
-
       return {
-        examSession,
-        certificationRecord: updatedRecord,
-        isPassed,
-        score
+        id: examSession.id,
+        certificationId,
+        sessionNumber: examSession.sessionNumber,
+        timeLimit: examSession.timeLimit,
+        questions: questions.map(q => ({
+          ...q,
+          correctAnswer: undefined, // Ne pas envoyer la bonne réponse
+          explanation: undefined
+        })),
+        startedAt: examSession.startedAt,
+        timeRemaining: examSession.timeLimit * 60 // en secondes
       }
 
     } catch (error) {
-      console.error('Erreur lors de la soumission de l\'examen:', error)
+      console.error('Erreur démarrage examen:', error)
       throw error
     }
+  }
+
+  /**
+   * Soumet les réponses d'un examen
+   */
+  static async submitExamAnswers(
+    sessionId: string,
+    answers: Record<string, any>,
+    userId: string,
+    userType: 'provider' | 'deliverer'
+  ): Promise<ExamResult> {
+    try {
+      // Récupérer la session
+      const session = await prisma.examSession.findUnique({
+        where: { id: sessionId },
+        include: {
+          certification: true
+        }
+      })
+
+      if (!session) {
+        throw new Error('Session d\'examen non trouvée')
+      }
+
+      // Calculer le score
+      const questions = session.questions as ExamQuestion[]
+      let correctAnswers = 0
+      let totalPoints = 0
+      let earnedPoints = 0
+
+      questions.forEach(question => {
+        totalPoints += question.points
+        const userAnswer = answers[question.id]
+        
+        if (userAnswer === question.correctAnswer) {
+          correctAnswers++
+          earnedPoints += question.points
+        }
+      })
+
+      const score = Math.round((earnedPoints / totalPoints) * 100)
+      const isPassed = score >= session.certification.passScore
+
+      // Calculer le temps passé
+      const timeSpent = Math.round((new Date().getTime() - session.startedAt.getTime()) / 1000 / 60) // en minutes
+
+      // Mettre à jour la session
+      await prisma.examSession.update({
+        where: { id: sessionId },
+        data: {
+          completedAt: new Date(),
+          score,
+          isPassed,
+          answers
+        }
+      })
+
+      // Mettre à jour l'inscription
+      let certificateUrl: string | undefined = undefined
+
+      if (isPassed) {
+        certificateUrl = await this.generateCertificate(
+          userType === 'provider' ? session.providerCertificationId! : session.delivererCertificationId!,
+          userType
+        )
+      }
+
+      const updateData = {
+        attempts: { increment: 1 },
+        score: isPassed ? score : undefined,
+        isValid: isPassed,
+        certificateUrl: isPassed ? certificateUrl : undefined,
+        completedAt: isPassed ? new Date() : undefined,
+        status: isPassed ? 'COMPLETED' : 'FAILED'
+      }
+
+      if (userType === 'provider') {
+        await prisma.providerCertification.update({
+          where: { id: session.providerCertificationId! },
+          data: updateData
+        })
+      } else {
+        await prisma.delivererCertification.update({
+          where: { id: session.delivererCertificationId! },
+          data: updateData
+        })
+      }
+
+      return {
+        sessionId,
+        score,
+        isPassed,
+        correctAnswers,
+        totalQuestions: questions.length,
+        timeSpent,
+        feedback: isPassed 
+          ? 'Félicitations ! Vous avez réussi la certification.' 
+          : `Score insuffisant (${score}%). Score minimum requis: ${session.certification.passScore}%.`,
+        certificateUrl
+      }
+
+    } catch (error) {
+      console.error('Erreur soumission examen:', error)
+      throw error
+    }
+  }
+
+  // Méthodes utilitaires privées
+  private static async generateCertificate(
+    userCertificationId: string,
+    userType: 'provider' | 'deliverer'
+  ): Promise<string> {
+    // Simuler la génération de certificat
+    const certificateUrl = `https://ecodeli.fr/certificates/${userType}/${userCertificationId}.pdf`
+    return certificateUrl
+  }
+
+  private static async calculateExpirationDate(certificationId: string): Promise<Date | null> {
+    const certification = await prisma.certification.findUnique({
+      where: { id: certificationId }
+    })
+
+    if (!certification?.validityDuration) return null
+
+    const expirationDate = new Date()
+    expirationDate.setMonth(expirationDate.getMonth() + certification.validityDuration)
+
+    return expirationDate
   }
 
   /**
@@ -510,142 +1035,6 @@ export class CertificationService {
   }
 
   /**
-   * Générer un certificat PDF
-   */
-  private static async generateCertificate(
-    certificationRecordId: string,
-    entityType: 'provider' | 'deliverer',
-    certificationName: string,
-    score: number
-  ): Promise<string> {
-    try {
-      // Récupérer les données nécessaires
-      const record = entityType === 'provider'
-        ? await prisma.providerCertification.findUnique({
-            where: { id: certificationRecordId },
-            include: {
-              provider: {
-                include: {
-                  user: { include: { profile: true } }
-                }
-              }
-            }
-          })
-        : await prisma.delivererCertification.findUnique({
-            where: { id: certificationRecordId },
-            include: {
-              deliverer: {
-                include: {
-                  user: { include: { profile: true } }
-                }
-              }
-            }
-          })
-
-      if (!record) {
-        throw new Error('Enregistrement de certification non trouvé')
-      }
-
-      // Récupérer le template de certificat
-      const template = await prisma.certificationTemplate.findFirst({
-        where: { isDefault: true, isActive: true }
-      })
-
-      const user = entityType === 'provider' 
-        ? (record as any).provider.user
-        : (record as any).deliverer.user
-
-      // Données pour le certificat
-      const certificateData = {
-        recipientName: `${user.profile?.firstName} ${user.profile?.lastName}`,
-        certificationName,
-        score: `${score}%`,
-        completionDate: new Date().toLocaleDateString('fr-FR'),
-        certificateId: certificationRecordId.slice(-8).toUpperCase()
-      }
-
-      // Générer le PDF
-      const fileName = `certificate-${certificationRecordId}.pdf`
-      const filePath = await generatePDF({
-        template: template?.template || this.getDefaultCertificateTemplate(),
-        data: certificateData,
-        fileName
-      })
-
-      return filePath
-
-    } catch (error) {
-      console.error('Erreur lors de la génération du certificat:', error)
-      return ''
-    }
-  }
-
-  /**
-   * Template de certificat par défaut
-   */
-  private static getDefaultCertificateTemplate(): string {
-    return `
-      <html>
-        <head>
-          <style>
-            body { font-family: Arial, sans-serif; text-align: center; padding: 50px; }
-            .certificate { border: 5px solid #0066cc; padding: 50px; margin: 20px; }
-            .title { font-size: 36px; font-weight: bold; color: #0066cc; margin-bottom: 30px; }
-            .recipient { font-size: 24px; margin: 20px 0; }
-            .certification { font-size: 20px; font-style: italic; margin: 20px 0; }
-            .score { font-size: 18px; margin: 20px 0; }
-            .date { font-size: 16px; margin-top: 40px; }
-            .id { font-size: 12px; color: #666; margin-top: 20px; }
-          </style>
-        </head>
-        <body>
-          <div class="certificate">
-            <div class="title">CERTIFICAT DE FORMATION</div>
-            <div class="recipient">Décerné à<br><strong>{{recipientName}}</strong></div>
-            <div class="certification">pour avoir complété avec succès la formation<br><strong>{{certificationName}}</strong></div>
-            <div class="score">Score obtenu: {{score}}</div>
-            <div class="date">Délivré le {{completionDate}}</div>
-            <div class="id">ID: {{certificateId}}</div>
-          </div>
-        </body>
-      </html>
-    `
-  }
-
-  /**
-   * Créer un log d'audit
-   */
-  private static async createAuditLog(data: {
-    entityType: string
-    entityId: string
-    certificationId: string
-    action: string
-    oldStatus?: any
-    newStatus: any
-    performedBy?: string
-    reason?: string
-    metadata?: any
-  }) {
-    try {
-      await prisma.certificationAudit.create({
-        data: {
-          entityType: data.entityType,
-          entityId: data.entityId,
-          certificationId: data.certificationId,
-          action: data.action,
-          oldStatus: data.oldStatus,
-          newStatus: data.newStatus,
-          performedBy: data.performedBy,
-          reason: data.reason,
-          metadata: data.metadata
-        }
-      })
-    } catch (error) {
-      console.error('Erreur lors de la création du log d\'audit:', error)
-    }
-  }
-
-  /**
    * Obtenir les statistiques de certification pour un utilisateur
    */
   static async getCertificationStats(
@@ -703,3 +1092,15 @@ export class CertificationService {
     }
   }
 }
+
+// Schémas de validation
+export const moduleCompletionSchema = z.object({
+  moduleId: z.string(),
+  score: z.number().min(0).max(100),
+  timeSpent: z.number().positive()
+})
+
+export const examAnswersSchema = z.object({
+  sessionId: z.string(),
+  answers: z.record(z.any())
+})
