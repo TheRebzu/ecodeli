@@ -4,7 +4,7 @@ import { prisma } from '@/lib/db'
 import { z } from 'zod'
 
 const updateServiceInterventionSchema = z.object({
-  status: z.enum(['SCHEDULED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED']),
+  status: z.enum(['SCHEDULED', 'CONFIRMED', 'PAYMENT_PENDING', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED']),
   notes: z.string().optional(),
   actualDuration: z.number().optional()
 })
@@ -108,6 +108,25 @@ export async function PATCH(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
     }
 
+    // Vérifier les transitions de statut autorisées
+    const allowedTransitions = {
+      'SCHEDULED': ['IN_PROGRESS', 'CANCELLED'],
+      'CONFIRMED': ['IN_PROGRESS', 'CANCELLED'],
+      'PAYMENT_PENDING': ['IN_PROGRESS', 'CANCELLED'],
+      'IN_PROGRESS': ['COMPLETED', 'CANCELLED'],
+      'COMPLETED': [], // État final
+      'CANCELLED': [] // État final
+    }
+
+    const currentStatus = existingIntervention.status
+    const newStatus = validatedData.status
+
+    if (!allowedTransitions[currentStatus]?.includes(newStatus)) {
+      return NextResponse.json({ 
+        error: `Transition non autorisée de ${currentStatus} vers ${newStatus}` 
+      }, { status: 400 })
+    }
+
     // Mettre à jour l'intervention
     const updateData: any = {
       status: validatedData.status,
@@ -145,7 +164,7 @@ export async function PATCH(
           type: 'SERVICE_CANCELLED',
           title: 'Service annulé',
           message: `Votre service "${existingIntervention.title}" a été annulé. Le remboursement sera traité.`,
-          metadata: {
+          data: {
             interventionId: interventionId,
             paymentId: existingIntervention.paymentId,
             refundAmount: existingIntervention.payment?.amount
@@ -176,9 +195,25 @@ export async function PATCH(
           type: 'SERVICE_COMPLETED',
           title: 'Service terminé',
           message: `Votre service "${existingIntervention.title}" a été terminé avec succès.`,
-          metadata: {
+          data: {
             interventionId: interventionId,
             paymentId: existingIntervention.paymentId
+          }
+        }
+      })
+    }
+
+    // Si l'intervention passe en cours, créer une notification
+    if (validatedData.status === 'IN_PROGRESS') {
+      await prisma.notification.create({
+        data: {
+          userId: existingIntervention.clientId,
+          type: 'SERVICE_STARTED',
+          title: 'Service commencé',
+          message: `Votre prestataire a commencé le service "${existingIntervention.title}".`,
+          data: {
+            interventionId: interventionId,
+            providerId: provider.id
           }
         }
       })

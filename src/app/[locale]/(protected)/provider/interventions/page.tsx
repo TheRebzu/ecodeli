@@ -17,7 +17,9 @@ import {
   AlertCircle,
   Play,
   Pause,
-  Square
+  Square,
+  Check,
+  X
 } from 'lucide-react'
 import { toast } from 'sonner'
 
@@ -31,7 +33,7 @@ interface Intervention {
   scheduledDate: string
   estimatedDuration: number
   actualDuration?: number
-  status: 'SCHEDULED' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED'
+  status: 'SCHEDULED' | 'CONFIRMED' | 'PAYMENT_PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED'
   notes?: string
   rating?: number
   review?: string
@@ -78,6 +80,7 @@ export default function ProviderInterventionsPage() {
   const t = useTranslations('ProviderInterventions')
   const [interventions, setInterventions] = useState<Intervention[]>([])
   const [loading, setLoading] = useState(true)
+  const [updating, setUpdating] = useState<string | null>(null)
 
   useEffect(() => {
     fetchInterventions()
@@ -102,16 +105,48 @@ export default function ProviderInterventionsPage() {
     }
   }
 
+  const updateInterventionStatus = async (interventionId: string, newStatus: string) => {
+    try {
+      setUpdating(interventionId)
+      const response = await fetch(`/api/provider/service-interventions/${interventionId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          status: newStatus
+        })
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Erreur lors de la mise à jour')
+      }
+
+      await fetchInterventions()
+      toast.success(`Intervention ${newStatus.toLowerCase()} avec succès`)
+    } catch (error) {
+      console.error('Erreur:', error)
+      toast.error(error instanceof Error ? error.message : 'Erreur lors de la mise à jour')
+    } finally {
+      setUpdating(null)
+    }
+  }
+
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'SCHEDULED':
         return <Badge variant="secondary"><Calendar className="w-3 h-3 mr-1" /> Planifiée</Badge>
+      case 'CONFIRMED':
+        return <Badge variant="default" className="bg-green-500"><Check className="w-3 h-3 mr-1" /> Confirmée</Badge>
+      case 'PAYMENT_PENDING':
+        return <Badge variant="default" className="bg-yellow-500"><CreditCard className="w-3 h-3 mr-1" /> En attente paiement</Badge>
       case 'IN_PROGRESS':
         return <Badge variant="default" className="bg-blue-500"><Play className="w-3 h-3 mr-1" /> En cours</Badge>
       case 'COMPLETED':
         return <Badge variant="default" className="bg-green-500"><CheckCircle className="w-3 h-3 mr-1" /> Terminée</Badge>
       case 'CANCELLED':
-        return <Badge variant="destructive"><AlertCircle className="w-3 h-3 mr-1" /> Annulée</Badge>
+        return <Badge variant="destructive"><X className="w-3 h-3 mr-1" /> Annulée</Badge>
       default:
         return <Badge variant="outline">{status}</Badge>
     }
@@ -138,6 +173,18 @@ export default function ProviderInterventionsPage() {
     const hours = Math.floor(minutes / 60)
     const mins = minutes % 60
     return hours > 0 ? `${hours}h${mins > 0 ? ` ${mins}min` : ''}` : `${mins}min`
+  }
+
+  const canStartIntervention = (status: string) => {
+    return ['SCHEDULED', 'CONFIRMED', 'PAYMENT_PENDING'].includes(status)
+  }
+
+  const canCompleteIntervention = (status: string) => {
+    return status === 'IN_PROGRESS'
+  }
+
+  const canCancelIntervention = (status: string) => {
+    return ['SCHEDULED', 'CONFIRMED', 'PAYMENT_PENDING', 'IN_PROGRESS'].includes(status)
   }
 
   if (loading) {
@@ -253,29 +300,74 @@ export default function ProviderInterventionsPage() {
                   </>
                 )}
 
-                {intervention.status === 'SCHEDULED' && (
+                {/* Boutons d'action selon le statut */}
+                {canStartIntervention(intervention.status) && (
                   <div className="flex space-x-2 pt-4">
-                    <Button className="flex-1">
-                      <Play className="w-4 h-4 mr-2" />
+                    <Button 
+                      className="flex-1"
+                      onClick={() => updateInterventionStatus(intervention.id, 'IN_PROGRESS')}
+                      disabled={updating === intervention.id}
+                    >
+                      {updating === intervention.id ? (
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      ) : (
+                        <Play className="w-4 h-4 mr-2" />
+                      )}
                       Commencer
                     </Button>
-                    <Button variant="outline" className="flex-1">
-                      <Pause className="w-4 h-4 mr-2" />
-                      Reporter
+                    <Button 
+                      variant="outline" 
+                      className="flex-1"
+                      onClick={() => updateInterventionStatus(intervention.id, 'CANCELLED')}
+                      disabled={updating === intervention.id}
+                    >
+                      {updating === intervention.id ? (
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary mr-2"></div>
+                      ) : (
+                        <X className="w-4 h-4 mr-2" />
+                      )}
+                      Annuler
                     </Button>
                   </div>
                 )}
 
                 {intervention.status === 'IN_PROGRESS' && (
                   <div className="flex space-x-2 pt-4">
-                    <Button className="flex-1">
-                      <CheckCircle className="w-4 h-4 mr-2" />
+                    <Button 
+                      className="flex-1"
+                      onClick={() => updateInterventionStatus(intervention.id, 'COMPLETED')}
+                      disabled={updating === intervention.id}
+                    >
+                      {updating === intervention.id ? (
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      ) : (
+                        <CheckCircle className="w-4 h-4 mr-2" />
+                      )}
                       Terminer
                     </Button>
-                    <Button variant="outline" className="flex-1">
-                      <Square className="w-4 h-4 mr-2" />
+                    <Button 
+                      variant="outline" 
+                      className="flex-1"
+                      onClick={() => updateInterventionStatus(intervention.id, 'CANCELLED')}
+                      disabled={updating === intervention.id}
+                    >
+                      {updating === intervention.id ? (
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary mr-2"></div>
+                      ) : (
+                        <X className="w-4 h-4 mr-2" />
+                      )}
                       Annuler
                     </Button>
+                  </div>
+                )}
+
+                {(intervention.status === 'COMPLETED' || intervention.status === 'CANCELLED') && (
+                  <div className="pt-4">
+                    <p className="text-sm text-muted-foreground text-center">
+                      {intervention.status === 'COMPLETED' 
+                        ? 'Intervention terminée avec succès' 
+                        : 'Intervention annulée'}
+                    </p>
                   </div>
                 )}
               </CardContent>

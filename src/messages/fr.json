@@ -37,7 +37,6 @@
     "support": "Support",
     "ecodeli": "EcoDeli",
     "normal": "Normal",
-<<<<<<< Updated upstream
     "urgent": "Urgent",
     "envoyer_un_colis": "Envoyer un colis",
     "services_la_personne": "Services à la personne",
@@ -234,7 +233,7 @@
       "healthcare": "Soins",
       "beauty": "Beauté",
       "other": "Autre"
-=======
+    },
     "urgent": "Urgent"
   },
   "merchant": {
@@ -250,7 +249,6 @@
         "createError": "Erreur lors de la création de la promotion",
         "deleteConfirm": "Êtes-vous sûr de vouloir supprimer cette promotion ?"
       }
->>>>>>> Stashed changes
     }
   },
   "auth": {
@@ -2500,7 +2498,6 @@
       "description": "Actualités et conseils pour optimiser vos livraisons écologiques"
     }
   },
-<<<<<<< Updated upstream
   "services": {
     "title": "Mes Demandes de Services",
     "subtitle": "Gérez vos demandes de services à la personne",
@@ -2519,7 +2516,7 @@
     "deleteSuccessDesc": "La demande a été supprimée avec succès",
     "deleteError": "Erreur de suppression",
     "deleteErrorDesc": "Une erreur est survenue lors de la suppression"
-=======
+  },
   "notifications": {
     "title": "Notifications",
     "subtitle": "Centre de notifications et alertes métier",
@@ -2643,6 +2640,5 @@
         "dismiss": "Ignorer"
       }
     }
->>>>>>> Stashed changes
   }
 }
