@@ -334,6 +334,66 @@ export class StripeService {
   }
 
   /**
+   * Créer un Payment Intent pour une location de storage box
+   */
+  static async createStorageRentalPaymentIntent({
+    userId,
+    clientId,
+    storageBoxId,
+    startDate,
+    endDate,
+    totalPrice,
+    email,
+    boxNumber,
+    locationName
+  }: {
+    userId: string,
+    clientId: string,
+    storageBoxId: string,
+    startDate: Date,
+    endDate: Date,
+    totalPrice: number,
+    email: string,
+    boxNumber: string,
+    locationName: string
+  }): Promise<PaymentIntent> {
+    try {
+      if (totalPrice <= 0) {
+        throw new Error('Montant invalide pour le paiement')
+      }
+
+      // Créer le PaymentIntent Stripe
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: Math.round(totalPrice * 100), // Centimes
+        currency: 'eur',
+        automatic_payment_methods: {
+          enabled: true,
+        },
+        metadata: {
+          storageBoxId,
+          clientId,
+          startDate: startDate.toISOString(),
+          endDate: endDate.toISOString(),
+          type: 'storage_rental'
+        },
+        description: `Location box ${boxNumber} - ${locationName}`,
+        receipt_email: email
+      })
+
+      return {
+        id: paymentIntent.id,
+        clientSecret: paymentIntent.client_secret!,
+        amount: paymentIntent.amount,
+        currency: paymentIntent.currency,
+        status: paymentIntent.status
+      }
+    } catch (error) {
+      console.error('Erreur création PaymentIntent storage:', error)
+      throw new Error('Impossible de créer le paiement pour la location')
+    }
+  }
+
+  /**
    * Traiter un webhook Stripe
    */
   static async handleWebhook(
@@ -390,14 +450,20 @@ export class StripeService {
           delivery: {
             include: {
               announcement: true,
-              client: { include: { user: true } },
-              deliverer: { include: { user: true, wallet: true } }
+              client: true,
+              deliverer: true
             }
           },
           booking: {
             include: {
-              service: { include: { provider: { include: { user: true, wallet: true } } } },
-              client: { include: { user: true } }
+              service: { include: { provider: true } },
+              client: true
+            }
+          },
+          storageRental: {
+            include: {
+              client: { include: { user: true } },
+              storageBox: { include: { location: true } }
             }
           }
         }
@@ -433,6 +499,8 @@ export class StripeService {
           await BookingSyncService.syncBookingOnPaymentChange(updatedPayment.id, 'COMPLETED')
         } else if (payment.type === 'SUBSCRIPTION') {
           await this.processSubscriptionPayment(tx, payment)
+        } else if (payment.type === 'STORAGE_RENTAL' && payment.storageRental) {
+          await this.processStorageRentalPayment(tx, payment.storageRental, payment.amount)
         }
       })
 
@@ -615,6 +683,36 @@ export class StripeService {
       where: { stripePaymentId: paymentIntent.id },
       data: { status: 'CANCELLED' }
     })
+  }
+
+  /**
+   * Traiter un paiement de location de box de stockage
+   */
+  private static async processStorageRentalPayment(tx: any, rental: any, amount: number) {
+    try {
+      // Mettre à jour le statut de la location
+      await tx.storageBoxRental.update({
+        where: { id: rental.id },
+        data: {
+          status: 'ACTIVE',
+          paidAt: new Date()
+        }
+      })
+
+      // Mettre à jour le statut de la box
+      await tx.storageBox.update({
+        where: { id: rental.storageBoxId },
+        data: {
+          status: 'OCCUPIED'
+        }
+      })
+
+      console.log(`Paiement location box traité: ${rental.id}`)
+
+    } catch (error) {
+      console.error('Erreur traitement paiement location box:', error)
+      throw error
+    }
   }
 
   /**

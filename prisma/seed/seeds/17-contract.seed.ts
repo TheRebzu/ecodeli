@@ -16,19 +16,19 @@ export async function seedContracts(ctx: SeedContext) {
     const index = merchants.indexOf(merchant)
     
     // Assigner un type de contrat selon l'index
-    const contractType = index === 0 ? 'ENTERPRISE' : 
+    const contractType = index === 0 ? 'CUSTOM' : 
                         index === 1 ? 'PREMIUM' : 'STANDARD'
 
     const commissionRates = {
       STANDARD: 8.5,
       PREMIUM: 6.5,
-      ENTERPRISE: 4.5
+      CUSTOM: 4.5
     }
 
     const monthlyFees = {
       STANDARD: 0,
       PREMIUM: 50,
-      ENTERPRISE: 200
+      CUSTOM: 200
     }
     
     const signedDate = new Date(Date.now() - Math.random() * 365 * 24 * 60 * 60 * 1000)
@@ -38,23 +38,23 @@ export async function seedContracts(ctx: SeedContext) {
       data: {
         merchantId: merchant.id,
         type: contractType as any,
-        status: Math.random() > 0.1 ? 'ACTIVE' : 'PENDING',
+        status: Math.random() > 0.1 ? 'ACTIVE' : 'PENDING_SIGNATURE',
         title: `Contrat EcoDeli ${contractType}`,
         description: `Contrat de partenariat EcoDeli type ${contractType}`,
         commissionRate: commissionRates[contractType as keyof typeof commissionRates],
-        setupFee: contractType === 'ENTERPRISE' ? 500 : 0,
+        setupFee: contractType === 'CUSTOM' ? 500 : 0,
         monthlyFee: monthlyFees[contractType as keyof typeof monthlyFees],
         validFrom: signedDate,
         validUntil: validUntil,
-        autoRenewal: contractType !== 'ENTERPRISE',
-        renewalPeriod: contractType === 'ENTERPRISE' ? 36 : 12,
+        autoRenewal: contractType !== 'CUSTOM',
+        renewalPeriod: contractType === 'CUSTOM' ? 36 : 12,
         maxOrdersPerMonth: contractType === 'STANDARD' ? 100 : null,
         maxOrderValue: contractType === 'STANDARD' ? 500 : null,
         deliveryZones: [
-          { zone: 'PARIS_CENTER', radius: contractType === 'ENTERPRISE' ? 50 : 25 },
+          { zone: 'PARIS_CENTER', radius: contractType === 'CUSTOM' ? 50 : 25 },
           { zone: 'SUBURBS', radius: contractType === 'STANDARD' ? 15 : 30 }
         ],
-        allowedServices: ['DELIVERY', 'EXPRESS_DELIVERY', ...(contractType === 'ENTERPRISE' ? ['PRIORITY_DELIVERY'] : [])],
+        allowedServices: ['DELIVERY', 'EXPRESS_DELIVERY', ...(contractType === 'CUSTOM' ? ['PRIORITY_DELIVERY'] : [])],
         merchantSignedAt: Math.random() > 0.1 ? signedDate : null,
         merchantSignature: Math.random() > 0.1 ? 'merchant_signature_hash' : null,
         adminSignedAt: Math.random() > 0.05 ? signedDate : null,

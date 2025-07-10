@@ -81,6 +81,14 @@ export async function POST(
 
     console.log('🔍 [Payment API] Creating Stripe session...');
 
+    // Utiliser les variables d'environnement pour les URLs
+    const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000'
+    const successUrl = `${baseUrl}/fr/client/bookings/${booking.id}/payment/success?session_id={CHECKOUT_SESSION_ID}`
+    const cancelUrl = `${baseUrl}/fr/client/bookings/${booking.id}/payment?cancelled=true`
+
+    console.log('🔍 [Payment API] Success URL:', successUrl);
+    console.log('🔍 [Payment API] Cancel URL:', cancelUrl);
+
     // Créer une session de paiement Stripe
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
@@ -98,8 +106,8 @@ export async function POST(
         },
       ],
       mode: 'payment',
-      success_url: `http://172.21.112.1:3000/fr/client/bookings/${booking.id}/payment/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `http://172.21.112.1:3000/fr/client/bookings/${booking.id}/payment?cancelled=true`,
+      success_url: successUrl,
+      cancel_url: cancelUrl,
       metadata: {
         bookingId: booking.id,
         clientId: client.id,

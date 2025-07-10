@@ -122,11 +122,13 @@ async function handlePaymentSucceeded(paymentIntent: Stripe.PaymentIntent) {
       }
     })
 
-    // Traitement sp�cifique selon le type de paiement
+    // Traitement spécifique selon le type de paiement
     if (payment.delivery) {
       await handleDeliveryPaymentSucceeded(payment, paymentIntent)
     } else if (payment.booking) {
       await handleBookingPaymentSucceeded(payment, paymentIntent)
+    } else if (payment.type === 'STORAGE_RENTAL') {
+      await handleStorageRentalPaymentSucceeded(payment, paymentIntent)
     }
 
     // Notification � l'utilisateur
@@ -282,14 +284,116 @@ async function handleBookingPaymentSucceeded(payment: any, paymentIntent: Stripe
   )
 }
 
+async function handleStorageRentalPaymentSucceeded(payment: any, paymentIntent: Stripe.PaymentIntent) {
+  try {
+    const amount = paymentIntent.amount / 100
+    
+    // Récupérer les informations de la location depuis les métadonnées du paiement
+    const metadata = payment.metadata as any
+    const storageBoxId = metadata.storageBoxId
+    const clientId = metadata.clientId
+    const startDate = new Date(metadata.startDate)
+    const endDate = new Date(metadata.endDate)
+    const items = metadata.items || []
+
+    // Créer la location en utilisant le service StorageBoxService
+    const { StorageBoxService } = await import('@/features/storage/services/storage-box.service')
+    
+    const rental = await StorageBoxService.createRental({
+      clientId,
+      storageBoxId,
+      startDate,
+      endDate,
+      notes: `Location avec ${items.length} objets - Paiement confirmé`
+    })
+
+    // Mettre à jour le paiement pour lier la location créée
+    await prisma.payment.update({
+      where: { id: payment.id },
+      data: {
+        storageRentalId: rental.id,
+        status: 'COMPLETED',
+        paidAt: new Date(),
+        metadata: {
+          ...payment.metadata,
+          stripeEvent: 'payment_intent.succeeded',
+          amount: paymentIntent.amount,
+          currency: paymentIntent.currency,
+          rentalId: rental.id
+        }
+      }
+    })
+
+    // Marquer la location comme payée
+    await prisma.storageBoxRental.update({
+      where: { id: rental.id },
+      data: {
+        isPaid: true
+      }
+    })
+
+    // Notification au client
+    await OneSignalService.sendToUser(
+      payment.userId,
+      'Paiement confirmé - Location de stockage',
+      `Votre paiement de ${amount}€ pour la location de stockage a été confirmé.`,
+      {
+        type: 'storage_rental_confirmed',
+        rentalId: rental.id,
+        amount: amount
+      }
+    )
+
+    console.log('Location créée après paiement réussi:', {
+      rentalId: rental.id,
+      paymentId: payment.id,
+      amount: amount
+    })
+
+  } catch (error) {
+    console.error('Erreur lors de la création de la location après paiement:', error)
+    
+    // En cas d'erreur, marquer le paiement comme échoué
+    await prisma.payment.update({
+      where: { id: payment.id },
+      data: {
+        status: 'FAILED',
+        failedAt: new Date(),
+        metadata: {
+          ...payment.metadata,
+          error: error instanceof Error ? error.message : 'Erreur création location'
+        }
+      }
+    })
+  }
+}
+
 async function handlePaymentFailed(paymentIntent: Stripe.PaymentIntent) {
   try {
     const payment = await prisma.payment.findUnique({
       where: { stripePaymentId: paymentIntent.id },
-      include: { user: true }
+      include: { 
+        user: true,
+        client: { include: { user: true } },
+        delivery: {
+          include: {
+            announcement: true,
+            deliverer: { include: { user: true } }
+          }
+        },
+        booking: {
+          include: {
+            service: true,
+            provider: { include: { user: true } }
+          }
+        }
+      }
     })
 
-    if (!payment) return
+    if (!payment) {
+      console.error('Payment not found for failed payment:', paymentIntent.id)
+      return
+    }
 
     await prisma.payment.update({
       where: { id: payment.id },
@@ -299,25 +403,110 @@ async function handlePaymentFailed(paymentIntent: Stripe.PaymentIntent) {
         metadata: {
           ...payment.metadata,
           stripeEvent: 'payment_intent.payment_failed',
-          error: paymentIntent.last_payment_error?.message
+          error: paymentIntent.last_payment_error?.message || 'Paiement échoué'
         }
       }
     })
 
-    // Notification � l'utilisateur
+    // Traitement spécifique selon le type de paiement
+    if (payment.delivery) {
+      await handleDeliveryPaymentFailed(payment, paymentIntent)
+    } else if (payment.booking) {
+      await handleBookingPaymentFailed(payment, paymentIntent)
+    } else if (payment.type === 'STORAGE_RENTAL') {
+      await handleStorageRentalPaymentFailed(payment, paymentIntent)
+    }
+
+    // Notification à l'utilisateur
+    const amount = paymentIntent.amount / 100
+    const serviceType = payment.delivery ? 'livraison' : payment.booking ? 'service' : 'location de stockage'
+    
     await OneSignalService.sendToUser(
       payment.userId,
-      'Paiement �chou�',
-      `Votre paiement de ${paymentIntent.amount / 100}� a �chou�. Veuillez r�essayer.`,
+      'Paiement échoué',
+      `Votre paiement de ${amount}€ pour votre ${serviceType} a échoué. Veuillez réessayer.`,
       {
         type: 'payment_failed',
         paymentId: payment.id,
-        amount: paymentIntent.amount / 100
+        amount: amount,
+        serviceType: payment.delivery ? 'delivery' : payment.booking ? 'booking' : 'storage_rental'
       }
     )
 
   } catch (error) {
     console.error('Error handling payment failed:', error)
+  }
+}
+
+async function handleStorageRentalPaymentFailed(payment: any, paymentIntent: Stripe.PaymentIntent) {
+  try {
+    const amount = paymentIntent.amount / 100
+    
+    console.log('Échec de paiement pour location de stockage:', {
+      paymentId: payment.id,
+      amount: amount,
+      error: paymentIntent.last_payment_error?.message
+    })
+
+    // Pas besoin de créer de location car le paiement a échoué
+    // Le box reste disponible pour d'autres clients
+
+  } catch (error) {
+    console.error('Erreur lors du traitement de l\'échec de paiement location:', error)
+  }
+}
+
+async function handleDeliveryPaymentFailed(payment: any, paymentIntent: Stripe.PaymentIntent) {
+  try {
+    const delivery = payment.delivery
+    const amount = paymentIntent.amount / 100
+    
+    console.log('Échec de paiement pour livraison:', {
+      deliveryId: delivery?.id,
+      paymentId: payment.id,
+      amount: amount,
+      error: paymentIntent.last_payment_error?.message
+    })
+
+    // Marquer la livraison comme échouée
+    if (delivery) {
+      await prisma.delivery.update({
+        where: { id: delivery.id },
+        data: {
+          status: 'CANCELLED'
+        }
+      })
+    }
+
+  } catch (error) {
+    console.error('Erreur lors du traitement de l\'échec de paiement livraison:', error)
+  }
+}
+
+async function handleBookingPaymentFailed(payment: any, paymentIntent: Stripe.PaymentIntent) {
+  try {
+    const booking = payment.booking
+    const amount = paymentIntent.amount / 100
+    
+    console.log('Échec de paiement pour réservation:', {
+      bookingId: booking?.id,
+      paymentId: payment.id,
+      amount: amount,
+      error: paymentIntent.last_payment_error?.message
+    })
+
+    // Marquer la réservation comme échouée
+    if (booking) {
+      await prisma.booking.update({
+        where: { id: booking.id },
+        data: {
+          status: 'CANCELLED'
+        }
+      })
+    }
+
+  } catch (error) {
+    console.error('Erreur lors du traitement de l\'échec de paiement réservation:', error)
   }
 }
 

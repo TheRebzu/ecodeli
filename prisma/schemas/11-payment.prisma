@@ -6,6 +6,7 @@ model Payment {
   announcementId    String?             @unique
   deliveryId        String?             @unique
   bookingId         String?             @unique
+  storageRentalId   String?             @unique
   clientId          String?
   merchantId        String?
   amount            Float
@@ -28,6 +29,7 @@ model Payment {
   announcement      Announcement?       @relation(fields: [announcementId], references: [id])
   delivery          Delivery?           @relation(fields: [deliveryId], references: [id])
   booking           Booking?            @relation(fields: [bookingId], references: [id])
+  storageRental     StorageBoxRental?  @relation(fields: [storageRentalId], references: [id])
   client            Client?             @relation("ClientPayments", fields: [clientId], references: [id])
   merchant          Merchant?           @relation("MerchantPayments", fields: [merchantId], references: [id])
   

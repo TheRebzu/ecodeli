@@ -60,6 +60,27 @@ export async function seedUsers(ctx: SeedContext) {
       const address = addresses[addressIndex % addresses.length]
       addressIndex++
       
+      // Vérifier si l'utilisateur existe déjà
+      const existingUser = await prisma.user.findUnique({
+        where: { email: userData.email },
+        include: { profile: true }
+      })
+      
+      if (existingUser) {
+        console.log(`   User ${userData.email} already exists, skipping...`)
+        createdUsers.push({
+          ...existingUser,
+          ...userData,
+          address: address.street,
+          city: address.city,
+          postalCode: address.postalCode,
+          phone: `+336${Math.floor(10000000 + Math.random() * 89999999)}`,
+          validationStatus: (userData as any).status || 'VALIDATED',
+          companyName: (userData as any).company
+        })
+        continue
+      }
+      
       // Créer l'utilisateur avec emailVerified pour NextAuth
       const user = await prisma.user.create({
         data: {
@@ -93,8 +114,10 @@ export async function seedUsers(ctx: SeedContext) {
         const subscriptions = ['FREE', 'FREE', 'STARTER', 'PREMIUM', 'FREE']
         const subscriptionPlan = subscriptions[i] // Utiliser l'index de la boucle
         
-        await prisma.client.create({
-          data: {
+        await prisma.client.upsert({
+          where: { userId: user.id },
+          update: {},
+          create: {
             userId: user.id,
             subscriptionPlan: subscriptionPlan as any,
             tutorialCompleted: Math.random() > 0.3
@@ -103,8 +126,10 @@ export async function seedUsers(ctx: SeedContext) {
       }
       
       if (role === 'DELIVERER') {
-        await prisma.deliverer.create({
-          data: {
+        await prisma.deliverer.upsert({
+          where: { userId: user.id },
+          update: {},
+          create: {
             userId: user.id,
             validationStatus: (userData as any).status || 'VALIDATED',
             vehicleType: 'BICYCLE',
@@ -114,8 +139,10 @@ export async function seedUsers(ctx: SeedContext) {
       }
       
       if (role === 'MERCHANT') {
-        await prisma.merchant.create({
-          data: {
+        await prisma.merchant.upsert({
+          where: { userId: user.id },
+          update: {},
+          create: {
             userId: user.id,
             companyName: (userData as any).company || userData.name,
             siret: `123456789${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}`
@@ -124,8 +151,10 @@ export async function seedUsers(ctx: SeedContext) {
       }
       
       if (role === 'PROVIDER') {
-        await prisma.provider.create({
-          data: {
+        await prisma.provider.upsert({
+          where: { userId: user.id },
+          update: {},
+          create: {
             userId: user.id,
             validationStatus: (userData as any).status || 'VALIDATED',
             isActive: (userData as any).status === 'VALIDATED'
@@ -134,8 +163,10 @@ export async function seedUsers(ctx: SeedContext) {
       }
       
       if (role === 'ADMIN') {
-        await prisma.admin.create({
-          data: {
+        await prisma.admin.upsert({
+          where: { userId: user.id },
+          update: {},
+          create: {
             userId: user.id,
             permissions: ['ALL'],
             department: 'Management'

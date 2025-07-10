@@ -1803,6 +1803,46 @@
       "page": {
         "title": "Mes box de stockage",
         "description": "Gérez vos locations de box de stockage"
+      },
+      "rent_dialog": {
+        "title": "Louer un box de stockage",
+        "description": "Configurez votre location pour le box {name}",
+        "duration": "Durée",
+        "duration_type": "Type de durée",
+        "start_date": "Date de début",
+        "start_time": "Heure de début",
+        "auto_extend": "Renouvellement automatique",
+        "items_to_store": "Objets à stocker",
+        "item_name": "Nom de l'objet",
+        "item_value": "Valeur (€)",
+        "cost_breakdown": "Détail des coûts",
+        "base_cost": "Coût de base",
+        "total": "Total",
+        "confirm_rental": "Confirmer la location"
+      },
+      "duration_types": {
+        "hours": "Heures",
+        "days": "Jours",
+        "weeks": "Semaines",
+        "months": "Mois"
+      },
+      "categories": {
+        "electronics": "Électronique",
+        "furniture": "Meubles",
+        "clothing": "Vêtements",
+        "documents": "Documents",
+        "other": "Autre"
+      },
+      "actions": {
+        "end_rental": "Terminer la location"
+      },
+      "auto_extend_enabled": "Renouvellement automatique activé",
+      "empty_rentals": {
+        "title": "Aucune location active",
+        "description": "Vous n'avez actuellement aucune location de box de stockage active."
+      },
+      "extend_dialog": {
+        "confirm": "Prolonger"
       }
     },
     "tutorial": {

@@ -410,6 +410,46 @@
       "page": {
         "title": "My storage boxes",
         "description": "Manage your storage box rentals"
+      },
+      "rent_dialog": {
+        "title": "Rent a storage box",
+        "description": "Configure your rental for box {name}",
+        "duration": "Duration",
+        "duration_type": "Duration type",
+        "start_date": "Start date",
+        "start_time": "Start time",
+        "auto_extend": "Auto-renewal",
+        "items_to_store": "Items to store",
+        "item_name": "Item name",
+        "item_value": "Value (€)",
+        "cost_breakdown": "Cost breakdown",
+        "base_cost": "Base cost",
+        "total": "Total",
+        "confirm_rental": "Confirm rental"
+      },
+      "duration_types": {
+        "hours": "Hours",
+        "days": "Days",
+        "weeks": "Weeks",
+        "months": "Months"
+      },
+      "categories": {
+        "electronics": "Electronics",
+        "furniture": "Furniture",
+        "clothing": "Clothing",
+        "documents": "Documents",
+        "other": "Other"
+      },
+      "actions": {
+        "end_rental": "End rental"
+      },
+      "auto_extend_enabled": "Auto-renewal enabled",
+      "empty_rentals": {
+        "title": "No active rentals",
+        "description": "You currently have no active storage box rentals."
+      },
+      "extend_dialog": {
+        "confirm": "Extend"
       }
     },
     "tutorial": {

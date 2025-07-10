@@ -10,8 +10,9 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Switch } from "@/components/ui/switch";
-import { Package, MapPin, Clock, Calendar, Key, AlertCircle, CheckCircle, Search, Filter, Plus } from "lucide-react";
+import { Package, MapPin, Clock, Calendar, Key, AlertCircle, CheckCircle, Search, Filter, Plus, X } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { loadStripe } from '@stripe/stripe-js';
 
 interface AdvancedStorageManagerProps {
   clientId: string;
@@ -122,7 +123,39 @@ export default function AdvancedStorageManager({ clientId }: AdvancedStorageMana
 
   useEffect(() => {
     fetchStorageData();
+    
+    // Vérifier si on revient d'un paiement réussi
+    const urlParams = new URLSearchParams(window.location.search);
+    const success = urlParams.get('success');
+    const rentalId = urlParams.get('rentalId');
+    
+    if (success === 'true' && rentalId) {
+      // Confirmer le paiement
+      confirmPayment(rentalId);
+    }
   }, [clientId]);
+
+  const confirmPayment = async (rentalId: string) => {
+    try {
+      const response = await fetch(`/api/client/storage-boxes/rentals/${rentalId}/confirm-payment`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+
+      if (response.ok) {
+        // Rafraîchir les données
+        await fetchStorageData();
+        alert('Paiement confirmé ! Votre location est maintenant active.');
+        
+        // Nettoyer l'URL
+        window.history.replaceState({}, document.title, window.location.pathname);
+      } else {
+        console.error('Erreur lors de la confirmation du paiement');
+      }
+    } catch (error) {
+      console.error('Error confirming payment:', error);
+    }
+  };
 
   const fetchStorageData = async () => {
     try {
@@ -133,7 +166,52 @@ export default function AdvancedStorageManager({ clientId }: AdvancedStorageMana
 
       if (boxesRes.ok) {
         const boxesData = await boxesRes.json();
-        setStorageBoxes(boxesData.boxes || []);
+        // Mapper les données de l'API vers le format attendu par l'interface
+        const mappedBoxes = (boxesData.boxes || []).map((box: any) => {
+          // Définir les dimensions et poids selon la taille
+          const sizeConfig = {
+            SMALL: { width: 60, height: 60, depth: 60, weight: 50 },
+            MEDIUM: { width: 100, height: 100, depth: 100, weight: 100 },
+            LARGE: { width: 150, height: 150, depth: 150, weight: 200 },
+            EXTRA_LARGE: { width: 200, height: 200, depth: 200, weight: 500 }
+          };
+          
+          const config = sizeConfig[box.size as keyof typeof sizeConfig] || sizeConfig.MEDIUM;
+          
+          return {
+            id: box.id,
+            name: box.boxNumber, // Utiliser le numéro de box comme nom
+            address: box.location?.address || 'Adresse non disponible',
+            latitude: box.location?.lat || 0,
+            longitude: box.location?.lng || 0,
+            size: box.size?.toLowerCase() || 'medium',
+            type: 'standard', // Type par défaut
+            hourlyRate: box.pricePerDay / 24, // Calculer le tarif horaire
+            dailyRate: box.pricePerDay,
+            weeklyRate: box.pricePerDay * 7,
+            monthlyRate: box.pricePerDay * 30,
+            availability: box.isAvailable ? 'available' : 'occupied',
+            features: ['Sécurisé', 'Accès 24h/24'],
+            maxWeight: config.weight,
+            dimensions: {
+              width: config.width,
+              height: config.height,
+              depth: config.depth
+            },
+            accessHours: {
+              start: '00:00',
+              end: '23:59'
+            },
+            security: {
+              camera: true,
+              alarm: true,
+              keypadAccess: true,
+              biometric: false
+            },
+            distance: undefined
+          };
+        });
+        setStorageBoxes(mappedBoxes);
       }
 
       if (rentalsRes.ok) {
@@ -154,7 +232,52 @@ export default function AdvancedStorageManager({ clientId }: AdvancedStorageMana
       const response = await fetch(`/api/client/storage-boxes/nearby?location=${encodeURIComponent(searchLocation)}&clientId=${clientId}`);
       if (response.ok) {
         const data = await response.json();
-        setStorageBoxes(data.boxes || []);
+        // Mapper les données de la même façon
+        const mappedBoxes = (data.boxes || []).map((box: any) => {
+          // Définir les dimensions et poids selon la taille
+          const sizeConfig = {
+            SMALL: { width: 60, height: 60, depth: 60, weight: 50 },
+            MEDIUM: { width: 100, height: 100, depth: 100, weight: 100 },
+            LARGE: { width: 150, height: 150, depth: 150, weight: 200 },
+            EXTRA_LARGE: { width: 200, height: 200, depth: 200, weight: 500 }
+          };
+          
+          const config = sizeConfig[box.size as keyof typeof sizeConfig] || sizeConfig.MEDIUM;
+          
+          return {
+            id: box.id,
+            name: box.boxNumber,
+            address: box.location?.address || 'Adresse non disponible',
+            latitude: box.location?.lat || 0,
+            longitude: box.location?.lng || 0,
+            size: box.size?.toLowerCase() || 'medium',
+            type: 'standard',
+            hourlyRate: box.pricePerDay / 24,
+            dailyRate: box.pricePerDay,
+            weeklyRate: box.pricePerDay * 7,
+            monthlyRate: box.pricePerDay * 30,
+            availability: box.isAvailable ? 'available' : 'occupied',
+            features: ['Sécurisé', 'Accès 24h/24'],
+            maxWeight: config.weight,
+            dimensions: {
+              width: config.width,
+              height: config.height,
+              depth: config.depth
+            },
+            accessHours: {
+              start: '00:00',
+              end: '23:59'
+            },
+            security: {
+              camera: true,
+              alarm: true,
+              keypadAccess: true,
+              biometric: false
+            },
+            distance: box.distance
+          };
+        });
+        setStorageBoxes(mappedBoxes);
       }
     } catch (error) {
       console.error("Error searching nearby boxes:", error);
@@ -169,28 +292,73 @@ export default function AdvancedStorageManager({ clientId }: AdvancedStorageMana
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          clientId,
           ...rentalForm,
           storageBoxId: selectedBox.id
         })
       });
 
       if (response.ok) {
-        await fetchStorageData();
-        setShowRentDialog(false);
-        setSelectedBox(null);
-        setRentalForm({
-          storageBoxId: "",
-          duration: 1,
-          durationType: "days",
-          startDate: new Date().toISOString().split('T')[0],
-          startTime: "09:00",
-          autoExtend: false,
-          items: []
-        });
+        const data = await response.json();
+        
+        // Si une URL Stripe Checkout est retournée
+        if (data.url) {
+          // Redirection automatique vers la page de paiement Stripe
+          window.location.href = data.url;
+        } else if (data.payment && data.payment.clientSecret) {
+          // Ancien code pour PaymentIntent (gardé pour compatibilité)
+          const stripe = await loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
+          
+          if (stripe) {
+            const { error } = await stripe.confirmPayment({
+              clientSecret: data.payment.clientSecret,
+              confirmParams: {
+                return_url: `${window.location.origin}/fr/client/storage?success=true`,
+              },
+            });
+
+            if (error) {
+              console.error('Erreur paiement Stripe:', error);
+              alert('Erreur lors du paiement: ' + error.message);
+            } else {
+              // Paiement réussi
+              await fetchStorageData();
+              setShowRentDialog(false);
+              setSelectedBox(null);
+              setRentalForm({
+                storageBoxId: "",
+                duration: 1,
+                durationType: "days",
+                startDate: new Date().toISOString().split('T')[0],
+                startTime: "09:00",
+                autoExtend: false,
+                items: []
+              });
+              alert('Location créée avec succès !');
+            }
+          }
+        } else {
+          // Pas de paiement requis (gratuit ou déjà payé)
+          await fetchStorageData();
+          setShowRentDialog(false);
+          setSelectedBox(null);
+          setRentalForm({
+            storageBoxId: "",
+            duration: 1,
+            durationType: "days",
+            startDate: new Date().toISOString().split('T')[0],
+            startTime: "09:00",
+            autoExtend: false,
+            items: []
+          });
+          alert('Location créée avec succès !');
+        }
+      } else {
+        const errorData = await response.json();
+        alert('Erreur: ' + (errorData.error || 'Erreur lors de la création de la location'));
       }
     } catch (error) {
       console.error("Error renting storage box:", error);
+      alert('Erreur lors de la création de la location');
     }
   };
 

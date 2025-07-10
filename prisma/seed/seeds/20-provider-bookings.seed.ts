@@ -6,7 +6,7 @@ const prisma = new PrismaClient();
 export async function seedProviderBookings() {
   console.log('🔄 Seeding provider bookings and billing data...');
 
-  const providerUserId = 'cmcuheo96001oplmo347aa2f6';
+  const providerUserId = 'cmcx6rm39001oplsoybgrkt4p'; // prestataire1@test.com
   
   try {
     // 1. Vérifier si le provider existe
@@ -15,7 +15,7 @@ export async function seedProviderBookings() {
     });
 
     if (!provider) {
-      console.log('Creating provider profile...');
+      console.log('Provider does not exist, creating provider profile...');
       provider = await prisma.provider.create({
         data: {
           userId: providerUserId,
@@ -30,6 +30,8 @@ export async function seedProviderBookings() {
           activatedAt: new Date('2024-01-15'),
         },
       });
+    } else {
+      console.log('Provider already exists, using existing profile:', provider.id);
     }
 
     // 2. Créer des services pour le provider
@@ -375,8 +377,9 @@ export async function seedProviderBookings() {
     console.log(`📊 Data created for months: October, November, December 2024, and January 2025`);
     
   } catch (error) {
-    console.error('❌ Error seeding provider bookings:', error);
-    throw error;
+    console.error('❌ Error in seedProviderBookings:', error);
+  } finally {
+    await prisma.$disconnect();
   }
 }
 

@@ -1,5 +1,4 @@
 import { prisma } from '@/lib/db'
-import { ecoLogger } from '@/lib/logger'
 import QRCode from 'qrcode'
 
 export interface StorageBoxRentalData {
@@ -112,10 +111,7 @@ export class StorageBoxService {
       return availableBoxes
 
     } catch (error) {
-      ecoLogger.storage.error('Error getting available boxes', {
-        filters,
-        error: error instanceof Error ? error.message : 'Unknown error'
-      })
+      console.error('Error getting available boxes:', error)
       throw error
     }
   }
@@ -201,7 +197,7 @@ export class StorageBoxService {
       // Générer le QR code
       const qrCodeData = await this.generateQRCode(rental.id, accessCode)
 
-      ecoLogger.storage.rentalCreated(rental.id, data.clientId, data.storageBoxId)
+      console.log('Rental created:', { rentalId: rental.id, clientId: data.clientId, storageBoxId: data.storageBoxId })
 
       return {
         ...rental,
@@ -209,10 +205,7 @@ export class StorageBoxService {
       }
 
     } catch (error) {
-      ecoLogger.storage.error('Error creating rental', {
-        data,
-        error: error instanceof Error ? error.message : 'Unknown error'
-      })
+      console.error('Error creating rental:', error)
       throw error
     }
   }
@@ -272,16 +265,12 @@ export class StorageBoxService {
         }
       })
 
-      ecoLogger.storage.rentalExtended(rentalId, newEndDate, additionalPrice)
+      console.log('Rental extended:', { rentalId, newEndDate, additionalPrice })
 
       return updatedRental
 
     } catch (error) {
-      ecoLogger.storage.error('Error extending rental', {
-        rentalId,
-        newEndDate,
-        error: error instanceof Error ? error.message : 'Unknown error'
-      })
+      console.error('Error extending rental:', error)
       throw error
     }
   }
@@ -324,15 +313,12 @@ export class StorageBoxService {
         }
       })
 
-      ecoLogger.storage.rentalEnded(rentalId, endedBy)
+      console.log('Rental ended:', { rentalId, endedBy })
 
       return updatedRental
 
     } catch (error) {
-      ecoLogger.storage.error('Error ending rental', {
-        rentalId,
-        error: error instanceof Error ? error.message : 'Unknown error'
-      })
+      console.error('Error ending rental:', error)
       throw error
     }
   }
@@ -392,10 +378,7 @@ export class StorageBoxService {
       return rentalsWithQR
 
     } catch (error) {
-      ecoLogger.storage.error('Error getting client rentals', {
-        clientId,
-        error: error instanceof Error ? error.message : 'Unknown error'
-      })
+      console.error('Error getting client rentals:', error)
       throw error
     }
   }
@@ -444,7 +427,7 @@ export class StorageBoxService {
         throw new Error('La location a expiré')
       }
 
-      ecoLogger.storage.accessValidated(rental.id, code)
+      console.log('Access validated:', { rentalId: rental.id, code })
 
       return {
         valid: true,
@@ -453,11 +436,7 @@ export class StorageBoxService {
       }
 
     } catch (error) {
-      ecoLogger.storage.error('Error validating access code', {
-        code,
-        boxId,
-        error: error instanceof Error ? error.message : 'Unknown error'
-      })
+      console.error('Error validating access code:', error)
       
       return {
         valid: false,
@@ -536,10 +515,7 @@ export class StorageBoxService {
       }
 
     } catch (error) {
-      ecoLogger.storage.error('Error getting storage stats', {
-        locationId,
-        error: error instanceof Error ? error.message : 'Unknown error'
-      })
+      console.error('Error getting storage stats:', error)
       throw error
     }
   }
@@ -596,10 +572,7 @@ export class StorageBoxService {
       return qrCodeDataURL
 
     } catch (error) {
-      ecoLogger.storage.error('Error generating QR code', {
-        rentalId,
-        error: error instanceof Error ? error.message : 'Unknown error'
-      })
+      console.error('Error generating QR code:', error)
       throw new Error('Erreur lors de la génération du QR code')
     }
   }
@@ -670,12 +643,7 @@ export class StorageBoxService {
       return nearbyBoxes
 
     } catch (error) {
-      ecoLogger.storage.error('Error finding nearby boxes', {
-        lat,
-        lng,
-        radiusKm,
-        error: error instanceof Error ? error.message : 'Unknown error'
-      })
+      console.error('Error finding nearby boxes:', error)
       throw error
     }
   }

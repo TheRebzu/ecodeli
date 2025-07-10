@@ -79,6 +79,7 @@ export async function seedPayments(ctx: SeedContext) {
           amount: delivery.price,
           currency: 'EUR',
           status: 'COMPLETED',
+          type: 'DELIVERY',
           paymentMethod: Math.random() > 0.3 ? 'STRIPE' : 'WALLET',
           stripePaymentId: `pi_${Math.random().toString(36).substring(2, 15)}`,
           metadata: {
@@ -147,6 +148,7 @@ export async function seedPayments(ctx: SeedContext) {
           amount: booking.totalPrice,
           currency: 'EUR',
           status: 'COMPLETED',
+          type: 'SERVICE',
           paymentMethod: Math.random() > 0.2 ? 'STRIPE' : 'WALLET',
           stripePaymentId: `pi_${Math.random().toString(36).substring(2, 15)}`,
           metadata: {

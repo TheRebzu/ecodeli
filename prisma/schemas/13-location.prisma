@@ -73,6 +73,7 @@ model StorageBoxRental {
   // Relations
   client            Client              @relation(fields: [clientId], references: [id])
   storageBox        StorageBox          @relation(fields: [storageBoxId], references: [id])
+  payments          Payment[]
   
   @@index([clientId])
   @@index([storageBoxId])

@@ -69,14 +69,17 @@ export async function cleanDatabase(context: SeedContext) {
     // 11. Cartes NFC
     () => prisma.nFCCard.deleteMany(),
     
-    // 12. Profils spécialisés
+    // 12. Facturation commerçants (AVANT les profils spécialisés)
+    () => prisma.merchantBilling.deleteMany(),
+    
+    // 13. Profils spécialisés
     () => prisma.admin.deleteMany(),
     () => prisma.provider.deleteMany(),
     () => prisma.merchant.deleteMany(),
     () => prisma.deliverer.deleteMany(),
     () => prisma.client.deleteMany(),
     
-    // 13. Profils et utilisateurs
+    // 14. Profils et utilisateurs
     () => prisma.profile.deleteMany(),
     () => prisma.passwordReset.deleteMany(),
     () => prisma.verificationToken.deleteMany(),
@@ -90,7 +93,7 @@ export async function cleanDatabase(context: SeedContext) {
       await operation()
     } catch (error) {
       // Ignorer les erreurs de suppression pour les tables qui n'existent pas encore
-      console.log('Cleanup operation failed (expected):', error.message?.slice(0, 100))
+      console.log('Cleanup operation failed (expected):', (error as Error).message?.slice(0, 100))
     }
   }
   
