@@ -4,9 +4,10 @@ import { prisma } from '@/lib/db';
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     // Vérifier l'authentification admin
     const user = await getCurrentUser();
     if (!user || user.role !== 'ADMIN') {
@@ -21,7 +22,7 @@ export async function POST(
 
     // Marquer le problème comme résolu
     const updatedIssue = await prisma.deliveryIssue.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         isResolved: true,
         resolvedAt: new Date(),

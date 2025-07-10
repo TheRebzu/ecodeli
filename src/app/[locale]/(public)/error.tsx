@@ -34,7 +34,7 @@ export default function Error({
           <p className="text-muted-foreground">{errorMessage}</p>
           {error.digest && (
             <p className="text-xs text-muted-foreground mt-2">
-              {t('errorId', 'ID Erreur')}: {error.digest}
+              {t('errorId') || 'ID Erreur'}: {error.digest}
             </p>
           )}
         </div>
@@ -42,7 +42,7 @@ export default function Error({
         <div className="flex flex-col sm:flex-row gap-2 justify-center">
           <Button onClick={() => reset()} variant="outline">
             <RefreshCcw className="mr-2 h-4 w-4" />
-            {t('retry', 'Réessayer')}
+            {t('retry') || 'Réessayer'}
           </Button>
           <Button asChild>
             <Link href="/fr/home">{t('backToHome', "Retour à l'accueil")}</Link>

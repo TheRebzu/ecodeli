@@ -86,8 +86,8 @@ export default function RouteDeclarationManager({ delivererId }: RouteDeclaratio
         delivererId,
         departureAddress: formData.departureAddress,
         arrivalAddress: formData.arrivalAddress,
-        departureTime: `${format(formData.departureDate, "yyyy-MM-dd")}T${formData.departureTime}:00`,
-        arrivalTime: `${format(formData.departureDate, "yyyy-MM-dd")}T${formData.arrivalTime}:00`,
+        departureTime: `${format(formData.departureDate) || "yyyy-MM-dd"}T${formData.departureTime}:00`,
+        arrivalTime: `${format(formData.departureDate) || "yyyy-MM-dd"}T${formData.arrivalTime}:00`,
         availableSpace: formData.availableSpace,
         pricePerKm: formData.pricePerKm,
         description: formData.description
@@ -205,7 +205,7 @@ export default function RouteDeclarationManager({ delivererId }: RouteDeclaratio
                         className="w-full justify-start text-left font-normal"
                       >
                         <CalendarIcon className="mr-2 h-4 w-4" />
-                        {formData.departureDate ? format(formData.departureDate, "PPP") : t("form.select_date")}
+                        {formData.departureDate ? format(formData.departureDate) || "PPP" : t("form.select_date")}
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0">

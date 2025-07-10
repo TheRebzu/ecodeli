@@ -112,7 +112,7 @@ export function useLocaleFormat() {
     const diffInSeconds = Math.floor((date.getTime() - now.getTime()) / 1000)
     
     if (Math.abs(diffInSeconds) < 60) {
-      return rtf.format(diffInSeconds, 'second')
+      return rtf.format(diffInSeconds) || 'second'
     } else if (Math.abs(diffInSeconds) < 3600) {
       return rtf.format(Math.floor(diffInSeconds / 60), 'minute')
     } else if (Math.abs(diffInSeconds) < 86400) {

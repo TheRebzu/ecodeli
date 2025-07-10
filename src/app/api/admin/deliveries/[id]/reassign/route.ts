@@ -4,9 +4,12 @@ import { prisma } from '@/lib/db';
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    // Await params first
+    const { id } = await params;
+    
     // Vérifier l'authentification admin
     const user = await getCurrentUser();
     if (!user || user.role !== 'ADMIN') {
@@ -21,7 +24,7 @@ export async function POST(
 
     // Récupérer la livraison
     const delivery = await prisma.delivery.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         deliverer: true,
         announcement: true

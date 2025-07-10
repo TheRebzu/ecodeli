@@ -5,9 +5,10 @@ import { contractSignatureSchema } from '@/features/provider/schemas/contract.sc
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     const currentUser = await getCurrentUser()
     if (!currentUser) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -18,7 +19,7 @@ export async function POST(
 
     // Verify contract exists and belongs to user if provider
     const contract = await prisma.providerContract.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         provider: {
           select: { userId: true }
@@ -52,19 +53,19 @@ export async function POST(
 
     // Check if both parties have signed
     const updatedContract = await prisma.providerContract.update({
-      where: { id: params.id },
+      where: { id },
       data: updateData
     })
 
     // If both parties have signed, activate the contract
     if (updatedContract.signedByProvider && updatedContract.signedByEcoDeli) {
       await prisma.providerContract.update({
-        where: { id: params.id },
+        where: { id },
         data: { status: 'ACTIVE' }
       })
     } else {
       await prisma.providerContract.update({
-        where: { id: params.id },
+        where: { id },
         data: { status: 'PENDING_SIGNATURE' }
       })
     }

@@ -109,7 +109,7 @@ export function AppointmentBooking({ providerId }: { providerId: string }) {
 
     setIsLoading(true)
     try {
-      const dateStr = format(selectedDate, 'yyyy-MM-dd')
+      const dateStr = format(selectedDate) || 'yyyy-MM-dd'
       const response = await fetch(
         `/api/provider/${providerId}/availability?date=${dateStr}&serviceId=${selectedService.id}`
       )
@@ -322,7 +322,7 @@ export function AppointmentBooking({ providerId }: { providerId: string }) {
               <div className="grid grid-cols-7 gap-2">
                 {Array.from({ length: 7 }, (_, i) => {
                   const date = addDays(selectedDate, i)
-                  const dateStr = format(date, 'yyyy-MM-dd')
+                  const dateStr = format(date) || 'yyyy-MM-dd'
                   const daySlots = availableSlots.filter(slot => slot.date === dateStr)
                   
                   return (
@@ -332,7 +332,7 @@ export function AppointmentBooking({ providerId }: { providerId: string }) {
                           {format(date, 'EEE', { locale: fr })}
                         </p>
                         <p className="text-sm text-muted-foreground">
-                          {format(date, 'dd')}
+                          {format(date) || 'dd'}
                         </p>
                       </div>
                       

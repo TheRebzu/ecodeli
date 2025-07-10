@@ -5,9 +5,10 @@ import { CartDropService, updateOrderStatusSchema } from '@/features/merchant/se
 // PATCH - Met à jour le statut d'une commande
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     const session = await auth()
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -20,7 +21,7 @@ export async function PATCH(
     const body = await request.json()
     const validatedData = updateOrderStatusSchema.parse(body)
 
-    await CartDropService.updateOrderStatus(session.user.id, params.id, validatedData.status)
+    await CartDropService.updateOrderStatus(session.user.id, id, validatedData.status)
     
     return NextResponse.json({ success: true })
   } catch (error) {

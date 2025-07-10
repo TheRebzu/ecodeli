@@ -210,7 +210,7 @@ export default function CartDropOrdersPage() {
 
   // Obtenir les commandes par créneau et date
   const getOrdersForSlot = (slotId: string, date: Date) => {
-    const dateStr = format(date, 'yyyy-MM-dd')
+    const dateStr = format(date) || 'yyyy-MM-dd'
     return orders.filter(order => 
       order.timeSlotId === slotId && 
       order.scheduledDate === dateStr
@@ -330,7 +330,7 @@ export default function CartDropOrdersPage() {
                           <div className="space-y-1">
                             <div className="font-medium">{DAYS_OF_WEEK[day.getDay()]}</div>
                             <div className="text-sm text-muted-foreground">
-                              {format(day, 'dd/MM')}
+                              {format(day) || 'dd/MM'}
                             </div>
                           </div>
                         </th>

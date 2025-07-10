@@ -10,9 +10,10 @@ const toggleSchema = z.object({
 // PUT - Activer/Désactiver une intégration
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     const session = await auth()
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
@@ -26,7 +27,7 @@ export async function PUT(
       return NextResponse.json({ error: 'Accès refusé' }, { status: 403 })
     }
 
-    const integrationId = params.id
+    const integrationId = id
     const body = await request.json()
     const { enabled } = toggleSchema.parse(body)
 

@@ -82,7 +82,7 @@ export default function PlanningCalendarManager({ delivererId }: PlanningCalenda
       const endWeek = endOfWeek(selectedDate);
       
       const response = await fetch(
-        `/api/deliverer/planning?delivererId=${delivererId}&startDate=${format(startWeek, "yyyy-MM-dd")}&endDate=${format(endWeek, "yyyy-MM-dd")}`
+        `/api/deliverer/planning?delivererId=${delivererId}&startDate=${format(startWeek) || "yyyy-MM-dd"}&endDate=${format(endWeek) || "yyyy-MM-dd"}`
       );
       
       if (response.ok) {
@@ -104,7 +104,7 @@ export default function PlanningCalendarManager({ delivererId }: PlanningCalenda
       const entryData = {
         ...newEntry,
         delivererId,
-        date: format(selectedDate, "yyyy-MM-dd"),
+        date: format(selectedDate) || "yyyy-MM-dd",
         status: "scheduled"
       };
 
@@ -184,7 +184,7 @@ export default function PlanningCalendarManager({ delivererId }: PlanningCalenda
   };
 
   const getEntriesForDate = (date: Date) => {
-    const dateStr = format(date, "yyyy-MM-dd");
+    const dateStr = format(date) || "yyyy-MM-dd";
     return scheduleEntries.filter(entry => entry.date === dateStr);
   };
 
@@ -417,7 +417,7 @@ export default function PlanningCalendarManager({ delivererId }: PlanningCalenda
           <Card>
             <CardHeader>
               <CardTitle>
-                {selectedDate ? format(selectedDate, "EEEE, MMMM d, yyyy") : t("calendar.select_date")}
+                {selectedDate ? format(selectedDate) || "EEEE, MMMM d, yyyy" : t("calendar.select_date")}
               </CardTitle>
               <CardDescription>
                 {selectedDate && getEntriesForDate(selectedDate).length > 0 
@@ -487,8 +487,8 @@ export default function PlanningCalendarManager({ delivererId }: PlanningCalenda
                 {generateWeeklyTimeSlots().map(({ date, entries }) => (
                   <div key={date.toISOString()} className="border rounded-lg p-2">
                     <div className="text-center mb-2">
-                      <div className="text-xs font-medium">{format(date, "EEE")}</div>
-                      <div className="text-sm">{format(date, "d")}</div>
+                      <div className="text-xs font-medium">{format(date) || "EEE"}</div>
+                      <div className="text-sm">{format(date) || "d"}</div>
                     </div>
                     <div className="space-y-1">
                       {entries.slice(0, 3).map((entry) => (

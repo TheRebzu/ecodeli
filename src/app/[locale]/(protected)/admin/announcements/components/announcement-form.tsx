@@ -83,7 +83,7 @@ export function AnnouncementForm({ announcement, onSuccess, onCancel }: Announce
     setValue,
     watch
   } = useForm<AnnouncementFormData>({
-    resolver: zodResolver(announcementSchema),
+    resolver: zodResolver(announcementSchema) as any,
     defaultValues: {
       title: announcement?.title || "",
       description: announcement?.description || "",

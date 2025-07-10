@@ -6,10 +6,11 @@ import { USER_ROLES } from '@/lib/auth'
 import { DeliveryValidationPage } from '@/features/deliverer/components/deliveries/delivery-validation-page'
 
 export async function generateMetadata({
-  params: { locale }
+  params
 }: {
-  params: { locale: string }
+  params: Promise<{ locale: string }>
 }): Promise<Metadata> {
+  const { locale } = await params
   const t = await getTranslations({ locale, namespace: 'pages.deliverer.validation' })
   
   return {
@@ -19,10 +20,11 @@ export async function generateMetadata({
 }
 
 export default async function ValidateDeliveryPage({
-  params: { locale, id }
+  params
 }: {
-  params: { locale: string; id: string }
+  params: Promise<{ locale: string; id: string }>
 }) {
+  const { locale, id } = await params
   const session = await auth.api.getSession({
     headers: await import('next/headers').then(mod => mod.headers())
   })

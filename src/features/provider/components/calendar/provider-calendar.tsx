@@ -173,7 +173,7 @@ export function ProviderCalendar() {
       if (availability.isRecurring && availability.recurringDays) {
         return availability.recurringDays.includes(date.getDay());
       }
-      return format(availability.date, "yyyy-MM-dd") === format(date, "yyyy-MM-dd");
+      return format(availability.date) || "yyyy-MM-dd" === format(date) || "yyyy-MM-dd";
     });
   };
 

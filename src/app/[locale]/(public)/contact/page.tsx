@@ -34,12 +34,12 @@ export default function ContactPage() {
           ></div>
           <div className="container mx-auto px-4 md:px-6 relative z-10">
             <div className="flex flex-col items-center text-center space-y-4">
-              <Badge className="mb-2">{t('badge', 'Contact')}</Badge>
+              <Badge className="mb-2">{t('badge') || 'Contact'}</Badge>
               <h1 className="text-4xl md:text-5xl font-bold tracking-tighter">
-                {t('title', 'Contactez-nous')}
+                {t('title') || 'Contactez-nous'}
               </h1>
               <p className="text-xl text-muted-foreground max-w-[700px] mx-auto">
-                {t('subtitle', 'Notre équipe est à votre disposition pour répondre à toutes vos questions.')}
+                {t('subtitle') || 'Notre équipe est à votre disposition pour répondre à toutes vos questions.'}
               </p>
             </div>
           </div>
@@ -54,15 +54,15 @@ export default function ContactPage() {
                   <div className="bg-primary/10 p-2 w-10 h-10 flex items-center justify-center rounded-full mb-3">
                     <Phone className="h-5 w-5 text-primary" />
                   </div>
-                  <CardTitle>{t('phone.title', 'Téléphone')}</CardTitle>
-                  <CardDescription>{t('phone.description', 'Appelez-nous directement')}</CardDescription>
+                  <CardTitle>{t('phone.title') || 'Téléphone'}</CardTitle>
+                  <CardDescription>{t('phone.description') || 'Appelez-nous directement'}</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <p className="font-medium">+33 (0)1 23 45 67 89</p>
                 </CardContent>
                 <CardFooter>
                   <Button variant="outline" size="sm" className="w-full">
-                    {t('phone.button', 'Appeler maintenant')}
+                    {t('phone.button') || 'Appeler maintenant'}
                   </Button>
                 </CardFooter>
               </Card>
@@ -72,15 +72,15 @@ export default function ContactPage() {
                   <div className="bg-primary/10 p-2 w-10 h-10 flex items-center justify-center rounded-full mb-3">
                     <AtSign className="h-5 w-5 text-primary" />
                   </div>
-                  <CardTitle>{t('email.title', 'Email')}</CardTitle>
-                  <CardDescription>{t('email.description', 'Envoyez-nous un message')}</CardDescription>
+                  <CardTitle>{t('email.title') || 'Email'}</CardTitle>
+                  <CardDescription>{t('email.description') || 'Envoyez-nous un message'}</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <p className="font-medium">contact@ecodeli.me</p>
                 </CardContent>
                 <CardFooter>
                   <Button variant="outline" size="sm" className="w-full">
-                    {t('email.button', 'Envoyer un email')}
+                    {t('email.button') || 'Envoyer un email'}
                   </Button>
                 </CardFooter>
               </Card>
@@ -90,8 +90,8 @@ export default function ContactPage() {
                   <div className="bg-primary/10 p-2 w-10 h-10 flex items-center justify-center rounded-full mb-3">
                     <MapPin className="h-5 w-5 text-primary" />
                   </div>
-                  <CardTitle>{t('address.title', 'Adresse')}</CardTitle>
-                  <CardDescription>{t('address.description', 'Venez nous rencontrer')}</CardDescription>
+                  <CardTitle>{t('address.title') || 'Adresse'}</CardTitle>
+                  <CardDescription>{t('address.description') || 'Venez nous rencontrer'}</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <p className="font-medium">
@@ -100,7 +100,7 @@ export default function ContactPage() {
                 </CardContent>
                 <CardFooter>
                   <Button variant="outline" size="sm" className="w-full">
-                    {t('address.button', 'Voir sur la carte')}
+                    {t('address.button') || 'Voir sur la carte'}
                   </Button>
                 </CardFooter>
               </Card>
@@ -112,12 +112,12 @@ export default function ContactPage() {
         <section className="w-full py-12 md:py-24 bg-muted/30">
           <div className="container mx-auto px-4 md:px-6">
             <div className="flex flex-col items-center text-center space-y-4 mb-8 md:mb-12">
-              <Badge>{t('schedule.badge', 'Horaires')}</Badge>
+              <Badge>{t('schedule.badge') || 'Horaires'}</Badge>
               <h2 className="text-3xl md:text-4xl font-bold tracking-tighter">
                 {t('schedule.title', "Nos heures d'ouverture")}
               </h2>
               <p className="text-muted-foreground max-w-[700px]">
-                {t('schedule.subtitle', 'Notre service client est disponible aux horaires suivants')}
+                {t('schedule.subtitle') || 'Notre service client est disponible aux horaires suivants'}
               </p>
             </div>
 
@@ -126,9 +126,9 @@ export default function ContactPage() {
                 <CardContent className="p-6">
                   <div className="space-y-4">
                     {[
-                      { day: t('schedule.mondayFriday', "Lundi - Vendredi"), hours: "9:00 - 18:00" },
-                      { day: t('schedule.saturday', 'Samedi'), hours: "10:00 - 16:00" },
-                      { day: t('schedule.sunday', 'Dimanche'), hours: t('schedule.closed', 'Fermé') }].map((schedule, index) => (
+                      { day: t('schedule.mondayFriday') || "Lundi - Vendredi", hours: "9:00 - 18:00" },
+                      { day: t('schedule.saturday') || 'Samedi', hours: "10:00 - 16:00" },
+                      { day: t('schedule.sunday') || 'Dimanche', hours: t('schedule.closed') || 'Fermé' }].map((schedule, index) => (
                       <div
                         key={index}
                         className="flex justify-between items-center py-2 border-b last:border-0"
@@ -139,7 +139,7 @@ export default function ContactPage() {
                         </div>
                         <span
                           className={
-                            schedule.hours === t('schedule.closed', 'Fermé') ? "text-gray-500" : ""
+                            schedule.hours === t('schedule.closed') || 'Fermé' ? "text-gray-500" : ""
                           }
                         >
                           {schedule.hours}
@@ -157,12 +157,12 @@ export default function ContactPage() {
         <section className="w-full py-12 md:py-24">
           <div className="container mx-auto px-4 md:px-6">
             <div className="flex flex-col items-center text-center space-y-4 mb-8 md:mb-12">
-              <Badge>{t('form.badge', 'Message')}</Badge>
+              <Badge>{t('form.badge') || 'Message'}</Badge>
               <h2 className="text-3xl md:text-4xl font-bold tracking-tighter">
-                {t('form.title', 'Envoyez-nous un message')}
+                {t('form.title') || 'Envoyez-nous un message'}
               </h2>
               <p className="text-muted-foreground max-w-[700px]">
-                {t('form.subtitle', 'Remplissez le formulaire ci-dessous et nous vous répondrons dans les plus brefs délais')}
+                {t('form.subtitle') || 'Remplissez le formulaire ci-dessous et nous vous répondrons dans les plus brefs délais'}
               </p>
             </div>
 
@@ -176,12 +176,12 @@ export default function ContactPage() {
                           htmlFor="firstName"
                           className="text-sm font-medium"
                         >
-                          {t('form.firstName', 'Prénom')}
+                          {t('form.firstName') || 'Prénom'}
                         </label>
                         <input
                           id="firstName"
                           className="w-full p-2 rounded-md border border-input bg-transparent"
-                          placeholder={t('form.firstNamePlaceholder', 'Votre prénom')}
+                          placeholder={t('form.firstNamePlaceholder') || 'Votre prénom'}
                         />
                       </div>
                       <div className="space-y-2">
@@ -189,59 +189,59 @@ export default function ContactPage() {
                           htmlFor="lastName"
                           className="text-sm font-medium"
                         >
-                          {t('form.lastName', 'Nom')}
+                          {t('form.lastName') || 'Nom'}
                         </label>
                         <input
                           id="lastName"
                           className="w-full p-2 rounded-md border border-input bg-transparent"
-                          placeholder={t('form.lastNamePlaceholder', 'Votre nom')}
+                          placeholder={t('form.lastNamePlaceholder') || 'Votre nom'}
                         />
                       </div>
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <label htmlFor="email" className="text-sm font-medium">
-                          {t('form.email', 'Email')}
+                          {t('form.email') || 'Email'}
                         </label>
                         <input
                           id="email"
                           type="email"
                           className="w-full p-2 rounded-md border border-input bg-transparent"
-                          placeholder={t('form.emailPlaceholder', 'email@domaine.com')}
+                          placeholder={t('form.emailPlaceholder') || 'email@domaine.com'}
                         />
                       </div>
                       <div className="space-y-2">
                         <label htmlFor="phone" className="text-sm font-medium">
-                          {t('form.phone', 'Téléphone')}
+                          {t('form.phone') || 'Téléphone'}
                         </label>
                         <input
                           id="phone"
                           className="w-full p-2 rounded-md border border-input bg-transparent"
-                          placeholder={t('form.phonePlaceholder', 'Votre numéro de téléphone')}
+                          placeholder={t('form.phonePlaceholder') || 'Votre numéro de téléphone'}
                         />
                       </div>
                     </div>
                     <div className="space-y-2">
                       <label htmlFor="subject" className="text-sm font-medium">
-                        {t('form.subject', 'Sujet')}
+                        {t('form.subject') || 'Sujet'}
                       </label>
                       <input
                         id="subject"
                         className="w-full p-2 rounded-md border border-input bg-transparent"
-                        placeholder={t('form.subjectPlaceholder', 'Objet de votre message')}
+                        placeholder={t('form.subjectPlaceholder') || 'Objet de votre message'}
                       />
                     </div>
                     <div className="space-y-2">
                       <label htmlFor="message" className="text-sm font-medium">
-                        {t('form.message', 'Message')}
+                        {t('form.message') || 'Message'}
                       </label>
                       <textarea
                         id="message"
                         className="w-full p-2 rounded-md border border-input bg-transparent min-h-[150px]"
-                        placeholder={t('form.messagePlaceholder', 'Votre message...')}
+                        placeholder={t('form.messagePlaceholder') || 'Votre message...'}
                       ></textarea>
                     </div>
-                    <Button className="w-full">{t('form.submit', 'Envoyer le message')}</Button>
+                    <Button className="w-full">{t('form.submit') || 'Envoyer le message'}</Button>
                   </form>
                 </CardContent>
               </Card>
@@ -253,12 +253,12 @@ export default function ContactPage() {
         <section className="w-full py-12 md:py-24 bg-muted/30">
           <div className="container mx-auto px-4 md:px-6">
             <div className="flex flex-col items-center text-center space-y-4 mb-8">
-              <Badge>{t('social.badge', 'Suivez-nous')}</Badge>
+              <Badge>{t('social.badge') || 'Suivez-nous'}</Badge>
               <h2 className="text-3xl md:text-4xl font-bold tracking-tighter">
-                {t('social.title', 'Restez connectés')}
+                {t('social.title') || 'Restez connectés'}
               </h2>
               <p className="text-muted-foreground max-w-[700px]">
-                {t('social.subtitle', 'Suivez-nous sur les réseaux sociaux pour les dernières nouvelles et mises à jour')}
+                {t('social.subtitle') || 'Suivez-nous sur les réseaux sociaux pour les dernières nouvelles et mises à jour'}
               </p>
             </div>
 

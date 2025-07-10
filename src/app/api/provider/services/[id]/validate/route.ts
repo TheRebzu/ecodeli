@@ -9,9 +9,10 @@ const validateServiceSchema = z.object({
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     const session = await auth();
     if (!session || session.user.role !== "PROVIDER") {
       return NextResponse.json(
@@ -26,7 +27,7 @@ export async function POST(
     // Vérifier que le service existe et appartient au prestataire
     const service = await prisma.service.findFirst({
       where: {
-        id: params.id,
+        id,
         providerId: validatedData.providerId,
       },
     });
@@ -48,7 +49,7 @@ export async function POST(
 
     // Mettre à jour le statut de validation
     const updatedService = await prisma.service.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         validationStatus: "PENDING",
         validationRequestedAt: new Date(),

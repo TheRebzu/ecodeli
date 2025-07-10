@@ -13,16 +13,17 @@ const updateDisputeSchema = z.object({
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     const user = await getCurrentUser()
     if (!user || user.role !== 'ADMIN') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     const dispute = await prisma.dispute.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         client: {
           include: {
@@ -71,9 +72,10 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     const user = await getCurrentUser()
     if (!user || user.role !== 'ADMIN') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -83,7 +85,7 @@ export async function PUT(
     const validatedData = updateDisputeSchema.parse(body)
 
     const dispute = await prisma.dispute.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         ...validatedData,
         updatedAt: new Date()
@@ -107,7 +109,7 @@ export async function PUT(
     if (validatedData.status) {
       await prisma.disputeTimeline.create({
         data: {
-          disputeId: params.id,
+          disputeId: id,
           type: 'STATUS_CHANGE',
           authorId: user.id,
           content: `Status changed to ${validatedData.status}`,
@@ -120,7 +122,7 @@ export async function PUT(
     if (validatedData.resolution) {
       await prisma.disputeTimeline.create({
         data: {
-          disputeId: params.id,
+          disputeId: id,
           type: 'RESOLUTION',
           authorId: user.id,
           content: validatedData.resolution,
@@ -148,9 +150,10 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     const user = await getCurrentUser()
     if (!user || user.role !== 'ADMIN') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -158,12 +161,12 @@ export async function DELETE(
 
     // Delete timeline events first
     await prisma.disputeTimeline.deleteMany({
-      where: { disputeId: params.id }
+      where: { disputeId: id }
     })
 
     // Delete the dispute
     await prisma.dispute.delete({
-      where: { id: params.id }
+      where: { id }
     })
 
     return NextResponse.json({ message: 'Dispute deleted successfully' })
