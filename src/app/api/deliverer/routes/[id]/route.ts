@@ -40,34 +40,11 @@ export async function GET(
       return NextResponse.json({ error: 'Deliverer profile not found' }, { status: 404 })
     }
 
+    const { id } = await params;
     const route = await prisma.route.findFirst({
       where: {
-        const { id } = await params;
-
         id: id,
         delivererId: deliverer.id
-      },
-      include: {
-        matchedAnnouncements: {
-          include: {
-            announcement: {
-              include: {
-                author: {
-                  select: {
-                    id: true,
-                    profile: {
-                      select: {
-                        firstName: true,
-                        lastName: true,
-                        phone: true
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
       }
     })
 
@@ -108,10 +85,9 @@ export async function PUT(
     }
 
     // Vérifier que la route appartient au livreur
+    const { id } = await params;
     const existingRoute = await prisma.route.findFirst({
       where: {
-        const { id } = await params;
-
         id: id,
         delivererId: deliverer.id
       }
@@ -121,43 +97,9 @@ export async function PUT(
       return NextResponse.json({ error: 'Route not found' }, { status: 404 })
     }
 
-    // Vérifier les contraintes de dates si elles sont modifiées
-    if (validatedData.departureDate || validatedData.arrivalDate) {
-      const departureDate = validatedData.departureDate 
-        ? new Date(validatedData.departureDate)
-        : existingRoute.departureDate
-      const arrivalDate = validatedData.arrivalDate
-        ? new Date(validatedData.arrivalDate)
-        : existingRoute.arrivalDate
-
-      if (departureDate <= new Date()) {
-        return NextResponse.json({ 
-          error: 'Departure date must be in the future' 
-        }, { status: 400 })
-      }
-
-      if (arrivalDate <= departureDate) {
-        return NextResponse.json({ 
-          error: 'Arrival date must be after departure date' 
-        }, { status: 400 })
-      }
-    }
-
     const updatedRoute = await prisma.route.update({
-      where: { const { id } = await params;
- id: id },
-      data: {
-        ...validatedData,
-        ...(validatedData.departureDate && { departureDate: new Date(validatedData.departureDate) }),
-        ...(validatedData.arrivalDate && { arrivalDate: new Date(validatedData.arrivalDate) })
-      },
-      include: {
-        matchedAnnouncements: {
-          include: {
-            announcement: true
-          }
-        }
-      }
+      where: { id: id },
+      data: validatedData
     })
 
     return NextResponse.json(updatedRoute)
@@ -196,10 +138,9 @@ export async function DELETE(
     }
 
     // Vérifier que la route appartient au livreur
+    const { id } = await params;
     const existingRoute = await prisma.route.findFirst({
       where: {
-        const { id } = await params;
-
         id: id,
         delivererId: deliverer.id
       }
@@ -209,148 +150,12 @@ export async function DELETE(
       return NextResponse.json({ error: 'Route not found' }, { status: 404 })
     }
 
-    // Vérifier qu'il n'y a pas de livraisons en cours sur cette route
-    const activeDeliveries = await prisma.delivery.count({
-      where: {
-        delivererId: session.user.id,
-        status: {
-          in: ['ACCEPTED', 'IN_TRANSIT']
-        }
-        // TODO: Ajouter relation route si nécessaire
-      }
-    })
-
-    if (activeDeliveries > 0) {
-      return NextResponse.json({
-        error: 'Cannot delete route with active deliveries'
-      }, { status: 400 })
-    }
-
     await prisma.route.delete({
-      where: { const { id } = await params;
- id: id }
+      where: { id: id }
     })
 
     return NextResponse.json({ message: 'Route deleted successfully' })
   } catch (error) {
     return handleApiError(error, 'deleting route')
-  }
-}
-
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
-  try {
-    const session = await auth();
-    if (!session || session.user.role !== 'DELIVERER') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    const body = await request.json();
-    const validatedData = updateRouteSchema.parse(body);
-
-    const deliverer = await prisma.deliverer.findUnique({
-      where: { userId: session.user.id }
-    });
-
-    if (!deliverer) {
-      return NextResponse.json({ error: 'Deliverer not found' }, { status: 404 });
-    }
-
-    // Vérifier que le trajet appartient au livreur
-    const existingRoute = await prisma.delivererRoute.findFirst({
-      where: {
-        id: params.id,
-        delivererId: deliverer.id
-      }
-    });
-
-    if (!existingRoute) {
-      return NextResponse.json({ error: 'Route not found' }, { status: 404 });
-    }
-
-    // Mettre à jour le trajet
-    const updatedRoute = await prisma.delivererRoute.update({
-      where: { id: params.id },
-      data: validatedData
-    });
-
-    return NextResponse.json({ 
-      message: 'Route updated successfully',
-      route: {
-        id: updatedRoute.id,
-        startLocation: updatedRoute.startLocation,
-        endLocation: updatedRoute.endLocation,
-        startTime: updatedRoute.startTime,
-        endTime: updatedRoute.endTime,
-        daysOfWeek: updatedRoute.daysOfWeek,
-        vehicleType: updatedRoute.vehicleType,
-        maxDistance: updatedRoute.maxDistance,
-        minPrice: updatedRoute.minPrice,
-        isActive: updatedRoute.isActive,
-        createdAt: updatedRoute.createdAt.toISOString()
-      }
-    });
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { error: 'Validation error', details: error.errors },
-        { status: 400 }
-      );
-    }
-
-    console.error('Error updating deliverer route:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
-  }
-}
-
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
-  try {
-    const session = await auth();
-    if (!session || session.user.role !== 'DELIVERER') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    const deliverer = await prisma.deliverer.findUnique({
-      where: { userId: session.user.id }
-    });
-
-    if (!deliverer) {
-      return NextResponse.json({ error: 'Deliverer not found' }, { status: 404 });
-    }
-
-    // Vérifier que le trajet appartient au livreur
-    const existingRoute = await prisma.delivererRoute.findFirst({
-      where: {
-        id: params.id,
-        delivererId: deliverer.id
-      }
-    });
-
-    if (!existingRoute) {
-      return NextResponse.json({ error: 'Route not found' }, { status: 404 });
-    }
-
-    // Supprimer le trajet
-    await prisma.delivererRoute.delete({
-      where: { id: params.id }
-    });
-
-    return NextResponse.json({ 
-      message: 'Route deleted successfully'
-    });
-  } catch (error) {
-    console.error('Error deleting deliverer route:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
   }
 }

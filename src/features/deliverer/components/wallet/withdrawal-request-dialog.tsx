@@ -280,3 +280,5 @@ export function WithdrawalRequestDialog({
     </Dialog>
   )
 } 
+
+export default WithdrawalRequestDialog 

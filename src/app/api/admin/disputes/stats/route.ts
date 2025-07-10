@@ -41,31 +41,31 @@ export async function GET(request: NextRequest) {
         where: { status: 'CLOSED' }
       }),
       
-      // Average resolution time (in days)
-      prisma.dispute.aggregate({
+      // Average resolution time (calculated manually)
+      prisma.dispute.findMany({
         where: {
           status: 'RESOLVED',
           resolvedAt: {
             not: null
           }
         },
-        _avg: {
-          _raw: {
-            resolutionTime: {
-              _avg: {
-                _raw: {
-                  days: {
-                    _avg: {
-                      _raw: {
-                        EXTRACT(EPOCH FROM (resolvedAt - createdAt)) / 86400
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
+        select: {
+          createdAt: true,
+          resolvedAt: true
         }
+      }).then(disputes => {
+        if (disputes.length === 0) return { _avg: 0 }
+        
+        const totalDays = disputes.reduce((acc, dispute) => {
+          if (dispute.resolvedAt) {
+            const diffTime = dispute.resolvedAt.getTime() - dispute.createdAt.getTime()
+            const diffDays = diffTime / (1000 * 60 * 60 * 24)
+            return acc + diffDays
+          }
+          return acc
+        }, 0)
+        
+        return { _avg: totalDays / disputes.length }
       })
     ])
 
@@ -120,7 +120,7 @@ export async function GET(request: NextRequest) {
         inProgress,
         resolved,
         closed,
-        avgResolutionTime: avgResolutionTime._avg._raw?.resolutionTime?._avg?.days?._avg?._raw || 0,
+        avgResolutionTime: avgResolutionTime._avg || 0,
         trend
       },
       byType: disputesByType,

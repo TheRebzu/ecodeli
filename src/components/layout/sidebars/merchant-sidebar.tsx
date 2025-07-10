@@ -198,9 +198,6 @@ export function MerchantSidebar({ collapsed, user }: MerchantSidebarProps) {
     },
     // EXIGENCE : Accès aux paiements
     {
-<<<<<<< Updated upstream
-      label: 'Analytics',
-=======
       label: 'Accès aux Paiements',
       href: '/merchant/payments',
       icon: CreditCard,
@@ -225,15 +222,13 @@ export function MerchantSidebar({ collapsed, user }: MerchantSidebarProps) {
     // Analytics pour pilotage business
     {
       label: 'Analytics Business',
->>>>>>> Stashed changes
       href: '/merchant/analytics',
       icon: BarChart3,
       submenu: [
         {
           label: 'Vue d\'ensemble',
           href: '/merchant/analytics',
-<<<<<<< Updated upstream
-          icon: BarChart3
+          icon: TrendingUp
         },
         {
           label: 'Ventes',
@@ -244,14 +239,11 @@ export function MerchantSidebar({ collapsed, user }: MerchantSidebarProps) {
           label: 'Clients',
           href: '/merchant/analytics/customers',
           icon: User
-=======
-          icon: TrendingUp
         },
         {
           label: 'Performance produits',
           href: '/merchant/analytics/products',
           icon: Package
->>>>>>> Stashed changes
         },
         {
           label: 'Analyse livraisons',
@@ -260,9 +252,8 @@ export function MerchantSidebar({ collapsed, user }: MerchantSidebarProps) {
         }
       ]
     },
-    // Paramètres compte
+    // Gestion des clients
     {
-<<<<<<< Updated upstream
       label: 'Clients',
       href: '/merchant/customers',
       icon: User,
@@ -284,6 +275,7 @@ export function MerchantSidebar({ collapsed, user }: MerchantSidebarProps) {
         }
       ]
     },
+    // Gestion des stocks et inventaires
     {
       label: 'Inventaire',
       href: '/merchant/inventory',
@@ -306,16 +298,14 @@ export function MerchantSidebar({ collapsed, user }: MerchantSidebarProps) {
         }
       ]
     },
+    // Documents et archives
     {
       label: 'Documents',
       href: '/merchant/documents',
       icon: FileText
     },
+    // Paramètres compte
     {
-      label: 'Profil',
-      href: '/merchant/profile',
-      icon: User
-=======
       label: 'Paramètres',
       href: '/merchant/settings',
       icon: Settings,
@@ -336,7 +326,6 @@ export function MerchantSidebar({ collapsed, user }: MerchantSidebarProps) {
           icon: Settings
         }
       ]
->>>>>>> Stashed changes
     }
   ]
 

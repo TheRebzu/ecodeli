@@ -1,24 +1,3 @@
-<<<<<<< Updated upstream
-import { Suspense } from 'react'
-import { getTranslations } from 'next-intl/server'
-import { CartDropOverview } from '@/features/merchant/components/cart-drop/CartDropOverview'
-import { PageHeader } from '@/components/layout'
-import { LoadingSpinner } from '@/components/ui/loading-spinner'
-
-export default async function MerchantCartDropPage() {
-  const t = await getTranslations('merchant.cartDrop')
-
-  return (
-    <div className="space-y-6">
-      <PageHeader
-        title={t('title')}
-        description={t('description')}
-      />
-      
-      <Suspense fallback={<LoadingSpinner />}>
-        <CartDropOverview />
-      </Suspense>
-=======
 'use client'
 
 import { useState, useEffect } from 'react'
@@ -507,7 +486,7 @@ export default function CartDropConfigPage() {
                         </div>
 
                         <div className="space-y-2">
-                          <Label>Max commandes</Label>
+                          <Label>Capacité max</Label>
                           <Input
                             type="number"
                             min="1"
@@ -542,7 +521,7 @@ export default function CartDropConfigPage() {
 
                   {slotFields.length === 0 && (
                     <div className="text-center py-8 text-muted-foreground">
-                      Aucun créneau configuré.
+                      Aucun créneau horaire configuré.
                       <br />
                       Cliquez sur "Ajouter un créneau" pour commencer.
                     </div>
@@ -555,15 +534,11 @@ export default function CartDropConfigPage() {
 
         {/* Actions */}
         <div className="flex justify-end gap-4">
-          <Button type="button" variant="outline" onClick={() => window.history.back()}>
-            Annuler
-          </Button>
           <Button type="submit" disabled={saving}>
             {saving ? 'Sauvegarde...' : 'Sauvegarder la configuration'}
           </Button>
         </div>
       </form>
->>>>>>> Stashed changes
     </div>
   )
 } 

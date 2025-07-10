@@ -168,9 +168,9 @@ export async function DELETE(
       return NextResponse.json({ error: 'Acc�s non autoris�' }, { status: 401 })
     }
 
+    const { id } = await params;
     const contract = await prisma.contract.findUnique({
-      where: { const { id } = await params;
- id: id }
+      where: { id: id }
     })
 
     if (!contract) {
@@ -188,8 +188,7 @@ export async function DELETE(
     }
 
     await prisma.contract.delete({
-      where: { const { id } = await params;
- id: id }
+      where: { id: id }
     })
 
     return NextResponse.json({

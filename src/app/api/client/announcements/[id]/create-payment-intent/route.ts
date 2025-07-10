@@ -20,10 +20,9 @@ export async function POST(
     const { amount, currency = 'eur' } = await request.json()
 
     // Vérifier que l'annonce appartient à l'utilisateur
+    const { id } = await params;
     const announcement = await db.announcement.findFirst({
       where: {
-        const { id } = await params;
-
         id: id,
         authorId: session.user.id,
         status: 'ACTIVE'

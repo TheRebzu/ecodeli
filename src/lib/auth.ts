@@ -237,3 +237,15 @@ export async function requireActiveUser() {
   
   return session.user
 }
+
+// Liste des rôles utilisateurs EcoDeli
+export const USER_ROLES = [
+  'CLIENT',
+  'DELIVERER',
+  'MERCHANT',
+  'PROVIDER',
+  'ADMIN'
+] as const
+
+// Export de la config NextAuth pour les routes API
+export const authOptions = config

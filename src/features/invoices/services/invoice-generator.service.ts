@@ -809,4 +809,16 @@ export class InvoiceGeneratorService {
   }
 }
 
+// Génération PDF pour une facture prestataire (export par défaut pour l'API)
+export async function generateProviderInvoicePDF(providerId: string, invoiceId: string) {
+  // Utilise la méthode statique de la classe
+  return InvoiceGeneratorService.generateProviderMonthlyInvoice(providerId, invoiceId)
+}
+
+// Génération d'une facture prestataire (retourne l'URL du PDF)
+export async function generateProviderInvoice(providerId: string, invoiceId: string) {
+  // Utilise la méthode statique de la classe
+  return InvoiceGeneratorService.generateProviderMonthlyInvoice(providerId, invoiceId)
+}
+
 export const invoiceGeneratorService = new InvoiceGeneratorService()

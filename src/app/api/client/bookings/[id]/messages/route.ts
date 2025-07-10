@@ -13,10 +13,9 @@ export async function GET(
     }
 
     // Vérifier que la réservation appartient au client
+    const { id } = await params;
     const booking = await db.booking.findFirst({
       where: {
-        const { id } = await params;
-
         id: id,
         clientId: session.user.id
       }
@@ -76,11 +75,10 @@ export async function POST(
     }
 
     // Vérifier que la réservation appartient au client
+    const { id: bookingId } = await params;
     const booking = await db.booking.findFirst({
       where: {
-        const { id } = await params;
-
-        id: id,
+        id: bookingId,
         clientId: session.user.id
       },
       include: {

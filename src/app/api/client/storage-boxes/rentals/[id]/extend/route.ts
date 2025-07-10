@@ -41,10 +41,9 @@ export async function PUT(
     }
 
     // Vérifier que la location appartient au client
+    const { id } = await params;
     const rental = await prisma.storageBoxRental.findFirst({
       where: {
-        const { id } = await params;
-
         id: id,
         clientId: client.id
       }

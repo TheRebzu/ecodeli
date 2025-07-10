@@ -1,12 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { withAuth } from '@/lib/auth/middleware';
+import { requireAuth } from '@/lib/auth/utils';
 import { prisma } from '@/lib/db';
 import { z } from 'zod';
 
 // Service partagé - accessible par plusieurs rôles
 const handler = async (req: NextRequest) => {
   try {
-    const user = req.auth.user;
+    const user = await requireAuth(req);
+    if (!user) {
+      return NextResponse.json({ error: 'Authentification requise' }, { status: 401 });
+    }
     const userRole = user.role;
     
     // Logique adaptée selon le rôle
@@ -37,7 +40,7 @@ const handler = async (req: NextRequest) => {
   }
 };
 
-export const GET = withAuth(handler);
-export const POST = withAuth(handler);
-export const PUT = withAuth(handler);
-export const DELETE = withAuth(handler);
+export const GET = handler;
+export const POST = handler;
+export const PUT = handler;
+export const DELETE = handler;

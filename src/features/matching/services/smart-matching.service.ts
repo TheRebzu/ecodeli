@@ -276,20 +276,20 @@ export class SmartMatchingService {
       return 100 // Pas de contrainte de capacité pour les services
     }
 
-    const package = announcement.packageDetails
+    const packageData = announcement.packageDetails
     const availableWeight = route.availableWeight || 0
     const availableVolume = route.availableVolume || 0
 
     // Calculer le volume du colis (L x l x h en cm → litres)
-    const packageVolume = (package.length * package.width * package.height) / 1000
+    const packageVolume = (packageData.length * packageData.width * packageData.height) / 1000
 
     // Vérifier si le colis peut être transporté
-    if (package.weight > availableWeight || packageVolume > availableVolume) {
+    if (packageData.weight > availableWeight || packageVolume > availableVolume) {
       return 0
     }
 
     // Score basé sur l'utilisation de la capacité
-    const weightRatio = package.weight / availableWeight
+    const weightRatio = packageData.weight / availableWeight
     const volumeRatio = packageVolume / availableVolume
     const utilizationScore = Math.max(weightRatio, volumeRatio) * 100
 

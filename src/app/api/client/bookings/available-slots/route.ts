@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid date format' }, { status: 400 })
     }
 
-    // Vérifier que le prestataire existe
+    // VÃ©rifier que le prestataire existe
     const provider = await db.provider.findUnique({
       where: { id: providerId },
       include: {
@@ -39,7 +39,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Provider not found' }, { status: 404 })
     }
 
-    // Récupérer les réservations existantes pour cette date
+    // RÃ©cupÃ©rer les rÃ©servations existantes pour cette date
     const startOfDay = new Date(targetDate)
     startOfDay.setHours(0, 0, 0, 0)
     
@@ -63,18 +63,18 @@ export async function GET(request: NextRequest) {
       }
     })
 
-    // Générer les créneaux disponibles
+    // GÃ©nÃ©rer les crÃ©neaux disponibles
     const availableSlots: string[] = []
     
     if (provider.availability.length > 0) {
-      // Utiliser les disponibilités définies
+      // Utiliser les disponibilitÃ©s dÃ©finies
       provider.availability.forEach(avail => {
         const startHour = parseInt(avail.startTime.split(':')[0])
         const startMin = parseInt(avail.startTime.split(':')[1])
         const endHour = parseInt(avail.endTime.split(':')[0])
         const endMin = parseInt(avail.endTime.split(':')[1])
 
-        // Générer des créneaux de 30 minutes
+        // GÃ©nÃ©rer des crÃ©neaux de 30 minutes
         for (let h = startHour; h < endHour || (h === endHour && startMin < endMin); h++) {
           for (let m = (h === startHour ? startMin : 0); m < 60; m += 30) {
             if (h === endHour && m >= endMin) break
@@ -83,7 +83,7 @@ export async function GET(request: NextRequest) {
             const slotDateTime = new Date(targetDate)
             slotDateTime.setHours(h, m, 0, 0)
 
-            // Vérifier si le créneau n'est pas déjà réservé
+            // VÃ©rifier si le crÃ©neau n'est pas dÃ©jÃ  rÃ©servÃ©
             const isBooked = existingBookings.some(booking => {
               const bookingStart = new Date(booking.scheduledDate)
               const bookingEnd = new Date(bookingStart.getTime() + booking.duration * 60000)
@@ -91,7 +91,7 @@ export async function GET(request: NextRequest) {
               return slotDateTime >= bookingStart && slotDateTime < bookingEnd
             })
 
-            // Vérifier que le créneau est dans le futur
+            // VÃ©rifier que le crÃ©neau est dans le futur
             const now = new Date()
             const isInFuture = slotDateTime > now
 
@@ -102,14 +102,14 @@ export async function GET(request: NextRequest) {
         }
       })
     } else {
-      // Créneaux par défaut (9h-18h) si pas de disponibilités définies
+      // CrÃ©neaux par dÃ©faut (9h-18h) si pas de disponibilitÃ©s dÃ©finies
       for (let h = 9; h < 18; h++) {
         for (let m = 0; m < 60; m += 30) {
           const slotTime = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`
           const slotDateTime = new Date(targetDate)
           slotDateTime.setHours(h, m, 0, 0)
 
-          // Vérifier si le créneau n'est pas déjà réservé
+          // VÃ©rifier si le crÃ©neau n'est pas dÃ©jÃ  rÃ©servÃ©
           const isBooked = existingBookings.some(booking => {
             const bookingStart = new Date(booking.scheduledDate)
             const bookingEnd = new Date(bookingStart.getTime() + booking.duration * 60000)
@@ -117,7 +117,7 @@ export async function GET(request: NextRequest) {
             return slotDateTime >= bookingStart && slotDateTime < bookingEnd
           })
 
-          // Vérifier que le créneau est dans le futur
+          // VÃ©rifier que le crÃ©neau est dans le futur
           const now = new Date()
           const isInFuture = slotDateTime > now
 

@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { pdfGeneratorService } from '@/features/documents/services/pdf-generator.service'
-import { getServerSession } from 'next-auth/next'
-import { authOptions } from '@/lib/auth'
+import { auth, authOptions } from '@/lib/auth'
 import { db } from '@/lib/db'
 
 const generateDocumentSchema = z.object({
@@ -28,7 +27,7 @@ interface DocumentGenerationLog {
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
+    const session = await auth()
     if (!session?.user?.id) {
       return NextResponse.json(
         { error: 'Authentification requise' },
@@ -119,7 +118,7 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
+    const session = await auth()
     if (!session?.user?.id) {
       return NextResponse.json(
         { error: 'Authentification requise' },
@@ -224,7 +223,7 @@ async function logDocumentGeneration(data: {
 // Endpoint pour les statistiques (admin seulement)
 export async function GET_STATS(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
+    const session = await auth()
     if (!session?.user?.id || session.user.role !== 'ADMIN') {
       return NextResponse.json(
         { error: 'Accès administrateur requis' },

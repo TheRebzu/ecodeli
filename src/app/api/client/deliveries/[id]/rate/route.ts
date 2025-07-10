@@ -19,11 +19,10 @@ export async function POST(
       return NextResponse.json({ error: 'Invalid rating' }, { status: 400 })
     }
 
-    // R�cup�rer la livraison
+    // Récupérer la livraison
+    const { id } = await params;
     const delivery = await db.delivery.findFirst({
       where: {
-        const { id } = await params;
-
         id: id,
         announcement: {
           clientId: session.user.id
@@ -47,10 +46,9 @@ export async function POST(
 
     // Transaction pour noter la livraison et mettre � jour le livreur
     await db.$transaction(async (tx) => {
-      // Mettre � jour la livraison avec la note
+      // Mettre à jour la livraison avec la note
       await tx.delivery.update({
-        where: { const { id } = await params;
- id: id },
+        where: { id: id },
         data: {
           rating,
           review,

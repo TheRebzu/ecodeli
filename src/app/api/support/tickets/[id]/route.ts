@@ -33,9 +33,9 @@ export async function GET(
       return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
     }
 
+    const { id } = await params;
     const ticket = await prisma.supportTicket.findUnique({
-      where: { const { id } = await params;
- id: id },
+      where: { id: id },
       include: {
         author: {
           include: { profile: true }
@@ -165,10 +165,10 @@ export async function PATCH(
 
     // Mise à jour générale
     const validatedData = updateTicketSchema.parse(data)
+    const { id } = await params;
 
     const ticket = await prisma.supportTicket.update({
-      where: { const { id } = await params;
- id: id },
+      where: { id: id },
       data: {
         ...validatedData,
         updatedAt: new Date()
@@ -229,9 +229,9 @@ export async function DELETE(
       return NextResponse.json({ error: 'Accès refusé' }, { status: 403 })
     }
 
+    const { id } = await params;
     await prisma.supportTicket.delete({
-      where: { const { id } = await params;
- id: id }
+      where: { id: id }
     })
 
     return NextResponse.json({

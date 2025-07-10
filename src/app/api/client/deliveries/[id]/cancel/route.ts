@@ -18,11 +18,10 @@ export async function POST(
       return NextResponse.json({ error: 'Cancellation reason required' }, { status: 400 })
     }
 
-    // R�cup�rer la livraison
+    // Récupérer la livraison
+    const { id } = await params;
     const delivery = await db.delivery.findFirst({
       where: {
-        const { id } = await params;
-
         id: id,
         announcement: {
           clientId: session.user.id
@@ -61,10 +60,9 @@ export async function POST(
 
     // Transaction pour annuler la livraison
     await db.$transaction(async (tx) => {
-      // Mettre � jour la livraison
+      // Mettre à jour la livraison
       await tx.delivery.update({
-        where: { const { id } = await params;
- id: id },
+        where: { id: id },
         data: {
           status: 'CANCELLED',
           cancelReason: reason.trim(),

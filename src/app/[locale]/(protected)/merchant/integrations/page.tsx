@@ -32,7 +32,7 @@ import {
   Shield
 } from 'lucide-react'
 import { useAuth } from '@/hooks/use-auth'
-import { useToast } from '@/hooks/use-toast'
+import { useToast } from '@/components/ui/use-toast'
 
 interface Integration {
   id: string

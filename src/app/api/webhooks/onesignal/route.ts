@@ -1,4 +1,4 @@
-// Webhook OneSignal pour recevoir les événements de notifications
+// Webhook OneSignal pour recevoir les Ã©vÃ©nements de notifications
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { z } from 'zod'
@@ -16,12 +16,12 @@ const oneSignalWebhookSchema = z.object({
 
 export async function POST(request: NextRequest) {
   try {
-    // Vérification de l'authentification webhook (optionnel)
+    // VÃ©rification de l'authentification webhook (optionnel)
     const authHeader = request.headers.get('authorization')
     const expectedAuth = process.env.ONESIGNAL_WEBHOOK_SECRET
     
     if (expectedAuth && authHeader !== `Bearer ${expectedAuth}`) {
-      return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
+      return NextResponse.json({ error: 'Non autorisÃ©' }, { status: 401 })
     }
 
     const body = await request.json()
@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
     const data = validation.data
     const userId = data.external_user_id || data.userId
 
-    // Traitement selon le type d'événement
+    // Traitement selon le type d'Ã©vÃ©nement
     switch (data.event) {
       case 'sent':
         await handleNotificationSent(data.id, userId, data.timestamp)
@@ -48,10 +48,10 @@ export async function POST(request: NextRequest) {
         break
         
       default:
-        console.log(`OneSignal webhook: événement non géré: ${data.event}`)
+        console.log(`OneSignal webhook: Ã©vÃ©nement non gÃ©rÃ©: ${data.event}`)
     }
 
-    // Log de l'événement pour analytics
+    // Log de l'Ã©vÃ©nement pour analytics
     if (userId) {
       await prisma.analytics.create({
         data: {
@@ -83,7 +83,7 @@ async function handleNotificationSent(notificationId: string, userId?: string, t
   try {
     if (!userId) return
 
-    // Marquer la notification comme envoyée
+    // Marquer la notification comme envoyÃ©e
     await prisma.notification.updateMany({
       where: {
         userId,
@@ -97,7 +97,7 @@ async function handleNotificationSent(notificationId: string, userId?: string, t
       }
     })
 
-    console.log(`Notification ${notificationId} envoyée à ${userId}`)
+    console.log(`Notification ${notificationId} envoyÃ©e Ã  ${userId}`)
   } catch (error) {
     console.error('Erreur handleNotificationSent:', error)
   }
@@ -113,7 +113,7 @@ async function handleNotificationOpened(
   try {
     if (!userId) return
 
-    // Marquer la notification comme ouverte/cliquée
+    // Marquer la notification comme ouverte/cliquÃ©e
     await prisma.notification.updateMany({
       where: {
         userId,
@@ -128,7 +128,7 @@ async function handleNotificationOpened(
       }
     })
 
-    // Actions spécifiques selon le bouton cliqué
+    // Actions spÃ©cifiques selon le bouton cliquÃ©
     if (buttonId) {
       await handleButtonAction(userId, buttonId, url, notificationId)
     }
@@ -141,10 +141,10 @@ async function handleNotificationOpened(
 
 async function handleButtonAction(userId: string, buttonId: string, url?: string, notificationId?: string) {
   try {
-    // Actions automatiques selon le bouton cliqué
+    // Actions automatiques selon le bouton cliquÃ©
     switch (buttonId) {
       case 'accept':
-        // Si c'est une acceptation de livraison/booking, logger l'événement
+        // Si c'est une acceptation de livraison/booking, logger l'Ã©vÃ©nement
         await prisma.activityLog.create({
           data: {
             userId,
@@ -175,14 +175,14 @@ async function handleButtonAction(userId: string, buttonId: string, url?: string
         break
 
       default:
-        console.log(`Action de bouton non gérée: ${buttonId}`)
+        console.log(`Action de bouton non gÃ©rÃ©e: ${buttonId}`)
     }
   } catch (error) {
     console.error('Erreur handleButtonAction:', error)
   }
 }
 
-// Support pour les requêtes GET (vérification de santé)
+// Support pour les requÃªtes GET (vÃ©rification de santÃ©)
 export async function GET(request: NextRequest) {
   return NextResponse.json({
     status: 'OK',

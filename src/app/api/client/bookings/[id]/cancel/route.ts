@@ -15,10 +15,9 @@ export async function POST(
     const { reason } = await request.json()
 
     // Vérifier que la réservation appartient au client
+    const { id } = await params;
     const booking = await db.booking.findFirst({
       where: {
-        const { id } = await params;
-
         id: id,
         clientId: session.user.id
       }
@@ -40,15 +39,14 @@ export async function POST(
     
     let cancellationFee = 0
     if (hoursUntilBooking < 24) {
-      cancellationFee = booking.price * 0.5 // 50% si annulation moins de 24h avant
+      cancellationFee = booking.totalPrice * 0.5 // 50% si annulation moins de 24h avant
     } else if (hoursUntilBooking < 48) {
-      cancellationFee = booking.price * 0.25 // 25% si annulation moins de 48h avant
+      cancellationFee = booking.totalPrice * 0.25 // 25% si annulation moins de 48h avant
     }
 
     // Mettre à jour la réservation
     const updatedBooking = await db.booking.update({
-      where: { const { id } = await params;
- id: id },
+      where: { id: id },
       data: {
         status: 'CANCELLED',
         cancelReason: reason,

@@ -7,9 +7,9 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const warehouse = await prisma.location.findUnique({
-      where: { const { id } = await params;
- id: id },
+      where: { id: id },
       include: {
         warehouse: true,
         storageBoxes: true
@@ -40,9 +40,9 @@ export async function PUT(
     const { name, address, city, postalCode, capacity, managerName, managerEmail } = body
 
     // Vérifier que l'entrepôt existe
+    const { id } = await params;
     const existingLocation = await prisma.location.findUnique({
-      where: { const { id } = await params;
- id: id },
+      where: { id: id },
       include: { warehouse: true }
     })
 
@@ -52,8 +52,7 @@ export async function PUT(
 
     // Mettre à jour la location
     const updatedLocation = await prisma.location.update({
-      where: { const { id } = await params;
- id: id },
+      where: { id: id },
       data: {
         name,
         address,
@@ -94,9 +93,9 @@ export async function PATCH(
     const { isActive } = body
 
     // Vérifier que l'entrepôt existe
+    const { id: patchId } = await params;
     const existingLocation = await prisma.location.findUnique({
-      where: { const { id } = await params;
- id: id }
+      where: { id: patchId }
     })
 
     if (!existingLocation) {
@@ -105,8 +104,7 @@ export async function PATCH(
 
     // Mettre à jour le statut actif/inactif
     const updatedLocation = await prisma.location.update({
-      where: { const { id } = await params;
- id: id },
+      where: { id: patchId },
       data: { isActive }
     })
 
@@ -130,9 +128,9 @@ export async function DELETE(
 ) {
   try {
     // Vérifier que l'entrepôt existe
+    const { id: deleteId } = await params;
     const existingLocation = await prisma.location.findUnique({
-      where: { const { id } = await params;
- id: id },
+      where: { id: deleteId },
       include: {
         storageBoxes: {
           include: {
@@ -187,8 +185,7 @@ export async function DELETE(
       }),
       // Supprimer la location
       prisma.location.delete({
-        where: { const { id } = await params;
- id: id }
+        where: { id: deleteId }
       })
     ])
 

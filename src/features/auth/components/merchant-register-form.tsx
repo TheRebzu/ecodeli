@@ -250,3 +250,5 @@ export function MerchantRegisterForm() {
     </form>
   )
 }
+
+export default MerchantRegisterForm

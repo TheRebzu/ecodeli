@@ -1,44 +1,3 @@
-<<<<<<< Updated upstream
-"use client";
-
-import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { 
-  TrendingUp, 
-  TrendingDown, 
-  DollarSign, 
-  ShoppingCart, 
-  Users, 
-  Package,
-  Calendar,
-  BarChart3,
-  PieChart,
-  Activity,
-  Target,
-  Award
-} from "lucide-react";
-import { useTranslations } from "next-intl";
-import { toast } from "sonner";
-import { MerchantAnalyticsDashboard } from "@/features/merchant/components/analytics/merchant-analytics-dashboard";
-
-export default function MerchantAnalyticsPage() {
-  return (
-    <div className="container mx-auto py-6">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold">Analytics Dashboard</h1>
-        <p className="text-muted-foreground">
-          Comprehensive business intelligence and performance metrics
-        </p>
-      </div>
-      
-      <MerchantAnalyticsDashboard />
-    </div>
-  );
-=======
 "use client"
 
 import { useState, useEffect } from 'react'
@@ -73,6 +32,7 @@ import { DateRange } from 'react-day-picker'
 import { subDays, format } from 'date-fns'
 import { fr } from 'date-fns/locale'
 import { Separator } from '@/components/ui/separator'
+import { cn } from '@/lib/utils'
 
 interface AnalyticsData {
   overview: {
@@ -164,68 +124,6 @@ export default function MerchantAnalyticsPage() {
     return `${value >= 0 ? '+' : ''}${value.toFixed(1)}%`
   }
 
-  // Composant de métrique
-  const MetricCard = ({ 
-    title, 
-    value, 
-    previousValue, 
-    growth, 
-    icon: Icon, 
-    format = 'number' 
-  }: {
-    title: string
-    value: number
-    previousValue: number
-    growth: number
-    icon: any
-    format?: 'number' | 'currency' | 'percentage'
-  }) => {
-    const formatValue = (val: number) => {
-      switch (format) {
-        case 'currency':
-          return formatCurrency(val)
-        case 'percentage':
-          return `${val.toFixed(1)}%`
-        default:
-          return formatNumber(val)
-      }
-    }
-
-    const isPositive = growth >= 0
-    const TrendIcon = isPositive ? ArrowUpRight : ArrowDownRight
-
-    return (
-      <Card>
-        <CardContent className="p-6">
-          <div className="flex items-center justify-between">
-            <div className="space-y-2">
-              <p className="text-sm font-medium text-muted-foreground">{title}</p>
-              <p className="text-2xl font-bold">{formatValue(value)}</p>
-              <div className="flex items-center gap-1">
-                <TrendIcon className={cn(
-                  "h-4 w-4",
-                  isPositive ? "text-green-600" : "text-red-600"
-                )} />
-                <span className={cn(
-                  "text-sm font-medium",
-                  isPositive ? "text-green-600" : "text-red-600"
-                )}>
-                  {formatPercentage(growth)}
-                </span>
-                <span className="text-sm text-muted-foreground">
-                  vs période précédente
-                </span>
-              </div>
-            </div>
-            <div className="p-3 bg-primary/10 rounded-full">
-              <Icon className="h-6 w-6 text-primary" />
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    )
-  }
-
   if (loading) {
     return (
       <div className="p-6 space-y-6">
@@ -268,7 +166,7 @@ export default function MerchantAnalyticsPage() {
       {/* Header */}
       <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold">Analytics</h1>
+          <h1 className="text-3xl font-bold">Analytics Business</h1>
           <p className="text-muted-foreground">
             Tableau de bord et métriques de performance
           </p>
@@ -287,13 +185,6 @@ export default function MerchantAnalyticsPage() {
               <SelectItem value="custom">Période personnalisée</SelectItem>
             </SelectContent>
           </Select>
-          
-          {timeRange === 'custom' && (
-            <DatePickerWithRange
-              date={dateRange}
-              onDateChange={setDateRange}
-            />
-          )}
         </div>
       </div>
 
@@ -502,22 +393,16 @@ export default function MerchantAnalyticsPage() {
             </Button>
             
             <Button asChild variant="outline" className="h-16">
-              <a href="/merchant/contracts">
+              <a href="/merchant/payments">
                 <div className="text-center">
-                  <CalendarIcon className="h-6 w-6 mx-auto mb-1" />
-                  <div className="text-sm">Voir le contrat</div>
+                  <EuroIcon className="h-6 w-6 mx-auto mb-1" />
+                  <div className="text-sm">Gérer les paiements</div>
                 </div>
               </a>
             </Button>
           </div>
         </CardContent>
       </Card>
-
-      {/* Footer info */}
-      <div className="text-center text-sm text-muted-foreground">
-        Dernière mise à jour: {format(new Date(analyticsData.lastUpdated), 'PPP à HH:mm', { locale: fr })}
-      </div>
     </div>
   )
->>>>>>> Stashed changes
 } 
