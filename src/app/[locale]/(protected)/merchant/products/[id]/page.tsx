@@ -5,12 +5,14 @@ import { PageHeader } from '@/components/layout'
 import { LoadingSpinner } from '@/components/ui/loading-spinner'
 
 interface ProductDetailPageProps {
-  params: {
+  params: Promise<{
+    locale: string
     id: string
-  }
+  }>
 }
 
 export default async function MerchantProductDetailPage({ params }: ProductDetailPageProps) {
+  const { locale, id } = await params
   const t = await getTranslations('merchant.products')
 
   return (
@@ -21,7 +23,7 @@ export default async function MerchantProductDetailPage({ params }: ProductDetai
       />
       
       <Suspense fallback={<LoadingSpinner />}>
-        <ProductDetail productId={params.id} />
+        <ProductDetail productId={id} />
       </Suspense>
     </div>
   )

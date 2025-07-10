@@ -509,7 +509,7 @@ export function MerchantBillingManager({ merchantId }: MerchantBillingManagerPro
                           </div>
                           {method.expiryMonth && method.expiryYear && (
                             <p className="text-sm text-gray-600">
-                              {t("payment_methods.expires")}: {method.expiryMonth.toString().padStart(2, '0')}/{method.expiryYear}
+                              {t("payment_methods.expires")}: {method.expiryMonth.toString().padStart(2) || '0'}/{method.expiryYear}
                             </p>
                           )}
                         </div>

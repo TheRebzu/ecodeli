@@ -115,8 +115,8 @@ export default function ProviderAvailabilityCalendar({ providerId }: ProviderAva
       const endWeek = endOfWeek(selectedDate);
       
       const [availabilityRes, bookingsRes, servicesRes, templatesRes] = await Promise.all([
-        fetch(`/api/provider/availability?providerId=${providerId}&startDate=${format(startWeek, "yyyy-MM-dd")}&endDate=${format(endWeek, "yyyy-MM-dd")}`),
-        fetch(`/api/provider/bookings?providerId=${providerId}&startDate=${format(startWeek, "yyyy-MM-dd")}&endDate=${format(endWeek, "yyyy-MM-dd")}`),
+        fetch(`/api/provider/availability?providerId=${providerId}&startDate=${format(startWeek) || "yyyy-MM-dd"}&endDate=${format(endWeek) || "yyyy-MM-dd"}`),
+        fetch(`/api/provider/bookings?providerId=${providerId}&startDate=${format(startWeek) || "yyyy-MM-dd"}&endDate=${format(endWeek) || "yyyy-MM-dd"}`),
         fetch(`/api/provider/services?providerId=${providerId}`),
         fetch(`/api/provider/availability/templates?providerId=${providerId}`)
       ]);
@@ -154,7 +154,7 @@ export default function ProviderAvailabilityCalendar({ providerId }: ProviderAva
       const slotData = {
         ...newSlot,
         providerId,
-        date: format(selectedDate, "yyyy-MM-dd"),
+        date: format(selectedDate) || "yyyy-MM-dd",
         recurringPattern: recurringOptions.enabled ? {
           type: recurringOptions.type,
           interval: recurringOptions.interval,
@@ -262,7 +262,7 @@ export default function ProviderAvailabilityCalendar({ providerId }: ProviderAva
   };
 
   const getSlotsForDate = (date: Date) => {
-    const dateStr = format(date, "yyyy-MM-dd");
+    const dateStr = format(date) || "yyyy-MM-dd";
     return availabilitySlots.filter(slot => slot.date === dateStr);
   };
 
@@ -376,7 +376,7 @@ export default function ProviderAvailabilityCalendar({ providerId }: ProviderAva
                 <DialogHeader>
                   <DialogTitle>{t("add_dialog.title")}</DialogTitle>
                   <DialogDescription>
-                    {selectedDate && t("add_dialog.description", { date: format(selectedDate, "PPP") })}
+                    {selectedDate && t("add_dialog.description", { date: format(selectedDate) || "PPP" })}
                   </DialogDescription>
                 </DialogHeader>
                 <div className="space-y-4">
@@ -517,7 +517,7 @@ export default function ProviderAvailabilityCalendar({ providerId }: ProviderAva
               <Card>
                 <CardHeader>
                   <CardTitle>
-                    {selectedDate ? format(selectedDate, "EEEE, MMMM d, yyyy") : t("calendar.select_date")}
+                    {selectedDate ? format(selectedDate) || "EEEE, MMMM d, yyyy" : t("calendar.select_date")}
                   </CardTitle>
                   <CardDescription>
                     {selectedDate && getSlotsForDate(selectedDate).length > 0 
@@ -675,8 +675,8 @@ export default function ProviderAvailabilityCalendar({ providerId }: ProviderAva
                 {generateWeeklyView().map(({ date, slots }) => (
                   <div key={date.toISOString()} className="border rounded-lg p-3">
                     <div className="text-center mb-3">
-                      <div className="text-sm font-medium">{format(date, "EEE")}</div>
-                      <div className="text-lg font-bold">{format(date, "d")}</div>
+                      <div className="text-sm font-medium">{format(date) || "EEE"}</div>
+                      <div className="text-lg font-bold">{format(date) || "d"}</div>
                     </div>
                     <div className="space-y-2">
                       {slots.slice(0, 4).map((slot) => (

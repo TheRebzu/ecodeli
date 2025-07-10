@@ -9,9 +9,9 @@ const extendSchema = z.object({
 })
 
 interface RouteParams {
-  params: {
+  params: Promise<{
     id: string
-  }
+  }>
 }
 
 /**
@@ -22,6 +22,7 @@ export async function PUT(
   { params }: RouteParams
 ) {
   try {
+    const { id } = await params
     const session = await auth()
     
     if (!session?.user || session.user.role !== 'CLIENT') {
@@ -41,10 +42,9 @@ export async function PUT(
     }
 
     // Vérifier que la location appartient au client
-    const { id } = await params;
     const rental = await prisma.storageBoxRental.findFirst({
       where: {
-        id: id,
+        id,
         clientId: client.id
       }
     })
@@ -60,7 +60,7 @@ export async function PUT(
     const validatedData = extendSchema.parse(body)
 
     const updatedRental = await StorageBoxService.extendRental(
-      (await params).id,
+      id,
       new Date(validatedData.newEndDate)
     )
 

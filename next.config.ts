@@ -6,7 +6,7 @@ const withNextIntl = createNextIntlPlugin('./src/i18n.ts');
 
 const nextConfig: NextConfig = {
   // Configuration pour EcoDeli
-  serverExternalPackages: ['@prisma/client'],
+  serverExternalPackages: ['@prisma/client', 'bcryptjs'],
   
   // Images optimization
   images: {

@@ -10,9 +10,10 @@ const messageSchema = z.object({
 // POST /api/merchant/support/tickets/[id]/messages - Ajouter un message à un ticket
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     const session = await auth()
     
     if (!session?.user?.id) {
@@ -35,7 +36,7 @@ export async function POST(
       )
     }
 
-    const ticketId = params.id
+    const ticketId = id
     
     // Vérifier que le ticket appartient au commerçant
     const ticket = await prisma.supportTicket.findFirst({

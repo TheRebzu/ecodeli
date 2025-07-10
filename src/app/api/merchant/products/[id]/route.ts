@@ -4,9 +4,10 @@ import { prisma } from '@/lib/db'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     const user = await getCurrentUser()
     
     if (!user || user.role !== 'MERCHANT') {
@@ -25,7 +26,7 @@ export async function GET(
     // Get product
     const product = await prisma.product.findFirst({
       where: {
-        id: params.id,
+        id,
         merchantId: merchant.id,
       },
     })
@@ -46,9 +47,10 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     const user = await getCurrentUser()
     
     if (!user || user.role !== 'MERCHANT') {
@@ -67,7 +69,7 @@ export async function PUT(
     // Check if product exists and belongs to merchant
     const existingProduct = await prisma.product.findFirst({
       where: {
-        id: params.id,
+        id,
         merchantId: merchant.id,
       },
     })
@@ -117,7 +119,7 @@ export async function PUT(
     }
 
     const product = await prisma.product.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         name,
         description,
@@ -149,9 +151,10 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     const user = await getCurrentUser()
     
     if (!user || user.role !== 'MERCHANT') {
@@ -170,7 +173,7 @@ export async function DELETE(
     // Check if product exists and belongs to merchant
     const existingProduct = await prisma.product.findFirst({
       where: {
-        id: params.id,
+        id,
         merchantId: merchant.id,
       },
     })
@@ -181,7 +184,7 @@ export async function DELETE(
 
     // Delete product
     await prisma.product.delete({
-      where: { id: params.id },
+      where: { id },
     })
 
     return NextResponse.json({ message: 'Product deleted successfully' })

@@ -103,7 +103,7 @@ export function MonthlyBilling() {
 
     try {
       setLoading(true);
-      const response = await get(`/api/provider/billing/monthly?providerId=${user.id}&month=${format(selectedMonth, "yyyy-MM")}`);
+      const response = await get(`/api/provider/billing/monthly?providerId=${user.id}&month=${format(selectedMonth) || "yyyy-MM"}`);
       if (response) {
         setBillingData(response);
       }
@@ -129,7 +129,7 @@ export function MonthlyBilling() {
 
   const previewInvoice = async () => {
     try {
-      const response = await get(`/api/provider/billing/preview?providerId=${user?.id}&month=${format(selectedMonth, "yyyy-MM")}`);
+      const response = await get(`/api/provider/billing/preview?providerId=${user?.id}&month=${format(selectedMonth) || "yyyy-MM"}`);
       if (response?.url) {
         window.open(response.url, "_blank");
       }
@@ -213,7 +213,7 @@ export function MonthlyBilling() {
             <Calendar className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{format(nextGenerationDate, "dd/MM")}</div>
+            <div className="text-2xl font-bold">{format(nextGenerationDate) || "dd/MM"}</div>
             <p className="text-xs text-muted-foreground">
               Génération à 23h00
             </p>

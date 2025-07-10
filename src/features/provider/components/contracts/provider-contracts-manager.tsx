@@ -342,7 +342,7 @@ export function ProviderContractsManager({ providerId }: ProviderContractsManage
                         {contract.status === 'PENDING_SIGNATURE' && !contract.signedByProvider && (
                           <Button 
                             size="sm" 
-                            onClick={() => signContract(contract.id, 'PROVIDER')}
+                            onClick={() => signContract(contract.id) || 'PROVIDER'}
                           >
                             Signer
                           </Button>

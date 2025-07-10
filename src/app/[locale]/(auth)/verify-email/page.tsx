@@ -22,7 +22,7 @@ export default function VerifyEmailPage() {
   useEffect(() => {
     if (!token || !email) {
       setStatus('error')
-      setMessage(t('auth.verifyEmail.errors.invalidLink', 'Lien de vérification invalide. Veuillez vérifier votre email.'))
+      setMessage(t('auth.verifyEmail.errors.invalidLink') || 'Lien de vérification invalide. Veuillez vérifier votre email.')
       setIsLoading(false)
       return
     }
@@ -39,15 +39,15 @@ export default function VerifyEmailPage() {
 
         if (data.success) {
           setStatus('success')
-          setMessage(t('auth.verifyEmail.success.message', 'Votre email a été vérifié avec succès ! Vous pouvez maintenant vous connecter.'))
+          setMessage(t('auth.verifyEmail.success.message') || 'Votre email a été vérifié avec succès ! Vous pouvez maintenant vous connecter.')
         } else {
           setStatus('error')
-          setMessage(data.error || t('auth.verifyEmail.errors.verificationError', 'Erreur lors de la vérification de votre email.'))
+          setMessage(data.error || t('auth.verifyEmail.errors.verificationError') || 'Erreur lors de la vérification de votre email.')
         }
       } catch (error) {
-        console.error(t('auth.verifyEmail.errors.verificationError', 'Erreur de vérification:'), error)
+        console.error(t('auth.verifyEmail.errors.verificationError') || 'Erreur de vérification:', error)
         setStatus('error')
-        setMessage(t('auth.verifyEmail.errors.connectionError', 'Erreur de connexion. Veuillez réessayer.'))
+        setMessage(t('auth.verifyEmail.errors.connectionError') || 'Erreur de connexion. Veuillez réessayer.')
       } finally {
         setIsLoading(false)
       }
@@ -64,17 +64,17 @@ export default function VerifyEmailPage() {
   }
 
   const getStatusTitle = () => {
-    if (isLoading) return t('auth.verifyEmail.status.verifying', 'Vérification en cours...')
-    if (status === 'success') return t('auth.verifyEmail.status.verified', 'Email vérifié !')
-    if (status === 'error') return t('auth.verifyEmail.status.error', 'Erreur de vérification')
-    return t('auth.verifyEmail.status.pending', "Vérification de l'email")
+    if (isLoading) return t('auth.verifyEmail.status.verifying') || 'Vérification en cours...'
+    if (status === 'success') return t('auth.verifyEmail.status.verified') || 'Email vérifié !'
+    if (status === 'error') return t('auth.verifyEmail.status.error') || 'Erreur de vérification'
+    return t('auth.verifyEmail.status.pending') || "Vérification de l'email"
   }
 
   const getStatusDescription = () => {
-    if (isLoading) return t('auth.verifyEmail.description.verifying', 'Nous vérifions votre adresse email...')
-    if (status === 'success') return t('auth.verifyEmail.description.verified', 'Votre compte a été activé avec succès.')
-    if (status === 'error') return t('auth.verifyEmail.description.error', 'Impossible de vérifier votre email.')
-    return t('auth.verifyEmail.description.pending', 'Vérification de votre adresse email')
+    if (isLoading) return t('auth.verifyEmail.description.verifying') || 'Nous vérifions votre adresse email...'
+    if (status === 'success') return t('auth.verifyEmail.description.verified') || 'Votre compte a été activé avec succès.'
+    if (status === 'error') return t('auth.verifyEmail.description.error') || 'Impossible de vérifier votre email.'
+    return t('auth.verifyEmail.description.pending') || 'Vérification de votre adresse email'
   }
 
   return (
@@ -104,11 +104,11 @@ export default function VerifyEmailPage() {
           {status === 'success' && (
             <div className="space-y-3">
               <p className="text-sm text-gray-600 text-center">
-                {t('auth.verifyEmail.success.canUseFeatures', "Vous pouvez maintenant accéder à toutes les fonctionnalités d'EcoDeli.")}
+                {t('auth.verifyEmail.success.canUseFeatures') || "Vous pouvez maintenant accéder à toutes les fonctionnalités d'EcoDeli."}
               </p>
               <Button asChild className="w-full">
                 <Link href="/login">
-                  {t('auth.login.loginButton', 'Se connecter')}
+                  {t('auth.login.loginButton') || 'Se connecter'}
                 </Link>
               </Button>
             </div>
@@ -117,17 +117,17 @@ export default function VerifyEmailPage() {
           {status === 'error' && (
             <div className="space-y-3">
               <p className="text-sm text-gray-600 text-center">
-                {t('auth.verifyEmail.errors.contactSupport', 'Si le problème persiste, contactez notre support.')}
+                {t('auth.verifyEmail.errors.contactSupport') || 'Si le problème persiste, contactez notre support.'}
               </p>
               <div className="flex gap-2">
                 <Button variant="outline" asChild className="flex-1">
                   <Link href="/login">
-                    {t('auth.verifyEmail.backToLogin', 'Retour à la connexion')}
+                    {t('auth.verifyEmail.backToLogin') || 'Retour à la connexion'}
                   </Link>
                 </Button>
                 <Button asChild className="flex-1">
                   <Link href="/contact">
-                    {t('common.support', 'Support')}
+                    {t('common.support') || 'Support'}
                   </Link>
                 </Button>
               </div>
@@ -137,7 +137,7 @@ export default function VerifyEmailPage() {
           {isLoading && (
             <div className="text-center">
               <p className="text-sm text-gray-600">
-                {t('auth.verifyEmail.pleaseWait', 'Veuillez patienter pendant que nous vérifions votre email...')}
+                {t('auth.verifyEmail.pleaseWait') || 'Veuillez patienter pendant que nous vérifions votre email...'}
               </p>
             </div>
           )}

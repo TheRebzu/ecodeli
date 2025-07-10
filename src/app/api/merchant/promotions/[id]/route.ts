@@ -14,9 +14,10 @@ const deletePromotionSchema = z.object({
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     // Vérification de l'authentification
     const session = await auth()
     if (!session?.user) {
@@ -34,7 +35,7 @@ export async function GET(
       )
     }
 
-    const promotionId = params.id
+    const promotionId = id
     const { searchParams } = new URL(request.url)
     const merchantId = searchParams.get('merchantId') || session.user.id
 
@@ -69,9 +70,10 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     // Vérification de l'authentification
     const session = await auth()
     if (!session?.user) {
@@ -89,7 +91,7 @@ export async function PUT(
       )
     }
 
-    const promotionId = params.id
+    const promotionId = id
     const body = await request.json()
     const { merchantId, updates } = updatePromotionSchema.parse(body)
 
@@ -132,9 +134,10 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     // Vérification de l'authentification
     const session = await auth()
     if (!session?.user) {
@@ -152,7 +155,7 @@ export async function DELETE(
       )
     }
 
-    const promotionId = params.id
+    const promotionId = id
     const body = await request.json()
     const { merchantId } = deletePromotionSchema.parse(body)
 

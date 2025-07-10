@@ -161,7 +161,7 @@ export default function ClientServicesManager({ clientId }: ClientServicesManage
         body: JSON.stringify({
           clientId,
           ...bookingForm,
-          date: format(bookingForm.date, "yyyy-MM-dd")
+          date: format(bookingForm.date) || "yyyy-MM-dd"
         })
       });
 
@@ -230,7 +230,7 @@ export default function ClientServicesManager({ clientId }: ClientServicesManage
   };
 
   const getAvailableSlots = (provider: ServiceProvider, selectedDate: Date) => {
-    const dateStr = format(selectedDate, "yyyy-MM-dd");
+    const dateStr = format(selectedDate) || "yyyy-MM-dd";
     return provider.availability.filter(slot => 
       slot.date === dateStr && 
       slot.status === "available" && 
@@ -621,7 +621,7 @@ export default function ClientServicesManager({ clientId }: ClientServicesManage
                     <PopoverTrigger asChild>
                       <Button variant="outline" className="w-full justify-start text-left font-normal">
                         <CalendarIcon className="mr-2 h-4 w-4" />
-                        {bookingForm.date ? format(bookingForm.date, "PPP") : t("booking_dialog.pick_date")}
+                        {bookingForm.date ? format(bookingForm.date) || "PPP" : t("booking_dialog.pick_date")}
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0">

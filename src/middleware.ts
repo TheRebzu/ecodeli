@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import createIntlMiddleware from 'next-intl/middleware'
-import { auth } from "@/lib/auth"
-import { db } from "@/lib/db"
+import { getToken } from "next-auth/jwt"
 
 const intlMiddleware = createIntlMiddleware({
   locales: ['fr', 'en'],
@@ -92,9 +91,9 @@ export default async function middleware(request: NextRequest) {
       pathname.includes('/provider/')) {
     
     try {
-      const session = await auth()
+      const token = await getToken({ req: request, secret: process.env.AUTH_SECRET })
       
-      if (!session?.user) {
+      if (!token) {
         // Extraire la locale de l'URL
         const locale = pathname.split('/')[1] || 'fr'
         const loginUrl = new URL(`/${locale}/login`, request.url)
@@ -102,25 +101,13 @@ export default async function middleware(request: NextRequest) {
         return NextResponse.redirect(loginUrl)
       }
       
-      const user = session.user
-
-      // Vérification/création automatique du profil utilisateur
-      try {
-        const existingProfile = await db.profile.findUnique({ where: { userId: user.id } })
-        if (!existingProfile) {
-          await db.profile.create({
-            data: {
-              userId: user.id,
-              firstName: user.firstName || '',
-              lastName: user.lastName || '',
-              isVerified: false
-            }
-          })
-          console.log(`✅ Profil créé automatiquement pour l'utilisateur ${user.id}`)
-        }
-      } catch (profileError) {
-        console.error('Erreur lors de la vérification/création du profil utilisateur:', profileError)
+      const user = {
+        id: token.sub as string,
+        role: token.role as string,
+        isActive: token.isActive as boolean
       }
+
+      // La vérification/création du profil sera faite côté serveur (pas dans le middleware Edge)
       
       // Vérifier les permissions selon le rôle (Mission 1)
       const roleChecks = [

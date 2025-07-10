@@ -9,9 +9,9 @@ const processWithdrawalSchema = z.object({
 })
 
 interface RouteParams {
-  params: {
+  params: Promise<{
     id: string
-  }
+  }>
 }
 
 /**
@@ -22,6 +22,7 @@ export async function PUT(
   { params }: RouteParams
 ) {
   try {
+    const { id } = await params
     const session = await auth()
     
     if (!session?.user || session.user.role !== 'ADMIN') {
@@ -32,7 +33,7 @@ export async function PUT(
     const validatedData = processWithdrawalSchema.parse(body)
 
     const processedWithdrawal = await WalletService.processWithdrawal(
-      (await params).id,
+      id,
       validatedData.status,
       session.user.id,
       validatedData.notes

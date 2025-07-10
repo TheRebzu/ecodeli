@@ -1,0 +1,11 @@
+
+> ecodeli@0.1.0 build C:\Users\Amine\WebstormProjects\ecodeli
+> next build
+
+   ▲ Next.js 15.3.5
+   - Environments: .env.local, .env
+
+   Creating an optimized production build ...
+ ✓ Compiled successfully in 29.0s
+   Linting and checking validity of types ...
+ ELIFECYCLE  Command failed with exit code 1.

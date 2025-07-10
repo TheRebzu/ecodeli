@@ -128,12 +128,12 @@
       "Bash(/tmp/jq:*)",
       "Bash(sudo cp:*)",
       "Bash(export:*)",
-
       "Bash(npm run:*)",
       "Bash(tasklist)",
       "Bash(PGPASSWORD=Amine2004 psql -h localhost -U postgres -d ecodeli -c \"UPDATE \\\"User\\\" SET \\\"isActive\\\" = true, \\\"validationStatus\\\" = 'VALIDATED' WHERE email = 'client1@test.com';\")",
       "Bash(powershell.exe:*)",
-      "Bash(npx ts-node:*)"
+      "Bash(npx ts-node:*)",
+      "Bash(bash:*)"
     ]
   },
   "allowed_tools": [

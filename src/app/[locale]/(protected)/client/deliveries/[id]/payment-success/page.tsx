@@ -5,7 +5,8 @@ import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/db'
 import { PaymentSuccess } from '@/components/payments/payment-success'
 
-export async function generateMetadata({ params }: { params: { locale: string; id: string } }): Promise<Metadata> {
+export async function generateMetadata({ params }: { params: Promise<{ locale: string; id: string }> }): Promise<Metadata> {
+  const { locale } = await params
   return {
     title: 'Paiement confirmé - EcoDeli',
     description: 'Votre paiement a été confirmé avec succès'
@@ -16,11 +17,11 @@ export default async function PaymentSuccessPage({
   params,
   searchParams
 }: {
-  params: { locale: string; id: string }
-  searchParams: { payment_intent?: string }
+  params: Promise<{ locale: string; id: string }>
+  searchParams: Promise<{ payment_intent?: string }>
 }) {
-  const { locale, id } = params
-  const { payment_intent } = searchParams
+  const { locale, id } = await params
+  const { payment_intent } = await searchParams
 
   const session = await auth()
 

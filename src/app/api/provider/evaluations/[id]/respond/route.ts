@@ -10,9 +10,10 @@ const responseSchema = z.object({
 // POST - Répondre à une évaluation
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     const session = await auth();
     if (!session || session.user.role !== "PROVIDER") {
       return NextResponse.json(
@@ -23,7 +24,7 @@ export async function POST(
 
     const body = await request.json();
     const { response } = responseSchema.parse(body);
-    const evaluationId = params.id;
+    const evaluationId = id;
 
     // Vérifier que l'évaluation existe et appartient au prestataire
     const evaluation = await prisma.review.findFirst({

@@ -17,21 +17,21 @@ export default function MerchantRegisterPage() {
           </Link>
           <div className="text-3xl mb-2">🏪</div>
           <h1 className="text-2xl font-bold text-gray-900 mb-2">
-            {t('auth.register.merchant.title', 'Inscription Commerçant')}
+            {t('auth.register.merchant.title') || 'Inscription Commerçant'}
           </h1>
           <p className="text-gray-600">
-            {t('auth.register.merchant.subtitle', 'Rejoignez notre réseau de commerçants partenaires')}
+            {t('auth.register.merchant.subtitle') || 'Rejoignez notre réseau de commerçants partenaires'}
           </p>
         </div>
 
         {/* Avantages */}
         <div className="bg-purple-50 rounded-lg p-4 mb-6">
-          <h3 className="font-medium text-purple-900 mb-2">{t('auth.register.merchant.advantagesTitle', 'Avantages commerçant')}</h3>
+          <h3 className="font-medium text-purple-900 mb-2">{t('auth.register.merchant.advantagesTitle') || 'Avantages commerçant'}</h3>
           <ul className="space-y-1 text-sm text-purple-800">
-            <li>📈 {t('auth.register.merchant.advantage1', 'Augmentez vos ventes en ligne')}</li>
-            <li>🛒 {t('auth.register.merchant.advantage2', 'Service de lâcher de chariot')}</li>
-            <li>📊 {t('auth.register.merchant.advantage3', 'Analytics et rapports détaillés')}</li>
-            <li>🤝 {t('auth.register.merchant.advantage4', 'Commission attractive')}</li>
+            <li>📈 {t('auth.register.merchant.advantage1') || 'Augmentez vos ventes en ligne'}</li>
+            <li>🛒 {t('auth.register.merchant.advantage2') || 'Service de lâcher de chariot'}</li>
+            <li>📊 {t('auth.register.merchant.advantage3') || 'Analytics et rapports détaillés'}</li>
+            <li>🤝 {t('auth.register.merchant.advantage4') || 'Commission attractive'}</li>
           </ul>
         </div>
 
@@ -46,16 +46,16 @@ export default function MerchantRegisterPage() {
             href="/register"
             className="text-sm text-gray-600 hover:text-green-600"
           >
-            {t('auth.register.chooseAnotherAccountType', '← Choisir un autre type de compte')}
+            {t('auth.register.chooseAnotherAccountType') || '← Choisir un autre type de compte'}
           </Link>
 
           <div className="text-sm text-gray-600">
-            {t('auth.register.alreadyHaveAccount', 'Vous avez déjà un compte ?')}{' '}
+            {t('auth.register.alreadyHaveAccount') || 'Vous avez déjà un compte ?'}{' '}
             <Link
               href="/login"
               className="text-green-600 hover:text-green-700 font-medium"
             >
-              {t('auth.login.loginButton', 'Se connecter')}
+              {t('auth.login.loginButton') || 'Se connecter'}
             </Link>
           </div>
         </div>

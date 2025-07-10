@@ -324,7 +324,7 @@ export default function AdminAnnouncementsPage() {
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Actives</p>
-                <p className="text-2xl font-bold text-gray-900">{stats?.active}</p>
+                <p className="text-2xl font-bold text-gray-900">{stats?.byStatus?.ACTIVE || 0}</p>
               </div>
             </div>
           </CardContent>
@@ -338,7 +338,7 @@ export default function AdminAnnouncementsPage() {
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Terminées</p>
-                <p className="text-2xl font-bold text-gray-900">{stats?.completed}</p>
+                <p className="text-2xl font-bold text-gray-900">{stats?.byStatus?.COMPLETED || 0}</p>
               </div>
             </div>
           </CardContent>
@@ -352,7 +352,7 @@ export default function AdminAnnouncementsPage() {
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Valeur totale</p>
-                <p className="text-2xl font-bold text-gray-900">{stats?.totalValue.toFixed(0)}€</p>
+                <p className="text-2xl font-bold text-gray-900">{(stats?.totalValue || 0).toFixed(0)}€</p>
               </div>
             </div>
           </CardContent>
@@ -571,8 +571,8 @@ export default function AdminAnnouncementsPage() {
                         <p className="font-medium text-sm">
                           {announcement.client?.profile?.firstName || announcement.merchant?.profile?.firstName || 'Utilisateur'} {announcement.client?.profile?.lastName || announcement.merchant?.profile?.lastName || ''}
                         </p>
-                        <Badge className={getRoleColor(announcement.client?.role || announcement.merchant?.role || 'CLIENT')} size="sm">
-                          {announcement.client?.role || announcement.merchant?.role || 'CLIENT'}
+                        <Badge className={getRoleColor(announcement.client ? 'CLIENT' : announcement.merchant ? 'MERCHANT' : 'CLIENT')}>
+                          {announcement.client ? 'CLIENT' : announcement.merchant ? 'MERCHANT' : 'CLIENT'}
                         </Badge>
                       </div>
                     </TableCell>
