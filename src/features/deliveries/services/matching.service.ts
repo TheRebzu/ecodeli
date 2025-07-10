@@ -59,7 +59,7 @@ export class MatchingService {
       where: {
         role: 'DELIVERER',
         profile: {
-          verified: true
+          isVerified: true
         }
       },
         include: {
@@ -131,7 +131,7 @@ export class MatchingService {
         where: {
         role: 'DELIVERER',
         profile: {
-          verified: true
+          isVerified: true
           }
         },
         include: {
