@@ -569,14 +569,11 @@ export class ProviderValidationService {
         include: {
           user: {
             include: {
-              profile: {
-                include: {
-                  documents: true
-                }
-              }
+              profile: true,
+              documents: true
             }
           },
-          certifications: {
+          ProviderCertification: {
             include: {
               certification: true
             }
@@ -594,13 +591,13 @@ export class ProviderValidationService {
           id: 'documents',
           title: 'Vérification des documents',
           description: 'Validation des pièces justificatives (SIRET, assurance, etc.)',
-          status: this.getDocumentValidationStatus(provider.user.profile?.documents || [])
+          status: this.getDocumentValidationStatus(provider.user.documents || [])
         },
         {
           id: 'certifications',
           title: 'Certifications obligatoires',
           description: 'Obtention des certifications requises pour vos spécialités',
-          status: this.getCertificationValidationStatus(provider.certifications)
+          status: this.getCertificationValidationStatus(provider.ProviderCertification)
         },
         {
           id: 'admin_review',
@@ -907,14 +904,14 @@ export class ProviderValidationService {
     return 'in_progress'
   }
 
-  private static getCertificationValidationStatus(certifications: any[]): 'pending' | 'in_progress' | 'completed' | 'failed' {
-    if (certifications.length === 0) return 'pending'
+  private static getCertificationValidationStatus(providerCertifications: any[]): 'pending' | 'in_progress' | 'completed' | 'failed' {
+    if (providerCertifications.length === 0) return 'pending'
     
-    const completedCerts = certifications.filter(cert => cert.status === 'COMPLETED')
-    const failedCerts = certifications.filter(cert => cert.status === 'FAILED')
+    const completedCerts = providerCertifications.filter(pc => pc.status === 'COMPLETED')
+    const failedCerts = providerCertifications.filter(pc => pc.status === 'FAILED')
     
     if (failedCerts.length > 0) return 'failed'
-    if (completedCerts.length === certifications.length) return 'completed'
+    if (completedCerts.length === providerCertifications.length) return 'completed'
     return 'in_progress'
   }
 

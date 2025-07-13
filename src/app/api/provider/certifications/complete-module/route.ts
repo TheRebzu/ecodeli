@@ -12,10 +12,10 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { providerId, certificationId } = body
+    const { providerId, certificationId, moduleId, score } = body
 
-    if (!providerId || !certificationId) {
-      return NextResponse.json({ error: 'ID prestataire et certification requis' }, { status: 400 })
+    if (!providerId || !certificationId || !moduleId || score === undefined) {
+      return NextResponse.json({ error: 'Tous les paramètres sont requis' }, { status: 400 })
     }
 
     // Vérifier que l'utilisateur peut accéder à ce prestataire
@@ -30,17 +30,22 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Démarrer la certification
-    const result = await ProviderValidationService.startCertification(providerId, certificationId)
+    // Compléter le module
+    const result = await ProviderValidationService.completeModule(
+      providerId, 
+      certificationId, 
+      moduleId, 
+      score
+    )
 
     return NextResponse.json({
       success: true,
-      message: 'Certification démarrée avec succès',
+      message: 'Module complété avec succès',
       ...result
     })
 
   } catch (error) {
-    console.error('Erreur démarrage certification:', error)
+    console.error('Erreur complétion module:', error)
     
     if (error instanceof Error) {
       return NextResponse.json(
@@ -50,7 +55,7 @@ export async function POST(request: NextRequest) {
     }
     
     return NextResponse.json(
-      { error: 'Erreur lors du démarrage de la certification' },
+      { error: 'Erreur lors de la complétion du module' },
       { status: 500 }
     )
   }

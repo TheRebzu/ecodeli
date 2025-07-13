@@ -277,7 +277,7 @@ export default function ProviderValidationManager({ providerId }: ProviderValida
           <UserCheck className="h-12 w-12 text-gray-400 mb-4" />
           <h3 className="text-lg font-semibold mb-2">{t("no_application.title")}</h3>
           <p className="text-gray-600 text-center mb-4">{t("no_application.description")}</p>
-          <Button onClick={() => window.location.href = "/provider/onboarding"}>
+          <Button onClick={() => window.location.href = "/provider/validation"}>
             {t("no_application.start_application")}
           </Button>
         </CardContent>

@@ -80,11 +80,23 @@ export function LoginForm({
           return
         }
         if (statusCheck.needsAction.includes('DOCUMENT_UPLOAD')) {
-          router.push('/onboarding/documents')
+          if (statusCheck.role === 'PROVIDER') {
+            router.push('/provider/validation')
+          } else if (statusCheck.role === 'DELIVERER') {
+            router.push('/deliverer/validation')
+          } else {
+            router.push('/onboarding/documents')
+          }
           return
         }
         if (statusCheck.needsAction.includes('ADMIN_VALIDATION')) {
-          router.push('/onboarding/pending')
+          if (statusCheck.role === 'PROVIDER') {
+            router.push('/provider/validation')
+          } else if (statusCheck.role === 'DELIVERER') {
+            router.push('/deliverer/validation')
+          } else {
+            router.push('/onboarding/pending')
+          }
           return
         }
         
@@ -117,7 +129,7 @@ export function LoginForm({
         ADMIN: '/admin/dashboard'
       }
 
-      const targetRedirect = roleRedirects[statusCheck.role] || redirectTo
+      const targetRedirect = roleRedirects[statusCheck.role as keyof typeof roleRedirects] || redirectTo
       router.push(targetRedirect)
 
     } catch (error) {

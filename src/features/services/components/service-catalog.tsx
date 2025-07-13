@@ -8,7 +8,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { useTranslations } from "next-intl";
 import { Search, Filter, Star, Clock, MapPin, User } from "lucide-react";
-import { ServiceCategory } from "@prisma/client";
+// Define ServiceCategory locally to avoid Prisma client import on client side
+type ServiceCategory = 'CLEANING' | 'GARDENING' | 'HANDYMAN' | 'TUTORING' | 'HEALTHCARE' | 'BEAUTY' | 'OTHER';
+
+const ServiceCategoryValues: ServiceCategory[] = ['CLEANING', 'GARDENING', 'HANDYMAN', 'TUTORING', 'HEALTHCARE', 'BEAUTY', 'OTHER'];
 
 interface Service {
   id: string;
@@ -180,7 +183,7 @@ export function ServiceCatalog({ onServiceSelect }: ServiceCatalogProps) {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="">{t("filters.all_categories")}</SelectItem>
-            {Object.values(ServiceCategory).map((category) => (
+            {ServiceCategoryValues.map((category) => (
               <SelectItem key={category} value={category}>
                 {getCategoryLabel(category)}
               </SelectItem>

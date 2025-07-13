@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/db'
+import { ProviderValidationService } from '@/features/provider/services/validation.service'
 
 export async function GET(request: NextRequest) {
   try {
@@ -29,19 +30,38 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // Récupérer les certifications du prestataire
-    const certifications = await prisma.certification.findMany({
-      where: { providerId },
-      orderBy: { createdAt: 'desc' }
+    // Récupérer les données de validation
+    const provider = await prisma.provider.findUnique({
+      where: { id: providerId },
+      include: {
+        user: {
+          include: {
+            profile: true
+          }
+        },
+        services: true,
+        certifications: true,
+        documents: true
+      }
     })
 
-    return NextResponse.json(certifications)
+    if (!provider) {
+      return NextResponse.json({ error: 'Prestataire non trouvé' }, { status: 404 })
+    }
+
+    // Récupérer le statut de validation
+    const validationStatus = await ProviderValidationService.getValidationStatus(providerId)
+
+    return NextResponse.json({
+      provider,
+      validationStatus
+    })
 
   } catch (error) {
-    console.error('Erreur récupération certifications:', error)
+    console.error('Erreur récupération validation:', error)
     return NextResponse.json(
-      { error: 'Erreur lors de la récupération des certifications' },
+      { error: 'Erreur lors de la récupération des données de validation' },
       { status: 500 }
     )
   }
-}
+} 

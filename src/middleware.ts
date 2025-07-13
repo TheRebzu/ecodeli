@@ -124,8 +124,7 @@ export default async function middleware(request: NextRequest) {
     "/en/contact",
     "/fr/services",
     "/en/services",
-    "/fr/onboarding",
-    "/en/onboarding"
+
   ]
   
   // Vérifier si c'est une route publique - LOGIQUE STRICTE
@@ -220,9 +219,19 @@ export default async function middleware(request: NextRequest) {
       if (user.role === 'DELIVERER' || user.role === 'PROVIDER') {
         // Vérifier le statut de validation pour les livreurs et prestataires
         if (user.validationStatus !== 'APPROVED') {
+          // Permettre l'accès aux pages de validation même si non validé
+          if (pathname.includes('/provider/validation') || pathname.includes('/api/provider/validation')) {
+            console.log(`✅ Middleware: Accès autorisé à la page de validation - ${user.role} (ID: ${user.id})`)
+            return NextResponse.next()
+          }
+          
           console.log(`🚨 Middleware: Validation en attente - ${user.role} (ID: ${user.id})`)
           const locale = pathname.split('/')[1] || 'fr'
-          return NextResponse.redirect(new URL(`/${locale}/onboarding`, request.url))
+          if (user.role === 'PROVIDER') {
+            return NextResponse.redirect(new URL(`/${locale}/provider/validation`, request.url))
+          } else {
+            return NextResponse.redirect(new URL(`/${locale}/deliverer/validation`, request.url))
+          }
         }
       }
 

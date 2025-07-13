@@ -9,7 +9,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Plus, Filter, Search } from 'lucide-react'
-import { AnnouncementType, AnnouncementStatus } from '@prisma/client'
+// Define types locally to avoid Prisma client import on client side
+type AnnouncementType = 'PACKAGE_DELIVERY' | 'PERSON_TRANSPORT' | 'AIRPORT_TRANSFER' | 'SHOPPING' | 'INTERNATIONAL_PURCHASE' | 'PET_SITTING' | 'HOME_SERVICE' | 'CART_DROP';
+type AnnouncementStatus = 'DRAFT' | 'ACTIVE' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED' | 'EXPIRED';
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useRouter } from 'next/navigation'

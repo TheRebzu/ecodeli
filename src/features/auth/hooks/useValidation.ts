@@ -2,7 +2,7 @@
 
 import { useAuth } from './useAuth'
 import { useState, useEffect } from 'react'
-import { Role, UserStatus } from '@/lib/auth/config'
+import { UserRole } from '@/lib/auth/permissions'
 
 export interface ValidationStatus {
   isValid: boolean
@@ -75,12 +75,24 @@ export function useValidation(): ValidationStatus {
       status.nextStepUrl = '/verify-email'
     } else if (status.needsDocumentUpload) {
       status.canLogin = false
-      status.validationMessage = getDocumentUploadMessage(user.role as Role)
-      status.nextStepUrl = '/onboarding/documents'
+      status.validationMessage = getDocumentUploadMessage(user.role as UserRole)
+      if (user.role === 'PROVIDER') {
+        status.nextStepUrl = '/provider/validation'
+      } else if (user.role === 'DELIVERER') {
+        status.nextStepUrl = '/deliverer/validation'
+      } else {
+        status.nextStepUrl = '/onboarding/documents'
+      }
     } else if (status.needsAdminValidation) {
       status.canLogin = false
       status.validationMessage = 'Validation admin en cours'
-      status.nextStepUrl = '/onboarding/pending'
+      if (user.role === 'PROVIDER') {
+        status.nextStepUrl = '/provider/validation'
+      } else if (user.role === 'DELIVERER') {
+        status.nextStepUrl = '/deliverer/validation'
+      } else {
+        status.nextStepUrl = '/onboarding/pending'
+      }
     } else if (status.needsTutorial) {
       status.validationMessage = 'Tutoriel requis'
       status.nextStepUrl = '/onboarding/tutorial'
@@ -96,7 +108,7 @@ export function useValidation(): ValidationStatus {
   return validationStatus
 }
 
-function getDocumentUploadMessage(role: Role): string {
+function getDocumentUploadMessage(role: UserRole): string {
   switch (role) {
     case 'DELIVERER':
       return 'Upload des documents requis (identité, permis, assurance)'

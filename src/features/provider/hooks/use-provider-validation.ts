@@ -1,11 +1,76 @@
 import { useState, useCallback, useEffect } from 'react'
-import { 
-  ProviderValidationData,
-  ProviderValidationStatus,
-  CertificationRequirement,
-  ValidationStep,
-  ProviderValidationService
-} from '../services/validation.service'
+
+export interface ProviderValidationData {
+  profile: {
+    businessName: string
+    siret: string
+    description: string
+    specialties: string[]
+    hourlyRate: number
+    zone?: {
+      coordinates: number[]
+      radius: number
+    }
+  }
+  services: Array<{
+    name: string
+    description: string
+    type: string
+    basePrice: number
+    priceUnit: string
+    duration?: number
+    requirements: string[]
+    minAdvanceBooking: number
+    maxAdvanceBooking: number
+  }>
+  certifications: Array<{
+    name: string
+    issuingOrganization: string
+    issueDate: Date
+    expiryDate?: Date
+    certificateNumber?: string
+    documentUrl?: string
+  }>
+  rates: Array<{
+    serviceType: string
+    baseRate: number
+    unitType: string
+    minimumCharge?: number
+  }>
+}
+
+export interface ValidationStep {
+  id: string
+  title: string
+  description: string
+  status: 'pending' | 'in_progress' | 'completed' | 'failed'
+  completedAt?: Date
+  errorMessage?: string
+}
+
+export interface ProviderValidationStatus {
+  currentStatus: 'PENDING' | 'IN_REVIEW' | 'APPROVED' | 'REJECTED'
+  steps: ValidationStep[]
+  progress: number
+  estimatedCompletionDate?: Date
+  rejectionReason?: string
+  nextAction?: string
+}
+
+export interface CertificationRequirement {
+  id: string
+  name: string
+  description: string
+  category: string
+  level: string
+  isRequired: boolean
+  status: 'not_started' | 'in_progress' | 'completed' | 'failed' | 'expired'
+  expiresAt?: Date
+  certificateUrl?: string
+  score?: number
+  attempts: number
+  maxAttempts: number
+}
 
 interface UseProviderValidationReturn {
   // État de validation
@@ -49,7 +114,13 @@ export function useProviderValidation(providerId?: string): UseProviderValidatio
     setError(null)
 
     try {
-      const status = await ProviderValidationService.getValidationStatus(providerId)
+      const response = await fetch(`/api/provider/validation/status?providerId=${providerId}`)
+      
+      if (!response.ok) {
+        throw new Error('Erreur lors du chargement du statut')
+      }
+      
+      const status = await response.json()
       setValidationStatus(status)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erreur de chargement')
@@ -64,7 +135,19 @@ export function useProviderValidation(providerId?: string): UseProviderValidatio
     setError(null)
 
     try {
-      const certifications = await ProviderValidationService.getRequiredCertifications(specialties)
+      const response = await fetch('/api/provider/certifications/required', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ specialties })
+      })
+      
+      if (!response.ok) {
+        throw new Error('Erreur lors du chargement des certifications')
+      }
+      
+      const certifications = await response.json()
       setRequiredCertifications(certifications)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erreur de chargement des certifications')

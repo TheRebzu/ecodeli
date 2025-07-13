@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useTranslations } from 'next-intl'
-import { useSession } from 'next-auth/react'
+import { useAuth } from '@/lib/auth-client'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
@@ -213,7 +213,7 @@ function CertificationCard({ certification, onStart, onView }: CertificationCard
 
 export default function ProviderValidationPage() {
   const t = useTranslations('provider.validation')
-  const { data: session } = useSession()
+  const { user } = useAuth()
   const [activeTab, setActiveTab] = useState('overview')
   
   const {
@@ -228,7 +228,7 @@ export default function ProviderValidationPage() {
     nextStep,
     canProceed,
     progressPercentage
-  } = useProviderValidation(session?.user?.id)
+  } = useProviderValidation(user?.id)
 
   // Rafraîchir le statut au montage
   useEffect(() => {
