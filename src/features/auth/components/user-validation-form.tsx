@@ -1,118 +1,150 @@
-"use client"
+"use client";
 
-import { useState } from 'react'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
-import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Loader2, Upload, CheckCircle, XCircle } from 'lucide-react'
-import { UserRole } from '@prisma/client'
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Loader2, Upload, CheckCircle, XCircle } from "lucide-react";
+import { UserRole } from "@prisma/client";
 
 const validationSchema = z.object({
-  firstName: z.string().min(2, 'Le prénom doit contenir au moins 2 caractères'),
-  lastName: z.string().min(2, 'Le nom doit contenir au moins 2 caractères'),
-  phone: z.string().min(10, 'Le numéro de téléphone doit contenir au moins 10 chiffres'),
-  address: z.string().min(10, 'L\'adresse doit contenir au moins 10 caractères'),
-  city: z.string().min(2, 'La ville doit contenir au moins 2 caractères'),
-  postalCode: z.string().min(4, 'Le code postal doit contenir au moins 4 caractères'),
-  country: z.string().min(2, 'Le pays doit contenir au moins 2 caractères'),
+  firstName: z.string().min(2, "Le prénom doit contenir au moins 2 caractères"),
+  lastName: z.string().min(2, "Le nom doit contenir au moins 2 caractères"),
+  phone: z
+    .string()
+    .min(10, "Le numéro de téléphone doit contenir au moins 10 chiffres"),
+  address: z.string().min(10, "L'adresse doit contenir au moins 10 caractères"),
+  city: z.string().min(2, "La ville doit contenir au moins 2 caractères"),
+  postalCode: z
+    .string()
+    .min(4, "Le code postal doit contenir au moins 4 caractères"),
+  country: z.string().min(2, "Le pays doit contenir au moins 2 caractères"),
   additionalInfo: z.string().optional(),
-})
+});
 
-type ValidationFormData = z.infer<typeof validationSchema>
+type ValidationFormData = z.infer<typeof validationSchema>;
 
 interface UserValidationFormProps {
-  userRole: UserRole
-  userId: string
-  onValidationComplete?: () => void
+  userRole: UserRole;
+  userId: string;
+  onValidationComplete?: () => void;
 }
 
-export function UserValidationForm({ userRole, userId, onValidationComplete }: UserValidationFormProps) {
-  const [isLoading, setIsLoading] = useState(false)
-  const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle')
-  const [message, setMessage] = useState('')
+export function UserValidationForm({
+  userRole,
+  userId,
+  onValidationComplete,
+}: UserValidationFormProps) {
+  const [isLoading, setIsLoading] = useState(false);
+  const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
+  const [message, setMessage] = useState("");
 
   const form = useForm<ValidationFormData>({
     resolver: zodResolver(validationSchema),
     defaultValues: {
-      firstName: '',
-      lastName: '',
-      phone: '',
-      address: '',
-      city: '',
-      postalCode: '',
-      country: 'France',
-      additionalInfo: '',
+      firstName: "",
+      lastName: "",
+      phone: "",
+      address: "",
+      city: "",
+      postalCode: "",
+      country: "France",
+      additionalInfo: "",
     },
-  })
+  });
 
   const onSubmit = async (data: ValidationFormData) => {
-    setIsLoading(true)
-    setStatus('idle')
+    setIsLoading(true);
+    setStatus("idle");
 
     try {
-      const response = await fetch('/api/auth/validate-user', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/auth/validate-user", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           userId,
           userRole,
           profileData: data,
         }),
-      })
+      });
 
-      const result = await response.json()
+      const result = await response.json();
 
       if (result.success) {
-        setStatus('success')
-        setMessage('Votre profil a été validé avec succès !')
-        onValidationComplete?.()
+        setStatus("success");
+        setMessage("Votre profil a été validé avec succès !");
+        onValidationComplete?.();
       } else {
-        setStatus('error')
-        setMessage(result.error || 'Erreur lors de la validation du profil')
+        setStatus("error");
+        setMessage(result.error || "Erreur lors de la validation du profil");
       }
     } catch (error) {
-      console.error('Erreur de validation:', error)
-      setStatus('error')
-      setMessage('Erreur de connexion. Veuillez réessayer.')
+      console.error("Erreur de validation:", error);
+      setStatus("error");
+      setMessage("Erreur de connexion. Veuillez réessayer.");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const getRoleSpecificDescription = () => {
     switch (userRole) {
-      case 'DELIVERER':
-        return 'Complétez votre profil pour devenir livreur EcoDeli. Vous devrez également fournir des documents d\'identité, permis de conduire et assurance.'
-      case 'MERCHANT':
-        return 'Complétez votre profil pour accéder à l\'espace commerçant et gérer vos contrats EcoDeli.'
-      case 'PROVIDER':
-        return 'Complétez votre profil pour proposer vos services à la personne sur EcoDeli.'
-      case 'CLIENT':
-        return 'Complétez votre profil pour accéder à tous les services EcoDeli.'
+      case "DELIVERER":
+        return "Complétez votre profil pour devenir livreur EcoDeli. Vous devrez également fournir des documents d'identité, permis de conduire et assurance.";
+      case "MERCHANT":
+        return "Complétez votre profil pour accéder à l'espace commerçant et gérer vos contrats EcoDeli.";
+      case "PROVIDER":
+        return "Complétez votre profil pour proposer vos services à la personne sur EcoDeli.";
+      case "CLIENT":
+        return "Complétez votre profil pour accéder à tous les services EcoDeli.";
       default:
-        return 'Complétez votre profil pour finaliser votre inscription.'
+        return "Complétez votre profil pour finaliser votre inscription.";
     }
-  }
+  };
 
   const getRequiredDocuments = () => {
     switch (userRole) {
-      case 'DELIVERER':
-        return ['Pièce d\'identité', 'Permis de conduire', 'Attestation d\'assurance']
-      case 'MERCHANT':
-        return ['Justificatif d\'entreprise', 'Contrat commercial']
-      case 'PROVIDER':
-        return ['Certifications professionnelles', 'Attestations de formation']
+      case "DELIVERER":
+        return [
+          "Pièce d'identité",
+          "Permis de conduire",
+          "Attestation d'assurance",
+        ];
+      case "MERCHANT":
+        return ["Justificatif d'entreprise", "Contrat commercial"];
+      case "PROVIDER":
+        return ["Certifications professionnelles", "Attestations de formation"];
       default:
-        return []
+        return [];
     }
-  }
+  };
 
   return (
     <Card className="w-full max-w-2xl mx-auto">
@@ -121,13 +153,11 @@ export function UserValidationForm({ userRole, userId, onValidationComplete }: U
           <CheckCircle className="h-5 w-5 text-green-500" />
           Validation du profil
         </CardTitle>
-        <CardDescription>
-          {getRoleSpecificDescription()}
-        </CardDescription>
+        <CardDescription>{getRoleSpecificDescription()}</CardDescription>
       </CardHeader>
 
       <CardContent>
-        {status === 'success' && (
+        {status === "success" && (
           <Alert className="mb-4 border-green-200 bg-green-50">
             <CheckCircle className="h-4 w-4 text-green-600" />
             <AlertDescription className="text-green-800">
@@ -136,7 +166,7 @@ export function UserValidationForm({ userRole, userId, onValidationComplete }: U
           </Alert>
         )}
 
-        {status === 'error' && (
+        {status === "error" && (
           <Alert className="mb-4 border-red-200 bg-red-50">
             <XCircle className="h-4 w-4 text-red-600" />
             <AlertDescription className="text-red-800">
@@ -240,7 +270,10 @@ export function UserValidationForm({ userRole, userId, onValidationComplete }: U
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Pays *</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Sélectionnez un pays" />
@@ -266,14 +299,15 @@ export function UserValidationForm({ userRole, userId, onValidationComplete }: U
                 <FormItem>
                   <FormLabel>Informations complémentaires</FormLabel>
                   <FormControl>
-                    <Textarea 
+                    <Textarea
                       placeholder="Informations supplémentaires utiles pour votre profil..."
                       className="min-h-[100px]"
-                      {...field} 
+                      {...field}
                     />
                   </FormControl>
                   <FormDescription>
-                    Décrivez vos expériences, compétences ou motivations pour rejoindre EcoDeli.
+                    Décrivez vos expériences, compétences ou motivations pour
+                    rejoindre EcoDeli.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -282,7 +316,9 @@ export function UserValidationForm({ userRole, userId, onValidationComplete }: U
 
             {getRequiredDocuments().length > 0 && (
               <div className="border rounded-lg p-4 bg-blue-50">
-                <h4 className="font-medium text-blue-900 mb-2">Documents requis</h4>
+                <h4 className="font-medium text-blue-900 mb-2">
+                  Documents requis
+                </h4>
                 <ul className="text-sm text-blue-800 space-y-1">
                   {getRequiredDocuments().map((doc, index) => (
                     <li key={index} className="flex items-center gap-2">
@@ -292,18 +328,19 @@ export function UserValidationForm({ userRole, userId, onValidationComplete }: U
                   ))}
                 </ul>
                 <p className="text-xs text-blue-600 mt-2">
-                  Ces documents devront être fournis après la validation de votre profil.
+                  Ces documents devront être fournis après la validation de
+                  votre profil.
                 </p>
               </div>
             )}
 
             <Button type="submit" className="w-full" disabled={isLoading}>
               {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {isLoading ? 'Validation en cours...' : 'Valider mon profil'}
+              {isLoading ? "Validation en cours..." : "Valider mon profil"}
             </Button>
           </form>
         </Form>
       </CardContent>
     </Card>
-  )
-} 
+  );
+}

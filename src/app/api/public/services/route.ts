@@ -3,22 +3,62 @@ import { db } from "@/lib/db";
 import { z } from "zod";
 
 const searchParamsSchema = z.object({
-  page: z.string().nullable().optional().default("1").transform(val => Number(val || "1")),
-  limit: z.string().nullable().optional().default("12").transform(val => Number(val || "12")),
-  category: z.string().nullable().optional().transform(val => val || undefined),
-  priceMin: z.string().nullable().optional().transform(val => val ? Number(val) : undefined),
-  priceMax: z.string().nullable().optional().transform(val => val ? Number(val) : undefined),
-  city: z.string().nullable().optional().transform(val => val || undefined),
-  search: z.string().nullable().optional().transform(val => val || undefined),
-  sortBy: z.enum(["price", "rating", "name", "created"]).nullable().optional().default("created").transform(val => val || "created"),
-  sortOrder: z.enum(["asc", "desc"]).nullable().optional().default("desc").transform(val => val || "desc"),
+  page: z
+    .string()
+    .nullable()
+    .optional()
+    .default("1")
+    .transform((val) => Number(val || "1")),
+  limit: z
+    .string()
+    .nullable()
+    .optional()
+    .default("12")
+    .transform((val) => Number(val || "12")),
+  category: z
+    .string()
+    .nullable()
+    .optional()
+    .transform((val) => val || undefined),
+  priceMin: z
+    .string()
+    .nullable()
+    .optional()
+    .transform((val) => (val ? Number(val) : undefined)),
+  priceMax: z
+    .string()
+    .nullable()
+    .optional()
+    .transform((val) => (val ? Number(val) : undefined)),
+  city: z
+    .string()
+    .nullable()
+    .optional()
+    .transform((val) => val || undefined),
+  search: z
+    .string()
+    .nullable()
+    .optional()
+    .transform((val) => val || undefined),
+  sortBy: z
+    .enum(["price", "rating", "name", "created"])
+    .nullable()
+    .optional()
+    .default("created")
+    .transform((val) => val || "created"),
+  sortOrder: z
+    .enum(["asc", "desc"])
+    .nullable()
+    .optional()
+    .default("desc")
+    .transform((val) => val || "desc"),
 });
 
 // GET - Récupérer tous les services disponibles publiquement
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    
+
     const params = searchParamsSchema.parse({
       page: searchParams.get("page"),
       limit: searchParams.get("limit"),
@@ -36,8 +76,8 @@ export async function GET(request: NextRequest) {
       isActive: true, // Seulement les services actifs
       provider: {
         validationStatus: "APPROVED", // Seulement les providers validés
-        isActive: true
-      }
+        isActive: true,
+      },
     };
 
     if (params.category) {
@@ -54,7 +94,11 @@ export async function GET(request: NextRequest) {
       where.OR = [
         { name: { contains: params.search, mode: "insensitive" } },
         { description: { contains: params.search, mode: "insensitive" } },
-        { provider: { businessName: { contains: params.search, mode: "insensitive" } } }
+        {
+          provider: {
+            businessName: { contains: params.search, mode: "insensitive" },
+          },
+        },
       ];
     }
 
@@ -62,13 +106,13 @@ export async function GET(request: NextRequest) {
       // Filtrer par zone géographique du provider
       where.provider.zone = {
         path: ["city"],
-        string_contains: params.city
+        string_contains: params.city,
       };
     }
 
     // Construire l'ordre de tri
     let orderBy: any = {};
-    
+
     switch (params.sortBy) {
       case "price":
         orderBy.basePrice = params.sortOrder;
@@ -96,31 +140,31 @@ export async function GET(request: NextRequest) {
                       firstName: true,
                       lastName: true,
                       avatar: true,
-                      city: true
-                    }
-                  }
-                }
-              }
-            }
+                      city: true,
+                    },
+                  },
+                },
+              },
+            },
           },
           // Inclure quelques avis récents
           _count: {
             select: {
               bookings: {
-                where: { status: "COMPLETED" }
-              }
-            }
-          }
+                where: { status: "COMPLETED" },
+              },
+            },
+          },
         },
         orderBy,
         skip: (params.page - 1) * params.limit,
-        take: params.limit
+        take: params.limit,
       }),
-      db.service.count({ where })
+      db.service.count({ where }),
     ]);
 
     // Formater les résultats
-    const formattedServices = services.map(service => ({
+    const formattedServices = services.map((service) => ({
       id: service.id,
       name: service.name,
       description: service.description,
@@ -134,7 +178,7 @@ export async function GET(request: NextRequest) {
       createdAt: service.createdAt.toISOString(),
       updatedAt: service.updatedAt.toISOString(),
       completedBookings: service._count.bookings,
-      
+
       provider: {
         id: service.provider.id,
         businessName: service.provider.businessName,
@@ -142,34 +186,44 @@ export async function GET(request: NextRequest) {
         averageRating: Number(service.provider.averageRating || 0),
         totalBookings: service.provider.totalBookings,
         specialties: service.provider.specialties,
-        hourlyRate: service.provider.hourlyRate ? Number(service.provider.hourlyRate) : null,
+        hourlyRate: service.provider.hourlyRate
+          ? Number(service.provider.hourlyRate)
+          : null,
         isActive: service.provider.isActive,
         user: {
           id: service.provider.user.id,
-          name: service.provider.user.profile 
-            ? `${service.provider.user.profile.firstName || ''} ${service.provider.user.profile.lastName || ''}`.trim()
+          name: service.provider.user.profile
+            ? `${service.provider.user.profile.firstName || ""} ${service.provider.user.profile.lastName || ""}`.trim()
             : service.provider.businessName || "Prestataire",
           avatar: service.provider.user.profile?.avatar,
-          city: service.provider.user.profile?.city
-        }
-      }
+          city: service.provider.user.profile?.city,
+        },
+      },
     }));
 
     // Calculer les statistiques
     const stats = {
       total,
-      averagePrice: formattedServices.length > 0 
-        ? formattedServices.reduce((sum, s) => sum + s.basePrice, 0) / formattedServices.length 
-        : 0,
+      averagePrice:
+        formattedServices.length > 0
+          ? formattedServices.reduce((sum, s) => sum + s.basePrice, 0) /
+            formattedServices.length
+          : 0,
       priceRange: {
-        min: formattedServices.length > 0 ? Math.min(...formattedServices.map(s => s.basePrice)) : 0,
-        max: formattedServices.length > 0 ? Math.max(...formattedServices.map(s => s.basePrice)) : 0
+        min:
+          formattedServices.length > 0
+            ? Math.min(...formattedServices.map((s) => s.basePrice))
+            : 0,
+        max:
+          formattedServices.length > 0
+            ? Math.max(...formattedServices.map((s) => s.basePrice))
+            : 0,
       },
       categoryBreakdown: await db.service.groupBy({
         by: ["type"],
         where: { ...where },
-        _count: { type: true }
-      })
+        _count: { type: true },
+      }),
     };
 
     const result = {
@@ -180,26 +234,25 @@ export async function GET(request: NextRequest) {
         total,
         totalPages: Math.ceil(total / params.limit),
         hasNext: params.page < Math.ceil(total / params.limit),
-        hasPrev: params.page > 1
+        hasPrev: params.page > 1,
       },
-      stats
+      stats,
     };
 
     return NextResponse.json(result);
-
   } catch (error) {
     console.error("Error fetching public services:", error);
-    
+
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: "Invalid parameters", details: error.errors },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

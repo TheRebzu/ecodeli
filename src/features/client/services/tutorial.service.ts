@@ -1,23 +1,23 @@
-import { prisma } from '@/lib/db'
-import { z } from 'zod'
+import { prisma } from "@/lib/db";
+import { z } from "zod";
 
 export interface TutorialStep {
-  id: string
-  title: string
-  description: string
-  icon: string
-  isCompleted: boolean
-  isRequired: boolean
-  order: number
+  id: string;
+  title: string;
+  description: string;
+  icon: string;
+  isCompleted: boolean;
+  isRequired: boolean;
+  order: number;
 }
 
 export interface TutorialProgress {
-  userId: string
-  isCompleted: boolean
-  completedAt?: Date
-  steps: TutorialStep[]
-  currentStepIndex: number
-  canSkip: boolean
+  userId: string;
+  isCompleted: boolean;
+  completedAt?: Date;
+  steps: TutorialStep[];
+  currentStepIndex: number;
+  canSkip: boolean;
 }
 
 export class ClientTutorialService {
@@ -30,26 +30,26 @@ export class ClientTutorialService {
       include: {
         user: {
           include: {
-            profile: true
-          }
-        }
-      }
-    })
+            profile: true,
+          },
+        },
+      },
+    });
 
     if (!client) {
-      throw new Error('Client profile not found')
+      throw new Error("Client profile not found");
     }
 
-    const steps = this.getDefaultTutorialSteps()
-    
+    const steps = this.getDefaultTutorialSteps();
+
     return {
       userId,
       isCompleted: client.tutorialCompleted,
       completedAt: client.tutorialCompletedAt,
       steps,
       currentStepIndex: client.tutorialCompleted ? steps.length : 0,
-      canSkip: false // Tutoriel obligatoire selon les spécifications
-    }
+      canSkip: false, // Tutoriel obligatoire selon les spécifications
+    };
   }
 
   /**
@@ -57,24 +57,24 @@ export class ClientTutorialService {
    */
   static async completeTutorial(userId: string): Promise<void> {
     const client = await prisma.client.findUnique({
-      where: { userId }
-    })
+      where: { userId },
+    });
 
     if (!client) {
-      throw new Error('Client profile not found')
+      throw new Error("Client profile not found");
     }
 
     if (client.tutorialCompleted) {
-      throw new Error('Tutorial already completed')
+      throw new Error("Tutorial already completed");
     }
 
     await prisma.client.update({
       where: { userId },
       data: {
         tutorialCompleted: true,
-        tutorialCompletedAt: new Date()
-      }
-    })
+        tutorialCompletedAt: new Date(),
+      },
+    });
   }
 
   /**
@@ -83,41 +83,47 @@ export class ClientTutorialService {
   static async shouldShowTutorial(userId: string): Promise<boolean> {
     const client = await prisma.client.findUnique({
       where: { userId },
-      select: { tutorialCompleted: true }
-    })
+      select: { tutorialCompleted: true },
+    });
 
     if (!client) {
-      return false
+      return false;
     }
 
-    return !client.tutorialCompleted
+    return !client.tutorialCompleted;
   }
 
   /**
    * Simule la completion d'une étape du tutoriel
    */
-  static async simulateStepCompletion(userId: string, stepId: string): Promise<TutorialProgress> {
+  static async simulateStepCompletion(
+    userId: string,
+    stepId: string,
+  ): Promise<TutorialProgress> {
     // Cette méthode simule la completion d'étapes pour la démonstration
     // Dans une vraie implémentation, on vérifierait les actions réelles de l'utilisateur
-    
-    const progress = await this.getTutorialStatus(userId)
-    
+
+    const progress = await this.getTutorialStatus(userId);
+
     // Marquer l'étape comme complétée
-    const stepIndex = progress.steps.findIndex(step => step.id === stepId)
+    const stepIndex = progress.steps.findIndex((step) => step.id === stepId);
     if (stepIndex !== -1) {
-      progress.steps[stepIndex].isCompleted = true
-      progress.currentStepIndex = Math.max(progress.currentStepIndex, stepIndex + 1)
+      progress.steps[stepIndex].isCompleted = true;
+      progress.currentStepIndex = Math.max(
+        progress.currentStepIndex,
+        stepIndex + 1,
+      );
     }
 
     // Si toutes les étapes sont complétées, marquer le tutoriel comme fini
-    const allStepsCompleted = progress.steps.every(step => step.isCompleted)
+    const allStepsCompleted = progress.steps.every((step) => step.isCompleted);
     if (allStepsCompleted && !progress.isCompleted) {
-      await this.completeTutorial(userId)
-      progress.isCompleted = true
-      progress.completedAt = new Date()
+      await this.completeTutorial(userId);
+      progress.isCompleted = true;
+      progress.completedAt = new Date();
     }
 
-    return progress
+    return progress;
   }
 
   /**
@@ -128,9 +134,9 @@ export class ClientTutorialService {
       where: { userId },
       data: {
         tutorialCompleted: false,
-        tutorialCompletedAt: null
-      }
-    })
+        tutorialCompletedAt: null,
+      },
+    });
   }
 
   /**
@@ -139,42 +145,42 @@ export class ClientTutorialService {
   private static getDefaultTutorialSteps(): TutorialStep[] {
     return [
       {
-        id: 'create-announcement',
-        title: 'Créer votre première annonce',
-        description: 'Apprenez à déposer une annonce pour un colis ou service',
-        icon: 'Plus',
+        id: "create-announcement",
+        title: "Créer votre première annonce",
+        description: "Apprenez à déposer une annonce pour un colis ou service",
+        icon: "Plus",
         isCompleted: false,
         isRequired: true,
-        order: 1
+        order: 1,
       },
       {
-        id: 'book-service',
-        title: 'Réserver un service à la personne',
-        description: 'Découvrez comment réserver des services domicile',
-        icon: 'Calendar',
+        id: "book-service",
+        title: "Réserver un service à la personne",
+        description: "Découvrez comment réserver des services domicile",
+        icon: "Calendar",
         isCompleted: false,
         isRequired: true,
-        order: 2
+        order: 2,
       },
       {
-        id: 'payment-setup',
-        title: 'Configurer vos paiements',
-        description: 'Paramétrez vos modes de paiement et abonnement',
-        icon: 'CreditCard',
+        id: "payment-setup",
+        title: "Configurer vos paiements",
+        description: "Paramétrez vos modes de paiement et abonnement",
+        icon: "CreditCard",
         isCompleted: false,
         isRequired: true,
-        order: 3
+        order: 3,
       },
       {
-        id: 'track-delivery',
-        title: 'Suivre une livraison',
-        description: 'Apprenez à suivre vos livraisons en temps réel',
-        icon: 'MapPin',
+        id: "track-delivery",
+        title: "Suivre une livraison",
+        description: "Apprenez à suivre vos livraisons en temps réel",
+        icon: "MapPin",
         isCompleted: false,
         isRequired: true,
-        order: 4
-      }
-    ]
+        order: 4,
+      },
+    ];
   }
 
   /**
@@ -182,80 +188,83 @@ export class ClientTutorialService {
    */
   static getStepInstructions(stepId: string): string[] {
     const instructions: Record<string, string[]> = {
-      'create-announcement': [
+      "create-announcement": [
         'Cliquez sur "Nouvelle annonce" dans le menu',
-        'Choisissez le type de service (colis, transport, etc.)',
-        'Remplissez les informations de livraison',
-        'Définissez votre budget et délais',
-        'Publiez votre annonce'
+        "Choisissez le type de service (colis, transport, etc.)",
+        "Remplissez les informations de livraison",
+        "Définissez votre budget et délais",
+        "Publiez votre annonce",
       ],
-      'book-service': [
+      "book-service": [
         'Accédez à la section "Services à la personne"',
-        'Parcourez les prestataires disponibles',
-        'Sélectionnez un service qui vous intéresse',
-        'Choisissez un créneau disponible',
-        'Confirmez votre réservation'
+        "Parcourez les prestataires disponibles",
+        "Sélectionnez un service qui vous intéresse",
+        "Choisissez un créneau disponible",
+        "Confirmez votre réservation",
       ],
-      'payment-setup': [
+      "payment-setup": [
         'Allez dans "Paramètres de paiement"',
-        'Ajoutez votre carte bancaire',
-        'Choisissez votre abonnement (Free/Starter/Premium)',
-        'Configurez vos préférences de facturation',
-        'Validez vos paramètres'
+        "Ajoutez votre carte bancaire",
+        "Choisissez votre abonnement (Free/Starter/Premium)",
+        "Configurez vos préférences de facturation",
+        "Validez vos paramètres",
       ],
-      'track-delivery': [
+      "track-delivery": [
         'Accédez à "Mes livraisons"',
-        'Cliquez sur une livraison active',
-        'Consultez le statut en temps réel',
-        'Utilisez la carte de suivi',
-        'Contactez le livreur si nécessaire'
-      ]
-    }
+        "Cliquez sur une livraison active",
+        "Consultez le statut en temps réel",
+        "Utilisez la carte de suivi",
+        "Contactez le livreur si nécessaire",
+      ],
+    };
 
-    return instructions[stepId] || []
+    return instructions[stepId] || [];
   }
 
   /**
    * Vérifie les prérequis pour débloquer une étape
    */
-  static async checkStepPrerequisites(userId: string, stepId: string): Promise<boolean> {
+  static async checkStepPrerequisites(
+    userId: string,
+    stepId: string,
+  ): Promise<boolean> {
     const client = await prisma.client.findUnique({
       where: { userId },
       include: {
         user: {
           include: {
-            profile: true
-          }
+            profile: true,
+          },
         },
         announcements: true,
         bookings: true,
-        payments: true
-      }
-    })
+        payments: true,
+      },
+    });
 
     if (!client) {
-      return false
+      return false;
     }
 
     switch (stepId) {
-      case 'create-announcement':
+      case "create-announcement":
         // Toujours disponible
-        return true
+        return true;
 
-      case 'book-service':
+      case "book-service":
         // Doit avoir créé au moins une annonce
-        return client.announcements.length > 0
+        return client.announcements.length > 0;
 
-      case 'payment-setup':
+      case "payment-setup":
         // Doit avoir un profil complet
-        return client.user.profile !== null
+        return client.user.profile !== null;
 
-      case 'track-delivery':
+      case "track-delivery":
         // Doit avoir effectué au moins un paiement
-        return client.payments.length > 0
+        return client.payments.length > 0;
 
       default:
-        return false
+        return false;
     }
   }
 }
@@ -266,13 +275,13 @@ export const tutorialProgressSchema = z.object({
   isCompleted: z.boolean(),
   completedAt: z.date().optional(),
   currentStepIndex: z.number().min(0),
-  canSkip: z.boolean()
-})
+  canSkip: z.boolean(),
+});
 
 export const completeStepSchema = z.object({
-  stepId: z.string().min(1, 'Step ID is required')
-})
+  stepId: z.string().min(1, "Step ID is required"),
+});
 
 export const resetTutorialSchema = z.object({
-  userId: z.string().min(1, 'User ID is required')
-}) 
+  userId: z.string().min(1, "User ID is required"),
+});

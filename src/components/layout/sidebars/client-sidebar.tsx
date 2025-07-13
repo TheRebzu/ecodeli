@@ -3,16 +3,16 @@
  * Intègre le tutoriel de première connexion et les notifications
  */
 
-"use client"
+"use client";
 
-import { useTranslations } from 'next-intl'
-import { Link, usePathname } from '@/i18n/navigation'
-import { cn } from '@/lib/utils'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { ScrollArea } from '@/components/ui/scroll-area'
-import { Separator } from '@/components/ui/separator'
-import { ThemeToggle } from '@/components/ui/theme-toggle'
+import { useTranslations } from "next-intl";
+import { Link, usePathname } from "@/i18n/navigation";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Separator } from "@/components/ui/separator";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 import {
   Home,
   Package,
@@ -27,181 +27,191 @@ import {
   Star,
   Wallet,
   BookOpen,
-  MessageSquare
-} from 'lucide-react'
+  MessageSquare,
+} from "lucide-react";
 
 // Types pour la navigation
 interface NavigationItem {
-  key: string
-  label: string
-  href: string
-  icon: any
-  category?: string
-  badge?: string | number
-  isNew?: boolean
+  key: string;
+  label: string;
+  href: string;
+  icon: any;
+  category?: string;
+  badge?: string | number;
+  isNew?: boolean;
 }
 
 interface ClientSidebarProps {
-  className?: string
-  collapsed?: boolean
+  className?: string;
+  collapsed?: boolean;
   user?: {
-    id: string
-    name?: string
-    email: string
-    role: string
-    subscription?: 'FREE' | 'STARTER' | 'PREMIUM'
-  }
+    id: string;
+    name?: string;
+    email: string;
+    role: string;
+    subscription?: "FREE" | "STARTER" | "PREMIUM";
+  };
 }
 
 // Configuration simplifiée de la navigation
 const getClientNavigation = (subscription?: string): NavigationItem[] => [
   // Pages principales
   {
-    key: 'dashboard',
-    label: 'Tableau de bord',
-    href: '/client',
+    key: "dashboard",
+    label: "Tableau de bord",
+    href: "/client",
     icon: Home,
-    category: 'main'
+    category: "main",
   },
   {
-    key: 'announcements',
-    label: 'Mes annonces',
-    href: '/client/announcements',
+    key: "announcements",
+    label: "Mes annonces",
+    href: "/client/announcements",
     icon: Package,
-    category: 'main'
+    category: "main",
   },
   {
-    key: 'deliveries',
-    label: 'Livraisons',
-    href: '/client/deliveries',
+    key: "deliveries",
+    label: "Livraisons",
+    href: "/client/deliveries",
     icon: Truck,
-    category: 'main',
-    badge: 2
+    category: "main",
+    badge: 2,
   },
   {
-    key: 'tracking',
-    label: 'Suivi en temps réel',
-    href: '/client/tracking',
+    key: "tracking",
+    label: "Suivi en temps réel",
+    href: "/client/tracking",
     icon: Truck,
-    category: 'main'
+    category: "main",
   },
   // Services
   {
-    key: 'services',
-    label: 'Services',
-    href: '/client/services',
+    key: "services",
+    label: "Services",
+    href: "/client/services",
     icon: Calendar,
-    category: 'services'
+    category: "services",
   },
   {
-    key: 'service-requests',
-    label: 'Demandes de services',
-    href: '/client/service-requests',
+    key: "service-requests",
+    label: "Demandes de services",
+    href: "/client/service-requests",
     icon: Calendar,
-    category: 'services'
+    category: "services",
   },
   {
-    key: 'applications',
-    label: 'Candidatures reçues',
-    href: '/client/applications',
+    key: "applications",
+    label: "Candidatures reçues",
+    href: "/client/applications",
     icon: MessageSquare,
-    category: 'services'
+    category: "services",
   },
   {
-    key: 'bookings',
-    label: 'Mes réservations',
-    href: '/client/bookings',
+    key: "bookings",
+    label: "Mes réservations",
+    href: "/client/bookings",
     icon: Calendar,
-    category: 'services'
+    category: "services",
   },
   {
-    key: 'storage',
-    label: 'Box de stockage',
-    href: '/client/storage',
+    key: "storage",
+    label: "Box de stockage",
+    href: "/client/storage",
     icon: Archive,
-    category: 'services'
+    category: "services",
   },
   // Compte et paramètres
   {
-    key: 'subscription',
-    label: 'Abonnement',
-    href: '/client/subscription',
-    icon: subscription === 'PREMIUM' ? Crown : subscription === 'STARTER' ? Star : Wallet,
-    category: 'account',
-    badge: subscription === 'FREE' ? 'Gratuit' : subscription === 'STARTER' ? 'Starter' : 'Premium'
+    key: "subscription",
+    label: "Abonnement",
+    href: "/client/subscription",
+    icon:
+      subscription === "PREMIUM"
+        ? Crown
+        : subscription === "STARTER"
+          ? Star
+          : Wallet,
+    category: "account",
+    badge:
+      subscription === "FREE"
+        ? "Gratuit"
+        : subscription === "STARTER"
+          ? "Starter"
+          : "Premium",
   },
   {
-    key: 'payments',
-    label: 'Paiements',
-    href: '/client/payments',
+    key: "payments",
+    label: "Paiements",
+    href: "/client/payments",
     icon: Wallet,
-    category: 'account'
+    category: "account",
   },
   {
-    key: 'invoice',
-    label: 'Factures',
-    href: '/client/invoice',
+    key: "invoice",
+    label: "Factures",
+    href: "/client/invoice",
     icon: Wallet,
-    category: 'account'
+    category: "account",
   },
   {
-    key: 'profile',
-    label: 'Mon profil',
-    href: '/client/profile',
+    key: "profile",
+    label: "Mon profil",
+    href: "/client/profile",
     icon: User,
-    category: 'account'
+    category: "account",
   },
   // Aide et support
   {
-    key: 'tutorial',
-    label: 'Tutoriel',
-    href: '/client/tutorial',
+    key: "tutorial",
+    label: "Tutoriel",
+    href: "/client/tutorial",
     icon: BookOpen,
-    category: 'help',
-    isNew: true
+    category: "help",
+    isNew: true,
   },
   {
-    key: 'notifications',
-    label: 'Notifications',
-    href: '/client/notifications',
+    key: "notifications",
+    label: "Notifications",
+    href: "/client/notifications",
     icon: Bell,
-    category: 'help',
-    badge: 5
+    category: "help",
+    badge: 5,
   },
   {
-    key: 'reviews',
-    label: 'Mes avis',
-    href: '/client/reviews',
+    key: "reviews",
+    label: "Mes avis",
+    href: "/client/reviews",
     icon: Star,
-    category: 'help'
+    category: "help",
   },
   {
-    key: 'support',
-    label: 'Support',
-    href: '/client/support',
+    key: "support",
+    label: "Support",
+    href: "/client/support",
     icon: HelpCircle,
-    category: 'help'
-  }
-]
+    category: "help",
+  },
+];
 
 // Catégories de navigation
 const categories = {
-  main: 'Principal',
-  services: 'Services',
-  account: 'Mon compte',
-  help: 'Aide & Support'
-}
+  main: "Principal",
+  services: "Services",
+  account: "Mon compte",
+  help: "Aide & Support",
+};
 
-function NavigationItem({ 
-  item, 
-  isActive, 
-  collapsed
+function NavigationItem({
+  item,
+  isActive,
+  collapsed,
 }: {
-  item: NavigationItem
-  isActive: boolean
-  collapsed: boolean
+  item: NavigationItem;
+  isActive: boolean;
+  collapsed: boolean;
 }) {
-  const Icon = item.icon
+  const Icon = item.icon;
 
   return (
     <Button
@@ -209,13 +219,15 @@ function NavigationItem({
       className={cn(
         "w-full justify-start h-10 px-3 relative",
         isActive && "bg-accent text-accent-foreground font-medium",
-        collapsed && "px-2"
+        collapsed && "px-2",
       )}
       asChild
     >
-      <Link 
+      <Link
         href={item.href}
-        data-tutorial={item.key === 'announcements' ? 'create-announcement' : undefined}
+        data-tutorial={
+          item.key === "announcements" ? "create-announcement" : undefined
+        }
       >
         <Icon className={cn("h-4 w-4", collapsed ? "" : "mr-3")} />
         {!collapsed && (
@@ -235,40 +247,51 @@ function NavigationItem({
         )}
       </Link>
     </Button>
-  )
+  );
 }
 
-export function ClientSidebar({ className, collapsed = false, user }: ClientSidebarProps) {
-  const pathname = usePathname()
-  
-  const navigation = getClientNavigation(user?.subscription)
+export function ClientSidebar({
+  className,
+  collapsed = false,
+  user,
+}: ClientSidebarProps) {
+  const pathname = usePathname();
+
+  const navigation = getClientNavigation(user?.subscription);
 
   const isActive = (href: string) => {
-    if (href === '/client') {
-      return pathname === '/client'
+    if (href === "/client") {
+      return pathname === "/client";
     }
-    return pathname.startsWith(href)
-  }
+    return pathname.startsWith(href);
+  };
 
-  const groupedNavigation = navigation.reduce((acc, item) => {
-    const category = item.category || 'main'
-    if (!acc[category]) acc[category] = []
-    acc[category].push(item)
-    return acc
-  }, {} as Record<string, NavigationItem[]>)
+  const groupedNavigation = navigation.reduce(
+    (acc, item) => {
+      const category = item.category || "main";
+      if (!acc[category]) acc[category] = [];
+      acc[category].push(item);
+      return acc;
+    },
+    {} as Record<string, NavigationItem[]>,
+  );
 
   return (
-    <div className={cn(
-      "flex h-full flex-col border-r bg-background dark:bg-background",
-      collapsed ? "w-16" : "w-64",
-      className
-    )}>
+    <div
+      className={cn(
+        "flex h-full flex-col border-r bg-background dark:bg-background",
+        collapsed ? "w-16" : "w-64",
+        className,
+      )}
+    >
       {/* Header */}
       <div className="flex h-16 items-center border-b px-4">
         {!collapsed ? (
           <div className="flex items-center gap-2">
             <Package className="h-6 w-6 text-blue-600 dark:text-blue-400" />
-            <span className="text-lg font-semibold text-blue-800 dark:text-blue-200">EcoDeli</span>
+            <span className="text-lg font-semibold text-blue-800 dark:text-blue-200">
+              EcoDeli
+            </span>
           </div>
         ) : (
           <Package className="h-6 w-6 text-blue-600 dark:text-blue-400" />
@@ -287,7 +310,7 @@ export function ClientSidebar({ className, collapsed = false, user }: ClientSide
                 {user.name || user.email}
               </p>
               <p className="truncate text-xs text-muted-foreground">
-                Plan {user.subscription || 'FREE'}
+                Plan {user.subscription || "FREE"}
               </p>
             </div>
           </div>
@@ -313,7 +336,9 @@ export function ClientSidebar({ className, collapsed = false, user }: ClientSide
                   />
                 ))}
               </div>
-              {!collapsed && category !== 'help' && <Separator className="my-4" />}
+              {!collapsed && category !== "help" && (
+                <Separator className="my-4" />
+              )}
             </div>
           ))}
         </div>
@@ -332,9 +357,9 @@ export function ClientSidebar({ className, collapsed = false, user }: ClientSide
         </div>
       )}
     </div>
-  )
+  );
 }
 
 export function useClientNavigation(user?: any) {
-  return getClientNavigation(user?.subscription)
+  return getClientNavigation(user?.subscription);
 }

@@ -1,49 +1,55 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import { useTranslations } from 'next-intl'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Input } from '@/components/ui/input'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { 
-  FileText, 
-  Download, 
+import { useState, useEffect } from "react";
+import { useTranslations } from "next-intl";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  FileText,
+  Download,
   Calendar,
   DollarSign,
   Users,
   TrendingUp,
   RefreshCw,
   Search,
-  Filter
-} from 'lucide-react'
-import { ProviderBillingDashboard } from '@/features/admin/components/provider-billing/provider-billing-dashboard'
-import { ProviderBillingList } from '@/features/admin/components/provider-billing/provider-billing-list'
+  Filter,
+} from "lucide-react";
+import { ProviderBillingDashboard } from "@/features/admin/components/provider-billing/provider-billing-dashboard";
+import { ProviderBillingList } from "@/features/admin/components/provider-billing/provider-billing-list";
 
 export default function AdminProviderBillingPage() {
-  const t = useTranslations('admin.providerBilling')
-  const [searchTerm, setSearchTerm] = useState('')
-  const [monthFilter, setMonthFilter] = useState<string>('')
-  const [statusFilter, setStatusFilter] = useState<string>('all')
+  const t = useTranslations("admin.providerBilling");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [monthFilter, setMonthFilter] = useState<string>("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">{t('title')}</h1>
-          <p className="text-muted-foreground">{t('description')}</p>
+          <h1 className="text-3xl font-bold tracking-tight">{t("title")}</h1>
+          <p className="text-muted-foreground">{t("description")}</p>
         </div>
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm">
             <RefreshCw className="h-4 w-4 mr-2" />
-            {t('refresh')}
+            {t("refresh")}
           </Button>
           <Button size="sm">
             <FileText className="h-4 w-4 mr-2" />
-            {t('generateInvoices')}
+            {t("generateInvoices")}
           </Button>
         </div>
       </div>
@@ -56,7 +62,7 @@ export default function AdminProviderBillingPage() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Filter className="h-5 w-5" />
-            {t('filters')}
+            {t("filters")}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -64,19 +70,19 @@ export default function AdminProviderBillingPage() {
             <div className="relative">
               <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder={t('searchPlaceholder')}
+                placeholder={t("searchPlaceholder")}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
               />
             </div>
-            
+
             <Select value={monthFilter} onValueChange={setMonthFilter}>
               <SelectTrigger>
-                <SelectValue placeholder={t('monthFilter')} />
+                <SelectValue placeholder={t("monthFilter")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">{t('allMonths')}</SelectItem>
+                <SelectItem value="">{t("allMonths")}</SelectItem>
                 <SelectItem value="2024-01">Janvier 2024</SelectItem>
                 <SelectItem value="2024-02">Février 2024</SelectItem>
                 <SelectItem value="2024-03">Mars 2024</SelectItem>
@@ -94,23 +100,26 @@ export default function AdminProviderBillingPage() {
 
             <Select value={statusFilter} onValueChange={setStatusFilter}>
               <SelectTrigger>
-                <SelectValue placeholder={t('statusFilter')} />
+                <SelectValue placeholder={t("statusFilter")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">{t('allStatuses')}</SelectItem>
-                <SelectItem value="PENDING">{t('pending')}</SelectItem>
-                <SelectItem value="GENERATED">{t('generated')}</SelectItem>
-                <SelectItem value="PAID">{t('paid')}</SelectItem>
-                <SelectItem value="OVERDUE">{t('overdue')}</SelectItem>
+                <SelectItem value="all">{t("allStatuses")}</SelectItem>
+                <SelectItem value="PENDING">{t("pending")}</SelectItem>
+                <SelectItem value="GENERATED">{t("generated")}</SelectItem>
+                <SelectItem value="PAID">{t("paid")}</SelectItem>
+                <SelectItem value="OVERDUE">{t("overdue")}</SelectItem>
               </SelectContent>
             </Select>
 
-            <Button variant="outline" onClick={() => {
-              setSearchTerm('')
-              setMonthFilter('')
-              setStatusFilter('all')
-            }}>
-              {t('clearFilters')}
+            <Button
+              variant="outline"
+              onClick={() => {
+                setSearchTerm("");
+                setMonthFilter("");
+                setStatusFilter("all");
+              }}
+            >
+              {t("clearFilters")}
             </Button>
           </div>
         </CardContent>
@@ -121,24 +130,24 @@ export default function AdminProviderBillingPage() {
         <TabsList>
           <TabsTrigger value="all" className="flex items-center gap-2">
             <FileText className="h-4 w-4" />
-            {t('allInvoices')}
+            {t("allInvoices")}
           </TabsTrigger>
           <TabsTrigger value="pending" className="flex items-center gap-2">
             <Calendar className="h-4 w-4" />
-            {t('pendingInvoices')}
+            {t("pendingInvoices")}
           </TabsTrigger>
           <TabsTrigger value="generated" className="flex items-center gap-2">
             <FileText className="h-4 w-4" />
-            {t('generatedInvoices')}
+            {t("generatedInvoices")}
           </TabsTrigger>
           <TabsTrigger value="paid" className="flex items-center gap-2">
             <DollarSign className="h-4 w-4" />
-            {t('paidInvoices')}
+            {t("paidInvoices")}
           </TabsTrigger>
         </TabsList>
 
         <TabsContent value="all">
-          <ProviderBillingList 
+          <ProviderBillingList
             statusFilter="all"
             searchTerm={searchTerm}
             monthFilter={monthFilter}
@@ -146,7 +155,7 @@ export default function AdminProviderBillingPage() {
         </TabsContent>
 
         <TabsContent value="pending">
-          <ProviderBillingList 
+          <ProviderBillingList
             statusFilter="PENDING"
             searchTerm={searchTerm}
             monthFilter={monthFilter}
@@ -154,7 +163,7 @@ export default function AdminProviderBillingPage() {
         </TabsContent>
 
         <TabsContent value="generated">
-          <ProviderBillingList 
+          <ProviderBillingList
             statusFilter="GENERATED"
             searchTerm={searchTerm}
             monthFilter={monthFilter}
@@ -162,7 +171,7 @@ export default function AdminProviderBillingPage() {
         </TabsContent>
 
         <TabsContent value="paid">
-          <ProviderBillingList 
+          <ProviderBillingList
             statusFilter="PAID"
             searchTerm={searchTerm}
             monthFilter={monthFilter}
@@ -170,5 +179,5 @@ export default function AdminProviderBillingPage() {
         </TabsContent>
       </Tabs>
     </div>
-  )
-} 
+  );
+}

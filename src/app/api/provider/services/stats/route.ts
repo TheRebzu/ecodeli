@@ -1,19 +1,19 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getCurrentUser } from '@/lib/auth/utils';
-import { prisma } from '@/lib/db';
+import { NextRequest, NextResponse } from "next/server";
+import { getCurrentUser } from "@/lib/auth/utils";
+import { prisma } from "@/lib/db";
 
 export async function GET(request: NextRequest) {
   try {
     const currentUser = await getCurrentUser();
     if (!currentUser) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const { searchParams } = new URL(request.url);
-    const userId = searchParams.get('userId');
+    const userId = searchParams.get("userId");
 
     if (!userId || userId !== currentUser.id) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
     // Calculate stats for the current month
@@ -27,59 +27,59 @@ export async function GET(request: NextRequest) {
     // Get total and active services count
     const [totalServices, activeServices] = await Promise.all([
       prisma.service.count({
-        where: { providerId: userId }
+        where: { providerId: userId },
       }),
       prisma.service.count({
-        where: { 
+        where: {
           providerId: userId,
-          isActive: true 
-        }
-      })
+          isActive: true,
+        },
+      }),
     ]);
 
     // Get average rating from bookings
     const ratingsAggregate = await prisma.booking.aggregate({
       where: {
         service: {
-          providerId: userId
+          providerId: userId,
         },
         rating: {
-          not: null
-        }
+          not: null,
+        },
       },
       _avg: {
-        rating: true
-      }
+        rating: true,
+      },
     });
 
     // Get this month's bookings count
     const monthlyBookings = await prisma.booking.count({
       where: {
         service: {
-          providerId: userId
+          providerId: userId,
         },
         createdAt: {
           gte: startOfMonth,
-          lt: endOfMonth
-        }
-      }
+          lt: endOfMonth,
+        },
+      },
     });
 
     // Calculate monthly revenue from completed bookings
     const revenueAggregate = await prisma.booking.aggregate({
       where: {
         service: {
-          providerId: userId
+          providerId: userId,
         },
-        status: 'COMPLETED',
+        status: "COMPLETED",
         createdAt: {
           gte: startOfMonth,
-          lt: endOfMonth
-        }
+          lt: endOfMonth,
+        },
       },
       _sum: {
-        totalAmount: true
-      }
+        totalAmount: true,
+      },
     });
 
     const stats = {
@@ -87,16 +87,15 @@ export async function GET(request: NextRequest) {
       activeServices,
       averageRating: ratingsAggregate._avg.rating || 0,
       totalBookings: monthlyBookings,
-      monthlyRevenue: revenueAggregate._sum.totalAmount || 0
+      monthlyRevenue: revenueAggregate._sum.totalAmount || 0,
     };
 
     return NextResponse.json(stats);
-
   } catch (error) {
-    console.error('Error fetching service stats:', error);
+    console.error("Error fetching service stats:", error);
     return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
+      { error: "Internal server error" },
+      { status: 500 },
     );
   }
-} 
+}

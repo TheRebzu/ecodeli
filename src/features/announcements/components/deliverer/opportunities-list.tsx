@@ -1,17 +1,19 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { useOpportunities } from "@/features/announcements/hooks/useOpportunities"
-import { AnnouncementCard } from "../shared/announcement-card"
-import { AnnouncementFilters } from "../shared/announcement-filters"
+import { useState } from "react";
+import { useOpportunities } from "@/features/announcements/hooks/useOpportunities";
+import { AnnouncementCard } from "../shared/announcement-card";
+import { AnnouncementFilters } from "../shared/announcement-filters";
 
 interface OpportunitiesListProps {
-  showFilters?: boolean
+  showFilters?: boolean;
 }
 
-export function OpportunitiesList({ showFilters = true }: OpportunitiesListProps) {
-  const [filters, setFilters] = useState({})
-  
+export function OpportunitiesList({
+  showFilters = true,
+}: OpportunitiesListProps) {
+  const [filters, setFilters] = useState({});
+
   const {
     opportunities,
     loading,
@@ -19,40 +21,44 @@ export function OpportunitiesList({ showFilters = true }: OpportunitiesListProps
     pagination,
     refresh,
     acceptOpportunity,
-    accepting
-  } = useOpportunities({ filters })
+    accepting,
+  } = useOpportunities({ filters });
 
   const handleAcceptOpportunity = async (opportunityId: string) => {
     try {
-      await acceptOpportunity(opportunityId)
+      await acceptOpportunity(opportunityId);
       // Show success message
     } catch (err) {
       // Error is handled by the hook
     }
-  }
+  };
 
   const calculateDistance = (opportunity: any) => {
     // This would typically use the deliverer's current location
     // For now, we'll use the match score as a proxy
-    return opportunity.matchScore ? `${(opportunity.matchScore * 50).toFixed(1)} km` : 'N/A'
-  }
+    return opportunity.matchScore
+      ? `${(opportunity.matchScore * 50).toFixed(1)} km`
+      : "N/A";
+  };
 
   const formatEarnings = (price: number, matchScore: number) => {
     // Calculate estimated earnings (platform takes a percentage)
-    const platformFee = 0.15 // 15% platform fee
-    const estimatedEarnings = price * (1 - platformFee) * matchScore
-    return new Intl.NumberFormat('fr-FR', {
-      style: 'currency',
-      currency: 'EUR'
-    }).format(estimatedEarnings)
-  }
+    const platformFee = 0.15; // 15% platform fee
+    const estimatedEarnings = price * (1 - platformFee) * matchScore;
+    return new Intl.NumberFormat("fr-FR", {
+      style: "currency",
+      currency: "EUR",
+    }).format(estimatedEarnings);
+  };
 
   if (error) {
     return (
       <div className="bg-white rounded-lg shadow-sm border p-8">
         <div className="text-center">
           <div className="text-red-600 text-6xl mb-4">⚠️</div>
-          <h3 className="text-lg font-medium text-gray-900 mb-2">Erreur de chargement</h3>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">
+            Erreur de chargement
+          </h3>
           <p className="text-gray-600 mb-4">{error}</p>
           <button
             onClick={refresh}
@@ -62,7 +68,7 @@ export function OpportunitiesList({ showFilters = true }: OpportunitiesListProps
           </button>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -70,15 +76,15 @@ export function OpportunitiesList({ showFilters = true }: OpportunitiesListProps
       {showFilters && (
         <AnnouncementFilters
           statusFilters={[
-            { key: 'all', label: 'Toutes' },
-            { key: 'ACTIVE', label: 'Disponibles' }
+            { key: "all", label: "Toutes" },
+            { key: "ACTIVE", label: "Disponibles" },
           ]}
           urgencyFilters={[
-            { key: 'all', label: 'Toutes' },
-            { key: 'URGENT', label: '🚨 Urgentes' },
-            { key: 'HIGH', label: 'Élevée' },
-            { key: 'MEDIUM', label: 'Moyenne' },
-            { key: 'LOW', label: 'Faible' }
+            { key: "all", label: "Toutes" },
+            { key: "URGENT", label: "🚨 Urgentes" },
+            { key: "HIGH", label: "Élevée" },
+            { key: "MEDIUM", label: "Moyenne" },
+            { key: "LOW", label: "Faible" },
           ]}
           onFiltersChange={setFilters}
         />
@@ -99,7 +105,7 @@ export function OpportunitiesList({ showFilters = true }: OpportunitiesListProps
                 disabled={loading}
                 className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 disabled:opacity-50"
               >
-                {loading ? '🔄 Actualisation...' : '🔄 Actualiser'}
+                {loading ? "🔄 Actualisation..." : "🔄 Actualiser"}
               </button>
             </div>
           </div>
@@ -150,27 +156,39 @@ export function OpportunitiesList({ showFilters = true }: OpportunitiesListProps
                   </h4>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                     <div>
-                      <span className="text-green-700 font-medium">Score de compatibilité:</span>
+                      <span className="text-green-700 font-medium">
+                        Score de compatibilité:
+                      </span>
                       <div className="text-green-900">
                         {Math.round(opportunity.matchScore * 100)}%
                       </div>
                     </div>
                     <div>
-                      <span className="text-green-700 font-medium">Distance estimée:</span>
+                      <span className="text-green-700 font-medium">
+                        Distance estimée:
+                      </span>
                       <div className="text-green-900">
                         {calculateDistance(opportunity)}
                       </div>
                     </div>
                     <div>
-                      <span className="text-green-700 font-medium">Gains estimés:</span>
+                      <span className="text-green-700 font-medium">
+                        Gains estimés:
+                      </span>
                       <div className="text-green-900 font-semibold">
-                        {formatEarnings(opportunity.announcement.price, opportunity.matchScore)}
+                        {formatEarnings(
+                          opportunity.announcement.price,
+                          opportunity.matchScore,
+                        )}
                       </div>
                     </div>
                     <div>
-                      <span className="text-green-700 font-medium">Votre trajet:</span>
+                      <span className="text-green-700 font-medium">
+                        Votre trajet:
+                      </span>
                       <div className="text-green-900 text-xs truncate">
-                        {opportunity.delivererRoute?.startAddress} → {opportunity.delivererRoute?.endAddress}
+                        {opportunity.delivererRoute?.startAddress} →{" "}
+                        {opportunity.delivererRoute?.endAddress}
                       </div>
                     </div>
                   </div>
@@ -179,12 +197,11 @@ export function OpportunitiesList({ showFilters = true }: OpportunitiesListProps
                 {/* Action Buttons */}
                 <div className="flex items-center justify-between">
                   <div className="text-sm text-gray-500">
-                    Correspondance trouvée {new Date(opportunity.createdAt).toLocaleString('fr-FR')}
+                    Correspondance trouvée{" "}
+                    {new Date(opportunity.createdAt).toLocaleString("fr-FR")}
                   </div>
                   <div className="flex items-center space-x-3">
-                    <button
-                      className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
-                    >
+                    <button className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">
                       Plus d'infos
                     </button>
                     <button
@@ -214,14 +231,18 @@ export function OpportunitiesList({ showFilters = true }: OpportunitiesListProps
               </span>
               <div className="flex items-center space-x-2">
                 <button
-                  onClick={() => {/* Handle previous page */}}
+                  onClick={() => {
+                    /* Handle previous page */
+                  }}
                   disabled={pagination.page === 1}
                   className="px-3 py-1 border border-gray-300 rounded disabled:opacity-50"
                 >
                   ← Précédent
                 </button>
                 <button
-                  onClick={() => {/* Handle next page */}}
+                  onClick={() => {
+                    /* Handle next page */
+                  }}
                   disabled={pagination.page === pagination.totalPages}
                   className="px-3 py-1 border border-gray-300 rounded disabled:opacity-50"
                 >
@@ -233,5 +254,5 @@ export function OpportunitiesList({ showFilters = true }: OpportunitiesListProps
         )}
       </div>
     </div>
-  )
+  );
 }

@@ -1,55 +1,55 @@
-'use client'
+"use client";
 
-import React, { useState, useEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { X, ChevronRight, ChevronLeft, Check, Clock, Star } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Progress } from '@/components/ui/progress'
-import { Badge } from '@/components/ui/badge'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Textarea } from '@/components/ui/textarea'
-import { useTranslations } from 'next-intl'
+import React, { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { X, ChevronRight, ChevronLeft, Check, Clock, Star } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Textarea } from "@/components/ui/textarea";
+import { useTranslations } from "next-intl";
 
 interface TutorialStep {
-  id: number
-  title: string
-  description: string
-  type: string
-  mandatory: boolean
-  estimatedTime: number
-  completed: boolean
-  timeSpent: number
-  skipped: boolean
+  id: number;
+  title: string;
+  description: string;
+  type: string;
+  mandatory: boolean;
+  estimatedTime: number;
+  completed: boolean;
+  timeSpent: number;
+  skipped: boolean;
 }
 
 interface TutorialSettings {
-  blockingOverlay: boolean
-  allowSkip: boolean
-  autoSave: boolean
-  showProgress: boolean
+  blockingOverlay: boolean;
+  allowSkip: boolean;
+  autoSave: boolean;
+  showProgress: boolean;
 }
 
 interface ClientTutorialOverlayProps {
-  isOpen: boolean
-  tutorialRequired: boolean
-  currentStep: number
-  steps: TutorialStep[]
-  settings: TutorialSettings
-  progressPercentage: number
+  isOpen: boolean;
+  tutorialRequired: boolean;
+  currentStep: number;
+  steps: TutorialStep[];
+  settings: TutorialSettings;
+  progressPercentage: number;
   user: {
-    name: string
-    email: string
-    subscriptionPlan: string
-  }
-  onStepComplete: (stepId: number, timeSpent: number) => Promise<void>
+    name: string;
+    email: string;
+    subscriptionPlan: string;
+  };
+  onStepComplete: (stepId: number, timeSpent: number) => Promise<void>;
   onTutorialComplete: (data: {
-    totalTimeSpent: number
-    stepsCompleted: number[]
-    feedback?: string
-    rating?: number
-  }) => Promise<void>
-  onClose?: () => void
-  onNavigate?: (stepId: number) => void
+    totalTimeSpent: number;
+    stepsCompleted: number[];
+    feedback?: string;
+    rating?: number;
+  }) => Promise<void>;
+  onClose?: () => void;
+  onNavigate?: (stepId: number) => void;
 }
 
 export function ClientTutorialOverlay({
@@ -63,163 +63,171 @@ export function ClientTutorialOverlay({
   onStepComplete,
   onTutorialComplete,
   onClose,
-  onNavigate
+  onNavigate,
 }: ClientTutorialOverlayProps) {
-  const t = useTranslations('tutorial')
-  
-  const [activeStepIndex, setActiveStepIndex] = useState(0)
-  const [stepStartTime, setStepStartTime] = useState<number>(Date.now())
-  const [totalStartTime] = useState<number>(Date.now())
-  const [isCompleting, setIsCompleting] = useState(false)
-  const [feedback, setFeedback] = useState('')
-  const [rating, setRating] = useState<number>(0)
-  const [showFeedback, setShowFeedback] = useState(false)
-  const [localSteps, setLocalSteps] = useState<TutorialStep[]>(steps)
+  const t = useTranslations("tutorial");
+
+  const [activeStepIndex, setActiveStepIndex] = useState(0);
+  const [stepStartTime, setStepStartTime] = useState<number>(Date.now());
+  const [totalStartTime] = useState<number>(Date.now());
+  const [isCompleting, setIsCompleting] = useState(false);
+  const [feedback, setFeedback] = useState("");
+  const [rating, setRating] = useState<number>(0);
+  const [showFeedback, setShowFeedback] = useState(false);
+  const [localSteps, setLocalSteps] = useState<TutorialStep[]>(steps);
 
   // Update local steps when props change
   useEffect(() => {
-    setLocalSteps(steps)
-  }, [steps])
+    setLocalSteps(steps);
+  }, [steps]);
 
   // Check if all mandatory steps are completed and show feedback
   useEffect(() => {
     const allMandatoryCompleted = localSteps
-      .filter(s => s.mandatory)
-      .every(s => s.completed)
-    
-    if (allMandatoryCompleted && !showFeedback) {
-      console.log('All mandatory steps completed, showing feedback form')
-      setShowFeedback(true)
-    }
-  }, [localSteps, showFeedback])
+      .filter((s) => s.mandatory)
+      .every((s) => s.completed);
 
-  const activeStep = localSteps[activeStepIndex]
-  const isLastStep = activeStepIndex === localSteps.length - 1
-  const mandatorySteps = localSteps.filter(s => s.mandatory)
-  const completedMandatory = mandatorySteps.filter(s => s.completed).length
+    if (allMandatoryCompleted && !showFeedback) {
+      console.log("All mandatory steps completed, showing feedback form");
+      setShowFeedback(true);
+    }
+  }, [localSteps, showFeedback]);
+
+  const activeStep = localSteps[activeStepIndex];
+  const isLastStep = activeStepIndex === localSteps.length - 1;
+  const mandatorySteps = localSteps.filter((s) => s.mandatory);
+  const completedMandatory = mandatorySteps.filter((s) => s.completed).length;
 
   // Mettre à jour l'étape active quand currentStep change
   useEffect(() => {
-    const stepIndex = localSteps.findIndex(s => s.id === currentStep)
+    const stepIndex = localSteps.findIndex((s) => s.id === currentStep);
     if (stepIndex !== -1) {
-      setActiveStepIndex(stepIndex)
-      setStepStartTime(Date.now())
+      setActiveStepIndex(stepIndex);
+      setStepStartTime(Date.now());
     }
-  }, [currentStep, localSteps])
+  }, [currentStep, localSteps]);
 
   // Empêcher la fermeture si le tutoriel est obligatoire
   useEffect(() => {
     if (tutorialRequired && settings.blockingOverlay) {
       // Bloquer les raccourcis clavier
       const handleKeyDown = (e: KeyboardEvent) => {
-        if (e.key === 'Escape' || (e.ctrlKey && e.key === 'w')) {
-          e.preventDefault()
-          e.stopPropagation()
+        if (e.key === "Escape" || (e.ctrlKey && e.key === "w")) {
+          e.preventDefault();
+          e.stopPropagation();
         }
-      }
+      };
 
       // Bloquer le clic droit et autres interactions
       const handleContextMenu = (e: Event) => {
-        e.preventDefault()
-      }
+        e.preventDefault();
+      };
 
-      document.addEventListener('keydown', handleKeyDown, true)
-      document.addEventListener('contextmenu', handleContextMenu, true)
+      document.addEventListener("keydown", handleKeyDown, true);
+      document.addEventListener("contextmenu", handleContextMenu, true);
 
       return () => {
-        document.removeEventListener('keydown', handleKeyDown, true)
-        document.removeEventListener('contextmenu', handleContextMenu, true)
-      }
+        document.removeEventListener("keydown", handleKeyDown, true);
+        document.removeEventListener("contextmenu", handleContextMenu, true);
+      };
     }
-  }, [tutorialRequired, settings.blockingOverlay])
+  }, [tutorialRequired, settings.blockingOverlay]);
 
   const handleStepComplete = async () => {
-    if (!activeStep) return
+    if (!activeStep) return;
 
-    const timeSpent = Date.now() - stepStartTime
-    
+    const timeSpent = Date.now() - stepStartTime;
+
     try {
-      await onStepComplete(activeStep.id, timeSpent)
-      
+      await onStepComplete(activeStep.id, timeSpent);
+
       // Update local state to mark step as completed
-      setLocalSteps(prev => prev.map(step => 
-        step.id === activeStep.id 
-          ? { ...step, completed: true, timeSpent }
-          : step
-      ))
-      
+      setLocalSteps((prev) =>
+        prev.map((step) =>
+          step.id === activeStep.id
+            ? { ...step, completed: true, timeSpent }
+            : step,
+        ),
+      );
+
       // Check if all mandatory steps are completed
-      const updatedSteps = localSteps.map(step => 
-        step.id === activeStep.id 
+      const updatedSteps = localSteps.map((step) =>
+        step.id === activeStep.id
           ? { ...step, completed: true, timeSpent }
-          : step
-      )
-      
+          : step,
+      );
+
       const allMandatoryCompleted = updatedSteps
-        .filter(s => s.mandatory)
-        .every(s => s.completed)
-      
+        .filter((s) => s.mandatory)
+        .every((s) => s.completed);
+
       // Show feedback if all mandatory steps are done or if it's the last step
       if (allMandatoryCompleted || isLastStep) {
-        setShowFeedback(true)
+        setShowFeedback(true);
       } else {
         // Find next mandatory step
-        const nextMandatoryStep = updatedSteps.find(s => s.mandatory && !s.completed)
+        const nextMandatoryStep = updatedSteps.find(
+          (s) => s.mandatory && !s.completed,
+        );
         if (nextMandatoryStep) {
-          const nextIndex = updatedSteps.findIndex(s => s.id === nextMandatoryStep.id)
-          setActiveStepIndex(nextIndex)
-          setStepStartTime(Date.now())
+          const nextIndex = updatedSteps.findIndex(
+            (s) => s.id === nextMandatoryStep.id,
+          );
+          setActiveStepIndex(nextIndex);
+          setStepStartTime(Date.now());
         } else {
           // No more mandatory steps, show feedback
-          setShowFeedback(true)
+          setShowFeedback(true);
         }
       }
     } catch (error) {
-      console.error('Error completing step:', error)
+      console.error("Error completing step:", error);
     }
-  }
+  };
 
   const handleTutorialComplete = async () => {
-    setIsCompleting(true)
-    
+    setIsCompleting(true);
+
     try {
-      const totalTimeSpent = Date.now() - totalStartTime
-      const completedStepIds = localSteps.filter(s => s.completed).map(s => s.id)
-      
+      const totalTimeSpent = Date.now() - totalStartTime;
+      const completedStepIds = localSteps
+        .filter((s) => s.completed)
+        .map((s) => s.id);
+
       await onTutorialComplete({
         totalTimeSpent,
         stepsCompleted: completedStepIds,
         feedback: feedback || undefined,
-        rating: rating || undefined
-      })
-      
-      onClose?.()
+        rating: rating || undefined,
+      });
+
+      onClose?.();
     } catch (error) {
-      console.error('Error completing tutorial:', error)
+      console.error("Error completing tutorial:", error);
     } finally {
-      setIsCompleting(false)
+      setIsCompleting(false);
     }
-  }
+  };
 
   const handlePreviousStep = () => {
     if (activeStepIndex > 0) {
-      setActiveStepIndex(activeStepIndex - 1)
-      setStepStartTime(Date.now())
+      setActiveStepIndex(activeStepIndex - 1);
+      setStepStartTime(Date.now());
     }
-  }
+  };
 
   const handleNextStep = () => {
     if (activeStepIndex < localSteps.length - 1) {
-      setActiveStepIndex(activeStepIndex + 1)
-      setStepStartTime(Date.now())
+      setActiveStepIndex(activeStepIndex + 1);
+      setStepStartTime(Date.now());
     }
-  }
+  };
 
   const renderStepContent = () => {
-    if (!activeStep) return null
+    if (!activeStep) return null;
 
     switch (activeStep.type) {
-      case 'welcome':
+      case "welcome":
         return (
           <div className="text-center space-y-6">
             <div className="w-20 h-20 mx-auto bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center">
@@ -227,7 +235,7 @@ export function ClientTutorialOverlay({
             </div>
             <div>
               <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                Bienvenue {user.name.split(' ')[0]} sur EcoDeli !
+                Bienvenue {user.name.split(" ")[0]} sur EcoDeli !
               </h2>
               <p className="text-gray-600">
                 Découvrez notre plateforme éco-responsable de crowdshipping
@@ -254,9 +262,9 @@ export function ClientTutorialOverlay({
               </div>
             </div>
           </div>
-        )
+        );
 
-      case 'profile':
+      case "profile":
         return (
           <div className="space-y-4">
             <div className="text-center">
@@ -286,9 +294,9 @@ export function ClientTutorialOverlay({
               </CardContent>
             </Card>
           </div>
-        )
+        );
 
-      case 'subscription':
+      case "subscription":
         return (
           <div className="space-y-4">
             <div className="text-center">
@@ -296,7 +304,11 @@ export function ClientTutorialOverlay({
               <p className="text-gray-600 mb-4">{activeStep.description}</p>
             </div>
             <div className="grid grid-cols-3 gap-3">
-              <Card className={user.subscriptionPlan === 'FREE' ? 'ring-2 ring-blue-500' : ''}>
+              <Card
+                className={
+                  user.subscriptionPlan === "FREE" ? "ring-2 ring-blue-500" : ""
+                }
+              >
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm">Free</CardTitle>
                 </CardHeader>
@@ -337,9 +349,9 @@ export function ClientTutorialOverlay({
               </Card>
             </div>
           </div>
-        )
+        );
 
-      case 'announcement':
+      case "announcement":
         return (
           <div className="space-y-4">
             <div className="text-center">
@@ -375,9 +387,9 @@ export function ClientTutorialOverlay({
               </div>
             </div>
           </div>
-        )
+        );
 
-      case 'completion':
+      case "completion":
         return (
           <div className="text-center space-y-6">
             <div className="w-20 h-20 mx-auto bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center">
@@ -392,7 +404,9 @@ export function ClientTutorialOverlay({
               </p>
             </div>
             <div className="bg-green-50 rounded-lg p-4">
-              <h3 className="font-medium text-green-800 mb-2">Fonctionnalités débloquées :</h3>
+              <h3 className="font-medium text-green-800 mb-2">
+                Fonctionnalités débloquées :
+              </h3>
               <ul className="text-sm text-green-700 space-y-1">
                 <li>✓ Création d'annonces illimitées</li>
                 <li>✓ Réservation de services</li>
@@ -401,7 +415,7 @@ export function ClientTutorialOverlay({
               </ul>
             </div>
           </div>
-        )
+        );
 
       default:
         return (
@@ -414,9 +428,9 @@ export function ClientTutorialOverlay({
               </p>
             </div>
           </div>
-        )
+        );
     }
-  }
+  };
 
   const renderFeedbackForm = () => (
     <div className="space-y-6">
@@ -440,7 +454,7 @@ export function ClientTutorialOverlay({
                 key={star}
                 onClick={() => setRating(star)}
                 className={`p-1 ${
-                  star <= rating ? 'text-yellow-400' : 'text-gray-300'
+                  star <= rating ? "text-yellow-400" : "text-gray-300"
                 }`}
               >
                 <Star className="w-6 h-6 fill-current" />
@@ -479,14 +493,14 @@ export function ClientTutorialOverlay({
           disabled={isCompleting}
           className="flex-1"
         >
-          {isCompleting ? 'Finalisation...' : 'Terminer'}
+          {isCompleting ? "Finalisation..." : "Terminer"}
         </Button>
       </div>
     </div>
-  )
+  );
 
   if (!isOpen || !tutorialRequired) {
-    return null
+    return null;
   }
 
   return (
@@ -496,7 +510,7 @@ export function ClientTutorialOverlay({
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         className="fixed inset-0 z-[9999] bg-black/80 backdrop-blur-sm"
-        style={{ pointerEvents: 'all' }}
+        style={{ pointerEvents: "all" }}
       >
         <div className="fixed inset-0 overflow-y-auto">
           <div className="flex min-h-full items-center justify-center p-4">
@@ -519,7 +533,7 @@ export function ClientTutorialOverlay({
                     </p>
                   </div>
                 </div>
-                
+
                 {/* Empêcher la fermeture si obligatoire */}
                 {!settings.blockingOverlay && onClose && (
                   <Button
@@ -544,7 +558,10 @@ export function ClientTutorialOverlay({
                   </div>
                   <Progress value={progressPercentage} className="h-2" />
                   <div className="flex items-center justify-between mt-2 text-xs text-gray-500">
-                    <span>{completedMandatory}/{mandatorySteps.length} étapes obligatoires</span>
+                    <span>
+                      {completedMandatory}/{mandatorySteps.length} étapes
+                      obligatoires
+                    </span>
                     <div className="flex items-center">
                       <Clock className="w-3 h-3 mr-1" />
                       <span>~{activeStep?.estimatedTime}s</span>
@@ -577,10 +594,10 @@ export function ClientTutorialOverlay({
                         key={step.id}
                         className={`w-2 h-2 rounded-full ${
                           index === activeStepIndex
-                            ? 'bg-blue-500'
+                            ? "bg-blue-500"
                             : step.completed
-                            ? 'bg-green-500'
-                            : 'bg-gray-300'
+                              ? "bg-green-500"
+                              : "bg-gray-300"
                         }`}
                       />
                     ))}
@@ -588,7 +605,7 @@ export function ClientTutorialOverlay({
 
                   <div className="flex items-center space-x-2">
                     {/* Debug button for testing */}
-                    {process.env.NODE_ENV === 'development' && (
+                    {process.env.NODE_ENV === "development" && (
                       <Button
                         variant="outline"
                         size="sm"
@@ -598,14 +615,20 @@ export function ClientTutorialOverlay({
                         Debug: Show Feedback
                       </Button>
                     )}
-                    
+
                     {isLastStep ? (
-                      <Button onClick={handleStepComplete} className="flex items-center">
+                      <Button
+                        onClick={handleStepComplete}
+                        className="flex items-center"
+                      >
                         Terminer
                         <Check className="w-4 h-4 ml-2" />
                       </Button>
                     ) : (
-                      <Button onClick={handleStepComplete} className="flex items-center">
+                      <Button
+                        onClick={handleStepComplete}
+                        className="flex items-center"
+                      >
                         Suivant
                         <ChevronRight className="w-4 h-4 ml-2" />
                       </Button>
@@ -618,5 +641,5 @@ export function ClientTutorialOverlay({
         </div>
       </motion.div>
     </AnimatePresence>
-  )
-} 
+  );
+}

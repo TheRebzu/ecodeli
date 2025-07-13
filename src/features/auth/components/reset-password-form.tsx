@@ -1,64 +1,79 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useRouter, useSearchParams } from "next/navigation"
-import { resetPasswordSchema, type ResetPasswordData } from "@/features/auth/schemas/auth.schema"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Link } from "@/i18n/navigation"
-import { ArrowLeft, Lock, Loader2, CheckCircle, AlertTriangle } from "lucide-react"
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useRouter, useSearchParams } from "next/navigation";
+import {
+  resetPasswordSchema,
+  type ResetPasswordData,
+} from "@/features/auth/schemas/auth.schema";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Link } from "@/i18n/navigation";
+import {
+  ArrowLeft,
+  Lock,
+  Loader2,
+  CheckCircle,
+  AlertTriangle,
+} from "lucide-react";
 
 export function ResetPasswordForm() {
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [success, setSuccess] = useState(false)
-  const router = useRouter()
-  const searchParams = useSearchParams()
-  const token = searchParams.get('token')
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const token = searchParams.get("token");
 
   const {
     register,
     handleSubmit,
     formState: { errors },
-    setValue
+    setValue,
   } = useForm<ResetPasswordData>({
-    resolver: zodResolver(resetPasswordSchema)
-  })
+    resolver: zodResolver(resetPasswordSchema),
+  });
 
   // Pré-remplir le token dans le form
-  if (token) setValue('token', token)
+  if (token) setValue("token", token);
 
   const onSubmit = async (data: ResetPasswordData) => {
-    setIsLoading(true)
-    setError(null)
+    setIsLoading(true);
+    setError(null);
 
     try {
-      const response = await fetch('/api/auth/reset-password', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-      })
+      const response = await fetch("/api/auth/reset-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
 
-      const result = await response.json()
+      const result = await response.json();
 
       if (response.ok) {
-        setSuccess(true)
+        setSuccess(true);
         setTimeout(() => {
-          router.push('/login')
-        }, 3000)
+          router.push("/login");
+        }, 3000);
       } else {
-        setError(result.error || 'Une erreur est survenue')
+        setError(result.error || "Une erreur est survenue");
       }
     } catch (err) {
-      setError('Erreur de connexion. Veuillez réessayer.')
+      setError("Erreur de connexion. Veuillez réessayer.");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   // Pas de token dans l'URL
   if (!token) {
@@ -80,13 +95,13 @@ export function ResetPasswordForm() {
             </AlertDescription>
           </Alert>
           <div className="flex flex-col gap-2">
-            <Link 
+            <Link
               href="/forgot-password"
               className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 text-center"
             >
               Demander un nouveau lien
             </Link>
-            <Link 
+            <Link
               href="/login"
               className="inline-flex items-center justify-center gap-2 text-sm text-gray-600 hover:text-gray-800"
             >
@@ -96,7 +111,7 @@ export function ResetPasswordForm() {
           </div>
         </CardContent>
       </Card>
-    )
+    );
   }
 
   // Réinitialisation réussie
@@ -107,7 +122,9 @@ export function ResetPasswordForm() {
           <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
             <CheckCircle className="w-8 h-8 text-green-600" />
           </div>
-          <CardTitle className="text-xl text-green-700">Mot de passe modifié !</CardTitle>
+          <CardTitle className="text-xl text-green-700">
+            Mot de passe modifié !
+          </CardTitle>
           <CardDescription>
             Votre mot de passe a été mis à jour avec succès
           </CardDescription>
@@ -115,11 +132,12 @@ export function ResetPasswordForm() {
         <CardContent className="space-y-4">
           <Alert>
             <AlertDescription>
-              Vous allez être redirigé vers la page de connexion dans quelques secondes...
+              Vous allez être redirigé vers la page de connexion dans quelques
+              secondes...
             </AlertDescription>
           </Alert>
           <div className="flex justify-center">
-            <Link 
+            <Link
               href="/login"
               className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-800"
             >
@@ -129,7 +147,7 @@ export function ResetPasswordForm() {
           </div>
         </CardContent>
       </Card>
-    )
+    );
   }
 
   // Formulaire de réinitialisation
@@ -151,7 +169,7 @@ export function ResetPasswordForm() {
               <AlertDescription>{error}</AlertDescription>
             </Alert>
           )}
-          <input type="hidden" {...register("token")}/>
+          <input type="hidden" {...register("token")} />
           <div className="space-y-2">
             <label htmlFor="password" className="text-sm font-medium">
               Nouveau mot de passe
@@ -179,19 +197,17 @@ export function ResetPasswordForm() {
               className="w-full"
             />
             {errors.confirmPassword && (
-              <p className="text-sm text-red-600">{errors.confirmPassword.message}</p>
+              <p className="text-sm text-red-600">
+                {errors.confirmPassword.message}
+              </p>
             )}
           </div>
-          <Button
-            type="submit"
-            disabled={isLoading}
-            className="w-full"
-          >
+          <Button type="submit" disabled={isLoading} className="w-full">
             {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {isLoading ? 'Mise à jour...' : 'Mettre à jour le mot de passe'}
+            {isLoading ? "Mise à jour..." : "Mettre à jour le mot de passe"}
           </Button>
           <div className="text-center">
-            <Link 
+            <Link
               href="/login"
               className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-800"
             >
@@ -202,5 +218,5 @@ export function ResetPasswordForm() {
         </form>
       </CardContent>
     </Card>
-  )
-} 
+  );
+}

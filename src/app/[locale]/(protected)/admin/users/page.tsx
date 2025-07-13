@@ -1,18 +1,24 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Badge } from "@/components/ui/badge"
-import { 
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
+} from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -20,16 +26,16 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table"
+} from "@/components/ui/table";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { 
-  Users, 
-  Search, 
+} from "@/components/ui/dropdown-menu";
+import {
+  Users,
+  Search,
   Filter,
   MoreHorizontal,
   UserCheck,
@@ -40,167 +46,179 @@ import {
   Phone,
   Eye,
   Download,
-  Plus
-} from "lucide-react"
+  Plus,
+} from "lucide-react";
 
 // Types pour les utilisateurs
 interface User {
-  id: string
-  email: string
-  role: 'CLIENT' | 'DELIVERER' | 'MERCHANT' | 'PROVIDER' | 'ADMIN'
-  firstName?: string
-  lastName?: string
-  phone?: string
-  emailVerified: boolean
-  isActive: boolean
-  createdAt: string
-  lastLoginAt?: string
+  id: string;
+  email: string;
+  role: "CLIENT" | "DELIVERER" | "MERCHANT" | "PROVIDER" | "ADMIN";
+  firstName?: string;
+  lastName?: string;
+  phone?: string;
+  emailVerified: boolean;
+  isActive: boolean;
+  createdAt: string;
+  lastLoginAt?: string;
 }
 
 // API URL de base
-const API_BASE = '/api/admin/users'
+const API_BASE = "/api/admin/users";
 
 export default function AdminUsersPage() {
-  const router = useRouter()
-  const [users, setUsers] = useState<User[]>([])
-  const [filteredUsers, setFilteredUsers] = useState<User[]>([])
-  const [searchTerm, setSearchTerm] = useState("")
-  const [roleFilter, setRoleFilter] = useState<string>("all")
-  const [statusFilter, setStatusFilter] = useState<string>("all")
-  const [isLoading, setIsLoading] = useState(true)
+  const router = useRouter();
+  const [users, setUsers] = useState<User[]>([]);
+  const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [roleFilter, setRoleFilter] = useState<string>("all");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [isLoading, setIsLoading] = useState(true);
 
   // Fonction pour récupérer les utilisateurs depuis l'API
   const fetchUsers = async () => {
     try {
-      setIsLoading(true)
-      const params = new URLSearchParams()
-      if (searchTerm) params.append('search', searchTerm)
-      if (roleFilter !== 'all') params.append('role', roleFilter)
-      if (statusFilter !== 'all') params.append('status', statusFilter)
+      setIsLoading(true);
+      const params = new URLSearchParams();
+      if (searchTerm) params.append("search", searchTerm);
+      if (roleFilter !== "all") params.append("role", roleFilter);
+      if (statusFilter !== "all") params.append("status", statusFilter);
 
       const response = await fetch(`${API_BASE}?${params}`, {
-        credentials: 'include', // Important pour inclure les cookies
-      })
-      
-      const data = await response.json()
+        credentials: "include", // Important pour inclure les cookies
+      });
+
+      const data = await response.json();
 
       if (data.success) {
-        setUsers(data.users)
+        setUsers(data.users);
       } else {
-        console.error('Erreur lors de la récupération des utilisateurs:', data.error)
+        console.error(
+          "Erreur lors de la récupération des utilisateurs:",
+          data.error,
+        );
       }
     } catch (error) {
-      console.error('Erreur réseau fetchUsers:', error)
+      console.error("Erreur réseau fetchUsers:", error);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   // Récupérer les utilisateurs au chargement initial
   useEffect(() => {
-    fetchUsers()
-  }, [])
+    fetchUsers();
+  }, []);
 
   // Refetch quand les filtres changent
   useEffect(() => {
     const debounceTimer = setTimeout(() => {
-      fetchUsers()
-    }, 500) // Debounce de 500ms pour éviter trop de requêtes
+      fetchUsers();
+    }, 500); // Debounce de 500ms pour éviter trop de requêtes
 
-    return () => clearTimeout(debounceTimer)
-  }, [searchTerm, roleFilter, statusFilter])
+    return () => clearTimeout(debounceTimer);
+  }, [searchTerm, roleFilter, statusFilter]);
 
   // Synchroniser les utilisateurs filtrés avec les utilisateurs récupérés
   useEffect(() => {
-    setFilteredUsers(users)
-  }, [users])
+    setFilteredUsers(users);
+  }, [users]);
 
-  const handleToggleVerification = async (userId: string, currentEmailVerified: boolean) => {
+  const handleToggleVerification = async (
+    userId: string,
+    currentEmailVerified: boolean,
+  ) => {
     try {
       const response = await fetch(API_BASE, {
-        method: 'PUT',
-        headers: { 
-          'Content-Type': 'application/json',
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
           // Les cookies sont automatiquement inclus pour same-origin
         },
-        credentials: 'include', // Important pour inclure les cookies
+        credentials: "include", // Important pour inclure les cookies
         body: JSON.stringify({
           userId,
-          action: 'toggle_verification',
-          data: { currentEmailVerified }
-        })
-      })
-      
-      const data = await response.json()
-      
+          action: "toggle_verification",
+          data: { currentEmailVerified },
+        }),
+      });
+
+      const data = await response.json();
+
       if (data.success) {
         // Rafraîchir les données
-        fetchUsers()
+        fetchUsers();
       } else {
-        console.error('Erreur API:', data.error);
-        alert('Erreur lors de la mise à jour: ' + data.error)
+        console.error("Erreur API:", data.error);
+        alert("Erreur lors de la mise à jour: " + data.error);
       }
     } catch (error) {
-      console.error('Erreur réseau:', error)
-      alert('Erreur réseau lors de la mise à jour: ' + error.message)
+      console.error("Erreur réseau:", error);
+      alert("Erreur réseau lors de la mise à jour: " + error.message);
     }
-  }
+  };
 
   const handleDeleteUser = async (userId: string) => {
     if (confirm("Êtes-vous sûr de vouloir supprimer cet utilisateur ?")) {
       try {
         const response = await fetch(`${API_BASE}?userId=${userId}`, {
-          method: 'DELETE',
-          credentials: 'include', // Important pour inclure les cookies
-        })
-        
-        const data = await response.json()
-        
+          method: "DELETE",
+          credentials: "include", // Important pour inclure les cookies
+        });
+
+        const data = await response.json();
+
         if (data.success) {
           // Rafraîchir les données
-          fetchUsers()
+          fetchUsers();
         } else {
-          console.error('Erreur suppression:', data.error);
-          alert('Erreur lors de la suppression: ' + data.error)
+          console.error("Erreur suppression:", data.error);
+          alert("Erreur lors de la suppression: " + data.error);
         }
       } catch (error) {
-        console.error('Erreur réseau suppression:', error)
-        alert('Erreur réseau lors de la suppression: ' + error.message)
+        console.error("Erreur réseau suppression:", error);
+        alert("Erreur réseau lors de la suppression: " + error.message);
       }
     }
-  }
+  };
 
   const getRoleBadgeVariant = (role: string) => {
     switch (role) {
-      case 'ADMIN': return 'destructive'
-      case 'DELIVERER': return 'default'
-      case 'MERCHANT': return 'secondary'
-      case 'PROVIDER': return 'outline'
-      case 'CLIENT': return 'default'
-      default: return 'default'
+      case "ADMIN":
+        return "destructive";
+      case "DELIVERER":
+        return "default";
+      case "MERCHANT":
+        return "secondary";
+      case "PROVIDER":
+        return "outline";
+      case "CLIENT":
+        return "default";
+      default:
+        return "default";
     }
-  }
+  };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('fr-FR', {
-      day: '2-digit',
-      month: '2-digit', 
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    })
-  }
+    return new Date(dateString).toLocaleDateString("fr-FR", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
 
   const stats = {
     total: users.length,
-    active: users.filter(u => u.isActive).length,
-    verified: users.filter(u => u.emailVerified).length,
-    clients: users.filter(u => u.role === 'CLIENT').length,
-    deliverers: users.filter(u => u.role === 'DELIVERER').length,
-    merchants: users.filter(u => u.role === 'MERCHANT').length,
-    providers: users.filter(u => u.role === 'PROVIDER').length,
-    admins: users.filter(u => u.role === 'ADMIN').length
-  }
+    active: users.filter((u) => u.isActive).length,
+    verified: users.filter((u) => u.emailVerified).length,
+    clients: users.filter((u) => u.role === "CLIENT").length,
+    deliverers: users.filter((u) => u.role === "DELIVERER").length,
+    merchants: users.filter((u) => u.role === "MERCHANT").length,
+    providers: users.filter((u) => u.role === "PROVIDER").length,
+    admins: users.filter((u) => u.role === "ADMIN").length,
+  };
 
   return (
     <div className="space-y-6">
@@ -237,13 +255,17 @@ export default function AdminUsersPage() {
         </Card>
         <Card>
           <CardContent className="p-4">
-            <div className="text-2xl font-bold text-green-600">{stats.active}</div>
+            <div className="text-2xl font-bold text-green-600">
+              {stats.active}
+            </div>
             <p className="text-xs text-muted-foreground">Actifs</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4">
-            <div className="text-2xl font-bold text-blue-600">{stats.verified}</div>
+            <div className="text-2xl font-bold text-blue-600">
+              {stats.verified}
+            </div>
             <p className="text-xs text-muted-foreground">Vérifiés</p>
           </CardContent>
         </Card>
@@ -273,7 +295,9 @@ export default function AdminUsersPage() {
         </Card>
         <Card>
           <CardContent className="p-4">
-            <div className="text-2xl font-bold text-red-600">{stats.admins}</div>
+            <div className="text-2xl font-bold text-red-600">
+              {stats.admins}
+            </div>
             <p className="text-xs text-muted-foreground">Admins</p>
           </CardContent>
         </Card>
@@ -329,9 +353,7 @@ export default function AdminUsersPage() {
       {/* Tableau des utilisateurs */}
       <Card>
         <CardHeader>
-          <CardTitle>
-            Utilisateurs ({filteredUsers.length})
-          </CardTitle>
+          <CardTitle>Utilisateurs ({filteredUsers.length})</CardTitle>
           <CardDescription>
             Liste de tous les utilisateurs avec leurs informations et statuts
           </CardDescription>
@@ -341,7 +363,9 @@ export default function AdminUsersPage() {
             <div className="flex items-center justify-center py-8">
               <div className="text-center">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-600 mx-auto"></div>
-                <p className="mt-2 text-gray-600">Chargement des utilisateurs...</p>
+                <p className="mt-2 text-gray-600">
+                  Chargement des utilisateurs...
+                </p>
               </div>
             </div>
           ) : (
@@ -360,102 +384,115 @@ export default function AdminUsersPage() {
               <TableBody>
                 {filteredUsers.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center py-8 text-gray-500">
+                    <TableCell
+                      colSpan={7}
+                      className="text-center py-8 text-gray-500"
+                    >
                       Aucun utilisateur trouvé
                     </TableCell>
                   </TableRow>
                 ) : (
                   filteredUsers.map((user) => (
-                <TableRow key={user.id}>
-                  <TableCell>
-                    <div>
-                      <div className="font-medium">
-                        {user.firstName} {user.lastName}
-                      </div>
-                      <div className="text-sm text-muted-foreground">
-                        {user.email}
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant={getRoleBadgeVariant(user.role) as any}>
-                      {user.role}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <div className="text-sm">
-                      <div className="flex items-center gap-1">
-                        <Mail className="h-3 w-3" />
-                        {user.emailVerified ? "✓" : "✗"}
-                      </div>
-                      {user.phone && (
-                        <div className="flex items-center gap-1">
-                          <Phone className="h-3 w-3" />
-                          {user.phone}
+                    <TableRow key={user.id}>
+                      <TableCell>
+                        <div>
+                          <div className="font-medium">
+                            {user.firstName} {user.lastName}
+                          </div>
+                          <div className="text-sm text-muted-foreground">
+                            {user.email}
+                          </div>
                         </div>
-                      )}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant={user.isActive ? "default" : "secondary"}>
-                      {user.isActive ? "Actif" : "Inactif"}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-sm">
-                    {formatDate(user.createdAt)}
-                  </TableCell>
-                  <TableCell className="text-sm">
-                    {user.lastLoginAt 
-                      ? formatDate(user.lastLoginAt)
-                      : "Jamais"
-                    }
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className="h-8 w-8 p-0">
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem 
-                          onClick={() => router.push(`/fr/admin/users/${user.id}`)}
-                        >
-                          <Eye className="mr-2 h-4 w-4" />
-                          Voir le profil
-                        </DropdownMenuItem>
-                        <DropdownMenuItem 
-                          onClick={() => router.push(`/fr/admin/users/${user.id}/edit`)}
-                        >
-                          <Edit className="mr-2 h-4 w-4" />
-                          Modifier
-                        </DropdownMenuItem>
-                        <DropdownMenuItem 
-                          onClick={() => handleToggleVerification(user.id, user.emailVerified)}
-                        >
-                          {user.emailVerified ? (
-                            <>
-                              <UserX className="mr-2 h-4 w-4" />
-                              Marquer non vérifié
-                            </>
-                          ) : (
-                            <>
-                              <UserCheck className="mr-2 h-4 w-4" />
-                              Marquer vérifié
-                            </>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={getRoleBadgeVariant(user.role) as any}>
+                          {user.role}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="text-sm">
+                          <div className="flex items-center gap-1">
+                            <Mail className="h-3 w-3" />
+                            {user.emailVerified ? "✓" : "✗"}
+                          </div>
+                          {user.phone && (
+                            <div className="flex items-center gap-1">
+                              <Phone className="h-3 w-3" />
+                              {user.phone}
+                            </div>
                           )}
-                        </DropdownMenuItem>
-                        <DropdownMenuItem 
-                          className="text-red-600"
-                          onClick={() => handleDeleteUser(user.id)}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge
+                          variant={user.isActive ? "default" : "secondary"}
                         >
-                          <Trash2 className="mr-2 h-4 w-4" />
-                          Supprimer
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                </TableRow>
+                          {user.isActive ? "Actif" : "Inactif"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-sm">
+                        {formatDate(user.createdAt)}
+                      </TableCell>
+                      <TableCell className="text-sm">
+                        {user.lastLoginAt
+                          ? formatDate(user.lastLoginAt)
+                          : "Jamais"}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" className="h-8 w-8 p-0">
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem
+                              onClick={() =>
+                                router.push(`/fr/admin/users/${user.id}`)
+                              }
+                            >
+                              <Eye className="mr-2 h-4 w-4" />
+                              Voir le profil
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() =>
+                                router.push(`/fr/admin/users/${user.id}/edit`)
+                              }
+                            >
+                              <Edit className="mr-2 h-4 w-4" />
+                              Modifier
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() =>
+                                handleToggleVerification(
+                                  user.id,
+                                  user.emailVerified,
+                                )
+                              }
+                            >
+                              {user.emailVerified ? (
+                                <>
+                                  <UserX className="mr-2 h-4 w-4" />
+                                  Marquer non vérifié
+                                </>
+                              ) : (
+                                <>
+                                  <UserCheck className="mr-2 h-4 w-4" />
+                                  Marquer vérifié
+                                </>
+                              )}
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              className="text-red-600"
+                              onClick={() => handleDeleteUser(user.id)}
+                            >
+                              <Trash2 className="mr-2 h-4 w-4" />
+                              Supprimer
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
                   ))
                 )}
               </TableBody>
@@ -464,5 +501,5 @@ export default function AdminUsersPage() {
         </CardContent>
       </Card>
     </div>
-  )
-} 
+  );
+}

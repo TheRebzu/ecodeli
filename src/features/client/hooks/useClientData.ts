@@ -1,7 +1,7 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import { useApi } from '@/hooks/use-api'
+import { useState, useEffect } from "react";
+import { useApi } from "@/hooks/use-api";
 import type {
   ClientProfile,
   ClientDashboardStats,
@@ -13,22 +13,22 @@ import type {
   DeliveryTracking,
   ServiceProvider,
   ClientTutorial,
-  ClientSubscription
-} from '../types'
+  ClientSubscription,
+} from "../types";
 
 export function useClientProfile() {
-  const { data, loading, error, execute } = useApi<ClientProfile>()
+  const { data, loading, error, execute } = useApi<ClientProfile>();
 
   const fetchProfile = async () => {
-    await execute('/api/client/profile')
-  }
+    await execute("/api/client/profile");
+  };
 
   const updateProfile = async (profileData: Partial<ClientProfile>) => {
-    await execute('/api/client/profile', {
-      method: 'PUT',
-      body: JSON.stringify(profileData)
-    })
-  }
+    await execute("/api/client/profile", {
+      method: "PUT",
+      body: JSON.stringify(profileData),
+    });
+  };
 
   return {
     profile: data,
@@ -36,16 +36,16 @@ export function useClientProfile() {
     error,
     fetchProfile,
     updateProfile,
-    refetch: fetchProfile
-  }
+    refetch: fetchProfile,
+  };
 }
 
 export function useClientDashboard() {
-  const { data, loading, error, execute } = useApi<any>() // Type temporaire
+  const { data, loading, error, execute } = useApi<any>(); // Type temporaire
 
   const fetchDashboard = async () => {
-    await execute('/api/client/dashboard')
-  }
+    await execute("/api/client/dashboard");
+  };
 
   return {
     dashboard: data, // Retourne toutes les données du dashboard
@@ -56,58 +56,58 @@ export function useClientDashboard() {
     loading,
     error,
     fetchDashboard,
-    refetch: fetchDashboard
-  }
+    refetch: fetchDashboard,
+  };
 }
 
 export function useClientAnnouncements() {
   const { data, loading, error, execute } = useApi<{
-    announcements: ClientAnnouncement[]
+    announcements: ClientAnnouncement[];
     pagination: {
-      page: number
-      limit: number
-      total: number
-      pages: number
-    }
-  }>()
+      page: number;
+      limit: number;
+      total: number;
+      pages: number;
+    };
+  }>();
 
   const fetchAnnouncements = async (params?: {
-    page?: number
-    limit?: number
-    status?: string
-    type?: string
-    startDate?: string
-    endDate?: string
+    page?: number;
+    limit?: number;
+    status?: string;
+    type?: string;
+    startDate?: string;
+    endDate?: string;
   }) => {
-    const searchParams = new URLSearchParams()
+    const searchParams = new URLSearchParams();
     if (params) {
       Object.entries(params).forEach(([key, value]) => {
-        if (value) searchParams.append(key, value.toString())
-      })
+        if (value) searchParams.append(key, value.toString());
+      });
     }
-    
-    await execute(`/api/client/announcements?${searchParams.toString()}`)
-  }
+
+    await execute(`/api/client/announcements?${searchParams.toString()}`);
+  };
 
   const createAnnouncement = async (announcementData: any) => {
-    await execute('/api/client/announcements', {
-      method: 'POST',
-      body: JSON.stringify(announcementData)
-    })
-  }
+    await execute("/api/client/announcements", {
+      method: "POST",
+      body: JSON.stringify(announcementData),
+    });
+  };
 
   const updateAnnouncement = async (announcementId: string, data: any) => {
     await execute(`/api/client/announcements/${announcementId}`, {
-      method: 'PUT',
-      body: JSON.stringify(data)
-    })
-  }
+      method: "PUT",
+      body: JSON.stringify(data),
+    });
+  };
 
   const cancelAnnouncement = async (announcementId: string) => {
     await execute(`/api/client/announcements/${announcementId}`, {
-      method: 'DELETE'
-    })
-  }
+      method: "DELETE",
+    });
+  };
 
   return {
     announcements: data?.announcements || [],
@@ -118,65 +118,69 @@ export function useClientAnnouncements() {
     createAnnouncement,
     updateAnnouncement,
     cancelAnnouncement,
-    refetch: fetchAnnouncements
-  }
+    refetch: fetchAnnouncements,
+  };
 }
 
 export function useClientBookings() {
   const { data, loading, error, execute } = useApi<{
-    bookings: ClientBooking[]
+    bookings: ClientBooking[];
     pagination: {
-      page: number
-      limit: number
-      total: number
-      pages: number
-    }
-  }>()
+      page: number;
+      limit: number;
+      total: number;
+      pages: number;
+    };
+  }>();
 
   const fetchBookings = async (params?: {
-    page?: number
-    limit?: number
-    status?: string
-    category?: string
-    startDate?: string
-    endDate?: string
+    page?: number;
+    limit?: number;
+    status?: string;
+    category?: string;
+    startDate?: string;
+    endDate?: string;
   }) => {
-    const searchParams = new URLSearchParams()
+    const searchParams = new URLSearchParams();
     if (params) {
       Object.entries(params).forEach(([key, value]) => {
-        if (value) searchParams.append(key, value.toString())
-      })
+        if (value) searchParams.append(key, value.toString());
+      });
     }
-    
-    await execute(`/api/client/bookings?${searchParams.toString()}`)
-  }
+
+    await execute(`/api/client/bookings?${searchParams.toString()}`);
+  };
 
   const createBooking = async (bookingData: any) => {
-    await execute('/api/client/bookings', {
-      method: 'POST',
-      body: JSON.stringify(bookingData)
-    })
-  }
+    await execute("/api/client/bookings", {
+      method: "POST",
+      body: JSON.stringify(bookingData),
+    });
+  };
 
   const updateBooking = async (bookingId: string, data: any) => {
     await execute(`/api/client/bookings/${bookingId}`, {
-      method: 'PUT',
-      body: JSON.stringify(data)
-    })
-  }
+      method: "PUT",
+      body: JSON.stringify(data),
+    });
+  };
 
   const cancelBooking = async (bookingId: string) => {
     await execute(`/api/client/bookings/${bookingId}/cancel`, {
-      method: 'POST'
-    })
-  }
+      method: "POST",
+    });
+  };
 
-  const rateBooking = async (bookingId: string, rating: number, review?: string) => {
+  const rateBooking = async (
+    bookingId: string,
+    rating: number,
+    review?: string,
+  ) => {
     await execute(`/api/client/bookings/${bookingId}/rate`, {
-      method: 'POST',
-      body: JSON.stringify({ rating, review })
-    })
-  }
+      method: "POST",
+      body: JSON.stringify({ rating, review }),
+    });
+  };
 
   return {
     bookings: data?.bookings || [],
@@ -188,64 +192,64 @@ export function useClientBookings() {
     updateBooking,
     cancelBooking,
     rateBooking,
-    refetch: fetchBookings
-  }
+    refetch: fetchBookings,
+  };
 }
 
 export function useStorageBoxes() {
   const { data, loading, error, execute } = useApi<{
-    boxes: StorageBox[]
-    rentals: ClientStorageRental[]
-  }>()
+    boxes: StorageBox[];
+    rentals: ClientStorageRental[];
+  }>();
 
   const fetchStorageBoxes = async (params?: {
-    city?: string
-    size?: string
-    maxPrice?: number
-    available?: boolean
+    city?: string;
+    size?: string;
+    maxPrice?: number;
+    available?: boolean;
   }) => {
-    const searchParams = new URLSearchParams()
+    const searchParams = new URLSearchParams();
     if (params) {
       Object.entries(params).forEach(([key, value]) => {
-        if (value !== undefined) searchParams.append(key, value.toString())
-      })
+        if (value !== undefined) searchParams.append(key, value.toString());
+      });
     }
-    
-    await execute(`/api/client/storage-boxes?${searchParams.toString()}`)
-  }
+
+    await execute(`/api/client/storage-boxes?${searchParams.toString()}`);
+  };
 
   const rentStorageBox = async (rentalData: any) => {
-    await execute('/api/client/storage-boxes', {
-      method: 'POST',
-      body: JSON.stringify(rentalData)
-    })
-  }
+    await execute("/api/client/storage-boxes", {
+      method: "POST",
+      body: JSON.stringify(rentalData),
+    });
+  };
 
   const updateRental = async (rentalId: string, data: any) => {
     await execute(`/api/client/storage-boxes/${rentalId}`, {
-      method: 'PUT',
-      body: JSON.stringify(data)
-    })
-  }
+      method: "PUT",
+      body: JSON.stringify(data),
+    });
+  };
 
   const cancelRental = async (rentalId: string) => {
     await execute(`/api/client/storage-boxes/${rentalId}`, {
-      method: 'DELETE'
-    })
-  }
+      method: "DELETE",
+    });
+  };
 
   const addItemToStorage = async (rentalId: string, item: any) => {
     await execute(`/api/client/storage-boxes/${rentalId}/items`, {
-      method: 'POST',
-      body: JSON.stringify(item)
-    })
-  }
+      method: "POST",
+      body: JSON.stringify(item),
+    });
+  };
 
   const removeItemFromStorage = async (rentalId: string, itemId: string) => {
     await execute(`/api/client/storage-boxes/${rentalId}/items/${itemId}`, {
-      method: 'DELETE'
-    })
-  }
+      method: "DELETE",
+    });
+  };
 
   return {
     boxes: data?.boxes || [],
@@ -258,50 +262,50 @@ export function useStorageBoxes() {
     cancelRental,
     addItemToStorage,
     removeItemFromStorage,
-    refetch: fetchStorageBoxes
-  }
+    refetch: fetchStorageBoxes,
+  };
 }
 
 export function useClientPayments() {
   const { data, loading, error, execute } = useApi<{
-    payments: ClientPayment[]
+    payments: ClientPayment[];
     stats: {
-      totalSpent: number
-      monthlySpent: number
-      savedWithDiscount: number
-      averageOrderValue: number
-    }
+      totalSpent: number;
+      monthlySpent: number;
+      savedWithDiscount: number;
+      averageOrderValue: number;
+    };
     pagination: {
-      page: number
-      limit: number
-      total: number
-      pages: number
-    }
-  }>()
+      page: number;
+      limit: number;
+      total: number;
+      pages: number;
+    };
+  }>();
 
   const fetchPayments = async (params?: {
-    page?: number
-    limit?: number
-    type?: string
-    status?: string
-    startDate?: string
-    endDate?: string
+    page?: number;
+    limit?: number;
+    type?: string;
+    status?: string;
+    startDate?: string;
+    endDate?: string;
   }) => {
-    const searchParams = new URLSearchParams()
+    const searchParams = new URLSearchParams();
     if (params) {
       Object.entries(params).forEach(([key, value]) => {
-        if (value) searchParams.append(key, value.toString())
-      })
+        if (value) searchParams.append(key, value.toString());
+      });
     }
-    
-    await execute(`/api/client/payments?${searchParams.toString()}`)
-  }
+
+    await execute(`/api/client/payments?${searchParams.toString()}`);
+  };
 
   const downloadInvoice = async (paymentId: string) => {
     await execute(`/api/client/payments/${paymentId}/invoice`, {
-      method: 'GET'
-    })
-  }
+      method: "GET",
+    });
+  };
 
   return {
     payments: data?.payments || [],
@@ -311,22 +315,22 @@ export function useClientPayments() {
     error,
     fetchPayments,
     downloadInvoice,
-    refetch: fetchPayments
-  }
+    refetch: fetchPayments,
+  };
 }
 
 export function useDeliveryTracking() {
-  const { data, loading, error, execute } = useApi<DeliveryTracking>()
+  const { data, loading, error, execute } = useApi<DeliveryTracking>();
 
   const fetchTracking = async (deliveryId: string) => {
-    await execute(`/api/client/deliveries/${deliveryId}/tracking`)
-  }
+    await execute(`/api/client/deliveries/${deliveryId}/tracking`);
+  };
 
   const refreshTracking = async (deliveryId: string) => {
     await execute(`/api/client/deliveries/${deliveryId}/tracking`, {
-      method: 'POST'
-    })
-  }
+      method: "POST",
+    });
+  };
 
   return {
     tracking: data,
@@ -334,47 +338,49 @@ export function useDeliveryTracking() {
     error,
     fetchTracking,
     refreshTracking,
-    refetch: () => data && fetchTracking(data.delivery.id)
-  }
+    refetch: () => data && fetchTracking(data.delivery.id),
+  };
 }
 
 export function useServiceProviders() {
   const { data, loading, error, execute } = useApi<{
-    providers: ServiceProvider[]
+    providers: ServiceProvider[];
     pagination: {
-      page: number
-      limit: number
-      total: number
-      pages: number
-    }
-  }>()
+      page: number;
+      limit: number;
+      total: number;
+      pages: number;
+    };
+  }>();
 
   const fetchProviders = async (params?: {
-    page?: number
-    limit?: number
-    category?: string
-    city?: string
-    minRating?: number
-    available?: boolean
-    date?: string
+    page?: number;
+    limit?: number;
+    category?: string;
+    city?: string;
+    minRating?: number;
+    available?: boolean;
+    date?: string;
   }) => {
-    const searchParams = new URLSearchParams()
+    const searchParams = new URLSearchParams();
     if (params) {
       Object.entries(params).forEach(([key, value]) => {
-        if (value !== undefined) searchParams.append(key, value.toString())
-      })
+        if (value !== undefined) searchParams.append(key, value.toString());
+      });
     }
-    
-    await execute(`/api/client/services?${searchParams.toString()}`)
-  }
+
+    await execute(`/api/client/services?${searchParams.toString()}`);
+  };
 
   const getProviderDetails = async (providerId: string) => {
-    await execute(`/api/client/services/${providerId}`)
-  }
+    await execute(`/api/client/services/${providerId}`);
+  };
 
   const getProviderAvailability = async (providerId: string, date: string) => {
-    await execute(`/api/client/services/${providerId}/availability?date=${date}`)
-  }
+    await execute(
+      `/api/client/services/${providerId}/availability?date=${date}`,
+    );
+  };
 
   return {
     providers: data?.providers || [],
@@ -384,35 +390,35 @@ export function useServiceProviders() {
     fetchProviders,
     getProviderDetails,
     getProviderAvailability,
-    refetch: fetchProviders
-  }
+    refetch: fetchProviders,
+  };
 }
 
 export function useClientSubscription() {
-  const { data, loading, error, execute } = useApi<ClientSubscription>()
+  const { data, loading, error, execute } = useApi<ClientSubscription>();
 
   const fetchSubscription = async () => {
-    await execute('/api/client/subscription')
-  }
+    await execute("/api/client/subscription");
+  };
 
   const upgradeSubscription = async (subscriptionData: any) => {
-    await execute('/api/client/subscription', {
-      method: 'PUT',
-      body: JSON.stringify(subscriptionData)
-    })
-  }
+    await execute("/api/client/subscription", {
+      method: "PUT",
+      body: JSON.stringify(subscriptionData),
+    });
+  };
 
   const cancelSubscription = async () => {
-    await execute('/api/client/subscription', {
-      method: 'DELETE'
-    })
-  }
+    await execute("/api/client/subscription", {
+      method: "DELETE",
+    });
+  };
 
   const renewSubscription = async () => {
-    await execute('/api/client/subscription/renew', {
-      method: 'POST'
-    })
-  }
+    await execute("/api/client/subscription/renew", {
+      method: "POST",
+    });
+  };
 
   return {
     subscription: data,
@@ -422,79 +428,81 @@ export function useClientSubscription() {
     upgradeSubscription,
     cancelSubscription,
     renewSubscription,
-    refetch: fetchSubscription
-  }
+    refetch: fetchSubscription,
+  };
 }
 
 export function useClientTutorial() {
-  const { data, loading, error, execute } = useApi<any>()
+  const { data, loading, error, execute } = useApi<any>();
 
   const fetchTutorial = async () => {
     try {
       // D'abord, démarrer le tutoriel s'il n'existe pas
-      await execute('/api/client/tutorial?action=start', {
-        method: 'POST',
-        body: JSON.stringify({})
-      }).catch(() => {}) // Ignorer l'erreur si déjà démarré
-      
+      await execute("/api/client/tutorial?action=start", {
+        method: "POST",
+        body: JSON.stringify({}),
+      }).catch(() => {}); // Ignorer l'erreur si déjà démarré
+
       // Ensuite récupérer les données
-      const result = await execute('/api/client/tutorial')
-      return result
+      const result = await execute("/api/client/tutorial");
+      return result;
     } catch (error) {
-      console.error('Error fetching tutorial:', error)
-      throw error
+      console.error("Error fetching tutorial:", error);
+      throw error;
     }
-  }
+  };
 
   const updateTutorialStep = async (stepId: string, completed: boolean) => {
-    await execute('/api/client/tutorial?action=complete-step', {
-      method: 'POST',
-      body: JSON.stringify({ stepId: Number(stepId), timeSpent: 0 })
-    })
-  }
+    await execute("/api/client/tutorial?action=complete-step", {
+      method: "POST",
+      body: JSON.stringify({ stepId: Number(stepId), timeSpent: 0 }),
+    });
+  };
 
   const completeTutorial = async () => {
     try {
-      const result = await execute('/api/client/tutorial?action=complete', {
-        method: 'POST',
-        body: JSON.stringify({ 
+      const result = await execute("/api/client/tutorial?action=complete", {
+        method: "POST",
+        body: JSON.stringify({
           totalTimeSpent: 0,
           stepsCompleted: [1, 2, 3, 4, 5],
-          feedback: 'Tutoriel complété',
-          rating: 5
-        })
-      })
-      console.log('Tutorial completion result:', result)
-      return result
+          feedback: "Tutoriel complété",
+          rating: 5,
+        }),
+      });
+      console.log("Tutorial completion result:", result);
+      return result;
     } catch (error) {
-      console.error('Error completing tutorial:', error)
-      throw error
+      console.error("Error completing tutorial:", error);
+      throw error;
     }
-  }
+  };
 
   const resetTutorial = async () => {
-    await execute('/api/client/tutorial?action=reset', {
-      method: 'POST',
-      body: JSON.stringify({})
-    })
-  }
+    await execute("/api/client/tutorial?action=reset", {
+      method: "POST",
+      body: JSON.stringify({}),
+    });
+  };
 
   // Adapter les données de l'API
-  const tutorial = data ? {
-    completed: data.progress?.completed || false,
-    currentStep: data.progress?.currentStep || 1,
-    stepsCompleted: data.progress?.stepsCompleted || {
-      welcome: false,
-      profile: false,
-      subscription: false,
-      firstAnnouncement: false,
-      completion: false
-    },
-    completedAt: data.progress?.completedAt,
-    timeSpent: data.progress?.totalTimeSpent || 0,
-    skippedSteps: data.progress?.skippedSteps || [],
-    isBlocking: data.tutorialRequired || false
-  } : null
+  const tutorial = data
+    ? {
+        completed: data.progress?.completed || false,
+        currentStep: data.progress?.currentStep || 1,
+        stepsCompleted: data.progress?.stepsCompleted || {
+          welcome: false,
+          profile: false,
+          subscription: false,
+          firstAnnouncement: false,
+          completion: false,
+        },
+        completedAt: data.progress?.completedAt,
+        timeSpent: data.progress?.totalTimeSpent || 0,
+        skippedSteps: data.progress?.skippedSteps || [],
+        isBlocking: data.tutorialRequired || false,
+      }
+    : null;
 
   return {
     tutorial,
@@ -504,42 +512,42 @@ export function useClientTutorial() {
     updateTutorialStep,
     completeTutorial,
     resetTutorial,
-    refetch: fetchTutorial
-  }
+    refetch: fetchTutorial,
+  };
 }
 
 export function useClientNotifications() {
   const { data, loading, error, execute } = useApi<{
-    notifications: any[]
-    unreadCount: number
-  }>()
+    notifications: any[];
+    unreadCount: number;
+  }>();
 
   const fetchNotifications = async (params?: {
-    page?: number
-    limit?: number
-    unread?: boolean
+    page?: number;
+    limit?: number;
+    unread?: boolean;
   }) => {
-    const searchParams = new URLSearchParams()
+    const searchParams = new URLSearchParams();
     if (params) {
       Object.entries(params).forEach(([key, value]) => {
-        if (value !== undefined) searchParams.append(key, value.toString())
-      })
+        if (value !== undefined) searchParams.append(key, value.toString());
+      });
     }
-    
-    await execute(`/api/client/notifications?${searchParams.toString()}`)
-  }
+
+    await execute(`/api/client/notifications?${searchParams.toString()}`);
+  };
 
   const markAsRead = async (notificationId: string) => {
     await execute(`/api/client/notifications/${notificationId}/read`, {
-      method: 'PUT'
-    })
-  }
+      method: "PUT",
+    });
+  };
 
   const markAllAsRead = async () => {
-    await execute('/api/client/notifications/read-all', {
-      method: 'PUT'
-    })
-  }
+    await execute("/api/client/notifications/read-all", {
+      method: "PUT",
+    });
+  };
 
   return {
     notifications: data?.notifications || [],
@@ -549,6 +557,6 @@ export function useClientNotifications() {
     fetchNotifications,
     markAsRead,
     markAllAsRead,
-    refetch: fetchNotifications
-  }
-} 
+    refetch: fetchNotifications,
+  };
+}

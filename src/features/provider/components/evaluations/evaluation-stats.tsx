@@ -5,14 +5,14 @@ import { useTranslations } from "next-intl";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { 
-  Star, 
-  TrendingUp, 
+import {
+  Star,
+  TrendingUp,
   TrendingDown,
   BarChart3,
   Calendar,
   Download,
-  Filter
+  Filter,
 } from "lucide-react";
 import { useApi } from "@/hooks/use-api";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -41,7 +41,11 @@ interface DetailedStats {
     trend: number;
   }[];
   qualitative: {
-    topKeywords: { word: string; count: number; sentiment: 'positive' | 'negative' | 'neutral' }[];
+    topKeywords: {
+      word: string;
+      count: number;
+      sentiment: "positive" | "negative" | "neutral";
+    }[];
     improvementAreas: string[];
     strengths: string[];
   };
@@ -57,7 +61,9 @@ export function ProviderEvaluationStats({ providerId }: EvaluationStatsProps) {
   const fetchDetailedStats = async () => {
     try {
       setLoading(true);
-      const response = await get(`/api/provider/evaluations/stats?providerId=${providerId}&period=${selectedPeriod}`);
+      const response = await get(
+        `/api/provider/evaluations/stats?providerId=${providerId}&period=${selectedPeriod}`,
+      );
       if (response) {
         setStats(response.stats);
       }
@@ -70,12 +76,14 @@ export function ProviderEvaluationStats({ providerId }: EvaluationStatsProps) {
 
   const exportStats = async () => {
     try {
-      const response = await get(`/api/provider/evaluations/export?providerId=${providerId}&period=${selectedPeriod}`);
+      const response = await get(
+        `/api/provider/evaluations/export?providerId=${providerId}&period=${selectedPeriod}`,
+      );
       if (response) {
         // Handle PDF download
-        const blob = new Blob([response], { type: 'application/pdf' });
+        const blob = new Blob([response], { type: "application/pdf" });
         const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
+        const a = document.createElement("a");
         a.href = url;
         a.download = `evaluations-stats-${selectedPeriod}.pdf`;
         document.body.appendChild(a);
@@ -101,9 +109,12 @@ export function ProviderEvaluationStats({ providerId }: EvaluationStatsProps) {
 
   const getSentimentColor = (sentiment: string) => {
     switch (sentiment) {
-      case 'positive': return 'text-green-600';
-      case 'negative': return 'text-red-600';
-      default: return 'text-gray-600';
+      case "positive":
+        return "text-green-600";
+      case "negative":
+        return "text-red-600";
+      default:
+        return "text-gray-600";
     }
   };
 
@@ -138,7 +149,8 @@ export function ProviderEvaluationStats({ providerId }: EvaluationStatsProps) {
               Données insuffisantes
             </h3>
             <p className="text-gray-600">
-              Réalisez plus d'interventions pour accéder aux statistiques détaillées
+              Réalisez plus d'interventions pour accéder aux statistiques
+              détaillées
             </p>
           </div>
         </CardContent>
@@ -150,7 +162,9 @@ export function ProviderEvaluationStats({ providerId }: EvaluationStatsProps) {
     <div className="space-y-6">
       {/* Header with filters */}
       <div className="flex justify-between items-center">
-        <h3 className="text-lg font-semibold">Analyse détaillée des performances</h3>
+        <h3 className="text-lg font-semibold">
+          Analyse détaillée des performances
+        </h3>
         <div className="flex space-x-2">
           <select
             value={selectedPeriod}
@@ -177,7 +191,9 @@ export function ProviderEvaluationStats({ providerId }: EvaluationStatsProps) {
               <div className="flex justify-center mb-2">
                 {renderStars(Math.round(stats.overall.averageRating))}
               </div>
-              <p className="text-2xl font-bold">{stats.overall.averageRating.toFixed(2)}</p>
+              <p className="text-2xl font-bold">
+                {stats.overall.averageRating.toFixed(2)}
+              </p>
               <p className="text-sm text-gray-600">Note moyenne</p>
             </div>
           </CardContent>
@@ -186,7 +202,9 @@ export function ProviderEvaluationStats({ providerId }: EvaluationStatsProps) {
         <Card>
           <CardContent className="p-4">
             <div className="text-center">
-              <p className="text-2xl font-bold">{stats.overall.totalEvaluations}</p>
+              <p className="text-2xl font-bold">
+                {stats.overall.totalEvaluations}
+              </p>
               <p className="text-sm text-gray-600">Évaluations totales</p>
             </div>
           </CardContent>
@@ -195,7 +213,9 @@ export function ProviderEvaluationStats({ providerId }: EvaluationStatsProps) {
         <Card>
           <CardContent className="p-4">
             <div className="text-center">
-              <p className="text-2xl font-bold">{stats.overall.medianRating.toFixed(1)}</p>
+              <p className="text-2xl font-bold">
+                {stats.overall.medianRating.toFixed(1)}
+              </p>
               <p className="text-sm text-gray-600">Note médiane</p>
             </div>
           </CardContent>
@@ -204,7 +224,9 @@ export function ProviderEvaluationStats({ providerId }: EvaluationStatsProps) {
         <Card>
           <CardContent className="p-4">
             <div className="text-center">
-              <p className="text-2xl font-bold">{stats.overall.standardDeviation.toFixed(2)}</p>
+              <p className="text-2xl font-bold">
+                {stats.overall.standardDeviation.toFixed(2)}
+              </p>
               <p className="text-sm text-gray-600">Écart-type</p>
             </div>
           </CardContent>
@@ -226,14 +248,18 @@ export function ProviderEvaluationStats({ providerId }: EvaluationStatsProps) {
             <CardContent>
               <div className="space-y-4">
                 {stats.byService.map((service, index) => (
-                  <div key={index} className="flex items-center justify-between p-4 border rounded-lg">
+                  <div
+                    key={index}
+                    className="flex items-center justify-between p-4 border rounded-lg"
+                  >
                     <div className="flex items-center space-x-4">
                       <div>
                         <h4 className="font-medium">{service.serviceType}</h4>
                         <div className="flex items-center space-x-2">
                           {renderStars(Math.round(service.averageRating))}
                           <span className="text-sm text-gray-600">
-                            {service.averageRating.toFixed(2)} ({service.totalEvaluations} avis)
+                            {service.averageRating.toFixed(2)} (
+                            {service.totalEvaluations} avis)
                           </span>
                         </div>
                       </div>
@@ -244,8 +270,11 @@ export function ProviderEvaluationStats({ providerId }: EvaluationStatsProps) {
                       ) : (
                         <TrendingDown className="w-4 h-4 text-red-500" />
                       )}
-                      <span className={`text-sm ${service.trend >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                        {service.trend >= 0 ? '+' : ''}{service.trend.toFixed(1)}%
+                      <span
+                        className={`text-sm ${service.trend >= 0 ? "text-green-600" : "text-red-600"}`}
+                      >
+                        {service.trend >= 0 ? "+" : ""}
+                        {service.trend.toFixed(1)}%
                       </span>
                     </div>
                   </div>
@@ -263,22 +292,30 @@ export function ProviderEvaluationStats({ providerId }: EvaluationStatsProps) {
             <CardContent>
               <div className="space-y-3">
                 {stats.byMonth.map((month, index) => (
-                  <div key={index} className="flex items-center justify-between p-3 border rounded">
+                  <div
+                    key={index}
+                    className="flex items-center justify-between p-3 border rounded"
+                  >
                     <div className="flex items-center space-x-4">
                       <Calendar className="w-4 h-4 text-gray-400" />
                       <span className="font-medium">{month.month}</span>
                     </div>
                     <div className="flex items-center space-x-4">
                       <span>{month.averageRating.toFixed(2)}</span>
-                      <span className="text-sm text-gray-600">({month.totalEvaluations} avis)</span>
+                      <span className="text-sm text-gray-600">
+                        ({month.totalEvaluations} avis)
+                      </span>
                       <div className="flex items-center space-x-1">
                         {month.trend >= 0 ? (
                           <TrendingUp className="w-4 h-4 text-green-500" />
                         ) : (
                           <TrendingDown className="w-4 h-4 text-red-500" />
                         )}
-                        <span className={`text-sm ${month.trend >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                          {month.trend >= 0 ? '+' : ''}{month.trend.toFixed(1)}%
+                        <span
+                          className={`text-sm ${month.trend >= 0 ? "text-green-600" : "text-red-600"}`}
+                        >
+                          {month.trend >= 0 ? "+" : ""}
+                          {month.trend.toFixed(1)}%
                         </span>
                       </div>
                     </div>
@@ -298,8 +335,13 @@ export function ProviderEvaluationStats({ providerId }: EvaluationStatsProps) {
               <CardContent>
                 <div className="space-y-2">
                   {stats.qualitative.topKeywords.map((keyword, index) => (
-                    <div key={index} className="flex items-center justify-between">
-                      <span className={`text-sm ${getSentimentColor(keyword.sentiment)}`}>
+                    <div
+                      key={index}
+                      className="flex items-center justify-between"
+                    >
+                      <span
+                        className={`text-sm ${getSentimentColor(keyword.sentiment)}`}
+                      >
                         {keyword.word}
                       </span>
                       <Badge variant="outline">{keyword.count}</Badge>

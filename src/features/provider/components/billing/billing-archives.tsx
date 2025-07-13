@@ -2,7 +2,13 @@
 
 import { useState, useEffect } from "react";
 import { useTranslations } from "next-intl";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -60,7 +66,7 @@ export function BillingArchives() {
   const fetchInvoices = async () => {
     try {
       setLoading(true);
-      
+
       let url = `/api/provider/billing/invoices?providerId=${user?.id}&page=${page}&limit=10`;
       if (statusFilter !== "all") {
         url += `&status=${statusFilter}`;
@@ -71,7 +77,7 @@ export function BillingArchives() {
 
       if (data.invoices) {
         let filteredInvoices = data.invoices;
-        
+
         // Filtrer par année
         if (yearFilter !== "all") {
           filteredInvoices = filteredInvoices.filter((invoice: Invoice) => {
@@ -93,9 +99,11 @@ export function BillingArchives() {
 
   const downloadInvoice = async (invoiceId: string) => {
     try {
-      const response = await fetch(`/api/provider/billing/invoices/${invoiceId}/download`);
+      const response = await fetch(
+        `/api/provider/billing/invoices/${invoiceId}/download`,
+      );
       const data = await response.json();
-      
+
       if (data.url) {
         window.open(data.url, "_blank");
         toast.success("Téléchargement de la facture démarré");
@@ -112,7 +120,9 @@ export function BillingArchives() {
       case "GENERATED":
         return <Badge className="bg-blue-100 text-blue-800">Générée</Badge>;
       case "PENDING":
-        return <Badge className="bg-yellow-100 text-yellow-800">En attente</Badge>;
+        return (
+          <Badge className="bg-yellow-100 text-yellow-800">En attente</Badge>
+        );
       default:
         return <Badge variant="secondary">{status}</Badge>;
     }
@@ -120,13 +130,18 @@ export function BillingArchives() {
 
   // Calculer les années disponibles
   const availableYears = Array.from(
-    new Set(invoices.map(invoice => new Date(invoice.periodStart).getFullYear()))
+    new Set(
+      invoices.map((invoice) => new Date(invoice.periodStart).getFullYear()),
+    ),
   ).sort((a, b) => b - a);
 
   // Calculer les totaux
-  const totalAmount = invoices.reduce((sum, invoice) => sum + invoice.totalAmount, 0);
+  const totalAmount = invoices.reduce(
+    (sum, invoice) => sum + invoice.totalAmount,
+    0,
+  );
   const paidAmount = invoices
-    .filter(invoice => invoice.status === "PAID")
+    .filter((invoice) => invoice.status === "PAID")
     .reduce((sum, invoice) => sum + invoice.totalAmount, 0);
 
   if (loading) {
@@ -156,14 +171,14 @@ export function BillingArchives() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total factures</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Total factures
+            </CardTitle>
             <FileText className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{invoices.length}</div>
-            <p className="text-xs text-muted-foreground">
-              Factures générées
-            </p>
+            <p className="text-xs text-muted-foreground">Factures générées</p>
           </CardContent>
         </Card>
 
@@ -186,10 +201,10 @@ export function BillingArchives() {
             <Euro className="h-4 w-4 text-green-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">{paidAmount.toFixed(2)}€</div>
-            <p className="text-xs text-muted-foreground">
-              Factures payées
-            </p>
+            <div className="text-2xl font-bold text-green-600">
+              {paidAmount.toFixed(2)}€
+            </div>
+            <p className="text-xs text-muted-foreground">Factures payées</p>
           </CardContent>
         </Card>
       </div>
@@ -227,7 +242,7 @@ export function BillingArchives() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Toutes les années</SelectItem>
-                {availableYears.map(year => (
+                {availableYears.map((year) => (
                   <SelectItem key={year} value={year.toString()}>
                     {year}
                   </SelectItem>
@@ -266,22 +281,21 @@ export function BillingArchives() {
                     {invoice.id.slice(0, 8).toUpperCase()}
                   </TableCell>
                   <TableCell>
-                    {format(new Date(invoice.periodStart), "MMMM yyyy", { locale: fr })}
+                    {format(new Date(invoice.periodStart), "MMMM yyyy", {
+                      locale: fr,
+                    })}
                   </TableCell>
                   <TableCell className="font-semibold">
                     {invoice.totalAmount.toFixed(2)}€
                   </TableCell>
-                  <TableCell>
-                    {getStatusBadge(invoice.status)}
-                  </TableCell>
+                  <TableCell>{getStatusBadge(invoice.status)}</TableCell>
                   <TableCell>
                     {format(new Date(invoice.createdAt), "dd/MM/yyyy")}
                   </TableCell>
                   <TableCell>
-                    {invoice.paidAt 
+                    {invoice.paidAt
                       ? format(new Date(invoice.paidAt), "dd/MM/yyyy")
-                      : "-"
-                    }
+                      : "-"}
                   </TableCell>
                   <TableCell>
                     <Button
@@ -339,13 +353,23 @@ export function BillingArchives() {
         </CardHeader>
         <CardContent>
           <ul className="space-y-2 text-sm">
-            <li>• Les factures sont générées automatiquement le 30 de chaque mois à 23h00</li>
-            <li>• Le paiement est effectué par virement bancaire sous 5 jours ouvrés</li>
-            <li>• Conservez toutes vos factures pour votre déclaration URSSAF</li>
-            <li>• En cas de problème, contactez le service comptabilité d'EcoDeli</li>
+            <li>
+              • Les factures sont générées automatiquement le 30 de chaque mois
+              à 23h00
+            </li>
+            <li>
+              • Le paiement est effectué par virement bancaire sous 5 jours
+              ouvrés
+            </li>
+            <li>
+              • Conservez toutes vos factures pour votre déclaration URSSAF
+            </li>
+            <li>
+              • En cas de problème, contactez le service comptabilité d'EcoDeli
+            </li>
           </ul>
         </CardContent>
       </Card>
     </div>
   );
-} 
+}

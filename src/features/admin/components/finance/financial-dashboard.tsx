@@ -1,9 +1,21 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { useTranslations } from "next-intl";
 import {
@@ -19,7 +31,7 @@ import {
   Activity,
   DollarSign,
   CreditCard,
-  Wallet
+  Wallet,
 } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
 
@@ -80,13 +92,13 @@ export default function FinancialDashboard() {
     try {
       const [statsResponse, trendsResponse] = await Promise.all([
         fetch(`/api/admin/finance/stats?period=${selectedPeriod}`),
-        fetch(`/api/admin/finance/trends?period=${selectedPeriod}`)
+        fetch(`/api/admin/finance/trends?period=${selectedPeriod}`),
       ]);
 
       if (statsResponse.ok && trendsResponse.ok) {
         const statsData = await statsResponse.json();
         const trendsData = await trendsResponse.json();
-        
+
         setStats(statsData.stats);
         setMonthlyData(trendsData.monthlyData || []);
       }
@@ -94,48 +106,52 @@ export default function FinancialDashboard() {
       console.error("Error fetching financial data:", error);
       toast({
         title: t("error.fetch_failed"),
-        variant: "destructive"
+        variant: "destructive",
       });
     } finally {
       setLoading(false);
     }
   };
 
-  const exportData = async (type: 'revenue' | 'commissions' | 'transactions') => {
+  const exportData = async (
+    type: "revenue" | "commissions" | "transactions",
+  ) => {
     try {
-      const response = await fetch(`/api/admin/finance/export?type=${type}&period=${selectedPeriod}`);
+      const response = await fetch(
+        `/api/admin/finance/export?type=${type}&period=${selectedPeriod}`,
+      );
       if (response.ok) {
         const blob = await response.blob();
         const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
+        const a = document.createElement("a");
         a.href = url;
         a.download = `financial_${type}_${selectedPeriod}.csv`;
         document.body.appendChild(a);
         a.click();
         window.URL.revokeObjectURL(url);
         document.body.removeChild(a);
-        
+
         toast({
-          title: t("success.export_complete")
+          title: t("success.export_complete"),
         });
       }
     } catch (error) {
       toast({
         title: t("error.export_failed"),
-        variant: "destructive"
+        variant: "destructive",
       });
     }
   };
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('fr-FR', {
-      style: 'currency',
-      currency: 'EUR'
+    return new Intl.NumberFormat("fr-FR", {
+      style: "currency",
+      currency: "EUR",
     }).format(amount);
   };
 
   const formatPercentage = (value: number) => {
-    return `${value >= 0 ? '+' : ''}${value.toFixed(1)}%`;
+    return `${value >= 0 ? "+" : ""}${value.toFixed(1)}%`;
   };
 
   if (loading || !stats) {
@@ -170,11 +186,21 @@ export default function FinancialDashboard() {
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="last30days">{t("periods.last30days")}</SelectItem>
-            <SelectItem value="last3months">{t("periods.last3months")}</SelectItem>
-            <SelectItem value="last6months">{t("periods.last6months")}</SelectItem>
-            <SelectItem value="last12months">{t("periods.last12months")}</SelectItem>
-            <SelectItem value="currentyear">{t("periods.currentyear")}</SelectItem>
+            <SelectItem value="last30days">
+              {t("periods.last30days")}
+            </SelectItem>
+            <SelectItem value="last3months">
+              {t("periods.last3months")}
+            </SelectItem>
+            <SelectItem value="last6months">
+              {t("periods.last6months")}
+            </SelectItem>
+            <SelectItem value="last12months">
+              {t("periods.last12months")}
+            </SelectItem>
+            <SelectItem value="currentyear">
+              {t("periods.currentyear")}
+            </SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -185,15 +211,25 @@ export default function FinancialDashboard() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">{t("metrics.total_revenue")}</p>
-                <p className="text-2xl font-bold">{formatCurrency(stats.revenue.total)}</p>
+                <p className="text-sm text-gray-600">
+                  {t("metrics.total_revenue")}
+                </p>
+                <p className="text-2xl font-bold">
+                  {formatCurrency(stats.revenue.total)}
+                </p>
                 <div className="flex items-center text-sm">
                   {stats.revenue.growth >= 0 ? (
                     <TrendingUp className="h-4 w-4 text-green-600 mr-1" />
                   ) : (
                     <TrendingDown className="h-4 w-4 text-red-600 mr-1" />
                   )}
-                  <span className={stats.revenue.growth >= 0 ? "text-green-600" : "text-red-600"}>
+                  <span
+                    className={
+                      stats.revenue.growth >= 0
+                        ? "text-green-600"
+                        : "text-red-600"
+                    }
+                  >
                     {formatPercentage(stats.revenue.growth)}
                   </span>
                 </div>
@@ -207,10 +243,15 @@ export default function FinancialDashboard() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">{t("metrics.commission_earned")}</p>
-                <p className="text-2xl font-bold">{formatCurrency(stats.commissions.total)}</p>
                 <p className="text-sm text-gray-600">
-                  {stats.commissions.averageRate.toFixed(1)}% {t("metrics.avg_rate")}
+                  {t("metrics.commission_earned")}
+                </p>
+                <p className="text-2xl font-bold">
+                  {formatCurrency(stats.commissions.total)}
+                </p>
+                <p className="text-sm text-gray-600">
+                  {stats.commissions.averageRate.toFixed(1)}%{" "}
+                  {t("metrics.avg_rate")}
                 </p>
               </div>
               <DollarSign className="h-8 w-8 text-blue-600" />
@@ -222,8 +263,12 @@ export default function FinancialDashboard() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">{t("metrics.total_transactions")}</p>
-                <p className="text-2xl font-bold">{stats.transactions.total.toLocaleString()}</p>
+                <p className="text-sm text-gray-600">
+                  {t("metrics.total_transactions")}
+                </p>
+                <p className="text-2xl font-bold">
+                  {stats.transactions.total.toLocaleString()}
+                </p>
                 <p className="text-sm text-gray-600">
                   {stats.transactions.completed} {t("metrics.completed")}
                 </p>
@@ -237,8 +282,12 @@ export default function FinancialDashboard() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">{t("metrics.active_users")}</p>
-                <p className="text-2xl font-bold">{stats.users.total.toLocaleString()}</p>
+                <p className="text-sm text-gray-600">
+                  {t("metrics.active_users")}
+                </p>
+                <p className="text-2xl font-bold">
+                  {stats.users.total.toLocaleString()}
+                </p>
                 <p className="text-sm text-gray-600">
                   +{stats.users.newThisMonth} {t("metrics.this_month")}
                 </p>
@@ -270,15 +319,20 @@ export default function FinancialDashboard() {
               <CardContent>
                 <div className="space-y-4">
                   {monthlyData.slice(-6).map((data, index) => (
-                    <div key={index} className="flex items-center justify-between">
+                    <div
+                      key={index}
+                      className="flex items-center justify-between"
+                    >
                       <span className="text-sm font-medium">{data.month}</span>
                       <div className="flex items-center gap-4">
-                        <span className="text-sm">{formatCurrency(data.revenue)}</span>
+                        <span className="text-sm">
+                          {formatCurrency(data.revenue)}
+                        </span>
                         <div className="w-24 bg-gray-200 rounded-full h-2">
-                          <div 
+                          <div
                             className="bg-blue-600 h-2 rounded-full"
-                            style={{ 
-                              width: `${Math.min((data.revenue / Math.max(...monthlyData.map(d => d.revenue))) * 100, 100)}%` 
+                            style={{
+                              width: `${Math.min((data.revenue / Math.max(...monthlyData.map((d) => d.revenue))) * 100, 100)}%`,
                             }}
                           />
                         </div>
@@ -304,21 +358,27 @@ export default function FinancialDashboard() {
                       <div className="w-3 h-3 bg-green-500 rounded-full"></div>
                       <span className="text-sm">{t("status.completed")}</span>
                     </div>
-                    <span className="font-medium">{stats.transactions.completed}</span>
+                    <span className="font-medium">
+                      {stats.transactions.completed}
+                    </span>
                   </div>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
                       <span className="text-sm">{t("status.pending")}</span>
                     </div>
-                    <span className="font-medium">{stats.transactions.pending}</span>
+                    <span className="font-medium">
+                      {stats.transactions.pending}
+                    </span>
                   </div>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <div className="w-3 h-3 bg-red-500 rounded-full"></div>
                       <span className="text-sm">{t("status.failed")}</span>
                     </div>
-                    <span className="font-medium">{stats.transactions.failed}</span>
+                    <span className="font-medium">
+                      {stats.transactions.failed}
+                    </span>
                   </div>
                 </div>
               </CardContent>
@@ -335,16 +395,26 @@ export default function FinancialDashboard() {
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="text-center p-4 border rounded-lg">
-                  <p className="text-2xl font-bold text-green-600">{formatCurrency(stats.revenue.total)}</p>
+                  <p className="text-2xl font-bold text-green-600">
+                    {formatCurrency(stats.revenue.total)}
+                  </p>
                   <p className="text-sm text-gray-600">{t("revenue.total")}</p>
                 </div>
                 <div className="text-center p-4 border rounded-lg">
-                  <p className="text-2xl font-bold text-blue-600">{formatCurrency(stats.revenue.monthly)}</p>
-                  <p className="text-sm text-gray-600">{t("revenue.monthly")}</p>
+                  <p className="text-2xl font-bold text-blue-600">
+                    {formatCurrency(stats.revenue.monthly)}
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    {t("revenue.monthly")}
+                  </p>
                 </div>
                 <div className="text-center p-4 border rounded-lg">
-                  <p className="text-2xl font-bold text-purple-600">{formatCurrency(stats.revenue.commission)}</p>
-                  <p className="text-sm text-gray-600">{t("revenue.commission")}</p>
+                  <p className="text-2xl font-bold text-purple-600">
+                    {formatCurrency(stats.revenue.commission)}
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    {t("revenue.commission")}
+                  </p>
                 </div>
               </div>
             </CardContent>
@@ -360,21 +430,31 @@ export default function FinancialDashboard() {
             <CardContent>
               <div className="space-y-4">
                 {stats.commissions.topProviders.map((provider, index) => (
-                  <div key={provider.id} className="flex items-center justify-between p-3 border rounded-lg">
+                  <div
+                    key={provider.id}
+                    className="flex items-center justify-between p-3 border rounded-lg"
+                  >
                     <div className="flex items-center gap-3">
                       <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                        <span className="text-sm font-medium text-blue-600">#{index + 1}</span>
+                        <span className="text-sm font-medium text-blue-600">
+                          #{index + 1}
+                        </span>
                       </div>
                       <div>
                         <p className="font-medium">{provider.name}</p>
                         <p className="text-sm text-gray-600">
-                          {formatCurrency(provider.revenue)} {t("commissions.revenue")}
+                          {formatCurrency(provider.revenue)}{" "}
+                          {t("commissions.revenue")}
                         </p>
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="font-medium">{formatCurrency(provider.commission)}</p>
-                      <p className="text-sm text-gray-600">{t("commissions.commission")}</p>
+                      <p className="font-medium">
+                        {formatCurrency(provider.commission)}
+                      </p>
+                      <p className="text-sm text-gray-600">
+                        {t("commissions.commission")}
+                      </p>
                     </div>
                   </div>
                 ))}
@@ -392,7 +472,7 @@ export default function FinancialDashboard() {
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <Button
-                  onClick={() => exportData('revenue')}
+                  onClick={() => exportData("revenue")}
                   variant="outline"
                   className="h-24 flex flex-col gap-2"
                 >
@@ -400,7 +480,7 @@ export default function FinancialDashboard() {
                   <span>{t("exports.revenue")}</span>
                 </Button>
                 <Button
-                  onClick={() => exportData('commissions')}
+                  onClick={() => exportData("commissions")}
                   variant="outline"
                   className="h-24 flex flex-col gap-2"
                 >
@@ -408,7 +488,7 @@ export default function FinancialDashboard() {
                   <span>{t("exports.commissions")}</span>
                 </Button>
                 <Button
-                  onClick={() => exportData('transactions')}
+                  onClick={() => exportData("transactions")}
                   variant="outline"
                   className="h-24 flex flex-col gap-2"
                 >

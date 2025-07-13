@@ -6,7 +6,10 @@ import { useAuth } from "@/hooks/use-auth";
 import { useTranslations } from "next-intl";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { createAnnouncementSchema, type CreateAnnouncementInput } from "@/features/announcements/schemas/announcement.schema";
+import {
+  createAnnouncementSchema,
+  type CreateAnnouncementInput,
+} from "@/features/announcements/schemas/announcement.schema";
 
 import { PageHeader } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";
@@ -14,15 +17,30 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Separator } from "@/components/ui/separator";
 
-import { 
-  Package, MapPin, Calendar, DollarSign, Clock, 
-  AlertTriangle, ArrowLeft, Save, Send, Loader2, ShoppingCart
+import {
+  Package,
+  MapPin,
+  Calendar,
+  DollarSign,
+  Clock,
+  AlertTriangle,
+  ArrowLeft,
+  Save,
+  Send,
+  Loader2,
+  ShoppingCart,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -31,23 +49,57 @@ type FormData = CreateAnnouncementInput;
 
 // Types d'annonces - TRANSPORT D'OBJETS UNIQUEMENT selon le cahier des charges EcoDeli
 const announcementTypes = [
-  { value: 'PACKAGE_DELIVERY', label: 'Livraison de colis', icon: Package, description: 'Transport d\'un colis d\'un point A à un point B (ex: Paris → Marseille)' },
-  { value: 'SHOPPING', label: 'Courses', icon: ShoppingCart, description: 'Courses effectuées par un livreur selon une liste fournie' },
-  { value: 'INTERNATIONAL_PURCHASE', label: 'Achat international', icon: Package, description: 'Achat et livraison de produits étrangers (ex: Jelly d\'Angleterre)' },
-  { value: 'CART_DROP', label: 'Lâcher de chariot', icon: Package, description: 'Livraison à domicile depuis un magasin partenaire EcoDeli' }
+  {
+    value: "PACKAGE_DELIVERY",
+    label: "Livraison de colis",
+    icon: Package,
+    description:
+      "Transport d'un colis d'un point A à un point B (ex: Paris → Marseille)",
+  },
+  {
+    value: "SHOPPING",
+    label: "Courses",
+    icon: ShoppingCart,
+    description: "Courses effectuées par un livreur selon une liste fournie",
+  },
+  {
+    value: "INTERNATIONAL_PURCHASE",
+    label: "Achat international",
+    icon: Package,
+    description:
+      "Achat et livraison de produits étrangers (ex: Jelly d'Angleterre)",
+  },
+  {
+    value: "CART_DROP",
+    label: "Lâcher de chariot",
+    icon: Package,
+    description: "Livraison à domicile depuis un magasin partenaire EcoDeli",
+  },
 ] as const;
 
 const deliveryTypes = [
-  { value: 'FULL', label: 'Prise en charge intégrale', description: 'Point A → Point B directement' },
-  { value: 'PARTIAL', label: 'Prise en charge partielle', description: 'Avec relais entrepôts EcoDeli' },
-  { value: 'FINAL', label: 'Livraison finale', description: 'Depuis entrepôt → destinataire' }
+  {
+    value: "FULL",
+    label: "Prise en charge intégrale",
+    description: "Point A → Point B directement",
+  },
+  {
+    value: "PARTIAL",
+    label: "Prise en charge partielle",
+    description: "Avec relais entrepôts EcoDeli",
+  },
+  {
+    value: "FINAL",
+    label: "Livraison finale",
+    description: "Depuis entrepôt → destinataire",
+  },
 ] as const;
 
 export default function CreateAnnouncementPage() {
   const { user } = useAuth();
   const router = useRouter();
   const t = useTranslations("client.announcements");
-  
+
   const [isLoading, setIsLoading] = useState(false);
   const [saveAsDraft, setSaveAsDraft] = useState(false);
 
@@ -57,28 +109,28 @@ export default function CreateAnnouncementPage() {
     handleSubmit,
     watch,
     setValue,
-    formState: { errors, isValid }
+    formState: { errors, isValid },
   } = useForm<FormData>({
     resolver: zodResolver(createAnnouncementSchema),
     defaultValues: {
-      type: 'PACKAGE_DELIVERY',
-      deliveryType: 'FULL',
-      currency: 'EUR',
+      type: "PACKAGE_DELIVERY",
+      deliveryType: "FULL",
+      currency: "EUR",
       isUrgent: false,
       requiresInsurance: false,
       allowsPartialDelivery: false,
       isPriceNegotiable: false,
       isFlexibleDate: false,
-      basePrice: 25
-    }
+      basePrice: 25,
+    },
   });
 
-  const selectedType = watch('type');
-  const selectedDeliveryType = watch('deliveryType');
-  const isPackageDelivery = selectedType === 'PACKAGE_DELIVERY';
-  const isShopping = selectedType === 'SHOPPING';
-  const isInternationalPurchase = selectedType === 'INTERNATIONAL_PURCHASE';
-  const isCartDrop = selectedType === 'CART_DROP';
+  const selectedType = watch("type");
+  const selectedDeliveryType = watch("deliveryType");
+  const isPackageDelivery = selectedType === "PACKAGE_DELIVERY";
+  const isShopping = selectedType === "SHOPPING";
+  const isInternationalPurchase = selectedType === "INTERNATIONAL_PURCHASE";
+  const isCartDrop = selectedType === "CART_DROP";
 
   const onSubmit = async (data: FormData, isDraft = false) => {
     if (!user) return;
@@ -87,30 +139,30 @@ export default function CreateAnnouncementPage() {
     setSaveAsDraft(isDraft);
 
     try {
-      console.log('📝 Envoi des données:', data);
+      console.log("📝 Envoi des données:", data);
 
-      const response = await fetch('/api/client/announcements', {
-        method: 'POST',
+      const response = await fetch("/api/client/announcements", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify(data)
+        body: JSON.stringify(data),
       });
 
       if (response.ok) {
         const result = await response.json();
-        console.log('✅ Annonce créée:', result);
-        
+        console.log("✅ Annonce créée:", result);
+
         // Redirection vers la page de détails ou liste
         router.push(`/client/announcements/${result.announcement.id}`);
       } else {
         const error = await response.json();
-        console.error('❌ Erreur API:', error);
-        alert(`Erreur: ${error.error || 'Impossible de créer l\'annonce'}`);
+        console.error("❌ Erreur API:", error);
+        alert(`Erreur: ${error.error || "Impossible de créer l'annonce"}`);
       }
     } catch (error) {
-      console.error('❌ Erreur:', error);
-      alert('Erreur de connexion. Veuillez réessayer.');
+      console.error("❌ Erreur:", error);
+      alert("Erreur de connexion. Veuillez réessayer.");
     } finally {
       setIsLoading(false);
       setSaveAsDraft(false);
@@ -118,7 +170,7 @@ export default function CreateAnnouncementPage() {
   };
 
   const getTypeIcon = (type: string) => {
-    const typeConfig = announcementTypes.find(t => t.value === type);
+    const typeConfig = announcementTypes.find((t) => t.value === type);
     const IconComponent = typeConfig?.icon || Package;
     return <IconComponent className="h-4 w-4" />;
   };
@@ -153,7 +205,10 @@ export default function CreateAnnouncementPage() {
         }
       />
 
-      <form onSubmit={handleSubmit((data) => onSubmit(data, false))} className="space-y-6">
+      <form
+        onSubmit={handleSubmit((data) => onSubmit(data, false))}
+        className="space-y-6"
+      >
         {/* Type d'annonce */}
         <Card>
           <CardHeader>
@@ -171,15 +226,16 @@ export default function CreateAnnouncementPage() {
                   {announcementTypes.map((type) => {
                     const IconComponent = type.icon;
                     const isSelected = field.value === type.value;
-                    
+
                     return (
                       <div
                         key={type.value}
                         className={`
                           p-4 border rounded-lg cursor-pointer transition-all
-                          ${isSelected 
-                            ? 'border-blue-500 bg-blue-50 ring-2 ring-blue-200' 
-                            : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                          ${
+                            isSelected
+                              ? "border-blue-500 bg-blue-50 ring-2 ring-blue-200"
+                              : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
                           }
                         `}
                         onClick={() => field.onChange(type.value)}
@@ -188,7 +244,9 @@ export default function CreateAnnouncementPage() {
                           <IconComponent className="h-5 w-5 text-blue-600" />
                           <span className="font-medium">{type.label}</span>
                         </div>
-                        <p className="text-sm text-gray-600">{type.description}</p>
+                        <p className="text-sm text-gray-600">
+                          {type.description}
+                        </p>
                       </div>
                     );
                   })}
@@ -217,21 +275,24 @@ export default function CreateAnnouncementPage() {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   {deliveryTypes.map((type) => {
                     const isSelected = field.value === type.value;
-                    
+
                     return (
                       <div
                         key={type.value}
                         className={`
                           p-4 border rounded-lg cursor-pointer transition-all
-                          ${isSelected 
-                            ? 'border-blue-500 bg-blue-50 ring-2 ring-blue-200' 
-                            : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                          ${
+                            isSelected
+                              ? "border-blue-500 bg-blue-50 ring-2 ring-blue-200"
+                              : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
                           }
                         `}
                         onClick={() => field.onChange(type.value)}
                       >
                         <div className="font-medium mb-1">{type.label}</div>
-                        <p className="text-sm text-gray-600">{type.description}</p>
+                        <p className="text-sm text-gray-600">
+                          {type.description}
+                        </p>
                       </div>
                     );
                   })}
@@ -239,7 +300,9 @@ export default function CreateAnnouncementPage() {
               )}
             />
             {errors.deliveryType && (
-              <p className="text-red-500 text-sm mt-2">{errors.deliveryType.message}</p>
+              <p className="text-red-500 text-sm mt-2">
+                {errors.deliveryType.message}
+              </p>
             )}
           </CardContent>
         </Card>
@@ -254,12 +317,14 @@ export default function CreateAnnouncementPage() {
               <Label htmlFor="title">Titre de l'annonce *</Label>
               <Input
                 id="title"
-                {...register('title')}
+                {...register("title")}
                 placeholder="Titre descriptif de votre demande"
-                className={errors.title ? 'border-red-500' : ''}
+                className={errors.title ? "border-red-500" : ""}
               />
               {errors.title && (
-                <p className="text-red-500 text-sm mt-1">{errors.title.message}</p>
+                <p className="text-red-500 text-sm mt-1">
+                  {errors.title.message}
+                </p>
               )}
             </div>
 
@@ -267,26 +332,32 @@ export default function CreateAnnouncementPage() {
               <Label htmlFor="description">Description détaillée *</Label>
               <Textarea
                 id="description"
-                {...register('description')}
+                {...register("description")}
                 placeholder="Décrivez précisément votre demande de transport..."
                 rows={4}
-                className={errors.description ? 'border-red-500' : ''}
+                className={errors.description ? "border-red-500" : ""}
               />
               {errors.description && (
-                <p className="text-red-500 text-sm mt-1">{errors.description.message}</p>
+                <p className="text-red-500 text-sm mt-1">
+                  {errors.description.message}
+                </p>
               )}
             </div>
 
             <div>
-              <Label htmlFor="specialInstructions">Instructions spéciales</Label>
+              <Label htmlFor="specialInstructions">
+                Instructions spéciales
+              </Label>
               <Textarea
                 id="specialInstructions"
-                {...register('specialInstructions')}
+                {...register("specialInstructions")}
                 placeholder="Instructions particulières, précautions..."
                 rows={2}
               />
               {errors.specialInstructions && (
-                <p className="text-red-500 text-sm mt-1">{errors.specialInstructions.message}</p>
+                <p className="text-red-500 text-sm mt-1">
+                  {errors.specialInstructions.message}
+                </p>
               )}
             </div>
           </CardContent>
@@ -305,12 +376,14 @@ export default function CreateAnnouncementPage() {
               <Label htmlFor="pickupAddress">Adresse de récupération *</Label>
               <Input
                 id="pickupAddress"
-                {...register('pickupAddress')}
+                {...register("pickupAddress")}
                 placeholder="Adresse complète (rue, ville, code postal)"
-                className={errors.pickupAddress ? 'border-red-500' : ''}
+                className={errors.pickupAddress ? "border-red-500" : ""}
               />
               {errors.pickupAddress && (
-                <p className="text-red-500 text-sm mt-1">{errors.pickupAddress.message}</p>
+                <p className="text-red-500 text-sm mt-1">
+                  {errors.pickupAddress.message}
+                </p>
               )}
             </div>
 
@@ -318,12 +391,14 @@ export default function CreateAnnouncementPage() {
               <Label htmlFor="deliveryAddress">Adresse de livraison *</Label>
               <Input
                 id="deliveryAddress"
-                {...register('deliveryAddress')}
+                {...register("deliveryAddress")}
                 placeholder="Adresse complète (rue, ville, code postal)"
-                className={errors.deliveryAddress ? 'border-red-500' : ''}
+                className={errors.deliveryAddress ? "border-red-500" : ""}
               />
               {errors.deliveryAddress && (
-                <p className="text-red-500 text-sm mt-1">{errors.deliveryAddress.message}</p>
+                <p className="text-red-500 text-sm mt-1">
+                  {errors.deliveryAddress.message}
+                </p>
               )}
             </div>
           </CardContent>
@@ -344,21 +419,25 @@ export default function CreateAnnouncementPage() {
                 <Input
                   id="pickupDate"
                   type="date"
-                  {...register('pickupDate')}
+                  {...register("pickupDate")}
                   min={new Date().toISOString().slice(0, 10)}
-                  className={errors.pickupDate ? 'border-red-500' : ''}
+                  className={errors.pickupDate ? "border-red-500" : ""}
                 />
                 {errors.pickupDate && (
-                  <p className="text-red-500 text-sm mt-1">{errors.pickupDate.message}</p>
+                  <p className="text-red-500 text-sm mt-1">
+                    {errors.pickupDate.message}
+                  </p>
                 )}
               </div>
 
               <div>
-                <Label htmlFor="deliveryDate">Date de livraison souhaitée</Label>
+                <Label htmlFor="deliveryDate">
+                  Date de livraison souhaitée
+                </Label>
                 <Input
                   id="deliveryDate"
                   type="date"
-                  {...register('deliveryDate')}
+                  {...register("deliveryDate")}
                   min={new Date().toISOString().slice(0, 10)}
                 />
               </div>
@@ -375,9 +454,7 @@ export default function CreateAnnouncementPage() {
                     />
                   )}
                 />
-                <Label htmlFor="isFlexibleDate">
-                  Dates flexibles
-                </Label>
+                <Label htmlFor="isFlexibleDate">Dates flexibles</Label>
               </div>
 
               <div className="flex items-center space-x-2">
@@ -416,11 +493,13 @@ export default function CreateAnnouncementPage() {
                   step="0.5"
                   min="1"
                   max="10000"
-                  {...register('basePrice', { valueAsNumber: true })}
-                  className={errors.basePrice ? 'border-red-500' : ''}
+                  {...register("basePrice", { valueAsNumber: true })}
+                  className={errors.basePrice ? "border-red-500" : ""}
                 />
                 {errors.basePrice && (
-                  <p className="text-red-500 text-sm mt-1">{errors.basePrice.message}</p>
+                  <p className="text-red-500 text-sm mt-1">
+                    {errors.basePrice.message}
+                  </p>
                 )}
               </div>
 
@@ -436,9 +515,7 @@ export default function CreateAnnouncementPage() {
                     />
                   )}
                 />
-                <Label htmlFor="isPriceNegotiable">
-                  Prix négociable
-                </Label>
+                <Label htmlFor="isPriceNegotiable">Prix négociable</Label>
               </div>
 
               <div className="flex items-center space-x-2">
@@ -453,9 +530,7 @@ export default function CreateAnnouncementPage() {
                     />
                   )}
                 />
-                <Label htmlFor="requiresInsurance">
-                  Assurance requise
-                </Label>
+                <Label htmlFor="requiresInsurance">Assurance requise</Label>
               </div>
 
               <div className="flex items-center space-x-2">
@@ -496,7 +571,9 @@ export default function CreateAnnouncementPage() {
                     type="number"
                     step="0.1"
                     max="50"
-                    {...register('packageDetails.weight', { valueAsNumber: true })}
+                    {...register("packageDetails.weight", {
+                      valueAsNumber: true,
+                    })}
                     placeholder="5.5"
                   />
                 </div>
@@ -506,7 +583,9 @@ export default function CreateAnnouncementPage() {
                     id="packageDetails.length"
                     type="number"
                     max="200"
-                    {...register('packageDetails.length', { valueAsNumber: true })}
+                    {...register("packageDetails.length", {
+                      valueAsNumber: true,
+                    })}
                     placeholder="30"
                   />
                 </div>
@@ -516,7 +595,9 @@ export default function CreateAnnouncementPage() {
                     id="packageDetails.width"
                     type="number"
                     max="200"
-                    {...register('packageDetails.width', { valueAsNumber: true })}
+                    {...register("packageDetails.width", {
+                      valueAsNumber: true,
+                    })}
                     placeholder="20"
                   />
                 </div>
@@ -526,17 +607,21 @@ export default function CreateAnnouncementPage() {
                     id="packageDetails.height"
                     type="number"
                     max="200"
-                    {...register('packageDetails.height', { valueAsNumber: true })}
+                    {...register("packageDetails.height", {
+                      valueAsNumber: true,
+                    })}
                     placeholder="10"
                   />
                 </div>
               </div>
 
               <div>
-                <Label htmlFor="packageDetails.content">Contenu du colis *</Label>
+                <Label htmlFor="packageDetails.content">
+                  Contenu du colis *
+                </Label>
                 <Input
                   id="packageDetails.content"
-                  {...register('packageDetails.content')}
+                  {...register("packageDetails.content")}
                   placeholder="Vêtements, livres, électronique..."
                 />
               </div>
@@ -553,7 +638,10 @@ export default function CreateAnnouncementPage() {
                     />
                   )}
                 />
-                <Label htmlFor="packageDetails.fragile" className="flex items-center gap-2">
+                <Label
+                  htmlFor="packageDetails.fragile"
+                  className="flex items-center gap-2"
+                >
                   <AlertTriangle className="h-4 w-4 text-orange-500" />
                   Colis fragile (manipulation avec précaution)
                 </Label>
@@ -566,10 +654,8 @@ export default function CreateAnnouncementPage() {
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
-              <div className="text-sm text-gray-600">
-                * Champs obligatoires
-              </div>
-              
+              <div className="text-sm text-gray-600">* Champs obligatoires</div>
+
               <div className="flex gap-4">
                 <Button
                   type="button"
@@ -589,11 +675,8 @@ export default function CreateAnnouncementPage() {
                     </>
                   )}
                 </Button>
-                
-                <Button
-                  type="submit"
-                  disabled={isLoading || !isValid}
-                >
+
+                <Button type="submit" disabled={isLoading || !isValid}>
                   {isLoading && !saveAsDraft ? (
                     <>
                       <Loader2 className="h-4 w-4 mr-2 animate-spin" />

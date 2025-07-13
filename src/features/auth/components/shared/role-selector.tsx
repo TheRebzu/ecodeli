@@ -1,79 +1,89 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { User, Truck, Store, Settings, CheckCircle } from 'lucide-react'
-import { Role } from '@/lib/auth/config'
+import { useState } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { User, Truck, Store, Settings, CheckCircle } from "lucide-react";
+import { Role } from "@/lib/auth/config";
 
 interface RoleSelectorProps {
-  selectedRole?: Role
-  onRoleSelect: (role: Role) => void
-  disabled?: boolean
+  selectedRole?: Role;
+  onRoleSelect: (role: Role) => void;
+  disabled?: boolean;
 }
 
 const roleOptions = [
   {
-    role: 'CLIENT' as Role,
+    role: "CLIENT" as Role,
     icon: User,
-    title: 'Client',
-    description: 'Je veux envoyer des colis ou réserver des services',
+    title: "Client",
+    description: "Je veux envoyer des colis ou réserver des services",
     features: [
-      'Dépôt d\'annonces de livraison',
-      'Réservation de services à domicile',
-      'Suivi des livraisons en temps réel',
-      'Accès aux box de stockage'
+      "Dépôt d'annonces de livraison",
+      "Réservation de services à domicile",
+      "Suivi des livraisons en temps réel",
+      "Accès aux box de stockage",
     ],
-    popular: true
+    popular: true,
   },
   {
-    role: 'DELIVERER' as Role,
+    role: "DELIVERER" as Role,
     icon: Truck,
-    title: 'Livreur',
-    description: 'Je veux livrer des colis et gagner de l\'argent',
+    title: "Livreur",
+    description: "Je veux livrer des colis et gagner de l'argent",
     features: [
-      'Livraisons sur mes trajets',
-      'Portefeuille et paiements',
-      'Carte NFC après validation',
-      'Gestion des disponibilités'
+      "Livraisons sur mes trajets",
+      "Portefeuille et paiements",
+      "Carte NFC après validation",
+      "Gestion des disponibilités",
     ],
-    validation: 'Documents requis'
+    validation: "Documents requis",
   },
   {
-    role: 'MERCHANT' as Role,
+    role: "MERCHANT" as Role,
     icon: Store,
-    title: 'Commerçant',
-    description: 'Je veux proposer mes produits et services',
+    title: "Commerçant",
+    description: "Je veux proposer mes produits et services",
     features: [
-      'Lâcher de chariot',
-      'Gestion des commandes',
-      'Facturation automatique',
-      'Contrat avec EcoDeli'
+      "Lâcher de chariot",
+      "Gestion des commandes",
+      "Facturation automatique",
+      "Contrat avec EcoDeli",
     ],
-    validation: 'Contrat requis'
+    validation: "Contrat requis",
   },
   {
-    role: 'PROVIDER' as Role,
+    role: "PROVIDER" as Role,
     icon: Settings,
-    title: 'Prestataire',
-    description: 'Je propose des services à la personne',
+    title: "Prestataire",
+    description: "Je propose des services à la personne",
     features: [
-      'Services à domicile',
-      'Calendrier de réservations',
-      'Facturation mensuelle',
-      'Certifications validées'
+      "Services à domicile",
+      "Calendrier de réservations",
+      "Facturation mensuelle",
+      "Certifications validées",
     ],
-    validation: 'Certifications requises'
-  }
-]
+    validation: "Certifications requises",
+  },
+];
 
 /**
  * Composant de sélection de rôle pour l'inscription
  * Interface moderne avec preview des fonctionnalités
  */
-export function RoleSelector({ selectedRole, onRoleSelect, disabled = false }: RoleSelectorProps) {
-  const [hoveredRole, setHoveredRole] = useState<Role | null>(null)
+export function RoleSelector({
+  selectedRole,
+  onRoleSelect,
+  disabled = false,
+}: RoleSelectorProps) {
+  const [hoveredRole, setHoveredRole] = useState<Role | null>(null);
 
   return (
     <div className="space-y-4">
@@ -86,17 +96,17 @@ export function RoleSelector({ selectedRole, onRoleSelect, disabled = false }: R
 
       <div className="grid gap-4">
         {roleOptions.map((option) => {
-          const Icon = option.icon
-          const isSelected = selectedRole === option.role
-          const isHovered = hoveredRole === option.role
+          const Icon = option.icon;
+          const isSelected = selectedRole === option.role;
+          const isHovered = hoveredRole === option.role;
 
           return (
             <Card
               key={option.role}
               className={`
                 cursor-pointer transition-all duration-200 relative
-                ${isSelected ? 'ring-2 ring-green-500 bg-green-50' : 'hover:shadow-md'}
-                ${disabled ? 'opacity-50 cursor-not-allowed' : ''}
+                ${isSelected ? "ring-2 ring-green-500 bg-green-50" : "hover:shadow-md"}
+                ${disabled ? "opacity-50 cursor-not-allowed" : ""}
               `}
               onClick={() => !disabled && onRoleSelect(option.role)}
               onMouseEnter={() => !disabled && setHoveredRole(option.role)}
@@ -118,11 +128,15 @@ export function RoleSelector({ selectedRole, onRoleSelect, disabled = false }: R
 
               <CardHeader className="pb-3">
                 <div className="flex items-center space-x-3">
-                  <div className={`
+                  <div
+                    className={`
                     w-10 h-10 rounded-lg flex items-center justify-center
-                    ${isSelected ? 'bg-green-600' : 'bg-gray-100'}
-                  `}>
-                    <Icon className={`h-5 w-5 ${isSelected ? 'text-white' : 'text-gray-600'}`} />
+                    ${isSelected ? "bg-green-600" : "bg-gray-100"}
+                  `}
+                  >
+                    <Icon
+                      className={`h-5 w-5 ${isSelected ? "text-white" : "text-gray-600"}`}
+                    />
                   </div>
                   <div>
                     <CardTitle className="text-base">{option.title}</CardTitle>
@@ -147,7 +161,10 @@ export function RoleSelector({ selectedRole, onRoleSelect, disabled = false }: R
                       Fonctionnalités incluses :
                     </p>
                     {option.features.map((feature, index) => (
-                      <div key={index} className="flex items-center text-xs text-gray-600">
+                      <div
+                        key={index}
+                        className="flex items-center text-xs text-gray-600"
+                      >
                         <CheckCircle className="h-3 w-3 text-green-500 mr-2 flex-shrink-0" />
                         {feature}
                       </div>
@@ -156,20 +173,22 @@ export function RoleSelector({ selectedRole, onRoleSelect, disabled = false }: R
                 )}
               </CardContent>
             </Card>
-          )
+          );
         })}
       </div>
 
       {selectedRole && (
         <div className="mt-6 p-4 bg-blue-50 rounded-lg">
           <p className="text-sm text-blue-800">
-            <strong>Profil sélectionné :</strong> {roleOptions.find(r => r.role === selectedRole)?.title}
+            <strong>Profil sélectionné :</strong>{" "}
+            {roleOptions.find((r) => r.role === selectedRole)?.title}
           </p>
           <p className="text-xs text-blue-600 mt-1">
-            Vous pourrez toujours contacter le support pour modifier votre profil après l'inscription.
+            Vous pourrez toujours contacter le support pour modifier votre
+            profil après l'inscription.
           </p>
         </div>
       )}
     </div>
-  )
+  );
 }

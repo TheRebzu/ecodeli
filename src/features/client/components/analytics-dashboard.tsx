@@ -1,84 +1,96 @@
-'use client'
+"use client";
 
-import React, { useState, useEffect } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Badge } from '@/components/ui/badge'
-import { 
-  TrendingUp, 
-  TrendingDown, 
-  Package, 
-  Euro, 
-  Clock, 
+import React, { useState, useEffect } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import {
+  TrendingUp,
+  TrendingDown,
+  Package,
+  Euro,
+  Clock,
   Star,
   Calendar,
-  MapPin
-} from 'lucide-react'
+  MapPin,
+} from "lucide-react";
 
 interface AnalyticsData {
-  totalDeliveries: number
-  totalSpent: number
-  averageRating: number
-  totalSavings: number
-  deliveriesThisMonth: number
-  activeSubscriptions: number
-  topCities: Array<{ city: string; count: number }>
-  monthlyStats: Array<{ month: string; deliveries: number; spending: number }>
+  totalDeliveries: number;
+  totalSpent: number;
+  averageRating: number;
+  totalSavings: number;
+  deliveriesThisMonth: number;
+  activeSubscriptions: number;
+  topCities: Array<{ city: string; count: number }>;
+  monthlyStats: Array<{ month: string; deliveries: number; spending: number }>;
   recentDeliveries: Array<{
-    id: string
-    title: string
-    status: string
-    amount: number
-    createdAt: string
-  }>
+    id: string;
+    title: string;
+    status: string;
+    amount: number;
+    createdAt: string;
+  }>;
 }
 
 export default function AnalyticsDashboard() {
-  const [analyticsData, setAnalyticsData] = useState<AnalyticsData | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [timeRange, setTimeRange] = useState<string>('30')
+  const [analyticsData, setAnalyticsData] = useState<AnalyticsData | null>(
+    null,
+  );
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [timeRange, setTimeRange] = useState<string>("30");
 
   // Récupération des données analytiques
   useEffect(() => {
     const fetchAnalytics = async () => {
       try {
-        setIsLoading(true)
-        setError(null)
+        setIsLoading(true);
+        setError(null);
 
-        const response = await fetch(`/api/client/analytics?timeRange=${timeRange}`)
-        
+        const response = await fetch(
+          `/api/client/analytics?timeRange=${timeRange}`,
+        );
+
         if (!response.ok) {
-          throw new Error('Erreur lors du chargement des données')
+          throw new Error("Erreur lors du chargement des données");
         }
 
-        const data = await response.json()
-        setAnalyticsData(data)
+        const data = await response.json();
+        setAnalyticsData(data);
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Erreur inconnue')
+        setError(err instanceof Error ? err.message : "Erreur inconnue");
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
-    }
+    };
 
-    fetchAnalytics()
-  }, [timeRange])
+    fetchAnalytics();
+  }, [timeRange]);
 
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </div>
-    )
+    );
   }
 
   if (error) {
-    return (
-      <div className="text-center text-red-500 p-4">
-        {error}
-      </div>
-    )
+    return <div className="text-center text-red-500 p-4">{error}</div>;
   }
 
   if (!analyticsData) {
@@ -86,7 +98,7 @@ export default function AnalyticsDashboard() {
       <div className="text-center text-muted-foreground p-4">
         Aucune donnée disponible
       </div>
-    )
+    );
   }
 
   return (
@@ -111,11 +123,15 @@ export default function AnalyticsDashboard() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Livraisons totales</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Livraisons totales
+            </CardTitle>
             <Package className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{analyticsData.totalDeliveries}</div>
+            <div className="text-2xl font-bold">
+              {analyticsData.totalDeliveries}
+            </div>
             <p className="text-xs text-muted-foreground">
               +{analyticsData.deliveriesThisMonth} ce mois
             </p>
@@ -124,11 +140,15 @@ export default function AnalyticsDashboard() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Dépenses totales</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Dépenses totales
+            </CardTitle>
             <Euro className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{analyticsData.totalSpent}€</div>
+            <div className="text-2xl font-bold">
+              {analyticsData.totalSpent}€
+            </div>
             <p className="text-xs text-muted-foreground">
               Moyenne par livraison
             </p>
@@ -141,20 +161,24 @@ export default function AnalyticsDashboard() {
             <Star className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{analyticsData.averageRating.toFixed(1)}</div>
-            <p className="text-xs text-muted-foreground">
-              Sur 5 étoiles
-            </p>
+            <div className="text-2xl font-bold">
+              {analyticsData.averageRating.toFixed(1)}
+            </div>
+            <p className="text-xs text-muted-foreground">Sur 5 étoiles</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Économies réalisées</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Économies réalisées
+            </CardTitle>
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{analyticsData.totalSavings}€</div>
+            <div className="text-2xl font-bold">
+              {analyticsData.totalSavings}€
+            </div>
             <p className="text-xs text-muted-foreground">
               Grâce à votre abonnement
             </p>
@@ -175,7 +199,10 @@ export default function AnalyticsDashboard() {
           <CardContent>
             <div className="space-y-3">
               {analyticsData.topCities.map((city, index) => (
-                <div key={city.city} className="flex items-center justify-between">
+                <div
+                  key={city.city}
+                  className="flex items-center justify-between"
+                >
                   <div className="flex items-center space-x-2">
                     <Badge variant="outline">{index + 1}</Badge>
                     <div className="flex items-center space-x-1">
@@ -196,14 +223,15 @@ export default function AnalyticsDashboard() {
         <Card>
           <CardHeader>
             <CardTitle>Évolution mensuelle</CardTitle>
-            <CardDescription>
-              Livraisons et dépenses par mois
-            </CardDescription>
+            <CardDescription>Livraisons et dépenses par mois</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
               {analyticsData.monthlyStats.map((stat) => (
-                <div key={stat.month} className="flex items-center justify-between">
+                <div
+                  key={stat.month}
+                  className="flex items-center justify-between"
+                >
                   <div className="flex items-center space-x-2">
                     <Calendar className="h-3 w-3 text-muted-foreground" />
                     <span className="text-sm font-medium">{stat.month}</span>
@@ -212,9 +240,7 @@ export default function AnalyticsDashboard() {
                     <span className="text-muted-foreground">
                       {stat.deliveries} livraisons
                     </span>
-                    <span className="font-medium">
-                      {stat.spending}€
-                    </span>
+                    <span className="font-medium">{stat.spending}€</span>
                   </div>
                 </div>
               ))}
@@ -227,14 +253,15 @@ export default function AnalyticsDashboard() {
       <Card>
         <CardHeader>
           <CardTitle>Livraisons récentes</CardTitle>
-          <CardDescription>
-            Vos dernières livraisons
-          </CardDescription>
+          <CardDescription>Vos dernières livraisons</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
             {analyticsData.recentDeliveries.map((delivery) => (
-              <div key={delivery.id} className="flex items-center justify-between p-3 border rounded-lg">
+              <div
+                key={delivery.id}
+                className="flex items-center justify-between p-3 border rounded-lg"
+              >
                 <div className="flex items-center space-x-3">
                   <Package className="h-4 w-4 text-muted-foreground" />
                   <div>
@@ -245,13 +272,20 @@ export default function AnalyticsDashboard() {
                   </div>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <Badge variant={
-                    delivery.status === 'DELIVERED' ? 'default' : 
-                    delivery.status === 'IN_TRANSIT' ? 'secondary' : 'outline'
-                  }>
+                  <Badge
+                    variant={
+                      delivery.status === "DELIVERED"
+                        ? "default"
+                        : delivery.status === "IN_TRANSIT"
+                          ? "secondary"
+                          : "outline"
+                    }
+                  >
                     {delivery.status}
                   </Badge>
-                  <span className="text-sm font-medium">{delivery.amount}€</span>
+                  <span className="text-sm font-medium">
+                    {delivery.amount}€
+                  </span>
                 </div>
               </div>
             ))}
@@ -271,5 +305,5 @@ export default function AnalyticsDashboard() {
         </Button>
       </div>
     </div>
-  )
-} 
+  );
+}

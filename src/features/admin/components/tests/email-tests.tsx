@@ -1,94 +1,147 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Badge } from "@/components/ui/badge"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { 
-  Mail, 
-  Send, 
-  CheckCircle, 
-  XCircle, 
+import { useState } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  Mail,
+  Send,
+  CheckCircle,
+  XCircle,
   AlertTriangle,
-  Loader2
-} from "lucide-react"
+  Loader2,
+} from "lucide-react";
 
 interface EmailTestResult {
-  success: boolean
-  message: string
-  timestamp: string
+  success: boolean;
+  message: string;
+  timestamp: string;
 }
 
 export function EmailTests() {
-  const [email, setEmail] = useState("")
-  const [emailType, setEmailType] = useState("welcome")
-  const [customSubject, setCustomSubject] = useState("")
-  const [customMessage, setCustomMessage] = useState("")
-  const [isLoading, setIsLoading] = useState(false)
-  const [results, setResults] = useState<EmailTestResult[]>([])
+  const [email, setEmail] = useState("");
+  const [emailType, setEmailType] = useState("welcome");
+  const [customSubject, setCustomSubject] = useState("");
+  const [customMessage, setCustomMessage] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [results, setResults] = useState<EmailTestResult[]>([]);
 
   const emailTemplates = [
-    { value: "welcome", label: "Email de bienvenue", description: "Email envoyé lors de l'inscription" },
-    { value: "verification", label: "Vérification email", description: "Email de vérification de compte" },
-    { value: "password-reset", label: "Réinitialisation mot de passe", description: "Email de récupération" },
-    { value: "delivery-confirmation", label: "Confirmation livraison", description: "Email de confirmation de livraison" },
-    { value: "payment-success", label: "Paiement réussi", description: "Email de confirmation de paiement" },
-    { value: "document-approved", label: "Document approuvé", description: "Email de validation document" },
-    { value: "custom", label: "Email personnalisé", description: "Email avec contenu personnalisé" }
-  ]
+    {
+      value: "welcome",
+      label: "Email de bienvenue",
+      description: "Email envoyé lors de l'inscription",
+    },
+    {
+      value: "verification",
+      label: "Vérification email",
+      description: "Email de vérification de compte",
+    },
+    {
+      value: "password-reset",
+      label: "Réinitialisation mot de passe",
+      description: "Email de récupération",
+    },
+    {
+      value: "delivery-confirmation",
+      label: "Confirmation livraison",
+      description: "Email de confirmation de livraison",
+    },
+    {
+      value: "payment-success",
+      label: "Paiement réussi",
+      description: "Email de confirmation de paiement",
+    },
+    {
+      value: "document-approved",
+      label: "Document approuvé",
+      description: "Email de validation document",
+    },
+    {
+      value: "custom",
+      label: "Email personnalisé",
+      description: "Email avec contenu personnalisé",
+    },
+  ];
 
   const handleSendTestEmail = async () => {
     if (!email) {
-      setResults(prev => [...prev, {
-        success: false,
-        message: "Veuillez saisir une adresse email",
-        timestamp: new Date().toLocaleString()
-      }])
-      return
+      setResults((prev) => [
+        ...prev,
+        {
+          success: false,
+          message: "Veuillez saisir une adresse email",
+          timestamp: new Date().toLocaleString(),
+        },
+      ]);
+      return;
     }
 
-    setIsLoading(true)
-    
+    setIsLoading(true);
+
     try {
-      const response = await fetch('/api/admin/tests/email', {
-        method: 'POST',
+      const response = await fetch("/api/admin/tests/email", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           email,
           type: emailType,
           subject: customSubject,
-          message: customMessage
-        })
-      })
+          message: customMessage,
+        }),
+      });
 
-      const data = await response.json()
+      const data = await response.json();
 
-      setResults(prev => [...prev, {
-        success: response.ok,
-        message: data.message || (response.ok ? "Email envoyé avec succès" : "Erreur lors de l'envoi"),
-        timestamp: new Date().toLocaleString()
-      }])
+      setResults((prev) => [
+        ...prev,
+        {
+          success: response.ok,
+          message:
+            data.message ||
+            (response.ok
+              ? "Email envoyé avec succès"
+              : "Erreur lors de l'envoi"),
+          timestamp: new Date().toLocaleString(),
+        },
+      ]);
     } catch (error) {
-      setResults(prev => [...prev, {
-        success: false,
-        message: "Erreur de connexion au serveur",
-        timestamp: new Date().toLocaleString()
-      }])
+      setResults((prev) => [
+        ...prev,
+        {
+          success: false,
+          message: "Erreur de connexion au serveur",
+          timestamp: new Date().toLocaleString(),
+        },
+      ]);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const clearResults = () => {
-    setResults([])
-  }
+    setResults([]);
+  };
 
   return (
     <div className="space-y-6">
@@ -115,7 +168,7 @@ export function EmailTests() {
                 onChange={(e) => setEmail(e.target.value)}
               />
             </div>
-            
+
             <div className="space-y-2">
               <Label htmlFor="email-type">Type d'email</Label>
               <Select value={emailType} onValueChange={setEmailType}>
@@ -127,7 +180,9 @@ export function EmailTests() {
                     <SelectItem key={template.value} value={template.value}>
                       <div>
                         <div className="font-medium">{template.label}</div>
-                        <div className="text-xs text-gray-500">{template.description}</div>
+                        <div className="text-xs text-gray-500">
+                          {template.description}
+                        </div>
                       </div>
                     </SelectItem>
                   ))}
@@ -147,7 +202,7 @@ export function EmailTests() {
                   onChange={(e) => setCustomSubject(e.target.value)}
                 />
               </div>
-              
+
               <div className="space-y-2">
                 <Label htmlFor="message">Message personnalisé</Label>
                 <Textarea
@@ -162,8 +217,8 @@ export function EmailTests() {
           )}
 
           <div className="flex gap-2">
-            <Button 
-              onClick={handleSendTestEmail} 
+            <Button
+              onClick={handleSendTestEmail}
               disabled={isLoading}
               className="flex items-center gap-2"
             >
@@ -174,9 +229,9 @@ export function EmailTests() {
               )}
               Envoyer Email de Test
             </Button>
-            
-            <Button 
-              variant="outline" 
+
+            <Button
+              variant="outline"
               onClick={clearResults}
               disabled={results.length === 0}
             >
@@ -198,7 +253,10 @@ export function EmailTests() {
           <CardContent>
             <div className="space-y-3">
               {results.map((result, index) => (
-                <Alert key={index} variant={result.success ? "default" : "destructive"}>
+                <Alert
+                  key={index}
+                  variant={result.success ? "default" : "destructive"}
+                >
                   <div className="flex items-center gap-2">
                     {result.success ? (
                       <CheckCircle className="h-4 w-4" />
@@ -232,12 +290,19 @@ export function EmailTests() {
         <CardContent>
           <div className="space-y-2 text-sm text-gray-600">
             <p>• Les emails de test sont envoyés en mode développement</p>
-            <p>• Vérifiez votre dossier spam si vous ne recevez pas les emails</p>
-            <p>• Les templates utilisent les variables de configuration du système</p>
-            <p>• Les logs d'envoi sont disponibles dans la console du serveur</p>
+            <p>
+              • Vérifiez votre dossier spam si vous ne recevez pas les emails
+            </p>
+            <p>
+              • Les templates utilisent les variables de configuration du
+              système
+            </p>
+            <p>
+              • Les logs d'envoi sont disponibles dans la console du serveur
+            </p>
           </div>
         </CardContent>
       </Card>
     </div>
-  )
-} 
+  );
+}

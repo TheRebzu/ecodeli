@@ -7,17 +7,43 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Link from "next/link";
 import { useState, useEffect } from "react";
-import { 
-  Plus, Package, MapPin, Calendar, DollarSign, Eye, Edit, 
-  Trash2, Users, Search, Filter, AlertTriangle
+import {
+  Plus,
+  Package,
+  MapPin,
+  Calendar,
+  DollarSign,
+  Eye,
+  Edit,
+  Trash2,
+  Users,
+  Search,
+  Filter,
+  AlertTriangle,
 } from "lucide-react";
 
-type AnnouncementStatus = 'DRAFT' | 'ACTIVE' | 'MATCHED' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
-type AnnouncementType = 'PACKAGE_DELIVERY' | 'SHOPPING' | 'INTERNATIONAL_PURCHASE' | 'CART_DROP';
+type AnnouncementStatus =
+  | "DRAFT"
+  | "ACTIVE"
+  | "MATCHED"
+  | "IN_PROGRESS"
+  | "COMPLETED"
+  | "CANCELLED";
+type AnnouncementType =
+  | "PACKAGE_DELIVERY"
+  | "SHOPPING"
+  | "INTERNATIONAL_PURCHASE"
+  | "CART_DROP";
 
 interface AnnouncementListItem {
   id: string;
@@ -34,11 +60,11 @@ interface AnnouncementListItem {
   isUrgent: boolean;
   createdAt: string;
   updatedAt: string;
-  
+
   // Statistiques
   matchesCount: number;
   viewsCount: number;
-  
+
   // Détails pour certains statuts
   delivery?: {
     id: string;
@@ -67,98 +93,132 @@ interface APIResponse {
 }
 
 const statusLabels = {
-  'DRAFT': { label: 'Brouillon', color: 'bg-gray-100 text-gray-800', description: 'Modifier ou supprimer' },
-  'ACTIVE': { label: 'Publiée', color: 'bg-green-100 text-green-800', description: 'Visible aux livreurs' },
-  'MATCHED': { label: 'Matchée', color: 'bg-blue-100 text-blue-800', description: 'Livreur trouvé' },
-  'IN_PROGRESS': { label: 'En cours', color: 'bg-orange-100 text-orange-800', description: 'Livraison en cours' },
-  'COMPLETED': { label: 'Terminée', color: 'bg-green-100 text-green-800', description: 'Livraison terminée' },
-  'CANCELLED': { label: 'Annulée', color: 'bg-red-100 text-red-800', description: 'Annulée par le client' }
+  DRAFT: {
+    label: "Brouillon",
+    color: "bg-gray-100 text-gray-800",
+    description: "Modifier ou supprimer",
+  },
+  ACTIVE: {
+    label: "Publiée",
+    color: "bg-green-100 text-green-800",
+    description: "Visible aux livreurs",
+  },
+  MATCHED: {
+    label: "Matchée",
+    color: "bg-blue-100 text-blue-800",
+    description: "Livreur trouvé",
+  },
+  IN_PROGRESS: {
+    label: "En cours",
+    color: "bg-orange-100 text-orange-800",
+    description: "Livraison en cours",
+  },
+  COMPLETED: {
+    label: "Terminée",
+    color: "bg-green-100 text-green-800",
+    description: "Livraison terminée",
+  },
+  CANCELLED: {
+    label: "Annulée",
+    color: "bg-red-100 text-red-800",
+    description: "Annulée par le client",
+  },
 };
 
 const typeLabels = {
-  'PACKAGE_DELIVERY': { label: 'Livraison de colis', icon: Package },
-  'SHOPPING': { label: 'Courses', icon: Package },
-  'INTERNATIONAL_PURCHASE': { label: 'Achat international', icon: Package },
-  'CART_DROP': { label: 'Lâcher de chariot', icon: Package }
+  PACKAGE_DELIVERY: { label: "Livraison de colis", icon: Package },
+  SHOPPING: { label: "Courses", icon: Package },
+  INTERNATIONAL_PURCHASE: { label: "Achat international", icon: Package },
+  CART_DROP: { label: "Lâcher de chariot", icon: Package },
 };
 
 // Fonction utilitaire pour obtenir les informations de statut de manière sécurisée
 const getStatusInfo = (status: any) => {
-  const statusString = String(status || 'UNKNOWN');
-  return statusLabels[statusString as keyof typeof statusLabels] || {
-    label: statusString,
-    color: 'bg-gray-100 text-gray-800',
-    description: 'Statut inconnu'
-  };
+  const statusString = String(status || "UNKNOWN");
+  return (
+    statusLabels[statusString as keyof typeof statusLabels] || {
+      label: statusString,
+      color: "bg-gray-100 text-gray-800",
+      description: "Statut inconnu",
+    }
+  );
 };
 
 // Fonction utilitaire pour obtenir les informations de type de manière sécurisée
 const getTypeInfo = (type: any) => {
-  const typeString = String(type || 'PACKAGE_DELIVERY');
-  return typeLabels[typeString as keyof typeof typeLabels] || {
-    label: typeString,
-    icon: Package
-  };
+  const typeString = String(type || "PACKAGE_DELIVERY");
+  return (
+    typeLabels[typeString as keyof typeof typeLabels] || {
+      label: typeString,
+      icon: Package,
+    }
+  );
 };
 
 export default function ClientAnnouncementsPage() {
   const { user } = useAuth();
   const t = useTranslations("client.announcements");
-  
-  const [announcements, setAnnouncements] = useState<AnnouncementListItem[]>([]);
+
+  const [announcements, setAnnouncements] = useState<AnnouncementListItem[]>(
+    [],
+  );
   const [loading, setLoading] = useState(true);
-  const [pagination, setPagination] = useState<APIResponse['pagination'] | null>(null);
-  const [stats, setStats] = useState<APIResponse['stats'] | null>(null);
-  
+  const [pagination, setPagination] = useState<
+    APIResponse["pagination"] | null
+  >(null);
+  const [stats, setStats] = useState<APIResponse["stats"] | null>(null);
+
   // Filtres
-  const [currentTab, setCurrentTab] = useState<string>('all');
-  const [searchTerm, setSearchTerm] = useState('');
-  const [typeFilter, setTypeFilter] = useState<string>('all');
-  const [sortBy, setSortBy] = useState<string>('createdAt');
-  const [sortOrder, setSortOrder] = useState<string>('desc');
+  const [currentTab, setCurrentTab] = useState<string>("all");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [typeFilter, setTypeFilter] = useState<string>("all");
+  const [sortBy, setSortBy] = useState<string>("createdAt");
+  const [sortOrder, setSortOrder] = useState<string>("desc");
   const [currentPage, setCurrentPage] = useState(1);
 
   const fetchAnnouncements = async () => {
     try {
       setLoading(true);
-      
+
       const params = new URLSearchParams({
         page: currentPage.toString(),
-        limit: '12',
+        limit: "12",
         sortBy,
-        sortOrder
+        sortOrder,
       });
-      
-      if (currentTab !== 'all') {
-        params.append('status', currentTab);
-      }
-      
-      if (typeFilter !== 'all') {
-        params.append('type', typeFilter);
-      }
-      
-      if (searchTerm.trim()) {
-        params.append('search', searchTerm.trim());
+
+      if (currentTab !== "all") {
+        params.append("status", currentTab);
       }
 
-      console.log('🔍 Récupération annonces avec filtres:', Object.fromEntries(params));
+      if (typeFilter !== "all") {
+        params.append("type", typeFilter);
+      }
+
+      if (searchTerm.trim()) {
+        params.append("search", searchTerm.trim());
+      }
+
+      console.log(
+        "🔍 Récupération annonces avec filtres:",
+        Object.fromEntries(params),
+      );
 
       const response = await fetch(`/api/client/announcements?${params}`);
-      
+
       if (!response.ok) {
-        throw new Error('Erreur lors du chargement');
+        throw new Error("Erreur lors du chargement");
       }
 
       const data: APIResponse = await response.json();
-      
+
       setAnnouncements(data.announcements || []);
       setPagination(data.pagination);
       setStats(data.stats);
-      
-      console.log('✅ Annonces chargées:', data.announcements.length);
-      
+
+      console.log("✅ Annonces chargées:", data.announcements.length);
     } catch (error) {
-      console.error('❌ Erreur chargement annonces:', error);
+      console.error("❌ Erreur chargement annonces:", error);
       setAnnouncements([]);
     } finally {
       setLoading(false);
@@ -177,48 +237,51 @@ export default function ClientAnnouncementsPage() {
   };
 
   const handleDelete = async (announcementId: string) => {
-    if (!window.confirm('Êtes-vous sûr de vouloir supprimer cette annonce ?')) {
+    if (!window.confirm("Êtes-vous sûr de vouloir supprimer cette annonce ?")) {
       return;
     }
 
     try {
-      const response = await fetch(`/api/client/announcements/${announcementId}`, {
-        method: 'DELETE'
-      });
-      
+      const response = await fetch(
+        `/api/client/announcements/${announcementId}`,
+        {
+          method: "DELETE",
+        },
+      );
+
       if (response.ok) {
         // Recharger la liste
         fetchAnnouncements();
       } else {
         const error = await response.json();
-        alert(`Erreur: ${error.error || 'Impossible de supprimer'}`);
+        alert(`Erreur: ${error.error || "Impossible de supprimer"}`);
       }
     } catch (err) {
-      console.error('❌ Erreur suppression:', err);
-      alert('Erreur de connexion');
+      console.error("❌ Erreur suppression:", err);
+      alert("Erreur de connexion");
     }
   };
 
-  const formatPrice = (price: number, currency: string = 'EUR') => {
-    return new Intl.NumberFormat('fr-FR', {
-      style: 'currency',
-      currency: currency
+  const formatPrice = (price: number, currency: string = "EUR") => {
+    return new Intl.NumberFormat("fr-FR", {
+      style: "currency",
+      currency: currency,
     }).format(price);
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('fr-FR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+    return new Date(dateString).toLocaleDateString("fr-FR", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
   const getActionsForStatus = (announcement: AnnouncementListItem) => {
     const actions = [];
-    
+
     // Toujours voir les détails
     actions.push(
       <Link key="view" href={`/client/announcements/${announcement.id}`}>
@@ -226,19 +289,22 @@ export default function ClientAnnouncementsPage() {
           <Eye className="h-4 w-4 mr-1" />
           Voir
         </Button>
-      </Link>
+      </Link>,
     );
 
     switch (announcement.status) {
-      case 'DRAFT':
+      case "DRAFT":
         // Modifier ou supprimer
         actions.push(
-          <Link key="edit" href={`/client/announcements/${announcement.id}/edit`}>
+          <Link
+            key="edit"
+            href={`/client/announcements/${announcement.id}/edit`}
+          >
             <Button variant="outline" size="sm">
               <Edit className="h-4 w-4 mr-1" />
               Modifier
             </Button>
-          </Link>
+          </Link>,
         );
         actions.push(
           <Button
@@ -249,20 +315,23 @@ export default function ClientAnnouncementsPage() {
           >
             <Trash2 className="h-4 w-4 mr-1" />
             Supprimer
-          </Button>
+          </Button>,
         );
         break;
-        
-      case 'ACTIVE':
+
+      case "ACTIVE":
         // Voir candidats ou supprimer
         if (announcement.matchesCount > 0) {
           actions.push(
-            <Link key="candidates" href={`/client/announcements/${announcement.id}/candidates`}>
+            <Link
+              key="candidates"
+              href={`/client/announcements/${announcement.id}/candidates`}
+            >
               <Button size="sm">
                 <Users className="h-4 w-4 mr-1" />
                 Candidats ({announcement.matchesCount})
               </Button>
-            </Link>
+            </Link>,
           );
         }
         actions.push(
@@ -274,41 +343,44 @@ export default function ClientAnnouncementsPage() {
           >
             <Trash2 className="h-4 w-4 mr-1" />
             Supprimer
-          </Button>
+          </Button>,
         );
         break;
-        
-      case 'MATCHED':
-      case 'IN_PROGRESS':
+
+      case "MATCHED":
+      case "IN_PROGRESS":
         // Suivre la livraison - utiliser le tracking d'annonce si pas d'ID de livraison
-        const trackingUrl = announcement.delivery?.id 
+        const trackingUrl = announcement.delivery?.id
           ? `/client/deliveries/${announcement.delivery.id}`
           : `/client/announcements/${announcement.id}/tracking`;
-        
+
         actions.push(
           <Link key="track" href={trackingUrl}>
             <Button size="sm">
               <MapPin className="h-4 w-4 mr-1" />
               Suivre livraison
             </Button>
-          </Link>
+          </Link>,
         );
         break;
-        
-      case 'COMPLETED':
+
+      case "COMPLETED":
         // Voir le détail ou évaluer
         if (announcement.delivery?.id) {
           actions.push(
-            <Link key="review" href={`/client/deliveries/${announcement.delivery.id}/review`}>
+            <Link
+              key="review"
+              href={`/client/deliveries/${announcement.delivery.id}/review`}
+            >
               <Button variant="outline" size="sm">
                 ⭐ Évaluer
               </Button>
-            </Link>
+            </Link>,
           );
         }
         break;
-        
-      case 'CANCELLED':
+
+      case "CANCELLED":
         // Pas d'actions spéciales
         break;
     }
@@ -376,7 +448,9 @@ export default function ClientAnnouncementsPage() {
           <Card>
             <CardContent className="p-4">
               <div className="text-2xl font-bold text-purple-600">
-                {Number(stats.byStatus?.find(s => s.status === 'ACTIVE')?._count) || 0}
+                {Number(
+                  stats.byStatus?.find((s) => s.status === "ACTIVE")?._count,
+                ) || 0}
               </div>
               <p className="text-sm text-gray-600">Actives</p>
             </CardContent>
@@ -394,14 +468,14 @@ export default function ClientAnnouncementsPage() {
                   placeholder="Rechercher une annonce..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+                  onKeyPress={(e) => e.key === "Enter" && handleSearch()}
                 />
                 <Button onClick={handleSearch}>
                   <Search className="h-4 w-4" />
                 </Button>
               </div>
             </div>
-            
+
             <div className="flex gap-2">
               <Select value={typeFilter} onValueChange={setTypeFilter}>
                 <SelectTrigger className="w-48">
@@ -409,20 +483,26 @@ export default function ClientAnnouncementsPage() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Tous les types</SelectItem>
-                  <SelectItem value="PACKAGE_DELIVERY">Livraison de colis</SelectItem>
+                  <SelectItem value="PACKAGE_DELIVERY">
+                    Livraison de colis
+                  </SelectItem>
                   <SelectItem value="SHOPPING">Courses</SelectItem>
-                  <SelectItem value="INTERNATIONAL_PURCHASE">Achat international</SelectItem>
+                  <SelectItem value="INTERNATIONAL_PURCHASE">
+                    Achat international
+                  </SelectItem>
                   <SelectItem value="CART_DROP">Lâcher de chariot</SelectItem>
                 </SelectContent>
               </Select>
-              
+
               <Select value={sortBy} onValueChange={setSortBy}>
                 <SelectTrigger className="w-48">
                   <SelectValue placeholder="Trier par" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="createdAt">Date de création</SelectItem>
-                  <SelectItem value="pickupDate">Date de récupération</SelectItem>
+                  <SelectItem value="pickupDate">
+                    Date de récupération
+                  </SelectItem>
                   <SelectItem value="basePrice">Prix</SelectItem>
                   <SelectItem value="status">Statut</SelectItem>
                 </SelectContent>
@@ -458,12 +538,11 @@ export default function ClientAnnouncementsPage() {
                 Aucune annonce trouvée
               </h3>
               <p className="text-gray-600 mb-6">
-                {currentTab === 'all' 
-                  ? "Vous n'avez pas encore créé d'annonce." 
-                  : `Aucune annonce avec le statut "${getStatusInfo(currentTab).label}".`
-                }
+                {currentTab === "all"
+                  ? "Vous n'avez pas encore créé d'annonce."
+                  : `Aucune annonce avec le statut "${getStatusInfo(currentTab).label}".`}
               </p>
-              {currentTab === 'all' && (
+              {currentTab === "all" && (
                 <Link href="/client/announcements/create">
                   <Button>
                     <Plus className="h-4 w-4 mr-2" />
@@ -478,35 +557,41 @@ export default function ClientAnnouncementsPage() {
                 const statusInfo = getStatusInfo(announcement.status);
                 const typeInfo = getTypeInfo(announcement.type);
                 const TypeIcon = typeInfo.icon;
-                
+
                 return (
-                  <Card key={announcement.id} className="hover:shadow-md transition-shadow">
+                  <Card
+                    key={announcement.id}
+                    className="hover:shadow-md transition-shadow"
+                  >
                     <CardHeader className="pb-3">
-                                              <div className="flex items-start justify-between">
-                          <div className="flex items-center gap-2">
-                            <TypeIcon className="h-5 w-5 text-blue-600" />
-                            <Badge className={statusInfo.color}>
-                              {statusInfo.label}
-                            </Badge>
-                          </div>
-                          {announcement.isUrgent && (
-                            <Badge variant="destructive" className="flex items-center gap-1">
-                              <AlertTriangle className="h-3 w-3" />
-                              Urgent
-                            </Badge>
-                          )}
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-center gap-2">
+                          <TypeIcon className="h-5 w-5 text-blue-600" />
+                          <Badge className={statusInfo.color}>
+                            {statusInfo.label}
+                          </Badge>
                         </div>
-                      
+                        {announcement.isUrgent && (
+                          <Badge
+                            variant="destructive"
+                            className="flex items-center gap-1"
+                          >
+                            <AlertTriangle className="h-3 w-3" />
+                            Urgent
+                          </Badge>
+                        )}
+                      </div>
+
                       <CardTitle className="text-lg line-clamp-2">
                         {announcement.title}
                       </CardTitle>
                     </CardHeader>
-                    
+
                     <CardContent className="space-y-4">
                       <p className="text-gray-600 text-sm line-clamp-2">
                         {announcement.description}
                       </p>
-                      
+
                       <div className="space-y-2 text-sm">
                         <div className="flex items-center gap-2">
                           <MapPin className="h-4 w-4 text-gray-400" />
@@ -514,22 +599,25 @@ export default function ClientAnnouncementsPage() {
                             {announcement.pickupAddress}
                           </span>
                         </div>
-                        
+
                         <div className="flex items-center gap-2">
                           <Calendar className="h-4 w-4 text-gray-400" />
                           <span className="text-gray-600">
                             {formatDate(announcement.pickupDate)}
                           </span>
                         </div>
-                        
+
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
                             <DollarSign className="h-4 w-4 text-gray-400" />
                             <span className="font-semibold text-green-600">
-                              {formatPrice(announcement.basePrice, announcement.currency)}
+                              {formatPrice(
+                                announcement.basePrice,
+                                announcement.currency,
+                              )}
                             </span>
                           </div>
-                          
+
                           <div className="flex items-center gap-4 text-xs text-gray-500">
                             {announcement.matchesCount > 0 && (
                               <span className="flex items-center gap-1">
@@ -544,7 +632,7 @@ export default function ClientAnnouncementsPage() {
                           </div>
                         </div>
                       </div>
-                      
+
                       {/* Code de validation pour livraisons en cours */}
                       {announcement.delivery?.validationCode && (
                         <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
@@ -556,17 +644,17 @@ export default function ClientAnnouncementsPage() {
                           </code>
                         </div>
                       )}
-                      
-                                              <div className="flex flex-wrap gap-2 pt-2">
-                          {getActionsForStatus(announcement)}
-                        </div>
+
+                      <div className="flex flex-wrap gap-2 pt-2">
+                        {getActionsForStatus(announcement)}
+                      </div>
                     </CardContent>
                   </Card>
                 );
               })}
             </div>
           )}
-          
+
           {/* Pagination */}
           {pagination && pagination.totalPages > 1 && (
             <div className="flex items-center justify-center gap-2 mt-8">
@@ -577,11 +665,11 @@ export default function ClientAnnouncementsPage() {
               >
                 Précédent
               </Button>
-              
+
               <span className="px-4 py-2 text-sm">
                 Page {pagination.page} sur {pagination.totalPages}
               </span>
-              
+
               <Button
                 variant="outline"
                 disabled={!pagination.hasNext}

@@ -7,10 +7,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { 
+import {
   ArrowLeft,
-  Package, 
-  MapPin, 
+  Package,
+  MapPin,
   User,
   Clock,
   Phone,
@@ -19,26 +19,37 @@ import {
   CheckCircle,
   AlertCircle,
   MapIcon,
-  RefreshCw
+  RefreshCw,
 } from "lucide-react";
 import { toast } from "sonner";
 import Link from "next/link";
 // Composant temporaire pour la carte de suivi
-const DeliveryTrackingMap = ({ pickupCoordinates, deliveryCoordinates, currentLocation, route, status }: any) => {
+const DeliveryTrackingMap = ({
+  pickupCoordinates,
+  deliveryCoordinates,
+  currentLocation,
+  route,
+  status,
+}: any) => {
   return (
     <div className="h-96 bg-gray-100 rounded-lg flex items-center justify-center border-2 border-dashed border-gray-300">
       <div className="text-center p-6">
         <MapIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-        <h3 className="text-lg font-medium text-gray-700 mb-2">Carte de suivi</h3>
+        <h3 className="text-lg font-medium text-gray-700 mb-2">
+          Carte de suivi
+        </h3>
         <p className="text-sm text-gray-500 mb-4">
           Statut: <span className="font-medium">{status}</span>
         </p>
         {currentLocation && (
           <div className="bg-white rounded-lg p-3 border">
-            <p className="text-sm font-medium text-gray-700">Position actuelle:</p>
+            <p className="text-sm font-medium text-gray-700">
+              Position actuelle:
+            </p>
             <p className="text-xs text-gray-600">{currentLocation.address}</p>
             <p className="text-xs text-gray-500">
-              Coordonnées: {currentLocation.lat.toFixed(4)}, {currentLocation.lng.toFixed(4)}
+              Coordonnées: {currentLocation.lat.toFixed(4)},{" "}
+              {currentLocation.lng.toFixed(4)}
             </p>
           </div>
         )}
@@ -100,7 +111,11 @@ export default function DeliveryTrackingPage() {
 
   // Auto-refresh toutes les 30 secondes si la livraison est en cours
   useEffect(() => {
-    if (autoRefresh && tracking && ["ACCEPTED", "IN_TRANSIT"].includes(tracking.status)) {
+    if (
+      autoRefresh &&
+      tracking &&
+      ["ACCEPTED", "IN_TRANSIT"].includes(tracking.status)
+    ) {
       const interval = setInterval(fetchTrackingData, 30000);
       return () => clearInterval(interval);
     }
@@ -109,8 +124,10 @@ export default function DeliveryTrackingPage() {
   const fetchTrackingData = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`/api/client/deliveries/${params.id}/tracking`);
-      
+      const response = await fetch(
+        `/api/client/deliveries/${params.id}/tracking`,
+      );
+
       if (response.ok) {
         const data = await response.json();
         setTracking(data);
@@ -128,48 +145,50 @@ export default function DeliveryTrackingPage() {
 
   const getStatusInfo = (status: string) => {
     const statusConfig = {
-      PENDING: { 
-        color: "bg-gray-100 text-gray-800", 
-        label: "En attente", 
+      PENDING: {
+        color: "bg-gray-100 text-gray-800",
+        label: "En attente",
         icon: Clock,
-        description: "Votre livraison est en attente d'un livreur"
+        description: "Votre livraison est en attente d'un livreur",
       },
-      ACCEPTED: { 
-        color: "bg-blue-100 text-blue-800", 
-        label: "Acceptée", 
+      ACCEPTED: {
+        color: "bg-blue-100 text-blue-800",
+        label: "Acceptée",
         icon: CheckCircle,
-        description: "Un livreur a accepté votre livraison"
+        description: "Un livreur a accepté votre livraison",
       },
-      IN_TRANSIT: { 
-        color: "bg-yellow-100 text-yellow-800", 
-        label: "En cours", 
+      IN_TRANSIT: {
+        color: "bg-yellow-100 text-yellow-800",
+        label: "En cours",
         icon: Truck,
-        description: "Votre colis est en route vers sa destination"
+        description: "Votre colis est en route vers sa destination",
       },
-      DELIVERED: { 
-        color: "bg-green-100 text-green-800", 
-        label: "Livrée", 
+      DELIVERED: {
+        color: "bg-green-100 text-green-800",
+        label: "Livrée",
         icon: CheckCircle,
-        description: "Votre colis a été livré avec succès"
-      }
+        description: "Votre colis a été livré avec succès",
+      },
     };
-    
-    return statusConfig[status as keyof typeof statusConfig] || statusConfig.PENDING;
+
+    return (
+      statusConfig[status as keyof typeof statusConfig] || statusConfig.PENDING
+    );
   };
 
   const formatTime = (timestamp: string) => {
-    return new Date(timestamp).toLocaleTimeString('fr-FR', {
-      hour: '2-digit',
-      minute: '2-digit'
+    return new Date(timestamp).toLocaleTimeString("fr-FR", {
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
   const formatDateTime = (timestamp: string) => {
-    return new Date(timestamp).toLocaleDateString('fr-FR', {
-      day: 'numeric',
-      month: 'long',
-      hour: '2-digit',
-      minute: '2-digit'
+    return new Date(timestamp).toLocaleDateString("fr-FR", {
+      day: "numeric",
+      month: "long",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
@@ -190,8 +209,12 @@ export default function DeliveryTrackingPage() {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">Suivi non disponible</h1>
-          <p className="text-gray-600 mb-6">Le suivi de cette livraison n'est pas disponible.</p>
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">
+            Suivi non disponible
+          </h1>
+          <p className="text-gray-600 mb-6">
+            Le suivi de cette livraison n'est pas disponible.
+          </p>
           <Link href={`/fr/client/deliveries/${params.id}`}>
             <Button>
               <ArrowLeft className="w-4 h-4 mr-2" />
@@ -210,8 +233,8 @@ export default function DeliveryTrackingPage() {
     <div className="container mx-auto px-4 py-8">
       {/* En-tête */}
       <div className="flex items-center gap-4 mb-6">
-        <Button 
-          variant="outline" 
+        <Button
+          variant="outline"
           onClick={() => router.push(`/fr/client/deliveries/${params.id}`)}
           className="flex items-center gap-2"
         >
@@ -222,9 +245,7 @@ export default function DeliveryTrackingPage() {
           <h1 className="text-2xl font-bold text-gray-900">
             Suivi en temps réel
           </h1>
-          <p className="text-gray-600">
-            {tracking.announcementTitle}
-          </p>
+          <p className="text-gray-600">{tracking.announcementTitle}</p>
         </div>
         <div className="flex items-center gap-2">
           <Button
@@ -250,26 +271,33 @@ export default function DeliveryTrackingPage() {
           <Card>
             <CardContent className="p-6">
               <div className="flex items-center gap-4 mb-4">
-                <div className={`p-3 rounded-full ${statusInfo.color.replace('text-', 'bg-').replace('100', '200')}`}>
+                <div
+                  className={`p-3 rounded-full ${statusInfo.color.replace("text-", "bg-").replace("100", "200")}`}
+                >
                   <StatusIcon className="w-6 h-6" />
                 </div>
                 <div className="flex-1">
-                  <h2 className="text-xl font-bold text-gray-900">{statusInfo.label}</h2>
+                  <h2 className="text-xl font-bold text-gray-900">
+                    {statusInfo.label}
+                  </h2>
                   <p className="text-gray-600">{statusInfo.description}</p>
                 </div>
               </div>
 
-              {tracking.estimatedArrival && tracking.status === "IN_TRANSIT" && (
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Clock className="w-4 h-4 text-blue-600" />
-                    <span className="font-medium text-blue-900">Arrivée estimée</span>
+              {tracking.estimatedArrival &&
+                tracking.status === "IN_TRANSIT" && (
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Clock className="w-4 h-4 text-blue-600" />
+                      <span className="font-medium text-blue-900">
+                        Arrivée estimée
+                      </span>
+                    </div>
+                    <p className="text-blue-800 font-bold">
+                      {formatDateTime(tracking.estimatedArrival)}
+                    </p>
                   </div>
-                  <p className="text-blue-800 font-bold">
-                    {formatDateTime(tracking.estimatedArrival)}
-                  </p>
-                </div>
-              )}
+                )}
             </CardContent>
           </Card>
 
@@ -289,16 +317,21 @@ export default function DeliveryTrackingPage() {
                 route={tracking.route || []}
                 status={tracking.status}
               />
-              
+
               {tracking.currentLocation && (
                 <div className="mt-4 p-3 bg-gray-50 rounded-lg">
                   <div className="flex items-center gap-2 mb-1">
                     <Navigation className="w-4 h-4 text-gray-600" />
-                    <span className="text-sm font-medium text-gray-700">Position actuelle</span>
+                    <span className="text-sm font-medium text-gray-700">
+                      Position actuelle
+                    </span>
                   </div>
-                  <p className="text-sm text-gray-600">{tracking.currentLocation.address}</p>
+                  <p className="text-sm text-gray-600">
+                    {tracking.currentLocation.address}
+                  </p>
                   <p className="text-xs text-gray-500">
-                    Dernière mise à jour: {formatTime(tracking.currentLocation.timestamp)}
+                    Dernière mise à jour:{" "}
+                    {formatTime(tracking.currentLocation.timestamp)}
                   </p>
                 </div>
               )}
@@ -317,18 +350,26 @@ export default function DeliveryTrackingPage() {
               <div className="flex items-start gap-3">
                 <div className="w-3 h-3 bg-green-500 rounded-full mt-2 flex-shrink-0"></div>
                 <div>
-                  <p className="text-sm font-medium text-gray-700">Point de collecte</p>
-                  <p className="text-sm text-gray-600">{tracking.pickupAddress}</p>
+                  <p className="text-sm font-medium text-gray-700">
+                    Point de collecte
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    {tracking.pickupAddress}
+                  </p>
                 </div>
               </div>
-              
+
               <div className="ml-1.5 border-l-2 border-gray-200 h-8"></div>
-              
+
               <div className="flex items-start gap-3">
                 <div className="w-3 h-3 bg-red-500 rounded-full mt-2 flex-shrink-0"></div>
                 <div>
-                  <p className="text-sm font-medium text-gray-700">Point de livraison</p>
-                  <p className="text-sm text-gray-600">{tracking.deliveryAddress}</p>
+                  <p className="text-sm font-medium text-gray-700">
+                    Point de livraison
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    {tracking.deliveryAddress}
+                  </p>
                 </div>
               </div>
             </CardContent>
@@ -349,8 +390,8 @@ export default function DeliveryTrackingPage() {
               <CardContent className="space-y-3">
                 <div className="flex items-center gap-3">
                   {tracking.delivererAvatar ? (
-                    <img 
-                      src={tracking.delivererAvatar} 
+                    <img
+                      src={tracking.delivererAvatar}
                       alt={tracking.delivererName}
                       className="w-12 h-12 rounded-full object-cover"
                     />
@@ -360,16 +401,20 @@ export default function DeliveryTrackingPage() {
                     </div>
                   )}
                   <div>
-                    <p className="font-medium text-gray-900">{tracking.delivererName}</p>
+                    <p className="font-medium text-gray-900">
+                      {tracking.delivererName}
+                    </p>
                     <p className="text-sm text-gray-500">Livreur EcoDeli</p>
                   </div>
                 </div>
-                
+
                 {tracking.delivererPhone && (
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     className="w-full flex items-center gap-2"
-                    onClick={() => window.open(`tel:${tracking.delivererPhone}`, '_self')}
+                    onClick={() =>
+                      window.open(`tel:${tracking.delivererPhone}`, "_self")
+                    }
                   >
                     <Phone className="w-4 h-4" />
                     Appeler
@@ -407,9 +452,11 @@ export default function DeliveryTrackingPage() {
               <CardTitle className="flex items-center justify-between">
                 <span>Mises à jour</span>
                 <div className="flex items-center gap-1">
-                  <div className={`w-2 h-2 rounded-full ${autoRefresh ? 'bg-green-500' : 'bg-gray-400'}`}></div>
+                  <div
+                    className={`w-2 h-2 rounded-full ${autoRefresh ? "bg-green-500" : "bg-gray-400"}`}
+                  ></div>
                   <span className="text-xs text-gray-500">
-                    {autoRefresh ? 'Temps réel' : 'Manuel'}
+                    {autoRefresh ? "Temps réel" : "Manuel"}
                   </span>
                 </div>
               </CardTitle>
@@ -418,36 +465,49 @@ export default function DeliveryTrackingPage() {
               <div className="space-y-3 max-h-64 overflow-y-auto">
                 {tracking.updates && tracking.updates.length > 0 ? (
                   tracking.updates.map((update) => (
-                    <div key={update.id} className="flex gap-3 pb-3 border-b last:border-0">
+                    <div
+                      key={update.id}
+                      className="flex gap-3 pb-3 border-b last:border-0"
+                    >
                       <div className="w-2 h-2 bg-blue-600 rounded-full mt-2 flex-shrink-0"></div>
                       <div className="flex-1">
-                        <p className="text-sm font-medium text-gray-900">{update.message}</p>
+                        <p className="text-sm font-medium text-gray-900">
+                          {update.message}
+                        </p>
                         <p className="text-xs text-gray-500">
                           {formatDateTime(update.timestamp)}
                         </p>
                         {update.location && (
-                          <p className="text-xs text-gray-400">{update.location}</p>
+                          <p className="text-xs text-gray-400">
+                            {update.location}
+                          </p>
                         )}
                       </div>
                     </div>
                   ))
                 ) : (
                   <div className="text-center py-4">
-                    <p className="text-sm text-gray-500">Aucune mise à jour disponible</p>
+                    <p className="text-sm text-gray-500">
+                      Aucune mise à jour disponible
+                    </p>
                   </div>
                 )}
               </div>
 
               <div className="mt-4 pt-3 border-t">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">Actualisation automatique</span>
+                  <span className="text-sm text-gray-600">
+                    Actualisation automatique
+                  </span>
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={() => setAutoRefresh(!autoRefresh)}
-                    className={autoRefresh ? 'bg-green-50 border-green-200' : ''}
+                    className={
+                      autoRefresh ? "bg-green-50 border-green-200" : ""
+                    }
                   >
-                    {autoRefresh ? 'Activée' : 'Désactivée'}
+                    {autoRefresh ? "Activée" : "Désactivée"}
                   </Button>
                 </div>
               </div>
@@ -457,4 +517,4 @@ export default function DeliveryTrackingPage() {
       </div>
     </div>
   );
-} 
+}

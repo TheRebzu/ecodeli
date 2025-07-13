@@ -3,7 +3,13 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { CheckCircle2, Circle, AlertCircle } from "lucide-react";
@@ -57,13 +63,17 @@ export function ProviderCandidature() {
   ]);
 
   // Calculer le pourcentage de progression
-  const completedSteps = validationSteps.filter(step => step.status === "completed").length;
+  const completedSteps = validationSteps.filter(
+    (step) => step.status === "completed",
+  ).length;
   const progressPercentage = (completedSteps / validationSteps.length) * 100;
 
   const handleSubmitCandidature = async () => {
     // Vérifier que toutes les étapes sont complétées
-    const allCompleted = validationSteps.every(step => step.status === "completed");
-    
+    const allCompleted = validationSteps.every(
+      (step) => step.status === "completed",
+    );
+
     if (!allCompleted) {
       toast.error(t("errors.incomplete_steps"));
       return;
@@ -113,7 +123,10 @@ export function ProviderCandidature() {
         <CardHeader>
           <CardTitle>{t("progress.title")}</CardTitle>
           <CardDescription>
-            {t("progress.description", { completed: completedSteps, total: validationSteps.length })}
+            {t("progress.description", {
+              completed: completedSteps,
+              total: validationSteps.length,
+            })}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -127,10 +140,12 @@ export function ProviderCandidature() {
       {/* Étapes de validation */}
       <div className="space-y-4">
         {validationSteps.map((step, index) => (
-          <Card 
+          <Card
             key={step.id}
             className={`cursor-pointer transition-all hover:shadow-md ${
-              step.status === "completed" ? "border-green-200 bg-green-50/50" : ""
+              step.status === "completed"
+                ? "border-green-200 bg-green-50/50"
+                : ""
             }`}
             onClick={() => router.push(step.href)}
           >
@@ -149,7 +164,9 @@ export function ProviderCandidature() {
                 </div>
               </div>
               <Button variant="outline" size="sm">
-                {step.status === "completed" ? t("actions.view") : t("actions.complete")}
+                {step.status === "completed"
+                  ? t("actions.view")
+                  : t("actions.complete")}
               </Button>
             </CardContent>
           </Card>
@@ -166,7 +183,7 @@ export function ProviderCandidature() {
                 {t("submit.description")}
               </p>
             </div>
-            <Button 
+            <Button
               onClick={handleSubmitCandidature}
               disabled={progressPercentage < 100 || isSubmitting}
               size="lg"
@@ -193,4 +210,4 @@ export function ProviderCandidature() {
       </Card>
     </div>
   );
-} 
+}

@@ -1,14 +1,14 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import { useParams, useRouter } from 'next/navigation'
-import Link from 'next/link'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Separator } from '@/components/ui/separator'
-import { Alert, AlertDescription } from '@/components/ui/alert'
+import { useState, useEffect } from "react";
+import { useParams, useRouter } from "next/navigation";
+import Link from "next/link";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Separator } from "@/components/ui/separator";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   ArrowLeft,
   Star,
@@ -22,156 +22,173 @@ import {
   MessageCircle,
   MapPin,
   DollarSign,
-  Eye
-} from 'lucide-react'
+  Eye,
+} from "lucide-react";
 
 interface Candidate {
-  id: string
+  id: string;
   deliverer: {
-    id: string
-    name: string
-    avatar?: string
-    averageRating: number
-    totalDeliveries: number
-    phone?: string
+    id: string;
+    name: string;
+    avatar?: string;
+    averageRating: number;
+    totalDeliveries: number;
+    phone?: string;
     vehicle?: {
-      type: string
-      model: string
-      licensePlate: string
-    }
-  }
-  proposedPrice: number
-  estimatedPickupTime: string
-  estimatedDeliveryTime: string
-  message?: string
-  createdAt: string
+      type: string;
+      model: string;
+      licensePlate: string;
+    };
+  };
+  proposedPrice: number;
+  estimatedPickupTime: string;
+  estimatedDeliveryTime: string;
+  message?: string;
+  createdAt: string;
   route?: {
-    distance: number
-    duration: number
-  }
+    distance: number;
+    duration: number;
+  };
 }
 
 interface CandidatesData {
   announcement: {
-    id: string
-    title: string
-    status: string
-    basePrice: number
-    pickupAddress: string
-    deliveryAddress: string
-  }
-  candidates: Candidate[]
+    id: string;
+    title: string;
+    status: string;
+    basePrice: number;
+    pickupAddress: string;
+    deliveryAddress: string;
+  };
+  candidates: Candidate[];
 }
 
 export default function CandidatesPage() {
-  const { id } = useParams()
-  const router = useRouter()
-  const [loading, setLoading] = useState(true)
-  const [actionLoading, setActionLoading] = useState<string | null>(null)
-  const [error, setError] = useState<string | null>(null)
-  const [candidatesData, setCandidatesData] = useState<CandidatesData | null>(null)
-  const [selectedCandidate, setSelectedCandidate] = useState<string | null>(null)
+  const { id } = useParams();
+  const router = useRouter();
+  const [loading, setLoading] = useState(true);
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [candidatesData, setCandidatesData] = useState<CandidatesData | null>(
+    null,
+  );
+  const [selectedCandidate, setSelectedCandidate] = useState<string | null>(
+    null,
+  );
 
   useEffect(() => {
     if (id) {
-      fetchCandidates()
+      fetchCandidates();
     }
-  }, [id])
+  }, [id]);
 
   const fetchCandidates = async () => {
     try {
-      setLoading(true)
-      const response = await fetch(`/api/client/announcements/${id}/candidates`, {
-        credentials: 'include'
-      })
-      
+      setLoading(true);
+      const response = await fetch(
+        `/api/client/announcements/${id}/candidates`,
+        {
+          credentials: "include",
+        },
+      );
+
       if (response.ok) {
-        const data = await response.json()
-        setCandidatesData(data)
+        const data = await response.json();
+        setCandidatesData(data);
       } else {
-        const errorData = await response.json()
-        setError(errorData.error || 'Impossible de charger les candidats')
+        const errorData = await response.json();
+        setError(errorData.error || "Impossible de charger les candidats");
       }
     } catch (err) {
-      console.error('❌ Erreur chargement candidats:', err)
-      setError('Erreur de connexion')
+      console.error("❌ Erreur chargement candidats:", err);
+      setError("Erreur de connexion");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const handleAcceptCandidate = async (candidateId: string) => {
     try {
-      setActionLoading(candidateId)
-      const response = await fetch(`/api/client/announcements/${id}/candidates/${candidateId}/accept`, {
-        method: 'POST',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      })
-      
+      setActionLoading(candidateId);
+      const response = await fetch(
+        `/api/client/announcements/${id}/candidates/${candidateId}/accept`,
+        {
+          method: "POST",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        },
+      );
+
       if (response.ok) {
-        alert('Candidat accepté ! La livraison peut maintenant commencer.')
-        router.push(`/client/announcements/${id}`)
+        alert("Candidat accepté ! La livraison peut maintenant commencer.");
+        router.push(`/client/announcements/${id}`);
       } else {
-        const errorData = await response.json()
-        alert(`Erreur: ${errorData.error || 'Impossible d\'accepter le candidat'}`)
+        const errorData = await response.json();
+        alert(
+          `Erreur: ${errorData.error || "Impossible d'accepter le candidat"}`,
+        );
       }
     } catch (err) {
-      console.error('❌ Erreur acceptation candidat:', err)
-      alert('Erreur de connexion')
+      console.error("❌ Erreur acceptation candidat:", err);
+      alert("Erreur de connexion");
     } finally {
-      setActionLoading(null)
+      setActionLoading(null);
     }
-  }
+  };
 
   const handleRejectCandidate = async (candidateId: string) => {
-    if (!confirm('Êtes-vous sûr de vouloir rejeter ce candidat ?')) {
-      return
+    if (!confirm("Êtes-vous sûr de vouloir rejeter ce candidat ?")) {
+      return;
     }
 
     try {
-      setActionLoading(candidateId)
-      const response = await fetch(`/api/client/announcements/${id}/candidates/${candidateId}/reject`, {
-        method: 'POST',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      })
-      
+      setActionLoading(candidateId);
+      const response = await fetch(
+        `/api/client/announcements/${id}/candidates/${candidateId}/reject`,
+        {
+          method: "POST",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        },
+      );
+
       if (response.ok) {
         // Rafraîchir la liste
-        await fetchCandidates()
-        alert('Candidat rejeté')
+        await fetchCandidates();
+        alert("Candidat rejeté");
       } else {
-        const errorData = await response.json()
-        alert(`Erreur: ${errorData.error || 'Impossible de rejeter le candidat'}`)
+        const errorData = await response.json();
+        alert(
+          `Erreur: ${errorData.error || "Impossible de rejeter le candidat"}`,
+        );
       }
     } catch (err) {
-      console.error('❌ Erreur rejet candidat:', err)
-      alert('Erreur de connexion')
+      console.error("❌ Erreur rejet candidat:", err);
+      alert("Erreur de connexion");
     } finally {
-      setActionLoading(null)
+      setActionLoading(null);
     }
-  }
+  };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('fr-FR', {
-      day: 'numeric',
-      month: 'long',
-      hour: '2-digit',
-      minute: '2-digit'
-    })
-  }
+    return new Date(dateString).toLocaleDateString("fr-FR", {
+      day: "numeric",
+      month: "long",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
 
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('fr-FR', {
-      style: 'currency',
-      currency: 'EUR'
-    }).format(price)
-  }
+    return new Intl.NumberFormat("fr-FR", {
+      style: "currency",
+      currency: "EUR",
+    }).format(price);
+  };
 
   if (loading) {
     return (
@@ -181,7 +198,7 @@ export default function CandidatesPage() {
           <p className="text-gray-600">Chargement des candidats...</p>
         </div>
       </div>
-    )
+    );
   }
 
   if (error || !candidatesData) {
@@ -189,9 +206,7 @@ export default function CandidatesPage() {
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
           <AlertTriangle className="h-12 w-12 text-red-500 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">
-            Erreur
-          </h2>
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">Erreur</h2>
           <p className="text-gray-600 mb-4">
             {error || "Impossible de charger les candidats."}
           </p>
@@ -203,10 +218,10 @@ export default function CandidatesPage() {
           </Link>
         </div>
       </div>
-    )
+    );
   }
 
-  const { announcement, candidates } = candidatesData
+  const { announcement, candidates } = candidatesData;
 
   return (
     <div className="space-y-6">
@@ -216,9 +231,7 @@ export default function CandidatesPage() {
           <h1 className="text-2xl font-bold text-gray-900">
             Candidats livreurs ({candidates.length})
           </h1>
-          <p className="text-gray-600">
-            Pour l'annonce: {announcement.title}
-          </p>
+          <p className="text-gray-600">Pour l'annonce: {announcement.title}</p>
         </div>
         <div className="flex gap-2">
           <Link href={`/client/announcements/${id}`}>
@@ -239,12 +252,14 @@ export default function CandidatesPage() {
                 Aucun candidat pour le moment
               </h3>
               <p className="text-gray-600 mb-4">
-                Votre annonce est active mais aucun livreur ne s'est encore proposé.
+                Votre annonce est active mais aucun livreur ne s'est encore
+                proposé.
               </p>
               <Alert className="max-w-md mx-auto">
                 <AlertTriangle className="h-4 w-4" />
                 <AlertDescription>
-                  Les livreurs recevront une notification dès qu'ils planifieront un trajet compatible avec votre annonce.
+                  Les livreurs recevront une notification dès qu'ils
+                  planifieront un trajet compatible avec votre annonce.
                 </AlertDescription>
               </Alert>
             </div>
@@ -255,10 +270,12 @@ export default function CandidatesPage() {
           {/* Liste des candidats */}
           <div className="lg:col-span-2 space-y-4">
             {candidates.map((candidate) => (
-              <Card 
-                key={candidate.id} 
+              <Card
+                key={candidate.id}
                 className={`transition-all ${
-                  selectedCandidate === candidate.id ? 'ring-2 ring-blue-500' : ''
+                  selectedCandidate === candidate.id
+                    ? "ring-2 ring-blue-500"
+                    : ""
                 }`}
               >
                 <CardContent className="p-6">
@@ -268,13 +285,18 @@ export default function CandidatesPage() {
                       <Avatar className="h-12 w-12">
                         <AvatarImage src={candidate.deliverer.avatar} />
                         <AvatarFallback>
-                          {candidate.deliverer.name.split(' ').map(n => n[0]).join('')}
+                          {candidate.deliverer.name
+                            .split(" ")
+                            .map((n) => n[0])
+                            .join("")}
                         </AvatarFallback>
                       </Avatar>
-                      
+
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-2">
-                          <h3 className="font-semibold text-lg">{candidate.deliverer.name}</h3>
+                          <h3 className="font-semibold text-lg">
+                            {candidate.deliverer.name}
+                          </h3>
                           <Badge variant="outline" className="text-xs">
                             <Star className="h-3 w-3 fill-yellow-400 text-yellow-400 mr-1" />
                             {candidate.deliverer.averageRating}/5
@@ -291,9 +313,17 @@ export default function CandidatesPage() {
                             <span className="font-semibold text-green-600 text-lg">
                               {formatPrice(candidate.proposedPrice)}
                             </span>
-                            {candidate.proposedPrice < announcement.basePrice && (
+                            {candidate.proposedPrice <
+                              announcement.basePrice && (
                               <Badge variant="destructive" className="text-xs">
-                                -{Math.round(((announcement.basePrice - candidate.proposedPrice) / announcement.basePrice) * 100)}%
+                                -
+                                {Math.round(
+                                  ((announcement.basePrice -
+                                    candidate.proposedPrice) /
+                                    announcement.basePrice) *
+                                    100,
+                                )}
+                                %
                               </Badge>
                             )}
                           </div>
@@ -312,7 +342,9 @@ export default function CandidatesPage() {
                             <Truck className="h-4 w-4" />
                             <div>
                               <p className="font-medium">Livraison</p>
-                              <p>{formatDate(candidate.estimatedDeliveryTime)}</p>
+                              <p>
+                                {formatDate(candidate.estimatedDeliveryTime)}
+                              </p>
                             </div>
                           </div>
                         </div>
@@ -322,7 +354,8 @@ export default function CandidatesPage() {
                           <div className="flex items-center gap-2 text-sm text-gray-600 mb-3">
                             <Truck className="h-4 w-4" />
                             <span>
-                              {candidate.deliverer.vehicle.type} - {candidate.deliverer.vehicle.model}
+                              {candidate.deliverer.vehicle.type} -{" "}
+                              {candidate.deliverer.vehicle.model}
                             </span>
                           </div>
                         )}
@@ -336,7 +369,9 @@ export default function CandidatesPage() {
                             </div>
                             <div className="flex items-center gap-1">
                               <Clock className="h-4 w-4" />
-                              <span>{Math.round(candidate.route.duration / 60)} min</span>
+                              <span>
+                                {Math.round(candidate.route.duration / 60)} min
+                              </span>
                             </div>
                           </div>
                         )}
@@ -381,7 +416,7 @@ export default function CandidatesPage() {
                           </>
                         )}
                       </Button>
-                      
+
                       <Button
                         variant="outline"
                         onClick={() => handleRejectCandidate(candidate.id)}
@@ -399,12 +434,16 @@ export default function CandidatesPage() {
                         </Button>
                       )}
 
-                      <Button 
-                        variant="ghost" 
+                      <Button
+                        variant="ghost"
                         size="sm"
-                        onClick={() => setSelectedCandidate(
-                          selectedCandidate === candidate.id ? null : candidate.id
-                        )}
+                        onClick={() =>
+                          setSelectedCandidate(
+                            selectedCandidate === candidate.id
+                              ? null
+                              : candidate.id,
+                          )
+                        }
                       >
                         <Eye className="h-4 w-4 mr-2" />
                         Détails
@@ -461,7 +500,9 @@ export default function CandidatesPage() {
                   <li>• Vérifiez les évaluations du livreur</li>
                   <li>• Comparez les prix proposés</li>
                   <li>• Contactez le livreur si nécessaire</li>
-                  <li>• Choisissez selon vos critères (prix, délai, évaluations)</li>
+                  <li>
+                    • Choisissez selon vos critères (prix, délai, évaluations)
+                  </li>
                 </ul>
               </AlertDescription>
             </Alert>
@@ -479,20 +520,23 @@ export default function CandidatesPage() {
                   <span className="text-sm">Candidatures reçues</span>
                   <Badge variant="secondary">{candidates.length}</Badge>
                 </div>
-                
+
                 <div className="flex items-center justify-between">
                   <span className="text-sm">Prix moyen proposé</span>
                   <span className="text-sm font-medium">
                     {formatPrice(
-                      candidates.reduce((sum, c) => sum + c.proposedPrice, 0) / candidates.length
+                      candidates.reduce((sum, c) => sum + c.proposedPrice, 0) /
+                        candidates.length,
                     )}
                   </span>
                 </div>
-                
+
                 <div className="flex items-center justify-between">
                   <span className="text-sm">Meilleur prix</span>
                   <span className="text-sm font-medium text-green-600">
-                    {formatPrice(Math.min(...candidates.map(c => c.proposedPrice)))}
+                    {formatPrice(
+                      Math.min(...candidates.map((c) => c.proposedPrice)),
+                    )}
                   </span>
                 </div>
               </CardContent>
@@ -501,5 +545,5 @@ export default function CandidatesPage() {
         </div>
       )}
     </div>
-  )
-} 
+  );
+}

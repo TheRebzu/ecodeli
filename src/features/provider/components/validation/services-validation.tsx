@@ -9,15 +9,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import { 
-  Plus, 
-  Edit, 
-  Trash2, 
+import {
+  Plus,
+  Edit,
+  Trash2,
   CheckCircle,
   Clock,
   AlertCircle,
   Settings,
-  DollarSign
+  DollarSign,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useApi } from "@/hooks/use-api";
@@ -28,7 +28,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-  DialogFooter
+  DialogFooter,
 } from "@/components/ui/dialog";
 import {
   Select,
@@ -51,7 +51,7 @@ interface ProviderService {
   priceUnit: string;
   duration?: number;
   isActive: boolean;
-  validationStatus: 'PENDING' | 'APPROVED' | 'REJECTED';
+  validationStatus: "PENDING" | "APPROVED" | "REJECTED";
   validationNotes?: string;
   requirements: string[];
   minAdvanceBooking: number;
@@ -60,53 +60,57 @@ interface ProviderService {
 }
 
 const SERVICE_TYPES = [
-  { value: 'CLEANING', label: 'Ménage et nettoyage' },
-  { value: 'GARDENING', label: 'Jardinage' },
-  { value: 'BABYSITTING', label: 'Garde d\'enfants' },
-  { value: 'PET_SITTING', label: 'Garde d\'animaux' },
-  { value: 'TUTORING', label: 'Cours particuliers' },
-  { value: 'HOME_REPAIR', label: 'Petits travaux' },
-  { value: 'TRANSPORT', label: 'Transport de personnes' },
-  { value: 'SHOPPING', label: 'Courses' },
-  { value: 'OTHER', label: 'Autre' }
+  { value: "CLEANING", label: "Ménage et nettoyage" },
+  { value: "GARDENING", label: "Jardinage" },
+  { value: "BABYSITTING", label: "Garde d'enfants" },
+  { value: "PET_SITTING", label: "Garde d'animaux" },
+  { value: "TUTORING", label: "Cours particuliers" },
+  { value: "HOME_REPAIR", label: "Petits travaux" },
+  { value: "TRANSPORT", label: "Transport de personnes" },
+  { value: "SHOPPING", label: "Courses" },
+  { value: "OTHER", label: "Autre" },
 ];
 
 const PRICE_UNITS = [
-  { value: 'HOUR', label: 'Par heure' },
-  { value: 'FLAT', label: 'Forfait' },
-  { value: 'KM', label: 'Par kilomètre' },
-  { value: 'DAY', label: 'Par jour' }
+  { value: "HOUR", label: "Par heure" },
+  { value: "FLAT", label: "Forfait" },
+  { value: "KM", label: "Par kilomètre" },
+  { value: "DAY", label: "Par jour" },
 ];
 
-export function ProviderServicesValidation({ providerId }: ServicesValidationProps) {
+export function ProviderServicesValidation({
+  providerId,
+}: ServicesValidationProps) {
   const t = useTranslations("provider.validation.services");
   const { execute } = useApi();
   const [services, setServices] = useState<ProviderService[]>([]);
   const [loading, setLoading] = useState(true);
   const [showDialog, setShowDialog] = useState(false);
-  const [editingService, setEditingService] = useState<ProviderService | null>(null);
+  const [editingService, setEditingService] = useState<ProviderService | null>(
+    null,
+  );
 
   // Créer les méthodes GET, POST et PUT basées sur execute
   const get = async (url: string) => {
-    return await execute(url, { method: 'GET' });
+    return await execute(url, { method: "GET" });
   };
 
   const post = async (url: string, options: { body: string }) => {
-    return await execute(url, { 
-      method: 'POST',
+    return await execute(url, {
+      method: "POST",
       body: options.body,
-      headers: { 'Content-Type': 'application/json' }
+      headers: { "Content-Type": "application/json" },
     });
   };
 
   const put = async (url: string, options: { body: string }) => {
-    return await execute(url, { 
-      method: 'PUT',
+    return await execute(url, {
+      method: "PUT",
       body: options.body,
-      headers: { 'Content-Type': 'application/json' }
+      headers: { "Content-Type": "application/json" },
     });
   };
-  
+
   const [formData, setFormData] = useState({
     name: "",
     description: "",
@@ -117,13 +121,15 @@ export function ProviderServicesValidation({ providerId }: ServicesValidationPro
     isActive: true,
     requirements: [] as string[],
     minAdvanceBooking: 24,
-    maxAdvanceBooking: 720
+    maxAdvanceBooking: 720,
   });
 
   const fetchServices = async () => {
     try {
       setLoading(true);
-      const response = await get(`/api/provider/services?providerId=${providerId}`);
+      const response = await get(
+        `/api/provider/services?providerId=${providerId}`,
+      );
       if (response) {
         setServices(response.services || []);
       }
@@ -137,17 +143,17 @@ export function ProviderServicesValidation({ providerId }: ServicesValidationPro
 
   const saveService = async () => {
     try {
-      const endpoint = editingService 
-        ? `/api/provider/services/${editingService.id}` 
+      const endpoint = editingService
+        ? `/api/provider/services/${editingService.id}`
         : "/api/provider/services";
-      
+
       const method = editingService ? put : post;
-      
+
       const response = await method(endpoint, {
         body: JSON.stringify({
           providerId,
-          ...formData
-        })
+          ...formData,
+        }),
       });
 
       if (response) {
@@ -164,9 +170,12 @@ export function ProviderServicesValidation({ providerId }: ServicesValidationPro
 
   const requestValidation = async (serviceId: string) => {
     try {
-      const response = await post(`/api/provider/services/${serviceId}/validate`, {
-        body: JSON.stringify({ providerId })
-      });
+      const response = await post(
+        `/api/provider/services/${serviceId}/validate`,
+        {
+          body: JSON.stringify({ providerId }),
+        },
+      );
 
       if (response) {
         toast.success("Demande de validation envoyée");
@@ -189,7 +198,7 @@ export function ProviderServicesValidation({ providerId }: ServicesValidationPro
       isActive: true,
       requirements: [],
       minAdvanceBooking: 24,
-      maxAdvanceBooking: 720
+      maxAdvanceBooking: 720,
     });
     setEditingService(null);
   };
@@ -205,7 +214,7 @@ export function ProviderServicesValidation({ providerId }: ServicesValidationPro
       isActive: service.isActive,
       requirements: service.requirements || [],
       minAdvanceBooking: service.minAdvanceBooking,
-      maxAdvanceBooking: service.maxAdvanceBooking
+      maxAdvanceBooking: service.maxAdvanceBooking,
     });
     setEditingService(service);
     setShowDialog(true);
@@ -213,12 +222,25 @@ export function ProviderServicesValidation({ providerId }: ServicesValidationPro
 
   const getStatusBadge = (status: string) => {
     const config = {
-      PENDING: { color: "bg-yellow-100 text-yellow-800", icon: Clock, label: "En attente" },
-      APPROVED: { color: "bg-green-100 text-green-800", icon: CheckCircle, label: "Validé" },
-      REJECTED: { color: "bg-red-100 text-red-800", icon: AlertCircle, label: "Rejeté" }
+      PENDING: {
+        color: "bg-yellow-100 text-yellow-800",
+        icon: Clock,
+        label: "En attente",
+      },
+      APPROVED: {
+        color: "bg-green-100 text-green-800",
+        icon: CheckCircle,
+        label: "Validé",
+      },
+      REJECTED: {
+        color: "bg-red-100 text-red-800",
+        icon: AlertCircle,
+        label: "Rejeté",
+      },
     };
 
-    const statusConfig = config[status as keyof typeof config] || config.PENDING;
+    const statusConfig =
+      config[status as keyof typeof config] || config.PENDING;
     const Icon = statusConfig.icon;
 
     return (
@@ -276,7 +298,7 @@ export function ProviderServicesValidation({ providerId }: ServicesValidationPro
                 Définissez les caractéristiques de votre prestation
               </DialogDescription>
             </DialogHeader>
-            
+
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
@@ -284,13 +306,20 @@ export function ProviderServicesValidation({ providerId }: ServicesValidationPro
                   <Input
                     id="name"
                     value={formData.name}
-                    onChange={(e) => setFormData({...formData, name: e.target.value})}
+                    onChange={(e) =>
+                      setFormData({ ...formData, name: e.target.value })
+                    }
                     placeholder="Ex: Ménage à domicile"
                   />
                 </div>
                 <div>
                   <Label htmlFor="type">Type de service</Label>
-                  <Select value={formData.type} onValueChange={(value) => setFormData({...formData, type: value})}>
+                  <Select
+                    value={formData.type}
+                    onValueChange={(value) =>
+                      setFormData({ ...formData, type: value })
+                    }
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder="Sélectionner un type" />
                     </SelectTrigger>
@@ -310,7 +339,9 @@ export function ProviderServicesValidation({ providerId }: ServicesValidationPro
                 <Textarea
                   id="description"
                   value={formData.description}
-                  onChange={(e) => setFormData({...formData, description: e.target.value})}
+                  onChange={(e) =>
+                    setFormData({ ...formData, description: e.target.value })
+                  }
                   placeholder="Décrivez en détail votre prestation..."
                   rows={3}
                 />
@@ -325,7 +356,12 @@ export function ProviderServicesValidation({ providerId }: ServicesValidationPro
                       id="basePrice"
                       type="number"
                       value={formData.basePrice}
-                      onChange={(e) => setFormData({...formData, basePrice: parseFloat(e.target.value)})}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          basePrice: parseFloat(e.target.value),
+                        })
+                      }
                       className="pl-10"
                       placeholder="0.00"
                     />
@@ -333,7 +369,12 @@ export function ProviderServicesValidation({ providerId }: ServicesValidationPro
                 </div>
                 <div>
                   <Label htmlFor="priceUnit">Unité</Label>
-                  <Select value={formData.priceUnit} onValueChange={(value) => setFormData({...formData, priceUnit: value})}>
+                  <Select
+                    value={formData.priceUnit}
+                    onValueChange={(value) =>
+                      setFormData({ ...formData, priceUnit: value })
+                    }
+                  >
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
@@ -352,7 +393,12 @@ export function ProviderServicesValidation({ providerId }: ServicesValidationPro
                     id="duration"
                     type="number"
                     value={formData.duration}
-                    onChange={(e) => setFormData({...formData, duration: parseInt(e.target.value)})}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        duration: parseInt(e.target.value),
+                      })
+                    }
                     placeholder="60"
                   />
                 </div>
@@ -360,22 +406,36 @@ export function ProviderServicesValidation({ providerId }: ServicesValidationPro
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="minAdvanceBooking">Réservation min (heures)</Label>
+                  <Label htmlFor="minAdvanceBooking">
+                    Réservation min (heures)
+                  </Label>
                   <Input
                     id="minAdvanceBooking"
                     type="number"
                     value={formData.minAdvanceBooking}
-                    onChange={(e) => setFormData({...formData, minAdvanceBooking: parseInt(e.target.value)})}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        minAdvanceBooking: parseInt(e.target.value),
+                      })
+                    }
                     placeholder="24"
                   />
                 </div>
                 <div>
-                  <Label htmlFor="maxAdvanceBooking">Réservation max (heures)</Label>
+                  <Label htmlFor="maxAdvanceBooking">
+                    Réservation max (heures)
+                  </Label>
                   <Input
                     id="maxAdvanceBooking"
                     type="number"
                     value={formData.maxAdvanceBooking}
-                    onChange={(e) => setFormData({...formData, maxAdvanceBooking: parseInt(e.target.value)})}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        maxAdvanceBooking: parseInt(e.target.value),
+                      })
+                    }
                     placeholder="720"
                   />
                 </div>
@@ -384,7 +444,9 @@ export function ProviderServicesValidation({ providerId }: ServicesValidationPro
               <div className="flex items-center space-x-2">
                 <Switch
                   checked={formData.isActive}
-                  onCheckedChange={(checked) => setFormData({...formData, isActive: checked})}
+                  onCheckedChange={(checked) =>
+                    setFormData({ ...formData, isActive: checked })
+                  }
                 />
                 <Label>Service actif</Label>
               </div>
@@ -433,13 +495,22 @@ export function ProviderServicesValidation({ providerId }: ServicesValidationPro
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <p className="text-sm text-gray-600 mb-2">{service.description}</p>
+                  <p className="text-sm text-gray-600 mb-2">
+                    {service.description}
+                  </p>
                   <div className="flex items-center space-x-4 text-sm">
                     <span className="font-medium text-green-600">
-                      {service.basePrice}€ {service.priceUnit === 'HOUR' ? '/h' : service.priceUnit === 'FLAT' ? 'forfait' : '/km'}
+                      {service.basePrice}€{" "}
+                      {service.priceUnit === "HOUR"
+                        ? "/h"
+                        : service.priceUnit === "FLAT"
+                          ? "forfait"
+                          : "/km"}
                     </span>
                     {service.duration && (
-                      <span className="text-gray-500">{service.duration}min</span>
+                      <span className="text-gray-500">
+                        {service.duration}min
+                      </span>
                     )}
                     <Badge variant={service.isActive ? "default" : "secondary"}>
                       {service.isActive ? "Actif" : "Inactif"}
@@ -447,13 +518,15 @@ export function ProviderServicesValidation({ providerId }: ServicesValidationPro
                   </div>
                 </div>
 
-                {service.validationStatus === 'REJECTED' && service.validationNotes && (
-                  <div className="bg-red-50 border border-red-200 rounded p-3">
-                    <p className="text-sm text-red-800">
-                      <strong>Motif de rejet:</strong> {service.validationNotes}
-                    </p>
-                  </div>
-                )}
+                {service.validationStatus === "REJECTED" &&
+                  service.validationNotes && (
+                    <div className="bg-red-50 border border-red-200 rounded p-3">
+                      <p className="text-sm text-red-800">
+                        <strong>Motif de rejet:</strong>{" "}
+                        {service.validationNotes}
+                      </p>
+                    </div>
+                  )}
 
                 <div className="flex justify-between">
                   <Button
@@ -465,7 +538,7 @@ export function ProviderServicesValidation({ providerId }: ServicesValidationPro
                     Modifier
                   </Button>
 
-                  {service.validationStatus !== 'APPROVED' && (
+                  {service.validationStatus !== "APPROVED" && (
                     <Button
                       size="sm"
                       onClick={() => requestValidation(service.id)}

@@ -1,14 +1,14 @@
-"use client"
+"use client";
 
-import { useEffect, useRef } from "react"
+import { useEffect, useRef } from "react";
 
 interface SwaggerUIProps {
-  spec?: any
-  url?: string
+  spec?: any;
+  url?: string;
 }
 
 export function SwaggerUI({ spec, url }: SwaggerUIProps) {
-  const containerRef = useRef<HTMLDivElement>(null)
+  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     // Dynamically import SwaggerUI only on client side
@@ -22,20 +22,20 @@ export function SwaggerUI({ spec, url }: SwaggerUIProps) {
               <p class="text-sm text-muted-foreground">
                 SwaggerUI component will be loaded here when swagger-ui-react is installed.
               </p>
-              ${url ? `<p class="text-xs mt-2">URL: ${url}</p>` : ''}
-              ${spec ? `<p class="text-xs mt-1">Spec provided</p>` : ''}
+              ${url ? `<p class="text-xs mt-2">URL: ${url}</p>` : ""}
+              ${spec ? `<p class="text-xs mt-1">Spec provided</p>` : ""}
             </div>
-          `
+          `;
         }
       } catch (error) {
-        console.error("Failed to load SwaggerUI:", error)
+        console.error("Failed to load SwaggerUI:", error);
       }
-    }
+    };
 
-    loadSwagger()
-  }, [spec, url])
+    loadSwagger();
+  }, [spec, url]);
 
-  return <div ref={containerRef} className="w-full" />
+  return <div ref={containerRef} className="w-full" />;
 }
 
-export default SwaggerUI 
+export default SwaggerUI;

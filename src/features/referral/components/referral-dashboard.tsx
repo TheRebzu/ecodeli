@@ -1,153 +1,171 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Progress } from '@/components/ui/progress'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Separator } from '@/components/ui/separator'
-import { Copy, Share2, Gift, Users, TrendingUp, Link, Trophy, Star, Mail, MessageSquare } from 'lucide-react'
-import { toast } from '@/components/ui/use-toast'
+import { useState, useEffect } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
+import {
+  Copy,
+  Share2,
+  Gift,
+  Users,
+  TrendingUp,
+  Link,
+  Trophy,
+  Star,
+  Mail,
+  MessageSquare,
+} from "lucide-react";
+import { toast } from "@/components/ui/use-toast";
 
 interface ReferralStats {
-  totalReferrals: number
-  activeReferrals: number
-  totalEarnings: number
-  pendingRewards: number
-  level: number
-  nextLevelReferrals: number
-  conversionRate: number
+  totalReferrals: number;
+  activeReferrals: number;
+  totalEarnings: number;
+  pendingRewards: number;
+  level: number;
+  nextLevelReferrals: number;
+  conversionRate: number;
 }
 
 interface ReferralCode {
-  id: string
-  code: string
-  usageCount: number
-  maxUsage: number
-  expiresAt: Date | null
-  isActive: boolean
-  earnings: number
+  id: string;
+  code: string;
+  usageCount: number;
+  maxUsage: number;
+  expiresAt: Date | null;
+  isActive: boolean;
+  earnings: number;
 }
 
 interface ReferralActivity {
-  id: string
-  type: string
-  description: string
-  amount: number
-  createdAt: Date
+  id: string;
+  type: string;
+  description: string;
+  amount: number;
+  createdAt: Date;
   referredUser?: {
-    name: string
-    email: string
-  }
+    name: string;
+    email: string;
+  };
 }
 
 export default function ReferralDashboard() {
-  const [stats, setStats] = useState<ReferralStats | null>(null)
-  const [codes, setCodes] = useState<ReferralCode[]>([])
-  const [activities, setActivities] = useState<ReferralActivity[]>([])
-  const [loading, setLoading] = useState(true)
-  const [shareMessage, setShareMessage] = useState('')
+  const [stats, setStats] = useState<ReferralStats | null>(null);
+  const [codes, setCodes] = useState<ReferralCode[]>([]);
+  const [activities, setActivities] = useState<ReferralActivity[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [shareMessage, setShareMessage] = useState("");
 
   useEffect(() => {
-    loadReferralData()
-  }, [])
+    loadReferralData();
+  }, []);
 
   const loadReferralData = async () => {
     try {
-      setLoading(true)
-      
+      setLoading(true);
+
       // Charger les statistiques
-      const statsResponse = await fetch('/api/referral/stats')
+      const statsResponse = await fetch("/api/referral/stats");
       if (statsResponse.ok) {
-        const statsData = await statsResponse.json()
-        setStats(statsData)
+        const statsData = await statsResponse.json();
+        setStats(statsData);
       }
 
       // Charger les codes
-      const codesResponse = await fetch('/api/referral/codes')
+      const codesResponse = await fetch("/api/referral/codes");
       if (codesResponse.ok) {
-        const codesData = await codesResponse.json()
-        setCodes(codesData.codes || [])
+        const codesData = await codesResponse.json();
+        setCodes(codesData.codes || []);
       }
 
       // Charger l'activité
-      const activityResponse = await fetch('/api/referral/activity')
+      const activityResponse = await fetch("/api/referral/activity");
       if (activityResponse.ok) {
-        const activityData = await activityResponse.json()
-        setActivities(activityData.activities || [])
+        const activityData = await activityResponse.json();
+        setActivities(activityData.activities || []);
       }
-
     } catch (error) {
-      console.error('Erreur chargement données parrainage:', error)
+      console.error("Erreur chargement données parrainage:", error);
       toast({
-        title: 'Erreur',
-        description: 'Impossible de charger les données de parrainage',
-        variant: 'destructive'
-      })
+        title: "Erreur",
+        description: "Impossible de charger les données de parrainage",
+        variant: "destructive",
+      });
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const generateReferralCode = async () => {
     try {
-      const response = await fetch('/api/referral/codes', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/referral/codes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          type: 'PERSONAL',
-          maxUsage: 100
-        })
-      })
+          type: "PERSONAL",
+          maxUsage: 100,
+        }),
+      });
 
       if (response.ok) {
-        const data = await response.json()
-        setCodes(prev => [data.code, ...prev])
+        const data = await response.json();
+        setCodes((prev) => [data.code, ...prev]);
         toast({
-          title: 'Code créé',
-          description: `Votre nouveau code ${data.code.code} est prêt !`
-        })
+          title: "Code créé",
+          description: `Votre nouveau code ${data.code.code} est prêt !`,
+        });
       }
     } catch (error) {
       toast({
-        title: 'Erreur',
-        description: 'Impossible de créer le code de parrainage',
-        variant: 'destructive'
-      })
+        title: "Erreur",
+        description: "Impossible de créer le code de parrainage",
+        variant: "destructive",
+      });
     }
-  }
+  };
 
   const copyCode = (code: string) => {
-    navigator.clipboard.writeText(code)
+    navigator.clipboard.writeText(code);
     toast({
-      title: 'Code copié',
-      description: 'Le code de parrainage a été copié dans le presse-papiers'
-    })
-  }
+      title: "Code copié",
+      description: "Le code de parrainage a été copié dans le presse-papiers",
+    });
+  };
 
   const shareCode = async (code: string) => {
-    const referralUrl = `${window.location.origin}/register?ref=${code}`
-    
+    const referralUrl = `${window.location.origin}/register?ref=${code}`;
+
     if (navigator.share) {
       try {
         await navigator.share({
-          title: 'Rejoignez EcoDeli avec mon code de parrainage',
-          text: shareMessage || 'Découvrez EcoDeli, la plateforme de livraison écologique !',
-          url: referralUrl
-        })
+          title: "Rejoignez EcoDeli avec mon code de parrainage",
+          text:
+            shareMessage ||
+            "Découvrez EcoDeli, la plateforme de livraison écologique !",
+          url: referralUrl,
+        });
       } catch (error) {
-        copyCode(referralUrl)
+        copyCode(referralUrl);
       }
     } else {
-      copyCode(referralUrl)
+      copyCode(referralUrl);
     }
-  }
+  };
 
   const sendEmailInvite = (code: string) => {
-    const subject = 'Découvrez EcoDeli avec mon code de parrainage'
+    const subject = "Découvrez EcoDeli avec mon code de parrainage";
     const body = `Salut !
 
 Je t'invite à découvrir EcoDeli, une plateforme de livraison écologique qui révolutionne le transport urbain.
@@ -156,10 +174,12 @@ Utilise mon code de parrainage "${code}" lors de ton inscription et profite d'un
 
 👉 Inscris-toi ici : ${window.location.origin}/register?ref=${code}
 
-À bientôt sur EcoDeli ! 🌱`
+À bientôt sur EcoDeli ! 🌱`;
 
-    window.open(`mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`)
-  }
+    window.open(
+      `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`,
+    );
+  };
 
   if (loading) {
     return (
@@ -171,20 +191,28 @@ Utilise mon code de parrainage "${code}" lors de ton inscription et profite d'un
           ))}
         </div>
       </div>
-    )
+    );
   }
 
-  const levelProgress = stats ? 
-    ((stats.totalReferrals % stats.nextLevelReferrals) / stats.nextLevelReferrals) * 100 : 0
+  const levelProgress = stats
+    ? ((stats.totalReferrals % stats.nextLevelReferrals) /
+        stats.nextLevelReferrals) *
+      100
+    : 0;
 
   return (
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">Programme de Parrainage</h1>
-          <p className="text-muted-foreground">Invitez vos amis et gagnez des récompenses</p>
+          <p className="text-muted-foreground">
+            Invitez vos amis et gagnez des récompenses
+          </p>
         </div>
-        <Button onClick={generateReferralCode} className="bg-green-600 hover:bg-green-700">
+        <Button
+          onClick={generateReferralCode}
+          className="bg-green-600 hover:bg-green-700"
+        >
           <Gift className="w-4 h-4 mr-2" />
           Nouveau Code
         </Button>
@@ -195,7 +223,9 @@ Utilise mon code de parrainage "${code}" lors de ton inscription et profite d'un
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Parrainages</CardTitle>
+              <CardTitle className="text-sm font-medium">
+                Total Parrainages
+              </CardTitle>
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -208,7 +238,9 @@ Utilise mon code de parrainage "${code}" lors de ton inscription et profite d'un
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Gains Totaux</CardTitle>
+              <CardTitle className="text-sm font-medium">
+                Gains Totaux
+              </CardTitle>
               <TrendingUp className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -223,7 +255,9 @@ Utilise mon code de parrainage "${code}" lors de ton inscription et profite d'un
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Niveau Actuel</CardTitle>
+              <CardTitle className="text-sm font-medium">
+                Niveau Actuel
+              </CardTitle>
               <Trophy className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -234,7 +268,9 @@ Utilise mon code de parrainage "${code}" lors de ton inscription et profite d'un
               <div className="mt-2">
                 <Progress value={levelProgress} className="h-2" />
                 <p className="text-xs text-muted-foreground mt-1">
-                  {stats.nextLevelReferrals - (stats.totalReferrals % stats.nextLevelReferrals)} parrainages pour le niveau suivant
+                  {stats.nextLevelReferrals -
+                    (stats.totalReferrals % stats.nextLevelReferrals)}{" "}
+                  parrainages pour le niveau suivant
                 </p>
               </div>
             </CardContent>
@@ -242,11 +278,15 @@ Utilise mon code de parrainage "${code}" lors de ton inscription et profite d'un
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Taux de Conversion</CardTitle>
+              <CardTitle className="text-sm font-medium">
+                Taux de Conversion
+              </CardTitle>
               <TrendingUp className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.conversionRate.toFixed(1)}%</div>
+              <div className="text-2xl font-bold">
+                {stats.conversionRate.toFixed(1)}%
+              </div>
               <p className="text-xs text-muted-foreground">
                 Invitations transformées
               </p>
@@ -273,21 +313,32 @@ Utilise mon code de parrainage "${code}" lors de ton inscription et profite d'un
             <CardContent>
               <div className="space-y-4">
                 {codes.map((codeItem) => (
-                  <div key={codeItem.id} className="flex items-center justify-between p-4 border rounded-lg">
+                  <div
+                    key={codeItem.id}
+                    className="flex items-center justify-between p-4 border rounded-lg"
+                  >
                     <div className="flex-1">
                       <div className="flex items-center gap-3">
                         <code className="text-lg font-mono font-bold bg-muted px-3 py-1 rounded">
                           {codeItem.code}
                         </code>
-                        <Badge variant={codeItem.isActive ? 'default' : 'secondary'}>
-                          {codeItem.isActive ? 'Actif' : 'Inactif'}
+                        <Badge
+                          variant={codeItem.isActive ? "default" : "secondary"}
+                        >
+                          {codeItem.isActive ? "Actif" : "Inactif"}
                         </Badge>
                       </div>
                       <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
-                        <span>Utilisations: {codeItem.usageCount}/{codeItem.maxUsage}</span>
+                        <span>
+                          Utilisations: {codeItem.usageCount}/
+                          {codeItem.maxUsage}
+                        </span>
                         <span>Gains: {codeItem.earnings.toFixed(2)}€</span>
                         {codeItem.expiresAt && (
-                          <span>Expire le: {new Date(codeItem.expiresAt).toLocaleDateString()}</span>
+                          <span>
+                            Expire le:{" "}
+                            {new Date(codeItem.expiresAt).toLocaleDateString()}
+                          </span>
                         )}
                       </div>
                     </div>
@@ -342,17 +393,23 @@ Utilise mon code de parrainage "${code}" lors de ton inscription et profite d'un
             <CardContent>
               <div className="space-y-4">
                 {activities.map((activity) => (
-                  <div key={activity.id} className="flex items-center justify-between p-4 border rounded-lg">
+                  <div
+                    key={activity.id}
+                    className="flex items-center justify-between p-4 border rounded-lg"
+                  >
                     <div className="flex-1">
                       <p className="font-medium">{activity.description}</p>
                       <p className="text-sm text-muted-foreground">
-                        {new Date(activity.createdAt).toLocaleDateString('fr-FR', {
-                          year: 'numeric',
-                          month: 'long',
-                          day: 'numeric',
-                          hour: '2-digit',
-                          minute: '2-digit'
-                        })}
+                        {new Date(activity.createdAt).toLocaleDateString(
+                          "fr-FR",
+                          {
+                            year: "numeric",
+                            month: "long",
+                            day: "numeric",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          },
+                        )}
                       </p>
                       {activity.referredUser && (
                         <p className="text-sm text-muted-foreground">
@@ -361,7 +418,10 @@ Utilise mon code de parrainage "${code}" lors de ton inscription et profite d'un
                       )}
                     </div>
                     {activity.amount > 0 && (
-                      <Badge variant="default" className="bg-green-100 text-green-800">
+                      <Badge
+                        variant="default"
+                        className="bg-green-100 text-green-800"
+                      >
                         +{activity.amount.toFixed(2)}€
                       </Badge>
                     )}
@@ -404,7 +464,7 @@ Utilise mon code de parrainage "${code}" lors de ton inscription et profite d'un
 
               <div className="space-y-4">
                 <h3 className="font-medium">Moyens de partage rapide</h3>
-                
+
                 {codes.length > 0 && (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <Button
@@ -438,7 +498,11 @@ Utilise mon code de parrainage "${code}" lors de ton inscription et profite d'un
                     <Button
                       variant="outline"
                       className="h-auto p-4 flex-col items-start"
-                      onClick={() => copyCode(`${window.location.origin}/register?ref=${codes[0].code}`)}
+                      onClick={() =>
+                        copyCode(
+                          `${window.location.origin}/register?ref=${codes[0].code}`,
+                        )
+                      }
                     >
                       <div className="flex items-center gap-2 mb-2">
                         <Link className="w-5 h-5" />
@@ -470,5 +534,5 @@ Utilise mon code de parrainage "${code}" lors de ton inscription et profite d'un
         </TabsContent>
       </Tabs>
     </div>
-  )
+  );
 }

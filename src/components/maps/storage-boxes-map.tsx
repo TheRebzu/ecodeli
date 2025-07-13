@@ -1,103 +1,108 @@
-'use client'
+"use client";
 
-import { useEffect, useState } from 'react'
-import { LeafletMap, MapMarker } from './leaflet-map'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Package, MapPin, Clock, Euro, Search } from 'lucide-react'
-import { Input } from '@/components/ui/input'
-import { useApi } from '@/hooks/use-api'
+import { useEffect, useState } from "react";
+import { LeafletMap, MapMarker } from "./leaflet-map";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Package, MapPin, Clock, Euro, Search } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { useApi } from "@/hooks/use-api";
 
 interface StorageBox {
-  id: string
-  name: string
+  id: string;
+  name: string;
   location: {
-    latitude: number
-    longitude: number
-    address: string
-  }
-  type: 'small' | 'medium' | 'large'
-  capacity: number
-  availableSpots: number
-  pricePerDay: number
-  features: string[]
-  status: 'available' | 'full' | 'maintenance'
+    latitude: number;
+    longitude: number;
+    address: string;
+  };
+  type: "small" | "medium" | "large";
+  capacity: number;
+  availableSpots: number;
+  pricePerDay: number;
+  features: string[];
+  status: "available" | "full" | "maintenance";
   operatingHours: {
-    open: string
-    close: string
-  }
-  distance?: number
+    open: string;
+    close: string;
+  };
+  distance?: number;
 }
 
 interface StorageBoxesMapProps {
   userLocation?: {
-    latitude: number
-    longitude: number
-  }
-  onBoxSelect?: (box: StorageBox) => void
-  showSearch?: boolean
-  maxDistance?: number
+    latitude: number;
+    longitude: number;
+  };
+  onBoxSelect?: (box: StorageBox) => void;
+  showSearch?: boolean;
+  maxDistance?: number;
 }
 
 export function StorageBoxesMap({
   userLocation,
   onBoxSelect,
   showSearch = true,
-  maxDistance = 10
+  maxDistance = 10,
 }: StorageBoxesMapProps) {
-  const { get } = useApi()
-  const [storageBoxes, setStorageBoxes] = useState<StorageBox[]>([])
-  const [filteredBoxes, setFilteredBoxes] = useState<StorageBox[]>([])
-  const [selectedBox, setSelectedBox] = useState<string | null>(null)
-  const [searchQuery, setSearchQuery] = useState('')
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const { get } = useApi();
+  const [storageBoxes, setStorageBoxes] = useState<StorageBox[]>([]);
+  const [filteredBoxes, setFilteredBoxes] = useState<StorageBox[]>([]);
+  const [selectedBox, setSelectedBox] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const fetchStorageBoxes = async () => {
     try {
-      const params = new URLSearchParams()
+      const params = new URLSearchParams();
       if (userLocation) {
-        params.append('lat', userLocation.latitude.toString())
-        params.append('lng', userLocation.longitude.toString())
-        params.append('radius', maxDistance.toString())
+        params.append("lat", userLocation.latitude.toString());
+        params.append("lng", userLocation.longitude.toString());
+        params.append("radius", maxDistance.toString());
       }
 
-      const response = await get(`/api/client/storage-boxes?${params.toString()}`)
+      const response = await get(
+        `/api/client/storage-boxes?${params.toString()}`,
+      );
       if (response.data) {
-        setStorageBoxes(response.data.boxes || [])
-        setFilteredBoxes(response.data.boxes || [])
+        setStorageBoxes(response.data.boxes || []);
+        setFilteredBoxes(response.data.boxes || []);
       }
     } catch (err) {
-      setError('Impossible de charger les box de stockage')
-      console.error('Storage boxes error:', err)
+      setError("Impossible de charger les box de stockage");
+      console.error("Storage boxes error:", err);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   useEffect(() => {
-    fetchStorageBoxes()
-  }, [userLocation, maxDistance])
+    fetchStorageBoxes();
+  }, [userLocation, maxDistance]);
 
   useEffect(() => {
     if (!searchQuery) {
-      setFilteredBoxes(storageBoxes)
+      setFilteredBoxes(storageBoxes);
     } else {
-      const filtered = storageBoxes.filter(box =>
-        box.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        box.location.address.toLowerCase().includes(searchQuery.toLowerCase())
-      )
-      setFilteredBoxes(filtered)
+      const filtered = storageBoxes.filter(
+        (box) =>
+          box.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          box.location.address
+            .toLowerCase()
+            .includes(searchQuery.toLowerCase()),
+      );
+      setFilteredBoxes(filtered);
     }
-  }, [searchQuery, storageBoxes])
+  }, [searchQuery, storageBoxes]);
 
   const handleBoxClick = (box: StorageBox) => {
-    setSelectedBox(box.id)
+    setSelectedBox(box.id);
     if (onBoxSelect) {
-      onBoxSelect(box)
+      onBoxSelect(box);
     }
-  }
+  };
 
   if (loading) {
     return (
@@ -106,7 +111,7 @@ export function StorageBoxesMap({
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
         </CardContent>
       </Card>
-    )
+    );
   }
 
   if (error) {
@@ -119,14 +124,14 @@ export function StorageBoxesMap({
           </div>
         </CardContent>
       </Card>
-    )
+    );
   }
 
   // Prepare markers
-  const markers: MapMarker[] = filteredBoxes.map(box => ({
+  const markers: MapMarker[] = filteredBoxes.map((box) => ({
     id: box.id,
     position: [box.location.latitude, box.location.longitude],
-    type: 'storage',
+    type: "storage",
     label: box.name,
     popup: `
       <div>
@@ -135,25 +140,28 @@ export function StorageBoxesMap({
         ${box.availableSpots}/${box.capacity} places disponibles<br/>
         ${box.pricePerDay}€/jour
       </div>
-    `
-  }))
+    `,
+  }));
 
   // Add user location marker if available
   if (userLocation) {
     markers.push({
-      id: 'user-location',
+      id: "user-location",
       position: [userLocation.latitude, userLocation.longitude],
-      type: 'custom',
-      label: 'Ma position',
-      popup: 'Vous êtes ici'
-    })
+      type: "custom",
+      label: "Ma position",
+      popup: "Vous êtes ici",
+    });
   }
 
-  const mapCenter = userLocation 
-    ? [userLocation.latitude, userLocation.longitude] as [number, number]
+  const mapCenter = userLocation
+    ? ([userLocation.latitude, userLocation.longitude] as [number, number])
     : filteredBoxes.length > 0
-    ? [filteredBoxes[0].location.latitude, filteredBoxes[0].location.longitude] as [number, number]
-    : [48.8566, 2.3522] as [number, number]
+      ? ([
+          filteredBoxes[0].location.latitude,
+          filteredBoxes[0].location.longitude,
+        ] as [number, number])
+      : ([48.8566, 2.3522] as [number, number]);
 
   return (
     <div className="space-y-4">
@@ -199,66 +207,85 @@ export function StorageBoxesMap({
               ) : (
                 <div className="space-y-3 max-h-96 overflow-y-auto">
                   {filteredBoxes.map((box) => (
-                    <Card 
-                      key={box.id} 
+                    <Card
+                      key={box.id}
                       className={`cursor-pointer transition-colors ${
-                        selectedBox === box.id ? 'border-primary' : ''
+                        selectedBox === box.id ? "border-primary" : ""
                       }`}
                       onClick={() => handleBoxClick(box)}
                     >
                       <CardContent className="p-4">
                         <div className="flex items-start justify-between mb-2">
                           <h4 className="font-medium">{box.name}</h4>
-                          <Badge 
+                          <Badge
                             variant={
-                              box.status === 'available' ? 'default' :
-                              box.status === 'full' ? 'destructive' :
-                              'secondary'
+                              box.status === "available"
+                                ? "default"
+                                : box.status === "full"
+                                  ? "destructive"
+                                  : "secondary"
                             }
                           >
-                            {box.status === 'available' ? 'Disponible' :
-                             box.status === 'full' ? 'Complet' :
-                             'Maintenance'}
+                            {box.status === "available"
+                              ? "Disponible"
+                              : box.status === "full"
+                                ? "Complet"
+                                : "Maintenance"}
                           </Badge>
                         </div>
-                        
+
                         <div className="space-y-2 text-sm">
                           <div className="flex items-center gap-2">
                             <MapPin className="h-4 w-4 text-muted-foreground" />
-                            <span className="truncate">{box.location.address}</span>
+                            <span className="truncate">
+                              {box.location.address}
+                            </span>
                           </div>
-                          
+
                           {box.distance && (
                             <div className="flex items-center gap-2">
-                              <span className="text-muted-foreground">Distance:</span>
+                              <span className="text-muted-foreground">
+                                Distance:
+                              </span>
                               <span>{box.distance.toFixed(1)} km</span>
                             </div>
                           )}
-                          
+
                           <div className="flex items-center gap-2">
                             <Package className="h-4 w-4 text-muted-foreground" />
-                            <span>{box.availableSpots}/{box.capacity} places</span>
+                            <span>
+                              {box.availableSpots}/{box.capacity} places
+                            </span>
                           </div>
-                          
+
                           <div className="flex items-center gap-2">
                             <Euro className="h-4 w-4 text-muted-foreground" />
                             <span>{box.pricePerDay}€/jour</span>
                           </div>
-                          
+
                           <div className="flex items-center gap-2">
                             <Clock className="h-4 w-4 text-muted-foreground" />
-                            <span>{box.operatingHours.open} - {box.operatingHours.close}</span>
+                            <span>
+                              {box.operatingHours.open} -{" "}
+                              {box.operatingHours.close}
+                            </span>
                           </div>
                         </div>
-                        
+
                         {box.features.length > 0 && (
                           <div className="mt-3">
                             <div className="flex flex-wrap gap-1">
-                              {box.features.slice(0, 2).map((feature, index) => (
-                                <Badge key={index} variant="outline" className="text-xs">
-                                  {feature}
-                                </Badge>
-                              ))}
+                              {box.features
+                                .slice(0, 2)
+                                .map((feature, index) => (
+                                  <Badge
+                                    key={index}
+                                    variant="outline"
+                                    className="text-xs"
+                                  >
+                                    {feature}
+                                  </Badge>
+                                ))}
                               {box.features.length > 2 && (
                                 <Badge variant="outline" className="text-xs">
                                   +{box.features.length - 2}
@@ -267,7 +294,7 @@ export function StorageBoxesMap({
                             </div>
                           </div>
                         )}
-                        
+
                         <div className="mt-3 flex gap-2">
                           <Button size="sm" className="flex-1">
                             Réserver
@@ -301,9 +328,9 @@ export function StorageBoxesMap({
                 height="500px"
                 markers={markers}
                 onMarkerClick={(marker) => {
-                  const box = filteredBoxes.find(b => b.id === marker.id)
+                  const box = filteredBoxes.find((b) => b.id === marker.id);
                   if (box) {
-                    handleBoxClick(box)
+                    handleBoxClick(box);
                   }
                 }}
                 enableGeolocation={!userLocation}
@@ -313,5 +340,5 @@ export function StorageBoxesMap({
         </div>
       </div>
     </div>
-  )
+  );
 }

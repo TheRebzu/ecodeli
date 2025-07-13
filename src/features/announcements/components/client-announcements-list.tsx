@@ -1,92 +1,94 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { useTranslations } from "next-intl"
-import Link from "next/link"
+import { useState, useEffect } from "react";
+import { useTranslations } from "next-intl";
+import Link from "next/link";
 
 interface Announcement {
-  id: string
-  title: string
-  description: string
-  pickupAddress: string
-  deliveryAddress: string
-  weight: number
-  price: number
-  status: 'ACTIVE' | 'PAUSED' | 'MATCHED' | 'COMPLETED' | 'CANCELLED'
-  serviceType: string
-  createdAt: string
-  pickupDate: string
-  deliveryDeadline: string
+  id: string;
+  title: string;
+  description: string;
+  pickupAddress: string;
+  deliveryAddress: string;
+  weight: number;
+  price: number;
+  status: "ACTIVE" | "PAUSED" | "MATCHED" | "COMPLETED" | "CANCELLED";
+  serviceType: string;
+  createdAt: string;
+  pickupDate: string;
+  deliveryDeadline: string;
   _count: {
-    applications: number
-  }
+    applications: number;
+  };
 }
 
 export default function ClientAnnouncementsList() {
-  const [announcements, setAnnouncements] = useState<Announcement[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [filter, setFilter] = useState<string>('all')
-  const t = useTranslations()
+  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [filter, setFilter] = useState<string>("all");
+  const t = useTranslations();
 
   useEffect(() => {
-    fetchAnnouncements()
-  }, [filter])
+    fetchAnnouncements();
+  }, [filter]);
 
   const fetchAnnouncements = async () => {
     try {
-      setLoading(true)
-      const params = new URLSearchParams()
-      if (filter !== 'all') params.append('status', filter.toUpperCase())
-      
-      const response = await fetch(`/api/client/announcements?${params.toString()}`)
-      const data = await response.json()
+      setLoading(true);
+      const params = new URLSearchParams();
+      if (filter !== "all") params.append("status", filter.toUpperCase());
+
+      const response = await fetch(
+        `/api/client/announcements?${params.toString()}`,
+      );
+      const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Erreur lors du chargement')
+        throw new Error(data.error || "Erreur lors du chargement");
       }
 
-      setAnnouncements(data.data || [])
+      setAnnouncements(data.data || []);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erreur inconnue')
+      setError(err instanceof Error ? err.message : "Erreur inconnue");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const getStatusColor = (status: string) => {
     const colors = {
-      'ACTIVE': 'bg-green-100 text-green-800',
-      'PAUSED': 'bg-yellow-100 text-yellow-800',
-      'MATCHED': 'bg-blue-100 text-blue-800',
-      'COMPLETED': 'bg-gray-100 text-gray-800',
-      'CANCELLED': 'bg-red-100 text-red-800'
-    }
-    return colors[status as keyof typeof colors] || 'bg-gray-100 text-gray-800'
-  }
+      ACTIVE: "bg-green-100 text-green-800",
+      PAUSED: "bg-yellow-100 text-yellow-800",
+      MATCHED: "bg-blue-100 text-blue-800",
+      COMPLETED: "bg-gray-100 text-gray-800",
+      CANCELLED: "bg-red-100 text-red-800",
+    };
+    return colors[status as keyof typeof colors] || "bg-gray-100 text-gray-800";
+  };
 
   const getStatusLabel = (status: string) => {
     const labels = {
-      'ACTIVE': 'Active',
-      'PAUSED': 'En pause',
-      'MATCHED': 'Matchée',
-      'COMPLETED': 'Terminée',
-      'CANCELLED': 'Annulée'
-    }
-    return labels[status as keyof typeof labels] || status
-  }
+      ACTIVE: "Active",
+      PAUSED: "En pause",
+      MATCHED: "Matchée",
+      COMPLETED: "Terminée",
+      CANCELLED: "Annulée",
+    };
+    return labels[status as keyof typeof labels] || status;
+  };
 
   const getServiceTypeIcon = (serviceType: string) => {
     const icons = {
-      'PACKAGE_DELIVERY': '📦',
-      'PERSON_TRANSPORT': '🚗',
-      'SHOPPING': '🛒',
-      'PET_CARE': '🐕',
-      'HOME_SERVICE': '🏠',
-      'CART_DROP': '🛒'
-    }
-    return icons[serviceType as keyof typeof icons] || '📦'
-  }
+      PACKAGE_DELIVERY: "📦",
+      PERSON_TRANSPORT: "🚗",
+      SHOPPING: "🛒",
+      PET_CARE: "🐕",
+      HOME_SERVICE: "🏠",
+      CART_DROP: "🛒",
+    };
+    return icons[serviceType as keyof typeof icons] || "📦";
+  };
 
   if (loading) {
     return (
@@ -99,7 +101,7 @@ export default function ClientAnnouncementsList() {
           </div>
         </div>
       </div>
-    )
+    );
   }
 
   if (error) {
@@ -107,7 +109,9 @@ export default function ClientAnnouncementsList() {
       <div className="bg-white rounded-lg shadow-sm border p-8">
         <div className="text-center">
           <div className="text-red-600 text-lg mb-2">❌</div>
-          <h3 className="text-lg font-medium text-gray-900 mb-2">Erreur de chargement</h3>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">
+            Erreur de chargement
+          </h3>
           <p className="text-gray-600 mb-4">{error}</p>
           <button
             onClick={fetchAnnouncements}
@@ -117,7 +121,7 @@ export default function ClientAnnouncementsList() {
           </button>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -126,18 +130,18 @@ export default function ClientAnnouncementsList() {
       <div className="p-6 border-b">
         <div className="flex flex-wrap gap-2">
           {[
-            { key: 'all', label: 'Toutes' },
-            { key: 'active', label: 'Actives' },
-            { key: 'matched', label: 'Matchées' },
-            { key: 'completed', label: 'Terminées' }
+            { key: "all", label: "Toutes" },
+            { key: "active", label: "Actives" },
+            { key: "matched", label: "Matchées" },
+            { key: "completed", label: "Terminées" },
           ].map((filterOption) => (
             <button
               key={filterOption.key}
               onClick={() => setFilter(filterOption.key)}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                 filter === filterOption.key
-                  ? 'bg-green-600 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  ? "bg-green-600 text-white"
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
               }`}
             >
               {filterOption.label}
@@ -176,43 +180,53 @@ export default function ClientAnnouncementsList() {
                     <h3 className="text-lg font-semibold text-gray-900">
                       {announcement.title}
                     </h3>
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(announcement.status)}`}>
+                    <span
+                      className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(announcement.status)}`}
+                    >
                       {getStatusLabel(announcement.status)}
                     </span>
                   </div>
-                  
+
                   <p className="text-gray-600 mb-3 line-clamp-2">
                     {announcement.description}
                   </p>
-                  
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-500">
                     <div>
-                      <span className="font-medium">De:</span> {announcement.pickupAddress}
+                      <span className="font-medium">De:</span>{" "}
+                      {announcement.pickupAddress}
                     </div>
                     <div>
-                      <span className="font-medium">Vers:</span> {announcement.deliveryAddress}
+                      <span className="font-medium">Vers:</span>{" "}
+                      {announcement.deliveryAddress}
                     </div>
                     <div>
-                      <span className="font-medium">Poids:</span> {announcement.weight}kg
+                      <span className="font-medium">Poids:</span>{" "}
+                      {announcement.weight}kg
                     </div>
                     <div>
-                      <span className="font-medium">Prix:</span> {announcement.price}€
+                      <span className="font-medium">Prix:</span>{" "}
+                      {announcement.price}€
                     </div>
                   </div>
-                  
+
                   <div className="flex items-center space-x-4 mt-3 text-sm text-gray-500">
                     <span>
-                      📅 Collecte: {new Date(announcement.pickupDate).toLocaleDateString()}
+                      📅 Collecte:{" "}
+                      {new Date(announcement.pickupDate).toLocaleDateString()}
                     </span>
                     <span>
-                      ⏰ Échéance: {new Date(announcement.deliveryDeadline).toLocaleDateString()}
+                      ⏰ Échéance:{" "}
+                      {new Date(
+                        announcement.deliveryDeadline,
+                      ).toLocaleDateString()}
                     </span>
                     <span>
                       👥 {announcement._count.applications} candidature(s)
                     </span>
                   </div>
                 </div>
-                
+
                 <div className="flex items-center space-x-2 ml-4">
                   <Link
                     href={`/client/announcements/${announcement.id}`}
@@ -220,8 +234,8 @@ export default function ClientAnnouncementsList() {
                   >
                     Voir détails
                   </Link>
-                  
-                  {announcement.status === 'ACTIVE' && (
+
+                  {announcement.status === "ACTIVE" && (
                     <Link
                       href={`/client/announcements/${announcement.id}/edit`}
                       className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 text-sm"
@@ -236,5 +250,5 @@ export default function ClientAnnouncementsList() {
         )}
       </div>
     </div>
-  )
+  );
 }

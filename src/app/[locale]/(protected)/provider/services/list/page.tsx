@@ -15,11 +15,11 @@ export default function ProviderServicesListPage() {
   useEffect(() => {
     const fetchProviderData = async () => {
       if (!user?.id) return;
-      
+
       try {
         // Essayer d'abord avec l'ID utilisateur directement
         const response = await fetch(`/api/provider/profile?userId=${user.id}`);
-        
+
         if (response.ok) {
           const data = await response.json();
           if (data.provider?.id) {
@@ -69,10 +69,8 @@ export default function ProviderServicesListPage() {
         title="Mes Services"
         description="Gérez vos services et leurs paramètres de réservation"
       />
-      
-      {providerId && (
-        <ProviderServicesManager providerId={providerId} />
-      )}
+
+      {providerId && <ProviderServicesManager providerId={providerId} />}
     </div>
   );
-} 
+}

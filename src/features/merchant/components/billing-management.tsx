@@ -1,11 +1,23 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useTranslations } from "next-intl";
 import {
   Euro,
@@ -16,7 +28,7 @@ import {
   AlertCircle,
   CheckCircle,
   Clock,
-  BarChart3
+  BarChart3,
 } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
 
@@ -64,14 +76,20 @@ interface CurrentMonthBilling {
   status: string;
 }
 
-export default function BillingManagement({ merchantId }: BillingManagementProps) {
+export default function BillingManagement({
+  merchantId,
+}: BillingManagementProps) {
   const t = useTranslations("merchant.billing");
   const [billingCycles, setBillingCycles] = useState<BillingCycle[]>([]);
   const [stats, setStats] = useState<BillingStats | null>(null);
-  const [currentMonth, setCurrentMonth] = useState<CurrentMonthBilling | null>(null);
+  const [currentMonth, setCurrentMonth] = useState<CurrentMonthBilling | null>(
+    null,
+  );
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [yearFilter, setYearFilter] = useState<string>(new Date().getFullYear().toString());
+  const [yearFilter, setYearFilter] = useState<string>(
+    new Date().getFullYear().toString(),
+  );
 
   useEffect(() => {
     fetchBillingData();
@@ -84,7 +102,9 @@ export default function BillingManagement({ merchantId }: BillingManagementProps
       if (statusFilter !== "all") params.append("status", statusFilter);
       params.append("year", yearFilter);
 
-      const response = await fetch(`/api/merchant/billing?${params.toString()}`);
+      const response = await fetch(
+        `/api/merchant/billing?${params.toString()}`,
+      );
       if (response.ok) {
         const data = await response.json();
         setBillingCycles(data.billingCycles || []);
@@ -95,7 +115,7 @@ export default function BillingManagement({ merchantId }: BillingManagementProps
       console.error("Error fetching billing data:", error);
       toast({
         title: t("error.fetch_failed"),
-        variant: "destructive"
+        variant: "destructive",
       });
     } finally {
       setLoading(false);
@@ -104,12 +124,14 @@ export default function BillingManagement({ merchantId }: BillingManagementProps
 
   const downloadInvoice = async (billingId: string, invoiceNumber?: string) => {
     try {
-      const response = await fetch(`/api/merchant/billing/${billingId}/download`);
+      const response = await fetch(
+        `/api/merchant/billing/${billingId}/download`,
+      );
       if (response.ok) {
         const blob = await response.blob();
         const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.style.display = 'none';
+        const a = document.createElement("a");
+        a.style.display = "none";
         a.href = url;
         a.download = `invoice_${invoiceNumber || billingId}.pdf`;
         document.body.appendChild(a);
@@ -120,46 +142,53 @@ export default function BillingManagement({ merchantId }: BillingManagementProps
     } catch (error) {
       toast({
         title: t("error.download_failed"),
-        variant: "destructive"
+        variant: "destructive",
       });
     }
   };
 
   const getStatusBadge = (status: string) => {
     const statusConfig = {
-      PENDING: { color: "bg-yellow-100 text-yellow-800", label: t("status.pending") },
+      PENDING: {
+        color: "bg-yellow-100 text-yellow-800",
+        label: t("status.pending"),
+      },
       SENT: { color: "bg-blue-100 text-blue-800", label: t("status.sent") },
       PAID: { color: "bg-green-100 text-green-800", label: t("status.paid") },
-      OVERDUE: { color: "bg-red-100 text-red-800", label: t("status.overdue") }
+      OVERDUE: { color: "bg-red-100 text-red-800", label: t("status.overdue") },
     };
 
-    const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.PENDING;
+    const config =
+      statusConfig[status as keyof typeof statusConfig] || statusConfig.PENDING;
     return <Badge className={config.color}>{config.label}</Badge>;
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('fr-FR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric'
+    return new Date(dateString).toLocaleDateString("fr-FR", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
     });
   };
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('fr-FR', {
-      style: 'currency',
-      currency: 'EUR'
+    return new Intl.NumberFormat("fr-FR", {
+      style: "currency",
+      currency: "EUR",
     }).format(amount);
   };
 
   const getMonthYear = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('fr-FR', {
-      month: 'long',
-      year: 'numeric'
+    return new Date(dateString).toLocaleDateString("fr-FR", {
+      month: "long",
+      year: "numeric",
     });
   };
 
-  const years = Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i);
+  const years = Array.from(
+    { length: 5 },
+    (_, i) => new Date().getFullYear() - i,
+  );
 
   if (loading) {
     return (
@@ -188,8 +217,12 @@ export default function BillingManagement({ merchantId }: BillingManagementProps
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">{t("stats.total_billings")}</p>
-                <p className="text-2xl font-bold">{stats?.totalBillings || 0}</p>
+                <p className="text-sm text-gray-600">
+                  {t("stats.total_billings")}
+                </p>
+                <p className="text-2xl font-bold">
+                  {stats?.totalBillings || 0}
+                </p>
               </div>
               <FileText className="h-8 w-8 text-blue-600" />
             </div>
@@ -200,8 +233,12 @@ export default function BillingManagement({ merchantId }: BillingManagementProps
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">{t("stats.total_revenue")}</p>
-                <p className="text-2xl font-bold">{formatCurrency(stats?.totalRevenue || 0)}</p>
+                <p className="text-sm text-gray-600">
+                  {t("stats.total_revenue")}
+                </p>
+                <p className="text-2xl font-bold">
+                  {formatCurrency(stats?.totalRevenue || 0)}
+                </p>
               </div>
               <TrendingUp className="h-8 w-8 text-green-600" />
             </div>
@@ -212,8 +249,12 @@ export default function BillingManagement({ merchantId }: BillingManagementProps
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">{t("stats.total_commissions")}</p>
-                <p className="text-2xl font-bold">{formatCurrency(stats?.totalCommissions || 0)}</p>
+                <p className="text-sm text-gray-600">
+                  {t("stats.total_commissions")}
+                </p>
+                <p className="text-2xl font-bold">
+                  {formatCurrency(stats?.totalCommissions || 0)}
+                </p>
               </div>
               <Euro className="h-8 w-8 text-orange-600" />
             </div>
@@ -225,7 +266,9 @@ export default function BillingManagement({ merchantId }: BillingManagementProps
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">{t("stats.amount_due")}</p>
-                <p className="text-2xl font-bold">{formatCurrency(stats?.totalAmountDue || 0)}</p>
+                <p className="text-2xl font-bold">
+                  {formatCurrency(stats?.totalAmountDue || 0)}
+                </p>
               </div>
               <AlertCircle className="h-8 w-8 text-red-600" />
             </div>
@@ -241,27 +284,41 @@ export default function BillingManagement({ merchantId }: BillingManagementProps
               <BarChart3 className="h-5 w-5" />
               {t("current_month.title")}
             </CardTitle>
-            <CardDescription>
-              {t("current_month.description")}
-            </CardDescription>
+            <CardDescription>{t("current_month.description")}</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div>
-                <p className="text-sm text-gray-600">{t("current_month.orders")}</p>
-                <p className="text-xl font-semibold">{currentMonth.totalOrders}</p>
+                <p className="text-sm text-gray-600">
+                  {t("current_month.orders")}
+                </p>
+                <p className="text-xl font-semibold">
+                  {currentMonth.totalOrders}
+                </p>
               </div>
               <div>
-                <p className="text-sm text-gray-600">{t("current_month.revenue")}</p>
-                <p className="text-xl font-semibold">{formatCurrency(currentMonth.totalRevenue)}</p>
+                <p className="text-sm text-gray-600">
+                  {t("current_month.revenue")}
+                </p>
+                <p className="text-xl font-semibold">
+                  {formatCurrency(currentMonth.totalRevenue)}
+                </p>
               </div>
               <div>
-                <p className="text-sm text-gray-600">{t("current_month.commission")}</p>
-                <p className="text-xl font-semibold">{formatCurrency(currentMonth.commissionAmount)}</p>
+                <p className="text-sm text-gray-600">
+                  {t("current_month.commission")}
+                </p>
+                <p className="text-xl font-semibold">
+                  {formatCurrency(currentMonth.commissionAmount)}
+                </p>
               </div>
               <div>
-                <p className="text-sm text-gray-600">{t("current_month.status")}</p>
-                <div className="mt-1">{getStatusBadge(currentMonth.status)}</div>
+                <p className="text-sm text-gray-600">
+                  {t("current_month.status")}
+                </p>
+                <div className="mt-1">
+                  {getStatusBadge(currentMonth.status)}
+                </div>
               </div>
             </div>
           </CardContent>
@@ -288,7 +345,7 @@ export default function BillingManagement({ merchantId }: BillingManagementProps
             <SelectValue placeholder={t("filters.year")} />
           </SelectTrigger>
           <SelectContent>
-            {years.map(year => (
+            {years.map((year) => (
               <SelectItem key={year} value={year.toString()}>
                 {year}
               </SelectItem>
@@ -328,9 +385,12 @@ export default function BillingManagement({ merchantId }: BillingManagementProps
                           {getMonthYear(billing.periodStart)}
                         </CardTitle>
                         <CardDescription>
-                          {formatDate(billing.periodStart)} - {formatDate(billing.periodEnd)}
+                          {formatDate(billing.periodStart)} -{" "}
+                          {formatDate(billing.periodEnd)}
                           {billing.invoiceNumber && (
-                            <span className="ml-2">• {t("invoice_number")}: {billing.invoiceNumber}</span>
+                            <span className="ml-2">
+                              • {t("invoice_number")}: {billing.invoiceNumber}
+                            </span>
                           )}
                         </CardDescription>
                       </div>
@@ -348,23 +408,37 @@ export default function BillingManagement({ merchantId }: BillingManagementProps
                     <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-sm">
                       <div>
                         <p className="text-gray-600">{t("billing.orders")}</p>
-                        <p className="font-medium text-lg">{billing.totalOrders}</p>
+                        <p className="font-medium text-lg">
+                          {billing.totalOrders}
+                        </p>
                       </div>
                       <div>
                         <p className="text-gray-600">{t("billing.revenue")}</p>
-                        <p className="font-medium text-lg">{formatCurrency(billing.totalRevenue)}</p>
+                        <p className="font-medium text-lg">
+                          {formatCurrency(billing.totalRevenue)}
+                        </p>
                       </div>
                       <div>
-                        <p className="text-gray-600">{t("billing.commission")}</p>
-                        <p className="font-medium text-lg">{formatCurrency(billing.commissionAmount)}</p>
+                        <p className="text-gray-600">
+                          {t("billing.commission")}
+                        </p>
+                        <p className="font-medium text-lg">
+                          {formatCurrency(billing.commissionAmount)}
+                        </p>
                       </div>
                       <div>
                         <p className="text-gray-600">{t("billing.fees")}</p>
-                        <p className="font-medium text-lg">{formatCurrency(billing.monthlyFee + billing.additionalFees)}</p>
+                        <p className="font-medium text-lg">
+                          {formatCurrency(
+                            billing.monthlyFee + billing.additionalFees,
+                          )}
+                        </p>
                       </div>
                       <div>
                         <p className="text-gray-600">{t("billing.total")}</p>
-                        <p className="font-semibold text-xl text-blue-600">{formatCurrency(billing.totalAmount)}</p>
+                        <p className="font-semibold text-xl text-blue-600">
+                          {formatCurrency(billing.totalAmount)}
+                        </p>
                       </div>
                     </div>
 
@@ -373,7 +447,9 @@ export default function BillingManagement({ merchantId }: BillingManagementProps
                         {billing.dueDate && (
                           <div className="flex items-center gap-1">
                             <Clock className="h-4 w-4" />
-                            <span>{t("due_date")}: {formatDate(billing.dueDate)}</span>
+                            <span>
+                              {t("due_date")}: {formatDate(billing.dueDate)}
+                            </span>
                           </div>
                         )}
                         {billing.paidAt && (
@@ -385,7 +461,9 @@ export default function BillingManagement({ merchantId }: BillingManagementProps
                           </div>
                         )}
                         {billing.paymentMethod && (
-                          <span>{t("payment_method")}: {billing.paymentMethod}</span>
+                          <span>
+                            {t("payment_method")}: {billing.paymentMethod}
+                          </span>
                         )}
                       </div>
 
@@ -393,7 +471,9 @@ export default function BillingManagement({ merchantId }: BillingManagementProps
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => downloadInvoice(billing.id, billing.invoiceNumber)}
+                          onClick={() =>
+                            downloadInvoice(billing.id, billing.invoiceNumber)
+                          }
                         >
                           <Download className="h-4 w-4 mr-2" />
                           {t("actions.download_invoice")}
@@ -411,47 +491,70 @@ export default function BillingManagement({ merchantId }: BillingManagementProps
           <Card>
             <CardHeader>
               <CardTitle>{t("analytics.title")}</CardTitle>
-              <CardDescription>
-                {t("analytics.description")}
-              </CardDescription>
+              <CardDescription>{t("analytics.description")}</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <h4 className="font-medium mb-3">{t("analytics.revenue_breakdown")}</h4>
+                  <h4 className="font-medium mb-3">
+                    {t("analytics.revenue_breakdown")}
+                  </h4>
                   <div className="space-y-2">
                     <div className="flex justify-between items-center p-2 bg-gray-50 rounded">
-                      <span className="text-sm">{t("analytics.gross_revenue")}</span>
-                      <span className="font-medium">{formatCurrency(stats?.totalRevenue || 0)}</span>
+                      <span className="text-sm">
+                        {t("analytics.gross_revenue")}
+                      </span>
+                      <span className="font-medium">
+                        {formatCurrency(stats?.totalRevenue || 0)}
+                      </span>
                     </div>
                     <div className="flex justify-between items-center p-2 bg-gray-50 rounded">
-                      <span className="text-sm">{t("analytics.commissions_paid")}</span>
-                      <span className="font-medium text-red-600">-{formatCurrency(stats?.totalCommissions || 0)}</span>
+                      <span className="text-sm">
+                        {t("analytics.commissions_paid")}
+                      </span>
+                      <span className="font-medium text-red-600">
+                        -{formatCurrency(stats?.totalCommissions || 0)}
+                      </span>
                     </div>
                     <div className="flex justify-between items-center p-2 bg-green-50 rounded border border-green-200">
-                      <span className="text-sm font-medium">{t("analytics.net_revenue")}</span>
+                      <span className="text-sm font-medium">
+                        {t("analytics.net_revenue")}
+                      </span>
                       <span className="font-semibold text-green-600">
-                        {formatCurrency((stats?.totalRevenue || 0) - (stats?.totalCommissions || 0))}
+                        {formatCurrency(
+                          (stats?.totalRevenue || 0) -
+                            (stats?.totalCommissions || 0),
+                        )}
                       </span>
                     </div>
                   </div>
                 </div>
 
                 <div>
-                  <h4 className="font-medium mb-3">{t("analytics.billing_summary")}</h4>
+                  <h4 className="font-medium mb-3">
+                    {t("analytics.billing_summary")}
+                  </h4>
                   <div className="space-y-2">
-                    {['PENDING', 'SENT', 'PAID', 'OVERDUE'].map(status => {
-                      const count = billingCycles.filter(b => b.status === status).length;
-                      const total = billingCycles.filter(b => b.status === status)
+                    {["PENDING", "SENT", "PAID", "OVERDUE"].map((status) => {
+                      const count = billingCycles.filter(
+                        (b) => b.status === status,
+                      ).length;
+                      const total = billingCycles
+                        .filter((b) => b.status === status)
                         .reduce((sum, b) => sum + b.totalAmount, 0);
-                      
+
                       return (
-                        <div key={status} className="flex justify-between items-center p-2 bg-gray-50 rounded">
+                        <div
+                          key={status}
+                          className="flex justify-between items-center p-2 bg-gray-50 rounded"
+                        >
                           <div className="flex items-center gap-2">
                             {getStatusBadge(status)}
                             <span className="text-sm">({count})</span>
                           </div>
-                          <span className="font-medium">{formatCurrency(total)}</span>
+                          <span className="font-medium">
+                            {formatCurrency(total)}
+                          </span>
                         </div>
                       );
                     })}

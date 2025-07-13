@@ -1,25 +1,22 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getCurrentUser } from '@/lib/auth/utils';
-import { prisma } from '@/lib/db';
+import { NextRequest, NextResponse } from "next/server";
+import { getCurrentUser } from "@/lib/auth/utils";
+import { prisma } from "@/lib/db";
 
 // GET - Récupérer les box de stockage disponibles
 export async function GET(request: NextRequest) {
   try {
     const user = await getCurrentUser();
-    
+
     if (!user) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const { searchParams } = new URL(request.url);
-    const warehouseId = searchParams.get('warehouseId');
-    const size = searchParams.get('size');
-    const status = searchParams.get('status') || 'AVAILABLE';
-    const page = parseInt(searchParams.get('page') || '1');
-    const limit = parseInt(searchParams.get('limit') || '20');
+    const warehouseId = searchParams.get("warehouseId");
+    const size = searchParams.get("size");
+    const status = searchParams.get("status") || "AVAILABLE";
+    const page = parseInt(searchParams.get("page") || "1");
+    const limit = parseInt(searchParams.get("limit") || "20");
     const skip = (page - 1) * limit;
 
     // Construire les conditions de filtrage
@@ -48,18 +45,18 @@ export async function GET(request: NextRequest) {
               name: true,
               address: true,
               city: true,
-            }
-          }
+            },
+          },
         },
         orderBy: {
-          number: 'asc'
+          number: "asc",
         },
         skip,
         take: limit,
       }),
       prisma.storageBox.count({
         where: whereConditions,
-      })
+      }),
     ]);
 
     return NextResponse.json({
@@ -69,12 +66,11 @@ export async function GET(request: NextRequest) {
       limit,
       totalPages: Math.ceil(total / limit),
     });
-
   } catch (error) {
-    console.error('Error fetching storage boxes:', error);
+    console.error("Error fetching storage boxes:", error);
     return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
+      { error: "Internal server error" },
+      { status: 500 },
     );
   }
 }
@@ -83,18 +79,15 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const user = await getCurrentUser();
-    
+
     if (!user) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    if (user.role !== 'ADMIN') {
+    if (user.role !== "ADMIN") {
       return NextResponse.json(
-        { error: 'Only admin users can create storage boxes' },
-        { status: 403 }
+        { error: "Only admin users can create storage boxes" },
+        { status: 403 },
       );
     }
 
@@ -104,8 +97,8 @@ export async function POST(request: NextRequest) {
     // Validate required fields
     if (!warehouseId || !number || !size || !monthlyPrice) {
       return NextResponse.json(
-        { error: 'Missing required fields' },
-        { status: 400 }
+        { error: "Missing required fields" },
+        { status: 400 },
       );
     }
 
@@ -119,8 +112,8 @@ export async function POST(request: NextRequest) {
 
     if (existingBox) {
       return NextResponse.json(
-        { error: 'Box number already exists in this warehouse' },
-        { status: 409 }
+        { error: "Box number already exists in this warehouse" },
+        { status: 409 },
       );
     }
 
@@ -130,7 +123,7 @@ export async function POST(request: NextRequest) {
         number,
         size,
         monthlyPrice,
-        status: 'AVAILABLE',
+        status: "AVAILABLE",
       },
       include: {
         warehouse: {
@@ -146,10 +139,10 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(box, { status: 201 });
   } catch (error) {
-    console.error('Error creating storage box:', error);
+    console.error("Error creating storage box:", error);
     return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
+      { error: "Internal server error" },
+      { status: 500 },
     );
   }
-} 
+}

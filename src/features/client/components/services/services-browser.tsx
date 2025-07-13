@@ -1,14 +1,44 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Search, Filter, Star, Clock, MapPin, User, Calendar, Euro, ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Search,
+  Filter,
+  Star,
+  Clock,
+  MapPin,
+  User,
+  Calendar,
+  Euro,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Textarea } from "@/components/ui/textarea";
 
@@ -84,39 +114,45 @@ const serviceCategories = [
   { value: "PERSON_TRANSPORT", label: "Transport de personnes", icon: "🚗" },
   { value: "AIRPORT_TRANSFER", label: "Transfert aéroport", icon: "✈️" },
   { value: "SHOPPING", label: "Courses", icon: "🛒" },
-  { value: "INTERNATIONAL_PURCHASE", label: "Achats internationaux", icon: "🌍" },
+  {
+    value: "INTERNATIONAL_PURCHASE",
+    label: "Achats internationaux",
+    icon: "🌍",
+  },
   { value: "PET_CARE", label: "Garde d'animaux", icon: "🐕" },
   { value: "HOME_SERVICE", label: "Services à domicile", icon: "🏠" },
   { value: "CART_DROP", label: "Lâcher de chariot", icon: "🛒" },
-  { value: "OTHER", label: "Autre", icon: "⚡" }
+  { value: "OTHER", label: "Autre", icon: "⚡" },
 ];
 
 const sortOptions = [
   { value: "created", label: "Plus récents" },
   { value: "price", label: "Prix" },
   { value: "rating", label: "Note" },
-  { value: "name", label: "Nom" }
+  { value: "name", label: "Nom" },
 ];
 
 export default function ServicesBrowser({ clientId }: ServicesBrowserProps) {
   const t = useTranslations("client.services");
   const [services, setServices] = useState<Service[]>([]);
   const [stats, setStats] = useState<ApiResponse["stats"] | null>(null);
-  const [pagination, setPagination] = useState<ApiResponse["pagination"] | null>(null);
+  const [pagination, setPagination] = useState<
+    ApiResponse["pagination"] | null
+  >(null);
   const [loading, setLoading] = useState(true);
   const [selectedService, setSelectedService] = useState<Service | null>(null);
   const [showServiceDialog, setShowServiceDialog] = useState(false);
   const [showBookingDialog, setShowBookingDialog] = useState(false);
   const [bookingService, setBookingService] = useState<Service | null>(null);
   const [bookingForm, setBookingForm] = useState({
-    startDate: '',
-    endDate: '',
-    timeSlot: '',
-    location: '',
-    notes: ''
+    startDate: "",
+    endDate: "",
+    timeSlot: "",
+    location: "",
+    notes: "",
   });
   const [showFilters, setShowFilters] = useState(false);
-  
+
   const [filters, setFilters] = useState<SearchFilters>({
     search: "",
     category: "all",
@@ -124,7 +160,7 @@ export default function ServicesBrowser({ clientId }: ServicesBrowserProps) {
     priceMax: "",
     city: "",
     sortBy: "created",
-    sortOrder: "desc"
+    sortOrder: "desc",
   });
 
   const [currentPage, setCurrentPage] = useState(1);
@@ -139,9 +175,10 @@ export default function ServicesBrowser({ clientId }: ServicesBrowserProps) {
       const params = new URLSearchParams();
       params.append("page", currentPage.toString());
       params.append("limit", "12");
-      
+
       if (filters.search) params.append("search", filters.search);
-      if (filters.category && filters.category !== "all") params.append("category", filters.category);
+      if (filters.category && filters.category !== "all")
+        params.append("category", filters.category);
       if (filters.priceMin) params.append("priceMin", filters.priceMin);
       if (filters.priceMax) params.append("priceMax", filters.priceMax);
       if (filters.city) params.append("city", filters.city);
@@ -149,7 +186,7 @@ export default function ServicesBrowser({ clientId }: ServicesBrowserProps) {
       if (filters.sortOrder) params.append("sortOrder", filters.sortOrder);
 
       const response = await fetch(`/api/public/services?${params.toString()}`);
-      
+
       if (response.ok) {
         const data: ApiResponse = await response.json();
         setServices(data.services);
@@ -164,21 +201,26 @@ export default function ServicesBrowser({ clientId }: ServicesBrowserProps) {
   };
 
   const handleSearch = (newFilters: Partial<SearchFilters>) => {
-    setFilters(prev => ({ ...prev, ...newFilters }));
+    setFilters((prev) => ({ ...prev, ...newFilters }));
     setCurrentPage(1);
   };
 
   const getCategoryInfo = (type: string) => {
-    return serviceCategories.find(cat => cat.value === type) || 
-           { value: type, label: type, icon: "⚡" };
+    return (
+      serviceCategories.find((cat) => cat.value === type) || {
+        value: type,
+        label: type,
+        icon: "⚡",
+      }
+    );
   };
 
   const formatPrice = (price: number, unit: string) => {
     const unitLabels: Record<string, string> = {
-      "HOUR": "/heure",
-      "FLAT": "forfait",
-      "DAY": "/jour",
-      "KM": "/km"
+      HOUR: "/heure",
+      FLAT: "forfait",
+      DAY: "/jour",
+      KM: "/km",
     };
     return `${price}€${unitLabels[unit] || ""}`;
   };
@@ -186,12 +228,12 @@ export default function ServicesBrowser({ clientId }: ServicesBrowserProps) {
   // Fonction helper pour calculer la durée d'un créneau en heures
   const getTimeSlotDuration = (timeSlot: string): number => {
     if (!timeSlot) return 1;
-    
+
     // Créneaux flexibles ou personnalisés = 1 heure par défaut
-    if (timeSlot.includes('flexible') || timeSlot === 'custom') {
+    if (timeSlot.includes("flexible") || timeSlot === "custom") {
       return 1;
     }
-    
+
     // Extraire les heures de début et fin (format "HH:MM-HH:MM")
     const timeMatch = timeSlot.match(/(\d{2}):(\d{2})-(\d{2}):(\d{2})/);
     if (timeMatch) {
@@ -200,50 +242,62 @@ export default function ServicesBrowser({ clientId }: ServicesBrowserProps) {
       const endTime = parseInt(endHour) + parseInt(endMin) / 60;
       return endTime - startTime;
     }
-    
+
     return 1; // Durée par défaut
   };
 
   // Fonction helper pour calculer le prix total d'une réservation
-  const calculateTotalPrice = (service: Service, startDate: string, endDate: string, timeSlot: string): { totalPrice: number, details: string } => {
+  const calculateTotalPrice = (
+    service: Service,
+    startDate: string,
+    endDate: string,
+    timeSlot: string,
+  ): { totalPrice: number; details: string } => {
     if (!startDate || !endDate) {
-      return { totalPrice: service.basePrice, details: formatPrice(service.basePrice, service.priceUnit) };
+      return {
+        totalPrice: service.basePrice,
+        details: formatPrice(service.basePrice, service.priceUnit),
+      };
     }
 
-    const durationDays = Math.ceil((new Date(endDate).getTime() - new Date(startDate).getTime()) / (1000 * 60 * 60 * 24)) + 1;
+    const durationDays =
+      Math.ceil(
+        (new Date(endDate).getTime() - new Date(startDate).getTime()) /
+          (1000 * 60 * 60 * 24),
+      ) + 1;
     const timeSlotHours = getTimeSlotDuration(timeSlot);
 
     let totalPrice = service.basePrice;
     let details = formatPrice(service.basePrice, service.priceUnit);
 
     switch (service.priceUnit) {
-      case 'HOUR':
+      case "HOUR":
         // Prix à l'heure × nombre d'heures par jour × nombre de jours
         totalPrice = service.basePrice * timeSlotHours * durationDays;
-        details = `${service.basePrice}€/h × ${timeSlotHours}h × ${durationDays} jour${durationDays > 1 ? 's' : ''} = ${totalPrice}€`;
+        details = `${service.basePrice}€/h × ${timeSlotHours}h × ${durationDays} jour${durationDays > 1 ? "s" : ""} = ${totalPrice}€`;
         break;
-      
-      case 'DAY':
+
+      case "DAY":
         // Prix par jour × nombre de jours
         totalPrice = service.basePrice * durationDays;
-        details = `${service.basePrice}€/jour × ${durationDays} jour${durationDays > 1 ? 's' : ''} = ${totalPrice}€`;
+        details = `${service.basePrice}€/jour × ${durationDays} jour${durationDays > 1 ? "s" : ""} = ${totalPrice}€`;
         break;
-      
-      case 'FLAT':
+
+      case "FLAT":
         // Prix forfaitaire × nombre de jours (pour des services récurrents)
         if (durationDays > 1) {
           totalPrice = service.basePrice * durationDays;
-          details = `${service.basePrice}€ forfait × ${durationDays} jour${durationDays > 1 ? 's' : ''} = ${totalPrice}€`;
+          details = `${service.basePrice}€ forfait × ${durationDays} jour${durationDays > 1 ? "s" : ""} = ${totalPrice}€`;
         } else {
           totalPrice = service.basePrice;
           details = `${service.basePrice}€ forfait`;
         }
         break;
-      
+
       default:
         // Prix par défaut × nombre de jours
         totalPrice = service.basePrice * durationDays;
-        details = `${service.basePrice}€ × ${durationDays} jour${durationDays > 1 ? 's' : ''} = ${totalPrice}€`;
+        details = `${service.basePrice}€ × ${durationDays} jour${durationDays > 1 ? "s" : ""} = ${totalPrice}€`;
     }
 
     return { totalPrice, details };
@@ -255,15 +309,15 @@ export default function ServicesBrowser({ clientId }: ServicesBrowserProps) {
   };
 
   const handleBookService = async (serviceId: string) => {
-    const service = services.find(s => s.id === serviceId);
+    const service = services.find((s) => s.id === serviceId);
     if (service) {
       setBookingService(service);
       setBookingForm({
-        startDate: '',
-        endDate: '',
-        timeSlot: '',
-        location: '',
-        notes: ''
+        startDate: "",
+        endDate: "",
+        timeSlot: "",
+        location: "",
+        notes: "",
       });
       setShowBookingDialog(true);
       setShowServiceDialog(false); // Fermer le dialog de détails s'il est ouvert
@@ -275,20 +329,28 @@ export default function ServicesBrowser({ clientId }: ServicesBrowserProps) {
 
     try {
       setLoading(true);
-      
+
       // Calculer la durée en jours
       const startDate = new Date(bookingForm.startDate);
       const endDate = new Date(bookingForm.endDate);
-      const durationDays = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1;
-      
+      const durationDays =
+        Math.ceil(
+          (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24),
+        ) + 1;
+
       // Calculer le prix total avec la durée du créneau
-      const priceInfo = calculateTotalPrice(bookingService, bookingForm.startDate, bookingForm.endDate, bookingForm.timeSlot);
+      const priceInfo = calculateTotalPrice(
+        bookingService,
+        bookingForm.startDate,
+        bookingForm.endDate,
+        bookingForm.timeSlot,
+      );
       const timeSlotHours = getTimeSlotDuration(bookingForm.timeSlot);
-      
-      const response = await fetch('/api/client/bookings', {
-        method: 'POST',
+
+      const response = await fetch("/api/client/bookings", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           clientId: clientId,
@@ -302,8 +364,8 @@ export default function ServicesBrowser({ clientId }: ServicesBrowserProps) {
           durationDays: durationDays,
           timeSlotHours: timeSlotHours,
           totalPrice: priceInfo.totalPrice,
-          priceBreakdown: priceInfo.details
-        })
+          priceBreakdown: priceInfo.details,
+        }),
       });
 
       if (response.ok) {
@@ -311,14 +373,18 @@ export default function ServicesBrowser({ clientId }: ServicesBrowserProps) {
         setShowBookingDialog(false);
         setBookingService(null);
         // Afficher un message de succès avec plus de détails
-        alert(`🎉 Réservation créée avec succès !\n\n${priceInfo.details}\n\n📧 Un email de confirmation a été envoyé à votre adresse.\n📱 Le prestataire recevra également une notification.`);
+        alert(
+          `🎉 Réservation créée avec succès !\n\n${priceInfo.details}\n\n📧 Un email de confirmation a été envoyé à votre adresse.\n📱 Le prestataire recevra également une notification.`,
+        );
       } else {
         const error = await response.json();
-        alert(`Erreur lors de la réservation: ${error.message || 'Erreur inconnue'}`);
+        alert(
+          `Erreur lors de la réservation: ${error.message || "Erreur inconnue"}`,
+        );
       }
     } catch (error) {
-      console.error('Error creating booking:', error);
-      alert('Erreur lors de la réservation. Veuillez réessayer.');
+      console.error("Error creating booking:", error);
+      alert("Erreur lors de la réservation. Veuillez réessayer.");
     } finally {
       setLoading(false);
     }
@@ -349,7 +415,9 @@ export default function ServicesBrowser({ clientId }: ServicesBrowserProps) {
                   <MapPin className="h-4 w-4 text-blue-600" />
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Services disponibles</p>
+                  <p className="text-sm text-muted-foreground">
+                    Services disponibles
+                  </p>
                   <p className="text-2xl font-bold">{stats.total}</p>
                 </div>
               </div>
@@ -364,7 +432,9 @@ export default function ServicesBrowser({ clientId }: ServicesBrowserProps) {
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Prix moyen</p>
-                  <p className="text-2xl font-bold">{Math.round(stats.averagePrice)}€</p>
+                  <p className="text-2xl font-bold">
+                    {Math.round(stats.averagePrice)}€
+                  </p>
                 </div>
               </div>
             </CardContent>
@@ -377,8 +447,12 @@ export default function ServicesBrowser({ clientId }: ServicesBrowserProps) {
                   <Star className="h-4 w-4 text-yellow-600" />
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Fourchette de prix</p>
-                  <p className="text-2xl font-bold">{stats.priceRange.min}€ - {stats.priceRange.max}€</p>
+                  <p className="text-sm text-muted-foreground">
+                    Fourchette de prix
+                  </p>
+                  <p className="text-2xl font-bold">
+                    {stats.priceRange.min}€ - {stats.priceRange.max}€
+                  </p>
                 </div>
               </div>
             </CardContent>
@@ -392,7 +466,9 @@ export default function ServicesBrowser({ clientId }: ServicesBrowserProps) {
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Catégories</p>
-                  <p className="text-2xl font-bold">{stats.categoryBreakdown.length}</p>
+                  <p className="text-2xl font-bold">
+                    {stats.categoryBreakdown.length}
+                  </p>
                 </div>
               </div>
             </CardContent>
@@ -417,8 +493,8 @@ export default function ServicesBrowser({ clientId }: ServicesBrowserProps) {
                 onChange={(e) => handleSearch({ search: e.target.value })}
               />
             </div>
-            <Select 
-              value={filters.category} 
+            <Select
+              value={filters.category}
               onValueChange={(value) => handleSearch({ category: value })}
             >
               <SelectTrigger>
@@ -426,7 +502,7 @@ export default function ServicesBrowser({ clientId }: ServicesBrowserProps) {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Toutes les catégories</SelectItem>
-                {serviceCategories.map(cat => (
+                {serviceCategories.map((cat) => (
                   <SelectItem key={cat.value} value={cat.value}>
                     {cat.icon} {cat.label}
                   </SelectItem>
@@ -475,15 +551,15 @@ export default function ServicesBrowser({ clientId }: ServicesBrowserProps) {
               </div>
               <div>
                 <Label htmlFor="sortBy">Trier par</Label>
-                <Select 
-                  value={filters.sortBy} 
+                <Select
+                  value={filters.sortBy}
                   onValueChange={(value) => handleSearch({ sortBy: value })}
                 >
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {sortOptions.map(option => (
+                    {sortOptions.map((option) => (
                       <SelectItem key={option.value} value={option.value}>
                         {option.label}
                       </SelectItem>
@@ -493,8 +569,8 @@ export default function ServicesBrowser({ clientId }: ServicesBrowserProps) {
               </div>
               <div>
                 <Label htmlFor="sortOrder">Ordre</Label>
-                <Select 
-                  value={filters.sortOrder} 
+                <Select
+                  value={filters.sortOrder}
                   onValueChange={(value) => handleSearch({ sortOrder: value })}
                 >
                   <SelectTrigger>
@@ -528,7 +604,10 @@ export default function ServicesBrowser({ clientId }: ServicesBrowserProps) {
             {services.map((service) => {
               const categoryInfo = getCategoryInfo(service.type);
               return (
-                <Card key={service.id} className="hover:shadow-lg transition-shadow cursor-pointer">
+                <Card
+                  key={service.id}
+                  className="hover:shadow-lg transition-shadow cursor-pointer"
+                >
                   <CardHeader>
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
@@ -540,7 +619,9 @@ export default function ServicesBrowser({ clientId }: ServicesBrowserProps) {
                             {formatPrice(service.basePrice, service.priceUnit)}
                           </span>
                         </div>
-                        <CardTitle className="text-lg">{service.name}</CardTitle>
+                        <CardTitle className="text-lg">
+                          {service.name}
+                        </CardTitle>
                         <CardDescription className="line-clamp-2">
                           {service.description}
                         </CardDescription>
@@ -552,25 +633,31 @@ export default function ServicesBrowser({ clientId }: ServicesBrowserProps) {
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
                         {service.provider.user.avatar ? (
-                          <img 
-                            src={service.provider.user.avatar} 
-                            alt={service.provider.user.name} 
-                            className="w-10 h-10 rounded-full object-cover" 
+                          <img
+                            src={service.provider.user.avatar}
+                            alt={service.provider.user.name}
+                            className="w-10 h-10 rounded-full object-cover"
                           />
                         ) : (
                           <User className="h-5 w-5 text-gray-500" />
                         )}
                       </div>
                       <div className="flex-1">
-                        <p className="font-medium text-sm">{service.provider.user.name}</p>
+                        <p className="font-medium text-sm">
+                          {service.provider.user.name}
+                        </p>
                         {service.provider.businessName && (
-                          <p className="text-xs text-muted-foreground">{service.provider.businessName}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {service.provider.businessName}
+                          </p>
                         )}
                         <div className="flex items-center gap-2 text-xs text-muted-foreground">
                           {service.provider.averageRating > 0 && (
                             <div className="flex items-center gap-1">
                               <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-                              <span>{service.provider.averageRating.toFixed(1)}</span>
+                              <span>
+                                {service.provider.averageRating.toFixed(1)}
+                              </span>
                             </div>
                           )}
                           <span>•</span>
@@ -595,22 +682,24 @@ export default function ServicesBrowser({ clientId }: ServicesBrowserProps) {
                       )}
                       <div className="flex items-center gap-1">
                         <Calendar className="h-4 w-4" />
-                        <span>Réservation {service.minAdvanceBooking}h à l'avance</span>
+                        <span>
+                          Réservation {service.minAdvanceBooking}h à l'avance
+                        </span>
                       </div>
                     </div>
 
                     {/* Actions */}
                     <div className="flex gap-2">
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
+                      <Button
+                        variant="outline"
+                        size="sm"
                         className="flex-1"
                         onClick={() => openServiceDialog(service)}
                       >
                         Voir détails
                       </Button>
-                      <Button 
-                        size="sm" 
+                      <Button
+                        size="sm"
                         className="flex-1"
                         onClick={() => handleBookService(service.id)}
                       >
@@ -630,21 +719,21 @@ export default function ServicesBrowser({ clientId }: ServicesBrowserProps) {
                 variant="outline"
                 size="sm"
                 disabled={!pagination.hasPrev}
-                onClick={() => setCurrentPage(prev => prev - 1)}
+                onClick={() => setCurrentPage((prev) => prev - 1)}
               >
                 <ChevronLeft className="h-4 w-4" />
                 Précédent
               </Button>
-              
+
               <span className="text-sm text-muted-foreground">
                 Page {pagination.page} sur {pagination.totalPages}
               </span>
-              
+
               <Button
                 variant="outline"
                 size="sm"
                 disabled={!pagination.hasNext}
-                onClick={() => setCurrentPage(prev => prev + 1)}
+                onClick={() => setCurrentPage((prev) => prev + 1)}
               >
                 Suivant
                 <ChevronRight className="h-4 w-4" />
@@ -666,27 +755,35 @@ export default function ServicesBrowser({ clientId }: ServicesBrowserProps) {
                 </DialogTitle>
                 <DialogDescription>
                   Par {selectedService.provider.user.name}
-                  {selectedService.provider.businessName && ` - ${selectedService.provider.businessName}`}
+                  {selectedService.provider.businessName &&
+                    ` - ${selectedService.provider.businessName}`}
                 </DialogDescription>
               </DialogHeader>
-              
+
               <div className="space-y-4">
                 <div>
                   <h4 className="font-medium mb-2">Description</h4>
-                  <p className="text-sm text-muted-foreground">{selectedService.description}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {selectedService.description}
+                  </p>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <h4 className="font-medium mb-2">Prix</h4>
                     <p className="text-lg font-semibold text-primary">
-                      {formatPrice(selectedService.basePrice, selectedService.priceUnit)}
+                      {formatPrice(
+                        selectedService.basePrice,
+                        selectedService.priceUnit,
+                      )}
                     </p>
                   </div>
                   {selectedService.duration && (
                     <div>
                       <h4 className="font-medium mb-2">Durée</h4>
-                      <p className="text-sm">{selectedService.duration} minutes</p>
+                      <p className="text-sm">
+                        {selectedService.duration} minutes
+                      </p>
                     </div>
                   )}
                 </div>
@@ -694,7 +791,8 @@ export default function ServicesBrowser({ clientId }: ServicesBrowserProps) {
                 <div>
                   <h4 className="font-medium mb-2">Délais de réservation</h4>
                   <p className="text-sm text-muted-foreground">
-                    Entre {selectedService.minAdvanceBooking}h et {selectedService.maxAdvanceBooking}h à l'avance
+                    Entre {selectedService.minAdvanceBooking}h et{" "}
+                    {selectedService.maxAdvanceBooking}h à l'avance
                   </p>
                 </div>
 
@@ -703,7 +801,11 @@ export default function ServicesBrowser({ clientId }: ServicesBrowserProps) {
                     <h4 className="font-medium mb-2">Prérequis</h4>
                     <div className="flex flex-wrap gap-1">
                       {selectedService.requirements.map((req, index) => (
-                        <Badge key={index} variant="outline" className="text-xs">
+                        <Badge
+                          key={index}
+                          variant="outline"
+                          className="text-xs"
+                        >
                           {req}
                         </Badge>
                       ))}
@@ -716,40 +818,55 @@ export default function ServicesBrowser({ clientId }: ServicesBrowserProps) {
                   <div className="flex items-center gap-3 mb-2">
                     <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center">
                       {selectedService.provider.user.avatar ? (
-                        <img 
-                          src={selectedService.provider.user.avatar} 
-                          alt={selectedService.provider.user.name} 
-                          className="w-12 h-12 rounded-full object-cover" 
+                        <img
+                          src={selectedService.provider.user.avatar}
+                          alt={selectedService.provider.user.name}
+                          className="w-12 h-12 rounded-full object-cover"
                         />
                       ) : (
                         <User className="h-6 w-6 text-gray-500" />
                       )}
                     </div>
                     <div>
-                      <p className="font-medium">{selectedService.provider.user.name}</p>
+                      <p className="font-medium">
+                        {selectedService.provider.user.name}
+                      </p>
                       {selectedService.provider.businessName && (
-                        <p className="text-sm text-muted-foreground">{selectedService.provider.businessName}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {selectedService.provider.businessName}
+                        </p>
                       )}
                       <div className="flex items-center gap-2 text-sm text-muted-foreground">
                         {selectedService.provider.averageRating > 0 && (
                           <div className="flex items-center gap-1">
                             <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                            <span>{selectedService.provider.averageRating.toFixed(1)}</span>
+                            <span>
+                              {selectedService.provider.averageRating.toFixed(
+                                1,
+                              )}
+                            </span>
                           </div>
                         )}
                         <span>•</span>
-                        <span>{selectedService.provider.totalBookings} missions</span>
+                        <span>
+                          {selectedService.provider.totalBookings} missions
+                        </span>
                       </div>
                     </div>
                   </div>
                   {selectedService.provider.description && (
-                    <p className="text-sm text-muted-foreground">{selectedService.provider.description}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {selectedService.provider.description}
+                    </p>
                   )}
                 </div>
               </div>
 
               <DialogFooter>
-                <Button variant="outline" onClick={() => setShowServiceDialog(false)}>
+                <Button
+                  variant="outline"
+                  onClick={() => setShowServiceDialog(false)}
+                >
                   Fermer
                 </Button>
                 <Button onClick={() => handleBookService(selectedService.id)}>
@@ -769,10 +886,14 @@ export default function ServicesBrowser({ clientId }: ServicesBrowserProps) {
               <DialogHeader>
                 <DialogTitle>Réserver : {bookingService.name}</DialogTitle>
                 <DialogDescription>
-                  Avec {bookingService.provider.user.name} - {formatPrice(bookingService.basePrice, bookingService.priceUnit)}
+                  Avec {bookingService.provider.user.name} -{" "}
+                  {formatPrice(
+                    bookingService.basePrice,
+                    bookingService.priceUnit,
+                  )}
                 </DialogDescription>
               </DialogHeader>
-              
+
               <div className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
@@ -781,9 +902,28 @@ export default function ServicesBrowser({ clientId }: ServicesBrowserProps) {
                       id="booking-start-date"
                       type="date"
                       value={bookingForm.startDate}
-                      onChange={(e) => setBookingForm(prev => ({ ...prev, startDate: e.target.value }))}
-                      min={new Date(Date.now() + bookingService.minAdvanceBooking * 60 * 60 * 1000).toISOString().split('T')[0]}
-                      max={new Date(Date.now() + bookingService.maxAdvanceBooking * 60 * 60 * 1000).toISOString().split('T')[0]}
+                      onChange={(e) =>
+                        setBookingForm((prev) => ({
+                          ...prev,
+                          startDate: e.target.value,
+                        }))
+                      }
+                      min={
+                        new Date(
+                          Date.now() +
+                            bookingService.minAdvanceBooking * 60 * 60 * 1000,
+                        )
+                          .toISOString()
+                          .split("T")[0]
+                      }
+                      max={
+                        new Date(
+                          Date.now() +
+                            bookingService.maxAdvanceBooking * 60 * 60 * 1000,
+                        )
+                          .toISOString()
+                          .split("T")[0]
+                      }
                       required
                     />
                   </div>
@@ -793,101 +933,202 @@ export default function ServicesBrowser({ clientId }: ServicesBrowserProps) {
                       id="booking-end-date"
                       type="date"
                       value={bookingForm.endDate}
-                      onChange={(e) => setBookingForm(prev => ({ ...prev, endDate: e.target.value }))}
-                      min={bookingForm.startDate || new Date(Date.now() + bookingService.minAdvanceBooking * 60 * 60 * 1000).toISOString().split('T')[0]}
-                      max={new Date(Date.now() + bookingService.maxAdvanceBooking * 60 * 60 * 1000).toISOString().split('T')[0]}
+                      onChange={(e) =>
+                        setBookingForm((prev) => ({
+                          ...prev,
+                          endDate: e.target.value,
+                        }))
+                      }
+                      min={
+                        bookingForm.startDate ||
+                        new Date(
+                          Date.now() +
+                            bookingService.minAdvanceBooking * 60 * 60 * 1000,
+                        )
+                          .toISOString()
+                          .split("T")[0]
+                      }
+                      max={
+                        new Date(
+                          Date.now() +
+                            bookingService.maxAdvanceBooking * 60 * 60 * 1000,
+                        )
+                          .toISOString()
+                          .split("T")[0]
+                      }
                       required
                     />
                   </div>
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Réservation possible entre {bookingService.minAdvanceBooking}h et {bookingService.maxAdvanceBooking}h à l'avance
+                  Réservation possible entre {bookingService.minAdvanceBooking}h
+                  et {bookingService.maxAdvanceBooking}h à l'avance
                   {bookingForm.startDate && bookingForm.endDate && (
                     <span className="font-medium text-primary ml-2">
-                      • Durée : {Math.ceil((new Date(bookingForm.endDate).getTime() - new Date(bookingForm.startDate).getTime()) / (1000 * 60 * 60 * 24)) + 1} jour(s)
+                      • Durée :{" "}
+                      {Math.ceil(
+                        (new Date(bookingForm.endDate).getTime() -
+                          new Date(bookingForm.startDate).getTime()) /
+                          (1000 * 60 * 60 * 24),
+                      ) + 1}{" "}
+                      jour(s)
                     </span>
                   )}
                 </p>
 
                 <div>
                   <Label htmlFor="booking-time">Créneau horaire *</Label>
-                  <Select 
-                    value={bookingForm.timeSlot} 
-                    onValueChange={(value) => setBookingForm(prev => ({ ...prev, timeSlot: value }))}
+                  <Select
+                    value={bookingForm.timeSlot}
+                    onValueChange={(value) =>
+                      setBookingForm((prev) => ({ ...prev, timeSlot: value }))
+                    }
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Choisir un créneau" />
                     </SelectTrigger>
                     <SelectContent>
                       {/* Créneaux d'1 heure */}
-                      <SelectItem value="09:00-10:00">09h00 - 10h00 (1h)</SelectItem>
-                      <SelectItem value="10:00-11:00">10h00 - 11h00 (1h)</SelectItem>
-                      <SelectItem value="11:00-12:00">11h00 - 12h00 (1h)</SelectItem>
-                      <SelectItem value="14:00-15:00">14h00 - 15h00 (1h)</SelectItem>
-                      <SelectItem value="15:00-16:00">15h00 - 16h00 (1h)</SelectItem>
-                      <SelectItem value="16:00-17:00">16h00 - 17h00 (1h)</SelectItem>
-                      <SelectItem value="17:00-18:00">17h00 - 18h00 (1h)</SelectItem>
-                      
+                      <SelectItem value="09:00-10:00">
+                        09h00 - 10h00 (1h)
+                      </SelectItem>
+                      <SelectItem value="10:00-11:00">
+                        10h00 - 11h00 (1h)
+                      </SelectItem>
+                      <SelectItem value="11:00-12:00">
+                        11h00 - 12h00 (1h)
+                      </SelectItem>
+                      <SelectItem value="14:00-15:00">
+                        14h00 - 15h00 (1h)
+                      </SelectItem>
+                      <SelectItem value="15:00-16:00">
+                        15h00 - 16h00 (1h)
+                      </SelectItem>
+                      <SelectItem value="16:00-17:00">
+                        16h00 - 17h00 (1h)
+                      </SelectItem>
+                      <SelectItem value="17:00-18:00">
+                        17h00 - 18h00 (1h)
+                      </SelectItem>
+
                       {/* Créneaux de 2 heures */}
-                      <SelectItem value="09:00-11:00">09h00 - 11h00 (2h)</SelectItem>
-                      <SelectItem value="10:00-12:00">10h00 - 12h00 (2h)</SelectItem>
-                      <SelectItem value="14:00-16:00">14h00 - 16h00 (2h)</SelectItem>
-                      <SelectItem value="15:00-17:00">15h00 - 17h00 (2h)</SelectItem>
-                      <SelectItem value="16:00-18:00">16h00 - 18h00 (2h)</SelectItem>
-                      
+                      <SelectItem value="09:00-11:00">
+                        09h00 - 11h00 (2h)
+                      </SelectItem>
+                      <SelectItem value="10:00-12:00">
+                        10h00 - 12h00 (2h)
+                      </SelectItem>
+                      <SelectItem value="14:00-16:00">
+                        14h00 - 16h00 (2h)
+                      </SelectItem>
+                      <SelectItem value="15:00-17:00">
+                        15h00 - 17h00 (2h)
+                      </SelectItem>
+                      <SelectItem value="16:00-18:00">
+                        16h00 - 18h00 (2h)
+                      </SelectItem>
+
                       {/* Créneaux de 3 heures */}
-                      <SelectItem value="09:00-12:00">09h00 - 12h00 (3h)</SelectItem>
-                      <SelectItem value="14:00-17:00">14h00 - 17h00 (3h)</SelectItem>
-                      <SelectItem value="15:00-18:00">15h00 - 18h00 (3h)</SelectItem>
-                      
+                      <SelectItem value="09:00-12:00">
+                        09h00 - 12h00 (3h)
+                      </SelectItem>
+                      <SelectItem value="14:00-17:00">
+                        14h00 - 17h00 (3h)
+                      </SelectItem>
+                      <SelectItem value="15:00-18:00">
+                        15h00 - 18h00 (3h)
+                      </SelectItem>
+
                       {/* Demi-journée (4 heures) */}
-                      <SelectItem value="08:00-12:00">08h00 - 12h00 (Matinée - 4h)</SelectItem>
-                      <SelectItem value="09:00-13:00">09h00 - 13h00 (Matinée - 4h)</SelectItem>
-                      <SelectItem value="14:00-18:00">14h00 - 18h00 (Après-midi - 4h)</SelectItem>
-                      <SelectItem value="15:00-19:00">15h00 - 19h00 (Après-midi - 4h)</SelectItem>
-                      
+                      <SelectItem value="08:00-12:00">
+                        08h00 - 12h00 (Matinée - 4h)
+                      </SelectItem>
+                      <SelectItem value="09:00-13:00">
+                        09h00 - 13h00 (Matinée - 4h)
+                      </SelectItem>
+                      <SelectItem value="14:00-18:00">
+                        14h00 - 18h00 (Après-midi - 4h)
+                      </SelectItem>
+                      <SelectItem value="15:00-19:00">
+                        15h00 - 19h00 (Après-midi - 4h)
+                      </SelectItem>
+
                       {/* Journée complète (8 heures) */}
-                      <SelectItem value="08:00-16:00">08h00 - 16h00 (Journée complète - 8h)</SelectItem>
-                      <SelectItem value="09:00-17:00">09h00 - 17h00 (Journée complète - 8h)</SelectItem>
-                      <SelectItem value="10:00-18:00">10h00 - 18h00 (Journée complète - 8h)</SelectItem>
-                      
+                      <SelectItem value="08:00-16:00">
+                        08h00 - 16h00 (Journée complète - 8h)
+                      </SelectItem>
+                      <SelectItem value="09:00-17:00">
+                        09h00 - 17h00 (Journée complète - 8h)
+                      </SelectItem>
+                      <SelectItem value="10:00-18:00">
+                        10h00 - 18h00 (Journée complète - 8h)
+                      </SelectItem>
+
                       {/* Créneaux flexibles */}
-                      <SelectItem value="flexible-morning">Flexible matinée (À convenir)</SelectItem>
-                      <SelectItem value="flexible-afternoon">Flexible après-midi (À convenir)</SelectItem>
-                      <SelectItem value="flexible-evening">Flexible soirée (À convenir)</SelectItem>
-                      <SelectItem value="custom">Horaire personnalisé (À préciser dans les notes)</SelectItem>
+                      <SelectItem value="flexible-morning">
+                        Flexible matinée (À convenir)
+                      </SelectItem>
+                      <SelectItem value="flexible-afternoon">
+                        Flexible après-midi (À convenir)
+                      </SelectItem>
+                      <SelectItem value="flexible-evening">
+                        Flexible soirée (À convenir)
+                      </SelectItem>
+                      <SelectItem value="custom">
+                        Horaire personnalisé (À préciser dans les notes)
+                      </SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
                 <div>
-                  <Label htmlFor="booking-location">Adresse d'intervention *</Label>
+                  <Label htmlFor="booking-location">
+                    Adresse d'intervention *
+                  </Label>
                   <Input
                     id="booking-location"
                     placeholder="123 rue de la Paix, 75001 Paris"
                     value={bookingForm.location}
-                    onChange={(e) => setBookingForm(prev => ({ ...prev, location: e.target.value }))}
+                    onChange={(e) =>
+                      setBookingForm((prev) => ({
+                        ...prev,
+                        location: e.target.value,
+                      }))
+                    }
                     required
                   />
                 </div>
 
                 <div>
-                  <Label htmlFor="booking-notes">Instructions particulières</Label>
+                  <Label htmlFor="booking-notes">
+                    Instructions particulières
+                  </Label>
                   <Textarea
                     id="booking-notes"
                     placeholder="Détails supplémentaires, code d'accès, étage..."
                     value={bookingForm.notes}
-                    onChange={(e) => setBookingForm(prev => ({ ...prev, notes: e.target.value }))}
+                    onChange={(e) =>
+                      setBookingForm((prev) => ({
+                        ...prev,
+                        notes: e.target.value,
+                      }))
+                    }
                     rows={3}
                   />
                 </div>
 
                 {bookingService.requirements.length > 0 && (
                   <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                    <h4 className="font-medium text-sm mb-2">Prérequis pour ce service :</h4>
+                    <h4 className="font-medium text-sm mb-2">
+                      Prérequis pour ce service :
+                    </h4>
                     <div className="flex flex-wrap gap-1">
                       {bookingService.requirements.map((req, index) => (
-                        <Badge key={index} variant="outline" className="text-xs">
+                        <Badge
+                          key={index}
+                          variant="outline"
+                          className="text-xs"
+                        >
                           {req}
                         </Badge>
                       ))}
@@ -900,39 +1141,65 @@ export default function ServicesBrowser({ clientId }: ServicesBrowserProps) {
                     <span className="font-medium">Total estimé :</span>
                     <span className="text-lg font-bold text-primary">
                       {(() => {
-                        const priceInfo = calculateTotalPrice(bookingService, bookingForm.startDate, bookingForm.endDate, bookingForm.timeSlot);
-                        return priceInfo.totalPrice > 0 ? `${priceInfo.totalPrice}€` : formatPrice(bookingService.basePrice, bookingService.priceUnit);
+                        const priceInfo = calculateTotalPrice(
+                          bookingService,
+                          bookingForm.startDate,
+                          bookingForm.endDate,
+                          bookingForm.timeSlot,
+                        );
+                        return priceInfo.totalPrice > 0
+                          ? `${priceInfo.totalPrice}€`
+                          : formatPrice(
+                              bookingService.basePrice,
+                              bookingService.priceUnit,
+                            );
                       })()}
                     </span>
                   </div>
                   <div className="text-sm text-muted-foreground mt-1">
                     {(() => {
-                      const priceInfo = calculateTotalPrice(bookingService, bookingForm.startDate, bookingForm.endDate, bookingForm.timeSlot);
+                      const priceInfo = calculateTotalPrice(
+                        bookingService,
+                        bookingForm.startDate,
+                        bookingForm.endDate,
+                        bookingForm.timeSlot,
+                      );
                       return priceInfo.details;
                     })()}
                   </div>
                   {bookingForm.timeSlot && (
                     <p className="text-sm text-muted-foreground mt-1">
-                      Créneau sélectionné : {getTimeSlotDuration(bookingForm.timeSlot)}h par jour
+                      Créneau sélectionné :{" "}
+                      {getTimeSlotDuration(bookingForm.timeSlot)}h par jour
                     </p>
                   )}
                   {bookingService.duration && (
                     <p className="text-sm text-muted-foreground">
-                      Durée estimée du service : {bookingService.duration} minutes
+                      Durée estimée du service : {bookingService.duration}{" "}
+                      minutes
                     </p>
                   )}
                 </div>
               </div>
 
               <DialogFooter>
-                <Button variant="outline" onClick={() => setShowBookingDialog(false)}>
+                <Button
+                  variant="outline"
+                  onClick={() => setShowBookingDialog(false)}
+                >
                   Annuler
                 </Button>
-                <Button 
+                <Button
                   onClick={handleSubmitBooking}
-                  disabled={!bookingForm.startDate || !bookingForm.endDate || !bookingForm.timeSlot || !bookingForm.location || loading}
+                  disabled={
+                    !bookingForm.startDate ||
+                    !bookingForm.endDate ||
+                    !bookingForm.timeSlot ||
+                    !bookingForm.location ||
+                    loading
+                  }
                 >
-                  {loading ? 'Réservation...' : 'Confirmer la réservation'}
+                  {loading ? "Réservation..." : "Confirmer la réservation"}
                 </Button>
               </DialogFooter>
             </>
@@ -941,4 +1208,4 @@ export default function ServicesBrowser({ clientId }: ServicesBrowserProps) {
       </Dialog>
     </div>
   );
-} 
+}

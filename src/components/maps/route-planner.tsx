@@ -1,180 +1,212 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import { LeafletMap, MapMarker, MapRoute } from './leaflet-map'
-import { AddressPicker } from './address-picker'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Navigation, Plus, Trash2, Route, Clock, Euro, Loader2 } from 'lucide-react'
-import { toast } from 'sonner'
+import { useState, useEffect } from "react";
+import { LeafletMap, MapMarker, MapRoute } from "./leaflet-map";
+import { AddressPicker } from "./address-picker";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import {
+  Navigation,
+  Plus,
+  Trash2,
+  Route,
+  Clock,
+  Euro,
+  Loader2,
+} from "lucide-react";
+import { toast } from "sonner";
 
 interface RoutePoint {
-  id: string
-  address: string
-  latitude: number
-  longitude: number
-  type: 'start' | 'waypoint' | 'end'
+  id: string;
+  address: string;
+  latitude: number;
+  longitude: number;
+  type: "start" | "waypoint" | "end";
 }
 
 interface RouteInfo {
-  distance: number
-  duration: number
-  price: number
+  distance: number;
+  duration: number;
+  price: number;
 }
 
 interface RoutePlannerProps {
   onRouteSelect?: (route: {
-    points: RoutePoint[]
-    info: RouteInfo
-    polyline: [number, number][]
-  }) => void
-  initialRoute?: RoutePoint[]
-  enablePricing?: boolean
-  pricePerKm?: number
+    points: RoutePoint[];
+    info: RouteInfo;
+    polyline: [number, number][];
+  }) => void;
+  initialRoute?: RoutePoint[];
+  enablePricing?: boolean;
+  pricePerKm?: number;
 }
 
 export function RoutePlanner({
   onRouteSelect,
   initialRoute = [],
   enablePricing = true,
-  pricePerKm = 0.5
+  pricePerKm = 0.5,
 }: RoutePlannerProps) {
-  const [routePoints, setRoutePoints] = useState<RoutePoint[]>(initialRoute)
-  const [routePolyline, setRoutePolyline] = useState<[number, number][]>([])
-  const [routeInfo, setRouteInfo] = useState<RouteInfo | null>(null)
-  const [isCalculating, setIsCalculating] = useState(false)
-  const [showAddressPickerFor, setShowAddressPickerFor] = useState<string | null>(null)
+  const [routePoints, setRoutePoints] = useState<RoutePoint[]>(initialRoute);
+  const [routePolyline, setRoutePolyline] = useState<[number, number][]>([]);
+  const [routeInfo, setRouteInfo] = useState<RouteInfo | null>(null);
+  const [isCalculating, setIsCalculating] = useState(false);
+  const [showAddressPickerFor, setShowAddressPickerFor] = useState<
+    string | null
+  >(null);
 
   // Calculate route using OSRM
   const calculateRoute = async () => {
     if (routePoints.length < 2) {
-      toast.error('Ajoutez au moins 2 points pour calculer un itinéraire')
-      return
+      toast.error("Ajoutez au moins 2 points pour calculer un itinéraire");
+      return;
     }
 
-    setIsCalculating(true)
+    setIsCalculating(true);
     try {
       // Build coordinates string for OSRM
       const coordinates = routePoints
-        .map(point => `${point.longitude},${point.latitude}`)
-        .join(';')
+        .map((point) => `${point.longitude},${point.latitude}`)
+        .join(";");
 
       const response = await fetch(
-        `https://router.project-osrm.org/route/v1/driving/${coordinates}?overview=full&geometries=geojson`
-      )
+        `https://router.project-osrm.org/route/v1/driving/${coordinates}?overview=full&geometries=geojson`,
+      );
 
-      if (!response.ok) throw new Error('Erreur de calcul d\'itinéraire')
+      if (!response.ok) throw new Error("Erreur de calcul d'itinéraire");
 
-      const data = await response.json()
+      const data = await response.json();
       if (data.routes && data.routes.length > 0) {
-        const route = data.routes[0]
-        
+        const route = data.routes[0];
+
         // Extract polyline
         const polyline = route.geometry.coordinates.map(
-          (coord: [number, number]) => [coord[1], coord[0]] as [number, number]
-        )
-        setRoutePolyline(polyline)
+          (coord: [number, number]) => [coord[1], coord[0]] as [number, number],
+        );
+        setRoutePolyline(polyline);
 
         // Calculate route info
-        const distance = route.distance / 1000 // Convert to km
-        const duration = route.duration / 60 // Convert to minutes
-        const price = enablePricing ? distance * pricePerKm : 0
+        const distance = route.distance / 1000; // Convert to km
+        const duration = route.duration / 60; // Convert to minutes
+        const price = enablePricing ? distance * pricePerKm : 0;
 
         const info: RouteInfo = {
           distance: Math.round(distance * 10) / 10,
           duration: Math.round(duration),
-          price: Math.round(price * 100) / 100
-        }
-        setRouteInfo(info)
+          price: Math.round(price * 100) / 100,
+        };
+        setRouteInfo(info);
 
         // Notify parent
         if (onRouteSelect) {
           onRouteSelect({
             points: routePoints,
             info,
-            polyline
-          })
+            polyline,
+          });
         }
 
-        toast.success('Itinéraire calculé avec succès')
+        toast.success("Itinéraire calculé avec succès");
       }
     } catch (error) {
-      console.error('Route calculation error:', error)
-      toast.error('Impossible de calculer l\'itinéraire')
+      console.error("Route calculation error:", error);
+      toast.error("Impossible de calculer l'itinéraire");
     } finally {
-      setIsCalculating(false)
+      setIsCalculating(false);
     }
-  }
+  };
 
   // Add a new waypoint
   const addWaypoint = () => {
     const newPoint: RoutePoint = {
       id: Date.now().toString(),
-      address: '',
+      address: "",
       latitude: 0,
       longitude: 0,
-      type: routePoints.length === 0 ? 'start' : 'waypoint'
-    }
-    setRoutePoints([...routePoints, newPoint])
-    setShowAddressPickerFor(newPoint.id)
-  }
+      type: routePoints.length === 0 ? "start" : "waypoint",
+    };
+    setRoutePoints([...routePoints, newPoint]);
+    setShowAddressPickerFor(newPoint.id);
+  };
 
   // Update a route point
-  const updateRoutePoint = (id: string, address: {
-    address: string
-    latitude: number
-    longitude: number
-  }) => {
-    setRoutePoints(points =>
-      points.map(point =>
-        point.id === id
-          ? { ...point, ...address }
-          : point
-      )
-    )
-    setShowAddressPickerFor(null)
-  }
+  const updateRoutePoint = (
+    id: string,
+    address: {
+      address: string;
+      latitude: number;
+      longitude: number;
+    },
+  ) => {
+    setRoutePoints((points) =>
+      points.map((point) =>
+        point.id === id ? { ...point, ...address } : point,
+      ),
+    );
+    setShowAddressPickerFor(null);
+  };
 
   // Remove a route point
   const removeRoutePoint = (id: string) => {
-    setRoutePoints(points => {
-      const filtered = points.filter(p => p.id !== id)
+    setRoutePoints((points) => {
+      const filtered = points.filter((p) => p.id !== id);
       // Update types
       return filtered.map((p, index) => ({
         ...p,
-        type: index === 0 ? 'start' : index === filtered.length - 1 ? 'end' : 'waypoint'
-      }))
-    })
-  }
+        type:
+          index === 0
+            ? "start"
+            : index === filtered.length - 1
+              ? "end"
+              : "waypoint",
+      }));
+    });
+  };
 
   // Auto-calculate when points change
   useEffect(() => {
-    if (routePoints.length >= 2 && routePoints.every(p => p.latitude && p.longitude)) {
-      calculateRoute()
+    if (
+      routePoints.length >= 2 &&
+      routePoints.every((p) => p.latitude && p.longitude)
+    ) {
+      calculateRoute();
     }
-  }, [routePoints])
+  }, [routePoints]);
 
   // Prepare markers for map
   const markers: MapMarker[] = routePoints
-    .filter(point => point.latitude && point.longitude)
-    .map(point => ({
+    .filter((point) => point.latitude && point.longitude)
+    .map((point) => ({
       id: point.id,
       position: [point.latitude, point.longitude],
-      type: point.type === 'start' ? 'pickup' : point.type === 'end' ? 'delivery' : 'warehouse',
-      label: point.type === 'start' ? 'Départ' : point.type === 'end' ? 'Arrivée' : 'Étape',
-      popup: point.address
-    }))
+      type:
+        point.type === "start"
+          ? "pickup"
+          : point.type === "end"
+            ? "delivery"
+            : "warehouse",
+      label:
+        point.type === "start"
+          ? "Départ"
+          : point.type === "end"
+            ? "Arrivée"
+            : "Étape",
+      popup: point.address,
+    }));
 
   // Prepare route for map
-  const routes: MapRoute[] = routePolyline.length > 0
-    ? [{
-        id: 'planned-route',
-        points: routePolyline,
-        color: '#3B82F6',
-        weight: 5
-      }]
-    : []
+  const routes: MapRoute[] =
+    routePolyline.length > 0
+      ? [
+          {
+            id: "planned-route",
+            points: routePolyline,
+            color: "#3B82F6",
+            weight: 5,
+          },
+        ]
+      : [];
 
   return (
     <div className="space-y-4">
@@ -183,11 +215,7 @@ export function RoutePlanner({
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
             <span>Points de passage</span>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={addWaypoint}
-            >
+            <Button size="sm" variant="outline" onClick={addWaypoint}>
               <Plus className="h-4 w-4 mr-2" />
               Ajouter un point
             </Button>
@@ -199,21 +227,27 @@ export function RoutePlanner({
               <div key={point.id} className="flex items-center gap-2">
                 <Badge
                   variant={
-                    point.type === 'start' ? 'default' :
-                    point.type === 'end' ? 'secondary' :
-                    'outline'
+                    point.type === "start"
+                      ? "default"
+                      : point.type === "end"
+                        ? "secondary"
+                        : "outline"
                   }
                   className="min-w-[80px] justify-center"
                 >
-                  {point.type === 'start' ? 'Départ' :
-                   point.type === 'end' ? 'Arrivée' :
-                   `Étape ${index}`}
+                  {point.type === "start"
+                    ? "Départ"
+                    : point.type === "end"
+                      ? "Arrivée"
+                      : `Étape ${index}`}
                 </Badge>
-                
+
                 {showAddressPickerFor === point.id ? (
                   <div className="flex-1">
                     <AddressPicker
-                      onAddressSelect={(addr) => updateRoutePoint(point.id, addr)}
+                      onAddressSelect={(addr) =>
+                        updateRoutePoint(point.id, addr)
+                      }
                       initialAddress={point.address}
                       height="300px"
                     />
@@ -224,9 +258,9 @@ export function RoutePlanner({
                       className="flex-1 p-2 border rounded-md cursor-pointer hover:bg-accent"
                       onClick={() => setShowAddressPickerFor(point.id)}
                     >
-                      {point.address || 'Cliquez pour sélectionner une adresse'}
+                      {point.address || "Cliquez pour sélectionner une adresse"}
                     </div>
-                    
+
                     {routePoints.length > 2 && (
                       <Button
                         size="icon"
@@ -240,7 +274,7 @@ export function RoutePlanner({
                 )}
               </div>
             ))}
-            
+
             {routePoints.length === 0 && (
               <p className="text-center text-muted-foreground py-4">
                 Ajoutez des points pour créer votre itinéraire
@@ -262,17 +296,18 @@ export function RoutePlanner({
                   <p className="font-semibold">{routeInfo.distance} km</p>
                 </div>
               </div>
-              
+
               <div className="flex items-center gap-2">
                 <Clock className="h-5 w-5 text-muted-foreground" />
                 <div>
                   <p className="text-sm text-muted-foreground">Durée estimée</p>
                   <p className="font-semibold">
-                    {Math.floor(routeInfo.duration / 60)}h {routeInfo.duration % 60}min
+                    {Math.floor(routeInfo.duration / 60)}h{" "}
+                    {routeInfo.duration % 60}min
                   </p>
                 </div>
               </div>
-              
+
               {enablePricing && (
                 <div className="flex items-center gap-2">
                   <Euro className="h-5 w-5 text-muted-foreground" />
@@ -298,9 +333,7 @@ export function RoutePlanner({
         <CardContent className="p-0">
           <LeafletMap
             center={
-              markers.length > 0
-                ? markers[0].position
-                : [48.8566, 2.3522]
+              markers.length > 0 ? markers[0].position : [48.8566, 2.3522]
             }
             zoom={markers.length > 0 ? 12 : 10}
             height="500px"
@@ -316,14 +349,14 @@ export function RoutePlanner({
         <Button
           variant="outline"
           onClick={() => {
-            setRoutePoints([])
-            setRoutePolyline([])
-            setRouteInfo(null)
+            setRoutePoints([]);
+            setRoutePolyline([]);
+            setRouteInfo(null);
           }}
         >
           Réinitialiser
         </Button>
-        
+
         <Button
           onClick={calculateRoute}
           disabled={routePoints.length < 2 || isCalculating}
@@ -342,5 +375,5 @@ export function RoutePlanner({
         </Button>
       </div>
     </div>
-  )
+  );
 }

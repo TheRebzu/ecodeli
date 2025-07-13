@@ -4,14 +4,27 @@ import { useAuth } from "@/hooks/use-auth";
 import { PageHeader } from "@/components/layout/page-header";
 import { useTranslations } from "next-intl";
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { 
+import {
   FileText,
   Download,
   Calendar,
@@ -24,14 +37,14 @@ import {
   Calculator,
   Send,
   Eye,
-  Settings
+  Settings,
 } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 
 interface MonthlyBilling {
   month: string;
   year: number;
-  status: 'DRAFT' | 'PENDING' | 'GENERATED' | 'SENT' | 'PAID';
+  status: "DRAFT" | "PENDING" | "GENERATED" | "SENT" | "PAID";
   totalRevenue: number;
   platformFee: number;
   netAmount: number;
@@ -73,13 +86,15 @@ export default function ProviderBillingMonthlyPage() {
   useEffect(() => {
     const fetchMonthlyBilling = async () => {
       if (!user?.id) return;
-      
+
       try {
         const currentDate = new Date();
         const month = currentDate.getMonth() + 1;
         const year = currentDate.getFullYear();
-        
-        const response = await fetch(`/api/provider/billing/monthly?userId=${user.id}&month=${month}&year=${year}`);
+
+        const response = await fetch(
+          `/api/provider/billing/monthly?userId=${user.id}&month=${month}&year=${year}`,
+        );
         if (response.ok) {
           const data = await response.json();
           setBilling(data);
@@ -96,17 +111,17 @@ export default function ProviderBillingMonthlyPage() {
 
   const handleGenerateInvoice = async () => {
     if (!user?.id || !billing) return;
-    
+
     setGenerating(true);
     try {
-      const response = await fetch('/api/provider/billing/generate-invoice', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
+      const response = await fetch("/api/provider/billing/generate-invoice", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
           userId: user.id,
           month: billing.month,
-          year: billing.year
-        })
+          year: billing.year,
+        }),
       });
 
       if (response.ok) {
@@ -122,15 +137,15 @@ export default function ProviderBillingMonthlyPage() {
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'PAID':
+      case "PAID":
         return <CheckCircle className="h-4 w-4 text-green-600" />;
-      case 'SENT':
+      case "SENT":
         return <Send className="h-4 w-4 text-blue-600" />;
-      case 'GENERATED':
+      case "GENERATED":
         return <FileText className="h-4 w-4 text-purple-600" />;
-      case 'PENDING':
+      case "PENDING":
         return <Clock className="h-4 w-4 text-yellow-600" />;
-      case 'DRAFT':
+      case "DRAFT":
         return <AlertCircle className="h-4 w-4 text-gray-600" />;
       default:
         return <AlertCircle className="h-4 w-4 text-gray-600" />;
@@ -139,15 +154,17 @@ export default function ProviderBillingMonthlyPage() {
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case 'PAID':
+      case "PAID":
         return <Badge className="bg-green-100 text-green-800">Payée</Badge>;
-      case 'SENT':
+      case "SENT":
         return <Badge className="bg-blue-100 text-blue-800">Envoyée</Badge>;
-      case 'GENERATED':
+      case "GENERATED":
         return <Badge className="bg-purple-100 text-purple-800">Générée</Badge>;
-      case 'PENDING':
-        return <Badge className="bg-yellow-100 text-yellow-800">En attente</Badge>;
-      case 'DRAFT':
+      case "PENDING":
+        return (
+          <Badge className="bg-yellow-100 text-yellow-800">En attente</Badge>
+        );
+      case "DRAFT":
         return <Badge variant="secondary">Brouillon</Badge>;
       default:
         return <Badge variant="secondary">{status}</Badge>;
@@ -155,24 +172,32 @@ export default function ProviderBillingMonthlyPage() {
   };
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('fr-FR', {
-      style: 'currency',
-      currency: 'EUR'
+    return new Intl.NumberFormat("fr-FR", {
+      style: "currency",
+      currency: "EUR",
     }).format(amount);
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('fr-FR', {
-      day: '2-digit',
-      month: 'long',
-      year: 'numeric'
+    return new Date(dateString).toLocaleDateString("fr-FR", {
+      day: "2-digit",
+      month: "long",
+      year: "numeric",
     });
   };
 
   const calculateProgress = () => {
     const currentDate = new Date();
-    const monthStart = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
-    const monthEnd = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
+    const monthStart = new Date(
+      currentDate.getFullYear(),
+      currentDate.getMonth(),
+      1,
+    );
+    const monthEnd = new Date(
+      currentDate.getFullYear(),
+      currentDate.getMonth() + 1,
+      0,
+    );
     const daysPassed = currentDate.getDate() - 1;
     const totalDays = monthEnd.getDate();
     return Math.round((daysPassed / totalDays) * 100);
@@ -207,21 +232,23 @@ export default function ProviderBillingMonthlyPage() {
       />
 
       {/* Status Alert */}
-      {billing.status === 'DRAFT' && (
+      {billing.status === "DRAFT" && (
         <Alert>
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>
-            Votre facture mensuelle sera générée automatiquement le 30 du mois à 23h. 
-            Vous pouvez également la générer manuellement si le mois est terminé.
+            Votre facture mensuelle sera générée automatiquement le 30 du mois à
+            23h. Vous pouvez également la générer manuellement si le mois est
+            terminé.
           </AlertDescription>
         </Alert>
       )}
 
-      {billing.status === 'PENDING' && (
+      {billing.status === "PENDING" && (
         <Alert className="border-yellow-200 bg-yellow-50">
           <Clock className="h-4 w-4 text-yellow-600" />
           <AlertDescription className="text-yellow-800">
-            Génération de facture en attente. Le traitement sera effectué dans les prochaines heures.
+            Génération de facture en attente. Le traitement sera effectué dans
+            les prochaines heures.
           </AlertDescription>
         </Alert>
       )}
@@ -237,14 +264,18 @@ export default function ProviderBillingMonthlyPage() {
             {getStatusBadge(billing.status)}
           </CardTitle>
           <CardDescription>
-            Période de facturation: {formatDate(billing.billingPeriod.startDate)} - {formatDate(billing.billingPeriod.endDate)}
+            Période de facturation:{" "}
+            {formatDate(billing.billingPeriod.startDate)} -{" "}
+            {formatDate(billing.billingPeriod.endDate)}
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <span className="text-sm font-medium">Progression du mois</span>
-              <span className="text-sm text-muted-foreground">{monthProgress}%</span>
+              <span className="text-sm text-muted-foreground">
+                {monthProgress}%
+              </span>
             </div>
             <Progress value={monthProgress} className="w-full" />
           </div>
@@ -259,7 +290,9 @@ export default function ProviderBillingMonthlyPage() {
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(billing.totalRevenue)}</div>
+            <div className="text-2xl font-bold">
+              {formatCurrency(billing.totalRevenue)}
+            </div>
             <p className="text-xs text-muted-foreground">
               {billing.completedBookings} réservations
             </p>
@@ -268,13 +301,18 @@ export default function ProviderBillingMonthlyPage() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Commission Plateforme</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Commission Plateforme
+            </CardTitle>
             <Calculator className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-orange-600">-{formatCurrency(billing.platformFee)}</div>
+            <div className="text-2xl font-bold text-orange-600">
+              -{formatCurrency(billing.platformFee)}
+            </div>
             <p className="text-xs text-muted-foreground">
-              {((billing.platformFee / billing.totalRevenue) * 100).toFixed(1)}% du CA
+              {((billing.platformFee / billing.totalRevenue) * 100).toFixed(1)}%
+              du CA
             </p>
           </CardContent>
         </Card>
@@ -285,10 +323,10 @@ export default function ProviderBillingMonthlyPage() {
             <FileText className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-red-600">-{formatCurrency(billing.taxAmount)}</div>
-            <p className="text-xs text-muted-foreground">
-              TVA et charges
-            </p>
+            <div className="text-2xl font-bold text-red-600">
+              -{formatCurrency(billing.taxAmount)}
+            </div>
+            <p className="text-xs text-muted-foreground">TVA et charges</p>
           </CardContent>
         </Card>
 
@@ -298,10 +336,10 @@ export default function ProviderBillingMonthlyPage() {
             <TrendingUp className="h-4 w-4 text-green-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">{formatCurrency(billing.netAmount)}</div>
-            <p className="text-xs text-muted-foreground">
-              montant final
-            </p>
+            <div className="text-2xl font-bold text-green-600">
+              {formatCurrency(billing.netAmount)}
+            </div>
+            <p className="text-xs text-muted-foreground">montant final</p>
           </CardContent>
         </Card>
       </div>
@@ -319,9 +357,12 @@ export default function ProviderBillingMonthlyPage() {
             <div>
               {billing.invoiceNumber ? (
                 <div>
-                  <p className="font-medium">Facture N° {billing.invoiceNumber}</p>
+                  <p className="font-medium">
+                    Facture N° {billing.invoiceNumber}
+                  </p>
                   <p className="text-sm text-muted-foreground">
-                    Générée le {billing.generatedAt && formatDate(billing.generatedAt)}
+                    Générée le{" "}
+                    {billing.generatedAt && formatDate(billing.generatedAt)}
                   </p>
                   {billing.dueDate && (
                     <p className="text-sm text-muted-foreground">
@@ -338,15 +379,15 @@ export default function ProviderBillingMonthlyPage() {
                 </div>
               )}
             </div>
-            
+
             <div className="flex gap-2">
-              {billing.status === 'DRAFT' && new Date().getDate() >= 28 && (
+              {billing.status === "DRAFT" && new Date().getDate() >= 28 && (
                 <Button onClick={handleGenerateInvoice} disabled={generating}>
                   <FileText className="h-4 w-4 mr-2" />
-                  {generating ? 'Génération...' : 'Générer la facture'}
+                  {generating ? "Génération..." : "Générer la facture"}
                 </Button>
               )}
-              
+
               {billing.invoiceNumber && (
                 <>
                   <Button variant="outline">
@@ -376,27 +417,37 @@ export default function ProviderBillingMonthlyPage() {
           <div className="space-y-4">
             <div className="flex items-center justify-between py-2">
               <span>Commission plateforme</span>
-              <span className="font-medium">{formatCurrency(billing.feeBreakdown.platformCommission)}</span>
+              <span className="font-medium">
+                {formatCurrency(billing.feeBreakdown.platformCommission)}
+              </span>
             </div>
             <Separator />
             <div className="flex items-center justify-between py-2">
               <span>Frais de traitement</span>
-              <span className="font-medium">{formatCurrency(billing.feeBreakdown.processingFees)}</span>
+              <span className="font-medium">
+                {formatCurrency(billing.feeBreakdown.processingFees)}
+              </span>
             </div>
             <Separator />
             <div className="flex items-center justify-between py-2">
               <span>Taxes</span>
-              <span className="font-medium">{formatCurrency(billing.feeBreakdown.taxAmount)}</span>
+              <span className="font-medium">
+                {formatCurrency(billing.feeBreakdown.taxAmount)}
+              </span>
             </div>
             <Separator />
             <div className="flex items-center justify-between py-2">
               <span>Autres frais</span>
-              <span className="font-medium">{formatCurrency(billing.feeBreakdown.otherFees)}</span>
+              <span className="font-medium">
+                {formatCurrency(billing.feeBreakdown.otherFees)}
+              </span>
             </div>
             <Separator />
             <div className="flex items-center justify-between py-2 font-bold">
               <span>Total des frais</span>
-              <span className="text-red-600">{formatCurrency(billing.platformFee + billing.taxAmount)}</span>
+              <span className="text-red-600">
+                {formatCurrency(billing.platformFee + billing.taxAmount)}
+              </span>
             </div>
           </div>
         </CardContent>
@@ -432,12 +483,18 @@ export default function ProviderBillingMonthlyPage() {
                 <TableBody>
                   {billing.bookingBreakdown.map((booking) => (
                     <TableRow key={booking.id}>
-                      <TableCell className="font-medium">{booking.clientName}</TableCell>
+                      <TableCell className="font-medium">
+                        {booking.clientName}
+                      </TableCell>
                       <TableCell>{booking.serviceName}</TableCell>
                       <TableCell>{formatDate(booking.date)}</TableCell>
                       <TableCell>{formatCurrency(booking.amount)}</TableCell>
-                      <TableCell className="text-orange-600">-{formatCurrency(booking.commission)}</TableCell>
-                      <TableCell className="font-medium text-green-600">{formatCurrency(booking.netAmount)}</TableCell>
+                      <TableCell className="text-orange-600">
+                        -{formatCurrency(booking.commission)}
+                      </TableCell>
+                      <TableCell className="font-medium text-green-600">
+                        {formatCurrency(booking.netAmount)}
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>

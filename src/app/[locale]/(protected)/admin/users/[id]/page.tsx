@@ -1,108 +1,123 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { useParams, useRouter } from "next/navigation"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Separator } from "@/components/ui/separator"
-import { 
-  ArrowLeft, User, Mail, Phone, MapPin, Calendar, Edit, Trash2, CheckCircle, XCircle
-} from "lucide-react"
+import { useState, useEffect } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import {
+  ArrowLeft,
+  User,
+  Mail,
+  Phone,
+  MapPin,
+  Calendar,
+  Edit,
+  Trash2,
+  CheckCircle,
+  XCircle,
+} from "lucide-react";
 
 interface UserProfile {
-  id: string
-  email: string
-  role: 'CLIENT' | 'DELIVERER' | 'MERCHANT' | 'PROVIDER' | 'ADMIN'
-  firstName?: string
-  lastName?: string
-  phone?: string
-  address?: string
-  city?: string
-  postalCode?: string
-  country?: string
-  emailVerified: boolean
-  isActive: boolean
-  createdAt: string
-  lastLoginAt?: string
+  id: string;
+  email: string;
+  role: "CLIENT" | "DELIVERER" | "MERCHANT" | "PROVIDER" | "ADMIN";
+  firstName?: string;
+  lastName?: string;
+  phone?: string;
+  address?: string;
+  city?: string;
+  postalCode?: string;
+  country?: string;
+  emailVerified: boolean;
+  isActive: boolean;
+  createdAt: string;
+  lastLoginAt?: string;
 }
 
 export default function AdminUserProfilePage() {
-  const params = useParams()
-  const router = useRouter()
-  const [user, setUser] = useState<UserProfile | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const params = useParams();
+  const router = useRouter();
+  const [user, setUser] = useState<UserProfile | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const userId = params.id as string
+  const userId = params.id as string;
 
   const fetchUserProfile = async () => {
     try {
-      setIsLoading(true)
-      setError(null)
-      
-      console.log('🔍 Fetching user profile:', userId)
-      
+      setIsLoading(true);
+      setError(null);
+
+      console.log("🔍 Fetching user profile:", userId);
+
       const response = await fetch(`/api/admin/users/${userId}`, {
-        credentials: 'include',
-      })
-      
-      console.log('🌐 Profile response status:', response.status)
-      
+        credentials: "include",
+      });
+
+      console.log("🌐 Profile response status:", response.status);
+
       if (!response.ok) {
         if (response.status === 404) {
-          setError('Utilisateur non trouvé')
-          return
+          setError("Utilisateur non trouvé");
+          return;
         }
         if (response.status === 403) {
-          setError('Accès refusé - permissions insuffisantes')
-          return
+          setError("Accès refusé - permissions insuffisantes");
+          return;
         }
-        throw new Error(`Erreur ${response.status}`)
+        throw new Error(`Erreur ${response.status}`);
       }
-      
-      const data = await response.json()
-      console.log('📊 Profile data:', data)
-      
+
+      const data = await response.json();
+      console.log("📊 Profile data:", data);
+
       if (data.success) {
-        setUser(data.user)
+        setUser(data.user);
       } else {
-        setError(data.error || 'Erreur lors du chargement')
+        setError(data.error || "Erreur lors du chargement");
       }
     } catch (error) {
-      console.error('💥 Erreur profile:', error)
-      setError('Erreur de connexion')
+      console.error("💥 Erreur profile:", error);
+      setError("Erreur de connexion");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   useEffect(() => {
     if (userId) {
-      fetchUserProfile()
+      fetchUserProfile();
     }
-  }, [userId])
+  }, [userId]);
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('fr-FR', {
-      day: '2-digit',
-      month: '2-digit', 
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    })
-  }
+    return new Date(dateString).toLocaleDateString("fr-FR", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
 
   const getRoleBadgeVariant = (role: string) => {
     switch (role) {
-      case 'ADMIN': return 'destructive'
-      case 'DELIVERER': return 'default'
-      case 'MERCHANT': return 'secondary'
-      case 'PROVIDER': return 'outline'
-      case 'CLIENT': return 'default'
-      default: return 'default'
+      case "ADMIN":
+        return "destructive";
+      case "DELIVERER":
+        return "default";
+      case "MERCHANT":
+        return "secondary";
+      case "PROVIDER":
+        return "outline";
+      case "CLIENT":
+        return "default";
+      default:
+        return "default";
     }
-  }
+  };
 
   if (isLoading) {
     return (
@@ -120,7 +135,7 @@ export default function AdminUserProfilePage() {
           </div>
         </div>
       </div>
-    )
+    );
   }
 
   if (error) {
@@ -142,11 +157,11 @@ export default function AdminUserProfilePage() {
           </CardContent>
         </Card>
       </div>
-    )
+    );
   }
 
   if (!user) {
-    return null
+    return null;
   }
 
   return (
@@ -166,18 +181,15 @@ export default function AdminUserProfilePage() {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             size="sm"
             onClick={() => router.push(`/fr/admin/users/${user.id}/edit`)}
           >
             <Edit className="h-4 w-4 mr-2" />
             Modifier
           </Button>
-          <Button 
-            variant="outline" 
-            size="sm"
-          >
+          <Button variant="outline" size="sm">
             {user.emailVerified ? (
               <>
                 <XCircle className="h-4 w-4 mr-2" />
@@ -190,10 +202,7 @@ export default function AdminUserProfilePage() {
               </>
             )}
           </Button>
-          <Button 
-            variant="destructive" 
-            size="sm"
-          >
+          <Button variant="destructive" size="sm">
             <Trash2 className="h-4 w-4 mr-2" />
             Supprimer
           </Button>
@@ -213,7 +222,9 @@ export default function AdminUserProfilePage() {
             <CardContent className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="text-sm font-medium text-gray-500">Email</label>
+                  <label className="text-sm font-medium text-gray-500">
+                    Email
+                  </label>
                   <div className="flex items-center gap-2 mt-1">
                     <Mail className="h-4 w-4 text-gray-400" />
                     <span>{user.email}</span>
@@ -225,7 +236,9 @@ export default function AdminUserProfilePage() {
                   </div>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-500">Rôle</label>
+                  <label className="text-sm font-medium text-gray-500">
+                    Rôle
+                  </label>
                   <div className="mt-1">
                     <Badge variant={getRoleBadgeVariant(user.role) as any}>
                       {user.role}
@@ -233,22 +246,30 @@ export default function AdminUserProfilePage() {
                   </div>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-500">Prénom</label>
-                  <p className="mt-1">{user.firstName || 'Non renseigné'}</p>
+                  <label className="text-sm font-medium text-gray-500">
+                    Prénom
+                  </label>
+                  <p className="mt-1">{user.firstName || "Non renseigné"}</p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-500">Nom</label>
-                  <p className="mt-1">{user.lastName || 'Non renseigné'}</p>
+                  <label className="text-sm font-medium text-gray-500">
+                    Nom
+                  </label>
+                  <p className="mt-1">{user.lastName || "Non renseigné"}</p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-500">Téléphone</label>
+                  <label className="text-sm font-medium text-gray-500">
+                    Téléphone
+                  </label>
                   <div className="flex items-center gap-2 mt-1">
                     <Phone className="h-4 w-4 text-gray-400" />
-                    <span>{user.phone || 'Non renseigné'}</span>
+                    <span>{user.phone || "Non renseigné"}</span>
                   </div>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-500">Statut</label>
+                  <label className="text-sm font-medium text-gray-500">
+                    Statut
+                  </label>
                   <div className="mt-1">
                     <Badge variant={user.isActive ? "default" : "secondary"}>
                       {user.isActive ? "Actif" : "Inactif"}
@@ -256,7 +277,7 @@ export default function AdminUserProfilePage() {
                   </div>
                 </div>
               </div>
-              
+
               {(user.address || user.city || user.postalCode) && (
                 <>
                   <Separator />
@@ -268,7 +289,9 @@ export default function AdminUserProfilePage() {
                     <div className="text-sm">
                       {user.address && <p>{user.address}</p>}
                       {(user.postalCode || user.city) && (
-                        <p>{user.postalCode} {user.city}</p>
+                        <p>
+                          {user.postalCode} {user.city}
+                        </p>
                       )}
                       {user.country && <p>{user.country}</p>}
                     </div>
@@ -290,13 +313,17 @@ export default function AdminUserProfilePage() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <label className="text-sm font-medium text-gray-500">Inscription</label>
+                <label className="text-sm font-medium text-gray-500">
+                  Inscription
+                </label>
                 <p className="mt-1 text-sm">{formatDate(user.createdAt)}</p>
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-500">Dernière connexion</label>
+                <label className="text-sm font-medium text-gray-500">
+                  Dernière connexion
+                </label>
                 <p className="mt-1 text-sm">
-                  {user.lastLoginAt ? formatDate(user.lastLoginAt) : 'Jamais'}
+                  {user.lastLoginAt ? formatDate(user.lastLoginAt) : "Jamais"}
                 </p>
               </div>
             </CardContent>
@@ -304,5 +331,5 @@ export default function AdminUserProfilePage() {
         </div>
       </div>
     </div>
-  )
-} 
+  );
+}

@@ -11,14 +11,9 @@ export default function ClientStoragePage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader
-        title={t("page.title")}
-        description={t("page.description")}
-      />
-      
-      {user && (
-        <AdvancedStorageManager clientId={user.id} />
-      )}
+      <PageHeader title={t("page.title")} description={t("page.description")} />
+
+      {user && <AdvancedStorageManager clientId={user.id} />}
     </div>
   );
-} 
+}

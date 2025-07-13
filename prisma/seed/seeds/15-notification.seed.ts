@@ -1,203 +1,208 @@
-import { SeedContext } from '../index'
-import { CONSTANTS } from '../data/constants'
+import { SeedContext } from "../index";
+import { CONSTANTS } from "../data/constants";
 
 const notificationTemplates = {
   DELIVERY: {
     NEW_OPPORTUNITY: {
-      title: 'Nouvelle opportunité de livraison',
-      content: 'Une nouvelle livraison correspond à votre trajet {route}',
-      priority: 'high'
+      title: "Nouvelle opportunité de livraison",
+      content: "Une nouvelle livraison correspond à votre trajet {route}",
+      priority: "high",
     },
     DELIVERY_ACCEPTED: {
-      title: 'Livraison acceptée',
-      content: 'Votre livraison vers {destination} a été acceptée par {deliverer}',
-      priority: 'high'
+      title: "Livraison acceptée",
+      content:
+        "Votre livraison vers {destination} a été acceptée par {deliverer}",
+      priority: "high",
     },
     DELIVERY_COLLECTED: {
-      title: 'Colis récupéré',
-      content: 'Votre colis a été récupéré et est en route',
-      priority: 'normal'
+      title: "Colis récupéré",
+      content: "Votre colis a été récupéré et est en route",
+      priority: "normal",
     },
     DELIVERY_COMPLETED: {
-      title: 'Livraison terminée',
-      content: 'Votre livraison a été effectuée avec succès. Code de validation : {code}',
-      priority: 'high'
-    }
+      title: "Livraison terminée",
+      content:
+        "Votre livraison a été effectuée avec succès. Code de validation : {code}",
+      priority: "high",
+    },
   },
   BOOKING: {
     NEW_BOOKING: {
-      title: 'Nouvelle réservation',
-      content: 'Vous avez une nouvelle réservation de {service} le {date}',
-      priority: 'high'
+      title: "Nouvelle réservation",
+      content: "Vous avez une nouvelle réservation de {service} le {date}",
+      priority: "high",
     },
     BOOKING_CONFIRMED: {
-      title: 'Réservation confirmée',
-      content: 'Votre réservation pour {service} est confirmée',
-      priority: 'normal'
+      title: "Réservation confirmée",
+      content: "Votre réservation pour {service} est confirmée",
+      priority: "normal",
     },
     BOOKING_REMINDER: {
-      title: 'Rappel de réservation',
-      content: 'N\'oubliez pas votre {service} demain à {time}',
-      priority: 'normal'
+      title: "Rappel de réservation",
+      content: "N'oubliez pas votre {service} demain à {time}",
+      priority: "normal",
     },
     BOOKING_CANCELLED: {
-      title: 'Réservation annulée',
-      content: 'Votre réservation a été annulée. Motif : {reason}',
-      priority: 'high'
-    }
+      title: "Réservation annulée",
+      content: "Votre réservation a été annulée. Motif : {reason}",
+      priority: "high",
+    },
   },
   PAYMENT: {
     PAYMENT_RECEIVED: {
-      title: 'Paiement reçu',
-      content: 'Nous avons reçu votre paiement de {amount}€',
-      priority: 'normal'
+      title: "Paiement reçu",
+      content: "Nous avons reçu votre paiement de {amount}€",
+      priority: "normal",
     },
     PAYMENT_FAILED: {
-      title: 'Échec du paiement',
-      content: 'Le paiement de {amount}€ a échoué. Veuillez réessayer',
-      priority: 'high'
+      title: "Échec du paiement",
+      content: "Le paiement de {amount}€ a échoué. Veuillez réessayer",
+      priority: "high",
     },
     WITHDRAWAL_COMPLETED: {
-      title: 'Retrait effectué',
-      content: 'Votre retrait de {amount}€ a été traité',
-      priority: 'normal'
-    }
+      title: "Retrait effectué",
+      content: "Votre retrait de {amount}€ a été traité",
+      priority: "normal",
+    },
   },
   VALIDATION: {
     DOCUMENT_APPROVED: {
-      title: 'Document approuvé',
-      content: 'Votre {document} a été validé',
-      priority: 'high'
+      title: "Document approuvé",
+      content: "Votre {document} a été validé",
+      priority: "high",
     },
     DOCUMENT_REJECTED: {
-      title: 'Document rejeté',
-      content: 'Votre {document} a été rejeté. Motif : {reason}',
-      priority: 'high'
+      title: "Document rejeté",
+      content: "Votre {document} a été rejeté. Motif : {reason}",
+      priority: "high",
     },
     ACCOUNT_ACTIVATED: {
-      title: 'Compte activé',
-      content: 'Félicitations ! Votre compte est maintenant actif',
-      priority: 'high'
-    }
+      title: "Compte activé",
+      content: "Félicitations ! Votre compte est maintenant actif",
+      priority: "high",
+    },
   },
   SYSTEM: {
     WELCOME: {
-      title: 'Bienvenue sur EcoDeli',
-      content: 'Merci de nous avoir rejoint ! Découvrez nos services',
-      priority: 'normal'
+      title: "Bienvenue sur EcoDeli",
+      content: "Merci de nous avoir rejoint ! Découvrez nos services",
+      priority: "normal",
     },
     TUTORIAL_REMINDER: {
-      title: 'Complétez le tutoriel',
-      content: 'N\'oubliez pas de terminer le tutoriel pour débloquer toutes les fonctionnalités',
-      priority: 'low'
+      title: "Complétez le tutoriel",
+      content:
+        "N'oubliez pas de terminer le tutoriel pour débloquer toutes les fonctionnalités",
+      priority: "low",
     },
     SUBSCRIPTION_RENEWAL: {
-      title: 'Renouvellement d\'abonnement',
-      content: 'Votre abonnement {plan} a été renouvelé pour {amount}€',
-      priority: 'normal'
+      title: "Renouvellement d'abonnement",
+      content: "Votre abonnement {plan} a été renouvelé pour {amount}€",
+      priority: "normal",
     },
     MONTHLY_INVOICE: {
-      title: 'Facture mensuelle disponible',
-      content: 'Votre facture du mois de {month} est disponible',
-      priority: 'normal'
-    }
-  }
-}
+      title: "Facture mensuelle disponible",
+      content: "Votre facture du mois de {month} est disponible",
+      priority: "normal",
+    },
+  },
+};
 
 export async function seedNotifications(ctx: SeedContext) {
-  const { prisma } = ctx
-  const users = ctx.data.get('users') || []
-  const deliveries = ctx.data.get('deliveries') || []
-  const bookings = ctx.data.get('bookings') || []
-  
-  console.log('   Creating notifications and preferences...')
-  
-  const notifications = []
-  
+  const { prisma } = ctx;
+  const users = ctx.data.get("users") || [];
+  const deliveries = ctx.data.get("deliveries") || [];
+  const bookings = ctx.data.get("bookings") || [];
+
+  console.log("   Creating notifications and preferences...");
+
+  const notifications = [];
+
   // 1. Créer les préférences de notification pour tous les utilisateurs
   for (const user of users) {
     await prisma.notificationPreference.create({
       data: {
         userId: user.id,
         emailNotifications: true,
-        pushNotifications: user.role !== 'ADMIN', // Admins n'ont pas besoin de push
-        smsNotifications: user.role === 'DELIVERER' || user.role === 'PROVIDER',
-        announcementMatch: user.role === 'DELIVERER',
-        deliveryUpdates: user.role === 'CLIENT' || user.role === 'DELIVERER',
+        pushNotifications: user.role !== "ADMIN", // Admins n'ont pas besoin de push
+        smsNotifications: user.role === "DELIVERER" || user.role === "PROVIDER",
+        announcementMatch: user.role === "DELIVERER",
+        deliveryUpdates: user.role === "CLIENT" || user.role === "DELIVERER",
         paymentUpdates: true,
-        marketingEmails: user.role === 'CLIENT' && Math.random() > 0.5
-      }
-    })
+        marketingEmails: user.role === "CLIENT" && Math.random() > 0.5,
+      },
+    });
   }
-  
+
   // 2. Créer quelques notifications réelles pour les événements
   const recentDeliveries = await prisma.delivery.findMany({
     include: { client: true, deliverer: true },
-    take: 5
-  })
-  
+    take: 5,
+  });
+
   const recentBookings = await prisma.booking.findMany({
     include: { client: true, service: { include: { provider: true } } },
-    take: 5
-  })
-  
+    take: 5,
+  });
+
   // Notifications pour livraisons
   for (const delivery of recentDeliveries) {
     try {
       const notification = await prisma.notification.create({
         data: {
           userId: delivery.clientId,
-          type: 'DELIVERY_UPDATE',
-          title: 'Livraison mise à jour',
+          type: "DELIVERY_UPDATE",
+          title: "Livraison mise à jour",
           message: `Votre livraison ${delivery.trackingNumber} est maintenant ${delivery.status}`,
           isRead: Math.random() > 0.3,
           data: {
             deliveryId: delivery.id,
             trackingNumber: delivery.trackingNumber,
-            delivererName: delivery.deliverer.name
-          }
-        }
-      })
-      notifications.push(notification)
+            delivererName: delivery.deliverer.name,
+          },
+        },
+      });
+      notifications.push(notification);
     } catch (error) {
-      console.log(`   Error creating notification for delivery ${delivery.id}`)
+      console.log(`   Error creating notification for delivery ${delivery.id}`);
     }
   }
-  
+
   // Notifications pour prestataires
   for (const booking of recentBookings) {
     try {
       // Récupérer le prestataire pour obtenir le userId
       const provider = await prisma.provider.findUnique({
         where: { id: booking.providerId },
-        include: { user: true }
-      })
-      
+        include: { user: true },
+      });
+
       if (!provider) {
-        console.log(`   Skipping notification for booking ${booking.id} - provider not found`)
-        continue
+        console.log(
+          `   Skipping notification for booking ${booking.id} - provider not found`,
+        );
+        continue;
       }
 
       const notification = await prisma.notification.create({
         data: {
           userId: provider.userId,
-          type: 'BOOKING_NEW',
-          title: 'Nouvelle réservation',
-          message: `Nouvelle réservation de ${booking.client?.name || 'Client'} pour ${booking.service?.name || 'service'}`,
+          type: "BOOKING_NEW",
+          title: "Nouvelle réservation",
+          message: `Nouvelle réservation de ${booking.client?.name || "Client"} pour ${booking.service?.name || "service"}`,
           isRead: false,
           data: {
             bookingId: booking.id,
             serviceType: booking.service?.type,
-            clientName: booking.client?.name
-          }
-        }
-      })
-      notifications.push(notification)
+            clientName: booking.client?.name,
+          },
+        },
+      });
+      notifications.push(notification);
     } catch (error) {
-      console.log(`   Error creating notification for booking ${booking.id}`)
+      console.log(`   Error creating notification for booking ${booking.id}`);
     }
   }
-  
+
   /*
   
   // 2. Notifications de bienvenue pour tous
@@ -449,8 +454,10 @@ export async function seedNotifications(ctx: SeedContext) {
   }
   
   */
-  console.log(`   ✓ Created notification preferences for ${users.length} users`)
-  console.log(`   ✓ Created ${notifications.length} notifications`)
-  
-  return notifications
-} 
+  console.log(
+    `   ✓ Created notification preferences for ${users.length} users`,
+  );
+  console.log(`   ✓ Created ${notifications.length} notifications`);
+
+  return notifications;
+}

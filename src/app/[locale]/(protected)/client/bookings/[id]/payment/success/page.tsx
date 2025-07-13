@@ -5,7 +5,14 @@ import { useParams, useSearchParams, useRouter } from "next/navigation";
 import { PageHeader } from "@/components/layout/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { CheckCircle, Calendar, User, CreditCard, ArrowLeft, Download } from "lucide-react";
+import {
+  CheckCircle,
+  Calendar,
+  User,
+  CreditCard,
+  ArrowLeft,
+  Download,
+} from "lucide-react";
 import { toast } from "sonner";
 import Link from "next/link";
 
@@ -30,7 +37,9 @@ export default function PaymentSuccessPage() {
   const params = useParams();
   const searchParams = useSearchParams();
   const router = useRouter();
-  const [paymentDetails, setPaymentDetails] = useState<PaymentDetails | null>(null);
+  const [paymentDetails, setPaymentDetails] = useState<PaymentDetails | null>(
+    null,
+  );
   const [loading, setLoading] = useState(true);
 
   const bookingId = params.id as string;
@@ -48,13 +57,16 @@ export default function PaymentSuccessPage() {
   const verifyPayment = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`/api/client/bookings/${bookingId}/payment/verify`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+      const response = await fetch(
+        `/api/client/bookings/${bookingId}/payment/verify`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ sessionId }),
         },
-        body: JSON.stringify({ sessionId }),
-      });
+      );
 
       if (response.ok) {
         const data = await response.json();
@@ -75,9 +87,12 @@ export default function PaymentSuccessPage() {
 
   const downloadReceipt = async () => {
     try {
-      const response = await fetch(`/api/client/bookings/${bookingId}/receipt`, {
-        method: "GET",
-      });
+      const response = await fetch(
+        `/api/client/bookings/${bookingId}/receipt`,
+        {
+          method: "GET",
+        },
+      );
 
       if (response.ok) {
         const blob = await response.blob();
@@ -169,7 +184,8 @@ export default function PaymentSuccessPage() {
               <div className="flex items-center justify-between">
                 <span className="font-medium">Montant payé:</span>
                 <span className="text-xl font-bold text-green-600">
-                  {paymentDetails.amount.toFixed(2)} {paymentDetails.currency.toUpperCase()}
+                  {paymentDetails.amount.toFixed(2)}{" "}
+                  {paymentDetails.currency.toUpperCase()}
                 </span>
               </div>
             </div>
@@ -191,12 +207,18 @@ export default function PaymentSuccessPage() {
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-600">ID de transaction:</span>
-                <span className="font-mono text-xs">{paymentDetails.sessionId}</span>
+                <span className="font-mono text-xs">
+                  {paymentDetails.sessionId}
+                </span>
               </div>
             </div>
 
             <div className="pt-4">
-              <Button onClick={downloadReceipt} variant="outline" className="w-full">
+              <Button
+                onClick={downloadReceipt}
+                variant="outline"
+                className="w-full"
+              >
                 <Download className="h-4 w-4 mr-2" />
                 Télécharger le reçu
               </Button>
@@ -216,7 +238,9 @@ export default function PaymentSuccessPage() {
             <div className="flex items-center text-sm">
               <User className="h-4 w-4 mr-2 text-gray-400" />
               <span className="font-medium">Prestataire:</span>
-              <span className="ml-2">{paymentDetails.booking.providerName}</span>
+              <span className="ml-2">
+                {paymentDetails.booking.providerName}
+              </span>
             </div>
 
             <div className="flex items-center text-sm">
@@ -228,7 +252,10 @@ export default function PaymentSuccessPage() {
               <Calendar className="h-4 w-4 mr-2 text-gray-400" />
               <span className="font-medium">Date et heure:</span>
               <span className="ml-2">
-                {new Date(paymentDetails.booking.scheduledDate).toLocaleDateString("fr-FR")} à {paymentDetails.booking.scheduledTime}
+                {new Date(
+                  paymentDetails.booking.scheduledDate,
+                ).toLocaleDateString("fr-FR")}{" "}
+                à {paymentDetails.booking.scheduledTime}
               </span>
             </div>
 
@@ -238,12 +265,17 @@ export default function PaymentSuccessPage() {
             </div>
 
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <h4 className="font-medium text-blue-900 mb-2">Prochaines étapes</h4>
+              <h4 className="font-medium text-blue-900 mb-2">
+                Prochaines étapes
+              </h4>
               <ul className="text-sm text-blue-800 space-y-1">
                 <li>• Le prestataire va être notifié de votre paiement</li>
                 <li>• Vous recevrez une confirmation par email</li>
                 <li>• Le prestataire vous contactera avant le rendez-vous</li>
-                <li>• Vous pourrez suivre votre réservation dans votre espace client</li>
+                <li>
+                  • Vous pourrez suivre votre réservation dans votre espace
+                  client
+                </li>
               </ul>
             </div>
           </CardContent>
@@ -255,9 +287,7 @@ export default function PaymentSuccessPage() {
         <CardContent className="p-6">
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href={`/client/bookings/${bookingId}`}>
-              <Button className="w-full sm:w-auto">
-                Voir la réservation
-              </Button>
+              <Button className="w-full sm:w-auto">Voir la réservation</Button>
             </Link>
             <Link href="/client/services">
               <Button variant="outline" className="w-full sm:w-auto">
@@ -274,4 +304,4 @@ export default function PaymentSuccessPage() {
       </Card>
     </div>
   );
-} 
+}

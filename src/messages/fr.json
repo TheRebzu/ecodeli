@@ -1692,7 +1692,7 @@
       },
       "status": {
         "pending": "En attente",
-        "confirmed": "Confirmée", 
+        "confirmed": "Confirmée",
         "in_progress": "En cours",
         "completed": "Terminée",
         "cancelled": "Annulée"
@@ -1748,7 +1748,7 @@
       "scheduled_at": "Programmé le",
       "status": {
         "pending": "En attente",
-        "accepted": "Acceptée", 
+        "accepted": "Acceptée",
         "picked_up": "Collectée",
         "in_transit": "En cours",
         "delivered": "Livrée",

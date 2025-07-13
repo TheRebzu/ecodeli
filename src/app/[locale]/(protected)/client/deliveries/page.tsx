@@ -7,18 +7,18 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { 
-  Package, 
-  Search, 
-  Clock, 
-  MapPin, 
+import {
+  Package,
+  Search,
+  Clock,
+  MapPin,
   User,
   CheckCircle,
   XCircle,
   AlertCircle,
   Eye,
   MapIcon,
-  Phone
+  Phone,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
@@ -67,16 +67,19 @@ const adaptDeliveryForValidation = (delivery: Delivery) => ({
   deliverer: {
     user: {
       profile: {
-        firstName: delivery.delivererName?.split(' ')[0] || 'Non',
-        lastName: delivery.delivererName?.split(' ').slice(1).join(' ') || 'renseigné',
+        firstName: delivery.delivererName?.split(" ")[0] || "Non",
+        lastName:
+          delivery.delivererName?.split(" ").slice(1).join(" ") || "renseigné",
       },
     },
   },
-  ProofOfDelivery: delivery.proofOfDelivery ? {
-    photoUrl: delivery.proofOfDelivery.photos[0] || '',
-    notes: delivery.proofOfDelivery.notes || '',
-    uploadedAt: delivery.proofOfDelivery.uploadedAt || delivery.createdAt,
-  } : undefined,
+  ProofOfDelivery: delivery.proofOfDelivery
+    ? {
+        photoUrl: delivery.proofOfDelivery.photos[0] || "",
+        notes: delivery.proofOfDelivery.notes || "",
+        uploadedAt: delivery.proofOfDelivery.uploadedAt || delivery.createdAt,
+      }
+    : undefined,
 });
 
 export default function ClientDeliveriesPage() {
@@ -95,7 +98,7 @@ export default function ClientDeliveriesPage() {
     try {
       setLoading(true);
       const response = await fetch("/api/client/deliveries");
-      
+
       if (response.ok) {
         const data = await response.json();
         setDeliveries(data.deliveries || []);
@@ -114,28 +117,43 @@ export default function ClientDeliveriesPage() {
     const statusConfig = {
       PENDING: { color: "bg-gray-100 text-gray-800", label: "En attente" },
       ACCEPTED: { color: "bg-blue-100 text-blue-800", label: "Acceptée" },
-      IN_TRANSIT: { color: "bg-yellow-100 text-yellow-800", label: "En cours de livraison" },
+      IN_TRANSIT: {
+        color: "bg-yellow-100 text-yellow-800",
+        label: "En cours de livraison",
+      },
       DELIVERED: { color: "bg-green-100 text-green-800", label: "Livrée" },
       CANCELLED: { color: "bg-red-100 text-red-800", label: "Annulée" },
     };
-    
-    const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.PENDING;
+
+    const config =
+      statusConfig[status as keyof typeof statusConfig] || statusConfig.PENDING;
     return <Badge className={config.color}>{config.label}</Badge>;
   };
 
-  const filteredDeliveries = deliveries.filter(delivery => {
-    const matchesSearch = delivery.announcementTitle.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         (delivery.delivererName?.toLowerCase().includes(searchTerm.toLowerCase()) || false);
-    
-    const matchesTab = activeTab === "active" 
-      ? ["PENDING", "ACCEPTED", "IN_TRANSIT"].includes(delivery.status)
-      : ["DELIVERED", "CANCELLED"].includes(delivery.status);
-    
+  const filteredDeliveries = deliveries.filter((delivery) => {
+    const matchesSearch =
+      delivery.announcementTitle
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase()) ||
+      delivery.delivererName
+        ?.toLowerCase()
+        .includes(searchTerm.toLowerCase()) ||
+      false;
+
+    const matchesTab =
+      activeTab === "active"
+        ? ["PENDING", "ACCEPTED", "IN_TRANSIT"].includes(delivery.status)
+        : ["DELIVERED", "CANCELLED"].includes(delivery.status);
+
     return matchesSearch && matchesTab;
   });
 
-  const activeDeliveries = deliveries.filter(d => ["PENDING", "ACCEPTED", "IN_TRANSIT"].includes(d.status));
-  const completedDeliveries = deliveries.filter(d => ["DELIVERED", "CANCELLED"].includes(d.status));
+  const activeDeliveries = deliveries.filter((d) =>
+    ["PENDING", "ACCEPTED", "IN_TRANSIT"].includes(d.status),
+  );
+  const completedDeliveries = deliveries.filter((d) =>
+    ["DELIVERED", "CANCELLED"].includes(d.status),
+  );
 
   if (loading) {
     return (
@@ -156,9 +174,7 @@ export default function ClientDeliveriesPage() {
         <h1 className="text-3xl font-bold text-gray-900 mb-2">
           {t("page.title")}
         </h1>
-        <p className="text-gray-600">
-          {t("page.description")}
-        </p>
+        <p className="text-gray-600">{t("page.description")}</p>
       </div>
 
       {/* Statistiques */}
@@ -174,7 +190,7 @@ export default function ClientDeliveriesPage() {
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center">
@@ -186,26 +202,36 @@ export default function ClientDeliveriesPage() {
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center">
               <CheckCircle className="w-8 h-8 text-green-600 mr-3" />
               <div>
                 <p className="text-sm text-gray-600">Livrées</p>
-                <p className="text-2xl font-bold">{completedDeliveries.filter(d => d.status === "DELIVERED").length}</p>
+                <p className="text-2xl font-bold">
+                  {
+                    completedDeliveries.filter((d) => d.status === "DELIVERED")
+                      .length
+                  }
+                </p>
               </div>
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center">
               <XCircle className="w-8 h-8 text-red-600 mr-3" />
               <div>
                 <p className="text-sm text-gray-600">Annulées</p>
-                <p className="text-2xl font-bold">{completedDeliveries.filter(d => d.status === "CANCELLED").length}</p>
+                <p className="text-2xl font-bold">
+                  {
+                    completedDeliveries.filter((d) => d.status === "CANCELLED")
+                      .length
+                  }
+                </p>
               </div>
             </div>
           </CardContent>
@@ -227,7 +253,11 @@ export default function ClientDeliveriesPage() {
       </div>
 
       {/* Onglets */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+      <Tabs
+        value={activeTab}
+        onValueChange={setActiveTab}
+        className="space-y-6"
+      >
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="active">
             {t("tabs.active")} ({activeDeliveries.length})
@@ -245,9 +275,7 @@ export default function ClientDeliveriesPage() {
                 <h3 className="text-lg font-medium text-gray-900 mb-2">
                   {t("empty.no_active_deliveries")}
                 </h3>
-                <p className="text-gray-600">
-                  {t("empty.active_description")}
-                </p>
+                <p className="text-gray-600">{t("empty.active_description")}</p>
               </CardContent>
             </Card>
           ) : (
@@ -268,25 +296,35 @@ export default function ClientDeliveriesPage() {
                       <div className="flex items-center space-x-2">
                         <MapPin className="w-4 h-4 text-gray-400" />
                         <span className="text-gray-600">{t("pickup")}:</span>
-                        <span className="truncate">{delivery.pickupAddress}</span>
+                        <span className="truncate">
+                          {delivery.pickupAddress}
+                        </span>
                       </div>
                       <div className="flex items-center space-x-2">
                         <MapPin className="w-4 h-4 text-gray-400" />
                         <span className="text-gray-600">{t("delivery")}:</span>
-                        <span className="truncate">{delivery.deliveryAddress}</span>
+                        <span className="truncate">
+                          {delivery.deliveryAddress}
+                        </span>
                       </div>
                     </div>
                     <div className="space-y-2">
                       <div className="flex items-center space-x-2">
                         <User className="w-4 h-4 text-gray-400" />
                         <span className="text-gray-600">{t("deliverer")}:</span>
-                        <span>{delivery.delivererName || 'En attente'}</span>
+                        <span>{delivery.delivererName || "En attente"}</span>
                       </div>
                       {delivery.scheduledDate && (
                         <div className="flex items-center space-x-2">
                           <Clock className="w-4 h-4 text-gray-400" />
-                          <span className="text-gray-600">{t("scheduled_at")}:</span>
-                          <span>{new Date(delivery.scheduledDate).toLocaleDateString()}</span>
+                          <span className="text-gray-600">
+                            {t("scheduled_at")}:
+                          </span>
+                          <span>
+                            {new Date(
+                              delivery.scheduledDate,
+                            ).toLocaleDateString()}
+                          </span>
                         </div>
                       )}
                     </div>
@@ -295,52 +333,67 @@ export default function ClientDeliveriesPage() {
                   {/* Boutons d'action */}
                   <div className="flex flex-wrap gap-2 pt-2 border-t">
                     <Link href={`/fr/client/deliveries/${delivery.id}`}>
-                      <Button variant="outline" size="sm" className="flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="flex items-center gap-2"
+                      >
                         <Eye className="w-4 h-4" />
                         {t("actions.view_details")}
                       </Button>
                     </Link>
-                    
+
                     {["ACCEPTED", "IN_TRANSIT"].includes(delivery.status) && (
-                      <Link href={`/fr/client/deliveries/${delivery.id}/tracking`}>
-                        <Button variant="outline" size="sm" className="flex items-center gap-2">
+                      <Link
+                        href={`/fr/client/deliveries/${delivery.id}/tracking`}
+                      >
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="flex items-center gap-2"
+                        >
                           <MapIcon className="w-4 h-4" />
                           {t("actions.track")}
                         </Button>
                       </Link>
                     )}
-                    
-                    {delivery.delivererPhone && ["ACCEPTED", "IN_TRANSIT"].includes(delivery.status) && (
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        className="flex items-center gap-2"
-                        onClick={() => {
-                          if (delivery.delivererPhone) {
-                            window.open(`tel:${delivery.delivererPhone}`, '_self');
-                          }
-                        }}
-                      >
-                        <Phone className="w-4 h-4" />
-                        {t("actions.contact_deliverer")}
-                      </Button>
-                    )}
+
+                    {delivery.delivererPhone &&
+                      ["ACCEPTED", "IN_TRANSIT"].includes(delivery.status) && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="flex items-center gap-2"
+                          onClick={() => {
+                            if (delivery.delivererPhone) {
+                              window.open(
+                                `tel:${delivery.delivererPhone}`,
+                                "_self",
+                              );
+                            }
+                          }}
+                        >
+                          <Phone className="w-4 h-4" />
+                          {t("actions.contact_deliverer")}
+                        </Button>
+                      )}
                   </div>
 
                   {/* Code de validation si livraison en cours */}
-                  {delivery.status === "IN_TRANSIT" && delivery.validationCode && (
-                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
-                      <div className="flex items-center gap-2 mb-2">
-                        <AlertCircle className="w-4 h-4 text-yellow-600" />
-                        <span className="text-sm font-medium text-yellow-800">
-                          Code de validation à donner au livreur
-                        </span>
+                  {delivery.status === "IN_TRANSIT" &&
+                    delivery.validationCode && (
+                      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                        <div className="flex items-center gap-2 mb-2">
+                          <AlertCircle className="w-4 h-4 text-yellow-600" />
+                          <span className="text-sm font-medium text-yellow-800">
+                            Code de validation à donner au livreur
+                          </span>
+                        </div>
+                        <div className="bg-white border rounded px-3 py-2 font-mono text-lg font-bold text-center">
+                          {delivery.validationCode}
+                        </div>
                       </div>
-                      <div className="bg-white border rounded px-3 py-2 font-mono text-lg font-bold text-center">
-                        {delivery.validationCode}
-                      </div>
-                    </div>
-                  )}
+                    )}
                 </CardContent>
               </Card>
             ))
@@ -390,18 +443,19 @@ export default function ClientDeliveriesPage() {
                       <div className="flex items-center space-x-2">
                         <User className="w-4 h-4 text-gray-400" />
                         <span className="text-gray-600">{t("deliverer")}:</span>
-                        <span>
-                          {delivery.delivererName || 'Non renseigné'}
-                        </span>
+                        <span>{delivery.delivererName || "Non renseigné"}</span>
                       </div>
                       <div className="flex items-center space-x-2">
                         <Clock className="w-4 h-4 text-gray-400" />
-                        <span className="text-gray-600">{t("completed_at")}:</span>
+                        <span className="text-gray-600">
+                          {t("completed_at")}:
+                        </span>
                         <span>
-                          {delivery.actualDelivery 
-                            ? new Date(delivery.actualDelivery).toLocaleDateString()
-                            : new Date(delivery.createdAt).toLocaleDateString()
-                          }
+                          {delivery.actualDelivery
+                            ? new Date(
+                                delivery.actualDelivery,
+                              ).toLocaleDateString()
+                            : new Date(delivery.createdAt).toLocaleDateString()}
                         </span>
                       </div>
                     </div>
@@ -410,7 +464,11 @@ export default function ClientDeliveriesPage() {
                   {/* Boutons d'action pour l'historique */}
                   <div className="flex flex-wrap gap-2 pt-2 border-t">
                     <Link href={`/fr/client/deliveries/${delivery.id}`}>
-                      <Button variant="outline" size="sm" className="flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="flex items-center gap-2"
+                      >
                         <Eye className="w-4 h-4" />
                         {t("actions.view_details")}
                       </Button>
@@ -424,29 +482,36 @@ export default function ClientDeliveriesPage() {
                         <AlertCircle className="w-4 h-4 mr-2" />
                         Preuve de livraison
                       </h4>
-                      
-                      {delivery.proofOfDelivery.photos && delivery.proofOfDelivery.photos.length > 0 && (
-                        <div className="mb-3 grid grid-cols-2 gap-2">
-                          {delivery.proofOfDelivery.photos.map((photo, index) => (
-                            <img 
-                              key={index}
-                              src={photo} 
-                              alt={`Preuve de livraison ${index + 1}`}
-                              className="w-full rounded-lg border"
-                            />
-                          ))}
-                        </div>
-                      )}
-                      
+
+                      {delivery.proofOfDelivery.photos &&
+                        delivery.proofOfDelivery.photos.length > 0 && (
+                          <div className="mb-3 grid grid-cols-2 gap-2">
+                            {delivery.proofOfDelivery.photos.map(
+                              (photo, index) => (
+                                <img
+                                  key={index}
+                                  src={photo}
+                                  alt={`Preuve de livraison ${index + 1}`}
+                                  className="w-full rounded-lg border"
+                                />
+                              ),
+                            )}
+                          </div>
+                        )}
+
                       {delivery.proofOfDelivery.notes && (
                         <p className="text-sm text-gray-600 mb-2">
-                          <strong>Notes:</strong> {delivery.proofOfDelivery.notes}
+                          <strong>Notes:</strong>{" "}
+                          {delivery.proofOfDelivery.notes}
                         </p>
                       )}
-                      
+
                       {delivery.proofOfDelivery.uploadedAt && (
                         <p className="text-xs text-gray-500">
-                          Uploadé le: {new Date(delivery.proofOfDelivery.uploadedAt).toLocaleString()}
+                          Uploadé le:{" "}
+                          {new Date(
+                            delivery.proofOfDelivery.uploadedAt,
+                          ).toLocaleString()}
                         </p>
                       )}
                     </div>

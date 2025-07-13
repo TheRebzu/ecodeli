@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(request: NextRequest) {
-  return NextResponse.json({ message: 'Contract templates endpoint' })
+  return NextResponse.json({ message: "Contract templates endpoint" });
 }

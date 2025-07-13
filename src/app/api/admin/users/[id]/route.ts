@@ -1,30 +1,30 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { requireRole } from '@/lib/auth/utils'
-import { prisma } from '@/lib/db'
+import { NextRequest, NextResponse } from "next/server";
+import { requireRole } from "@/lib/auth/utils";
+import { prisma } from "@/lib/db";
 
 /**
  * GET - Récupérer un utilisateur spécifique
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    console.log('🔍 Vérification authentification admin (user/[id])...')
-    
+    console.log("🔍 Vérification authentification admin (user/[id])...");
+
     // Vérifier que l'utilisateur est admin
-    const user = await requireRole(request, ['ADMIN'])
-    console.log('✅ Utilisateur admin authentifié (user/[id]):', user.email)
+    const user = await requireRole(request, ["ADMIN"]);
+    console.log("✅ Utilisateur admin authentifié (user/[id]):", user.email);
   } catch (error) {
-    console.error('❌ Erreur authentification admin (user/[id]):', error)
+    console.error("❌ Erreur authentification admin (user/[id]):", error);
     return NextResponse.json(
-      { error: 'Accès refusé - rôle admin requis', success: false },
-      { status: 403 }
-    )
+      { error: "Accès refusé - rôle admin requis", success: false },
+      { status: 403 },
+    );
   }
 
   try {
-    const { id: userId } = await params
+    const { id: userId } = await params;
 
     const user = await prisma.user.findUnique({
       where: { id: userId },
@@ -32,17 +32,17 @@ export async function GET(
         profile: true,
         documents: {
           orderBy: {
-            createdAt: 'desc'
-          }
-        }
-      }
-    })
+            createdAt: "desc",
+          },
+        },
+      },
+    });
 
     if (!user) {
       return NextResponse.json(
-        { error: 'Utilisateur non trouvé', success: false },
-        { status: 404 }
-      )
+        { error: "Utilisateur non trouvé", success: false },
+        { status: 404 },
+      );
     }
 
     // Formater les données pour l'affichage
@@ -61,28 +61,30 @@ export async function GET(
       isActive: true,
       createdAt: user.createdAt.toISOString(),
       lastLoginAt: user.lastLoginAt?.toISOString() || null,
-      documents: user.documents.map(doc => ({
+      documents: user.documents.map((doc) => ({
         id: doc.id,
         type: doc.type,
         status: doc.status,
         filename: doc.filename,
         url: doc.url,
         createdAt: doc.createdAt.toISOString(),
-        validatedAt: doc.validatedAt?.toISOString() || null
-      }))
-    }
+        validatedAt: doc.validatedAt?.toISOString() || null,
+      })),
+    };
 
     return NextResponse.json({
       success: true,
-      user: formattedUser
-    })
-
+      user: formattedUser,
+    });
   } catch (error) {
-    console.error('Error fetching user:', error)
+    console.error("Error fetching user:", error);
     return NextResponse.json(
-      { error: 'Erreur lors de la récupération de l\'utilisateur', success: false },
-      { status: 500 }
-    )
+      {
+        error: "Erreur lors de la récupération de l'utilisateur",
+        success: false,
+      },
+      { status: 500 },
+    );
   }
 }
 
@@ -91,25 +93,28 @@ export async function GET(
  */
 export async function PUT(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    console.log('🔍 Vérification authentification admin (PUT user/[id])...')
-    
+    console.log("🔍 Vérification authentification admin (PUT user/[id])...");
+
     // Vérifier que l'utilisateur est admin
-    const user = await requireRole(request, ['ADMIN'])
-    console.log('✅ Utilisateur admin authentifié (PUT user/[id]):', user.email)
+    const user = await requireRole(request, ["ADMIN"]);
+    console.log(
+      "✅ Utilisateur admin authentifié (PUT user/[id]):",
+      user.email,
+    );
   } catch (error) {
-    console.error('❌ Erreur authentification admin (PUT user/[id]):', error)
+    console.error("❌ Erreur authentification admin (PUT user/[id]):", error);
     return NextResponse.json(
-      { error: 'Accès refusé - rôle admin requis', success: false },
-      { status: 403 }
-    )
+      { error: "Accès refusé - rôle admin requis", success: false },
+      { status: 403 },
+    );
   }
 
   try {
-    const { id: userId } = await params
-    const body = await request.json()
+    const { id: userId } = await params;
+    const body = await request.json();
 
     const updatedUser = await prisma.user.update({
       where: { id: userId },
@@ -122,14 +127,14 @@ export async function PUT(
             address: body.address,
             city: body.city,
             postalCode: body.postalCode,
-            country: body.country
-          }
-        }
+            country: body.country,
+          },
+        },
       },
       include: {
-        profile: true
-      }
-    })
+        profile: true,
+      },
+    });
 
     return NextResponse.json({
       success: true,
@@ -147,15 +152,17 @@ export async function PUT(
         emailVerified: updatedUser.emailVerified,
         isActive: true,
         createdAt: updatedUser.createdAt.toISOString(),
-        lastLoginAt: updatedUser.lastLoginAt?.toISOString() || null
-      }
-    })
-
+        lastLoginAt: updatedUser.lastLoginAt?.toISOString() || null,
+      },
+    });
   } catch (error) {
-    console.error('Error updating user:', error)
+    console.error("Error updating user:", error);
     return NextResponse.json(
-      { error: 'Erreur lors de la mise à jour de l\'utilisateur', success: false },
-      { status: 500 }
-    )
+      {
+        error: "Erreur lors de la mise à jour de l'utilisateur",
+        success: false,
+      },
+      { status: 500 },
+    );
   }
 }

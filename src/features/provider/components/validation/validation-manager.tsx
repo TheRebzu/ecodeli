@@ -6,10 +6,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { 
-  CheckCircle, 
-  Clock, 
-  XCircle, 
+import {
+  CheckCircle,
+  Clock,
+  XCircle,
   AlertTriangle,
   FileText,
   User,
@@ -20,7 +20,7 @@ import {
   Shield,
   Upload,
   Eye,
-  RefreshCw
+  RefreshCw,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -33,7 +33,12 @@ interface ValidationStep {
   id: string;
   name: string;
   description: string;
-  status: 'pending' | 'in_progress' | 'completed' | 'rejected' | 'requires_action';
+  status:
+    | "pending"
+    | "in_progress"
+    | "completed"
+    | "rejected"
+    | "requires_action";
   required: boolean;
   completedAt?: string;
   rejectedReason?: string;
@@ -53,7 +58,12 @@ interface ValidationDocument {
 }
 
 interface ValidationStatus {
-  overallStatus: 'pending' | 'in_progress' | 'validated' | 'rejected' | 'suspended';
+  overallStatus:
+    | "pending"
+    | "in_progress"
+    | "validated"
+    | "rejected"
+    | "suspended";
   completionPercentage: number;
   validatedAt?: string;
   nextReviewDate?: string;
@@ -61,16 +71,21 @@ interface ValidationStatus {
   restrictions?: string[];
 }
 
-export default function ValidationManager({ providerId }: ValidationManagerProps) {
+export default function ValidationManager({
+  providerId,
+}: ValidationManagerProps) {
   const t = useTranslations("provider.validation");
-  const [validationStatus, setValidationStatus] = useState<ValidationStatus | null>(null);
+  const [validationStatus, setValidationStatus] =
+    useState<ValidationStatus | null>(null);
   const [validationSteps, setValidationSteps] = useState<ValidationStep[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchValidationData = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`/api/provider/validation?providerId=${providerId}`);
+      const response = await fetch(
+        `/api/provider/validation?providerId=${providerId}`,
+      );
       if (response.ok) {
         const data = await response.json();
         setValidationStatus(data.status);
@@ -86,11 +101,14 @@ export default function ValidationManager({ providerId }: ValidationManagerProps
 
   const requestRevalidation = async (stepId: string) => {
     try {
-      const response = await fetch(`/api/provider/validation/${stepId}/revalidate`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ providerId }),
-      });
+      const response = await fetch(
+        `/api/provider/validation/${stepId}/revalidate`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ providerId }),
+        },
+      );
 
       if (response.ok) {
         toast.success(t("success.revalidation_requested"));
@@ -134,18 +152,47 @@ export default function ValidationManager({ providerId }: ValidationManagerProps
 
   const getStatusBadge = (status: string) => {
     const statusConfig = {
-      pending: { color: "bg-gray-100 text-gray-800", icon: Clock, label: t("status.pending") },
-      in_progress: { color: "bg-blue-100 text-blue-800", icon: RefreshCw, label: t("status.in_progress") },
-      completed: { color: "bg-green-100 text-green-800", icon: CheckCircle, label: t("status.completed") },
-      rejected: { color: "bg-red-100 text-red-800", icon: XCircle, label: t("status.rejected") },
-      requires_action: { color: "bg-yellow-100 text-yellow-800", icon: AlertTriangle, label: t("status.requires_action") },
-      validated: { color: "bg-green-100 text-green-800", icon: CheckCircle, label: t("status.validated") },
-      suspended: { color: "bg-red-100 text-red-800", icon: XCircle, label: t("status.suspended") },
+      pending: {
+        color: "bg-gray-100 text-gray-800",
+        icon: Clock,
+        label: t("status.pending"),
+      },
+      in_progress: {
+        color: "bg-blue-100 text-blue-800",
+        icon: RefreshCw,
+        label: t("status.in_progress"),
+      },
+      completed: {
+        color: "bg-green-100 text-green-800",
+        icon: CheckCircle,
+        label: t("status.completed"),
+      },
+      rejected: {
+        color: "bg-red-100 text-red-800",
+        icon: XCircle,
+        label: t("status.rejected"),
+      },
+      requires_action: {
+        color: "bg-yellow-100 text-yellow-800",
+        icon: AlertTriangle,
+        label: t("status.requires_action"),
+      },
+      validated: {
+        color: "bg-green-100 text-green-800",
+        icon: CheckCircle,
+        label: t("status.validated"),
+      },
+      suspended: {
+        color: "bg-red-100 text-red-800",
+        icon: XCircle,
+        label: t("status.suspended"),
+      },
     };
-    
-    const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.pending;
+
+    const config =
+      statusConfig[status as keyof typeof statusConfig] || statusConfig.pending;
     const IconComponent = config.icon;
-    
+
     return (
       <Badge className={config.color}>
         <IconComponent className="w-3 h-3 mr-1" />
@@ -189,7 +236,15 @@ export default function ValidationManager({ providerId }: ValidationManagerProps
   return (
     <div className="space-y-6">
       {/* Validation Status Overview */}
-      <Card className={validationStatus.overallStatus === 'validated' ? 'border-green-200 bg-green-50' : validationStatus.overallStatus === 'rejected' ? 'border-red-200 bg-red-50' : ''}>
+      <Card
+        className={
+          validationStatus.overallStatus === "validated"
+            ? "border-green-200 bg-green-50"
+            : validationStatus.overallStatus === "rejected"
+              ? "border-red-200 bg-red-50"
+              : ""
+        }
+      >
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
@@ -205,21 +260,31 @@ export default function ValidationManager({ providerId }: ValidationManagerProps
               <span>{t("completion_progress")}</span>
               <span>{validationStatus.completionPercentage}%</span>
             </div>
-            <Progress value={validationStatus.completionPercentage} className="h-2" />
+            <Progress
+              value={validationStatus.completionPercentage}
+              className="h-2"
+            />
           </div>
 
-          {validationStatus.overallStatus === 'validated' && (
+          {validationStatus.overallStatus === "validated" && (
             <div className="p-4 bg-green-100 border border-green-200 rounded-lg">
               <div className="flex items-center space-x-2 text-green-800">
                 <CheckCircle className="w-5 h-5" />
                 <div>
                   <p className="font-medium">{t("congratulations")}</p>
                   <p className="text-sm">
-                    {t("validated_message")} {validationStatus.validatedAt && new Date(validationStatus.validatedAt).toLocaleDateString()}
+                    {t("validated_message")}{" "}
+                    {validationStatus.validatedAt &&
+                      new Date(
+                        validationStatus.validatedAt,
+                      ).toLocaleDateString()}
                   </p>
                   {validationStatus.nextReviewDate && (
                     <p className="text-sm mt-1">
-                      {t("next_review")}: {new Date(validationStatus.nextReviewDate).toLocaleDateString()}
+                      {t("next_review")}:{" "}
+                      {new Date(
+                        validationStatus.nextReviewDate,
+                      ).toLocaleDateString()}
                     </p>
                   )}
                 </div>
@@ -227,7 +292,7 @@ export default function ValidationManager({ providerId }: ValidationManagerProps
             </div>
           )}
 
-          {validationStatus.overallStatus === 'rejected' && (
+          {validationStatus.overallStatus === "rejected" && (
             <div className="p-4 bg-red-100 border border-red-200 rounded-lg">
               <div className="flex items-center space-x-2 text-red-800">
                 <XCircle className="w-5 h-5" />
@@ -251,18 +316,19 @@ export default function ValidationManager({ providerId }: ValidationManagerProps
             </div>
           )}
 
-          {validationStatus.restrictions && validationStatus.restrictions.length > 0 && (
-            <div className="p-4 bg-orange-100 border border-orange-200 rounded-lg">
-              <div className="text-orange-800">
-                <p className="font-medium">{t("current_restrictions")}</p>
-                <ul className="text-sm mt-1 list-disc list-inside">
-                  {validationStatus.restrictions.map((restriction, index) => (
-                    <li key={index}>{restriction}</li>
-                  ))}
-                </ul>
+          {validationStatus.restrictions &&
+            validationStatus.restrictions.length > 0 && (
+              <div className="p-4 bg-orange-100 border border-orange-200 rounded-lg">
+                <div className="text-orange-800">
+                  <p className="font-medium">{t("current_restrictions")}</p>
+                  <ul className="text-sm mt-1 list-disc list-inside">
+                    {validationStatus.restrictions.map((restriction, index) => (
+                      <li key={index}>{restriction}</li>
+                    ))}
+                  </ul>
+                </div>
               </div>
-            </div>
-          )}
+            )}
         </CardContent>
       </Card>
 
@@ -277,28 +343,43 @@ export default function ValidationManager({ providerId }: ValidationManagerProps
         <TabsContent value="steps" className="space-y-4">
           {validationSteps.map((step, index) => {
             const StepIcon = getStepIcon(step.id);
-            
+
             return (
-              <Card key={step.id} className={`${step.status === 'rejected' ? 'border-red-200' : step.status === 'completed' ? 'border-green-200' : ''}`}>
+              <Card
+                key={step.id}
+                className={`${step.status === "rejected" ? "border-red-200" : step.status === "completed" ? "border-green-200" : ""}`}
+              >
                 <CardHeader>
                   <CardTitle className="flex items-center justify-between">
                     <div className="flex items-center space-x-3">
-                      <div className={`p-2 rounded-full ${
-                        step.status === 'completed' ? 'bg-green-100' :
-                        step.status === 'rejected' ? 'bg-red-100' :
-                        step.status === 'in_progress' ? 'bg-blue-100' :
-                        'bg-gray-100'
-                      }`}>
-                        <StepIcon className={`w-5 h-5 ${
-                          step.status === 'completed' ? 'text-green-600' :
-                          step.status === 'rejected' ? 'text-red-600' :
-                          step.status === 'in_progress' ? 'text-blue-600' :
-                          'text-gray-600'
-                        }`} />
+                      <div
+                        className={`p-2 rounded-full ${
+                          step.status === "completed"
+                            ? "bg-green-100"
+                            : step.status === "rejected"
+                              ? "bg-red-100"
+                              : step.status === "in_progress"
+                                ? "bg-blue-100"
+                                : "bg-gray-100"
+                        }`}
+                      >
+                        <StepIcon
+                          className={`w-5 h-5 ${
+                            step.status === "completed"
+                              ? "text-green-600"
+                              : step.status === "rejected"
+                                ? "text-red-600"
+                                : step.status === "in_progress"
+                                  ? "text-blue-600"
+                                  : "text-gray-600"
+                          }`}
+                        />
                       </div>
                       <div>
                         <h3 className="font-medium">{step.name}</h3>
-                        <p className="text-sm text-gray-600">{step.description}</p>
+                        <p className="text-sm text-gray-600">
+                          {step.description}
+                        </p>
                       </div>
                       {step.required && (
                         <Badge variant="outline" className="text-xs">
@@ -308,7 +389,9 @@ export default function ValidationManager({ providerId }: ValidationManagerProps
                     </div>
                     <div className="flex items-center space-x-2">
                       {getStatusBadge(step.status)}
-                      <span className="text-sm text-gray-500">{step.progress}%</span>
+                      <span className="text-sm text-gray-500">
+                        {step.progress}%
+                      </span>
                     </div>
                   </CardTitle>
                 </CardHeader>
@@ -317,15 +400,16 @@ export default function ValidationManager({ providerId }: ValidationManagerProps
                     <Progress value={step.progress} className="h-2" />
                   )}
 
-                  {step.status === 'rejected' && step.rejectedReason && (
+                  {step.status === "rejected" && step.rejectedReason && (
                     <div className="p-3 bg-red-50 border border-red-200 rounded">
                       <p className="text-sm text-red-800">
-                        <strong>{t("rejection_reason")}:</strong> {step.rejectedReason}
+                        <strong>{t("rejection_reason")}:</strong>{" "}
+                        {step.rejectedReason}
                       </p>
                     </div>
                   )}
 
-                  {step.status === 'requires_action' && (
+                  {step.status === "requires_action" && (
                     <div className="p-3 bg-yellow-50 border border-yellow-200 rounded">
                       <p className="text-sm text-yellow-800">
                         {t("action_required_message")}
@@ -337,17 +421,22 @@ export default function ValidationManager({ providerId }: ValidationManagerProps
                     <div className="space-y-2">
                       <h4 className="text-sm font-medium">{t("documents")}:</h4>
                       {step.documents.map((doc) => (
-                        <div key={doc.id} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                        <div
+                          key={doc.id}
+                          className="flex items-center justify-between p-2 bg-gray-50 rounded"
+                        >
                           <div className="flex items-center space-x-2">
                             <FileText className="w-4 h-4 text-gray-400" />
                             <div>
                               <p className="text-sm font-medium">{doc.name}</p>
                               <p className="text-xs text-gray-500">
-                                {t("uploaded")}: {new Date(doc.uploadedAt).toLocaleDateString()}
+                                {t("uploaded")}:{" "}
+                                {new Date(doc.uploadedAt).toLocaleDateString()}
                               </p>
                               {doc.expiresAt && (
                                 <p className="text-xs text-yellow-600">
-                                  {t("expires")}: {new Date(doc.expiresAt).toLocaleDateString()}
+                                  {t("expires")}:{" "}
+                                  {new Date(doc.expiresAt).toLocaleDateString()}
                                 </p>
                               )}
                             </div>
@@ -357,7 +446,7 @@ export default function ValidationManager({ providerId }: ValidationManagerProps
                             <Button
                               size="sm"
                               variant="ghost"
-                              onClick={() => window.open(doc.url, '_blank')}
+                              onClick={() => window.open(doc.url, "_blank")}
                             >
                               <Eye className="w-4 h-4" />
                             </Button>
@@ -368,7 +457,8 @@ export default function ValidationManager({ providerId }: ValidationManagerProps
                   )}
 
                   <div className="flex gap-2">
-                    {(step.status === 'pending' || step.status === 'requires_action') && (
+                    {(step.status === "pending" ||
+                      step.status === "requires_action") && (
                       <label className="cursor-pointer">
                         <input
                           type="file"
@@ -387,10 +477,10 @@ export default function ValidationManager({ providerId }: ValidationManagerProps
                         </Button>
                       </label>
                     )}
-                    
-                    {step.status === 'rejected' && (
-                      <Button 
-                        size="sm" 
+
+                    {step.status === "rejected" && (
+                      <Button
+                        size="sm"
                         variant="outline"
                         onClick={() => requestRevalidation(step.id)}
                       >
@@ -399,10 +489,11 @@ export default function ValidationManager({ providerId }: ValidationManagerProps
                       </Button>
                     )}
 
-                    {step.status === 'completed' && step.completedAt && (
+                    {step.status === "completed" && step.completedAt && (
                       <div className="flex items-center text-sm text-green-600">
                         <CheckCircle className="w-4 h-4 mr-1" />
-                        {t("completed_on")}: {new Date(step.completedAt).toLocaleDateString()}
+                        {t("completed_on")}:{" "}
+                        {new Date(step.completedAt).toLocaleDateString()}
                       </div>
                     )}
                   </div>
@@ -418,7 +509,9 @@ export default function ValidationManager({ providerId }: ValidationManagerProps
               <CardTitle>{t("all_documents")}</CardTitle>
             </CardHeader>
             <CardContent>
-              {validationSteps.some(step => step.documents && step.documents.length > 0) ? (
+              {validationSteps.some(
+                (step) => step.documents && step.documents.length > 0,
+              ) ? (
                 <div className="space-y-4">
                   {validationSteps.map((step) =>
                     step.documents && step.documents.length > 0 ? (
@@ -432,9 +525,13 @@ export default function ValidationManager({ providerId }: ValidationManagerProps
                                   <FileText className="w-8 h-8 text-gray-400" />
                                   <div>
                                     <p className="font-medium">{doc.name}</p>
-                                    <p className="text-sm text-gray-600">{doc.type}</p>
+                                    <p className="text-sm text-gray-600">
+                                      {doc.type}
+                                    </p>
                                     <p className="text-xs text-gray-500">
-                                      {new Date(doc.uploadedAt).toLocaleDateString()}
+                                      {new Date(
+                                        doc.uploadedAt,
+                                      ).toLocaleDateString()}
                                     </p>
                                   </div>
                                 </div>
@@ -444,7 +541,9 @@ export default function ValidationManager({ providerId }: ValidationManagerProps
                                     size="sm"
                                     variant="ghost"
                                     className="mt-2"
-                                    onClick={() => window.open(doc.url, '_blank')}
+                                    onClick={() =>
+                                      window.open(doc.url, "_blank")
+                                    }
                                   >
                                     <Eye className="w-4 h-4 mr-1" />
                                     {t("view")}
@@ -455,7 +554,7 @@ export default function ValidationManager({ providerId }: ValidationManagerProps
                           ))}
                         </div>
                       </div>
-                    ) : null
+                    ) : null,
                   )}
                 </div>
               ) : (
@@ -484,9 +583,7 @@ export default function ValidationManager({ providerId }: ValidationManagerProps
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">
                   {t("history_coming_soon")}
                 </h3>
-                <p className="text-gray-600">
-                  {t("history_description")}
-                </p>
+                <p className="text-gray-600">{t("history_description")}</p>
               </div>
             </CardContent>
           </Card>

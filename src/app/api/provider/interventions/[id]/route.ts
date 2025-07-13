@@ -1,69 +1,74 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '@/lib/auth'
-import { prisma } from '@/lib/db'
-import { requireRole } from '@/lib/auth/utils'
+import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@/lib/auth";
+import { prisma } from "@/lib/db";
+import { requireRole } from "@/lib/auth/utils";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const session = await auth()
-    if (!session || session.user.role !== 'PROVIDER') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    const session = await auth();
+    if (!session || session.user.role !== "PROVIDER") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { id: interventionId } = await params
+    const { id: interventionId } = await params;
 
     const intervention = await prisma.booking.findUnique({
       where: { id: interventionId },
       include: {
-        client: { 
+        client: {
           include: {
             user: {
               include: {
-                profile: true
-              }
-            }
-          }
+                profile: true,
+              },
+            },
+          },
         },
         service: true,
-        review: true
-      }
-    })
+        review: true,
+      },
+    });
 
     if (!intervention) {
-      return NextResponse.json({ error: 'Intervention not found' }, { status: 404 })
+      return NextResponse.json(
+        { error: "Intervention not found" },
+        { status: 404 },
+      );
     }
 
     // Vérifier que l'intervention appartient au provider
     const provider = await prisma.provider.findUnique({
-      where: { userId: session.user.id }
-    })
+      where: { userId: session.user.id },
+    });
 
     if (!provider || intervention.service.providerId !== provider.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
+      return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 
     const formattedIntervention = {
       id: intervention.id,
-      title: intervention.service?.name || 'Intervention',
-      description: intervention.notes || '',
+      title: intervention.service?.name || "Intervention",
+      description: intervention.notes || "",
       status: intervention.status.toLowerCase(),
-      type: intervention.service?.category || 'Service',
+      type: intervention.service?.category || "Service",
       scheduledDate: intervention.scheduledDate,
-      startTime: intervention.timeSlot || '09:00',
-      endTime: intervention.endTime || '10:00',
+      startTime: intervention.timeSlot || "09:00",
+      endTime: intervention.endTime || "10:00",
       client: {
         id: intervention.client.id,
-        name: `${intervention.client.user.profile?.firstName || ''} ${intervention.client.user.profile?.lastName || ''}`.trim() || intervention.client.email,
+        name:
+          `${intervention.client.user.profile?.firstName || ""} ${intervention.client.user.profile?.lastName || ""}`.trim() ||
+          intervention.client.email,
         email: intervention.client.email,
-        phone: intervention.client.user.profile?.phone
+        phone: intervention.client.user.profile?.phone,
       },
       location: {
-        address: intervention.address || '',
-        city: intervention.city || '',
-        zipCode: intervention.zipCode || ''
+        address: intervention.address || "",
+        city: intervention.city || "",
+        zipCode: intervention.zipCode || "",
       },
       price: Number(intervention.price) || 0,
       duration: intervention.duration || 60,
@@ -71,45 +76,47 @@ export async function GET(
       completionReport: intervention.completionReport,
       rating: intervention.review?.rating,
       createdAt: intervention.createdAt,
-      updatedAt: intervention.updatedAt
-    }
+      updatedAt: intervention.updatedAt,
+    };
 
-    return NextResponse.json({ intervention: formattedIntervention })
-
+    return NextResponse.json({ intervention: formattedIntervention });
   } catch (error) {
-    console.error('Error fetching intervention:', error)
+    console.error("Error fetching intervention:", error);
     return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    )
+      { error: "Internal server error" },
+      { status: 500 },
+    );
   }
 }
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const user = await requireRole(request, ['PROVIDER']).catch(() => null)
-    
+    const user = await requireRole(request, ["PROVIDER"]).catch(() => null);
+
     if (!user) {
-      return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
+      return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
     }
-    
-    const { id: interventionId } = await params
-    const { status, completionReport } = await request.json()
+
+    const { id: interventionId } = await params;
+    const { status, completionReport } = await request.json();
 
     // Vérifier que l'intervention existe et appartient au prestataire
     const existingIntervention = await prisma.booking.findUnique({
-      where: { id: interventionId }
-    })
+      where: { id: interventionId },
+    });
 
     if (!existingIntervention) {
-      return NextResponse.json({ error: 'Intervention not found' }, { status: 404 })
+      return NextResponse.json(
+        { error: "Intervention not found" },
+        { status: 404 },
+      );
     }
 
     if (existingIntervention.providerId !== user.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
+      return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 
     // Mettre à jour l'intervention
@@ -117,59 +124,62 @@ export async function PATCH(
       where: { id: interventionId },
       data: {
         status: status.toUpperCase(),
-        completionReport: completionReport || existingIntervention.completionReport,
-        updatedAt: new Date()
+        completionReport:
+          completionReport || existingIntervention.completionReport,
+        updatedAt: new Date(),
       },
       include: {
         client: {
           include: {
             user: {
               include: {
-                profile: true
-              }
-            }
-          }
+                profile: true,
+              },
+            },
+          },
         },
         service: true,
-        review: true
-      }
-    })
+        review: true,
+      },
+    });
 
     // Si l'intervention est terminée, créer une notification pour le client
-    if (status === 'completed') {
+    if (status === "completed") {
       await prisma.notification.create({
         data: {
           userId: updatedIntervention.clientId,
-          type: 'BOOKING_COMPLETED',
-          title: 'Intervention terminée',
-          message: `Votre intervention "${updatedIntervention.service?.name || 'Service'}" a été terminée avec succès.`,
+          type: "BOOKING_COMPLETED",
+          title: "Intervention terminée",
+          message: `Votre intervention "${updatedIntervention.service?.name || "Service"}" a été terminée avec succès.`,
           metadata: {
             bookingId: interventionId,
-            providerId: user.id
-          }
-        }
-      })
+            providerId: user.id,
+          },
+        },
+      });
     }
 
     const formattedIntervention = {
       id: updatedIntervention.id,
-      title: updatedIntervention.service?.name || 'Intervention',
-      description: updatedIntervention.notes || '',
+      title: updatedIntervention.service?.name || "Intervention",
+      description: updatedIntervention.notes || "",
       status: updatedIntervention.status.toLowerCase(),
-      type: updatedIntervention.service?.category || 'Service',
+      type: updatedIntervention.service?.category || "Service",
       scheduledDate: updatedIntervention.scheduledDate,
-      startTime: updatedIntervention.timeSlot || '09:00',
-      endTime: updatedIntervention.endTime || '10:00',
+      startTime: updatedIntervention.timeSlot || "09:00",
+      endTime: updatedIntervention.endTime || "10:00",
       client: {
         id: updatedIntervention.client.id,
-        name: `${updatedIntervention.client.user.profile?.firstName || ''} ${updatedIntervention.client.user.profile?.lastName || ''}`.trim() || updatedIntervention.client.email,
+        name:
+          `${updatedIntervention.client.user.profile?.firstName || ""} ${updatedIntervention.client.user.profile?.lastName || ""}`.trim() ||
+          updatedIntervention.client.email,
         email: updatedIntervention.client.email,
-        phone: updatedIntervention.client.user.profile?.phone
+        phone: updatedIntervention.client.user.profile?.phone,
       },
       location: {
-        address: updatedIntervention.address || '',
-        city: updatedIntervention.city || '',
-        zipCode: updatedIntervention.zipCode || ''
+        address: updatedIntervention.address || "",
+        city: updatedIntervention.city || "",
+        zipCode: updatedIntervention.zipCode || "",
       },
       price: Number(updatedIntervention.price) || 0,
       duration: updatedIntervention.duration || 60,
@@ -177,13 +187,15 @@ export async function PATCH(
       completionReport: updatedIntervention.completionReport,
       rating: updatedIntervention.review?.rating,
       createdAt: updatedIntervention.createdAt,
-      updatedAt: updatedIntervention.updatedAt
-    }
+      updatedAt: updatedIntervention.updatedAt,
+    };
 
-    return NextResponse.json({ intervention: formattedIntervention })
-
+    return NextResponse.json({ intervention: formattedIntervention });
   } catch (error) {
-    console.error('Error updating intervention:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    console.error("Error updating intervention:", error);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 },
+    );
   }
 }

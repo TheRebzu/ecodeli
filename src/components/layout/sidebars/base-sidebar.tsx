@@ -1,14 +1,14 @@
-'use client'
+"use client";
 
 /**
  * Sidebar de base pour EcoDeli
  * Utilise le composant Sidebar de shadcn/ui avec des améliorations spécifiques à EcoDeli
  */
 
-import { type ReactNode } from 'react'
-import Link from 'next/link'
-import { ChevronDown, ChevronRight, Circle } from 'lucide-react'
-import { cn } from '@/lib/utils'
+import { type ReactNode } from "react";
+import Link from "next/link";
+import { ChevronDown, ChevronRight, Circle } from "lucide-react";
+import { cn } from "@/lib/utils";
 import {
   Sidebar,
   SidebarContent,
@@ -25,36 +25,36 @@ import {
   SidebarMenuSubItem,
   SidebarMenuBadge,
   SidebarSeparator,
-} from '@/components/ui/sidebar'
-import { usePathname } from 'next/navigation'
-import { useState } from 'react'
-import { type EcoDeliUser } from '../types/layout.types'
+} from "@/components/ui/sidebar";
+import { usePathname } from "next/navigation";
+import { useState } from "react";
+import { type EcoDeliUser } from "../types/layout.types";
 
 // Types temporaires pour ce composant
 interface NavigationItem {
-  key: string
-  label: string
-  href: string
-  icon?: any
-  category?: string
-  badge?: string
-  children?: NavigationItem[]
+  key: string;
+  label: string;
+  href: string;
+  icon?: any;
+  category?: string;
+  badge?: string;
+  children?: NavigationItem[];
 }
 
 interface BaseSidebarProps {
-  role: string
-  user: EcoDeliUser
-  navigationItems: NavigationItem[]
-  collapsed?: boolean
-  onToggle?: () => void
-  className?: string
+  role: string;
+  user: EcoDeliUser;
+  navigationItems: NavigationItem[];
+  collapsed?: boolean;
+  onToggle?: () => void;
+  className?: string;
 }
 
 // Configuration des icônes
 const getIcon = (iconName?: string) => {
   // Retourne l'icône correspondante - à implémenter selon vos besoins
-  return iconName ? <Circle className="h-4 w-4" /> : null
-}
+  return iconName ? <Circle className="h-4 w-4" /> : null;
+};
 
 export function BaseSidebar({
   role,
@@ -62,40 +62,43 @@ export function BaseSidebar({
   navigationItems,
   collapsed = false,
   onToggle,
-  className
+  className,
 }: BaseSidebarProps) {
-  const pathname = usePathname()
-  const [expandedGroups, setExpandedGroups] = useState<string[]>([])
+  const pathname = usePathname();
+  const [expandedGroups, setExpandedGroups] = useState<string[]>([]);
 
   const isItemActive = (item: NavigationItem) => {
-    return pathname === item.href || pathname.startsWith(`${item.href}/`)
-  }
+    return pathname === item.href || pathname.startsWith(`${item.href}/`);
+  };
 
   const toggleGroup = (groupKey: string) => {
-    setExpandedGroups(prev => 
-      prev.includes(groupKey) 
-        ? prev.filter(key => key !== groupKey)
-        : [...prev, groupKey]
-    )
-  }
+    setExpandedGroups((prev) =>
+      prev.includes(groupKey)
+        ? prev.filter((key) => key !== groupKey)
+        : [...prev, groupKey],
+    );
+  };
 
   const isGroupExpanded = (groupKey: string) => {
-    return expandedGroups.includes(groupKey)
-  }
+    return expandedGroups.includes(groupKey);
+  };
 
   // Grouper les éléments de navigation
-  const groupedItems = navigationItems.reduce((acc, item) => {
-    const category = item.category || 'main'
-    if (!acc[category]) {
-      acc[category] = []
-    }
-    acc[category].push(item)
-    return acc
-  }, {} as Record<string, NavigationItem[]>)
+  const groupedItems = navigationItems.reduce(
+    (acc, item) => {
+      const category = item.category || "main";
+      if (!acc[category]) {
+        acc[category] = [];
+      }
+      acc[category].push(item);
+      return acc;
+    },
+    {} as Record<string, NavigationItem[]>,
+  );
 
   return (
-    <Sidebar 
-      variant="sidebar" 
+    <Sidebar
+      variant="sidebar"
       collapsible="icon"
       className={cn("border-r border-border", className)}
     >
@@ -112,7 +115,7 @@ export function BaseSidebar({
             </p>
           </div>
         </div>
-        
+
         {/* Info utilisateur condensée */}
         {user && (
           <div className="px-2 pb-2 group-data-[collapsible=icon]:hidden">
@@ -132,17 +135,25 @@ export function BaseSidebar({
               )}
               <div className="flex-1 min-w-0">
                 <p className="text-xs font-medium text-foreground truncate">
-                  {user.name || user.email.split('@')[0]}
+                  {user.name || user.email.split("@")[0]}
                 </p>
                 <div className="flex items-center space-x-1">
-                  <div className={cn(
-                    "w-2 h-2 rounded-full",
-                    user.validationStatus === 'APPROVED' ? "bg-green-500" : 
-                    user.validationStatus === 'PENDING' ? "bg-yellow-500" : "bg-gray-400"
-                  )} />
+                  <div
+                    className={cn(
+                      "w-2 h-2 rounded-full",
+                      user.validationStatus === "APPROVED"
+                        ? "bg-green-500"
+                        : user.validationStatus === "PENDING"
+                          ? "bg-yellow-500"
+                          : "bg-gray-400",
+                    )}
+                  />
                   <span className="text-xs text-muted-foreground">
-                    {user.validationStatus === 'APPROVED' ? 'Vérifié' : 
-                     user.validationStatus === 'PENDING' ? 'En attente' : 'Non vérifié'}
+                    {user.validationStatus === "APPROVED"
+                      ? "Vérifié"
+                      : user.validationStatus === "PENDING"
+                        ? "En attente"
+                        : "Non vérifié"}
                   </span>
                 </div>
               </div>
@@ -156,20 +167,20 @@ export function BaseSidebar({
         {Object.entries(groupedItems).map(([category, items], index) => (
           <div key={category}>
             {index > 0 && <SidebarSeparator />}
-            
+
             <SidebarGroup>
-              {category !== 'main' && (
+              {category !== "main" && (
                 <SidebarGroupLabel className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
                   {category}
                 </SidebarGroupLabel>
               )}
-              
+
               <SidebarGroupContent>
                 <SidebarMenu>
                   {items.map((item) => (
-                    <NavigationMenuItem 
-                      key={item.key} 
-                      item={item} 
+                    <NavigationMenuItem
+                      key={item.key}
+                      item={item}
                       isActive={isItemActive(item)}
                       isExpanded={isGroupExpanded(item.key)}
                       onToggle={() => toggleGroup(item.key)}
@@ -188,17 +199,14 @@ export function BaseSidebar({
         <div className="group-data-[collapsible=icon]:hidden space-y-2">
           <div className="text-xs text-muted-foreground text-center">
             <p>EcoDeli v1.0.0</p>
-            <Link 
-              href="/support" 
-              className="text-primary hover:underline"
-            >
+            <Link href="/support" className="text-primary hover:underline">
               Support
             </Link>
           </div>
         </div>
       </SidebarFooter>
     </Sidebar>
-  )
+  );
 }
 
 /**
@@ -209,15 +217,15 @@ function NavigationMenuItem({
   isActive,
   isExpanded,
   onToggle,
-  pathname
+  pathname,
 }: {
-  item: any
-  isActive: boolean
-  isExpanded: boolean
-  onToggle: () => void
-  pathname: string
+  item: any;
+  isActive: boolean;
+  isExpanded: boolean;
+  onToggle: () => void;
+  pathname: string;
 }) {
-  const hasChildren = item.children && item.children.length > 0
+  const hasChildren = item.children && item.children.length > 0;
 
   return (
     <SidebarMenuItem>
@@ -231,14 +239,10 @@ function NavigationMenuItem({
           >
             {getIcon(item.icon)}
             <span className="flex-1">{item.label}</span>
-            
+
             {/* Badge de notification */}
-            {item.badge && (
-              <SidebarMenuBadge>
-                {item.badge}
-              </SidebarMenuBadge>
-            )}
-            
+            {item.badge && <SidebarMenuBadge>{item.badge}</SidebarMenuBadge>}
+
             {/* Icône d'expansion */}
             {isExpanded ? (
               <ChevronDown className="h-4 w-4 transition-transform" />
@@ -274,25 +278,17 @@ function NavigationMenuItem({
       ) : (
         <>
           {/* Élément simple */}
-          <SidebarMenuButton
-            asChild
-            isActive={isActive}
-            tooltip={item.label}
-          >
+          <SidebarMenuButton asChild isActive={isActive} tooltip={item.label}>
             <Link href={item.href}>
               {getIcon(item.icon)}
               <span>{item.label}</span>
-              {item.badge && (
-                <SidebarMenuBadge>
-                  {item.badge}
-                </SidebarMenuBadge>
-              )}
+              {item.badge && <SidebarMenuBadge>{item.badge}</SidebarMenuBadge>}
             </Link>
           </SidebarMenuButton>
         </>
       )}
     </SidebarMenuItem>
-  )
+  );
 }
 
 /**
@@ -310,7 +306,7 @@ export function SidebarSkeleton() {
           </div>
         </div>
       </SidebarHeader>
-      
+
       <SidebarContent className="p-2">
         <SidebarGroup>
           <SidebarGroupContent>
@@ -328,5 +324,5 @@ export function SidebarSkeleton() {
         </SidebarGroup>
       </SidebarContent>
     </Sidebar>
-  )
+  );
 }

@@ -5,9 +5,9 @@ import { useTranslations } from "next-intl";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { 
-  FileText, 
-  Download, 
+import {
+  FileText,
+  Download,
   Eye,
   Calendar,
   DollarSign,
@@ -15,7 +15,7 @@ import {
   Clock,
   CheckCircle,
   AlertCircle,
-  CreditCard
+  CreditCard,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -64,13 +64,17 @@ export default function BillingManager({ providerId }: BillingManagerProps) {
   const t = useTranslations("provider.billing");
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [stats, setStats] = useState<BillingStats | null>(null);
-  const [serviceBreakdown, setServiceBreakdown] = useState<ServiceBreakdown[]>([]);
+  const [serviceBreakdown, setServiceBreakdown] = useState<ServiceBreakdown[]>(
+    [],
+  );
   const [loading, setLoading] = useState(true);
 
   const fetchBillingData = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`/api/provider/billing?providerId=${providerId}`);
+      const response = await fetch(
+        `/api/provider/billing?providerId=${providerId}`,
+      );
       if (response.ok) {
         const data = await response.json();
         setInvoices(data.invoices || []);
@@ -87,12 +91,14 @@ export default function BillingManager({ providerId }: BillingManagerProps) {
 
   const downloadInvoice = async (invoiceId: string) => {
     try {
-      const response = await fetch(`/api/provider/billing/invoices/${invoiceId}/download`);
+      const response = await fetch(
+        `/api/provider/billing/invoices/${invoiceId}/download`,
+      );
       if (response.ok) {
         const blob = await response.blob();
         const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.style.display = 'none';
+        const a = document.createElement("a");
+        a.style.display = "none";
         a.href = url;
         a.download = `invoice-${invoiceId}.pdf`;
         document.body.appendChild(a);
@@ -134,15 +140,32 @@ export default function BillingManager({ providerId }: BillingManagerProps) {
 
   const getStatusBadge = (status: string) => {
     const statusConfig = {
-      pending: { color: "bg-yellow-100 text-yellow-800", icon: Clock, label: t("status.pending") },
-      paid: { color: "bg-green-100 text-green-800", icon: CheckCircle, label: t("status.paid") },
-      overdue: { color: "bg-red-100 text-red-800", icon: AlertCircle, label: t("status.overdue") },
-      processing: { color: "bg-blue-100 text-blue-800", icon: Clock, label: t("status.processing") },
+      pending: {
+        color: "bg-yellow-100 text-yellow-800",
+        icon: Clock,
+        label: t("status.pending"),
+      },
+      paid: {
+        color: "bg-green-100 text-green-800",
+        icon: CheckCircle,
+        label: t("status.paid"),
+      },
+      overdue: {
+        color: "bg-red-100 text-red-800",
+        icon: AlertCircle,
+        label: t("status.overdue"),
+      },
+      processing: {
+        color: "bg-blue-100 text-blue-800",
+        icon: Clock,
+        label: t("status.processing"),
+      },
     };
-    
-    const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.pending;
+
+    const config =
+      statusConfig[status as keyof typeof statusConfig] || statusConfig.pending;
     const IconComponent = config.icon;
-    
+
     return (
       <Badge className={config.color}>
         <IconComponent className="w-3 h-3 mr-1" />
@@ -176,24 +199,38 @@ export default function BillingManager({ providerId }: BillingManagerProps) {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{t("stats.current_month")}</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              {t("stats.current_month")}
+            </CardTitle>
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.currentMonthEarnings}€</div>
+            <div className="text-2xl font-bold">
+              {stats.currentMonthEarnings}€
+            </div>
             <p className="text-xs text-muted-foreground">
-              {stats.currentMonthEarnings > stats.lastMonthEarnings ? '+' : ''}{((stats.currentMonthEarnings - stats.lastMonthEarnings) / stats.lastMonthEarnings * 100).toFixed(1)}% {t("stats.vs_last_month")}
+              {stats.currentMonthEarnings > stats.lastMonthEarnings ? "+" : ""}
+              {(
+                ((stats.currentMonthEarnings - stats.lastMonthEarnings) /
+                  stats.lastMonthEarnings) *
+                100
+              ).toFixed(1)}
+              % {t("stats.vs_last_month")}
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{t("stats.year_to_date")}</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              {t("stats.year_to_date")}
+            </CardTitle>
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.yearToDateEarnings}€</div>
+            <div className="text-2xl font-bold">
+              {stats.yearToDateEarnings}€
+            </div>
             <p className="text-xs text-muted-foreground">
               {t("stats.total_services", { count: stats.totalServices })}
             </p>
@@ -202,7 +239,9 @@ export default function BillingManager({ providerId }: BillingManagerProps) {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{t("stats.unpaid_amount")}</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              {t("stats.unpaid_amount")}
+            </CardTitle>
             <AlertCircle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -215,13 +254,20 @@ export default function BillingManager({ providerId }: BillingManagerProps) {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{t("stats.average_monthly")}</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              {t("stats.average_monthly")}
+            </CardTitle>
             <Calendar className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.averageMonthlyEarnings}€</div>
+            <div className="text-2xl font-bold">
+              {stats.averageMonthlyEarnings}€
+            </div>
             <p className="text-xs text-muted-foreground">
-              {t("stats.commission_rate", { rate: stats.averageCommissionRate })}%
+              {t("stats.commission_rate", {
+                rate: stats.averageCommissionRate,
+              })}
+              %
             </p>
           </CardContent>
         </Card>
@@ -235,9 +281,12 @@ export default function BillingManager({ providerId }: BillingManagerProps) {
               <div className="flex items-center space-x-2">
                 <CreditCard className="w-5 h-5 text-green-600" />
                 <div>
-                  <p className="font-medium text-green-800">{t("next_payment")}</p>
+                  <p className="font-medium text-green-800">
+                    {t("next_payment")}
+                  </p>
                   <p className="text-sm text-green-600">
-                    {new Date(stats.nextPaymentDate).toLocaleDateString()} - {stats.totalUnpaidAmount}€
+                    {new Date(stats.nextPaymentDate).toLocaleDateString()} -{" "}
+                    {stats.totalUnpaidAmount}€
                   </p>
                 </div>
               </div>
@@ -253,7 +302,9 @@ export default function BillingManager({ providerId }: BillingManagerProps) {
       <Tabs defaultValue="invoices" className="space-y-6">
         <TabsList>
           <TabsTrigger value="invoices">{t("tabs.invoices")}</TabsTrigger>
-          <TabsTrigger value="breakdown">{t("tabs.service_breakdown")}</TabsTrigger>
+          <TabsTrigger value="breakdown">
+            {t("tabs.service_breakdown")}
+          </TabsTrigger>
           <TabsTrigger value="history">{t("tabs.payment_history")}</TabsTrigger>
         </TabsList>
 
@@ -266,7 +317,8 @@ export default function BillingManager({ providerId }: BillingManagerProps) {
                   <span>{t("invoices_title")}</span>
                 </div>
                 <Badge variant="outline">
-                  {invoices.length} {t("invoice_count", { count: invoices.length })}
+                  {invoices.length}{" "}
+                  {t("invoice_count", { count: invoices.length })}
                 </Badge>
               </CardTitle>
             </CardHeader>
@@ -284,12 +336,17 @@ export default function BillingManager({ providerId }: BillingManagerProps) {
               ) : (
                 <div className="space-y-4">
                   {invoices.map((invoice) => (
-                    <Card key={invoice.id} className="border-l-4 border-l-blue-500">
+                    <Card
+                      key={invoice.id}
+                      className="border-l-4 border-l-blue-500"
+                    >
                       <CardContent className="p-4">
                         <div className="flex items-start justify-between">
                           <div className="space-y-2">
                             <div className="flex items-center space-x-2">
-                              <h4 className="font-medium">{invoice.invoiceNumber}</h4>
+                              <h4 className="font-medium">
+                                {invoice.invoiceNumber}
+                              </h4>
                               {getStatusBadge(invoice.status)}
                             </div>
                             <p className="text-sm text-gray-600">
@@ -297,27 +354,49 @@ export default function BillingManager({ providerId }: BillingManagerProps) {
                             </p>
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                               <div>
-                                <span className="text-gray-600">{t("invoice.gross_amount")}:</span>
+                                <span className="text-gray-600">
+                                  {t("invoice.gross_amount")}:
+                                </span>
                                 <p className="font-medium">{invoice.amount}€</p>
                               </div>
                               <div>
-                                <span className="text-gray-600">{t("invoice.commission")}:</span>
-                                <p className="font-medium text-red-600">-{invoice.commissionAmount}€</p>
+                                <span className="text-gray-600">
+                                  {t("invoice.commission")}:
+                                </span>
+                                <p className="font-medium text-red-600">
+                                  -{invoice.commissionAmount}€
+                                </p>
                               </div>
                               <div>
-                                <span className="text-gray-600">{t("invoice.net_amount")}:</span>
-                                <p className="font-medium text-green-600">{invoice.netAmount}€</p>
+                                <span className="text-gray-600">
+                                  {t("invoice.net_amount")}:
+                                </span>
+                                <p className="font-medium text-green-600">
+                                  {invoice.netAmount}€
+                                </p>
                               </div>
                               <div>
-                                <span className="text-gray-600">{t("invoice.services")}:</span>
-                                <p className="font-medium">{invoice.totalServices}</p>
+                                <span className="text-gray-600">
+                                  {t("invoice.services")}:
+                                </span>
+                                <p className="font-medium">
+                                  {invoice.totalServices}
+                                </p>
                               </div>
                             </div>
                             <div className="text-xs text-gray-500">
-                              {t("invoice.issued")}: {new Date(invoice.issuedAt).toLocaleDateString()} | 
-                              {t("invoice.due")}: {new Date(invoice.dueDate).toLocaleDateString()}
+                              {t("invoice.issued")}:{" "}
+                              {new Date(invoice.issuedAt).toLocaleDateString()}{" "}
+                              |{t("invoice.due")}:{" "}
+                              {new Date(invoice.dueDate).toLocaleDateString()}
                               {invoice.paidAt && (
-                                <> | {t("invoice.paid")}: {new Date(invoice.paidAt).toLocaleDateString()}</>
+                                <>
+                                  {" "}
+                                  | {t("invoice.paid")}:{" "}
+                                  {new Date(
+                                    invoice.paidAt,
+                                  ).toLocaleDateString()}
+                                </>
                               )}
                             </div>
                           </div>
@@ -367,26 +446,41 @@ export default function BillingManager({ providerId }: BillingManagerProps) {
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {serviceBreakdown.map((service, index) => (
-                    <Card key={index} className="border-l-4 border-l-purple-500">
+                    <Card
+                      key={index}
+                      className="border-l-4 border-l-purple-500"
+                    >
                       <CardContent className="p-4">
                         <div className="space-y-2">
                           <h4 className="font-medium">{service.serviceType}</h4>
                           <div className="space-y-1 text-sm">
                             <div className="flex justify-between">
-                              <span className="text-gray-600">{t("breakdown.count")}:</span>
+                              <span className="text-gray-600">
+                                {t("breakdown.count")}:
+                              </span>
                               <span>{service.count}</span>
                             </div>
                             <div className="flex justify-between">
-                              <span className="text-gray-600">{t("breakdown.total")}:</span>
-                              <span className="font-medium">{service.totalAmount}€</span>
+                              <span className="text-gray-600">
+                                {t("breakdown.total")}:
+                              </span>
+                              <span className="font-medium">
+                                {service.totalAmount}€
+                              </span>
                             </div>
                             <div className="flex justify-between">
-                              <span className="text-gray-600">{t("breakdown.average")}:</span>
+                              <span className="text-gray-600">
+                                {t("breakdown.average")}:
+                              </span>
                               <span>{service.averagePrice}€</span>
                             </div>
                             <div className="flex justify-between">
-                              <span className="text-gray-600">{t("breakdown.commission")}:</span>
-                              <span className="text-red-600">-{service.commission}€</span>
+                              <span className="text-gray-600">
+                                {t("breakdown.commission")}:
+                              </span>
+                              <span className="text-red-600">
+                                -{service.commission}€
+                              </span>
                             </div>
                           </div>
                         </div>
@@ -410,9 +504,7 @@ export default function BillingManager({ providerId }: BillingManagerProps) {
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">
                   {t("history_coming_soon")}
                 </h3>
-                <p className="text-gray-600">
-                  {t("history_description")}
-                </p>
+                <p className="text-gray-600">{t("history_description")}</p>
               </div>
             </CardContent>
           </Card>

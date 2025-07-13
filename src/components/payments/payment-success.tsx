@@ -1,91 +1,91 @@
-'use client'
+"use client";
 
-import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { CheckCircle, ArrowRight, Download, Share2 } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Separator } from '@/components/ui/separator'
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { CheckCircle, ArrowRight, Download, Share2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
 
 interface PaymentSuccessProps {
-  paymentIntentId?: string
-  amount?: number
-  currency?: string
-  description?: string
-  type?: 'delivery' | 'booking' | 'subscription'
-  entityId?: string
+  paymentIntentId?: string;
+  amount?: number;
+  currency?: string;
+  description?: string;
+  type?: "delivery" | "booking" | "subscription";
+  entityId?: string;
 }
 
 export function PaymentSuccess({
   paymentIntentId,
   amount,
-  currency = 'EUR',
+  currency = "EUR",
   description,
   type,
-  entityId
+  entityId,
 }: PaymentSuccessProps) {
-  const router = useRouter()
-  const [isLoading, setIsLoading] = useState(false)
+  const router = useRouter();
+  const [isLoading, setIsLoading] = useState(false);
 
   const formatAmount = (amount: number, currency: string) => {
-    return new Intl.NumberFormat('fr-FR', {
-      style: 'currency',
-      currency: currency.toUpperCase()
-    }).format(amount)
-  }
+    return new Intl.NumberFormat("fr-FR", {
+      style: "currency",
+      currency: currency.toUpperCase(),
+    }).format(amount);
+  };
 
   const handleViewDetails = () => {
-    setIsLoading(true)
+    setIsLoading(true);
     switch (type) {
-      case 'delivery':
-        router.push(`/client/deliveries/${entityId}`)
-        break
-      case 'booking':
-        router.push(`/client/services/bookings`)
-        break
-      case 'subscription':
-        router.push('/client/subscription')
-        break
+      case "delivery":
+        router.push(`/client/deliveries/${entityId}`);
+        break;
+      case "booking":
+        router.push(`/client/services/bookings`);
+        break;
+      case "subscription":
+        router.push("/client/subscription");
+        break;
       default:
-        router.push('/client')
+        router.push("/client");
     }
-  }
+  };
 
   const handleDownloadReceipt = async () => {
     // TODO: Implémenter téléchargement du reçu
-    console.log('Téléchargement du reçu:', paymentIntentId)
-  }
+    console.log("Téléchargement du reçu:", paymentIntentId);
+  };
 
   const getSuccessMessage = () => {
     switch (type) {
-      case 'delivery':
+      case "delivery":
         return {
-          title: 'Paiement de livraison confirmé !',
-          subtitle: 'Votre livraison va être traitée',
-          nextAction: 'Suivre ma livraison'
-        }
-      case 'booking':
+          title: "Paiement de livraison confirmé !",
+          subtitle: "Votre livraison va être traitée",
+          nextAction: "Suivre ma livraison",
+        };
+      case "booking":
         return {
-          title: 'Réservation confirmée !',
-          subtitle: 'Votre prestataire va être notifié',
-          nextAction: 'Voir mes réservations'
-        }
-      case 'subscription':
+          title: "Réservation confirmée !",
+          subtitle: "Votre prestataire va être notifié",
+          nextAction: "Voir mes réservations",
+        };
+      case "subscription":
         return {
-          title: 'Abonnement activé !',
-          subtitle: 'Profitez de tous les avantages',
-          nextAction: 'Découvrir mes avantages'
-        }
+          title: "Abonnement activé !",
+          subtitle: "Profitez de tous les avantages",
+          nextAction: "Découvrir mes avantages",
+        };
       default:
         return {
-          title: 'Paiement confirmé !',
-          subtitle: 'Votre transaction a été traitée',
-          nextAction: 'Continuer'
-        }
+          title: "Paiement confirmé !",
+          subtitle: "Votre transaction a été traitée",
+          nextAction: "Continuer",
+        };
     }
-  }
+  };
 
-  const { title, subtitle, nextAction } = getSuccessMessage()
+  const { title, subtitle, nextAction } = getSuccessMessage();
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-green-50 to-blue-50">
@@ -97,9 +97,7 @@ export function PaymentSuccess({
           <CardTitle className="text-2xl font-bold text-green-900">
             {title}
           </CardTitle>
-          <p className="text-muted-foreground">
-            {subtitle}
-          </p>
+          <p className="text-muted-foreground">{subtitle}</p>
         </CardHeader>
 
         <CardContent className="space-y-6">
@@ -111,14 +109,16 @@ export function PaymentSuccess({
                 <span className="font-medium">{description}</span>
               </div>
             )}
-            
+
             {amount && (
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Montant</span>
-                <span className="font-medium">{formatAmount(amount, currency)}</span>
+                <span className="font-medium">
+                  {formatAmount(amount, currency)}
+                </span>
               </div>
             )}
-            
+
             {paymentIntentId && (
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Référence</span>
@@ -153,16 +153,16 @@ export function PaymentSuccess({
                 <Download className="w-4 h-4 mr-2" />
                 Reçu
               </Button>
-              
+
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => {
                   if (navigator.share) {
                     navigator.share({
-                      title: 'Paiement confirmé - EcoDeli',
+                      title: "Paiement confirmé - EcoDeli",
                       text: `Paiement de ${formatAmount(amount || 0, currency)} confirmé`,
-                    })
+                    });
                   }
                 }}
                 className="w-full"
@@ -179,5 +179,5 @@ export function PaymentSuccess({
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }

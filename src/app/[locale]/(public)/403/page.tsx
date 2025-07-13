@@ -1,11 +1,11 @@
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { ShieldAlert, ArrowLeft, Home } from "lucide-react"
-import Link from "next/link"
-import { useTranslations } from "next-intl"
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ShieldAlert, ArrowLeft, Home } from "lucide-react";
+import Link from "next/link";
+import { useTranslations } from "next-intl";
 
 export default function ForbiddenPage() {
-  const t = useTranslations()
+  const t = useTranslations();
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
@@ -21,12 +21,14 @@ export default function ForbiddenPage() {
           </CardHeader>
           <CardContent className="space-y-4 text-center">
             <p className="text-gray-600">
-              Vous n'avez pas les permissions nécessaires pour accéder à cette page.
+              Vous n'avez pas les permissions nécessaires pour accéder à cette
+              page.
             </p>
             <p className="text-sm text-gray-500">
-              Si vous pensez qu'il s'agit d'une erreur, contactez l'administrateur.
+              Si vous pensez qu'il s'agit d'une erreur, contactez
+              l'administrateur.
             </p>
-            
+
             <div className="flex flex-col sm:flex-row gap-3 mt-6">
               <Button asChild variant="outline" className="flex-1">
                 <Link href="javascript:history.back()">
@@ -45,5 +47,5 @@ export default function ForbiddenPage() {
         </Card>
       </div>
     </div>
-  )
-} 
+  );
+}

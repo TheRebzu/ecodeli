@@ -1,180 +1,202 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from 'react'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Badge } from '@/components/ui/badge'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Separator } from '@/components/ui/separator'
-import { Calendar, Clock, MapPin, Star, User, Phone, Mail, ChevronLeft, ChevronRight } from 'lucide-react'
-import { format, addDays, isSameDay, parseISO } from 'date-fns'
-import { fr } from 'date-fns/locale'
+import { useState, useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Separator } from "@/components/ui/separator";
+import {
+  Calendar,
+  Clock,
+  MapPin,
+  Star,
+  User,
+  Phone,
+  Mail,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
+import { format, addDays, isSameDay, parseISO } from "date-fns";
+import { fr } from "date-fns/locale";
 
 const bookingSchema = z.object({
-  serviceId: z.string().min(1, 'Service requis'),
-  scheduledDate: z.string().min(1, 'Date requise'),
-  scheduledTime: z.string().min(1, 'Heure requise'),
+  serviceId: z.string().min(1, "Service requis"),
+  scheduledDate: z.string().min(1, "Date requise"),
+  scheduledTime: z.string().min(1, "Heure requise"),
   address: z.object({
-    address: z.string().min(5, 'Adresse requise'),
-    city: z.string().min(2, 'Ville requise'),
-    postalCode: z.string().min(5, 'Code postal requis'),
+    address: z.string().min(5, "Adresse requise"),
+    city: z.string().min(2, "Ville requise"),
+    postalCode: z.string().min(5, "Code postal requis"),
     lat: z.number().optional(),
-    lng: z.number().optional()
+    lng: z.number().optional(),
   }),
-  notes: z.string().optional()
-})
+  notes: z.string().optional(),
+});
 
-type BookingFormData = z.infer<typeof bookingSchema>
+type BookingFormData = z.infer<typeof bookingSchema>;
 
 interface Provider {
-  id: string
-  name: string
-  avatar?: string
-  businessName?: string
-  rating: number
-  totalReviews: number
-  specialties: string[]
-  services: Service[]
-  isVerified: boolean
+  id: string;
+  name: string;
+  avatar?: string;
+  businessName?: string;
+  rating: number;
+  totalReviews: number;
+  specialties: string[];
+  services: Service[];
+  isVerified: boolean;
 }
 
 interface Service {
-  id: string
-  name: string
-  description: string
-  duration: number
-  basePrice: number
-  type: string
+  id: string;
+  name: string;
+  description: string;
+  duration: number;
+  basePrice: number;
+  type: string;
 }
 
 interface TimeSlot {
-  date: string
-  time: string
-  available: boolean
+  date: string;
+  time: string;
+  available: boolean;
 }
 
 export function AppointmentBooking({ providerId }: { providerId: string }) {
-  const [provider, setProvider] = useState<Provider | null>(null)
-  const [selectedService, setSelectedService] = useState<Service | null>(null)
-  const [availableSlots, setAvailableSlots] = useState<TimeSlot[]>([])
-  const [selectedDate, setSelectedDate] = useState<Date>(new Date())
-  const [isLoading, setIsLoading] = useState(false)
-  const [step, setStep] = useState(1) // 1: Service, 2: Date/Heure, 3: Détails, 4: Confirmation
+  const [provider, setProvider] = useState<Provider | null>(null);
+  const [selectedService, setSelectedService] = useState<Service | null>(null);
+  const [availableSlots, setAvailableSlots] = useState<TimeSlot[]>([]);
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [isLoading, setIsLoading] = useState(false);
+  const [step, setStep] = useState(1); // 1: Service, 2: Date/Heure, 3: Détails, 4: Confirmation
 
   const {
     register,
     handleSubmit,
     setValue,
     watch,
-    formState: { errors, isSubmitting }
+    formState: { errors, isSubmitting },
   } = useForm<BookingFormData>({
-    resolver: zodResolver(bookingSchema)
-  })
+    resolver: zodResolver(bookingSchema),
+  });
 
-  const watchedValues = watch()
+  const watchedValues = watch();
 
   // Charger les informations du prestataire
   useEffect(() => {
-    loadProviderData()
-  }, [providerId])
+    loadProviderData();
+  }, [providerId]);
 
   // Charger les créneaux disponibles quand un service est sélectionné
   useEffect(() => {
     if (selectedService) {
-      loadAvailableSlots()
+      loadAvailableSlots();
     }
-  }, [selectedService, selectedDate])
+  }, [selectedService, selectedDate]);
 
   const loadProviderData = async () => {
     try {
-      const response = await fetch(`/api/provider/${providerId}/public`)
+      const response = await fetch(`/api/provider/${providerId}/public`);
       if (response.ok) {
-        const data = await response.json()
-        setProvider(data.provider)
+        const data = await response.json();
+        setProvider(data.provider);
       }
     } catch (error) {
-      console.error('Erreur chargement prestataire:', error)
+      console.error("Erreur chargement prestataire:", error);
     }
-  }
+  };
 
   const loadAvailableSlots = async () => {
-    if (!selectedService) return
+    if (!selectedService) return;
 
-    setIsLoading(true)
+    setIsLoading(true);
     try {
-      const dateStr = format(selectedDate) || 'yyyy-MM-dd'
+      const dateStr = format(selectedDate) || "yyyy-MM-dd";
       const response = await fetch(
-        `/api/provider/${providerId}/availability?date=${dateStr}&serviceId=${selectedService.id}`
-      )
-      
+        `/api/provider/${providerId}/availability?date=${dateStr}&serviceId=${selectedService.id}`,
+      );
+
       if (response.ok) {
-        const data = await response.json()
-        setAvailableSlots(data.slots || [])
+        const data = await response.json();
+        setAvailableSlots(data.slots || []);
       }
     } catch (error) {
-      console.error('Erreur chargement créneaux:', error)
+      console.error("Erreur chargement créneaux:", error);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const onSubmit = async (data: BookingFormData) => {
     try {
-      const response = await fetch('/api/client/appointments', {
-        method: 'POST',
+      const response = await fetch("/api/client/appointments", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json'
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify(data)
-      })
+        body: JSON.stringify(data),
+      });
 
-      const result = await response.json()
+      const result = await response.json();
 
       if (response.ok) {
-        setStep(4) // Aller à la confirmation
+        setStep(4); // Aller à la confirmation
       } else {
         // Gérer les erreurs
-        alert(result.error || 'Erreur lors de la réservation')
+        alert(result.error || "Erreur lors de la réservation");
       }
     } catch (error) {
-      console.error('Erreur réservation:', error)
-      alert('Erreur lors de la réservation')
+      console.error("Erreur réservation:", error);
+      alert("Erreur lors de la réservation");
     }
-  }
+  };
 
   const selectService = (service: Service) => {
-    setSelectedService(service)
-    setValue('serviceId', service.id)
-    setStep(2)
-  }
+    setSelectedService(service);
+    setValue("serviceId", service.id);
+    setStep(2);
+  };
 
   const selectDateTime = (date: string, time: string) => {
-    setValue('scheduledDate', date)
-    setValue('scheduledTime', time)
-    setStep(3)
-  }
+    setValue("scheduledDate", date);
+    setValue("scheduledTime", time);
+    setStep(3);
+  };
 
   const nextWeek = () => {
-    setSelectedDate(addDays(selectedDate, 7))
-  }
+    setSelectedDate(addDays(selectedDate, 7));
+  };
 
   const prevWeek = () => {
-    setSelectedDate(addDays(selectedDate, -7))
-  }
+    setSelectedDate(addDays(selectedDate, -7));
+  };
 
   if (!provider) {
     return (
       <div className="flex justify-center items-center h-64">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </div>
-    )
+    );
   }
 
   return (
@@ -186,34 +208,48 @@ export function AppointmentBooking({ providerId }: { providerId: string }) {
             <Avatar className="h-16 w-16">
               <AvatarImage src={provider.avatar} />
               <AvatarFallback>
-                {provider.name.split(' ').map(n => n[0]).join('')}
+                {provider.name
+                  .split(" ")
+                  .map((n) => n[0])
+                  .join("")}
               </AvatarFallback>
             </Avatar>
-            
+
             <div className="flex-1">
               <div className="flex items-center space-x-2">
                 <h1 className="text-2xl font-bold">{provider.name}</h1>
                 {provider.isVerified && (
-                  <Badge variant="secondary" className="bg-green-100 text-green-800">
+                  <Badge
+                    variant="secondary"
+                    className="bg-green-100 text-green-800"
+                  >
                     Vérifié
                   </Badge>
                 )}
               </div>
-              
+
               {provider.businessName && (
                 <p className="text-muted-foreground">{provider.businessName}</p>
               )}
-              
+
               <div className="flex items-center space-x-4 mt-2">
                 <div className="flex items-center space-x-1">
                   <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                  <span className="font-medium">{provider.rating.toFixed(1)}</span>
-                  <span className="text-muted-foreground">({provider.totalReviews} avis)</span>
+                  <span className="font-medium">
+                    {provider.rating.toFixed(1)}
+                  </span>
+                  <span className="text-muted-foreground">
+                    ({provider.totalReviews} avis)
+                  </span>
                 </div>
-                
+
                 <div className="flex space-x-1">
                   {provider.specialties.slice(0, 3).map((specialty) => (
-                    <Badge key={specialty} variant="outline" className="text-xs">
+                    <Badge
+                      key={specialty}
+                      variant="outline"
+                      className="text-xs"
+                    >
                       {specialty}
                     </Badge>
                   ))}
@@ -228,20 +264,25 @@ export function AppointmentBooking({ providerId }: { providerId: string }) {
       <div className="flex items-center justify-center space-x-4 mb-8">
         {[1, 2, 3, 4].map((stepNum) => (
           <div key={stepNum} className="flex items-center">
-            <div className={`
+            <div
+              className={`
               w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium
-              ${stepNum <= step 
-                ? 'bg-primary text-primary-foreground' 
-                : 'bg-muted text-muted-foreground'
+              ${
+                stepNum <= step
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-muted text-muted-foreground"
               }
-            `}>
+            `}
+            >
               {stepNum}
             </div>
             {stepNum < 4 && (
-              <div className={`
+              <div
+                className={`
                 w-16 h-0.5
-                ${stepNum < step ? 'bg-primary' : 'bg-muted'}
-              `} />
+                ${stepNum < step ? "bg-primary" : "bg-muted"}
+              `}
+              />
             )}
           </div>
         ))}
@@ -259,8 +300,8 @@ export function AppointmentBooking({ providerId }: { providerId: string }) {
           <CardContent>
             <div className="grid gap-4">
               {provider.services.map((service) => (
-                <Card 
-                  key={service.id} 
+                <Card
+                  key={service.id}
                   className="cursor-pointer hover:shadow-md transition-shadow"
                   onClick={() => selectService(service)}
                 >
@@ -280,8 +321,12 @@ export function AppointmentBooking({ providerId }: { providerId: string }) {
                         </div>
                       </div>
                       <div className="text-right">
-                        <p className="text-lg font-bold">{service.basePrice}€</p>
-                        <p className="text-sm text-muted-foreground">à partir de</p>
+                        <p className="text-lg font-bold">
+                          {service.basePrice}€
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          à partir de
+                        </p>
                       </div>
                     </div>
                   </CardContent>
@@ -310,7 +355,7 @@ export function AppointmentBooking({ providerId }: { providerId: string }) {
                   Semaine précédente
                 </Button>
                 <h3 className="font-medium">
-                  {format(selectedDate, 'MMMM yyyy', { locale: fr })}
+                  {format(selectedDate, "MMMM yyyy", { locale: fr })}
                 </h3>
                 <Button variant="outline" onClick={nextWeek}>
                   Semaine suivante
@@ -321,21 +366,23 @@ export function AppointmentBooking({ providerId }: { providerId: string }) {
               {/* Calendrier des créneaux */}
               <div className="grid grid-cols-7 gap-2">
                 {Array.from({ length: 7 }, (_, i) => {
-                  const date = addDays(selectedDate, i)
-                  const dateStr = format(date) || 'yyyy-MM-dd'
-                  const daySlots = availableSlots.filter(slot => slot.date === dateStr)
-                  
+                  const date = addDays(selectedDate, i);
+                  const dateStr = format(date) || "yyyy-MM-dd";
+                  const daySlots = availableSlots.filter(
+                    (slot) => slot.date === dateStr,
+                  );
+
                   return (
                     <div key={i} className="space-y-2">
                       <div className="text-center">
                         <p className="text-sm font-medium">
-                          {format(date, 'EEE', { locale: fr })}
+                          {format(date, "EEE", { locale: fr })}
                         </p>
                         <p className="text-sm text-muted-foreground">
-                          {format(date) || 'dd'}
+                          {format(date) || "dd"}
                         </p>
                       </div>
-                      
+
                       <div className="space-y-1">
                         {daySlots.map((slot) => (
                           <Button
@@ -349,7 +396,7 @@ export function AppointmentBooking({ providerId }: { providerId: string }) {
                             {slot.time}
                           </Button>
                         ))}
-                        
+
                         {daySlots.length === 0 && (
                           <p className="text-xs text-muted-foreground text-center py-2">
                             Indisponible
@@ -357,7 +404,7 @@ export function AppointmentBooking({ providerId }: { providerId: string }) {
                         )}
                       </div>
                     </div>
-                  )
+                  );
                 })}
               </div>
 
@@ -386,18 +433,34 @@ export function AppointmentBooking({ providerId }: { providerId: string }) {
               <div className="bg-muted p-4 rounded-lg">
                 <h4 className="font-medium mb-2">Récapitulatif</h4>
                 <div className="space-y-1 text-sm">
-                  <p><strong>Service:</strong> {selectedService?.name}</p>
-                  <p><strong>Date:</strong> {watchedValues.scheduledDate && format(parseISO(watchedValues.scheduledDate), 'EEEE dd MMMM yyyy', { locale: fr })}</p>
-                  <p><strong>Heure:</strong> {watchedValues.scheduledTime}</p>
-                  <p><strong>Durée:</strong> {selectedService?.duration} minutes</p>
-                  <p><strong>Prix:</strong> {selectedService?.basePrice}€</p>
+                  <p>
+                    <strong>Service:</strong> {selectedService?.name}
+                  </p>
+                  <p>
+                    <strong>Date:</strong>{" "}
+                    {watchedValues.scheduledDate &&
+                      format(
+                        parseISO(watchedValues.scheduledDate),
+                        "EEEE dd MMMM yyyy",
+                        { locale: fr },
+                      )}
+                  </p>
+                  <p>
+                    <strong>Heure:</strong> {watchedValues.scheduledTime}
+                  </p>
+                  <p>
+                    <strong>Durée:</strong> {selectedService?.duration} minutes
+                  </p>
+                  <p>
+                    <strong>Prix:</strong> {selectedService?.basePrice}€
+                  </p>
                 </div>
               </div>
 
               {/* Adresse d'intervention */}
               <div className="space-y-4">
                 <h4 className="font-medium">Adresse d'intervention</h4>
-                
+
                 <div>
                   <Label htmlFor="address">Adresse *</Label>
                   <Input
@@ -405,22 +468,23 @@ export function AppointmentBooking({ providerId }: { providerId: string }) {
                     placeholder="123 Rue de la République"
                   />
                   {errors.address?.address && (
-                    <p className="text-sm text-red-500 mt-1">{errors.address.address.message}</p>
+                    <p className="text-sm text-red-500 mt-1">
+                      {errors.address.address.message}
+                    </p>
                   )}
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="city">Ville *</Label>
-                    <Input
-                      {...register("address.city")}
-                      placeholder="Paris"
-                    />
+                    <Input {...register("address.city")} placeholder="Paris" />
                     {errors.address?.city && (
-                      <p className="text-sm text-red-500 mt-1">{errors.address.city.message}</p>
+                      <p className="text-sm text-red-500 mt-1">
+                        {errors.address.city.message}
+                      </p>
                     )}
                   </div>
-                  
+
                   <div>
                     <Label htmlFor="postalCode">Code postal *</Label>
                     <Input
@@ -428,7 +492,9 @@ export function AppointmentBooking({ providerId }: { providerId: string }) {
                       placeholder="75001"
                     />
                     {errors.address?.postalCode && (
-                      <p className="text-sm text-red-500 mt-1">{errors.address.postalCode.message}</p>
+                      <p className="text-sm text-red-500 mt-1">
+                        {errors.address.postalCode.message}
+                      </p>
                     )}
                   </div>
                 </div>
@@ -446,15 +512,15 @@ export function AppointmentBooking({ providerId }: { providerId: string }) {
 
               {/* Actions */}
               <div className="flex justify-between pt-4">
-                <Button 
-                  type="button" 
-                  variant="outline" 
+                <Button
+                  type="button"
+                  variant="outline"
                   onClick={() => setStep(2)}
                 >
                   Retour
                 </Button>
                 <Button type="submit" disabled={isSubmitting}>
-                  {isSubmitting ? 'Réservation...' : 'Confirmer la réservation'}
+                  {isSubmitting ? "Réservation..." : "Confirmer la réservation"}
                 </Button>
               </div>
             </CardContent>
@@ -469,11 +535,11 @@ export function AppointmentBooking({ providerId }: { providerId: string }) {
             <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <Calendar className="h-8 w-8 text-green-600" />
             </div>
-            
+
             <h2 className="text-2xl font-bold mb-2">Rendez-vous confirmé !</h2>
             <p className="text-muted-foreground mb-6">
-              Votre demande de rendez-vous a été envoyée au prestataire. 
-              Vous recevrez une confirmation par email et notification.
+              Votre demande de rendez-vous a été envoyée au prestataire. Vous
+              recevrez une confirmation par email et notification.
             </p>
 
             <div className="space-y-2">
@@ -488,5 +554,5 @@ export function AppointmentBooking({ providerId }: { providerId: string }) {
         </Card>
       )}
     </div>
-  )
+  );
 }

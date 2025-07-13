@@ -7,92 +7,100 @@ export async function GET(request: NextRequest) {
   try {
     const session = await auth();
     if (!session || session.user.role !== "PROVIDER") {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const { searchParams } = new URL(request.url);
-    const providerId = searchParams.get('providerId') || session.user.id;
+    const providerId = searchParams.get("providerId") || session.user.id;
 
     if (!providerId) {
-      return NextResponse.json({ error: 'Provider ID required' }, { status: 400 });
+      return NextResponse.json(
+        { error: "Provider ID required" },
+        { status: 400 },
+      );
     }
 
     // Vérifier que le provider existe et appartient à l'utilisateur
     const provider = await prisma.provider.findFirst({
       where: {
-        OR: [
-          { id: providerId },
-          { userId: session.user.id }
-        ]
-      }
+        OR: [{ id: providerId }, { userId: session.user.id }],
+      },
     });
 
     if (!provider) {
-      return NextResponse.json({ error: 'Provider not found' }, { status: 404 });
+      return NextResponse.json(
+        { error: "Provider not found" },
+        { status: 404 },
+      );
     }
 
     // Statistiques des réservations
     const totalBookings = await prisma.booking.count({
       where: {
-        providerId: provider.id
-      }
+        providerId: provider.id,
+      },
     });
 
     const activeBookings = await prisma.booking.count({
       where: {
         providerId: provider.id,
-        status: 'CONFIRMED'
-      }
+        status: "CONFIRMED",
+      },
     });
 
     const completedBookings = await prisma.booking.count({
       where: {
         providerId: provider.id,
-        status: 'COMPLETED'
-      }
+        status: "COMPLETED",
+      },
     });
 
     // Revenus du mois en cours
     const currentMonth = new Date();
-    const firstDayOfMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
-    const lastDayOfMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0);
+    const firstDayOfMonth = new Date(
+      currentMonth.getFullYear(),
+      currentMonth.getMonth(),
+      1,
+    );
+    const lastDayOfMonth = new Date(
+      currentMonth.getFullYear(),
+      currentMonth.getMonth() + 1,
+      0,
+    );
 
     const monthlyEarnings = await prisma.booking.aggregate({
       where: {
         providerId: provider.id,
-        status: 'COMPLETED',
+        status: "COMPLETED",
         scheduledDate: {
           gte: firstDayOfMonth,
-          lte: lastDayOfMonth
-        }
+          lte: lastDayOfMonth,
+        },
       },
       _sum: {
-        totalPrice: true
-      }
+        totalPrice: true,
+      },
     });
 
     // Revenus totaux
     const totalEarnings = await prisma.booking.aggregate({
       where: {
         providerId: provider.id,
-        status: 'COMPLETED'
+        status: "COMPLETED",
       },
       _sum: {
-        totalPrice: true
-      }
+        totalPrice: true,
+      },
     });
 
     // Note moyenne
     const averageRating = await prisma.review.aggregate({
       where: {
-        providerId: provider.id
+        providerId: provider.id,
       },
       _avg: {
-        rating: true
-      }
+        rating: true,
+      },
     });
 
     // Solde disponible (simulé - gains moins retraits)
@@ -100,31 +108,32 @@ export async function GET(request: NextRequest) {
       where: {
         userId: provider.userId,
         type: "WITHDRAWAL",
-        status: "COMPLETED"
+        status: "COMPLETED",
       },
       _sum: {
-        amount: true
-      }
+        amount: true,
+      },
     });
 
     const totalWithdrawals = withdrawalsResult._sum.amount || 0;
-    const availableBalance = (totalEarnings._sum.totalPrice || 0) - totalWithdrawals;
+    const availableBalance =
+      (totalEarnings._sum.totalPrice || 0) - totalWithdrawals;
 
     // Évolution des réservations sur les 6 derniers mois
     const sixMonthsAgo = new Date();
     sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
 
     const monthlyBookings = await prisma.booking.groupBy({
-      by: ['scheduledDate'],
+      by: ["scheduledDate"],
       where: {
         providerId: provider.id,
         scheduledDate: {
-          gte: sixMonthsAgo
-        }
+          gte: sixMonthsAgo,
+        },
       },
       _count: {
-        id: true
-      }
+        id: true,
+      },
     });
 
     // Prochaines réservations (7 prochains jours)
@@ -134,19 +143,19 @@ export async function GET(request: NextRequest) {
     const upcomingBookings = await prisma.booking.count({
       where: {
         providerId: provider.id,
-        status: 'CONFIRMED',
+        status: "CONFIRMED",
         scheduledDate: {
           gte: new Date(),
-          lte: nextWeek
-        }
-      }
+          lte: nextWeek,
+        },
+      },
     });
 
     // Compter le nombre total d'avis pour les évaluations
     const totalReviews = await prisma.review.count({
       where: {
-        providerId: provider.id
-      }
+        providerId: provider.id,
+      },
     });
 
     // Prochaine date de paiement (30 de chaque mois)
@@ -156,7 +165,7 @@ export async function GET(request: NextRequest) {
     const nextPayout = nextMonth.toISOString();
 
     // Statut de validation du provider
-    const validationStatus = provider.validationStatus || 'PENDING';
+    const validationStatus = provider.validationStatus || "PENDING";
 
     return NextResponse.json({
       totalServices: totalBookings,
@@ -170,13 +179,13 @@ export async function GET(request: NextRequest) {
       nextPayout,
       availableBalance,
       upcomingBookings,
-      monthlyBookingsData: monthlyBookings
+      monthlyBookingsData: monthlyBookings,
     });
   } catch (error) {
-    console.error('Error fetching provider dashboard stats:', error);
+    console.error("Error fetching provider dashboard stats:", error);
     return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
+      { error: "Internal server error" },
+      { status: 500 },
     );
   }
-} 
+}

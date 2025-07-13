@@ -1,27 +1,39 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Switch } from '@/components/ui/switch'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Separator } from '@/components/ui/separator'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { 
-  Database, 
-  HardDrive, 
-  Settings, 
-  Shield, 
+import { useState } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Database,
+  HardDrive,
+  Settings,
+  Shield,
   Clock,
   CheckCircle,
   AlertTriangle,
-  RefreshCw
-} from 'lucide-react'
+  RefreshCw,
+} from "lucide-react";
 
 interface SystemSettingsProps {
-  onSettingsChange: () => void
+  onSettingsChange: () => void;
 }
 
 export function SystemSettings({ onSettingsChange }: SystemSettingsProps) {
@@ -30,61 +42,65 @@ export function SystemSettings({ onSettingsChange }: SystemSettingsProps) {
     database: {
       maxConnections: 20,
       enableLogging: true,
-      enableQueryCache: true
+      enableQueryCache: true,
     },
-    
+
     // Configuration cache
     cache: {
       enabled: true,
-      provider: 'redis',
-      ttl: 3600
+      provider: "redis",
+      ttl: 3600,
     },
-    
+
     // Configuration serveur
     server: {
       port: 3000,
       enableCORS: true,
-      enableCompression: true
+      enableCompression: true,
     },
-    
+
     // Configuration maintenance
     maintenance: {
       enabled: false,
-      message: 'Site en maintenance. Merci de votre patience.'
+      message: "Site en maintenance. Merci de votre patience.",
     },
-    
+
     // Configuration logs
     logs: {
-      level: 'info',
-      enableAuditLogs: true
+      level: "info",
+      enableAuditLogs: true,
     },
-    
+
     // Configuration backup
     backup: {
       enabled: true,
-      frequency: 'daily',
-      retention: 30
-    }
-  })
+      frequency: "daily",
+      retention: 30,
+    },
+  });
 
   const handleChange = (key: string, value: any) => {
-    setSettings(prev => ({
+    setSettings((prev) => ({
       ...prev,
-      [key]: value
-    }))
-    onSettingsChange()
-  }
+      [key]: value,
+    }));
+    onSettingsChange();
+  };
 
-  const handleNestedChange = (parentKey: string, childKey: string, value: any) => {
-    setSettings(prev => ({
+  const handleNestedChange = (
+    parentKey: string,
+    childKey: string,
+    value: any,
+  ) => {
+    setSettings((prev) => ({
       ...prev,
       [parentKey]: {
         ...prev[parentKey as keyof typeof prev],
-        [childKey]: value
-      }
-    }))
-    onSettingsChange()
-  }
+        [childKey]: value,
+      },
+    }));
+    onSettingsChange();
+  };
 
   return (
     <div className="space-y-6">
@@ -110,12 +126,18 @@ export function SystemSettings({ onSettingsChange }: SystemSettingsProps) {
               id="maxConnections"
               type="number"
               value={settings.database.maxConnections}
-              onChange={(e) => handleNestedChange('database', 'maxConnections', parseInt(e.target.value))}
+              onChange={(e) =>
+                handleNestedChange(
+                  "database",
+                  "maxConnections",
+                  parseInt(e.target.value),
+                )
+              }
               min="5"
               max="100"
             />
           </div>
-          
+
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
@@ -126,12 +148,14 @@ export function SystemSettings({ onSettingsChange }: SystemSettingsProps) {
               </div>
               <Switch
                 checked={settings.database.enableLogging}
-                onCheckedChange={(checked) => handleNestedChange('database', 'enableLogging', checked)}
+                onCheckedChange={(checked) =>
+                  handleNestedChange("database", "enableLogging", checked)
+                }
               />
             </div>
-            
+
             <Separator />
-            
+
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
                 <Label>Cache des requêtes</Label>
@@ -141,7 +165,9 @@ export function SystemSettings({ onSettingsChange }: SystemSettingsProps) {
               </div>
               <Switch
                 checked={settings.database.enableQueryCache}
-                onCheckedChange={(checked) => handleNestedChange('database', 'enableQueryCache', checked)}
+                onCheckedChange={(checked) =>
+                  handleNestedChange("database", "enableQueryCache", checked)
+                }
               />
             </div>
           </div>
@@ -161,9 +187,7 @@ export function SystemSettings({ onSettingsChange }: SystemSettingsProps) {
               </Badge>
             )}
           </CardTitle>
-          <CardDescription>
-            Configuration du système de cache
-          </CardDescription>
+          <CardDescription>Configuration du système de cache</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center justify-between">
@@ -175,20 +199,24 @@ export function SystemSettings({ onSettingsChange }: SystemSettingsProps) {
             </div>
             <Switch
               checked={settings.cache.enabled}
-              onCheckedChange={(checked) => handleNestedChange('cache', 'enabled', checked)}
+              onCheckedChange={(checked) =>
+                handleNestedChange("cache", "enabled", checked)
+              }
             />
           </div>
-          
+
           {settings.cache.enabled && (
             <>
               <Separator />
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="cacheProvider">Fournisseur de cache</Label>
                   <Select
                     value={settings.cache.provider}
-                    onValueChange={(value) => handleNestedChange('cache', 'provider', value)}
+                    onValueChange={(value) =>
+                      handleNestedChange("cache", "provider", value)
+                    }
                   >
                     <SelectTrigger>
                       <SelectValue />
@@ -200,20 +228,26 @@ export function SystemSettings({ onSettingsChange }: SystemSettingsProps) {
                     </SelectContent>
                   </Select>
                 </div>
-                
+
                 <div>
                   <Label htmlFor="cacheTTL">TTL (secondes)</Label>
                   <Input
                     id="cacheTTL"
                     type="number"
                     value={settings.cache.ttl}
-                    onChange={(e) => handleNestedChange('cache', 'ttl', parseInt(e.target.value))}
+                    onChange={(e) =>
+                      handleNestedChange(
+                        "cache",
+                        "ttl",
+                        parseInt(e.target.value),
+                      )
+                    }
                     min="60"
                     max="86400"
                   />
                 </div>
               </div>
-              
+
               <div className="flex justify-end">
                 <Button variant="outline">
                   <RefreshCw className="h-4 w-4 mr-2" />
@@ -232,9 +266,7 @@ export function SystemSettings({ onSettingsChange }: SystemSettingsProps) {
             <Settings className="h-5 w-5" />
             <span>Configuration Serveur</span>
           </CardTitle>
-          <CardDescription>
-            Paramètres du serveur web
-          </CardDescription>
+          <CardDescription>Paramètres du serveur web</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div>
@@ -243,12 +275,14 @@ export function SystemSettings({ onSettingsChange }: SystemSettingsProps) {
               id="serverPort"
               type="number"
               value={settings.server.port}
-              onChange={(e) => handleNestedChange('server', 'port', parseInt(e.target.value))}
+              onChange={(e) =>
+                handleNestedChange("server", "port", parseInt(e.target.value))
+              }
               min="1024"
               max="65535"
             />
           </div>
-          
+
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
@@ -259,12 +293,14 @@ export function SystemSettings({ onSettingsChange }: SystemSettingsProps) {
               </div>
               <Switch
                 checked={settings.server.enableCORS}
-                onCheckedChange={(checked) => handleNestedChange('server', 'enableCORS', checked)}
+                onCheckedChange={(checked) =>
+                  handleNestedChange("server", "enableCORS", checked)
+                }
               />
             </div>
-            
+
             <Separator />
-            
+
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
                 <Label>Compression</Label>
@@ -274,7 +310,9 @@ export function SystemSettings({ onSettingsChange }: SystemSettingsProps) {
               </div>
               <Switch
                 checked={settings.server.enableCompression}
-                onCheckedChange={(checked) => handleNestedChange('server', 'enableCompression', checked)}
+                onCheckedChange={(checked) =>
+                  handleNestedChange("server", "enableCompression", checked)
+                }
               />
             </div>
           </div>
@@ -294,9 +332,7 @@ export function SystemSettings({ onSettingsChange }: SystemSettingsProps) {
               </Badge>
             )}
           </CardTitle>
-          <CardDescription>
-            Configuration du mode maintenance
-          </CardDescription>
+          <CardDescription>Configuration du mode maintenance</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center justify-between">
@@ -308,20 +344,26 @@ export function SystemSettings({ onSettingsChange }: SystemSettingsProps) {
             </div>
             <Switch
               checked={settings.maintenance.enabled}
-              onCheckedChange={(checked) => handleNestedChange('maintenance', 'enabled', checked)}
+              onCheckedChange={(checked) =>
+                handleNestedChange("maintenance", "enabled", checked)
+              }
             />
           </div>
-          
+
           {settings.maintenance.enabled && (
             <>
               <Separator />
-              
+
               <div>
-                <Label htmlFor="maintenanceMessage">Message de maintenance</Label>
+                <Label htmlFor="maintenanceMessage">
+                  Message de maintenance
+                </Label>
                 <Input
                   id="maintenanceMessage"
                   value={settings.maintenance.message}
-                  onChange={(e) => handleNestedChange('maintenance', 'message', e.target.value)}
+                  onChange={(e) =>
+                    handleNestedChange("maintenance", "message", e.target.value)
+                  }
                   placeholder="Message affiché aux utilisateurs"
                 />
               </div>
@@ -337,16 +379,16 @@ export function SystemSettings({ onSettingsChange }: SystemSettingsProps) {
             <Clock className="h-5 w-5" />
             <span>Configuration Logs</span>
           </CardTitle>
-          <CardDescription>
-            Paramètres des logs système
-          </CardDescription>
+          <CardDescription>Paramètres des logs système</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div>
             <Label htmlFor="logLevel">Niveau de log</Label>
             <Select
               value={settings.logs.level}
-              onValueChange={(value) => handleNestedChange('logs', 'level', value)}
+              onValueChange={(value) =>
+                handleNestedChange("logs", "level", value)
+              }
             >
               <SelectTrigger>
                 <SelectValue />
@@ -359,7 +401,7 @@ export function SystemSettings({ onSettingsChange }: SystemSettingsProps) {
               </SelectContent>
             </Select>
           </div>
-          
+
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
               <Label>Logs d'audit</Label>
@@ -369,7 +411,9 @@ export function SystemSettings({ onSettingsChange }: SystemSettingsProps) {
             </div>
             <Switch
               checked={settings.logs.enableAuditLogs}
-              onCheckedChange={(checked) => handleNestedChange('logs', 'enableAuditLogs', checked)}
+              onCheckedChange={(checked) =>
+                handleNestedChange("logs", "enableAuditLogs", checked)
+              }
             />
           </div>
         </CardContent>
@@ -402,20 +446,24 @@ export function SystemSettings({ onSettingsChange }: SystemSettingsProps) {
             </div>
             <Switch
               checked={settings.backup.enabled}
-              onCheckedChange={(checked) => handleNestedChange('backup', 'enabled', checked)}
+              onCheckedChange={(checked) =>
+                handleNestedChange("backup", "enabled", checked)
+              }
             />
           </div>
-          
+
           {settings.backup.enabled && (
             <>
               <Separator />
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="backupFrequency">Fréquence</Label>
                   <Select
                     value={settings.backup.frequency}
-                    onValueChange={(value) => handleNestedChange('backup', 'frequency', value)}
+                    onValueChange={(value) =>
+                      handleNestedChange("backup", "frequency", value)
+                    }
                   >
                     <SelectTrigger>
                       <SelectValue />
@@ -428,20 +476,26 @@ export function SystemSettings({ onSettingsChange }: SystemSettingsProps) {
                     </SelectContent>
                   </Select>
                 </div>
-                
+
                 <div>
                   <Label htmlFor="backupRetention">Rétention (jours)</Label>
                   <Input
                     id="backupRetention"
                     type="number"
                     value={settings.backup.retention}
-                    onChange={(e) => handleNestedChange('backup', 'retention', parseInt(e.target.value))}
+                    onChange={(e) =>
+                      handleNestedChange(
+                        "backup",
+                        "retention",
+                        parseInt(e.target.value),
+                      )
+                    }
                     min="1"
                     max="365"
                   />
                 </div>
               </div>
-              
+
               <div className="flex justify-end">
                 <Button variant="outline">
                   <Shield className="h-4 w-4 mr-2" />
@@ -453,5 +507,5 @@ export function SystemSettings({ onSettingsChange }: SystemSettingsProps) {
         </CardContent>
       </Card>
     </div>
-  )
-} 
+  );
+}

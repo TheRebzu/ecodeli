@@ -39,18 +39,20 @@ const TUTORIAL_STEPS: TutorialStep[] = [
   {
     id: "welcome",
     title: "Bienvenue sur EcoDeli !",
-    description: "Nous allons vous guider à travers les fonctionnalités principales de la plateforme.",
+    description:
+      "Nous allons vous guider à travers les fonctionnalités principales de la plateforme.",
     target: "body",
     position: "top",
-    blockInteraction: true
+    blockInteraction: true,
   },
   {
     id: "navigation",
     title: "Navigation principale",
-    description: "Voici le menu principal. Vous pouvez naviguer entre les différentes sections.",
+    description:
+      "Voici le menu principal. Vous pouvez naviguer entre les différentes sections.",
     target: "[data-tutorial='main-nav']",
     position: "bottom",
-    highlightClass: "ring-2 ring-blue-500 ring-opacity-75"
+    highlightClass: "ring-2 ring-blue-500 ring-opacity-75",
   },
   {
     id: "create-announcement",
@@ -59,15 +61,16 @@ const TUTORIAL_STEPS: TutorialStep[] = [
     target: "[data-tutorial='create-announcement']",
     position: "bottom",
     action: "click",
-    highlightClass: "ring-2 ring-green-500 ring-opacity-75"
+    highlightClass: "ring-2 ring-green-500 ring-opacity-75",
   },
   {
     id: "announcement-form",
     title: "Formulaire d'annonce",
-    description: "Remplissez les détails de votre livraison : adresses, description, prix estimé.",
+    description:
+      "Remplissez les détails de votre livraison : adresses, description, prix estimé.",
     target: "[data-tutorial='announcement-form']",
     position: "right",
-    blockInteraction: false
+    blockInteraction: false,
   },
   {
     id: "address-input",
@@ -76,61 +79,72 @@ const TUTORIAL_STEPS: TutorialStep[] = [
     target: "[data-tutorial='address-input']",
     position: "top",
     action: "input",
-    content: "123 Rue de la Paix, Paris"
+    content: "123 Rue de la Paix, Paris",
   },
   {
     id: "price-estimation",
     title: "Estimation du prix",
-    description: "Le système calcule automatiquement une estimation basée sur la distance et le type de livraison.",
+    description:
+      "Le système calcule automatiquement une estimation basée sur la distance et le type de livraison.",
     target: "[data-tutorial='price-estimation']",
-    position: "left"
+    position: "left",
   },
   {
     id: "payment-methods",
     title: "Méthodes de paiement",
-    description: "Choisissez votre mode de paiement préféré. Plusieurs options sont disponibles.",
+    description:
+      "Choisissez votre mode de paiement préféré. Plusieurs options sont disponibles.",
     target: "[data-tutorial='payment-methods']",
-    position: "top"
+    position: "top",
   },
   {
     id: "tracking",
     title: "Suivi en temps réel",
-    description: "Une fois votre annonce acceptée, vous pourrez suivre la livraison en temps réel.",
+    description:
+      "Une fois votre annonce acceptée, vous pourrez suivre la livraison en temps réel.",
     target: "[data-tutorial='tracking-section']",
-    position: "bottom"
+    position: "bottom",
   },
   {
     id: "notifications",
     title: "Notifications",
-    description: "Activez les notifications pour être informé des mises à jour de vos livraisons.",
+    description:
+      "Activez les notifications pour être informé des mises à jour de vos livraisons.",
     target: "[data-tutorial='notifications']",
-    position: "left"
+    position: "left",
   },
   {
     id: "profile",
     title: "Votre profil",
-    description: "Gérez vos informations personnelles et vos préférences depuis votre profil.",
+    description:
+      "Gérez vos informations personnelles et vos préférences depuis votre profil.",
     target: "[data-tutorial='profile-menu']",
-    position: "bottom"
+    position: "bottom",
   },
   {
     id: "support",
     title: "Support client",
-    description: "En cas de question, notre équipe support est disponible 24h/24.",
+    description:
+      "En cas de question, notre équipe support est disponible 24h/24.",
     target: "[data-tutorial='support-button']",
-    position: "top"
+    position: "top",
   },
   {
     id: "completion",
     title: "Félicitations !",
-    description: "Vous avez terminé le tutoriel. Vous êtes maintenant prêt à utiliser EcoDeli !",
+    description:
+      "Vous avez terminé le tutoriel. Vous êtes maintenant prêt à utiliser EcoDeli !",
     target: "body",
     position: "top",
-    blockInteraction: true
-  }
+    blockInteraction: true,
+  },
 ];
 
-export default function ClientTutorialSystem({ userId, onComplete, forceTutorial = false }: ClientTutorialSystemProps) {
+export default function ClientTutorialSystem({
+  userId,
+  onComplete,
+  forceTutorial = false,
+}: ClientTutorialSystemProps) {
   const t = useTranslations("client.tutorial");
   const [isActive, setIsActive] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
@@ -138,7 +152,7 @@ export default function ClientTutorialSystem({ userId, onComplete, forceTutorial
     currentStep: 0,
     completedSteps: [],
     isCompleted: false,
-    skipped: false
+    skipped: false,
   });
 
   useEffect(() => {
@@ -154,33 +168,34 @@ export default function ClientTutorialSystem({ userId, onComplete, forceTutorial
     }
   }, [isActive]);
 
-
   const checkTutorialStatus = async () => {
     try {
       const response = await fetch(`/api/client/tutorial?userId=${userId}`);
-      
+
       if (response.ok) {
         const data = await response.json();
-        
+
         // Vérifier si l'utilisateur existe avant de continuer
-        if (data.success === false || data.message?.includes('non trouvé')) {
+        if (data.success === false || data.message?.includes("non trouvé")) {
           setIsActive(false);
           cleanupTutorial();
           return;
         }
-        
-        setProgress(data.progress || {
-          currentStep: 0,
-          completedSteps: [],
-          isCompleted: false,
-          skipped: false
-        });
-        
+
+        setProgress(
+          data.progress || {
+            currentStep: 0,
+            completedSteps: [],
+            isCompleted: false,
+            skipped: false,
+          },
+        );
+
         // Activer le tutoriel seulement si :
         // 1. Il est requis par le système (nouvel utilisateur)
         // 2. OU si forcé manuellement
         const shouldActivate = data.tutorialRequired || forceTutorial;
-        
+
         if (shouldActivate) {
           setIsActive(true);
           setCurrentStep(data.progress?.currentStep || 0);
@@ -199,17 +214,19 @@ export default function ClientTutorialSystem({ userId, onComplete, forceTutorial
     }
   };
 
-  const updateTutorialProgress = async (stepData: Partial<TutorialProgress>) => {
+  const updateTutorialProgress = async (
+    stepData: Partial<TutorialProgress>,
+  ) => {
     try {
       const response = await fetch("/api/client/tutorial", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           userId,
-          ...stepData
-        })
+          ...stepData,
+        }),
       });
-      
+
       if (!response.ok) {
         setIsActive(false);
       }
@@ -227,9 +244,9 @@ export default function ClientTutorialSystem({ userId, onComplete, forceTutorial
       setCurrentStep(newStep);
       updateTutorialProgress({
         currentStep: newStep,
-        completedSteps: Array.isArray(progress.completedSteps) 
+        completedSteps: Array.isArray(progress.completedSteps)
           ? [...progress.completedSteps, TUTORIAL_STEPS[currentStep].id]
-          : [TUTORIAL_STEPS[currentStep].id]
+          : [TUTORIAL_STEPS[currentStep].id],
       });
     } else {
       completeTutorial();
@@ -247,7 +264,7 @@ export default function ClientTutorialSystem({ userId, onComplete, forceTutorial
   const skipTutorial = async () => {
     await updateTutorialProgress({
       skipped: true,
-      isCompleted: false
+      isCompleted: false,
     });
     closeTutorial();
   };
@@ -261,11 +278,11 @@ export default function ClientTutorialSystem({ userId, onComplete, forceTutorial
         body: JSON.stringify({
           totalTimeSpent: Date.now() - Date.now(), // Simple time tracking
           stepsCompleted: TUTORIAL_STEPS.map((_, index) => index + 1),
-          feedback: 'Tutoriel complété via interface',
-          rating: 5
-        })
+          feedback: "Tutoriel complété via interface",
+          rating: 5,
+        }),
       });
-      
+
       if (response.ok) {
         console.log("Tutorial completed successfully");
         closeTutorial();
@@ -275,9 +292,9 @@ export default function ClientTutorialSystem({ userId, onComplete, forceTutorial
         // Fallback to old method
         await updateTutorialProgress({
           isCompleted: true,
-          completedSteps: TUTORIAL_STEPS.map(s => s.id),
+          completedSteps: TUTORIAL_STEPS.map((s) => s.id),
           lastCompletedAt: new Date().toISOString(),
-          currentStep: TUTORIAL_STEPS.length - 1
+          currentStep: TUTORIAL_STEPS.length - 1,
         });
         closeTutorial();
         onComplete?.();
@@ -287,9 +304,9 @@ export default function ClientTutorialSystem({ userId, onComplete, forceTutorial
       // Fallback to old method
       await updateTutorialProgress({
         isCompleted: true,
-        completedSteps: TUTORIAL_STEPS.map(s => s.id),
+        completedSteps: TUTORIAL_STEPS.map((s) => s.id),
         lastCompletedAt: new Date().toISOString(),
-        currentStep: TUTORIAL_STEPS.length - 1
+        currentStep: TUTORIAL_STEPS.length - 1,
       });
       closeTutorial();
       onComplete?.();
@@ -308,7 +325,7 @@ export default function ClientTutorialSystem({ userId, onComplete, forceTutorial
       currentStep: 0,
       completedSteps: [],
       isCompleted: false,
-      skipped: false
+      skipped: false,
     });
   };
 
@@ -325,9 +342,14 @@ export default function ClientTutorialSystem({ userId, onComplete, forceTutorial
     }
 
     // Supprimer les highlights
-    document.querySelectorAll("[data-tutorial-highlight]").forEach(el => {
+    document.querySelectorAll("[data-tutorial-highlight]").forEach((el) => {
       el.removeAttribute("data-tutorial-highlight");
-      el.classList.remove("ring-2", "ring-blue-500", "ring-green-500", "ring-opacity-75");
+      el.classList.remove(
+        "ring-2",
+        "ring-blue-500",
+        "ring-green-500",
+        "ring-opacity-75",
+      );
     });
   };
 
@@ -358,7 +380,9 @@ export default function ClientTutorialSystem({ userId, onComplete, forceTutorial
           <Card className="w-96 shadow-xl border-blue-200">
             <CardHeader className="pb-3 bg-blue-50">
               <div className="flex justify-between items-center">
-                <CardTitle className="text-lg text-blue-900">🎓 Tutoriel EcoDeli</CardTitle>
+                <CardTitle className="text-lg text-blue-900">
+                  🎓 Tutoriel EcoDeli
+                </CardTitle>
                 <Button variant="ghost" size="sm" onClick={closeTutorial}>
                   <X className="h-4 w-4" />
                 </Button>
@@ -368,10 +392,20 @@ export default function ClientTutorialSystem({ userId, onComplete, forceTutorial
               {/* Barre de progression */}
               <div>
                 <div className="flex justify-between text-sm text-gray-600 mb-2">
-                  <span>Étape {currentStep + 1} sur {TUTORIAL_STEPS.length}</span>
-                  <span>{Math.round(((currentStep + 1) / TUTORIAL_STEPS.length) * 100)}%</span>
+                  <span>
+                    Étape {currentStep + 1} sur {TUTORIAL_STEPS.length}
+                  </span>
+                  <span>
+                    {Math.round(
+                      ((currentStep + 1) / TUTORIAL_STEPS.length) * 100,
+                    )}
+                    %
+                  </span>
                 </div>
-                <Progress value={((currentStep + 1) / TUTORIAL_STEPS.length) * 100} className="h-2" />
+                <Progress
+                  value={((currentStep + 1) / TUTORIAL_STEPS.length) * 100}
+                  className="h-2"
+                />
               </div>
 
               {/* Contenu de l'étape */}
@@ -386,15 +420,15 @@ export default function ClientTutorialSystem({ userId, onComplete, forceTutorial
 
               {/* Contrôles */}
               <div className="flex justify-between items-center pt-4 border-t">
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
+                <Button
+                  variant="ghost"
+                  size="sm"
                   onClick={skipTutorial}
                   className="text-gray-500 hover:text-gray-700"
                 >
                   Passer le tutoriel
                 </Button>
-                
+
                 <div className="flex items-center gap-2">
                   <Button
                     variant="outline"
@@ -405,12 +439,18 @@ export default function ClientTutorialSystem({ userId, onComplete, forceTutorial
                     <ArrowLeft className="h-4 w-4 mr-1" />
                     Précédent
                   </Button>
-                  <Button 
-                    size="sm" 
-                    onClick={currentStep === TUTORIAL_STEPS.length - 1 ? completeTutorial : nextStep}
+                  <Button
+                    size="sm"
+                    onClick={
+                      currentStep === TUTORIAL_STEPS.length - 1
+                        ? completeTutorial
+                        : nextStep
+                    }
                     className="bg-blue-600 hover:bg-blue-700"
                   >
-                    {currentStep === TUTORIAL_STEPS.length - 1 ? "Terminer" : "Continuer"}
+                    {currentStep === TUTORIAL_STEPS.length - 1
+                      ? "Terminer"
+                      : "Continuer"}
                     <ArrowRight className="h-4 w-4 ml-1" />
                   </Button>
                 </div>

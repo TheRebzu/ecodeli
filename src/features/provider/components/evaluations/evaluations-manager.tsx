@@ -5,14 +5,14 @@ import { useTranslations } from "next-intl";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { 
-  Star, 
-  TrendingUp, 
+import {
+  Star,
+  TrendingUp,
   TrendingDown,
   MessageSquare,
   User,
   Calendar,
-  BarChart3
+  BarChart3,
 } from "lucide-react";
 import { useApi } from "@/hooks/use-api";
 
@@ -40,7 +40,9 @@ interface EvaluationStats {
   responseRate: number;
 }
 
-export function ProviderEvaluationsManager({ providerId }: EvaluationsManagerProps) {
+export function ProviderEvaluationsManager({
+  providerId,
+}: EvaluationsManagerProps) {
   const t = useTranslations("provider.evaluations");
   const { get } = useApi();
   const [evaluations, setEvaluations] = useState<Evaluation[]>([]);
@@ -50,7 +52,9 @@ export function ProviderEvaluationsManager({ providerId }: EvaluationsManagerPro
   const fetchEvaluations = async () => {
     try {
       setLoading(true);
-      const response = await get(`/api/provider/evaluations?providerId=${providerId}`);
+      const response = await get(
+        `/api/provider/evaluations?providerId=${providerId}`,
+      );
       if (response) {
         setEvaluations(response.evaluations || []);
         setStats(response.stats);
@@ -105,7 +109,9 @@ export function ProviderEvaluationsManager({ providerId }: EvaluationsManagerPro
                 <Star className="w-8 h-8 text-yellow-400" />
                 <div>
                   <p className="text-sm text-gray-600">Note moyenne</p>
-                  <p className="text-2xl font-bold">{stats.averageRating.toFixed(1)}</p>
+                  <p className="text-2xl font-bold">
+                    {stats.averageRating.toFixed(1)}
+                  </p>
                 </div>
               </div>
             </CardContent>
@@ -134,7 +140,8 @@ export function ProviderEvaluationsManager({ providerId }: EvaluationsManagerPro
                 <div>
                   <p className="text-sm text-gray-600">Tendance mensuelle</p>
                   <p className="text-2xl font-bold">
-                    {stats.monthlyTrend >= 0 ? "+" : ""}{stats.monthlyTrend.toFixed(1)}%
+                    {stats.monthlyTrend >= 0 ? "+" : ""}
+                    {stats.monthlyTrend.toFixed(1)}%
                   </p>
                 </div>
               </div>
@@ -147,7 +154,9 @@ export function ProviderEvaluationsManager({ providerId }: EvaluationsManagerPro
                 <BarChart3 className="w-8 h-8 text-purple-500" />
                 <div>
                   <p className="text-sm text-gray-600">Taux de réponse</p>
-                  <p className="text-2xl font-bold">{stats.responseRate.toFixed(0)}%</p>
+                  <p className="text-2xl font-bold">
+                    {stats.responseRate.toFixed(0)}%
+                  </p>
                 </div>
               </div>
             </CardContent>
@@ -165,9 +174,10 @@ export function ProviderEvaluationsManager({ providerId }: EvaluationsManagerPro
             <div className="space-y-3">
               {[5, 4, 3, 2, 1].map((rating) => {
                 const count = stats.ratingDistribution[rating] || 0;
-                const percentage = stats.totalEvaluations > 0 
-                  ? (count / stats.totalEvaluations) * 100 
-                  : 0;
+                const percentage =
+                  stats.totalEvaluations > 0
+                    ? (count / stats.totalEvaluations) * 100
+                    : 0;
 
                 return (
                   <div key={rating} className="flex items-center space-x-3">
@@ -214,13 +224,17 @@ export function ProviderEvaluationsManager({ providerId }: EvaluationsManagerPro
                     <div className="flex-1">
                       <div className="flex items-center space-x-2 mb-2">
                         <User className="w-4 h-4 text-gray-400" />
-                        <span className="font-medium">{evaluation.clientName}</span>
-                        <Badge variant="outline">{evaluation.serviceType}</Badge>
+                        <span className="font-medium">
+                          {evaluation.clientName}
+                        </span>
+                        <Badge variant="outline">
+                          {evaluation.serviceType}
+                        </Badge>
                         {evaluation.isVerified && (
                           <Badge variant="default">Vérifié</Badge>
                         )}
                       </div>
-                      
+
                       <div className="flex items-center space-x-1 mb-2">
                         {renderStars(evaluation.rating)}
                         <span className="text-sm text-gray-600 ml-2">
@@ -229,15 +243,25 @@ export function ProviderEvaluationsManager({ providerId }: EvaluationsManagerPro
                       </div>
 
                       {evaluation.comment && (
-                        <p className="text-gray-700 mb-2">{evaluation.comment}</p>
+                        <p className="text-gray-700 mb-2">
+                          {evaluation.comment}
+                        </p>
                       )}
 
                       <div className="flex items-center space-x-4 text-xs text-gray-500">
                         <div className="flex items-center space-x-1">
                           <Calendar className="w-3 h-3" />
-                          <span>Intervention: {new Date(evaluation.interventionDate).toLocaleDateString()}</span>
+                          <span>
+                            Intervention:{" "}
+                            {new Date(
+                              evaluation.interventionDate,
+                            ).toLocaleDateString()}
+                          </span>
                         </div>
-                        <span>Évalué le: {new Date(evaluation.date).toLocaleDateString()}</span>
+                        <span>
+                          Évalué le:{" "}
+                          {new Date(evaluation.date).toLocaleDateString()}
+                        </span>
                       </div>
                     </div>
                   </div>

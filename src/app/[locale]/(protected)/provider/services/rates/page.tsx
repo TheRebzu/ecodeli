@@ -4,26 +4,38 @@ import { useAuth } from "@/hooks/use-auth";
 import { PageHeader } from "@/components/layout/page-header";
 import { useTranslations } from "next-intl";
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { 
-  DollarSign, 
-  Clock, 
-  Users, 
+import {
+  DollarSign,
+  Clock,
+  Users,
   Settings,
   Save,
   Plus,
   Trash2,
   Info,
-  AlertCircle
+  AlertCircle,
 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
@@ -54,7 +66,7 @@ export default function ProviderRatesPage() {
   const [rates, setRates] = useState<ServiceRate[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  
+
   // Form state for new rate
   const [newRate, setNewRate] = useState<Partial<ServiceRate>>({
     serviceName: "",
@@ -64,15 +76,17 @@ export default function ProviderRatesPage() {
     minimumDuration: 30,
     maximumDuration: 480,
     isActive: true,
-    specialRates: []
+    specialRates: [],
   });
 
   useEffect(() => {
     const fetchRates = async () => {
       if (!user?.id) return;
-      
+
       try {
-        const response = await fetch(`/api/provider/services/rates?userId=${user.id}`);
+        const response = await fetch(
+          `/api/provider/services/rates?userId=${user.id}`,
+        );
         if (response.ok) {
           const data = await response.json();
           setRates(data.rates || []);
@@ -91,14 +105,14 @@ export default function ProviderRatesPage() {
     setSaving(true);
     try {
       const response = await fetch(`/api/provider/services/rates/${rate.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(rate)
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(rate),
       });
-      
+
       if (response.ok) {
         // Update local state
-        setRates(prev => prev.map(r => r.id === rate.id ? rate : r));
+        setRates((prev) => prev.map((r) => (r.id === rate.id ? rate : r)));
       }
     } catch (error) {
       console.error("Error saving rate:", error);
@@ -109,18 +123,18 @@ export default function ProviderRatesPage() {
 
   const handleAddNewRate = async () => {
     if (!newRate.serviceName || !newRate.basePrice) return;
-    
+
     setSaving(true);
     try {
       const response = await fetch(`/api/provider/services/rates`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...newRate, userId: user?.id })
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...newRate, userId: user?.id }),
       });
-      
+
       if (response.ok) {
         const savedRate = await response.json();
-        setRates(prev => [...prev, savedRate]);
+        setRates((prev) => [...prev, savedRate]);
         setNewRate({
           serviceName: "",
           basePrice: 0,
@@ -129,7 +143,7 @@ export default function ProviderRatesPage() {
           minimumDuration: 30,
           maximumDuration: 480,
           isActive: true,
-          specialRates: []
+          specialRates: [],
         });
       }
     } catch (error) {
@@ -168,7 +182,8 @@ export default function ProviderRatesPage() {
       <Alert>
         <Info className="h-4 w-4" />
         <AlertDescription>
-          Configurez vos tarifs de base et ajoutez des tarifs spéciaux pour les weekends, jours fériés ou interventions urgentes.
+          Configurez vos tarifs de base et ajoutez des tarifs spéciaux pour les
+          weekends, jours fériés ou interventions urgentes.
         </AlertDescription>
       </Alert>
 
@@ -199,9 +214,9 @@ export default function ProviderRatesPage() {
                       <Badge variant={rate.isActive ? "default" : "secondary"}>
                         {rate.isActive ? "Actif" : "Inactif"}
                       </Badge>
-                      <Switch 
+                      <Switch
                         checked={rate.isActive}
-                        onCheckedChange={(checked) => 
+                        onCheckedChange={(checked) =>
                           handleSaveRate({ ...rate, isActive: checked })
                         }
                       />
@@ -216,35 +231,49 @@ export default function ProviderRatesPage() {
                         <Input
                           type="number"
                           value={rate.basePrice}
-                          onChange={(e) => 
-                            setRates(prev => prev.map(r => 
-                              r.id === rate.id 
-                                ? { ...r, basePrice: parseFloat(e.target.value) || 0 }
-                                : r
-                            ))
+                          onChange={(e) =>
+                            setRates((prev) =>
+                              prev.map((r) =>
+                                r.id === rate.id
+                                  ? {
+                                      ...r,
+                                      basePrice:
+                                        parseFloat(e.target.value) || 0,
+                                    }
+                                  : r,
+                              ),
+                            )
                           }
                           step="0.01"
                         />
                         <span className="text-sm text-muted-foreground">€</span>
                       </div>
                     </div>
-                    
+
                     <div className="space-y-2">
                       <Label>Tarif horaire</Label>
                       <div className="flex items-center gap-2">
                         <Input
                           type="number"
                           value={rate.hourlyRate}
-                          onChange={(e) => 
-                            setRates(prev => prev.map(r => 
-                              r.id === rate.id 
-                                ? { ...r, hourlyRate: parseFloat(e.target.value) || 0 }
-                                : r
-                            ))
+                          onChange={(e) =>
+                            setRates((prev) =>
+                              prev.map((r) =>
+                                r.id === rate.id
+                                  ? {
+                                      ...r,
+                                      hourlyRate:
+                                        parseFloat(e.target.value) || 0,
+                                    }
+                                  : r,
+                              ),
+                            )
                           }
                           step="0.01"
                         />
-                        <span className="text-sm text-muted-foreground">€/h</span>
+                        <span className="text-sm text-muted-foreground">
+                          €/h
+                        </span>
                       </div>
                     </div>
 
@@ -254,21 +283,29 @@ export default function ProviderRatesPage() {
                         <Input
                           type="number"
                           value={rate.minimumDuration}
-                          onChange={(e) => 
-                            setRates(prev => prev.map(r => 
-                              r.id === rate.id 
-                                ? { ...r, minimumDuration: parseInt(e.target.value) || 0 }
-                                : r
-                            ))
+                          onChange={(e) =>
+                            setRates((prev) =>
+                              prev.map((r) =>
+                                r.id === rate.id
+                                  ? {
+                                      ...r,
+                                      minimumDuration:
+                                        parseInt(e.target.value) || 0,
+                                    }
+                                  : r,
+                              ),
+                            )
                           }
                         />
-                        <span className="text-sm text-muted-foreground">min</span>
+                        <span className="text-sm text-muted-foreground">
+                          min
+                        </span>
                       </div>
                     </div>
                   </div>
 
                   <div className="flex gap-2 pt-4">
-                    <Button 
+                    <Button
                       onClick={() => handleSaveRate(rate)}
                       disabled={saving}
                       size="sm"
@@ -276,10 +313,12 @@ export default function ProviderRatesPage() {
                       <Save className="h-4 w-4 mr-2" />
                       Sauvegarder
                     </Button>
-                    <Button 
-                      variant="outline" 
+                    <Button
+                      variant="outline"
                       size="sm"
-                      onClick={() => setRates(prev => prev.filter(r => r.id !== rate.id))}
+                      onClick={() =>
+                        setRates((prev) => prev.filter((r) => r.id !== rate.id))
+                      }
                     >
                       <Trash2 className="h-4 w-4 mr-2" />
                       Supprimer
@@ -307,18 +346,28 @@ export default function ProviderRatesPage() {
                   <Label>Nom du service</Label>
                   <Input
                     value={newRate.serviceName || ""}
-                    onChange={(e) => setNewRate(prev => ({ ...prev, serviceName: e.target.value }))}
+                    onChange={(e) =>
+                      setNewRate((prev) => ({
+                        ...prev,
+                        serviceName: e.target.value,
+                      }))
+                    }
                     placeholder="Ex: Ménage, Jardinage..."
                   />
                 </div>
-                
+
                 <div className="space-y-2">
                   <Label>Prix de base</Label>
                   <div className="flex items-center gap-2">
                     <Input
                       type="number"
                       value={newRate.basePrice || 0}
-                      onChange={(e) => setNewRate(prev => ({ ...prev, basePrice: parseFloat(e.target.value) || 0 }))}
+                      onChange={(e) =>
+                        setNewRate((prev) => ({
+                          ...prev,
+                          basePrice: parseFloat(e.target.value) || 0,
+                        }))
+                      }
                       step="0.01"
                     />
                     <span className="text-sm text-muted-foreground">€</span>
@@ -326,7 +375,7 @@ export default function ProviderRatesPage() {
                 </div>
               </div>
 
-              <Button 
+              <Button
                 onClick={handleAddNewRate}
                 disabled={saving || !newRate.serviceName || !newRate.basePrice}
               >
@@ -375,4 +424,4 @@ export default function ProviderRatesPage() {
       </Tabs>
     </div>
   );
-} 
+}

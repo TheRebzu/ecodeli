@@ -1,101 +1,169 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Badge } from "@/components/ui/badge"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { 
-  Globe, 
-  Play, 
-  CheckCircle, 
-  XCircle, 
+import { useState } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  Globe,
+  Play,
+  CheckCircle,
+  XCircle,
   AlertTriangle,
   Loader2,
   Clock,
-  Activity
-} from "lucide-react"
+  Activity,
+} from "lucide-react";
 
 interface ApiTestResult {
-  endpoint: string
-  method: string
-  success: boolean
-  statusCode: number
-  responseTime: number
-  message: string
-  timestamp: string
-  response?: any
+  endpoint: string;
+  method: string;
+  success: boolean;
+  statusCode: number;
+  responseTime: number;
+  message: string;
+  timestamp: string;
+  response?: any;
 }
 
 export function ApiTests() {
-  const [selectedEndpoint, setSelectedEndpoint] = useState("health")
-  const [customUrl, setCustomUrl] = useState("")
-  const [customMethod, setCustomMethod] = useState("GET")
-  const [customBody, setCustomBody] = useState("")
-  const [isLoading, setIsLoading] = useState(false)
-  const [results, setResults] = useState<ApiTestResult[]>([])
+  const [selectedEndpoint, setSelectedEndpoint] = useState("health");
+  const [customUrl, setCustomUrl] = useState("");
+  const [customMethod, setCustomMethod] = useState("GET");
+  const [customBody, setCustomBody] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [results, setResults] = useState<ApiTestResult[]>([]);
 
   const predefinedEndpoints = [
-    { value: "health", label: "Health Check", method: "GET", description: "Vérification de l'état du serveur" },
-    { value: "auth-me", label: "Auth - Me", method: "GET", description: "Informations utilisateur connecté" },
-    { value: "users", label: "Utilisateurs", method: "GET", description: "Liste des utilisateurs" },
-    { value: "announcements", label: "Annonces", method: "GET", description: "Liste des annonces" },
-    { value: "deliveries", label: "Livraisons", method: "GET", description: "Liste des livraisons" },
-    { value: "payments", label: "Paiements", method: "GET", description: "Liste des paiements" },
-    { value: "settings", label: "Paramètres", method: "GET", description: "Paramètres système" },
-    { value: "admin-dashboard", label: "Dashboard Admin", method: "GET", description: "Statistiques admin" },
-    { value: "admin-users", label: "Admin - Utilisateurs", method: "GET", description: "Gestion utilisateurs admin" },
-    { value: "admin-verifications", label: "Admin - Vérifications", method: "GET", description: "Vérifications admin" }
-  ]
+    {
+      value: "health",
+      label: "Health Check",
+      method: "GET",
+      description: "Vérification de l'état du serveur",
+    },
+    {
+      value: "auth-me",
+      label: "Auth - Me",
+      method: "GET",
+      description: "Informations utilisateur connecté",
+    },
+    {
+      value: "users",
+      label: "Utilisateurs",
+      method: "GET",
+      description: "Liste des utilisateurs",
+    },
+    {
+      value: "announcements",
+      label: "Annonces",
+      method: "GET",
+      description: "Liste des annonces",
+    },
+    {
+      value: "deliveries",
+      label: "Livraisons",
+      method: "GET",
+      description: "Liste des livraisons",
+    },
+    {
+      value: "payments",
+      label: "Paiements",
+      method: "GET",
+      description: "Liste des paiements",
+    },
+    {
+      value: "settings",
+      label: "Paramètres",
+      method: "GET",
+      description: "Paramètres système",
+    },
+    {
+      value: "admin-dashboard",
+      label: "Dashboard Admin",
+      method: "GET",
+      description: "Statistiques admin",
+    },
+    {
+      value: "admin-users",
+      label: "Admin - Utilisateurs",
+      method: "GET",
+      description: "Gestion utilisateurs admin",
+    },
+    {
+      value: "admin-verifications",
+      label: "Admin - Vérifications",
+      method: "GET",
+      description: "Vérifications admin",
+    },
+  ];
 
   const getEndpointUrl = (endpoint: string) => {
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"
-    
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
+
     const endpointMap: Record<string, string> = {
-      "health": "/api/health",
+      health: "/api/health",
       "auth-me": "/api/auth/me",
-      "users": "/api/admin/users",
-      "announcements": "/api/admin/announcements",
-      "deliveries": "/api/admin/deliveries",
-      "payments": "/api/admin/payments",
-      "settings": "/api/admin/settings",
+      users: "/api/admin/users",
+      announcements: "/api/admin/announcements",
+      deliveries: "/api/admin/deliveries",
+      payments: "/api/admin/payments",
+      settings: "/api/admin/settings",
       "admin-dashboard": "/api/admin/dashboard",
       "admin-users": "/api/admin/users",
-      "admin-verifications": "/api/admin/verifications"
-    }
+      "admin-verifications": "/api/admin/verifications",
+    };
 
-    return `${baseUrl}${endpointMap[endpoint] || endpoint}`
-  }
+    return `${baseUrl}${endpointMap[endpoint] || endpoint}`;
+  };
 
-  const runApiTest = async (endpoint: string, method: string, body?: string) => {
-    const startTime = Date.now()
-    const url = endpoint.startsWith("http") ? endpoint : getEndpointUrl(endpoint)
-    
+  const runApiTest = async (
+    endpoint: string,
+    method: string,
+    body?: string,
+  ) => {
+    const startTime = Date.now();
+    const url = endpoint.startsWith("http")
+      ? endpoint
+      : getEndpointUrl(endpoint);
+
     try {
       const options: RequestInit = {
         method,
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
-        credentials: 'include'
+        credentials: "include",
+      };
+
+      if (body && method !== "GET") {
+        options.body = body;
       }
 
-      if (body && method !== 'GET') {
-        options.body = body
-      }
+      const response = await fetch(url, options);
+      const responseTime = Date.now() - startTime;
 
-      const response = await fetch(url, options)
-      const responseTime = Date.now() - startTime
-      
-      let responseData
+      let responseData;
       try {
-        responseData = await response.json()
+        responseData = await response.json();
       } catch {
-        responseData = await response.text()
+        responseData = await response.text();
       }
 
       return {
@@ -106,69 +174,74 @@ export function ApiTests() {
         responseTime,
         message: response.ok ? "Requête réussie" : `Erreur ${response.status}`,
         timestamp: new Date().toLocaleString(),
-        response: responseData
-      }
+        response: responseData,
+      };
     } catch (error) {
-      const responseTime = Date.now() - startTime
+      const responseTime = Date.now() - startTime;
       return {
         endpoint: url,
         method,
         success: false,
         statusCode: 0,
         responseTime,
-        message: `Erreur de connexion: ${error instanceof Error ? error.message : 'Erreur inconnue'}`,
-        timestamp: new Date().toLocaleString()
-      }
+        message: `Erreur de connexion: ${error instanceof Error ? error.message : "Erreur inconnue"}`,
+        timestamp: new Date().toLocaleString(),
+      };
     }
-  }
+  };
 
   const handleTestPredefinedEndpoint = async () => {
-    setIsLoading(true)
-    
-    const endpoint = predefinedEndpoints.find(ep => ep.value === selectedEndpoint)
-    if (!endpoint) return
+    setIsLoading(true);
 
-    const result = await runApiTest(selectedEndpoint, endpoint.method)
-    setResults(prev => [result, ...prev])
-    setIsLoading(false)
-  }
+    const endpoint = predefinedEndpoints.find(
+      (ep) => ep.value === selectedEndpoint,
+    );
+    if (!endpoint) return;
+
+    const result = await runApiTest(selectedEndpoint, endpoint.method);
+    setResults((prev) => [result, ...prev]);
+    setIsLoading(false);
+  };
 
   const handleTestCustomEndpoint = async () => {
     if (!customUrl) {
-      setResults(prev => [{
-        endpoint: "N/A",
-        method: customMethod,
-        success: false,
-        statusCode: 0,
-        responseTime: 0,
-        message: "Veuillez saisir une URL",
-        timestamp: new Date().toLocaleString()
-      }, ...prev])
-      return
+      setResults((prev) => [
+        {
+          endpoint: "N/A",
+          method: customMethod,
+          success: false,
+          statusCode: 0,
+          responseTime: 0,
+          message: "Veuillez saisir une URL",
+          timestamp: new Date().toLocaleString(),
+        },
+        ...prev,
+      ]);
+      return;
     }
 
-    setIsLoading(true)
-    const result = await runApiTest(customUrl, customMethod, customBody)
-    setResults(prev => [result, ...prev])
-    setIsLoading(false)
-  }
+    setIsLoading(true);
+    const result = await runApiTest(customUrl, customMethod, customBody);
+    setResults((prev) => [result, ...prev]);
+    setIsLoading(false);
+  };
 
   const handleTestAllEndpoints = async () => {
-    setIsLoading(true)
-    const newResults: ApiTestResult[] = []
+    setIsLoading(true);
+    const newResults: ApiTestResult[] = [];
 
     for (const endpoint of predefinedEndpoints) {
-      const result = await runApiTest(endpoint.value, endpoint.method)
-      newResults.push(result)
+      const result = await runApiTest(endpoint.value, endpoint.method);
+      newResults.push(result);
     }
 
-    setResults(prev => [...newResults, ...prev])
-    setIsLoading(false)
-  }
+    setResults((prev) => [...newResults, ...prev]);
+    setIsLoading(false);
+  };
 
   const clearResults = () => {
-    setResults([])
-  }
+    setResults([]);
+  };
 
   return (
     <div className="space-y-6">
@@ -187,7 +260,10 @@ export function ApiTests() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="endpoint">Endpoint à tester</Label>
-              <Select value={selectedEndpoint} onValueChange={setSelectedEndpoint}>
+              <Select
+                value={selectedEndpoint}
+                onValueChange={setSelectedEndpoint}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Sélectionnez un endpoint" />
                 </SelectTrigger>
@@ -201,14 +277,16 @@ export function ApiTests() {
                           </Badge>
                           {endpoint.label}
                         </div>
-                        <div className="text-xs text-gray-500">{endpoint.description}</div>
+                        <div className="text-xs text-gray-500">
+                          {endpoint.description}
+                        </div>
                       </div>
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
-            
+
             <div className="space-y-2">
               <Label>URL de l'endpoint</Label>
               <div className="p-2 bg-gray-50 rounded text-sm font-mono">
@@ -218,8 +296,8 @@ export function ApiTests() {
           </div>
 
           <div className="flex gap-2">
-            <Button 
-              onClick={handleTestPredefinedEndpoint} 
+            <Button
+              onClick={handleTestPredefinedEndpoint}
               disabled={isLoading}
               className="flex items-center gap-2"
             >
@@ -230,9 +308,9 @@ export function ApiTests() {
               )}
               Tester cet Endpoint
             </Button>
-            
-            <Button 
-              onClick={handleTestAllEndpoints} 
+
+            <Button
+              onClick={handleTestAllEndpoints}
               disabled={isLoading}
               variant="outline"
               className="flex items-center gap-2"
@@ -263,7 +341,7 @@ export function ApiTests() {
                 onChange={(e) => setCustomUrl(e.target.value)}
               />
             </div>
-            
+
             <div className="space-y-2">
               <Label htmlFor="custom-method">Méthode HTTP</Label>
               <Select value={customMethod} onValueChange={setCustomMethod}>
@@ -294,8 +372,8 @@ export function ApiTests() {
             </div>
           )}
 
-          <Button 
-            onClick={handleTestCustomEndpoint} 
+          <Button
+            onClick={handleTestCustomEndpoint}
             disabled={isLoading}
             className="flex items-center gap-2"
           >
@@ -314,14 +392,15 @@ export function ApiTests() {
         <Card>
           <CardHeader>
             <CardTitle>Résultats des Tests</CardTitle>
-            <CardDescription>
-              Historique des tests d'APIs
-            </CardDescription>
+            <CardDescription>Historique des tests d'APIs</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
               {results.map((result, index) => (
-                <Alert key={index} variant={result.success ? "default" : "destructive"}>
+                <Alert
+                  key={index}
+                  variant={result.success ? "default" : "destructive"}
+                >
                   <div className="flex items-center gap-2">
                     {result.success ? (
                       <CheckCircle className="h-4 w-4" />
@@ -333,10 +412,16 @@ export function ApiTests() {
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
                             <Badge variant="outline">{result.method}</Badge>
-                            <span className="font-mono text-sm">{result.endpoint}</span>
+                            <span className="font-mono text-sm">
+                              {result.endpoint}
+                            </span>
                           </div>
                           <div className="flex items-center gap-2">
-                            <Badge variant={result.success ? "secondary" : "destructive"}>
+                            <Badge
+                              variant={
+                                result.success ? "secondary" : "destructive"
+                              }
+                            >
                               {result.statusCode}
                             </Badge>
                             <Badge variant="outline" className="text-xs">
@@ -348,26 +433,26 @@ export function ApiTests() {
                         <div className="text-sm">{result.message}</div>
                         {result.response && (
                           <details className="text-xs">
-                            <summary className="cursor-pointer">Voir la réponse</summary>
+                            <summary className="cursor-pointer">
+                              Voir la réponse
+                            </summary>
                             <pre className="mt-2 p-2 bg-gray-100 rounded overflow-auto">
                               {JSON.stringify(result.response, null, 2)}
                             </pre>
                           </details>
                         )}
-                        <div className="text-xs text-gray-500">{result.timestamp}</div>
+                        <div className="text-xs text-gray-500">
+                          {result.timestamp}
+                        </div>
                       </div>
                     </AlertDescription>
                   </div>
                 </Alert>
               ))}
             </div>
-            
+
             <div className="mt-4 flex justify-end">
-              <Button 
-                variant="outline" 
-                onClick={clearResults}
-                size="sm"
-              >
+              <Button variant="outline" onClick={clearResults} size="sm">
                 Effacer les résultats
               </Button>
             </div>
@@ -388,10 +473,13 @@ export function ApiTests() {
             <p>• Les tests incluent les cookies d'authentification</p>
             <p>• Les temps de réponse sont mesurés côté client</p>
             <p>• Vérifiez les logs serveur pour plus de détails</p>
-            <p>• Certains endpoints peuvent nécessiter des permissions spécifiques</p>
+            <p>
+              • Certains endpoints peuvent nécessiter des permissions
+              spécifiques
+            </p>
           </div>
         </CardContent>
       </Card>
     </div>
-  )
-} 
+  );
+}

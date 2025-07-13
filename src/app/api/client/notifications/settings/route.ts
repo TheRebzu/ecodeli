@@ -1,17 +1,17 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '@/lib/auth'
-import { db } from '@/lib/db'
+import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@/lib/auth";
+import { db } from "@/lib/db";
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await auth()
+    const session = await auth();
     if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
+      return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
     }
 
     const settings = await db.notificationSettings.findUnique({
-      where: { userId: session.user.id }
-    })
+      where: { userId: session.user.id },
+    });
 
     if (!settings) {
       // Créer des paramètres par défaut
@@ -23,17 +23,17 @@ export async function GET(request: NextRequest) {
           smsNotifications: false,
           soundEnabled: true,
           quietHoursEnabled: false,
-          quietHoursStart: '22:00',
-          quietHoursEnd: '08:00',
+          quietHoursStart: "22:00",
+          quietHoursEnd: "08:00",
           deliveryNotifications: true,
           paymentNotifications: true,
           messageNotifications: true,
           systemNotifications: true,
           announcementNotifications: true,
-          frequency: 'instant'
-        }
-      })
-      
+          frequency: "instant",
+        },
+      });
+
       return NextResponse.json({
         settings: {
           emailNotifications: defaultSettings.emailNotifications,
@@ -43,18 +43,18 @@ export async function GET(request: NextRequest) {
           quiet: {
             enabled: defaultSettings.quietHoursEnabled,
             startTime: defaultSettings.quietHoursStart,
-            endTime: defaultSettings.quietHoursEnd
+            endTime: defaultSettings.quietHoursEnd,
           },
           categories: {
             delivery: defaultSettings.deliveryNotifications,
             payment: defaultSettings.paymentNotifications,
             message: defaultSettings.messageNotifications,
             system: defaultSettings.systemNotifications,
-            announcement: defaultSettings.announcementNotifications
+            announcement: defaultSettings.announcementNotifications,
           },
-          frequency: defaultSettings.frequency
-        }
-      })
+          frequency: defaultSettings.frequency,
+        },
+      });
     }
 
     return NextResponse.json({
@@ -66,36 +66,35 @@ export async function GET(request: NextRequest) {
         quiet: {
           enabled: settings.quietHoursEnabled,
           startTime: settings.quietHoursStart,
-          endTime: settings.quietHoursEnd
+          endTime: settings.quietHoursEnd,
         },
         categories: {
           delivery: settings.deliveryNotifications,
           payment: settings.paymentNotifications,
           message: settings.messageNotifications,
           system: settings.systemNotifications,
-          announcement: settings.announcementNotifications
+          announcement: settings.announcementNotifications,
         },
-        frequency: settings.frequency
-      }
-    })
-
+        frequency: settings.frequency,
+      },
+    });
   } catch (error) {
-    console.error('Error fetching notification settings:', error)
+    console.error("Error fetching notification settings:", error);
     return NextResponse.json(
-      { error: 'Erreur lors du chargement des paramètres' },
-      { status: 500 }
-    )
+      { error: "Erreur lors du chargement des paramètres" },
+      { status: 500 },
+    );
   }
 }
 
 export async function PUT(request: NextRequest) {
   try {
-    const session = await auth()
+    const session = await auth();
     if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
+      return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
     }
 
-    const body = await request.json()
+    const body = await request.json();
     const {
       emailNotifications,
       pushNotifications,
@@ -103,8 +102,8 @@ export async function PUT(request: NextRequest) {
       soundEnabled,
       quiet,
       categories,
-      frequency
-    } = body
+      frequency,
+    } = body;
 
     const settings = await db.notificationSettings.upsert({
       where: { userId: session.user.id },
@@ -121,7 +120,7 @@ export async function PUT(request: NextRequest) {
         messageNotifications: categories.message,
         systemNotifications: categories.system,
         announcementNotifications: categories.announcement,
-        frequency
+        frequency,
       },
       create: {
         userId: session.user.id,
@@ -137,9 +136,9 @@ export async function PUT(request: NextRequest) {
         messageNotifications: categories.message,
         systemNotifications: categories.system,
         announcementNotifications: categories.announcement,
-        frequency
-      }
-    })
+        frequency,
+      },
+    });
 
     return NextResponse.json({
       settings: {
@@ -150,24 +149,23 @@ export async function PUT(request: NextRequest) {
         quiet: {
           enabled: settings.quietHoursEnabled,
           startTime: settings.quietHoursStart,
-          endTime: settings.quietHoursEnd
+          endTime: settings.quietHoursEnd,
         },
         categories: {
           delivery: settings.deliveryNotifications,
           payment: settings.paymentNotifications,
           message: settings.messageNotifications,
           system: settings.systemNotifications,
-          announcement: settings.announcementNotifications
+          announcement: settings.announcementNotifications,
         },
-        frequency: settings.frequency
-      }
-    })
-
+        frequency: settings.frequency,
+      },
+    });
   } catch (error) {
-    console.error('Error updating notification settings:', error)
+    console.error("Error updating notification settings:", error);
     return NextResponse.json(
-      { error: 'Erreur lors de la mise à jour des paramètres' },
-      { status: 500 }
-    )
+      { error: "Erreur lors de la mise à jour des paramètres" },
+      { status: 500 },
+    );
   }
 }

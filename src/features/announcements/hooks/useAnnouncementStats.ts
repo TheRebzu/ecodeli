@@ -1,14 +1,14 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect } from "react";
 
 interface AnnouncementStats {
-  active: number
-  matched: number
-  completed: number
-  totalSaved: number
-  isLoading: boolean
-  error: string | null
+  active: number;
+  matched: number;
+  completed: number;
+  totalSaved: number;
+  isLoading: boolean;
+  error: string | null;
 }
 
 export function useAnnouncementStats(): AnnouncementStats {
@@ -18,37 +18,37 @@ export function useAnnouncementStats(): AnnouncementStats {
     completed: 0,
     totalSaved: 0,
     isLoading: true,
-    error: null
-  })
+    error: null,
+  });
 
   useEffect(() => {
-    fetchStats()
-  }, [])
+    fetchStats();
+  }, []);
 
   const fetchStats = async () => {
     try {
-      const response = await fetch('/api/client/announcements/stats')
+      const response = await fetch("/api/client/announcements/stats");
       if (!response.ok) {
-        throw new Error('Failed to fetch stats')
+        throw new Error("Failed to fetch stats");
       }
-      
-      const data = await response.json()
+
+      const data = await response.json();
       setStats({
         active: data.active || 0,
         matched: data.matched || 0,
         completed: data.completed || 0,
         totalSaved: data.totalSaved || 0,
         isLoading: false,
-        error: null
-      })
+        error: null,
+      });
     } catch (error) {
-      setStats(prev => ({
+      setStats((prev) => ({
         ...prev,
         isLoading: false,
-        error: error instanceof Error ? error.message : 'Erreur inconnue'
-      }))
+        error: error instanceof Error ? error.message : "Erreur inconnue",
+      }));
     }
-  }
+  };
 
-  return stats
+  return stats;
 }

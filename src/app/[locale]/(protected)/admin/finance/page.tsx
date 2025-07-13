@@ -1,17 +1,29 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { 
-  TrendingUp, 
-  TrendingDown, 
-  DollarSign, 
-  CreditCard, 
-  Users, 
+import { useState, useEffect } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  TrendingUp,
+  TrendingDown,
+  DollarSign,
+  CreditCard,
+  Users,
   Package,
   Download,
   Calendar,
@@ -20,140 +32,147 @@ import {
   Activity,
   AlertTriangle,
   CheckCircle,
-  Clock
-} from 'lucide-react'
+  Clock,
+} from "lucide-react";
 
 interface FinancialSummary {
-  totalRevenue: number
-  totalExpenses: number
-  netProfit: number
-  commissionRevenue: number
-  subscriptionRevenue: number
-  serviceRevenue: number
-  deliveryRevenue: number
-  growthRate: number
-  period: string
+  totalRevenue: number;
+  totalExpenses: number;
+  netProfit: number;
+  commissionRevenue: number;
+  subscriptionRevenue: number;
+  serviceRevenue: number;
+  deliveryRevenue: number;
+  growthRate: number;
+  period: string;
 }
 
 interface CashFlowData {
-  date: Date
-  income: number
-  expenses: number
-  netFlow: number
-  runningBalance: number
+  date: Date;
+  income: number;
+  expenses: number;
+  netFlow: number;
+  runningBalance: number;
 }
 
 interface FinancialMetrics {
-  cac: number
-  ltv: number
-  churnRate: number
-  arpu: number
-  grossMargin: number
-  netMargin: number
+  cac: number;
+  ltv: number;
+  churnRate: number;
+  arpu: number;
+  grossMargin: number;
+  netMargin: number;
 }
 
 export default function AdminFinancePage() {
-  const [isLoading, setIsLoading] = useState(true)
-  const [activeTab, setActiveTab] = useState('overview')
+  const [isLoading, setIsLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState("overview");
   const [dateRange, setDateRange] = useState({
     startDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), // 30 jours
-    endDate: new Date()
-  })
-  const [interval, setInterval] = useState<'daily' | 'weekly' | 'monthly'>('daily')
+    endDate: new Date(),
+  });
+  const [interval, setInterval] = useState<"daily" | "weekly" | "monthly">(
+    "daily",
+  );
   const [financialData, setFinancialData] = useState<{
-    summary?: FinancialSummary
-    cashflow?: CashFlowData[]
-    metrics?: FinancialMetrics
-  }>({})
+    summary?: FinancialSummary;
+    cashflow?: CashFlowData[];
+    metrics?: FinancialMetrics;
+  }>({});
 
   useEffect(() => {
-    fetchFinancialData()
-  }, [dateRange, interval])
+    fetchFinancialData();
+  }, [dateRange, interval]);
 
   const fetchFinancialData = async () => {
     try {
-      setIsLoading(true)
-      
+      setIsLoading(true);
+
       // Récupérer le résumé financier
       const summaryResponse = await fetch(
-        `/api/admin/finance?type=summary&startDate=${dateRange.startDate.toISOString()}&endDate=${dateRange.endDate.toISOString()}`
-      )
-      const summaryData = await summaryResponse.json()
+        `/api/admin/finance?type=summary&startDate=${dateRange.startDate.toISOString()}&endDate=${dateRange.endDate.toISOString()}`,
+      );
+      const summaryData = await summaryResponse.json();
 
       // Récupérer les données de cash flow
       const cashflowResponse = await fetch(
-        `/api/admin/finance?type=cashflow&startDate=${dateRange.startDate.toISOString()}&endDate=${dateRange.endDate.toISOString()}&interval=${interval}`
-      )
-      const cashflowData = await cashflowResponse.json()
+        `/api/admin/finance?type=cashflow&startDate=${dateRange.startDate.toISOString()}&endDate=${dateRange.endDate.toISOString()}&interval=${interval}`,
+      );
+      const cashflowData = await cashflowResponse.json();
 
       // Récupérer les métriques
       const metricsResponse = await fetch(
-        `/api/admin/finance?type=metrics&startDate=${dateRange.startDate.toISOString()}&endDate=${dateRange.endDate.toISOString()}`
-      )
-      const metricsData = await metricsResponse.json()
+        `/api/admin/finance?type=metrics&startDate=${dateRange.startDate.toISOString()}&endDate=${dateRange.endDate.toISOString()}`,
+      );
+      const metricsData = await metricsResponse.json();
 
       setFinancialData({
         summary: summaryData.data,
         cashflow: cashflowData.data,
-        metrics: metricsData.data
-      })
+        metrics: metricsData.data,
+      });
     } catch (error) {
-      console.error('Erreur lors de la récupération des données financières:', error)
+      console.error(
+        "Erreur lors de la récupération des données financières:",
+        error,
+      );
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
-  const exportReport = async (format: 'pdf' | 'excel' | 'csv') => {
+  const exportReport = async (format: "pdf" | "excel" | "csv") => {
     try {
-      const response = await fetch('/api/admin/finance', {
-        method: 'POST',
+      const response = await fetch("/api/admin/finance", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json'
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           startDate: dateRange.startDate.toISOString(),
           endDate: dateRange.endDate.toISOString(),
-          format
-        })
-      })
+          format,
+        }),
+      });
 
-      const data = await response.json()
-      
+      const data = await response.json();
+
       if (data.success) {
         // Télécharger le fichier
-        const link = document.createElement('a')
-        link.href = data.export.url
-        link.download = data.export.filename
-        document.body.appendChild(link)
-        link.click()
-        document.body.removeChild(link)
+        const link = document.createElement("a");
+        link.href = data.export.url;
+        link.download = data.export.filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
       }
     } catch (error) {
-      console.error('Erreur lors de l\'export:', error)
+      console.error("Erreur lors de l'export:", error);
     }
-  }
+  };
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('fr-FR', {
-      style: 'currency',
-      currency: 'EUR'
-    }).format(amount)
-  }
+    return new Intl.NumberFormat("fr-FR", {
+      style: "currency",
+      currency: "EUR",
+    }).format(amount);
+  };
 
   const formatPercentage = (value: number) => {
-    return `${value > 0 ? '+' : ''}${value.toFixed(1)}%`
-  }
+    return `${value > 0 ? "+" : ""}${value.toFixed(1)}%`;
+  };
 
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
           <Activity className="h-8 w-8 animate-spin mx-auto text-red-600" />
-          <p className="mt-2 text-gray-600">Chargement des données financières...</p>
+          <p className="mt-2 text-gray-600">
+            Chargement des données financières...
+          </p>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -169,11 +188,11 @@ export default function AdminFinancePage() {
           </p>
         </div>
         <div className="flex gap-3">
-          <Button variant="outline" onClick={() => exportReport('pdf')}>
+          <Button variant="outline" onClick={() => exportReport("pdf")}>
             <Download className="h-4 w-4 mr-2" />
             Export PDF
           </Button>
-          <Button variant="outline" onClick={() => exportReport('excel')}>
+          <Button variant="outline" onClick={() => exportReport("excel")}>
             <Download className="h-4 w-4 mr-2" />
             Export Excel
           </Button>
@@ -194,11 +213,13 @@ export default function AdminFinancePage() {
               <span className="text-sm font-medium">Du:</span>
               <input
                 type="date"
-                value={dateRange.startDate.toISOString().split('T')[0]}
-                onChange={(e) => setDateRange(prev => ({ 
-                  ...prev, 
-                  startDate: new Date(e.target.value) 
-                }))}
+                value={dateRange.startDate.toISOString().split("T")[0]}
+                onChange={(e) =>
+                  setDateRange((prev) => ({
+                    ...prev,
+                    startDate: new Date(e.target.value),
+                  }))
+                }
                 className="px-3 py-2 border rounded-md"
               />
             </div>
@@ -206,17 +227,22 @@ export default function AdminFinancePage() {
               <span className="text-sm font-medium">Au:</span>
               <input
                 type="date"
-                value={dateRange.endDate.toISOString().split('T')[0]}
-                onChange={(e) => setDateRange(prev => ({ 
-                  ...prev, 
-                  endDate: new Date(e.target.value) 
-                }))}
+                value={dateRange.endDate.toISOString().split("T")[0]}
+                onChange={(e) =>
+                  setDateRange((prev) => ({
+                    ...prev,
+                    endDate: new Date(e.target.value),
+                  }))
+                }
                 className="px-3 py-2 border rounded-md"
               />
             </div>
             <div className="flex items-center gap-2">
               <span className="text-sm font-medium">Intervalle:</span>
-              <Select value={interval} onValueChange={(value: any) => setInterval(value)}>
+              <Select
+                value={interval}
+                onValueChange={(value: any) => setInterval(value)}
+              >
                 <SelectTrigger className="w-32">
                   <SelectValue />
                 </SelectTrigger>
@@ -232,7 +258,11 @@ export default function AdminFinancePage() {
       </Card>
 
       {/* Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+      <Tabs
+        value={activeTab}
+        onValueChange={setActiveTab}
+        className="space-y-6"
+      >
         <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="overview">Vue d'ensemble</TabsTrigger>
           <TabsTrigger value="cashflow">Cash Flow</TabsTrigger>
@@ -253,10 +283,13 @@ export default function AdminFinancePage() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
-                  {financialData.summary ? formatCurrency(financialData.summary.totalRevenue) : '€0'}
+                  {financialData.summary
+                    ? formatCurrency(financialData.summary.totalRevenue)
+                    : "€0"}
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  {financialData.summary && formatPercentage(financialData.summary.growthRate)}
+                  {financialData.summary &&
+                    formatPercentage(financialData.summary.growthRate)}
                 </p>
               </CardContent>
             </Card>
@@ -270,7 +303,9 @@ export default function AdminFinancePage() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
-                  {financialData.summary ? formatCurrency(financialData.summary.totalExpenses) : '€0'}
+                  {financialData.summary
+                    ? formatCurrency(financialData.summary.totalExpenses)
+                    : "€0"}
                 </div>
                 <p className="text-xs text-muted-foreground">
                   Coûts opérationnels
@@ -287,11 +322,11 @@ export default function AdminFinancePage() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
-                  {financialData.summary ? formatCurrency(financialData.summary.netProfit) : '€0'}
+                  {financialData.summary
+                    ? formatCurrency(financialData.summary.netProfit)
+                    : "€0"}
                 </div>
-                <p className="text-xs text-muted-foreground">
-                  Marge nette
-                </p>
+                <p className="text-xs text-muted-foreground">Marge nette</p>
               </CardContent>
             </Card>
 
@@ -304,7 +339,9 @@ export default function AdminFinancePage() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
-                  {financialData.summary ? formatPercentage(financialData.summary.growthRate) : '0%'}
+                  {financialData.summary
+                    ? formatPercentage(financialData.summary.growthRate)
+                    : "0%"}
                 </div>
                 <p className="text-xs text-muted-foreground">
                   vs période précédente
@@ -333,7 +370,9 @@ export default function AdminFinancePage() {
                       <span className="text-sm">Commissions Livraisons</span>
                     </div>
                     <span className="font-medium">
-                      {financialData.summary ? formatCurrency(financialData.summary.deliveryRevenue) : '€0'}
+                      {financialData.summary
+                        ? formatCurrency(financialData.summary.deliveryRevenue)
+                        : "€0"}
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
@@ -342,7 +381,9 @@ export default function AdminFinancePage() {
                       <span className="text-sm">Commissions Services</span>
                     </div>
                     <span className="font-medium">
-                      {financialData.summary ? formatCurrency(financialData.summary.serviceRevenue) : '€0'}
+                      {financialData.summary
+                        ? formatCurrency(financialData.summary.serviceRevenue)
+                        : "€0"}
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
@@ -351,7 +392,11 @@ export default function AdminFinancePage() {
                       <span className="text-sm">Abonnements</span>
                     </div>
                     <span className="font-medium">
-                      {financialData.summary ? formatCurrency(financialData.summary.subscriptionRevenue) : '€0'}
+                      {financialData.summary
+                        ? formatCurrency(
+                            financialData.summary.subscriptionRevenue,
+                          )
+                        : "€0"}
                     </span>
                   </div>
                 </div>
@@ -373,22 +418,31 @@ export default function AdminFinancePage() {
                   <div className="flex items-center justify-between">
                     <span className="text-sm">Période analysée:</span>
                     <Badge variant="outline">
-                      {financialData.summary?.period || 'N/A'}
+                      {financialData.summary?.period || "N/A"}
                     </Badge>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-sm">Statut:</span>
-                    <Badge variant={financialData.summary?.netProfit && financialData.summary.netProfit > 0 ? "default" : "destructive"}>
-                      {financialData.summary?.netProfit && financialData.summary.netProfit > 0 ? "Profitable" : "Déficitaire"}
+                    <Badge
+                      variant={
+                        financialData.summary?.netProfit &&
+                        financialData.summary.netProfit > 0
+                          ? "default"
+                          : "destructive"
+                      }
+                    >
+                      {financialData.summary?.netProfit &&
+                      financialData.summary.netProfit > 0
+                        ? "Profitable"
+                        : "Déficitaire"}
                     </Badge>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-sm">Marge brute:</span>
                     <span className="font-medium">
-                      {financialData.summary ? 
-                        `${((financialData.summary.netProfit / financialData.summary.totalRevenue) * 100).toFixed(1)}%` : 
-                        '0%'
-                      }
+                      {financialData.summary
+                        ? `${((financialData.summary.netProfit / financialData.summary.totalRevenue) * 100).toFixed(1)}%`
+                        : "0%"}
                     </span>
                   </div>
                 </div>
@@ -413,10 +467,13 @@ export default function AdminFinancePage() {
               {financialData.cashflow && financialData.cashflow.length > 0 ? (
                 <div className="space-y-4">
                   {financialData.cashflow.slice(-10).map((item, index) => (
-                    <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div
+                      key={index}
+                      className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                    >
                       <div className="flex items-center gap-4">
                         <div className="text-sm font-medium">
-                          {new Date(item.date).toLocaleDateString('fr-FR')}
+                          {new Date(item.date).toLocaleDateString("fr-FR")}
                         </div>
                         <div className="flex items-center gap-2">
                           <span className="text-sm text-green-600">
@@ -428,7 +485,9 @@ export default function AdminFinancePage() {
                         </div>
                       </div>
                       <div className="text-right">
-                        <div className={`font-medium ${item.netFlow >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                        <div
+                          className={`font-medium ${item.netFlow >= 0 ? "text-green-600" : "text-red-600"}`}
+                        >
                           {formatCurrency(item.netFlow)}
                         </div>
                         <div className="text-xs text-gray-500">
@@ -456,13 +515,13 @@ export default function AdminFinancePage() {
                   <Users className="h-5 w-5" />
                   CAC
                 </CardTitle>
-                <CardDescription>
-                  Coût d'acquisition client
-                </CardDescription>
+                <CardDescription>Coût d'acquisition client</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
-                  {financialData.metrics ? formatCurrency(financialData.metrics.cac) : '€0'}
+                  {financialData.metrics
+                    ? formatCurrency(financialData.metrics.cac)
+                    : "€0"}
                 </div>
               </CardContent>
             </Card>
@@ -473,13 +532,13 @@ export default function AdminFinancePage() {
                   <DollarSign className="h-5 w-5" />
                   LTV
                 </CardTitle>
-                <CardDescription>
-                  Lifetime Value
-                </CardDescription>
+                <CardDescription>Lifetime Value</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
-                  {financialData.metrics ? formatCurrency(financialData.metrics.ltv) : '€0'}
+                  {financialData.metrics
+                    ? formatCurrency(financialData.metrics.ltv)
+                    : "€0"}
                 </div>
               </CardContent>
             </Card>
@@ -490,13 +549,13 @@ export default function AdminFinancePage() {
                   <TrendingDown className="h-5 w-5" />
                   Taux de Churn
                 </CardTitle>
-                <CardDescription>
-                  Taux d'attrition
-                </CardDescription>
+                <CardDescription>Taux d'attrition</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
-                  {financialData.metrics ? `${financialData.metrics.churnRate.toFixed(1)}%` : '0%'}
+                  {financialData.metrics
+                    ? `${financialData.metrics.churnRate.toFixed(1)}%`
+                    : "0%"}
                 </div>
               </CardContent>
             </Card>
@@ -507,13 +566,13 @@ export default function AdminFinancePage() {
                   <CreditCard className="h-5 w-5" />
                   ARPU
                 </CardTitle>
-                <CardDescription>
-                  Revenu moyen par utilisateur
-                </CardDescription>
+                <CardDescription>Revenu moyen par utilisateur</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
-                  {financialData.metrics ? formatCurrency(financialData.metrics.arpu) : '€0'}
+                  {financialData.metrics
+                    ? formatCurrency(financialData.metrics.arpu)
+                    : "€0"}
                 </div>
               </CardContent>
             </Card>
@@ -524,13 +583,13 @@ export default function AdminFinancePage() {
                   <BarChart3 className="h-5 w-5" />
                   Marge Brute
                 </CardTitle>
-                <CardDescription>
-                  Marge brute en pourcentage
-                </CardDescription>
+                <CardDescription>Marge brute en pourcentage</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
-                  {financialData.metrics ? `${financialData.metrics.grossMargin.toFixed(1)}%` : '0%'}
+                  {financialData.metrics
+                    ? `${financialData.metrics.grossMargin.toFixed(1)}%`
+                    : "0%"}
                 </div>
               </CardContent>
             </Card>
@@ -541,13 +600,13 @@ export default function AdminFinancePage() {
                   <Activity className="h-5 w-5" />
                   Marge Nette
                 </CardTitle>
-                <CardDescription>
-                  Marge nette en pourcentage
-                </CardDescription>
+                <CardDescription>Marge nette en pourcentage</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
-                  {financialData.metrics ? `${financialData.metrics.netMargin.toFixed(1)}%` : '0%'}
+                  {financialData.metrics
+                    ? `${financialData.metrics.netMargin.toFixed(1)}%`
+                    : "0%"}
                 </div>
               </CardContent>
             </Card>
@@ -568,30 +627,34 @@ export default function AdminFinancePage() {
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   className="h-32 flex-col"
-                  onClick={() => exportReport('pdf')}
+                  onClick={() => exportReport("pdf")}
                 >
                   <Download className="h-8 w-8 mb-2" />
                   <span className="font-medium">Rapport PDF</span>
-                  <span className="text-sm text-gray-500">Format professionnel</span>
+                  <span className="text-sm text-gray-500">
+                    Format professionnel
+                  </span>
                 </Button>
-                
-                <Button 
-                  variant="outline" 
+
+                <Button
+                  variant="outline"
                   className="h-32 flex-col"
-                  onClick={() => exportReport('excel')}
+                  onClick={() => exportReport("excel")}
                 >
                   <Download className="h-8 w-8 mb-2" />
                   <span className="font-medium">Rapport Excel</span>
-                  <span className="text-sm text-gray-500">Données tabulaires</span>
+                  <span className="text-sm text-gray-500">
+                    Données tabulaires
+                  </span>
                 </Button>
-                
-                <Button 
-                  variant="outline" 
+
+                <Button
+                  variant="outline"
                   className="h-32 flex-col"
-                  onClick={() => exportReport('csv')}
+                  onClick={() => exportReport("csv")}
                 >
                   <Download className="h-8 w-8 mb-2" />
                   <span className="font-medium">Rapport CSV</span>
@@ -624,7 +687,7 @@ export default function AdminFinancePage() {
                     </div>
                   </div>
                 </div>
-                
+
                 <div className="flex items-center gap-3 p-3 bg-green-50 rounded-lg">
                   <CheckCircle className="h-5 w-5 text-green-600" />
                   <div>
@@ -636,7 +699,7 @@ export default function AdminFinancePage() {
                     </div>
                   </div>
                 </div>
-                
+
                 <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg">
                   <Clock className="h-5 w-5 text-blue-600" />
                   <div>
@@ -654,5 +717,5 @@ export default function AdminFinancePage() {
         </TabsContent>
       </Tabs>
     </div>
-  )
-} 
+  );
+}

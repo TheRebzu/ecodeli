@@ -2,7 +2,13 @@
 
 import { useState, useEffect } from "react";
 import { useTranslations } from "next-intl";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -14,21 +20,28 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { 
-  Calendar, 
-  Clock, 
-  FileText, 
+import {
+  Calendar,
+  Clock,
+  FileText,
   Euro,
   CheckCircle2,
   AlertCircle,
   Download,
   Eye,
   TrendingUp,
-  Info
+  Info,
 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useApi } from "@/hooks/use-api";
-import { format, addMonths, subMonths, endOfMonth, startOfMonth, isAfter } from "date-fns";
+import {
+  format,
+  addMonths,
+  subMonths,
+  endOfMonth,
+  startOfMonth,
+  isAfter,
+} from "date-fns";
 import { fr } from "date-fns/locale";
 import { toast } from "sonner";
 
@@ -77,20 +90,22 @@ export function MonthlyBilling() {
   const t = useTranslations("provider.billing.monthly");
   const { user } = useAuth();
   const { execute } = useApi();
-  const [billingData, setBillingData] = useState<MonthlyBillingData | null>(null);
+  const [billingData, setBillingData] = useState<MonthlyBillingData | null>(
+    null,
+  );
   const [loading, setLoading] = useState(true);
   const [selectedMonth, setSelectedMonth] = useState(new Date());
 
   // Créer les méthodes GET et POST basées sur execute
   const get = async (url: string) => {
-    return await execute(url, { method: 'GET' });
+    return await execute(url, { method: "GET" });
   };
 
   const post = async (url: string, options: { body: string }) => {
-    return await execute(url, { 
-      method: 'POST',
+    return await execute(url, {
+      method: "POST",
       body: options.body,
-      headers: { 'Content-Type': 'application/json' }
+      headers: { "Content-Type": "application/json" },
     });
   };
 
@@ -103,7 +118,9 @@ export function MonthlyBilling() {
 
     try {
       setLoading(true);
-      const response = await get(`/api/provider/billing/monthly?providerId=${user.id}&month=${format(selectedMonth) || "yyyy-MM"}`);
+      const response = await get(
+        `/api/provider/billing/monthly?providerId=${user.id}&month=${format(selectedMonth) || "yyyy-MM"}`,
+      );
       if (response) {
         setBillingData(response);
       }
@@ -117,7 +134,9 @@ export function MonthlyBilling() {
 
   const downloadInvoice = async (invoiceId: string) => {
     try {
-      const response = await get(`/api/provider/billing/invoices/${invoiceId}/download`);
+      const response = await get(
+        `/api/provider/billing/invoices/${invoiceId}/download`,
+      );
       if (response?.url) {
         window.open(response.url, "_blank");
         toast.success("Téléchargement de la facture démarré");
@@ -129,7 +148,9 @@ export function MonthlyBilling() {
 
   const previewInvoice = async () => {
     try {
-      const response = await get(`/api/provider/billing/preview?providerId=${user?.id}&month=${format(selectedMonth) || "yyyy-MM"}`);
+      const response = await get(
+        `/api/provider/billing/preview?providerId=${user?.id}&month=${format(selectedMonth) || "yyyy-MM"}`,
+      );
       if (response?.url) {
         window.open(response.url, "_blank");
       }
@@ -143,7 +164,7 @@ export function MonthlyBilling() {
       <div className="space-y-4">
         <h1 className="text-3xl font-bold">{t("title")}</h1>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {[1, 2, 3].map(i => (
+          {[1, 2, 3].map((i) => (
             <Card key={i}>
               <CardContent className="p-6">
                 <div className="animate-pulse space-y-2">
@@ -172,10 +193,13 @@ export function MonthlyBilling() {
       {/* Alerte facturation automatique */}
       <Alert className="border-blue-200 bg-blue-50">
         <Info className="h-4 w-4 text-blue-600" />
-        <AlertTitle className="text-blue-900">Facturation automatique</AlertTitle>
+        <AlertTitle className="text-blue-900">
+          Facturation automatique
+        </AlertTitle>
         <AlertDescription className="text-blue-800">
-          La facturation est générée automatiquement le 30 de chaque mois à 23h00. 
-          Le virement bancaire est effectué dans les 3-5 jours ouvrés suivants.
+          La facturation est générée automatiquement le 30 de chaque mois à
+          23h00. Le virement bancaire est effectué dans les 3-5 jours ouvrés
+          suivants.
         </AlertDescription>
       </Alert>
 
@@ -183,14 +207,16 @@ export function MonthlyBilling() {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Prestations ce mois</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Prestations ce mois
+            </CardTitle>
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{billingData?.currentMonth.totalServices || 0}</div>
-            <p className="text-xs text-muted-foreground">
-              Services réalisés
-            </p>
+            <div className="text-2xl font-bold">
+              {billingData?.currentMonth.totalServices || 0}
+            </div>
+            <p className="text-xs text-muted-foreground">Services réalisés</p>
           </CardContent>
         </Card>
 
@@ -200,7 +226,9 @@ export function MonthlyBilling() {
             <Euro className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{billingData?.currentMonth.totalAmount.toFixed(2)}€</div>
+            <div className="text-2xl font-bold">
+              {billingData?.currentMonth.totalAmount.toFixed(2)}€
+            </div>
             <p className="text-xs text-muted-foreground">
               Avant commission EcoDeli
             </p>
@@ -209,20 +237,24 @@ export function MonthlyBilling() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Prochaine facture</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Prochaine facture
+            </CardTitle>
             <Calendar className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{format(nextGenerationDate) || "dd/MM"}</div>
-            <p className="text-xs text-muted-foreground">
-              Génération à 23h00
-            </p>
+            <div className="text-2xl font-bold">
+              {format(nextGenerationDate) || "dd/MM"}
+            </div>
+            <p className="text-xs text-muted-foreground">Génération à 23h00</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Dernier paiement</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Dernier paiement
+            </CardTitle>
             <CheckCircle2 className="h-4 w-4 text-green-500" />
           </CardHeader>
           <CardContent>
@@ -231,7 +263,8 @@ export function MonthlyBilling() {
             </div>
             {billingData?.lastInvoice?.paidAt && (
               <p className="text-xs text-muted-foreground">
-                Payé le {format(new Date(billingData.lastInvoice.paidAt), "dd/MM/yyyy")}
+                Payé le{" "}
+                {format(new Date(billingData.lastInvoice.paidAt), "dd/MM/yyyy")}
               </p>
             )}
           </CardContent>
@@ -244,7 +277,15 @@ export function MonthlyBilling() {
           <CardHeader>
             <CardTitle>Dernière facture générée</CardTitle>
             <CardDescription>
-              Facture du mois de {format(new Date(billingData.lastInvoice.year, billingData.lastInvoice.month - 1), "MMMM yyyy", { locale: fr })}
+              Facture du mois de{" "}
+              {format(
+                new Date(
+                  billingData.lastInvoice.year,
+                  billingData.lastInvoice.month - 1,
+                ),
+                "MMMM yyyy",
+                { locale: fr },
+              )}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -258,7 +299,11 @@ export function MonthlyBilling() {
                     Facture #{billingData.lastInvoice.id.slice(0, 8)}
                   </h4>
                   <p className="text-sm text-muted-foreground">
-                    Générée le {format(new Date(billingData.lastInvoice.generatedAt), "dd/MM/yyyy à HH:mm")}
+                    Générée le{" "}
+                    {format(
+                      new Date(billingData.lastInvoice.generatedAt),
+                      "dd/MM/yyyy à HH:mm",
+                    )}
                   </p>
                   <p className="text-lg font-semibold text-green-600 mt-1">
                     {billingData.lastInvoice.amount.toFixed(2)}€
@@ -266,9 +311,18 @@ export function MonthlyBilling() {
                 </div>
               </div>
               <div className="flex items-center gap-3">
-                <Badge variant={billingData.lastInvoice.status === "PAID" ? "default" : "secondary"}>
-                  {billingData.lastInvoice.status === "PAID" ? "Payée" : 
-                   billingData.lastInvoice.status === "GENERATED" ? "Générée" : "En attente"}
+                <Badge
+                  variant={
+                    billingData.lastInvoice.status === "PAID"
+                      ? "default"
+                      : "secondary"
+                  }
+                >
+                  {billingData.lastInvoice.status === "PAID"
+                    ? "Payée"
+                    : billingData.lastInvoice.status === "GENERATED"
+                      ? "Générée"
+                      : "En attente"}
                 </Badge>
                 <Button
                   variant="outline"
@@ -289,7 +343,8 @@ export function MonthlyBilling() {
         <CardHeader>
           <CardTitle>Détail des prestations du mois en cours</CardTitle>
           <CardDescription>
-            Prestations réalisées en {format(selectedMonth, "MMMM yyyy", { locale: fr })}
+            Prestations réalisées en{" "}
+            {format(selectedMonth, "MMMM yyyy", { locale: fr })}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -314,12 +369,18 @@ export function MonthlyBilling() {
                   <TableCell className="font-medium">{service.name}</TableCell>
                   <TableCell>{service.clientName}</TableCell>
                   <TableCell>{service.amount.toFixed(2)}€</TableCell>
-                  <TableCell className="text-red-600">-{service.commission.toFixed(2)}€</TableCell>
+                  <TableCell className="text-red-600">
+                    -{service.commission.toFixed(2)}€
+                  </TableCell>
                   <TableCell className="font-semibold text-green-600">
                     {service.netAmount.toFixed(2)}€
                   </TableCell>
                   <TableCell>
-                    <Badge variant={service.status === "COMPLETED" ? "default" : "secondary"}>
+                    <Badge
+                      variant={
+                        service.status === "COMPLETED" ? "default" : "secondary"
+                      }
+                    >
                       {service.status === "COMPLETED" ? "Terminé" : "En cours"}
                     </Badge>
                   </TableCell>
@@ -331,7 +392,9 @@ export function MonthlyBilling() {
           {billingData?.currentMonth.servicesDetails.length === 0 && (
             <div className="text-center py-8">
               <AlertCircle className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-              <p className="text-muted-foreground">Aucune prestation ce mois-ci</p>
+              <p className="text-muted-foreground">
+                Aucune prestation ce mois-ci
+              </p>
             </div>
           )}
         </CardContent>
@@ -347,7 +410,10 @@ export function MonthlyBilling() {
             <Eye className="h-4 w-4 mr-2" />
             Prévisualiser la prochaine facture
           </Button>
-          <Button variant="outline" onClick={() => setSelectedMonth(subMonths(selectedMonth, 1))}>
+          <Button
+            variant="outline"
+            onClick={() => setSelectedMonth(subMonths(selectedMonth, 1))}
+          >
             <Calendar className="h-4 w-4 mr-2" />
             Voir le mois précédent
           </Button>
@@ -366,11 +432,17 @@ export function MonthlyBilling() {
           <ol className="space-y-3 text-sm text-amber-800">
             <li className="flex gap-2">
               <span className="font-semibold">1.</span>
-              <span>Le 30 de chaque mois à 23h00 : Génération automatique de la facture PDF</span>
+              <span>
+                Le 30 de chaque mois à 23h00 : Génération automatique de la
+                facture PDF
+              </span>
             </li>
             <li className="flex gap-2">
               <span className="font-semibold">2.</span>
-              <span>Synthèse de toutes vos prestations du mois avec calcul des commissions</span>
+              <span>
+                Synthèse de toutes vos prestations du mois avec calcul des
+                commissions
+              </span>
             </li>
             <li className="flex gap-2">
               <span className="font-semibold">3.</span>
@@ -382,17 +454,20 @@ export function MonthlyBilling() {
             </li>
             <li className="flex gap-2">
               <span className="font-semibold">5.</span>
-              <span>Archives accessibles à tout moment pour votre comptabilité</span>
+              <span>
+                Archives accessibles à tout moment pour votre comptabilité
+              </span>
             </li>
           </ol>
           <Alert className="mt-4 border-amber-300">
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>
-              En tant qu'autoentrepreneur, conservez toutes vos factures pour votre déclaration URSSAF.
+              En tant qu'autoentrepreneur, conservez toutes vos factures pour
+              votre déclaration URSSAF.
             </AlertDescription>
           </Alert>
         </CardContent>
       </Card>
     </div>
   );
-} 
+}

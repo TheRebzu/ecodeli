@@ -1,28 +1,34 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import { useAuth } from '@/hooks/use-auth'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Switch } from '@/components/ui/switch'
-import { Badge } from '@/components/ui/badge'
-import { Separator } from '@/components/ui/separator'
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
-} from '@/components/ui/select'
-import { Textarea } from '@/components/ui/textarea'
-import { 
-  SettingsIcon, 
-  BellIcon, 
-  ShieldIcon, 
+import { useState, useEffect } from "react";
+import { useAuth } from "@/hooks/use-auth";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  SettingsIcon,
+  BellIcon,
+  ShieldIcon,
   StoreIcon,
   CreditCardIcon,
   TruckIcon,
@@ -33,156 +39,160 @@ import {
   InfoIcon,
   CheckCircleIcon,
   XCircleIcon,
-  SaveIcon
-} from 'lucide-react'
+  SaveIcon,
+} from "lucide-react";
 
 interface MerchantSettings {
   // Profil commerçant
-  businessName: string
-  businessType: string
-  siret: string
-  address: string
-  city: string
-  postalCode: string
-  country: string
-  phone: string
-  email: string
-  website: string
-  description: string
-  
+  businessName: string;
+  businessType: string;
+  siret: string;
+  address: string;
+  city: string;
+  postalCode: string;
+  country: string;
+  phone: string;
+  email: string;
+  website: string;
+  description: string;
+
   // Paramètres de livraison
-  deliveryEnabled: boolean
-  deliveryZones: string[]
+  deliveryEnabled: boolean;
+  deliveryZones: string[];
   deliveryHours: {
-    start: string
-    end: string
-  }
-  minOrderAmount: number
-  deliveryFee: number
-  
+    start: string;
+    end: string;
+  };
+  minOrderAmount: number;
+  deliveryFee: number;
+
   // Notifications
-  emailNotifications: boolean
-  smsNotifications: boolean
-  pushNotifications: boolean
-  orderNotifications: boolean
-  deliveryNotifications: boolean
-  marketingNotifications: boolean
-  
+  emailNotifications: boolean;
+  smsNotifications: boolean;
+  pushNotifications: boolean;
+  orderNotifications: boolean;
+  deliveryNotifications: boolean;
+  marketingNotifications: boolean;
+
   // Paramètres de paiement
-  paymentMethods: string[]
-  autoWithdraw: boolean
-  withdrawalDay: number
-  taxRate: number
-  
+  paymentMethods: string[];
+  autoWithdraw: boolean;
+  withdrawalDay: number;
+  taxRate: number;
+
   // Paramètres d'affichage
-  displayMode: 'public' | 'private'
-  showRatings: boolean
-  showInventory: boolean
-  showPrices: boolean
-  
+  displayMode: "public" | "private";
+  showRatings: boolean;
+  showInventory: boolean;
+  showPrices: boolean;
+
   // Intégrations
-  posIntegration: boolean
-  inventorySync: boolean
-  accountingSync: boolean
+  posIntegration: boolean;
+  inventorySync: boolean;
+  accountingSync: boolean;
 }
 
 export default function MerchantSettingsPage() {
-  const { user } = useAuth()
-  const [loading, setLoading] = useState(true)
-  const [saving, setSaving] = useState(false)
+  const { user } = useAuth();
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [settings, setSettings] = useState<MerchantSettings>({
-    businessName: '',
-    businessType: '',
-    siret: '',
-    address: '',
-    city: '',
-    postalCode: '',
-    country: 'France',
-    phone: '',
-    email: '',
-    website: '',
-    description: '',
+    businessName: "",
+    businessType: "",
+    siret: "",
+    address: "",
+    city: "",
+    postalCode: "",
+    country: "France",
+    phone: "",
+    email: "",
+    website: "",
+    description: "",
     deliveryEnabled: true,
     deliveryZones: [],
     deliveryHours: {
-      start: '09:00',
-      end: '18:00'
+      start: "09:00",
+      end: "18:00",
     },
     minOrderAmount: 0,
-    deliveryFee: 5.00,
+    deliveryFee: 5.0,
     emailNotifications: true,
     smsNotifications: false,
     pushNotifications: true,
     orderNotifications: true,
     deliveryNotifications: true,
     marketingNotifications: false,
-    paymentMethods: ['stripe', 'paypal'],
+    paymentMethods: ["stripe", "paypal"],
     autoWithdraw: false,
     withdrawalDay: 15,
     taxRate: 20,
-    displayMode: 'public',
+    displayMode: "public",
     showRatings: true,
     showInventory: true,
     showPrices: true,
     posIntegration: false,
     inventorySync: false,
-    accountingSync: false
-  })
+    accountingSync: false,
+  });
 
   useEffect(() => {
-    loadSettings()
-  }, [])
+    loadSettings();
+  }, []);
 
   const loadSettings = async () => {
     try {
-      setLoading(true)
-      const response = await fetch('/api/merchant/settings')
+      setLoading(true);
+      const response = await fetch("/api/merchant/settings");
       if (response.ok) {
-        const data = await response.json()
-        setSettings(data)
+        const data = await response.json();
+        setSettings(data);
       }
     } catch (error) {
-      console.error('Erreur lors du chargement des paramètres:', error)
+      console.error("Erreur lors du chargement des paramètres:", error);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const handleSave = async () => {
     try {
-      setSaving(true)
-      const response = await fetch('/api/merchant/settings', {
-        method: 'PUT',
+      setSaving(true);
+      const response = await fetch("/api/merchant/settings", {
+        method: "PUT",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(settings),
-      })
+      });
 
       if (response.ok) {
         // Afficher un message de succès
-        console.log('Paramètres sauvegardés avec succès')
+        console.log("Paramètres sauvegardés avec succès");
       }
     } catch (error) {
-      console.error('Erreur lors de la sauvegarde:', error)
+      console.error("Erreur lors de la sauvegarde:", error);
     } finally {
-      setSaving(false)
+      setSaving(false);
     }
-  }
+  };
 
   const updateSettings = (key: keyof MerchantSettings, value: any) => {
-    setSettings(prev => ({ ...prev, [key]: value }))
-  }
+    setSettings((prev) => ({ ...prev, [key]: value }));
+  };
 
   if (loading) {
-    return <div className="flex justify-center items-center h-64">Chargement...</div>
+    return (
+      <div className="flex justify-center items-center h-64">Chargement...</div>
+    );
   }
 
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="mb-8">
         <h1 className="text-3xl font-bold mb-2">Paramètres du Commerce</h1>
-        <p className="text-gray-600">Gérez les paramètres de votre commerce EcoDeli</p>
+        <p className="text-gray-600">
+          Gérez les paramètres de votre commerce EcoDeli
+        </p>
       </div>
 
       <Tabs defaultValue="profile" className="space-y-6">
@@ -228,15 +238,19 @@ export default function MerchantSettingsPage() {
                   <Input
                     id="businessName"
                     value={settings.businessName}
-                    onChange={(e) => updateSettings('businessName', e.target.value)}
+                    onChange={(e) =>
+                      updateSettings("businessName", e.target.value)
+                    }
                     placeholder="Mon Super Commerce"
                   />
                 </div>
                 <div>
                   <Label htmlFor="businessType">Type de Commerce</Label>
-                  <Select 
-                    value={settings.businessType} 
-                    onValueChange={(value) => updateSettings('businessType', value)}
+                  <Select
+                    value={settings.businessType}
+                    onValueChange={(value) =>
+                      updateSettings("businessType", value)
+                    }
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Sélectionnez un type" />
@@ -258,7 +272,7 @@ export default function MerchantSettingsPage() {
                   <Input
                     id="siret"
                     value={settings.siret}
-                    onChange={(e) => updateSettings('siret', e.target.value)}
+                    onChange={(e) => updateSettings("siret", e.target.value)}
                     placeholder="12345678901234"
                   />
                 </div>
@@ -267,7 +281,7 @@ export default function MerchantSettingsPage() {
                   <Input
                     id="phone"
                     value={settings.phone}
-                    onChange={(e) => updateSettings('phone', e.target.value)}
+                    onChange={(e) => updateSettings("phone", e.target.value)}
                     placeholder="+33 1 23 45 67 89"
                   />
                 </div>
@@ -278,7 +292,7 @@ export default function MerchantSettingsPage() {
                 <Input
                   id="address"
                   value={settings.address}
-                  onChange={(e) => updateSettings('address', e.target.value)}
+                  onChange={(e) => updateSettings("address", e.target.value)}
                   placeholder="123 Rue de la Paix"
                 />
               </div>
@@ -289,7 +303,7 @@ export default function MerchantSettingsPage() {
                   <Input
                     id="city"
                     value={settings.city}
-                    onChange={(e) => updateSettings('city', e.target.value)}
+                    onChange={(e) => updateSettings("city", e.target.value)}
                     placeholder="Paris"
                   />
                 </div>
@@ -298,7 +312,9 @@ export default function MerchantSettingsPage() {
                   <Input
                     id="postalCode"
                     value={settings.postalCode}
-                    onChange={(e) => updateSettings('postalCode', e.target.value)}
+                    onChange={(e) =>
+                      updateSettings("postalCode", e.target.value)
+                    }
                     placeholder="75001"
                   />
                 </div>
@@ -307,7 +323,7 @@ export default function MerchantSettingsPage() {
                   <Input
                     id="country"
                     value={settings.country}
-                    onChange={(e) => updateSettings('country', e.target.value)}
+                    onChange={(e) => updateSettings("country", e.target.value)}
                     placeholder="France"
                   />
                 </div>
@@ -318,7 +334,9 @@ export default function MerchantSettingsPage() {
                 <Textarea
                   id="description"
                   value={settings.description}
-                  onChange={(e) => updateSettings('description', e.target.value)}
+                  onChange={(e) =>
+                    updateSettings("description", e.target.value)
+                  }
                   placeholder="Décrivez votre commerce..."
                   rows={3}
                 />
@@ -350,7 +368,9 @@ export default function MerchantSettingsPage() {
                 <Switch
                   id="deliveryEnabled"
                   checked={settings.deliveryEnabled}
-                  onCheckedChange={(checked) => updateSettings('deliveryEnabled', checked)}
+                  onCheckedChange={(checked) =>
+                    updateSettings("deliveryEnabled", checked)
+                  }
                 />
               </div>
 
@@ -365,7 +385,9 @@ export default function MerchantSettingsPage() {
                     min="0"
                     step="0.01"
                     value={settings.deliveryFee}
-                    onChange={(e) => updateSettings('deliveryFee', parseFloat(e.target.value))}
+                    onChange={(e) =>
+                      updateSettings("deliveryFee", parseFloat(e.target.value))
+                    }
                   />
                 </div>
                 <div>
@@ -376,7 +398,12 @@ export default function MerchantSettingsPage() {
                     min="0"
                     step="0.01"
                     value={settings.minOrderAmount}
-                    onChange={(e) => updateSettings('minOrderAmount', parseFloat(e.target.value))}
+                    onChange={(e) =>
+                      updateSettings(
+                        "minOrderAmount",
+                        parseFloat(e.target.value),
+                      )
+                    }
                   />
                 </div>
               </div>
@@ -390,10 +417,12 @@ export default function MerchantSettingsPage() {
                       id="deliveryStart"
                       type="time"
                       value={settings.deliveryHours.start}
-                      onChange={(e) => updateSettings('deliveryHours', {
-                        ...settings.deliveryHours,
-                        start: e.target.value
-                      })}
+                      onChange={(e) =>
+                        updateSettings("deliveryHours", {
+                          ...settings.deliveryHours,
+                          start: e.target.value,
+                        })
+                      }
                     />
                   </div>
                   <div>
@@ -402,10 +431,12 @@ export default function MerchantSettingsPage() {
                       id="deliveryEnd"
                       type="time"
                       value={settings.deliveryHours.end}
-                      onChange={(e) => updateSettings('deliveryHours', {
-                        ...settings.deliveryHours,
-                        end: e.target.value
-                      })}
+                      onChange={(e) =>
+                        updateSettings("deliveryHours", {
+                          ...settings.deliveryHours,
+                          end: e.target.value,
+                        })
+                      }
                     />
                   </div>
                 </div>
@@ -438,7 +469,9 @@ export default function MerchantSettingsPage() {
                   <Switch
                     id="emailNotifications"
                     checked={settings.emailNotifications}
-                    onCheckedChange={(checked) => updateSettings('emailNotifications', checked)}
+                    onCheckedChange={(checked) =>
+                      updateSettings("emailNotifications", checked)
+                    }
                   />
                 </div>
 
@@ -452,7 +485,9 @@ export default function MerchantSettingsPage() {
                   <Switch
                     id="smsNotifications"
                     checked={settings.smsNotifications}
-                    onCheckedChange={(checked) => updateSettings('smsNotifications', checked)}
+                    onCheckedChange={(checked) =>
+                      updateSettings("smsNotifications", checked)
+                    }
                   />
                 </div>
 
@@ -466,7 +501,9 @@ export default function MerchantSettingsPage() {
                   <Switch
                     id="pushNotifications"
                     checked={settings.pushNotifications}
-                    onCheckedChange={(checked) => updateSettings('pushNotifications', checked)}
+                    onCheckedChange={(checked) =>
+                      updateSettings("pushNotifications", checked)
+                    }
                   />
                 </div>
 
@@ -482,7 +519,9 @@ export default function MerchantSettingsPage() {
                   <Switch
                     id="orderNotifications"
                     checked={settings.orderNotifications}
-                    onCheckedChange={(checked) => updateSettings('orderNotifications', checked)}
+                    onCheckedChange={(checked) =>
+                      updateSettings("orderNotifications", checked)
+                    }
                   />
                 </div>
 
@@ -496,7 +535,9 @@ export default function MerchantSettingsPage() {
                   <Switch
                     id="deliveryNotifications"
                     checked={settings.deliveryNotifications}
-                    onCheckedChange={(checked) => updateSettings('deliveryNotifications', checked)}
+                    onCheckedChange={(checked) =>
+                      updateSettings("deliveryNotifications", checked)
+                    }
                   />
                 </div>
               </div>
@@ -527,16 +568,20 @@ export default function MerchantSettingsPage() {
                 <Switch
                   id="autoWithdraw"
                   checked={settings.autoWithdraw}
-                  onCheckedChange={(checked) => updateSettings('autoWithdraw', checked)}
+                  onCheckedChange={(checked) =>
+                    updateSettings("autoWithdraw", checked)
+                  }
                 />
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="withdrawalDay">Jour de Retrait</Label>
-                  <Select 
-                    value={settings.withdrawalDay.toString()} 
-                    onValueChange={(value) => updateSettings('withdrawalDay', parseInt(value))}
+                  <Select
+                    value={settings.withdrawalDay.toString()}
+                    onValueChange={(value) =>
+                      updateSettings("withdrawalDay", parseInt(value))
+                    }
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Sélectionnez un jour" />
@@ -559,7 +604,9 @@ export default function MerchantSettingsPage() {
                     max="100"
                     step="0.1"
                     value={settings.taxRate}
-                    onChange={(e) => updateSettings('taxRate', parseFloat(e.target.value))}
+                    onChange={(e) =>
+                      updateSettings("taxRate", parseFloat(e.target.value))
+                    }
                   />
                 </div>
               </div>
@@ -590,7 +637,9 @@ export default function MerchantSettingsPage() {
                 <Switch
                   id="posIntegration"
                   checked={settings.posIntegration}
-                  onCheckedChange={(checked) => updateSettings('posIntegration', checked)}
+                  onCheckedChange={(checked) =>
+                    updateSettings("posIntegration", checked)
+                  }
                 />
               </div>
 
@@ -604,7 +653,9 @@ export default function MerchantSettingsPage() {
                 <Switch
                   id="inventorySync"
                   checked={settings.inventorySync}
-                  onCheckedChange={(checked) => updateSettings('inventorySync', checked)}
+                  onCheckedChange={(checked) =>
+                    updateSettings("inventorySync", checked)
+                  }
                 />
               </div>
 
@@ -618,7 +669,9 @@ export default function MerchantSettingsPage() {
                 <Switch
                   id="accountingSync"
                   checked={settings.accountingSync}
-                  onCheckedChange={(checked) => updateSettings('accountingSync', checked)}
+                  onCheckedChange={(checked) =>
+                    updateSettings("accountingSync", checked)
+                  }
                 />
               </div>
             </CardContent>
@@ -629,9 +682,9 @@ export default function MerchantSettingsPage() {
       <div className="flex justify-end mt-8">
         <Button onClick={handleSave} disabled={saving}>
           <SaveIcon className="w-4 h-4 mr-2" />
-          {saving ? 'Sauvegarde...' : 'Sauvegarder'}
+          {saving ? "Sauvegarde..." : "Sauvegarder"}
         </Button>
       </div>
     </div>
-  )
-} 
+  );
+}

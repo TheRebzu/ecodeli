@@ -1,96 +1,136 @@
-import { SeedContext } from '../index'
-import { CONSTANTS } from '../data/constants'
-import { generateCertificationNumber } from '../utils/generators/code-generator'
+import { SeedContext } from "../index";
+import { CONSTANTS } from "../data/constants";
+import { generateCertificationNumber } from "../utils/generators/code-generator";
 
 const serviceCategories = {
   HOME_SERVICE: {
-    name: 'Ménage',
-    specialty: 'HOME_SERVICE',
-    services: ['Ménage complet', 'Nettoyage approfondi', 'Repassage', 'Vitres'],
+    name: "Ménage",
+    specialty: "HOME_SERVICE",
+    services: ["Ménage complet", "Nettoyage approfondi", "Repassage", "Vitres"],
     pricing: { min: 20, max: 40 },
-    duration: { min: 60, max: 180 }
+    duration: { min: 60, max: 180 },
   },
   OTHER_PLUMBING: {
-    name: 'Plomberie',
-    specialty: 'OTHER',
-    services: ['Fuite d\'eau', 'Débouchage', 'Installation', 'Dépannage urgent'],
+    name: "Plomberie",
+    specialty: "OTHER",
+    services: ["Fuite d'eau", "Débouchage", "Installation", "Dépannage urgent"],
     pricing: { min: 50, max: 150 },
-    duration: { min: 30, max: 240 }
+    duration: { min: 30, max: 240 },
   },
   PET_CARE: {
-    name: 'Garde d\'animaux',
-    specialty: 'PET_CARE',
-    services: ['Promenade chien', 'Garde à domicile', 'Visite quotidienne', 'Pension'],
+    name: "Garde d'animaux",
+    specialty: "PET_CARE",
+    services: [
+      "Promenade chien",
+      "Garde à domicile",
+      "Visite quotidienne",
+      "Pension",
+    ],
     pricing: { min: 15, max: 50 },
-    duration: { min: 30, max: 480 }
+    duration: { min: 30, max: 480 },
   },
   OTHER_GARDENING: {
-    name: 'Jardinage',
-    specialty: 'OTHER',
-    services: ['Tonte pelouse', 'Taille haies', 'Entretien jardin', 'Plantations'],
+    name: "Jardinage",
+    specialty: "OTHER",
+    services: [
+      "Tonte pelouse",
+      "Taille haies",
+      "Entretien jardin",
+      "Plantations",
+    ],
     pricing: { min: 30, max: 80 },
-    duration: { min: 60, max: 300 }
+    duration: { min: 60, max: 300 },
   },
   OTHER_HANDYMAN: {
-    name: 'Bricolage', 
-    specialty: 'OTHER',
-    services: ['Montage meuble', 'Petites réparations', 'Peinture', 'Électricité basique'],
+    name: "Bricolage",
+    specialty: "OTHER",
+    services: [
+      "Montage meuble",
+      "Petites réparations",
+      "Peinture",
+      "Électricité basique",
+    ],
     pricing: { min: 35, max: 100 },
-    duration: { min: 60, max: 240 }
-  }
-}
+    duration: { min: 60, max: 240 },
+  },
+};
 
 export async function seedProviders(ctx: SeedContext) {
-  const { prisma } = ctx
-  const users = ctx.data.get('users') || []
-  
-  console.log('   Updating provider profiles...')
-  
-  const providers = users.filter((u: any) => u.role === CONSTANTS.roles.PROVIDER)
-  const updatedProviders = []
-  
+  const { prisma } = ctx;
+  const users = ctx.data.get("users") || [];
+
+  console.log("   Updating provider profiles...");
+
+  const providers = users.filter(
+    (u: any) => u.role === CONSTANTS.roles.PROVIDER,
+  );
+  const updatedProviders = [];
+
   // Associer chaque prestataire à une catégorie
   const providerCategories = [
-    'HOME_SERVICE',
-    'OTHER_PLUMBING', 
-    'PET_CARE',
-    'OTHER_GARDENING',
-    'OTHER_HANDYMAN'
-  ]
-  
+    "HOME_SERVICE",
+    "OTHER_PLUMBING",
+    "PET_CARE",
+    "OTHER_GARDENING",
+    "OTHER_HANDYMAN",
+  ];
+
   for (let i = 0; i < providers.length; i++) {
-    const user = providers[i]
-    const category = providerCategories[i]
-    const categoryData = serviceCategories[category as keyof typeof serviceCategories]
-    
-    const radius = 10 + Math.floor(Math.random() * 20) // 10-30 km
+    const user = providers[i];
+    const category = providerCategories[i];
+    const categoryData =
+      serviceCategories[category as keyof typeof serviceCategories];
+
+    const radius = 10 + Math.floor(Math.random() * 20); // 10-30 km
     const provider = await prisma.provider.update({
       where: { userId: user.id },
       data: {
         businessName: `${user.name} Services`,
-        siret: user.validationStatus === 'VALIDATED' ? `${Math.floor(10000000 + Math.random() * 90000000)}00021` : null,
+        siret:
+          user.validationStatus === "VALIDATED"
+            ? `${Math.floor(10000000 + Math.random() * 90000000)}00021`
+            : null,
         specialties: [categoryData.specialty],
-        hourlyRate: categoryData.pricing.min + Math.random() * (categoryData.pricing.max - categoryData.pricing.min),
+        hourlyRate:
+          categoryData.pricing.min +
+          Math.random() * (categoryData.pricing.max - categoryData.pricing.min),
         description: `Service professionnel de ${categoryData.name.toLowerCase()}`,
-        averageRating: user.validationStatus === 'VALIDATED' ? 4 + Math.random() : 0,
-        totalBookings: user.validationStatus === 'VALIDATED' ? Math.floor(Math.random() * 200) : 0,
-        activatedAt: user.validationStatus === 'VALIDATED' ? new Date(Date.now() - Math.random() * 180 * 24 * 60 * 60 * 1000) : null,
-        lastActiveAt: user.validationStatus === 'VALIDATED' ? new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000) : null,
+        averageRating:
+          user.validationStatus === "VALIDATED" ? 4 + Math.random() : 0,
+        totalBookings:
+          user.validationStatus === "VALIDATED"
+            ? Math.floor(Math.random() * 200)
+            : 0,
+        activatedAt:
+          user.validationStatus === "VALIDATED"
+            ? new Date(Date.now() - Math.random() * 180 * 24 * 60 * 60 * 1000)
+            : null,
+        lastActiveAt:
+          user.validationStatus === "VALIDATED"
+            ? new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000)
+            : null,
         zone: {
           coordinates: [[48.8566, 2.3522]], // Paris par défaut
-          radius
-        }
-      }
-    })
-    
+          radius,
+        },
+      },
+    });
+
     // Créer des services pour les prestataires validés
-    if (user.validationStatus === 'VALIDATED') {
-      const services = []
-      
+    if (user.validationStatus === "VALIDATED") {
+      const services = [];
+
       for (const serviceName of categoryData.services) {
-        const basePrice = categoryData.pricing.min + Math.random() * (categoryData.pricing.max - categoryData.pricing.min)
-        const duration = categoryData.duration.min + Math.floor(Math.random() * (categoryData.duration.max - categoryData.duration.min))
-        
+        const basePrice =
+          categoryData.pricing.min +
+          Math.random() * (categoryData.pricing.max - categoryData.pricing.min);
+        const duration =
+          categoryData.duration.min +
+          Math.floor(
+            Math.random() *
+              (categoryData.duration.max - categoryData.duration.min),
+          );
+
         const service = await prisma.service.create({
           data: {
             providerId: provider.id,
@@ -98,60 +138,67 @@ export async function seedProviders(ctx: SeedContext) {
             description: `${serviceName} professionnel par ${user.name}`,
             type: categoryData.specialty as any,
             basePrice,
-            priceUnit: 'HOUR',
+            priceUnit: "HOUR",
             duration, // en minutes
             isActive: true,
-            minAdvanceBooking: category === 'OTHER_PLUMBING' ? 0 : 24, // 0 pour urgence, 24h sinon
+            minAdvanceBooking: category === "OTHER_PLUMBING" ? 0 : 24, // 0 pour urgence, 24h sinon
             maxAdvanceBooking: 720, // 30 jours
-            requirements: category === 'OTHER_PLUMBING' ? ['CERTIFICATION'] : [],
-            cancellationPolicy: 'Annulation gratuite jusqu\'à 24h avant'
-          }
-        })
-        services.push(service)
+            requirements:
+              category === "OTHER_PLUMBING" ? ["CERTIFICATION"] : [],
+            cancellationPolicy: "Annulation gratuite jusqu'à 24h avant",
+          },
+        });
+        services.push(service);
       }
-      
+
       // Créer des disponibilités hebdomadaires
-      const days = [1, 2, 3, 4, 5, 6] // Lundi à Samedi (0 = Dimanche)
+      const days = [1, 2, 3, 4, 5, 6]; // Lundi à Samedi (0 = Dimanche)
       for (const dayOfWeek of days) {
-        if (Math.random() > 0.2) { // 80% de chance de travailler ce jour
+        if (Math.random() > 0.2) {
+          // 80% de chance de travailler ce jour
           await prisma.providerAvailability.create({
             data: {
               providerId: provider.id,
               dayOfWeek,
-              startTime: '08:00',
-              endTime: Math.random() > 0.5 ? '18:00' : '20:00',
-              isActive: true
-            }
-          })
+              startTime: "08:00",
+              endTime: Math.random() > 0.5 ? "18:00" : "20:00",
+              isActive: true,
+            },
+          });
         }
       }
-      
+
       // Créer quelques créneaux bloqués (congés, etc)
       if (Math.random() > 0.7) {
-        const blockedStart = new Date(Date.now() + Math.floor(Math.random() * 30) * 24 * 60 * 60 * 1000)
-        const blockedEnd = new Date(blockedStart.getTime() + Math.floor(1 + Math.random() * 7) * 24 * 60 * 60 * 1000)
-        
+        const blockedStart = new Date(
+          Date.now() + Math.floor(Math.random() * 30) * 24 * 60 * 60 * 1000,
+        );
+        const blockedEnd = new Date(
+          blockedStart.getTime() +
+            Math.floor(1 + Math.random() * 7) * 24 * 60 * 60 * 1000,
+        );
+
         await prisma.providerAvailabilityBlock.create({
           data: {
             providerId: provider.id,
             startDate: blockedStart,
             endDate: blockedEnd,
-            reason: 'Congés',
-            isActive: true
-          }
-        })
+            reason: "Congés",
+            isActive: true,
+          },
+        });
       }
-      
-      updatedProviders.push({ provider, services })
+
+      updatedProviders.push({ provider, services });
     } else {
-      updatedProviders.push({ provider, services: [] })
+      updatedProviders.push({ provider, services: [] });
     }
   }
-  
-  console.log(`   Updated ${updatedProviders.length} provider profiles`)
-  
+
+  console.log(`   Updated ${updatedProviders.length} provider profiles`);
+
   // Stocker pour les autres seeds
-  ctx.data.set('providers', updatedProviders)
-  
-  return updatedProviders
-} 
+  ctx.data.set("providers", updatedProviders);
+
+  return updatedProviders;
+}

@@ -5,8 +5,8 @@ interface ProviderEvaluationStatsPageProps {
   params: Promise<{ locale: string }>;
 }
 
-export default async function ProviderEvaluationStatsPage({ 
-  params 
+export default async function ProviderEvaluationStatsPage({
+  params,
 }: ProviderEvaluationStatsPageProps) {
   const { locale } = await params;
   await setRequestLocale(locale);

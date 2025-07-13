@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '@/lib/auth'
-import { prisma } from '@/lib/db'
+import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@/lib/auth";
+import { prisma } from "@/lib/db";
 
 /**
  * GET /api/provider/documents
@@ -8,47 +8,56 @@ import { prisma } from '@/lib/db'
  */
 export async function GET(request: NextRequest) {
   try {
-    const session = await auth()
-    
+    const session = await auth();
+
     if (!session) {
-      return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
+      return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
     }
 
-    if (session.user.role !== 'PROVIDER') {
-      return NextResponse.json({ error: 'Accès non autorisé' }, { status: 403 })
+    if (session.user.role !== "PROVIDER") {
+      return NextResponse.json(
+        { error: "Accès non autorisé" },
+        { status: 403 },
+      );
     }
 
     // Récupérer les documents du prestataire
     const documents = await prisma.document.findMany({
-      where: { 
+      where: {
         userId: session.user.id,
-        type: { in: ['IDENTITY', 'CERTIFICATION', 'INSURANCE', 'CONTRACT'] }
+        type: { in: ["IDENTITY", "CERTIFICATION", "INSURANCE", "CONTRACT"] },
       },
-      orderBy: { createdAt: 'desc' }
-    })
+      orderBy: { createdAt: "desc" },
+    });
 
     // Récupérer le profil prestataire
     const provider = await prisma.provider.findUnique({
-      where: { userId: session.user.id }
-    })
+      where: { userId: session.user.id },
+    });
 
     // Documents requis pour les prestataires
-    const requiredDocuments = ['IDENTITY', 'CERTIFICATION']
-    
+    const requiredDocuments = ["IDENTITY", "CERTIFICATION"];
+
     // Calculer le résumé
-    const approvedDocs = documents.filter(doc => doc.validationStatus === 'APPROVED')
-    const pendingDocs = documents.filter(doc => doc.validationStatus === 'PENDING')
-    const rejectedDocs = documents.filter(doc => doc.validationStatus === 'REJECTED')
-    
+    const approvedDocs = documents.filter(
+      (doc) => doc.validationStatus === "APPROVED",
+    );
+    const pendingDocs = documents.filter(
+      (doc) => doc.validationStatus === "PENDING",
+    );
+    const rejectedDocs = documents.filter(
+      (doc) => doc.validationStatus === "REJECTED",
+    );
+
     // Documents manquants (requis mais pas approuvés)
-    const missing = requiredDocuments.filter(requiredType => 
-      !approvedDocs.some(doc => doc.type === requiredType)
-    )
+    const missing = requiredDocuments.filter(
+      (requiredType) => !approvedDocs.some((doc) => doc.type === requiredType),
+    );
 
     // Peut être activé si tous les documents requis sont approuvés
-    const canActivate = requiredDocuments.every(requiredType => 
-      approvedDocs.some(doc => doc.type === requiredType)
-    )
+    const canActivate = requiredDocuments.every((requiredType) =>
+      approvedDocs.some((doc) => doc.type === requiredType),
+    );
 
     const summary = {
       total: documents.length,
@@ -57,11 +66,11 @@ export async function GET(request: NextRequest) {
       rejected: rejectedDocs.length,
       requiredDocuments,
       missing,
-      canActivate
-    }
+      canActivate,
+    };
 
     return NextResponse.json({
-      documents: documents.map(doc => ({
+      documents: documents.map((doc) => ({
         id: doc.id,
         type: doc.type,
         filename: doc.filename,
@@ -72,16 +81,15 @@ export async function GET(request: NextRequest) {
         validatedAt: doc.validatedAt,
         rejectionReason: doc.rejectionReason,
         createdAt: doc.createdAt,
-        updatedAt: doc.updatedAt
+        updatedAt: doc.updatedAt,
       })),
-      summary
-    })
-
+      summary,
+    });
   } catch (error) {
-    console.error('Erreur récupération documents prestataire:', error)
+    console.error("Erreur récupération documents prestataire:", error);
     return NextResponse.json(
-      { error: 'Erreur interne du serveur' },
-      { status: 500 }
-    )
+      { error: "Erreur interne du serveur" },
+      { status: 500 },
+    );
   }
-} 
+}

@@ -3,25 +3,25 @@
 
 export const REQUIRED_ENV_VARS = {
   // Stripe Configuration
-  STRIPE_SECRET_KEY: 'sk_test_...', // Your Stripe secret key
-  STRIPE_PUBLISHABLE_KEY: 'pk_test_...', // Your Stripe publishable key
-  STRIPE_WEBHOOK_SECRET: 'whsec_...', // Webhook endpoint secret
-  
+  STRIPE_SECRET_KEY: "sk_test_...", // Your Stripe secret key
+  STRIPE_PUBLISHABLE_KEY: "pk_test_...", // Your Stripe publishable key
+  STRIPE_WEBHOOK_SECRET: "whsec_...", // Webhook endpoint secret
+
   // Stripe Price IDs for subscription plans (create these in Stripe Dashboard)
-  STRIPE_STARTER_PRICE_ID: 'price_...', // Price ID for Starter plan (€9.90/month)
-  STRIPE_PREMIUM_PRICE_ID: 'price_...', // Price ID for Premium plan (€19.99/month)
+  STRIPE_STARTER_PRICE_ID: "price_...", // Price ID for Starter plan (€9.90/month)
+  STRIPE_PREMIUM_PRICE_ID: "price_...", // Price ID for Premium plan (€19.99/month)
 
   // Database
-  DATABASE_URL: 'postgresql://...',
-  
+  DATABASE_URL: "postgresql://...",
+
   // NextAuth
-  NEXTAUTH_SECRET: 'your-secret-key',
-  NEXTAUTH_URL: 'http://localhost:3000',
+  NEXTAUTH_SECRET: "your-secret-key",
+  NEXTAUTH_URL: "http://localhost:3000",
 
   // OneSignal (for notifications)
-  ONESIGNAL_APP_ID: 'your-onesignal-app-id',
-  ONESIGNAL_API_KEY: 'your-onesignal-api-key'
-}
+  ONESIGNAL_APP_ID: "your-onesignal-app-id",
+  ONESIGNAL_API_KEY: "your-onesignal-api-key",
+};
 
 // Instructions for setting up Stripe products and prices:
 /*
@@ -59,17 +59,17 @@ export const SUBSCRIPTION_CONFIG = {
     features: {
       insurance: 0,
       discount: 0,
-      priorityShipping: false
-    }
+      priorityShipping: false,
+    },
   },
   STARTER: {
-    price: 9.90,
+    price: 9.9,
     features: {
       insurance: 115, // €115 insurance per shipment
       discount: 5, // 5% discount
       priorityShipping: true,
-      priorityShippingDiscount: 5 // 5% surcharge instead of 15%
-    }
+      priorityShippingDiscount: 5, // 5% surcharge instead of 15%
+    },
   },
   PREMIUM: {
     price: 19.99,
@@ -79,41 +79,41 @@ export const SUBSCRIPTION_CONFIG = {
       priorityShipping: true,
       priorityShippingDiscount: 5, // 5% surcharge after 3 free
       firstShipmentFree: true, // If < €150
-      freeShipments: 3 // 3 priority shipments per month
-    }
-  }
-} as const
+      freeShipments: 3, // 3 priority shipments per month
+    },
+  },
+} as const;
 
 // Test the environment configuration
 export function validateEnvironment(): { valid: boolean; missing: string[] } {
-  const missing: string[] = []
-  
+  const missing: string[] = [];
+
   const requiredVars = [
-    'STRIPE_SECRET_KEY',
-    'STRIPE_PUBLISHABLE_KEY', 
-    'STRIPE_WEBHOOK_SECRET',
-    'STRIPE_STARTER_PRICE_ID',
-    'STRIPE_PREMIUM_PRICE_ID',
-    'DATABASE_URL'
-  ]
+    "STRIPE_SECRET_KEY",
+    "STRIPE_PUBLISHABLE_KEY",
+    "STRIPE_WEBHOOK_SECRET",
+    "STRIPE_STARTER_PRICE_ID",
+    "STRIPE_PREMIUM_PRICE_ID",
+    "DATABASE_URL",
+  ];
 
   for (const varName of requiredVars) {
     if (!process.env[varName]) {
-      missing.push(varName)
+      missing.push(varName);
     }
   }
 
   return {
     valid: missing.length === 0,
-    missing
-  }
+    missing,
+  };
 }
 
 // Helper to get environment variables safely
 export function getEnvVar(name: string, defaultValue?: string): string {
-  const value = process.env[name]
+  const value = process.env[name];
   if (!value && !defaultValue) {
-    throw new Error(`Required environment variable ${name} is not set`)
+    throw new Error(`Required environment variable ${name} is not set`);
   }
-  return value || defaultValue!
+  return value || defaultValue!;
 }

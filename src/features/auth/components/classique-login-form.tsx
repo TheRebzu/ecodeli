@@ -1,67 +1,69 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
-import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { z } from "zod"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Loader2 } from "lucide-react"
-import { useSession } from "@/lib/auth-client"
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Loader2 } from "lucide-react";
+import { useSession } from "@/lib/auth-client";
 
 const loginSchema = z.object({
   email: z.string().email("Email invalide"),
-  password: z.string().min(1, "Mot de passe requis")
-})
+  password: z.string().min(1, "Mot de passe requis"),
+});
 
-type LoginForm = z.infer<typeof loginSchema>
+type LoginForm = z.infer<typeof loginSchema>;
 
 export function LoginForm() {
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState("")
-  const router = useRouter()
-  const { signIn } = useAuth()
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
+  const router = useRouter();
+  const { signIn } = useAuth();
 
   const {
     register,
     handleSubmit,
-    formState: { errors }
+    formState: { errors },
   } = useForm<LoginForm>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
       email: "celian@celian-vf.fr", // Valeur par défaut pour les tests
-      password: "password123"
-    }
-  })
+      password: "password123",
+    },
+  });
 
   async function onSubmit(data: LoginForm) {
-    setIsLoading(true)
-    setError("")
+    setIsLoading(true);
+    setError("");
 
     try {
-      const result = await signIn(data.email, data.password)
+      const result = await signIn(data.email, data.password);
 
       if (result.success) {
         // Redirection selon le rôle sera gérée par le hook
-        router.push("/fr/client") // Par défaut
+        router.push("/fr/client"); // Par défaut
       } else {
-        setError(result.error || "Erreur de connexion")
+        setError(result.error || "Erreur de connexion");
       }
     } catch (error) {
-      console.error("Erreur de connexion:", error)
-      setError("Erreur de connexion. Veuillez réessayer.")
+      console.error("Erreur de connexion:", error);
+      setError("Erreur de connexion. Veuillez réessayer.");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
   }
 
   return (
     <Card className="w-full max-w-md mx-auto">
       <CardHeader>
-        <CardTitle className="text-2xl text-center">Connexion EcoDeli</CardTitle>
+        <CardTitle className="text-2xl text-center">
+          Connexion EcoDeli
+        </CardTitle>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -108,14 +110,22 @@ export function LoginForm() {
         </form>
 
         <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-          <p className="text-sm font-medium text-gray-700 mb-2">Comptes de test :</p>
+          <p className="text-sm font-medium text-gray-700 mb-2">
+            Comptes de test :
+          </p>
           <div className="text-sm text-gray-600 space-y-1">
-            <p><strong>Email:</strong> celian@celian-vf.fr</p>
-            <p><strong>Mot de passe:</strong> password123</p>
-            <p><strong>Rôle:</strong> CLIENT</p>
+            <p>
+              <strong>Email:</strong> celian@celian-vf.fr
+            </p>
+            <p>
+              <strong>Mot de passe:</strong> password123
+            </p>
+            <p>
+              <strong>Rôle:</strong> CLIENT
+            </p>
           </div>
         </div>
       </CardContent>
     </Card>
-  )
-} 
+  );
+}

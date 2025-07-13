@@ -18,9 +18,7 @@ export default function DelivererDocumentsPage() {
           <h2 className="text-2xl font-semibold text-gray-900 mb-2">
             {t("auth.required_title")}
           </h2>
-          <p className="text-gray-600">
-            {t("auth.required_description")}
-          </p>
+          <p className="text-gray-600">{t("auth.required_description")}</p>
         </div>
       </div>
     );
@@ -32,7 +30,7 @@ export default function DelivererDocumentsPage() {
         title="Documents et Candidature"
         description="Gérez vos documents justificatifs et votre candidature de livreur"
       />
-      
+
       <Tabs defaultValue="documents" className="space-y-4">
         <TabsList>
           <TabsTrigger value="candidacy">Candidature</TabsTrigger>

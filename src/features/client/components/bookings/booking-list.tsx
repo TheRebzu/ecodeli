@@ -6,7 +6,15 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Calendar, Clock, MapPin, Phone, Star, X, CreditCard } from "lucide-react";
+import {
+  Calendar,
+  Clock,
+  MapPin,
+  Phone,
+  Star,
+  X,
+  CreditCard,
+} from "lucide-react";
 import Link from "next/link";
 import {
   Dialog,
@@ -97,11 +105,14 @@ export default function BookingList({ clientId }: BookingListProps) {
     if (!selectedBooking || rating === 0) return;
 
     try {
-      const response = await fetch(`/api/client/bookings/${selectedBooking.id}/rate`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ rating, review }),
-      });
+      const response = await fetch(
+        `/api/client/bookings/${selectedBooking.id}/rate`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ rating, review }),
+        },
+      );
 
       if (response.ok) {
         toast.success(t("success.rating_submitted"));
@@ -125,19 +136,39 @@ export default function BookingList({ clientId }: BookingListProps) {
 
   const getStatusBadge = (status: string) => {
     const statusConfig = {
-      pending: { color: "bg-yellow-100 text-yellow-800", label: t("status.pending") },
-      confirmed: { color: "bg-blue-100 text-blue-800", label: t("status.confirmed") },
-      in_progress: { color: "bg-purple-100 text-purple-800", label: t("status.in_progress") },
-      completed: { color: "bg-green-100 text-green-800", label: t("status.completed") },
-      cancelled: { color: "bg-red-100 text-red-800", label: t("status.cancelled") },
+      pending: {
+        color: "bg-yellow-100 text-yellow-800",
+        label: t("status.pending"),
+      },
+      confirmed: {
+        color: "bg-blue-100 text-blue-800",
+        label: t("status.confirmed"),
+      },
+      in_progress: {
+        color: "bg-purple-100 text-purple-800",
+        label: t("status.in_progress"),
+      },
+      completed: {
+        color: "bg-green-100 text-green-800",
+        label: t("status.completed"),
+      },
+      cancelled: {
+        color: "bg-red-100 text-red-800",
+        label: t("status.cancelled"),
+      },
     };
-    
-    const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.pending;
+
+    const config =
+      statusConfig[status as keyof typeof statusConfig] || statusConfig.pending;
     return <Badge className={config.color}>{config.label}</Badge>;
   };
 
-  const activeBookings = bookings.filter(b => !["completed", "cancelled"].includes(b.status));
-  const pastBookings = bookings.filter(b => ["completed", "cancelled"].includes(b.status));
+  const activeBookings = bookings.filter(
+    (b) => !["completed", "cancelled"].includes(b.status),
+  );
+  const pastBookings = bookings.filter((b) =>
+    ["completed", "cancelled"].includes(b.status),
+  );
 
   if (loading) {
     return (
@@ -177,7 +208,9 @@ export default function BookingList({ clientId }: BookingListProps) {
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">
                   {t("empty.no_active_bookings")}
                 </h3>
-                <p className="text-gray-600">{t("empty.book_service_description")}</p>
+                <p className="text-gray-600">
+                  {t("empty.book_service_description")}
+                </p>
               </CardContent>
             </Card>
           ) : (
@@ -186,8 +219,12 @@ export default function BookingList({ clientId }: BookingListProps) {
                 <CardHeader>
                   <div className="flex justify-between items-start">
                     <div>
-                      <CardTitle className="text-lg">{booking.serviceType}</CardTitle>
-                      <p className="text-sm text-gray-600 mt-1">{booking.providerName}</p>
+                      <CardTitle className="text-lg">
+                        {booking.serviceType}
+                      </CardTitle>
+                      <p className="text-sm text-gray-600 mt-1">
+                        {booking.providerName}
+                      </p>
                     </div>
                     {getStatusBadge(booking.status)}
                   </div>
@@ -196,7 +233,9 @@ export default function BookingList({ clientId }: BookingListProps) {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                     <div className="flex items-center text-sm text-gray-600">
                       <Calendar className="h-4 w-4 mr-2" />
-                      {new Date(booking.scheduledDate).toLocaleDateString()} à {booking.scheduledTime}
+                      {new Date(
+                        booking.scheduledDate,
+                      ).toLocaleDateString()} à {booking.scheduledTime}
                     </div>
                     <div className="flex items-center text-sm text-gray-600">
                       <Clock className="h-4 w-4 mr-2" />
@@ -211,7 +250,7 @@ export default function BookingList({ clientId }: BookingListProps) {
                       {booking.providerPhone}
                     </div>
                   </div>
-                  
+
                   {booking.notes && (
                     <div className="mb-4 p-3 bg-gray-50 rounded">
                       <p className="text-sm text-gray-700">{booking.notes}</p>
@@ -223,14 +262,18 @@ export default function BookingList({ clientId }: BookingListProps) {
                       {booking.price}€
                     </span>
                     <div className="space-x-2">
-                      {!booking.isPaid && ["pending", "confirmed"].includes(booking.status) && (
-                        <Link href={`/client/bookings/${booking.id}/payment`}>
-                          <Button size="sm" className="bg-blue-600 hover:bg-blue-700">
-                            <CreditCard className="h-4 w-4 mr-1" />
-                            {t("actions.pay")}
-                          </Button>
-                        </Link>
-                      )}
+                      {!booking.isPaid &&
+                        ["pending", "confirmed"].includes(booking.status) && (
+                          <Link href={`/client/bookings/${booking.id}/payment`}>
+                            <Button
+                              size="sm"
+                              className="bg-blue-600 hover:bg-blue-700"
+                            >
+                              <CreditCard className="h-4 w-4 mr-1" />
+                              {t("actions.pay")}
+                            </Button>
+                          </Link>
+                        )}
                       {booking.status === "pending" && (
                         <Button
                           variant="destructive"
@@ -260,7 +303,9 @@ export default function BookingList({ clientId }: BookingListProps) {
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">
                   {t("empty.no_past_bookings")}
                 </h3>
-                <p className="text-gray-600">{t("empty.past_bookings_description")}</p>
+                <p className="text-gray-600">
+                  {t("empty.past_bookings_description")}
+                </p>
               </CardContent>
             </Card>
           ) : (
@@ -269,8 +314,12 @@ export default function BookingList({ clientId }: BookingListProps) {
                 <CardHeader>
                   <div className="flex justify-between items-start">
                     <div>
-                      <CardTitle className="text-lg">{booking.serviceType}</CardTitle>
-                      <p className="text-sm text-gray-600 mt-1">{booking.providerName}</p>
+                      <CardTitle className="text-lg">
+                        {booking.serviceType}
+                      </CardTitle>
+                      <p className="text-sm text-gray-600 mt-1">
+                        {booking.providerName}
+                      </p>
                     </div>
                     {getStatusBadge(booking.status)}
                   </div>
@@ -279,7 +328,9 @@ export default function BookingList({ clientId }: BookingListProps) {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                     <div className="flex items-center text-sm text-gray-600">
                       <Calendar className="h-4 w-4 mr-2" />
-                      {new Date(booking.scheduledDate).toLocaleDateString()} à {booking.scheduledTime}
+                      {new Date(
+                        booking.scheduledDate,
+                      ).toLocaleDateString()} à {booking.scheduledTime}
                     </div>
                     <div className="flex items-center text-sm text-gray-600">
                       <Clock className="h-4 w-4 mr-2" />
@@ -291,10 +342,14 @@ export default function BookingList({ clientId }: BookingListProps) {
                     <div className="mb-4 p-3 bg-blue-50 rounded">
                       <div className="flex items-center mb-2">
                         <Star className="h-4 w-4 text-yellow-400 mr-1" />
-                        <span className="text-sm font-medium">{booking.rating}/5</span>
+                        <span className="text-sm font-medium">
+                          {booking.rating}/5
+                        </span>
                       </div>
                       {booking.review && (
-                        <p className="text-sm text-gray-700">{booking.review}</p>
+                        <p className="text-sm text-gray-700">
+                          {booking.review}
+                        </p>
                       )}
                     </div>
                   )}
@@ -333,12 +388,17 @@ export default function BookingList({ clientId }: BookingListProps) {
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowCancelDialog(false)}>
+            <Button
+              variant="outline"
+              onClick={() => setShowCancelDialog(false)}
+            >
               {t("dialogs.cancel.keep")}
             </Button>
             <Button
               variant="destructive"
-              onClick={() => selectedBooking && cancelBooking(selectedBooking.id)}
+              onClick={() =>
+                selectedBooking && cancelBooking(selectedBooking.id)
+              }
             >
               {t("dialogs.cancel.confirm")}
             </Button>
@@ -357,7 +417,9 @@ export default function BookingList({ clientId }: BookingListProps) {
           </DialogHeader>
           <div className="space-y-4">
             <div>
-              <label className="text-sm font-medium">{t("dialogs.rating.rating_label")}</label>
+              <label className="text-sm font-medium">
+                {t("dialogs.rating.rating_label")}
+              </label>
               <div className="flex space-x-1 mt-2">
                 {[1, 2, 3, 4, 5].map((star) => (
                   <button
@@ -373,7 +435,9 @@ export default function BookingList({ clientId }: BookingListProps) {
               </div>
             </div>
             <div>
-              <label className="text-sm font-medium">{t("dialogs.rating.review_label")}</label>
+              <label className="text-sm font-medium">
+                {t("dialogs.rating.review_label")}
+              </label>
               <textarea
                 value={review}
                 onChange={(e) => setReview(e.target.value)}
@@ -384,7 +448,10 @@ export default function BookingList({ clientId }: BookingListProps) {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowRatingDialog(false)}>
+            <Button
+              variant="outline"
+              onClick={() => setShowRatingDialog(false)}
+            >
               {t("dialogs.rating.cancel")}
             </Button>
             <Button onClick={submitRating} disabled={rating === 0}>

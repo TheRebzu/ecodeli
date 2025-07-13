@@ -1,37 +1,37 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getCurrentUser } from '@/lib/auth/utils'
-import { db } from '@/lib/db'
+import { NextRequest, NextResponse } from "next/server";
+import { getCurrentUser } from "@/lib/auth/utils";
+import { db } from "@/lib/db";
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const { id } = await params
-    const user = await getCurrentUser(request)
-    
+    const { id } = await params;
+    const user = await getCurrentUser(request);
+
     if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    if (user.role !== 'ADMIN') {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    if (user.role !== "ADMIN") {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
     // Vérifier que l'annonce existe
     const existingAnnouncement = await db.announcement.findUnique({
       where: { id },
-      include: { author: true }
-    })
+      include: { author: true },
+    });
 
     if (!existingAnnouncement) {
       return NextResponse.json(
-        { error: 'Announcement not found' },
-        { status: 404 }
-      )
+        { error: "Announcement not found" },
+        { status: 404 },
+      );
     }
 
-    const body = await request.json()
+    const body = await request.json();
     const {
       title,
       description,
@@ -45,8 +45,8 @@ export async function PUT(
       isFlexibleDate,
       preferredTimeSlot,
       specialInstructions,
-      internalNotes
-    } = body
+      internalNotes,
+    } = body;
 
     const updatedAnnouncement = await db.announcement.update({
       where: { id },
@@ -64,7 +64,7 @@ export async function PUT(
         preferredTimeSlot,
         specialInstructions,
         internalNotes,
-        updatedAt: new Date()
+        updatedAt: new Date(),
       },
       include: {
         author: {
@@ -72,67 +72,67 @@ export async function PUT(
             id: true,
             email: true,
             firstName: true,
-            lastName: true
-          }
-        }
-      }
-    })
+            lastName: true,
+          },
+        },
+      },
+    });
 
     return NextResponse.json({
-      message: 'Announcement updated successfully',
-      announcement: updatedAnnouncement
-    })
+      message: "Announcement updated successfully",
+      announcement: updatedAnnouncement,
+    });
   } catch (error) {
-    console.error('Error updating announcement:', error)
+    console.error("Error updating announcement:", error);
     return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    )
+      { error: "Internal server error" },
+      { status: 500 },
+    );
   }
 }
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const { id } = await params
-    const user = await getCurrentUser(request)
-    
+    const { id } = await params;
+    const user = await getCurrentUser(request);
+
     if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    if (user.role !== 'ADMIN') {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    if (user.role !== "ADMIN") {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
     // Vérifier que l'annonce existe
     const announcement = await db.announcement.findUnique({
       where: { id },
-      include: { author: true }
-    })
+      include: { author: true },
+    });
 
     if (!announcement) {
       return NextResponse.json(
-        { error: 'Announcement not found' },
-        { status: 404 }
-      )
+        { error: "Announcement not found" },
+        { status: 404 },
+      );
     }
 
     // Supprimer l'annonce (cascade automatique via Prisma)
     await db.announcement.delete({
-      where: { id }
-    })
+      where: { id },
+    });
 
     return NextResponse.json({
-      message: 'Announcement deleted successfully'
-    })
+      message: "Announcement deleted successfully",
+    });
   } catch (error) {
-    console.error('Error deleting announcement:', error)
+    console.error("Error deleting announcement:", error);
     return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    )
+      { error: "Internal server error" },
+      { status: 500 },
+    );
   }
-} 
+}

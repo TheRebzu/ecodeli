@@ -1,31 +1,26 @@
-'use client'
+"use client";
 
-import { Button } from '@/components/ui/button'
-import { BookOpen, RotateCcw } from 'lucide-react'
-import { useTutorial } from '../hooks/useTutorial'
+import { Button } from "@/components/ui/button";
+import { BookOpen, RotateCcw } from "lucide-react";
+import { useTutorial } from "../hooks/useTutorial";
 
 interface TutorialButtonProps {
-  variant?: 'default' | 'outline' | 'ghost'
-  size?: 'sm' | 'default' | 'lg'
-  showRestart?: boolean
-  className?: string
+  variant?: "default" | "outline" | "ghost";
+  size?: "sm" | "default" | "lg";
+  showRestart?: boolean;
+  className?: string;
 }
 
-export function TutorialButton({ 
-  variant = 'outline', 
-  size = 'sm',
+export function TutorialButton({
+  variant = "outline",
+  size = "sm",
   showRestart = false,
-  className
+  className,
 }: TutorialButtonProps) {
-  const { 
-    tutorialState, 
-    openTutorial, 
-    resetTutorial, 
-    loading 
-  } = useTutorial()
+  const { tutorialState, openTutorial, resetTutorial, loading } = useTutorial();
 
   if (loading || !tutorialState) {
-    return null
+    return null;
   }
 
   // Si le tutoriel n'est pas encore terminé
@@ -41,7 +36,7 @@ export function TutorialButton({
         <BookOpen className="w-4 h-4 mr-2" />
         Reprendre le tutoriel
       </Button>
-    )
+    );
   }
 
   // Si le tutoriel est terminé
@@ -57,7 +52,7 @@ export function TutorialButton({
         <BookOpen className="w-4 h-4 mr-2" />
         Revoir le tutoriel
       </Button>
-      
+
       {showRestart && (
         <Button
           variant="ghost"
@@ -71,5 +66,5 @@ export function TutorialButton({
         </Button>
       )}
     </div>
-  )
+  );
 }

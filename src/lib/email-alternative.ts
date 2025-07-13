@@ -1,22 +1,22 @@
-import nodemailer from 'nodemailer'
+import nodemailer from "nodemailer";
 
 /**
  * Configuration Nodemailer pour O2switch
  */
 const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST || 'mail.celian-vf.fr',
-  port: parseInt(process.env.SMTP_PORT || '587'),
+  host: process.env.SMTP_HOST || "mail.celian-vf.fr",
+  port: parseInt(process.env.SMTP_PORT || "587"),
   secure: false, // true pour 465, false pour 587 (STARTTLS)
   requireTLS: true, // Force TLS pour o2switch
   auth: {
-    user: process.env.GMAIL_USER || '',
-    pass: process.env.GMAIL_APP_PASSWORD || ''
+    user: process.env.GMAIL_USER || "",
+    pass: process.env.GMAIL_APP_PASSWORD || "",
   },
   tls: {
     // Ne pas échouer sur les certificats invalides en dev
-    rejectUnauthorized: process.env.NODE_ENV === 'production'
-  }
-})
+    rejectUnauthorized: process.env.NODE_ENV === "production",
+  },
+});
 
 /**
  * Service d'envoi d'emails alternatif (sans Mailgun)
@@ -25,11 +25,16 @@ export class EmailServiceAlternative {
   /**
    * Envoyer un email de reset de mot de passe
    */
-  static async sendPasswordResetEmail(email: string, resetUrl: string, locale: string = 'fr') {
-    const subject = locale === 'fr' 
-      ? '🔑 Réinitialisation de votre mot de passe - EcoDeli'
-      : '🔑 Password reset - EcoDeli'
-    
+  static async sendPasswordResetEmail(
+    email: string,
+    resetUrl: string,
+    locale: string = "fr",
+  ) {
+    const subject =
+      locale === "fr"
+        ? "🔑 Réinitialisation de votre mot de passe - EcoDeli"
+        : "🔑 Password reset - EcoDeli";
+
     const html = `
       <!DOCTYPE html>
       <html lang="${locale}">
@@ -52,61 +57,69 @@ export class EmailServiceAlternative {
             <div class="logo">🌱 EcoDeli</div>
           </div>
           
-          <h2>${locale === 'fr' ? 'Réinitialisation de votre mot de passe' : 'Password reset'}</h2>
+          <h2>${locale === "fr" ? "Réinitialisation de votre mot de passe" : "Password reset"}</h2>
           
-          <p>${locale === 'fr' 
-            ? 'Vous avez demandé la réinitialisation de votre mot de passe. Cliquez sur le bouton ci-dessous pour créer un nouveau mot de passe :'
-            : 'You have requested a password reset. Click the button below to create a new password:'
+          <p>${
+            locale === "fr"
+              ? "Vous avez demandé la réinitialisation de votre mot de passe. Cliquez sur le bouton ci-dessous pour créer un nouveau mot de passe :"
+              : "You have requested a password reset. Click the button below to create a new password:"
           }</p>
           
           <div style="text-align: center;">
             <a href="${resetUrl}" class="button">
-              ${locale === 'fr' ? '🔑 Réinitialiser mon mot de passe' : '🔑 Reset my password'}
+              ${locale === "fr" ? "🔑 Réinitialiser mon mot de passe" : "🔑 Reset my password"}
             </a>
           </div>
           
-          <p>${locale === 'fr' 
-            ? 'Si vous n\'avez pas demandé cette réinitialisation, ignorez cet email.'
-            : 'If you didn\'t request this reset, please ignore this email.'
+          <p>${
+            locale === "fr"
+              ? "Si vous n'avez pas demandé cette réinitialisation, ignorez cet email."
+              : "If you didn't request this reset, please ignore this email."
           }</p>
           
           <div class="footer">
-            <p>${locale === 'fr' 
-              ? 'Ce lien expirera dans 24 heures pour votre sécurité.'
-              : 'This link will expire in 24 hours for your security.'
+            <p>${
+              locale === "fr"
+                ? "Ce lien expirera dans 24 heures pour votre sécurité."
+                : "This link will expire in 24 hours for your security."
             }</p>
-            <p>© 2025 EcoDeli - ${locale === 'fr' ? 'Livraison écologique' : 'Eco-friendly delivery'}</p>
+            <p>© 2025 EcoDeli - ${locale === "fr" ? "Livraison écologique" : "Eco-friendly delivery"}</p>
           </div>
         </div>
       </body>
       </html>
-    `
+    `;
 
     const mailOptions = {
-      from: process.env.GMAIL_USER || 'noreply@ecodeli.com',
+      from: process.env.GMAIL_USER || "noreply@ecodeli.com",
       to: email,
       subject,
-      html
-    }
+      html,
+    };
 
     try {
-      const result = await transporter.sendMail(mailOptions)
-      console.log('Email de reset envoyé:', result.messageId)
-      return { success: true, messageId: result.messageId }
+      const result = await transporter.sendMail(mailOptions);
+      console.log("Email de reset envoyé:", result.messageId);
+      return { success: true, messageId: result.messageId };
     } catch (error) {
-      console.error('Erreur envoi email:', error)
-      throw error
+      console.error("Erreur envoi email:", error);
+      throw error;
     }
   }
 
   /**
    * Envoyer un email de vérification
    */
-  static async sendVerificationEmail(email: string, verificationUrl: string, locale: string = 'fr') {
-    const subject = locale === 'fr' 
-      ? '🔐 Vérifiez votre email - EcoDeli'
-      : '🔐 Verify your email - EcoDeli'
-    
+  static async sendVerificationEmail(
+    email: string,
+    verificationUrl: string,
+    locale: string = "fr",
+  ) {
+    const subject =
+      locale === "fr"
+        ? "🔐 Vérifiez votre email - EcoDeli"
+        : "🔐 Verify your email - EcoDeli";
+
     const html = `
       <!DOCTYPE html>
       <html lang="${locale}">
@@ -129,51 +142,54 @@ export class EmailServiceAlternative {
             <div class="logo">🌱 EcoDeli</div>
           </div>
           
-          <h2>${locale === 'fr' ? 'Vérifiez votre adresse email' : 'Verify your email address'}</h2>
+          <h2>${locale === "fr" ? "Vérifiez votre adresse email" : "Verify your email address"}</h2>
           
-          <p>${locale === 'fr' 
-            ? 'Merci de vous être inscrit sur EcoDeli ! Pour activer votre compte, veuillez cliquer sur le bouton ci-dessous :'
-            : 'Thank you for signing up with EcoDeli! To activate your account, please click the button below:'
+          <p>${
+            locale === "fr"
+              ? "Merci de vous être inscrit sur EcoDeli ! Pour activer votre compte, veuillez cliquer sur le bouton ci-dessous :"
+              : "Thank you for signing up with EcoDeli! To activate your account, please click the button below:"
           }</p>
           
           <div style="text-align: center;">
             <a href="${verificationUrl}" class="button">
-              ${locale === 'fr' ? '✅ Vérifier mon email' : '✅ Verify my email'}
+              ${locale === "fr" ? "✅ Vérifier mon email" : "✅ Verify my email"}
             </a>
           </div>
           
-          <p>${locale === 'fr' 
-            ? 'Si le bouton ne fonctionne pas, copiez et collez ce lien dans votre navigateur :'
-            : 'If the button doesn\'t work, copy and paste this link into your browser:'
+          <p>${
+            locale === "fr"
+              ? "Si le bouton ne fonctionne pas, copiez et collez ce lien dans votre navigateur :"
+              : "If the button doesn't work, copy and paste this link into your browser:"
           }</p>
           <p style="word-break: break-all; color: #666;">${verificationUrl}</p>
           
           <div class="footer">
-            <p>${locale === 'fr' 
-              ? 'Cet email a été envoyé automatiquement, merci de ne pas y répondre.'
-              : 'This email was sent automatically, please do not reply.'
+            <p>${
+              locale === "fr"
+                ? "Cet email a été envoyé automatiquement, merci de ne pas y répondre."
+                : "This email was sent automatically, please do not reply."
             }</p>
-            <p>© 2025 EcoDeli - ${locale === 'fr' ? 'Livraison écologique' : 'Eco-friendly delivery'}</p>
+            <p>© 2025 EcoDeli - ${locale === "fr" ? "Livraison écologique" : "Eco-friendly delivery"}</p>
           </div>
         </div>
       </body>
       </html>
-    `
+    `;
 
     const mailOptions = {
-      from: process.env.GMAIL_USER || 'noreply@ecodeli.com',
+      from: process.env.GMAIL_USER || "noreply@ecodeli.com",
       to: email,
       subject,
-      html
-    }
+      html,
+    };
 
     try {
-      const result = await transporter.sendMail(mailOptions)
-      console.log('Email de vérification envoyé:', result.messageId)
-      return { success: true, messageId: result.messageId }
+      const result = await transporter.sendMail(mailOptions);
+      console.log("Email de vérification envoyé:", result.messageId);
+      return { success: true, messageId: result.messageId };
     } catch (error) {
-      console.error('Erreur envoi email:', error)
-      throw error
+      console.error("Erreur envoi email:", error);
+      throw error;
     }
   }
-} 
+}

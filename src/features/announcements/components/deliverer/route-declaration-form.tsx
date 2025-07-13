@@ -1,125 +1,154 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { z } from "zod"
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 
 const routeDeclarationSchema = z.object({
   startAddress: z.string().min(5, "L'adresse de départ est requise"),
   endAddress: z.string().min(5, "L'adresse d'arrivée est requise"),
   departureTime: z.string().min(1, "L'heure de départ est requise"),
   estimatedArrival: z.string().min(1, "L'heure d'arrivée estimée est requise"),
-  vehicleType: z.enum(['CAR', 'MOTORCYCLE', 'BICYCLE', 'SCOOTER', 'VAN', 'TRUCK']),
+  vehicleType: z.enum([
+    "CAR",
+    "MOTORCYCLE",
+    "BICYCLE",
+    "SCOOTER",
+    "VAN",
+    "TRUCK",
+  ]),
   maxWeight: z.number().min(0.1, "Le poids maximum doit être supérieur à 0"),
   maxVolume: z.number().min(0.1, "Le volume maximum doit être supérieur à 0"),
-  acceptedServiceTypes: z.array(z.enum(['PACKAGE', 'SERVICE', 'CART_DROP'])).min(1, "Sélectionnez au moins un type de service"),
+  acceptedServiceTypes: z
+    .array(z.enum(["PACKAGE", "SERVICE", "CART_DROP"]))
+    .min(1, "Sélectionnez au moins un type de service"),
   recurring: z.boolean().default(false),
-  recurringDays: z.array(z.enum(['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY', 'SUNDAY'])).optional(),
+  recurringDays: z
+    .array(
+      z.enum([
+        "MONDAY",
+        "TUESDAY",
+        "WEDNESDAY",
+        "THURSDAY",
+        "FRIDAY",
+        "SATURDAY",
+        "SUNDAY",
+      ]),
+    )
+    .optional(),
   notes: z.string().optional(),
-  pricePerKm: z.number().min(0.1, "Le prix par km doit être supérieur à 0").optional(),
-  minimumPrice: z.number().min(1, "Le prix minimum doit être supérieur à 0").optional()
-})
+  pricePerKm: z
+    .number()
+    .min(0.1, "Le prix par km doit être supérieur à 0")
+    .optional(),
+  minimumPrice: z
+    .number()
+    .min(1, "Le prix minimum doit être supérieur à 0")
+    .optional(),
+});
 
-type RouteDeclarationData = z.infer<typeof routeDeclarationSchema>
+type RouteDeclarationData = z.infer<typeof routeDeclarationSchema>;
 
 interface RouteDeclarationFormProps {
-  onSuccess?: (route: any) => void
-  onCancel?: () => void
-  initialData?: Partial<RouteDeclarationData>
+  onSuccess?: (route: any) => void;
+  onCancel?: () => void;
+  initialData?: Partial<RouteDeclarationData>;
 }
 
-export function RouteDeclarationForm({ 
-  onSuccess, 
+export function RouteDeclarationForm({
+  onSuccess,
   onCancel,
-  initialData 
+  initialData,
 }: RouteDeclarationFormProps) {
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const {
     register,
     handleSubmit,
     formState: { errors },
     watch,
-    setValue
+    setValue,
   } = useForm<RouteDeclarationData>({
     resolver: zodResolver(routeDeclarationSchema),
     defaultValues: {
-      vehicleType: 'CAR',
+      vehicleType: "CAR",
       maxWeight: 20,
       maxVolume: 50,
-      acceptedServiceTypes: ['PACKAGE'],
+      acceptedServiceTypes: ["PACKAGE"],
       recurring: false,
       pricePerKm: 1.5,
       minimumPrice: 5,
-      ...initialData
-    }
-  })
+      ...initialData,
+    },
+  });
 
-  const vehicleType = watch('vehicleType')
-  const isRecurring = watch('recurring')
-  const acceptedServiceTypes = watch('acceptedServiceTypes')
+  const vehicleType = watch("vehicleType");
+  const isRecurring = watch("recurring");
+  const acceptedServiceTypes = watch("acceptedServiceTypes");
 
   const vehicleOptions = [
-    { value: 'BICYCLE', label: '🚲 Vélo', maxWeight: 5, maxVolume: 10 },
-    { value: 'SCOOTER', label: '🛵 Scooter', maxWeight: 10, maxVolume: 20 },
-    { value: 'MOTORCYCLE', label: '🏍️ Moto', maxWeight: 15, maxVolume: 25 },
-    { value: 'CAR', label: '🚗 Voiture', maxWeight: 50, maxVolume: 100 },
-    { value: 'VAN', label: '🚐 Camionnette', maxWeight: 500, maxVolume: 500 },
-    { value: 'TRUCK', label: '🚚 Camion', maxWeight: 3500, maxVolume: 1000 }
-  ]
+    { value: "BICYCLE", label: "🚲 Vélo", maxWeight: 5, maxVolume: 10 },
+    { value: "SCOOTER", label: "🛵 Scooter", maxWeight: 10, maxVolume: 20 },
+    { value: "MOTORCYCLE", label: "🏍️ Moto", maxWeight: 15, maxVolume: 25 },
+    { value: "CAR", label: "🚗 Voiture", maxWeight: 50, maxVolume: 100 },
+    { value: "VAN", label: "🚐 Camionnette", maxWeight: 500, maxVolume: 500 },
+    { value: "TRUCK", label: "🚚 Camion", maxWeight: 3500, maxVolume: 1000 },
+  ];
 
   const serviceTypeOptions = [
-    { value: 'PACKAGE', label: '📦 Livraison de colis' },
-    { value: 'SERVICE', label: '🛠️ Services à domicile' },
-    { value: 'CART_DROP', label: '🛒 Lâcher de chariot' }
-  ]
+    { value: "PACKAGE", label: "📦 Livraison de colis" },
+    { value: "SERVICE", label: "🛠️ Services à domicile" },
+    { value: "CART_DROP", label: "🛒 Lâcher de chariot" },
+  ];
 
   const dayOptions = [
-    { value: 'MONDAY', label: 'Lundi' },
-    { value: 'TUESDAY', label: 'Mardi' },
-    { value: 'WEDNESDAY', label: 'Mercredi' },
-    { value: 'THURSDAY', label: 'Jeudi' },
-    { value: 'FRIDAY', label: 'Vendredi' },
-    { value: 'SATURDAY', label: 'Samedi' },
-    { value: 'SUNDAY', label: 'Dimanche' }
-  ]
+    { value: "MONDAY", label: "Lundi" },
+    { value: "TUESDAY", label: "Mardi" },
+    { value: "WEDNESDAY", label: "Mercredi" },
+    { value: "THURSDAY", label: "Jeudi" },
+    { value: "FRIDAY", label: "Vendredi" },
+    { value: "SATURDAY", label: "Samedi" },
+    { value: "SUNDAY", label: "Dimanche" },
+  ];
 
   const updateVehicleLimits = (vehicle: string) => {
-    const selectedVehicle = vehicleOptions.find(v => v.value === vehicle)
+    const selectedVehicle = vehicleOptions.find((v) => v.value === vehicle);
     if (selectedVehicle) {
-      setValue('maxWeight', selectedVehicle.maxWeight)
-      setValue('maxVolume', selectedVehicle.maxVolume)
+      setValue("maxWeight", selectedVehicle.maxWeight);
+      setValue("maxVolume", selectedVehicle.maxVolume);
     }
-  }
+  };
 
   const onSubmit = async (data: RouteDeclarationData) => {
-    setIsLoading(true)
-    setError(null)
+    setIsLoading(true);
+    setError(null);
 
     try {
-      const response = await fetch('/api/deliverer/routes', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-      })
+      const response = await fetch("/api/deliverer/routes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
 
-      const result = await response.json()
+      const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(result.error || 'Erreur lors de la déclaration du trajet')
+        throw new Error(
+          result.error || "Erreur lors de la déclaration du trajet",
+        );
       }
 
       if (onSuccess) {
-        onSuccess(result)
+        onSuccess(result);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erreur inconnue')
+      setError(err instanceof Error ? err.message : "Erreur inconnue");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   return (
     <div className="bg-white rounded-lg shadow-sm border p-6">
@@ -128,7 +157,8 @@ export function RouteDeclarationForm({
           Déclarer un trajet
         </h2>
         <p className="text-gray-600">
-          Indiquez vos trajets prévus pour recevoir des opportunités de livraison correspondantes.
+          Indiquez vos trajets prévus pour recevoir des opportunités de
+          livraison correspondantes.
         </p>
       </div>
 
@@ -142,7 +172,10 @@ export function RouteDeclarationForm({
         {/* Itinéraire */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label htmlFor="startAddress" className="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              htmlFor="startAddress"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
               Adresse de départ *
             </label>
             <textarea
@@ -153,12 +186,17 @@ export function RouteDeclarationForm({
               placeholder="Adresse complète de départ"
             />
             {errors.startAddress && (
-              <p className="mt-1 text-sm text-red-600">{errors.startAddress.message}</p>
+              <p className="mt-1 text-sm text-red-600">
+                {errors.startAddress.message}
+              </p>
             )}
           </div>
 
           <div>
-            <label htmlFor="endAddress" className="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              htmlFor="endAddress"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
               Adresse d'arrivée *
             </label>
             <textarea
@@ -169,7 +207,9 @@ export function RouteDeclarationForm({
               placeholder="Adresse complète d'arrivée"
             />
             {errors.endAddress && (
-              <p className="mt-1 text-sm text-red-600">{errors.endAddress.message}</p>
+              <p className="mt-1 text-sm text-red-600">
+                {errors.endAddress.message}
+              </p>
             )}
           </div>
         </div>
@@ -177,7 +217,10 @@ export function RouteDeclarationForm({
         {/* Horaires */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label htmlFor="departureTime" className="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              htmlFor="departureTime"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
               Heure de départ *
             </label>
             <input
@@ -188,12 +231,17 @@ export function RouteDeclarationForm({
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
             />
             {errors.departureTime && (
-              <p className="mt-1 text-sm text-red-600">{errors.departureTime.message}</p>
+              <p className="mt-1 text-sm text-red-600">
+                {errors.departureTime.message}
+              </p>
             )}
           </div>
 
           <div>
-            <label htmlFor="estimatedArrival" className="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              htmlFor="estimatedArrival"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
               Arrivée estimée *
             </label>
             <input
@@ -204,7 +252,9 @@ export function RouteDeclarationForm({
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
             />
             {errors.estimatedArrival && (
-              <p className="mt-1 text-sm text-red-600">{errors.estimatedArrival.message}</p>
+              <p className="mt-1 text-sm text-red-600">
+                {errors.estimatedArrival.message}
+              </p>
             )}
           </div>
         </div>
@@ -222,7 +272,7 @@ export function RouteDeclarationForm({
                   type="radio"
                   value={vehicle.value}
                   onChange={(e) => {
-                    updateVehicleLimits(e.target.value)
+                    updateVehicleLimits(e.target.value);
                   }}
                   className="sr-only peer"
                 />
@@ -238,14 +288,19 @@ export function RouteDeclarationForm({
             ))}
           </div>
           {errors.vehicleType && (
-            <p className="mt-1 text-sm text-red-600">{errors.vehicleType.message}</p>
+            <p className="mt-1 text-sm text-red-600">
+              {errors.vehicleType.message}
+            </p>
           )}
         </div>
 
         {/* Capacités */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label htmlFor="maxWeight" className="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              htmlFor="maxWeight"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
               Poids maximum (kg) *
             </label>
             <input
@@ -257,12 +312,17 @@ export function RouteDeclarationForm({
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
             />
             {errors.maxWeight && (
-              <p className="mt-1 text-sm text-red-600">{errors.maxWeight.message}</p>
+              <p className="mt-1 text-sm text-red-600">
+                {errors.maxWeight.message}
+              </p>
             )}
           </div>
 
           <div>
-            <label htmlFor="maxVolume" className="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              htmlFor="maxVolume"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
               Volume maximum (L) *
             </label>
             <input
@@ -274,7 +334,9 @@ export function RouteDeclarationForm({
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
             />
             {errors.maxVolume && (
-              <p className="mt-1 text-sm text-red-600">{errors.maxVolume.message}</p>
+              <p className="mt-1 text-sm text-red-600">
+                {errors.maxVolume.message}
+              </p>
             )}
           </div>
         </div>
@@ -293,19 +355,26 @@ export function RouteDeclarationForm({
                   {...register("acceptedServiceTypes")}
                   className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
                 />
-                <span className="ml-2 text-sm text-gray-700">{service.label}</span>
+                <span className="ml-2 text-sm text-gray-700">
+                  {service.label}
+                </span>
               </label>
             ))}
           </div>
           {errors.acceptedServiceTypes && (
-            <p className="mt-1 text-sm text-red-600">{errors.acceptedServiceTypes.message}</p>
+            <p className="mt-1 text-sm text-red-600">
+              {errors.acceptedServiceTypes.message}
+            </p>
           )}
         </div>
 
         {/* Tarification */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label htmlFor="pricePerKm" className="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              htmlFor="pricePerKm"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
               Prix par km (€)
             </label>
             <input
@@ -317,12 +386,17 @@ export function RouteDeclarationForm({
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
             />
             {errors.pricePerKm && (
-              <p className="mt-1 text-sm text-red-600">{errors.pricePerKm.message}</p>
+              <p className="mt-1 text-sm text-red-600">
+                {errors.pricePerKm.message}
+              </p>
             )}
           </div>
 
           <div>
-            <label htmlFor="minimumPrice" className="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              htmlFor="minimumPrice"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
               Prix minimum (€)
             </label>
             <input
@@ -334,7 +408,9 @@ export function RouteDeclarationForm({
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
             />
             {errors.minimumPrice && (
-              <p className="mt-1 text-sm text-red-600">{errors.minimumPrice.message}</p>
+              <p className="mt-1 text-sm text-red-600">
+                {errors.minimumPrice.message}
+              </p>
             )}
           </div>
         </div>
@@ -348,7 +424,10 @@ export function RouteDeclarationForm({
               id="recurring"
               className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
             />
-            <label htmlFor="recurring" className="ml-2 text-sm font-medium text-gray-700">
+            <label
+              htmlFor="recurring"
+              className="ml-2 text-sm font-medium text-gray-700"
+            >
               Trajet récurrent
             </label>
           </div>
@@ -367,7 +446,9 @@ export function RouteDeclarationForm({
                       {...register("recurringDays")}
                       className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
                     />
-                    <span className="ml-2 text-sm text-gray-700">{day.label}</span>
+                    <span className="ml-2 text-sm text-gray-700">
+                      {day.label}
+                    </span>
                   </label>
                 ))}
               </div>
@@ -377,7 +458,10 @@ export function RouteDeclarationForm({
 
         {/* Notes */}
         <div>
-          <label htmlFor="notes" className="block text-sm font-medium text-gray-700 mb-1">
+          <label
+            htmlFor="notes"
+            className="block text-sm font-medium text-gray-700 mb-1"
+          >
             Notes additionnelles
           </label>
           <textarea
@@ -405,10 +489,10 @@ export function RouteDeclarationForm({
             disabled={isLoading}
             className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
-            {isLoading ? 'Déclaration en cours...' : 'Déclarer le trajet'}
+            {isLoading ? "Déclaration en cours..." : "Déclarer le trajet"}
           </button>
         </div>
       </form>
     </div>
-  )
+  );
 }

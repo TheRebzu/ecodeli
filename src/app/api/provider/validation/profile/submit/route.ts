@@ -12,10 +12,7 @@ export async function POST(request: NextRequest) {
   try {
     const session = await auth();
     if (!session || session.user.role !== "PROVIDER") {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const body = await request.json();
@@ -57,7 +54,7 @@ export async function POST(request: NextRequest) {
     if (!provider) {
       return NextResponse.json(
         { error: "Provider not found" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -65,14 +62,14 @@ export async function POST(request: NextRequest) {
     if (provider.validationStatus === "APPROVED") {
       return NextResponse.json(
         { error: "Provider is already validated" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     if (provider.validationStatus === "PENDING") {
       return NextResponse.json(
         { error: "Validation request is already pending" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -113,11 +110,11 @@ export async function POST(request: NextRequest) {
 
     if (errors.length > 0) {
       return NextResponse.json(
-        { 
+        {
           error: "Informations manquantes pour la validation",
           details: errors,
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -159,7 +156,8 @@ export async function POST(request: NextRequest) {
       data: {
         userId: session.user.id,
         title: "Demande de validation envoyée",
-        content: "Votre demande de validation a été envoyée avec succès. Vous recevrez une réponse sous 48h ouvrées.",
+        content:
+          "Votre demande de validation a été envoyée avec succès. Vous recevrez une réponse sous 48h ouvrées.",
         type: "PROVIDER_VALIDATION",
         priority: "LOW",
         data: {
@@ -180,14 +178,14 @@ export async function POST(request: NextRequest) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: "Validation error", details: error.errors },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     console.error("Error submitting provider validation:", error);
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
-} 
+}

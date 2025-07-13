@@ -1,20 +1,32 @@
-'use client'
+"use client";
 
-import React, { useState, useEffect } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { 
-  Package, 
-  MapPin, 
-  Clock, 
-  Euro, 
+import React, { useState, useEffect } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  Package,
+  MapPin,
+  Clock,
+  Euro,
   QrCode,
   Calendar,
   Search,
@@ -25,98 +37,103 @@ import {
   Plus,
   Eye,
   Download,
-  RefreshCw
-} from 'lucide-react'
-import { useTranslations } from 'next-intl'
-import { format } from 'date-fns'
-import { fr } from 'date-fns/locale'
+  RefreshCw,
+} from "lucide-react";
+import { useTranslations } from "next-intl";
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
 
 interface StorageBox {
-  id: string
-  boxNumber: string
-  size: 'SMALL' | 'MEDIUM' | 'LARGE'
-  pricePerDay: number
-  isAvailable: boolean
+  id: string;
+  boxNumber: string;
+  size: "SMALL" | "MEDIUM" | "LARGE";
+  pricePerDay: number;
+  isAvailable: boolean;
   location: {
-    id: string
-    name: string
-    address: string
-    city: string
-    postalCode: string
-    lat: number
-    lng: number
-    openingHours?: any[]
-  }
-  distance?: number
+    id: string;
+    name: string;
+    address: string;
+    city: string;
+    postalCode: string;
+    lat: number;
+    lng: number;
+    openingHours?: any[];
+  };
+  distance?: number;
 }
 
 interface StorageRental {
-  id: string
-  startDate: Date
-  endDate?: Date
-  accessCode: string
-  totalPrice?: number
-  isPaid: boolean
-  isActive: boolean
-  qrCode?: string
+  id: string;
+  startDate: Date;
+  endDate?: Date;
+  accessCode: string;
+  totalPrice?: number;
+  isPaid: boolean;
+  isActive: boolean;
+  qrCode?: string;
   storageBox: {
-    boxNumber: string
-    size: string
-    pricePerDay: number
+    boxNumber: string;
+    size: string;
+    pricePerDay: number;
     location: {
-      name: string
-      address: string
-      city: string
-      openingHours?: any[]
-    }
-  }
+      name: string;
+      address: string;
+      city: string;
+      openingHours?: any[];
+    };
+  };
 }
 
 interface RentalFormData {
-  storageBoxId: string
-  startDate: string
-  endDate?: string
-  duration?: number
+  storageBoxId: string;
+  startDate: string;
+  endDate?: string;
+  duration?: number;
 }
 
 export function StorageBoxManager() {
-  const t = useTranslations('client.storage')
-  
-  const [availableBoxes, setAvailableBoxes] = useState<StorageBox[]>([])
-  const [userRentals, setUserRentals] = useState<StorageRental[]>([])
-  const [loading, setLoading] = useState(true)
-  const [selectedBox, setSelectedBox] = useState<StorageBox | null>(null)
-  const [selectedRental, setSelectedRental] = useState<StorageRental | null>(null)
-  const [showRentalDialog, setShowRentalDialog] = useState(false)
-  const [showQRDialog, setShowQRDialog] = useState(false)
-  const [userLocation, setUserLocation] = useState<{lat: number, lng: number} | null>(null)
-  
+  const t = useTranslations("client.storage");
+
+  const [availableBoxes, setAvailableBoxes] = useState<StorageBox[]>([]);
+  const [userRentals, setUserRentals] = useState<StorageRental[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedBox, setSelectedBox] = useState<StorageBox | null>(null);
+  const [selectedRental, setSelectedRental] = useState<StorageRental | null>(
+    null,
+  );
+  const [showRentalDialog, setShowRentalDialog] = useState(false);
+  const [showQRDialog, setShowQRDialog] = useState(false);
+  const [userLocation, setUserLocation] = useState<{
+    lat: number;
+    lng: number;
+  } | null>(null);
+
   // Filtres
   const [filters, setFilters] = useState({
-    city: '',
-    size: '',
-    maxPrice: '',
-    sortBy: 'distance'
-  })
+    city: "",
+    size: "",
+    maxPrice: "",
+    sortBy: "distance",
+  });
 
   // Formulaire de location
   const [rentalForm, setRentalForm] = useState<RentalFormData>({
-    storageBoxId: '',
-    startDate: '',
-    endDate: '',
-    duration: 1
-  })
+    storageBoxId: "",
+    startDate: "",
+    endDate: "",
+    duration: 1,
+  });
 
   useEffect(() => {
-    loadData()
-    getCurrentLocation()
-  }, [])
+    loadData();
+    getCurrentLocation();
+  }, []);
 
   useEffect(() => {
     if (userLocation) {
-      loadNearbyBoxes()
+      loadNearbyBoxes();
     }
-  }, [userLocation, filters])
+  }, [userLocation, filters]);
 
   const getCurrentLocation = () => {
     if (navigator.geolocation) {
@@ -124,224 +141,232 @@ export function StorageBoxManager() {
         (position) => {
           setUserLocation({
             lat: position.coords.latitude,
-            lng: position.coords.longitude
-          })
+            lng: position.coords.longitude,
+          });
         },
         (error) => {
-          console.warn('Geolocation not available:', error)
+          console.warn("Geolocation not available:", error);
           // Fallback: charger tous les box
-          loadAvailableBoxes()
-        }
-      )
+          loadAvailableBoxes();
+        },
+      );
     } else {
-      loadAvailableBoxes()
+      loadAvailableBoxes();
     }
-  }
+  };
 
   const loadData = async () => {
     try {
-      await Promise.all([
-        loadUserRentals()
-      ])
+      await Promise.all([loadUserRentals()]);
     } catch (error) {
-      console.error('Error loading data:', error)
+      console.error("Error loading data:", error);
     }
-  }
+  };
 
   const loadNearbyBoxes = async () => {
-    if (!userLocation) return
+    if (!userLocation) return;
 
     try {
       const params = new URLSearchParams({
         lat: userLocation.lat.toString(),
         lng: userLocation.lng.toString(),
-        radius: '20'
-      })
+        radius: "20",
+      });
 
-      if (filters.city) params.append('city', filters.city)
-      if (filters.size) params.append('size', filters.size)
-      if (filters.maxPrice) params.append('maxPrice', filters.maxPrice)
+      if (filters.city) params.append("city", filters.city);
+      if (filters.size) params.append("size", filters.size);
+      if (filters.maxPrice) params.append("maxPrice", filters.maxPrice);
 
-      const response = await fetch(`/api/client/storage-boxes/nearby?${params}`)
-      
+      const response = await fetch(
+        `/api/client/storage-boxes/nearby?${params}`,
+      );
+
       if (response.ok) {
-        const data = await response.json()
-        let boxes = data.boxes
+        const data = await response.json();
+        let boxes = data.boxes;
 
         // Tri
-        if (filters.sortBy === 'price') {
-          boxes.sort((a: StorageBox, b: StorageBox) => a.pricePerDay - b.pricePerDay)
-        } else if (filters.sortBy === 'size') {
-          const sizeOrder = { 'SMALL': 1, 'MEDIUM': 2, 'LARGE': 3 }
-          boxes.sort((a: StorageBox, b: StorageBox) => 
-            (sizeOrder[a.size] || 0) - (sizeOrder[b.size] || 0)
-          )
+        if (filters.sortBy === "price") {
+          boxes.sort(
+            (a: StorageBox, b: StorageBox) => a.pricePerDay - b.pricePerDay,
+          );
+        } else if (filters.sortBy === "size") {
+          const sizeOrder = { SMALL: 1, MEDIUM: 2, LARGE: 3 };
+          boxes.sort(
+            (a: StorageBox, b: StorageBox) =>
+              (sizeOrder[a.size] || 0) - (sizeOrder[b.size] || 0),
+          );
         }
         // Par défaut: tri par distance (déjà fait côté serveur)
 
-        setAvailableBoxes(boxes)
+        setAvailableBoxes(boxes);
       }
     } catch (error) {
-      console.error('Error loading nearby boxes:', error)
+      console.error("Error loading nearby boxes:", error);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const loadAvailableBoxes = async () => {
     try {
-      const params = new URLSearchParams()
-      
-      if (filters.city) params.append('city', filters.city)
-      if (filters.size) params.append('size', filters.size)
-      if (filters.maxPrice) params.append('maxPrice', filters.maxPrice)
+      const params = new URLSearchParams();
 
-      const response = await fetch(`/api/client/storage-boxes?${params}`)
-      
+      if (filters.city) params.append("city", filters.city);
+      if (filters.size) params.append("size", filters.size);
+      if (filters.maxPrice) params.append("maxPrice", filters.maxPrice);
+
+      const response = await fetch(`/api/client/storage-boxes?${params}`);
+
       if (response.ok) {
-        const data = await response.json()
-        setAvailableBoxes(data.boxes)
+        const data = await response.json();
+        setAvailableBoxes(data.boxes);
       }
     } catch (error) {
-      console.error('Error loading available boxes:', error)
+      console.error("Error loading available boxes:", error);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const loadUserRentals = async () => {
     try {
-      const response = await fetch('/api/client/storage-boxes/rentals')
-      
+      const response = await fetch("/api/client/storage-boxes/rentals");
+
       if (response.ok) {
-        const data = await response.json()
-        setUserRentals(data.rentals)
+        const data = await response.json();
+        setUserRentals(data.rentals);
       }
     } catch (error) {
-      console.error('Error loading user rentals:', error)
+      console.error("Error loading user rentals:", error);
     }
-  }
+  };
 
   const handleRentBox = async () => {
-    if (!selectedBox) return
+    if (!selectedBox) return;
 
     try {
-      const startDate = new Date(rentalForm.startDate)
-      let endDate: Date | undefined
+      const startDate = new Date(rentalForm.startDate);
+      let endDate: Date | undefined;
 
       if (rentalForm.endDate) {
-        endDate = new Date(rentalForm.endDate)
+        endDate = new Date(rentalForm.endDate);
       } else if (rentalForm.duration) {
-        endDate = new Date(startDate)
-        endDate.setDate(endDate.getDate() + rentalForm.duration)
+        endDate = new Date(startDate);
+        endDate.setDate(endDate.getDate() + rentalForm.duration);
       }
 
-      const response = await fetch('/api/client/storage-boxes/rent', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/client/storage-boxes/rent", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           storageBoxId: selectedBox.id,
           startDate: startDate.toISOString(),
-          endDate: endDate?.toISOString()
-        })
-      })
+          endDate: endDate?.toISOString(),
+        }),
+      });
 
       if (response.ok) {
-        const data = await response.json()
-        
+        const data = await response.json();
+
         // Actualiser les données
-        await loadData()
+        await loadData();
         if (userLocation) {
-          await loadNearbyBoxes()
+          await loadNearbyBoxes();
         } else {
-          await loadAvailableBoxes()
+          await loadAvailableBoxes();
         }
-        
-        setShowRentalDialog(false)
-        setSelectedBox(null)
+
+        setShowRentalDialog(false);
+        setSelectedBox(null);
         setRentalForm({
-          storageBoxId: '',
-          startDate: '',
-          endDate: '',
-          duration: 1
-        })
-        
+          storageBoxId: "",
+          startDate: "",
+          endDate: "",
+          duration: 1,
+        });
+
         // Afficher le QR code de la nouvelle location
         if (data.rental) {
-          setSelectedRental(data.rental)
-          setShowQRDialog(true)
+          setSelectedRental(data.rental);
+          setShowQRDialog(true);
         }
       } else {
-        const error = await response.json()
-        console.error('Error renting box:', error.message)
+        const error = await response.json();
+        console.error("Error renting box:", error.message);
       }
     } catch (error) {
-      console.error('Error renting box:', error)
+      console.error("Error renting box:", error);
     }
-  }
+  };
 
   const handleExtendRental = async (rentalId: string, newEndDate: Date) => {
     try {
-      const response = await fetch(`/api/client/storage-boxes/rentals/${rentalId}/extend`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          newEndDate: newEndDate.toISOString()
-        })
-      })
+      const response = await fetch(
+        `/api/client/storage-boxes/rentals/${rentalId}/extend`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            newEndDate: newEndDate.toISOString(),
+          }),
+        },
+      );
 
       if (response.ok) {
-        await loadUserRentals()
+        await loadUserRentals();
       }
     } catch (error) {
-      console.error('Error extending rental:', error)
+      console.error("Error extending rental:", error);
     }
-  }
+  };
 
   const getSizeLabel = (size: string) => {
     const labels = {
-      'SMALL': 'Petit (50x50x50 cm)',
-      'MEDIUM': 'Moyen (80x80x80 cm)',
-      'LARGE': 'Grand (120x80x80 cm)'
-    }
-    return labels[size as keyof typeof labels] || size
-  }
+      SMALL: "Petit (50x50x50 cm)",
+      MEDIUM: "Moyen (80x80x80 cm)",
+      LARGE: "Grand (120x80x80 cm)",
+    };
+    return labels[size as keyof typeof labels] || size;
+  };
 
   const getSizeBadgeColor = (size: string) => {
     const colors = {
-      'SMALL': 'bg-green-100 text-green-800',
-      'MEDIUM': 'bg-blue-100 text-blue-800',
-      'LARGE': 'bg-purple-100 text-purple-800'
-    }
-    return colors[size as keyof typeof colors] || 'bg-gray-100 text-gray-800'
-  }
+      SMALL: "bg-green-100 text-green-800",
+      MEDIUM: "bg-blue-100 text-blue-800",
+      LARGE: "bg-purple-100 text-purple-800",
+    };
+    return colors[size as keyof typeof colors] || "bg-gray-100 text-gray-800";
+  };
 
   const formatOpeningHours = (hours: any[]) => {
-    if (!hours || hours.length === 0) return 'Horaires non définis'
-    
-    const today = new Date().getDay()
-    const todayHours = hours.find(h => h.day === today)
-    
+    if (!hours || hours.length === 0) return "Horaires non définis";
+
+    const today = new Date().getDay();
+    const todayHours = hours.find((h) => h.day === today);
+
     if (todayHours) {
-      return `Aujourd'hui : ${todayHours.open} - ${todayHours.close}`
+      return `Aujourd'hui : ${todayHours.open} - ${todayHours.close}`;
     }
-    
-    return 'Voir les horaires détaillés'
-  }
+
+    return "Voir les horaires détaillés";
+  };
 
   const calculateTotalPrice = () => {
-    if (!selectedBox || !rentalForm.startDate) return 0
+    if (!selectedBox || !rentalForm.startDate) return 0;
 
-    let days = rentalForm.duration || 1
-    
+    let days = rentalForm.duration || 1;
+
     if (rentalForm.endDate) {
-      const start = new Date(rentalForm.startDate)
-      const end = new Date(rentalForm.endDate)
-      days = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24))
+      const start = new Date(rentalForm.startDate);
+      const end = new Date(rentalForm.endDate);
+      days = Math.ceil(
+        (end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24),
+      );
     }
 
-    return days * selectedBox.pricePerDay
-  }
+    return days * selectedBox.pricePerDay;
+  };
 
   return (
     <div className="space-y-6">
@@ -382,7 +407,9 @@ export function StorageBoxManager() {
                     id="city"
                     placeholder="Paris..."
                     value={filters.city}
-                    onChange={(e) => setFilters({ ...filters, city: e.target.value })}
+                    onChange={(e) =>
+                      setFilters({ ...filters, city: e.target.value })
+                    }
                   />
                 </div>
 
@@ -390,7 +417,9 @@ export function StorageBoxManager() {
                   <Label htmlFor="size">Taille</Label>
                   <Select
                     value={filters.size}
-                    onValueChange={(value) => setFilters({ ...filters, size: value })}
+                    onValueChange={(value) =>
+                      setFilters({ ...filters, size: value })
+                    }
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Toutes les tailles" />
@@ -411,7 +440,9 @@ export function StorageBoxManager() {
                     type="number"
                     placeholder="50"
                     value={filters.maxPrice}
-                    onChange={(e) => setFilters({ ...filters, maxPrice: e.target.value })}
+                    onChange={(e) =>
+                      setFilters({ ...filters, maxPrice: e.target.value })
+                    }
                   />
                 </div>
 
@@ -419,7 +450,9 @@ export function StorageBoxManager() {
                   <Label htmlFor="sortBy">Trier par</Label>
                   <Select
                     value={filters.sortBy}
-                    onValueChange={(value) => setFilters({ ...filters, sortBy: value })}
+                    onValueChange={(value) =>
+                      setFilters({ ...filters, sortBy: value })
+                    }
                   >
                     <SelectTrigger>
                       <SelectValue />
@@ -443,14 +476,17 @@ export function StorageBoxManager() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {availableBoxes.map((box) => (
-                <Card key={box.id} className="hover:shadow-lg transition-shadow">
+                <Card
+                  key={box.id}
+                  className="hover:shadow-lg transition-shadow"
+                >
                   <CardHeader>
                     <div className="flex items-center justify-between">
                       <CardTitle className="text-lg">
                         Box {box.boxNumber}
                       </CardTitle>
                       <Badge className={getSizeBadgeColor(box.size)}>
-                        {getSizeLabel(box.size).split(' ')[0]}
+                        {getSizeLabel(box.size).split(" ")[0]}
                       </Badge>
                     </div>
                   </CardHeader>
@@ -495,25 +531,28 @@ export function StorageBoxManager() {
 
                     {/* Actions */}
                     <div className="flex gap-2">
-                      <Button 
+                      <Button
                         className="flex-1"
                         onClick={() => {
-                          setSelectedBox(box)
-                          setRentalForm({ ...rentalForm, storageBoxId: box.id })
-                          setShowRentalDialog(true)
+                          setSelectedBox(box);
+                          setRentalForm({
+                            ...rentalForm,
+                            storageBoxId: box.id,
+                          });
+                          setShowRentalDialog(true);
                         }}
                       >
                         <Plus className="w-4 h-4 mr-2" />
                         Louer
                       </Button>
-                      <Button 
+                      <Button
                         variant="outline"
                         onClick={() => {
                           // Ouvrir dans Maps
                           window.open(
                             `https://maps.google.com/?q=${box.location.lat},${box.location.lng}`,
-                            '_blank'
-                          )
+                            "_blank",
+                          );
                         }}
                       >
                         <MapPin className="w-4 h-4" />
@@ -542,7 +581,10 @@ export function StorageBoxManager() {
           {/* Mes locations */}
           <div className="space-y-4">
             {userRentals.map((rental) => (
-              <Card key={rental.id} className={`${rental.isActive ? 'border-green-200' : 'border-gray-200'}`}>
+              <Card
+                key={rental.id}
+                className={`${rental.isActive ? "border-green-200" : "border-gray-200"}`}
+              >
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
                     <div className="flex-1 space-y-2">
@@ -550,8 +592,10 @@ export function StorageBoxManager() {
                         <h3 className="font-semibold text-lg">
                           Box {rental.storageBox.boxNumber}
                         </h3>
-                        <Badge className={getSizeBadgeColor(rental.storageBox.size)}>
-                          {getSizeLabel(rental.storageBox.size).split(' ')[0]}
+                        <Badge
+                          className={getSizeBadgeColor(rental.storageBox.size)}
+                        >
+                          {getSizeLabel(rental.storageBox.size).split(" ")[0]}
                         </Badge>
                         {rental.isActive ? (
                           <Badge className="bg-green-100 text-green-800">
@@ -559,9 +603,7 @@ export function StorageBoxManager() {
                             Active
                           </Badge>
                         ) : (
-                          <Badge variant="outline">
-                            Terminée
-                          </Badge>
+                          <Badge variant="outline">Terminée</Badge>
                         )}
                       </div>
 
@@ -570,27 +612,40 @@ export function StorageBoxManager() {
                           <div className="font-medium text-gray-700">Lieu</div>
                           <div>{rental.storageBox.location.name}</div>
                           <div className="text-gray-600">
-                            {rental.storageBox.location.address}, {rental.storageBox.location.city}
+                            {rental.storageBox.location.address},{" "}
+                            {rental.storageBox.location.city}
                           </div>
                         </div>
-                        
+
                         <div>
-                          <div className="font-medium text-gray-700">Période</div>
+                          <div className="font-medium text-gray-700">
+                            Période
+                          </div>
                           <div>
-                            Du {format(new Date(rental.startDate), 'dd/MM/yyyy', { locale: fr })}
+                            Du{" "}
+                            {format(new Date(rental.startDate), "dd/MM/yyyy", {
+                              locale: fr,
+                            })}
                           </div>
                           {rental.endDate && (
                             <div>
-                              Au {format(new Date(rental.endDate), 'dd/MM/yyyy', { locale: fr })}
+                              Au{" "}
+                              {format(new Date(rental.endDate), "dd/MM/yyyy", {
+                                locale: fr,
+                              })}
                             </div>
                           )}
-                          {!rental.endDate && <div className="text-blue-600">En cours</div>}
+                          {!rental.endDate && (
+                            <div className="text-blue-600">En cours</div>
+                          )}
                         </div>
 
                         <div>
                           <div className="font-medium text-gray-700">Prix</div>
                           <div className="text-lg font-bold text-green-600">
-                            {rental.totalPrice ? `${rental.totalPrice}€` : `${rental.storageBox.pricePerDay}€/jour`}
+                            {rental.totalPrice
+                              ? `${rental.totalPrice}€`
+                              : `${rental.storageBox.pricePerDay}€/jour`}
                           </div>
                           {!rental.isPaid && rental.totalPrice && (
                             <Badge variant="destructive" className="text-xs">
@@ -607,20 +662,25 @@ export function StorageBoxManager() {
                         <Button
                           variant="outline"
                           onClick={() => {
-                            setSelectedRental(rental)
-                            setShowQRDialog(true)
+                            setSelectedRental(rental);
+                            setShowQRDialog(true);
                           }}
                         >
                           <QrCode className="w-4 h-4 mr-2" />
                           QR Code
                         </Button>
-                        
+
                         <Button
                           variant="outline"
                           onClick={() => {
-                            const newEndDate = prompt('Nouvelle date de fin (YYYY-MM-DD):')
+                            const newEndDate = prompt(
+                              "Nouvelle date de fin (YYYY-MM-DD):",
+                            );
                             if (newEndDate) {
-                              handleExtendRental(rental.id, new Date(newEndDate))
+                              handleExtendRental(
+                                rental.id,
+                                new Date(newEndDate),
+                              );
                             }
                           }}
                         >
@@ -655,14 +715,20 @@ export function StorageBoxManager() {
           <DialogHeader>
             <DialogTitle>Louer un box de stockage</DialogTitle>
           </DialogHeader>
-          
+
           {selectedBox && (
             <div className="space-y-4">
               <div className="border rounded-lg p-4 bg-gray-50">
                 <h3 className="font-semibold">Box {selectedBox.boxNumber}</h3>
-                <p className="text-sm text-gray-600">{selectedBox.location.name}</p>
-                <p className="text-sm text-gray-600">{getSizeLabel(selectedBox.size)}</p>
-                <p className="font-bold text-green-600">{selectedBox.pricePerDay}€/jour</p>
+                <p className="text-sm text-gray-600">
+                  {selectedBox.location.name}
+                </p>
+                <p className="text-sm text-gray-600">
+                  {getSizeLabel(selectedBox.size)}
+                </p>
+                <p className="font-bold text-green-600">
+                  {selectedBox.pricePerDay}€/jour
+                </p>
               </div>
 
               <div className="space-y-4">
@@ -672,8 +738,13 @@ export function StorageBoxManager() {
                     id="startDate"
                     type="date"
                     value={rentalForm.startDate}
-                    onChange={(e) => setRentalForm({ ...rentalForm, startDate: e.target.value })}
-                    min={new Date().toISOString().split('T')[0]}
+                    onChange={(e) =>
+                      setRentalForm({
+                        ...rentalForm,
+                        startDate: e.target.value,
+                      })
+                    }
+                    min={new Date().toISOString().split("T")[0]}
                   />
                 </div>
 
@@ -684,14 +755,18 @@ export function StorageBoxManager() {
                       type="number"
                       placeholder="Nombre de jours"
                       value={rentalForm.duration}
-                      onChange={(e) => setRentalForm({ 
-                        ...rentalForm, 
-                        duration: parseInt(e.target.value),
-                        endDate: '' 
-                      })}
+                      onChange={(e) =>
+                        setRentalForm({
+                          ...rentalForm,
+                          duration: parseInt(e.target.value),
+                          endDate: "",
+                        })
+                      }
                       min="1"
                     />
-                    <span className="self-center text-sm text-gray-600">jours</span>
+                    <span className="self-center text-sm text-gray-600">
+                      jours
+                    </span>
                   </div>
                 </div>
 
@@ -705,12 +780,17 @@ export function StorageBoxManager() {
                     id="endDate"
                     type="date"
                     value={rentalForm.endDate}
-                    onChange={(e) => setRentalForm({ 
-                      ...rentalForm, 
-                      endDate: e.target.value,
-                      duration: undefined 
-                    })}
-                    min={rentalForm.startDate || new Date().toISOString().split('T')[0]}
+                    onChange={(e) =>
+                      setRentalForm({
+                        ...rentalForm,
+                        endDate: e.target.value,
+                        duration: undefined,
+                      })
+                    }
+                    min={
+                      rentalForm.startDate ||
+                      new Date().toISOString().split("T")[0]
+                    }
                   />
                 </div>
 
@@ -727,17 +807,20 @@ export function StorageBoxManager() {
               </div>
 
               <div className="flex gap-2">
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   className="flex-1"
                   onClick={() => setShowRentalDialog(false)}
                 >
                   Annuler
                 </Button>
-                <Button 
+                <Button
                   className="flex-1"
                   onClick={handleRentBox}
-                  disabled={!rentalForm.startDate || (!rentalForm.duration && !rentalForm.endDate)}
+                  disabled={
+                    !rentalForm.startDate ||
+                    (!rentalForm.duration && !rentalForm.endDate)
+                  }
                 >
                   Confirmer la location
                 </Button>
@@ -756,19 +839,23 @@ export function StorageBoxManager() {
               Code d'accès QR
             </DialogTitle>
           </DialogHeader>
-          
+
           {selectedRental && (
             <div className="space-y-4 text-center">
               <div className="border rounded-lg p-4 bg-gray-50">
-                <h3 className="font-semibold">Box {selectedRental.storageBox.boxNumber}</h3>
-                <p className="text-sm text-gray-600">{selectedRental.storageBox.location.name}</p>
+                <h3 className="font-semibold">
+                  Box {selectedRental.storageBox.boxNumber}
+                </h3>
+                <p className="text-sm text-gray-600">
+                  {selectedRental.storageBox.location.name}
+                </p>
               </div>
 
               {selectedRental.qrCode && (
                 <div className="flex justify-center">
-                  <img 
-                    src={selectedRental.qrCode} 
-                    alt="QR Code d'accès" 
+                  <img
+                    src={selectedRental.qrCode}
+                    alt="QR Code d'accès"
                     className="w-64 h-64 border rounded-lg"
                   />
                 </div>
@@ -792,23 +879,23 @@ export function StorageBoxManager() {
               </Alert>
 
               <div className="flex gap-2">
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   className="flex-1"
                   onClick={() => {
                     // Télécharger le QR code
                     if (selectedRental.qrCode) {
-                      const link = document.createElement('a')
-                      link.href = selectedRental.qrCode
-                      link.download = `qr-code-box-${selectedRental.storageBox.boxNumber}.png`
-                      link.click()
+                      const link = document.createElement("a");
+                      link.href = selectedRental.qrCode;
+                      link.download = `qr-code-box-${selectedRental.storageBox.boxNumber}.png`;
+                      link.click();
                     }
                   }}
                 >
                   <Download className="w-4 h-4 mr-2" />
                   Télécharger
                 </Button>
-                <Button 
+                <Button
                   className="flex-1"
                   onClick={() => setShowQRDialog(false)}
                 >
@@ -820,5 +907,5 @@ export function StorageBoxManager() {
         </DialogContent>
       </Dialog>
     </div>
-  )
+  );
 }

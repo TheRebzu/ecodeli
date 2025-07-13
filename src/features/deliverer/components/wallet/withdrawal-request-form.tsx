@@ -1,123 +1,143 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { useToast } from '@/components/ui/use-toast'
-import { Loader2, CreditCard, AlertCircle, CheckCircle } from 'lucide-react'
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useToast } from "@/components/ui/use-toast";
+import { Loader2, CreditCard, AlertCircle, CheckCircle } from "lucide-react";
 
 const withdrawalSchema = z.object({
-  amount: z.number().min(10, 'Le montant minimum est de 10€').max(5000, 'Le montant maximum est de 5000€'),
-  bankAccountId: z.string().min(1, 'Veuillez sélectionner un compte bancaire'),
-  notes: z.string().optional()
-})
+  amount: z
+    .number()
+    .min(10, "Le montant minimum est de 10€")
+    .max(5000, "Le montant maximum est de 5000€"),
+  bankAccountId: z.string().min(1, "Veuillez sélectionner un compte bancaire"),
+  notes: z.string().optional(),
+});
 
-type WithdrawalForm = z.infer<typeof withdrawalSchema>
+type WithdrawalForm = z.infer<typeof withdrawalSchema>;
 
 interface BankAccount {
-  id: string
-  bankName: string
-  accountNumber: string
-  accountHolderName: string
-  isDefault: boolean
+  id: string;
+  bankName: string;
+  accountNumber: string;
+  accountHolderName: string;
+  isDefault: boolean;
 }
 
 interface WithdrawalRequestFormProps {
-  availableBalance: number
-  bankAccounts: BankAccount[]
-  onSuccess: () => void
+  availableBalance: number;
+  bankAccounts: BankAccount[];
+  onSuccess: () => void;
 }
 
-export function WithdrawalRequestForm({ 
-  availableBalance, 
-  bankAccounts, 
-  onSuccess 
+export function WithdrawalRequestForm({
+  availableBalance,
+  bankAccounts,
+  onSuccess,
 }: WithdrawalRequestFormProps) {
-  const { toast } = useToast()
-  const [submitting, setSubmitting] = useState(false)
+  const { toast } = useToast();
+  const [submitting, setSubmitting] = useState(false);
 
   const form = useForm<WithdrawalForm>({
     resolver: zodResolver(withdrawalSchema),
     defaultValues: {
       amount: 0,
-      bankAccountId: bankAccounts.find(acc => acc.isDefault)?.id || '',
-      notes: ''
-    }
-  })
+      bankAccountId: bankAccounts.find((acc) => acc.isDefault)?.id || "",
+      notes: "",
+    },
+  });
 
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('fr-FR', {
-      style: 'currency',
-      currency: 'EUR'
-    }).format(price)
-  }
+    return new Intl.NumberFormat("fr-FR", {
+      style: "currency",
+      currency: "EUR",
+    }).format(price);
+  };
 
   const onSubmit = async (data: WithdrawalForm) => {
     try {
-      setSubmitting(true)
+      setSubmitting(true);
 
       if (data.amount > availableBalance) {
         toast({
-          title: '❌ Montant trop élevé',
+          title: "❌ Montant trop élevé",
           description: `Le montant demandé dépasse votre solde disponible (${formatPrice(availableBalance)})`,
-          variant: 'destructive'
-        })
-        return
+          variant: "destructive",
+        });
+        return;
       }
 
-      const response = await fetch('/api/deliverer/wallet', {
-        method: 'POST',
+      const response = await fetch("/api/deliverer/wallet", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json'
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify(data)
-      })
+        body: JSON.stringify(data),
+      });
 
       if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.error || 'Erreur lors de la demande')
+        const error = await response.json();
+        throw new Error(error.error || "Erreur lors de la demande");
       }
 
-      const result = await response.json()
+      const result = await response.json();
 
       toast({
-        title: '✅ Demande de retrait créée',
-        description: result.message || 'Votre demande sera traitée sous 1-3 jours ouvrés',
-      })
+        title: "✅ Demande de retrait créée",
+        description:
+          result.message || "Votre demande sera traitée sous 1-3 jours ouvrés",
+      });
 
-      onSuccess()
-
+      onSuccess();
     } catch (error) {
-      console.error('Erreur demande retrait:', error)
+      console.error("Erreur demande retrait:", error);
       toast({
-        title: '❌ Erreur',
-        description: error instanceof Error ? error.message : 'Une erreur s\'est produite',
-        variant: 'destructive'
-      })
+        title: "❌ Erreur",
+        description:
+          error instanceof Error ? error.message : "Une erreur s'est produite",
+        variant: "destructive",
+      });
     } finally {
-      setSubmitting(false)
+      setSubmitting(false);
     }
-  }
+  };
 
-  const watchedAmount = form.watch('amount')
-  const isAmountValid = watchedAmount >= 10 && watchedAmount <= availableBalance
+  const watchedAmount = form.watch("amount");
+  const isAmountValid =
+    watchedAmount >= 10 && watchedAmount <= availableBalance;
 
   if (bankAccounts.length === 0) {
     return (
       <Alert>
         <AlertCircle className="h-4 w-4" />
         <AlertDescription>
-          Vous devez d'abord ajouter un compte bancaire pour pouvoir effectuer un retrait.
+          Vous devez d'abord ajouter un compte bancaire pour pouvoir effectuer
+          un retrait.
         </AlertDescription>
       </Alert>
-    )
+    );
   }
 
   if (availableBalance < 10) {
@@ -125,10 +145,11 @@ export function WithdrawalRequestForm({
       <Alert>
         <AlertCircle className="h-4 w-4" />
         <AlertDescription>
-          Votre solde disponible ({formatPrice(availableBalance)}) est insuffisant pour effectuer un retrait (minimum 10€).
+          Votre solde disponible ({formatPrice(availableBalance)}) est
+          insuffisant pour effectuer un retrait (minimum 10€).
         </AlertDescription>
       </Alert>
-    )
+    );
   }
 
   return (
@@ -173,10 +194,11 @@ export function WithdrawalRequestForm({
                 </div>
               </FormControl>
               <FormDescription>
-                Minimum: 10€ • Maximum: {formatPrice(Math.min(5000, availableBalance))}
+                Minimum: 10€ • Maximum:{" "}
+                {formatPrice(Math.min(5000, availableBalance))}
               </FormDescription>
               <FormMessage />
-              
+
               {watchedAmount > 0 && (
                 <div className="mt-2">
                   {isAmountValid ? (
@@ -187,10 +209,9 @@ export function WithdrawalRequestForm({
                   ) : (
                     <div className="flex items-center gap-2 text-red-600 text-sm">
                       <AlertCircle className="h-4 w-4" />
-                      {watchedAmount < 10 
-                        ? 'Montant minimum: 10€'
-                        : `Montant maximum disponible: ${formatPrice(availableBalance)}`
-                      }
+                      {watchedAmount < 10
+                        ? "Montant minimum: 10€"
+                        : `Montant maximum disponible: ${formatPrice(availableBalance)}`}
                     </div>
                   )}
                 </div>
@@ -217,7 +238,9 @@ export function WithdrawalRequestForm({
                     <SelectItem key={account.id} value={account.id}>
                       <div className="flex items-center gap-2">
                         <span>{account.bankName}</span>
-                        <span className="text-gray-500">{account.accountNumber}</span>
+                        <span className="text-gray-500">
+                          {account.accountNumber}
+                        </span>
                         {account.isDefault && (
                           <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
                             Par défaut
@@ -276,8 +299,8 @@ export function WithdrawalRequestForm({
           <Button type="button" variant="outline" onClick={() => form.reset()}>
             Annuler
           </Button>
-          <Button 
-            type="submit" 
+          <Button
+            type="submit"
             disabled={submitting || !isAmountValid}
             className="bg-green-600 hover:bg-green-700"
           >
@@ -296,5 +319,5 @@ export function WithdrawalRequestForm({
         </div>
       </form>
     </Form>
-  )
+  );
 }

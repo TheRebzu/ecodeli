@@ -8,7 +8,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Calendar, Clock, MapPin, User, CreditCard, ArrowLeft } from "lucide-react";
+import {
+  Calendar,
+  Clock,
+  MapPin,
+  User,
+  CreditCard,
+  ArrowLeft,
+} from "lucide-react";
 import Link from "next/link";
 
 interface BookingDetails {
@@ -46,19 +53,19 @@ export default function BookingPaymentPage() {
   const fetchBookingDetails = async () => {
     try {
       setLoading(true);
-      
+
       const apiUrl = `/api/client/bookings/${bookingId}`;
-      console.log('🔗 [Payment Page] Fetching from URL:', apiUrl);
-      console.log('🔗 [Payment Page] Booking ID:', bookingId);
-      
+      console.log("🔗 [Payment Page] Fetching from URL:", apiUrl);
+      console.log("🔗 [Payment Page] Booking ID:", bookingId);
+
       const response = await fetch(apiUrl);
       if (response.ok) {
         const data = await response.json();
-        console.log('📝 [Payment Page] API Response:', data);
-        console.log('📝 [Payment Page] Booking data:', data.booking);
-        
+        console.log("📝 [Payment Page] API Response:", data);
+        console.log("📝 [Payment Page] Booking data:", data.booking);
+
         setBooking(data.booking);
-        
+
         // Redirect if already paid
         if (data.booking?.isPaid) {
           toast.info("Cette réservation est déjà payée");
@@ -66,7 +73,11 @@ export default function BookingPaymentPage() {
           return;
         }
       } else {
-        console.error('❌ [Payment Page] API Error:', response.status, response.statusText);
+        console.error(
+          "❌ [Payment Page] API Error:",
+          response.status,
+          response.statusText,
+        );
         toast.error("Impossible de charger les détails de la réservation");
         router.push("/client/bookings");
       }
@@ -84,23 +95,26 @@ export default function BookingPaymentPage() {
 
     try {
       setPaying(true);
-      
+
       // Create Stripe checkout session
-      const response = await fetch(`/api/client/bookings/${bookingId}/payment`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+      const response = await fetch(
+        `/api/client/bookings/${bookingId}/payment`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            amount: booking.price,
+            currency: "EUR",
+            bookingId: booking.id,
+          }),
         },
-        body: JSON.stringify({
-          amount: booking.price,
-          currency: "EUR",
-          bookingId: booking.id
-        }),
-      });
+      );
 
       if (response.ok) {
         const data = await response.json();
-        
+
         // Redirect to Stripe checkout
         if (data.checkoutUrl) {
           window.location.href = data.checkoutUrl;
@@ -140,8 +154,8 @@ export default function BookingPaymentPage() {
   }
 
   if (!booking) {
-    console.log('❌ [Payment Page] Booking is null/undefined:', booking);
-    console.log('❌ [Payment Page] Loading state:', loading);
+    console.log("❌ [Payment Page] Booking is null/undefined:", booking);
+    console.log("❌ [Payment Page] Loading state:", loading);
     return (
       <div className="space-y-6">
         <PageHeader
@@ -169,12 +183,16 @@ export default function BookingPaymentPage() {
     const statusConfig = {
       pending: { color: "bg-yellow-100 text-yellow-800", label: "En attente" },
       confirmed: { color: "bg-blue-100 text-blue-800", label: "Confirmé" },
-      in_progress: { color: "bg-purple-100 text-purple-800", label: "En cours" },
+      in_progress: {
+        color: "bg-purple-100 text-purple-800",
+        label: "En cours",
+      },
       completed: { color: "bg-green-100 text-green-800", label: "Terminé" },
       cancelled: { color: "bg-red-100 text-red-800", label: "Annulé" },
     };
-    
-    const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.pending;
+
+    const config =
+      statusConfig[status as keyof typeof statusConfig] || statusConfig.pending;
     return <Badge className={config.color}>{config.label}</Badge>;
   };
 
@@ -211,14 +229,17 @@ export default function BookingPaymentPage() {
 
             <div className="flex items-center text-sm">
               <span className="font-medium">Service:</span>
-              <span className="ml-2">{booking.serviceName || booking.serviceType}</span>
+              <span className="ml-2">
+                {booking.serviceName || booking.serviceType}
+              </span>
             </div>
 
             <div className="flex items-center text-sm">
               <Calendar className="h-4 w-4 mr-2 text-gray-400" />
               <span className="font-medium">Date:</span>
               <span className="ml-2">
-                {new Date(booking.scheduledDate).toLocaleDateString("fr-FR")} à {booking.scheduledTime}
+                {new Date(booking.scheduledDate).toLocaleDateString("fr-FR")} à{" "}
+                {booking.scheduledTime}
               </span>
             </div>
 
@@ -249,7 +270,9 @@ export default function BookingPaymentPage() {
             <div className="border-t border-b py-4 space-y-2">
               <div className="flex justify-between items-center">
                 <span>Montant du service</span>
-                <span className="font-medium">{booking.price.toFixed(2)} €</span>
+                <span className="font-medium">
+                  {booking.price.toFixed(2)} €
+                </span>
               </div>
               <div className="flex justify-between items-center">
                 <span>Frais de traitement</span>
@@ -259,7 +282,9 @@ export default function BookingPaymentPage() {
 
             <div className="flex justify-between items-center text-lg font-semibold">
               <span>Total à payer</span>
-              <span className="text-green-600">{booking.price.toFixed(2)} €</span>
+              <span className="text-green-600">
+                {booking.price.toFixed(2)} €
+              </span>
             </div>
 
             <div className="space-y-3 pt-4">
@@ -283,7 +308,8 @@ export default function BookingPaymentPage() {
               </Button>
 
               <p className="text-xs text-gray-500 text-center">
-                Paiement sécurisé via Stripe. Vos données de carte sont protégées.
+                Paiement sécurisé via Stripe. Vos données de carte sont
+                protégées.
               </p>
             </div>
           </CardContent>
@@ -291,4 +317,4 @@ export default function BookingPaymentPage() {
       </div>
     </div>
   );
-} 
+}

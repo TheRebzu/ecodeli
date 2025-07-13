@@ -6,16 +6,16 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { 
-  Calendar, 
-  Clock, 
-  MapPin, 
-  Package, 
+import {
+  Calendar,
+  Clock,
+  MapPin,
+  Package,
   User,
   Plus,
   ChevronLeft,
   ChevronRight,
-  CalendarDays
+  CalendarDays,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -54,7 +54,9 @@ export default function PlanningManager({ delivererId }: PlanningManagerProps) {
   const fetchPlanning = async (weekStart: Date) => {
     try {
       setLoading(true);
-      const response = await fetch(`/api/deliverer/planning?week=${weekStart.toISOString()}`);
+      const response = await fetch(
+        `/api/deliverer/planning?week=${weekStart.toISOString()}`,
+      );
       if (response.ok) {
         const data = await response.json();
         setSchedule(data.schedule || []);
@@ -106,9 +108,9 @@ export default function PlanningManager({ delivererId }: PlanningManagerProps) {
     return days;
   };
 
-  const navigateWeek = (direction: 'prev' | 'next') => {
+  const navigateWeek = (direction: "prev" | "next") => {
     const newWeek = new Date(currentWeek);
-    newWeek.setDate(currentWeek.getDate() + (direction === 'next' ? 7 : -7));
+    newWeek.setDate(currentWeek.getDate() + (direction === "next" ? 7 : -7));
     setCurrentWeek(newWeek);
     fetchPlanning(getWeekStart(newWeek));
   };
@@ -119,25 +121,53 @@ export default function PlanningManager({ delivererId }: PlanningManagerProps) {
 
   const getEventStatusBadge = (status: string) => {
     const statusConfig = {
-      confirmed: { color: "bg-green-100 text-green-800", label: t("status.confirmed") },
-      pending: { color: "bg-yellow-100 text-yellow-800", label: t("status.pending") },
-      in_progress: { color: "bg-blue-100 text-blue-800", label: t("status.in_progress") },
-      completed: { color: "bg-gray-100 text-gray-800", label: t("status.completed") },
-      cancelled: { color: "bg-red-100 text-red-800", label: t("status.cancelled") },
+      confirmed: {
+        color: "bg-green-100 text-green-800",
+        label: t("status.confirmed"),
+      },
+      pending: {
+        color: "bg-yellow-100 text-yellow-800",
+        label: t("status.pending"),
+      },
+      in_progress: {
+        color: "bg-blue-100 text-blue-800",
+        label: t("status.in_progress"),
+      },
+      completed: {
+        color: "bg-gray-100 text-gray-800",
+        label: t("status.completed"),
+      },
+      cancelled: {
+        color: "bg-red-100 text-red-800",
+        label: t("status.cancelled"),
+      },
     };
-    
-    const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.pending;
+
+    const config =
+      statusConfig[status as keyof typeof statusConfig] || statusConfig.pending;
     return <Badge className={config.color}>{config.label}</Badge>;
   };
 
   const getPriorityBadge = (priority: string) => {
     switch (priority) {
       case "high":
-        return <Badge className="bg-red-100 text-red-800">{t("priority.high")}</Badge>;
+        return (
+          <Badge className="bg-red-100 text-red-800">
+            {t("priority.high")}
+          </Badge>
+        );
       case "medium":
-        return <Badge className="bg-yellow-100 text-yellow-800">{t("priority.medium")}</Badge>;
+        return (
+          <Badge className="bg-yellow-100 text-yellow-800">
+            {t("priority.medium")}
+          </Badge>
+        );
       case "low":
-        return <Badge className="bg-gray-100 text-gray-800">{t("priority.low")}</Badge>;
+        return (
+          <Badge className="bg-gray-100 text-gray-800">
+            {t("priority.low")}
+          </Badge>
+        );
       default:
         return null;
     }
@@ -190,13 +220,22 @@ export default function PlanningManager({ delivererId }: PlanningManagerProps) {
               <span>{t("weekly_planning")}</span>
             </div>
             <div className="flex items-center space-x-2">
-              <Button variant="outline" size="sm" onClick={() => navigateWeek('prev')}>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => navigateWeek("prev")}
+              >
                 <ChevronLeft className="w-4 h-4" />
               </Button>
               <span className="text-sm font-medium px-4">
-                {weekStart.toLocaleDateString()} - {getWeekDays(weekStart)[6].toLocaleDateString()}
+                {weekStart.toLocaleDateString()} -{" "}
+                {getWeekDays(weekStart)[6].toLocaleDateString()}
               </span>
-              <Button variant="outline" size="sm" onClick={() => navigateWeek('next')}>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => navigateWeek("next")}
+              >
                 <ChevronRight className="w-4 h-4" />
               </Button>
             </div>
@@ -207,19 +246,24 @@ export default function PlanningManager({ delivererId }: PlanningManagerProps) {
       {/* Weekly Calendar */}
       <div className="grid grid-cols-7 gap-4">
         {weekDays.map((day, index) => {
-          const daySchedule = schedule.find(s => 
-            new Date(s.date).toDateString() === day.toDateString()
+          const daySchedule = schedule.find(
+            (s) => new Date(s.date).toDateString() === day.toDateString(),
           );
           const isToday = day.toDateString() === new Date().toDateString();
-          
+
           return (
-            <Card key={index} className={`${isToday ? 'ring-2 ring-blue-500' : ''}`}>
+            <Card
+              key={index}
+              className={`${isToday ? "ring-2 ring-blue-500" : ""}`}
+            >
               <CardHeader className="pb-3">
                 <CardTitle className="text-sm text-center">
                   <div className="font-semibold">
-                    {day.toLocaleDateString('fr-FR', { weekday: 'short' })}
+                    {day.toLocaleDateString("fr-FR", { weekday: "short" })}
                   </div>
-                  <div className={`text-lg ${isToday ? 'text-blue-600 font-bold' : ''}`}>
+                  <div
+                    className={`text-lg ${isToday ? "text-blue-600 font-bold" : ""}`}
+                  >
                     {day.getDate()}
                   </div>
                 </CardTitle>
@@ -236,7 +280,9 @@ export default function PlanningManager({ delivererId }: PlanningManagerProps) {
                         <div className="flex items-start space-x-2">
                           {getEventTypeIcon(event.type)}
                           <div className="flex-1 min-w-0">
-                            <p className="text-xs font-medium truncate">{event.title}</p>
+                            <p className="text-xs font-medium truncate">
+                              {event.title}
+                            </p>
                             <p className="text-xs text-gray-500">
                               {event.startTime} - {event.endTime}
                             </p>
@@ -267,21 +313,27 @@ export default function PlanningManager({ delivererId }: PlanningManagerProps) {
                         variant="ghost"
                         size="sm"
                         className="mt-2 h-8 text-xs"
-                        onClick={() => updateAvailability(day.toISOString().split('T')[0], true)}
+                        onClick={() =>
+                          updateAvailability(
+                            day.toISOString().split("T")[0],
+                            true,
+                          )
+                        }
                       >
                         <Plus className="w-3 h-3 mr-1" />
                         {t("set_available")}
                       </Button>
                     </div>
                   )}
-                  
-                  {daySchedule?.availableSlots && daySchedule.availableSlots > 0 && (
-                    <div className="text-center pt-2 border-t">
-                      <p className="text-xs text-green-600">
-                        {daySchedule.availableSlots} {t("available_slots")}
-                      </p>
-                    </div>
-                  )}
+
+                  {daySchedule?.availableSlots &&
+                    daySchedule.availableSlots > 0 && (
+                      <div className="text-center pt-2 border-t">
+                        <p className="text-xs text-green-600">
+                          {daySchedule.availableSlots} {t("available_slots")}
+                        </p>
+                      </div>
+                    )}
                 </div>
               </CardContent>
             </Card>
@@ -296,10 +348,15 @@ export default function PlanningManager({ delivererId }: PlanningManagerProps) {
             <div className="flex items-center space-x-2">
               <Package className="w-5 h-5 text-blue-600" />
               <div>
-                <p className="text-sm text-gray-600">{t("stats.total_deliveries")}</p>
+                <p className="text-sm text-gray-600">
+                  {t("stats.total_deliveries")}
+                </p>
                 <p className="text-xl font-bold">
-                  {schedule.reduce((total, day) => 
-                    total + day.events.filter(e => e.type === 'delivery').length, 0
+                  {schedule.reduce(
+                    (total, day) =>
+                      total +
+                      day.events.filter((e) => e.type === "delivery").length,
+                    0,
                   )}
                 </p>
               </div>
@@ -312,9 +369,14 @@ export default function PlanningManager({ delivererId }: PlanningManagerProps) {
             <div className="flex items-center space-x-2">
               <Clock className="w-5 h-5 text-green-600" />
               <div>
-                <p className="text-sm text-gray-600">{t("stats.available_slots")}</p>
+                <p className="text-sm text-gray-600">
+                  {t("stats.available_slots")}
+                </p>
                 <p className="text-xl font-bold">
-                  {schedule.reduce((total, day) => total + (day.availableSlots || 0), 0)}
+                  {schedule.reduce(
+                    (total, day) => total + (day.availableSlots || 0),
+                    0,
+                  )}
                 </p>
               </div>
             </div>
@@ -328,7 +390,7 @@ export default function PlanningManager({ delivererId }: PlanningManagerProps) {
               <div>
                 <p className="text-sm text-gray-600">{t("stats.busy_days")}</p>
                 <p className="text-xl font-bold">
-                  {schedule.filter(day => day.events.length > 0).length}
+                  {schedule.filter((day) => day.events.length > 0).length}
                 </p>
               </div>
             </div>
@@ -337,4 +399,4 @@ export default function PlanningManager({ delivererId }: PlanningManagerProps) {
       </div>
     </div>
   );
-} 
+}

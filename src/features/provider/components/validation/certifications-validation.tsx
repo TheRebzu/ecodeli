@@ -7,10 +7,10 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { 
-  Plus, 
-  Edit, 
-  Trash2, 
+import {
+  Plus,
+  Edit,
+  Trash2,
   CheckCircle,
   Clock,
   AlertCircle,
@@ -18,7 +18,7 @@ import {
   FileText,
   Eye,
   Shield,
-  Award
+  Award,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useApi } from "@/hooks/use-api";
@@ -29,7 +29,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-  DialogFooter
+  DialogFooter,
 } from "@/components/ui/dialog";
 import {
   Select,
@@ -51,7 +51,7 @@ interface Certification {
   certificationNumber: string;
   issuedDate: string;
   expirationDate?: string;
-  validationStatus: 'PENDING' | 'APPROVED' | 'REJECTED' | 'EXPIRED';
+  validationStatus: "PENDING" | "APPROVED" | "REJECTED" | "EXPIRED";
   validationNotes?: string;
   documentUrl?: string;
   isRequired: boolean;
@@ -68,53 +68,61 @@ interface RequiredCertification {
 }
 
 const CERTIFICATION_TYPES = [
-  { value: 'DRIVING_LICENSE', label: 'Permis de conduire', icon: '🚗' },
-  { value: 'PROFESSIONAL_CARD', label: 'Carte professionnelle', icon: '💼' },
-  { value: 'INSURANCE', label: 'Assurance professionnelle', icon: '🛡️' },
-  { value: 'TRAINING_CERTIFICATE', label: 'Certificat de formation', icon: '📚' },
-  { value: 'HEALTH_CERTIFICATE', label: 'Certificat médical', icon: '🏥' },
-  { value: 'BACKGROUND_CHECK', label: 'Casier judiciaire', icon: '📋' },
-  { value: 'FIRST_AID', label: 'Premiers secours', icon: '🚑' },
-  { value: 'LANGUAGE_CERTIFICATE', label: 'Certificat de langue', icon: '🗣️' },
-  { value: 'OTHER', label: 'Autre', icon: '📄' }
+  { value: "DRIVING_LICENSE", label: "Permis de conduire", icon: "🚗" },
+  { value: "PROFESSIONAL_CARD", label: "Carte professionnelle", icon: "💼" },
+  { value: "INSURANCE", label: "Assurance professionnelle", icon: "🛡️" },
+  {
+    value: "TRAINING_CERTIFICATE",
+    label: "Certificat de formation",
+    icon: "📚",
+  },
+  { value: "HEALTH_CERTIFICATE", label: "Certificat médical", icon: "🏥" },
+  { value: "BACKGROUND_CHECK", label: "Casier judiciaire", icon: "📋" },
+  { value: "FIRST_AID", label: "Premiers secours", icon: "🚑" },
+  { value: "LANGUAGE_CERTIFICATE", label: "Certificat de langue", icon: "🗣️" },
+  { value: "OTHER", label: "Autre", icon: "📄" },
 ];
 
 const REQUIRED_CERTIFICATIONS: RequiredCertification[] = [
   {
-    type: 'DRIVING_LICENSE',
-    name: 'Permis de conduire',
-    description: 'Permis de conduire valide pour les services de transport',
-    serviceTypes: ['TRANSPORT', 'SHOPPING'],
-    isCompulsory: true
+    type: "DRIVING_LICENSE",
+    name: "Permis de conduire",
+    description: "Permis de conduire valide pour les services de transport",
+    serviceTypes: ["TRANSPORT", "SHOPPING"],
+    isCompulsory: true,
   },
   {
-    type: 'BACKGROUND_CHECK',
-    name: 'Extrait de casier judiciaire',
-    description: 'Bulletin n°3 du casier judiciaire de moins de 3 mois',
-    serviceTypes: ['BABYSITTING', 'PET_SITTING', 'CLEANING'],
-    isCompulsory: true
+    type: "BACKGROUND_CHECK",
+    name: "Extrait de casier judiciaire",
+    description: "Bulletin n°3 du casier judiciaire de moins de 3 mois",
+    serviceTypes: ["BABYSITTING", "PET_SITTING", "CLEANING"],
+    isCompulsory: true,
   },
   {
-    type: 'INSURANCE',
-    name: 'Assurance responsabilité civile professionnelle',
-    description: 'Assurance couvrant vos activités professionnelles',
-    serviceTypes: ['ALL'],
-    isCompulsory: true
+    type: "INSURANCE",
+    name: "Assurance responsabilité civile professionnelle",
+    description: "Assurance couvrant vos activités professionnelles",
+    serviceTypes: ["ALL"],
+    isCompulsory: true,
   },
   {
-    type: 'FIRST_AID',
-    name: 'Formation premiers secours',
-    description: 'Certificat PSC1 ou équivalent',
-    serviceTypes: ['BABYSITTING', 'PET_SITTING'],
-    isCompulsory: false
-  }
+    type: "FIRST_AID",
+    name: "Formation premiers secours",
+    description: "Certificat PSC1 ou équivalent",
+    serviceTypes: ["BABYSITTING", "PET_SITTING"],
+    isCompulsory: false,
+  },
 ];
 
-export function ProviderCertificationsValidation({ providerId }: CertificationsValidationProps) {
+export function ProviderCertificationsValidation({
+  providerId,
+}: CertificationsValidationProps) {
   const t = useTranslations("provider.validation.certifications");
   const { execute } = useApi();
   const [certifications, setCertifications] = useState<Certification[]>([]);
-  const [requiredCerts, setRequiredCerts] = useState<RequiredCertification[]>(REQUIRED_CERTIFICATIONS);
+  const [requiredCerts, setRequiredCerts] = useState<RequiredCertification[]>(
+    REQUIRED_CERTIFICATIONS,
+  );
   const [loading, setLoading] = useState(true);
   const [showDialog, setShowDialog] = useState(false);
   const [editingCert, setEditingCert] = useState<Certification | null>(null);
@@ -122,25 +130,25 @@ export function ProviderCertificationsValidation({ providerId }: CertificationsV
 
   // Créer les méthodes GET, POST et PUT basées sur execute
   const get = async (url: string) => {
-    return await execute(url, { method: 'GET' });
+    return await execute(url, { method: "GET" });
   };
 
   const post = async (url: string, options: { body: string }) => {
-    return await execute(url, { 
-      method: 'POST',
+    return await execute(url, {
+      method: "POST",
       body: options.body,
-      headers: { 'Content-Type': 'application/json' }
+      headers: { "Content-Type": "application/json" },
     });
   };
 
   const put = async (url: string, options: { body: string }) => {
-    return await execute(url, { 
-      method: 'PUT',
+    return await execute(url, {
+      method: "PUT",
       body: options.body,
-      headers: { 'Content-Type': 'application/json' }
+      headers: { "Content-Type": "application/json" },
     });
   };
-  
+
   const [formData, setFormData] = useState({
     name: "",
     type: "",
@@ -148,13 +156,15 @@ export function ProviderCertificationsValidation({ providerId }: CertificationsV
     certificationNumber: "",
     issuedDate: "",
     expirationDate: "",
-    serviceTypes: [] as string[]
+    serviceTypes: [] as string[],
   });
 
   const fetchCertifications = async () => {
     try {
       setLoading(true);
-      const response = await get(`/api/provider/certifications?providerId=${providerId}`);
+      const response = await get(
+        `/api/provider/certifications?providerId=${providerId}`,
+      );
       if (response) {
         setCertifications(response.certifications || []);
       }
@@ -168,21 +178,23 @@ export function ProviderCertificationsValidation({ providerId }: CertificationsV
 
   const saveCertification = async () => {
     try {
-      const endpoint = editingCert 
-        ? `/api/provider/certifications/${editingCert.id}` 
+      const endpoint = editingCert
+        ? `/api/provider/certifications/${editingCert.id}`
         : "/api/provider/certifications";
-      
+
       const method = editingCert ? put : post;
-      
+
       const response = await method(endpoint, {
         body: JSON.stringify({
           providerId,
-          ...formData
-        })
+          ...formData,
+        }),
       });
 
       if (response) {
-        toast.success(editingCert ? "Certification mise à jour" : "Certification ajoutée");
+        toast.success(
+          editingCert ? "Certification mise à jour" : "Certification ajoutée",
+        );
         setShowDialog(false);
         resetForm();
         fetchCertifications();
@@ -197,14 +209,14 @@ export function ProviderCertificationsValidation({ providerId }: CertificationsV
     try {
       setUploadingFile(true);
       const formData = new FormData();
-      formData.append('file', file);
-      formData.append('type', 'CERTIFICATION');
-      formData.append('category', 'document');
-      formData.append('documentId', certificationId); // Utiliser documentId au lieu de certificationId
+      formData.append("file", file);
+      formData.append("type", "CERTIFICATION");
+      formData.append("category", "document");
+      formData.append("documentId", certificationId); // Utiliser documentId au lieu de certificationId
 
-      const response = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData
+      const response = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
       });
 
       if (response.ok) {
@@ -225,9 +237,12 @@ export function ProviderCertificationsValidation({ providerId }: CertificationsV
 
   const requestValidation = async (certificationId: string) => {
     try {
-      const response = await post(`/api/provider/certifications/${certificationId}/validate`, {
-        body: JSON.stringify({ providerId })
-      });
+      const response = await post(
+        `/api/provider/certifications/${certificationId}/validate`,
+        {
+          body: JSON.stringify({ providerId }),
+        },
+      );
 
       if (response) {
         toast.success("Demande de validation envoyée");
@@ -247,7 +262,7 @@ export function ProviderCertificationsValidation({ providerId }: CertificationsV
       certificationNumber: "",
       issuedDate: "",
       expirationDate: "",
-      serviceTypes: []
+      serviceTypes: [],
     });
     setEditingCert(null);
   };
@@ -258,9 +273,11 @@ export function ProviderCertificationsValidation({ providerId }: CertificationsV
       type: cert.type,
       issuingOrganization: cert.issuingOrganization,
       certificationNumber: cert.certificationNumber,
-      issuedDate: cert.issuedDate.split('T')[0],
-      expirationDate: cert.expirationDate ? cert.expirationDate.split('T')[0] : "",
-      serviceTypes: cert.serviceTypes || []
+      issuedDate: cert.issuedDate.split("T")[0],
+      expirationDate: cert.expirationDate
+        ? cert.expirationDate.split("T")[0]
+        : "",
+      serviceTypes: cert.serviceTypes || [],
     });
     setEditingCert(cert);
     setShowDialog(true);
@@ -277,12 +294,25 @@ export function ProviderCertificationsValidation({ providerId }: CertificationsV
     }
 
     const config = {
-      PENDING: { color: "bg-yellow-100 text-yellow-800", icon: Clock, label: "En attente" },
-      APPROVED: { color: "bg-green-100 text-green-800", icon: CheckCircle, label: "Validée" },
-      REJECTED: { color: "bg-red-100 text-red-800", icon: AlertCircle, label: "Rejetée" }
+      PENDING: {
+        color: "bg-yellow-100 text-yellow-800",
+        icon: Clock,
+        label: "En attente",
+      },
+      APPROVED: {
+        color: "bg-green-100 text-green-800",
+        icon: CheckCircle,
+        label: "Validée",
+      },
+      REJECTED: {
+        color: "bg-red-100 text-red-800",
+        icon: AlertCircle,
+        label: "Rejetée",
+      },
     };
 
-    const statusConfig = config[status as keyof typeof config] || config.PENDING;
+    const statusConfig =
+      config[status as keyof typeof config] || config.PENDING;
     const Icon = statusConfig.icon;
 
     return (
@@ -294,12 +324,13 @@ export function ProviderCertificationsValidation({ providerId }: CertificationsV
   };
 
   const getMissingRequiredCertifications = () => {
-    return requiredCerts.filter(required => 
-      required.isCompulsory && 
-      !certifications.some(cert => 
-        cert.type === required.type && 
-        cert.validationStatus === 'APPROVED'
-      )
+    return requiredCerts.filter(
+      (required) =>
+        required.isCompulsory &&
+        !certifications.some(
+          (cert) =>
+            cert.type === required.type && cert.validationStatus === "APPROVED",
+        ),
     );
   };
 
@@ -340,7 +371,10 @@ export function ProviderCertificationsValidation({ providerId }: CertificationsV
           <CardContent>
             <div className="space-y-2">
               {missingCerts.map((cert) => (
-                <div key={cert.type} className="flex items-center justify-between p-3 bg-white rounded border">
+                <div
+                  key={cert.type}
+                  className="flex items-center justify-between p-3 bg-white rounded border"
+                >
                   <div>
                     <p className="font-medium text-red-800">{cert.name}</p>
                     <p className="text-sm text-red-600">{cert.description}</p>
@@ -356,9 +390,12 @@ export function ProviderCertificationsValidation({ providerId }: CertificationsV
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h3 className="text-lg font-semibold">Habilitations et certifications</h3>
+          <h3 className="text-lg font-semibold">
+            Habilitations et certifications
+          </h3>
           <p className="text-gray-600">
-            Vérification rigoureuse de vos habilitations selon les exigences EcoDeli
+            Vérification rigoureuse de vos habilitations selon les exigences
+            EcoDeli
           </p>
         </div>
         <Dialog open={showDialog} onOpenChange={setShowDialog}>
@@ -371,13 +408,15 @@ export function ProviderCertificationsValidation({ providerId }: CertificationsV
           <DialogContent className="max-w-2xl">
             <DialogHeader>
               <DialogTitle>
-                {editingCert ? "Modifier la certification" : "Nouvelle certification"}
+                {editingCert
+                  ? "Modifier la certification"
+                  : "Nouvelle certification"}
               </DialogTitle>
               <DialogDescription>
                 Ajoutez vos certifications et habilitations professionnelles
               </DialogDescription>
             </DialogHeader>
-            
+
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
@@ -385,13 +424,20 @@ export function ProviderCertificationsValidation({ providerId }: CertificationsV
                   <Input
                     id="name"
                     value={formData.name}
-                    onChange={(e) => setFormData({...formData, name: e.target.value})}
+                    onChange={(e) =>
+                      setFormData({ ...formData, name: e.target.value })
+                    }
                     placeholder="Ex: Permis de conduire B"
                   />
                 </div>
                 <div>
                   <Label htmlFor="type">Type</Label>
-                  <Select value={formData.type} onValueChange={(value) => setFormData({...formData, type: value})}>
+                  <Select
+                    value={formData.type}
+                    onValueChange={(value) =>
+                      setFormData({ ...formData, type: value })
+                    }
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder="Sélectionner un type" />
                     </SelectTrigger>
@@ -411,11 +457,18 @@ export function ProviderCertificationsValidation({ providerId }: CertificationsV
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="issuingOrganization">Organisme émetteur</Label>
+                  <Label htmlFor="issuingOrganization">
+                    Organisme émetteur
+                  </Label>
                   <Input
                     id="issuingOrganization"
                     value={formData.issuingOrganization}
-                    onChange={(e) => setFormData({...formData, issuingOrganization: e.target.value})}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        issuingOrganization: e.target.value,
+                      })
+                    }
                     placeholder="Ex: Préfecture de Paris"
                   />
                 </div>
@@ -424,7 +477,12 @@ export function ProviderCertificationsValidation({ providerId }: CertificationsV
                   <Input
                     id="certificationNumber"
                     value={formData.certificationNumber}
-                    onChange={(e) => setFormData({...formData, certificationNumber: e.target.value})}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        certificationNumber: e.target.value,
+                      })
+                    }
                     placeholder="Numéro de certification"
                   />
                 </div>
@@ -437,16 +495,25 @@ export function ProviderCertificationsValidation({ providerId }: CertificationsV
                     id="issuedDate"
                     type="date"
                     value={formData.issuedDate}
-                    onChange={(e) => setFormData({...formData, issuedDate: e.target.value})}
+                    onChange={(e) =>
+                      setFormData({ ...formData, issuedDate: e.target.value })
+                    }
                   />
                 </div>
                 <div>
-                  <Label htmlFor="expirationDate">Date d'expiration (optionnel)</Label>
+                  <Label htmlFor="expirationDate">
+                    Date d'expiration (optionnel)
+                  </Label>
                   <Input
                     id="expirationDate"
                     type="date"
                     value={formData.expirationDate}
-                    onChange={(e) => setFormData({...formData, expirationDate: e.target.value})}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        expirationDate: e.target.value,
+                      })
+                    }
                   />
                 </div>
               </div>
@@ -475,11 +542,17 @@ export function ProviderCertificationsValidation({ providerId }: CertificationsV
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {requiredCerts.map((required) => {
-              const userCert = certifications.find(cert => cert.type === required.type);
-              const isCompliant = userCert && userCert.validationStatus === 'APPROVED';
-              
+              const userCert = certifications.find(
+                (cert) => cert.type === required.type,
+              );
+              const isCompliant =
+                userCert && userCert.validationStatus === "APPROVED";
+
               return (
-                <div key={required.type} className={`p-4 border rounded-lg ${isCompliant ? 'border-green-200 bg-green-50' : 'border-gray-200'}`}>
+                <div
+                  key={required.type}
+                  className={`p-4 border rounded-lg ${isCompliant ? "border-green-200 bg-green-50" : "border-gray-200"}`}
+                >
                   <div className="flex items-center justify-between mb-2">
                     <h4 className="font-medium">{required.name}</h4>
                     {isCompliant ? (
@@ -488,12 +561,22 @@ export function ProviderCertificationsValidation({ providerId }: CertificationsV
                       <AlertCircle className="w-5 h-5 text-red-600" />
                     )}
                   </div>
-                  <p className="text-sm text-gray-600 mb-2">{required.description}</p>
+                  <p className="text-sm text-gray-600 mb-2">
+                    {required.description}
+                  </p>
                   <div className="flex items-center justify-between">
-                    <Badge variant={required.isCompulsory ? "destructive" : "secondary"}>
+                    <Badge
+                      variant={
+                        required.isCompulsory ? "destructive" : "secondary"
+                      }
+                    >
                       {required.isCompulsory ? "Obligatoire" : "Recommandée"}
                     </Badge>
-                    {userCert && getStatusBadge(userCert.validationStatus, userCert.expirationDate)}
+                    {userCert &&
+                      getStatusBadge(
+                        userCert.validationStatus,
+                        userCert.expirationDate,
+                      )}
                   </div>
                 </div>
               );
@@ -533,36 +616,51 @@ export function ProviderCertificationsValidation({ providerId }: CertificationsV
                     <div className="flex-1">
                       <div className="flex items-center space-x-2 mb-2">
                         <h4 className="font-medium">{cert.name}</h4>
-                        {getStatusBadge(cert.validationStatus, cert.expirationDate)}
+                        {getStatusBadge(
+                          cert.validationStatus,
+                          cert.expirationDate,
+                        )}
                       </div>
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                         <div>
                           <span className="text-gray-600">Organisme:</span>
-                          <p className="font-medium">{cert.issuingOrganization}</p>
+                          <p className="font-medium">
+                            {cert.issuingOrganization}
+                          </p>
                         </div>
                         <div>
                           <span className="text-gray-600">Numéro:</span>
-                          <p className="font-medium">{cert.certificationNumber}</p>
+                          <p className="font-medium">
+                            {cert.certificationNumber}
+                          </p>
                         </div>
                         <div>
                           <span className="text-gray-600">Émise le:</span>
-                          <p className="font-medium">{new Date(cert.issuedDate).toLocaleDateString()}</p>
+                          <p className="font-medium">
+                            {new Date(cert.issuedDate).toLocaleDateString()}
+                          </p>
                         </div>
                         {cert.expirationDate && (
                           <div>
                             <span className="text-gray-600">Expire le:</span>
-                            <p className="font-medium">{new Date(cert.expirationDate).toLocaleDateString()}</p>
+                            <p className="font-medium">
+                              {new Date(
+                                cert.expirationDate,
+                              ).toLocaleDateString()}
+                            </p>
                           </div>
                         )}
                       </div>
 
-                      {cert.validationStatus === 'REJECTED' && cert.validationNotes && (
-                        <div className="mt-3 bg-red-50 border border-red-200 rounded p-3">
-                          <p className="text-sm text-red-800">
-                            <strong>Motif de rejet:</strong> {cert.validationNotes}
-                          </p>
-                        </div>
-                      )}
+                      {cert.validationStatus === "REJECTED" &&
+                        cert.validationNotes && (
+                          <div className="mt-3 bg-red-50 border border-red-200 rounded p-3">
+                            <p className="text-sm text-red-800">
+                              <strong>Motif de rejet:</strong>{" "}
+                              {cert.validationNotes}
+                            </p>
+                          </div>
+                        )}
                     </div>
 
                     <div className="flex space-x-2">
@@ -588,10 +686,13 @@ export function ProviderCertificationsValidation({ providerId }: CertificationsV
                             className="hidden"
                             id={`file-upload-${cert.id}`}
                           />
-                          <label htmlFor={`file-upload-${cert.id}`} className="cursor-pointer">
-                            <Button 
-                              size="sm" 
-                              variant="outline" 
+                          <label
+                            htmlFor={`file-upload-${cert.id}`}
+                            className="cursor-pointer"
+                          >
+                            <Button
+                              size="sm"
+                              variant="outline"
                               disabled={uploadingFile}
                               type="button"
                             >
@@ -600,23 +701,26 @@ export function ProviderCertificationsValidation({ providerId }: CertificationsV
                           </label>
                         </div>
                       ) : (
-                        <Button 
-                          size="sm" 
+                        <Button
+                          size="sm"
                           variant="outline"
-                          onClick={() => window.open(cert.documentUrl, '_blank')}
+                          onClick={() =>
+                            window.open(cert.documentUrl, "_blank")
+                          }
                         >
                           <Eye className="w-4 h-4" />
                         </Button>
                       )}
 
-                      {cert.validationStatus !== 'APPROVED' && cert.documentUrl && (
-                        <Button
-                          size="sm"
-                          onClick={() => requestValidation(cert.id)}
-                        >
-                          <CheckCircle className="w-4 h-4" />
-                        </Button>
-                      )}
+                      {cert.validationStatus !== "APPROVED" &&
+                        cert.documentUrl && (
+                          <Button
+                            size="sm"
+                            onClick={() => requestValidation(cert.id)}
+                          >
+                            <CheckCircle className="w-4 h-4" />
+                          </Button>
+                        )}
                     </div>
                   </div>
                 </div>

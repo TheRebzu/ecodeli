@@ -1,112 +1,135 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Checkbox } from '@/components/ui/checkbox'
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Separator } from '@/components/ui/separator'
-import { Badge } from '@/components/ui/badge'
-import { useToast } from '@/components/ui/use-toast'
-import { Loader2, MapPin, Clock, Truck, RefreshCw, Users } from 'lucide-react'
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import { Badge } from "@/components/ui/badge";
+import { useToast } from "@/components/ui/use-toast";
+import { Loader2, MapPin, Clock, Truck, RefreshCw, Users } from "lucide-react";
 
 const createRouteSchema = z.object({
-  name: z.string().min(1, 'Le nom de la route est requis'),
+  name: z.string().min(1, "Le nom de la route est requis"),
   description: z.string().optional(),
-  
+
   // Départ
-  departureAddress: z.string().min(1, 'L\'adresse de départ est requise'),
+  departureAddress: z.string().min(1, "L'adresse de départ est requise"),
   departureLatitude: z.number(),
   departureLongitude: z.number(),
-  
+
   // Arrivée
-  arrivalAddress: z.string().min(1, 'L\'adresse d\'arrivée est requise'),
+  arrivalAddress: z.string().min(1, "L'adresse d'arrivée est requise"),
   arrivalLatitude: z.number(),
   arrivalLongitude: z.number(),
-  
+
   // Horaires
-  departureTime: z.string().min(1, 'L\'heure de départ est requise'),
-  arrivalTime: z.string().min(1, 'L\'heure d\'arrivée est requise'),
-  
+  departureTime: z.string().min(1, "L'heure de départ est requise"),
+  arrivalTime: z.string().min(1, "L'heure d'arrivée est requise"),
+
   // Récurrence
   isRecurring: z.boolean().default(false),
   recurringPattern: z.string().optional(),
   recurringDays: z.array(z.number()).optional(),
-  
-  // Capacité et véhicule
-  maxCapacity: z.number().min(1, 'La capacité doit être d\'au moins 1').max(20, 'La capacité ne peut pas dépasser 20'),
-  vehicleType: z.string().min(1, 'Le type de véhicule est requis'),
-  pricePerKm: z.number().min(0).optional(),
-  
-  isActive: z.boolean().default(true)
-})
 
-type CreateRouteForm = z.infer<typeof createRouteSchema>
+  // Capacité et véhicule
+  maxCapacity: z
+    .number()
+    .min(1, "La capacité doit être d'au moins 1")
+    .max(20, "La capacité ne peut pas dépasser 20"),
+  vehicleType: z.string().min(1, "Le type de véhicule est requis"),
+  pricePerKm: z.number().min(0).optional(),
+
+  isActive: z.boolean().default(true),
+});
+
+type CreateRouteForm = z.infer<typeof createRouteSchema>;
 
 const vehicleTypes = [
-  { value: 'CAR', label: '🚗 Voiture' },
-  { value: 'VAN', label: '🚐 Camionnette' },
-  { value: 'TRUCK', label: '🚚 Camion' },
-  { value: 'BIKE', label: '🚲 Vélo' },
-  { value: 'MOTORBIKE', label: '🏍️ Moto' }
-]
+  { value: "CAR", label: "🚗 Voiture" },
+  { value: "VAN", label: "🚐 Camionnette" },
+  { value: "TRUCK", label: "🚚 Camion" },
+  { value: "BIKE", label: "🚲 Vélo" },
+  { value: "MOTORBIKE", label: "🏍️ Moto" },
+];
 
 const recurringPatterns = [
-  { value: 'DAILY', label: 'Quotidien' },
-  { value: 'WEEKLY', label: 'Hebdomadaire' },
-  { value: 'MONTHLY', label: 'Mensuel' }
-]
+  { value: "DAILY", label: "Quotidien" },
+  { value: "WEEKLY", label: "Hebdomadaire" },
+  { value: "MONTHLY", label: "Mensuel" },
+];
 
 const daysOfWeek = [
-  { value: 0, label: 'Dimanche' },
-  { value: 1, label: 'Lundi' },
-  { value: 2, label: 'Mardi' },
-  { value: 3, label: 'Mercredi' },
-  { value: 4, label: 'Jeudi' },
-  { value: 5, label: 'Vendredi' },
-  { value: 6, label: 'Samedi' }
-]
+  { value: 0, label: "Dimanche" },
+  { value: 1, label: "Lundi" },
+  { value: 2, label: "Mardi" },
+  { value: 3, label: "Mercredi" },
+  { value: 4, label: "Jeudi" },
+  { value: 5, label: "Vendredi" },
+  { value: 6, label: "Samedi" },
+];
 
 interface CreateRouteFormProps {
-  onSuccess: () => void
+  onSuccess: () => void;
 }
 
 export function CreateRouteForm({ onSuccess }: CreateRouteFormProps) {
-  const { toast } = useToast()
-  const [loading, setLoading] = useState(false)
+  const { toast } = useToast();
+  const [loading, setLoading] = useState(false);
 
   const form = useForm<CreateRouteForm>({
     resolver: zodResolver(createRouteSchema),
     defaultValues: {
-      name: '',
-      description: '',
-      departureAddress: '',
+      name: "",
+      description: "",
+      departureAddress: "",
       departureLatitude: 48.8566, // Paris par défaut
       departureLongitude: 2.3522,
-      arrivalAddress: '',
+      arrivalAddress: "",
       arrivalLatitude: 48.8566,
       arrivalLongitude: 2.3522,
-      departureTime: '',
-      arrivalTime: '',
+      departureTime: "",
+      arrivalTime: "",
       isRecurring: false,
-      recurringPattern: 'WEEKLY',
+      recurringPattern: "WEEKLY",
       recurringDays: [1, 2, 3, 4, 5], // Lun-Ven par défaut
       maxCapacity: 5,
-      vehicleType: 'CAR',
+      vehicleType: "CAR",
       pricePerKm: 0.5,
-      isActive: true
-    }
-  })
+      isActive: true,
+    },
+  });
 
   const onSubmit = async (data: CreateRouteForm) => {
     try {
-      setLoading(true)
+      setLoading(true);
 
       // Construire l'objet de données avec les bonnes structures pour l'API
       const routeData = {
@@ -118,7 +141,9 @@ export function CreateRouteForm({ onSuccess }: CreateRouteFormProps) {
         endAddress: data.arrivalAddress,
         endLatitude: data.arrivalLatitude,
         endLongitude: data.arrivalLongitude,
-        startDate: new Date(`1970-01-01T${data.departureTime}:00`).toISOString(),
+        startDate: new Date(
+          `1970-01-01T${data.departureTime}:00`,
+        ).toISOString(),
         endDate: new Date(`1970-01-01T${data.arrivalTime}:00`).toISOString(),
         isRecurring: data.isRecurring,
         recurringPattern: data.isRecurring ? data.recurringPattern : undefined,
@@ -127,45 +152,45 @@ export function CreateRouteForm({ onSuccess }: CreateRouteFormProps) {
         isActive: data.isActive,
         autoAccept: false,
         maxDetour: 5.0,
-        acceptedTypes: []
-      }
+        acceptedTypes: [],
+      };
 
-      const response = await fetch('/api/deliverer/routes', {
-        method: 'POST',
+      const response = await fetch("/api/deliverer/routes", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json'
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify(routeData)
-      })
+        body: JSON.stringify(routeData),
+      });
 
       if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.error || 'Erreur lors de la création')
+        const error = await response.json();
+        throw new Error(error.error || "Erreur lors de la création");
       }
 
-      const result = await response.json()
+      const result = await response.json();
 
       toast({
-        title: '✅ Route créée',
-        description: 'Votre route a été créée avec succès',
-      })
+        title: "✅ Route créée",
+        description: "Votre route a été créée avec succès",
+      });
 
-      onSuccess()
-
+      onSuccess();
     } catch (error) {
-      console.error('Erreur création route:', error)
+      console.error("Erreur création route:", error);
       toast({
-        title: '❌ Erreur',
-        description: error instanceof Error ? error.message : 'Une erreur s\'est produite',
-        variant: 'destructive'
-      })
+        title: "❌ Erreur",
+        description:
+          error instanceof Error ? error.message : "Une erreur s'est produite",
+        variant: "destructive",
+      });
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
-  const isRecurring = form.watch('isRecurring')
-  const selectedDays = form.watch('recurringDays') || []
+  const isRecurring = form.watch("isRecurring");
+  const selectedDays = form.watch("recurringDays") || [];
 
   return (
     <Form {...form}>
@@ -200,7 +225,7 @@ export function CreateRouteForm({ onSuccess }: CreateRouteFormProps) {
                 <FormItem>
                   <FormLabel>Description (optionnelle)</FormLabel>
                   <FormControl>
-                    <Textarea 
+                    <Textarea
                       placeholder="Description de votre trajet habituel..."
                       className="min-h-[80px]"
                       {...field}
@@ -218,7 +243,10 @@ export function CreateRouteForm({ onSuccess }: CreateRouteFormProps) {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Type de véhicule *</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Choisir un véhicule" />
@@ -299,7 +327,9 @@ export function CreateRouteForm({ onSuccess }: CreateRouteFormProps) {
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-4">
-                <h4 className="font-medium text-blue-600">📍 Point de départ</h4>
+                <h4 className="font-medium text-blue-600">
+                  📍 Point de départ
+                </h4>
                 <FormField
                   control={form.control}
                   name="departureAddress"
@@ -307,7 +337,10 @@ export function CreateRouteForm({ onSuccess }: CreateRouteFormProps) {
                     <FormItem>
                       <FormLabel>Adresse de départ *</FormLabel>
                       <FormControl>
-                        <Input placeholder="123 Rue de la Paix, Paris" {...field} />
+                        <Input
+                          placeholder="123 Rue de la Paix, Paris"
+                          {...field}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -316,7 +349,9 @@ export function CreateRouteForm({ onSuccess }: CreateRouteFormProps) {
               </div>
 
               <div className="space-y-4">
-                <h4 className="font-medium text-green-600">🎯 Point d'arrivée</h4>
+                <h4 className="font-medium text-green-600">
+                  🎯 Point d'arrivée
+                </h4>
                 <FormField
                   control={form.control}
                   name="arrivalAddress"
@@ -324,7 +359,10 @@ export function CreateRouteForm({ onSuccess }: CreateRouteFormProps) {
                     <FormItem>
                       <FormLabel>Adresse d'arrivée *</FormLabel>
                       <FormControl>
-                        <Input placeholder="456 Avenue des Champs, Paris" {...field} />
+                        <Input
+                          placeholder="456 Avenue des Champs, Paris"
+                          {...field}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -400,9 +438,7 @@ export function CreateRouteForm({ onSuccess }: CreateRouteFormProps) {
                     />
                   </FormControl>
                   <div className="space-y-1 leading-none">
-                    <FormLabel>
-                      Trajet récurrent
-                    </FormLabel>
+                    <FormLabel>Trajet récurrent</FormLabel>
                     <FormDescription>
                       Ce trajet se répète selon un planning régulier
                     </FormDescription>
@@ -419,7 +455,10 @@ export function CreateRouteForm({ onSuccess }: CreateRouteFormProps) {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Fréquence de répétition</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                      >
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Choisir une fréquence" />
@@ -427,7 +466,10 @@ export function CreateRouteForm({ onSuccess }: CreateRouteFormProps) {
                         </FormControl>
                         <SelectContent>
                           {recurringPatterns.map((pattern) => (
-                            <SelectItem key={pattern.value} value={pattern.value}>
+                            <SelectItem
+                              key={pattern.value}
+                              value={pattern.value}
+                            >
                               {pattern.label}
                             </SelectItem>
                           ))}
@@ -459,11 +501,18 @@ export function CreateRouteForm({ onSuccess }: CreateRouteFormProps) {
                                   <Checkbox
                                     checked={field.value?.includes(day.value)}
                                     onCheckedChange={(checked) => {
-                                      const currentDays = field.value || []
+                                      const currentDays = field.value || [];
                                       if (checked) {
-                                        field.onChange([...currentDays, day.value])
+                                        field.onChange([
+                                          ...currentDays,
+                                          day.value,
+                                        ]);
                                       } else {
-                                        field.onChange(currentDays.filter((d) => d !== day.value))
+                                        field.onChange(
+                                          currentDays.filter(
+                                            (d) => d !== day.value,
+                                          ),
+                                        );
                                       }
                                     }}
                                   />
@@ -503,11 +552,10 @@ export function CreateRouteForm({ onSuccess }: CreateRouteFormProps) {
                     />
                   </FormControl>
                   <div className="space-y-1 leading-none">
-                    <FormLabel>
-                      Activer cette route immédiatement
-                    </FormLabel>
+                    <FormLabel>Activer cette route immédiatement</FormLabel>
                     <FormDescription>
-                      Vous recevrez des notifications pour les annonces correspondantes
+                      Vous recevrez des notifications pour les annonces
+                      correspondantes
                     </FormDescription>
                   </div>
                 </FormItem>
@@ -521,7 +569,11 @@ export function CreateRouteForm({ onSuccess }: CreateRouteFormProps) {
           <Button type="button" variant="outline" onClick={() => form.reset()}>
             Réinitialiser
           </Button>
-          <Button type="submit" disabled={loading} className="bg-purple-600 hover:bg-purple-700">
+          <Button
+            type="submit"
+            disabled={loading}
+            className="bg-purple-600 hover:bg-purple-700"
+          >
             {loading ? (
               <>
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -537,5 +589,5 @@ export function CreateRouteForm({ onSuccess }: CreateRouteFormProps) {
         </div>
       </form>
     </Form>
-  )
+  );
 }

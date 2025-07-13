@@ -1,11 +1,11 @@
-import { cn } from "@/lib/utils"
+import { cn } from "@/lib/utils";
 
 interface PageHeaderProps {
-  className?: string
-  children?: React.ReactNode
-  title?: string
-  description?: string
-  action?: React.ReactNode
+  className?: string;
+  children?: React.ReactNode;
+  title?: string;
+  description?: string;
+  action?: React.ReactNode;
 }
 
 export function PageHeader({
@@ -13,13 +13,13 @@ export function PageHeader({
   children,
   title,
   description,
-  action
+  action,
 }: PageHeaderProps) {
   return (
     <section
       className={cn(
         "mx-auto flex max-w-[980px] flex-col items-start gap-2 px-4 pt-8 md:pt-12",
-        className
+        className,
       )}
     >
       <div className="flex items-center justify-between w-full">
@@ -35,15 +35,11 @@ export function PageHeader({
             </p>
           )}
         </div>
-        {action && (
-          <div className="ml-4">
-            {action}
-          </div>
-        )}
+        {action && <div className="ml-4">{action}</div>}
       </div>
       {children}
     </section>
-  )
+  );
 }
 
 export function PageHeaderHeading({
@@ -54,11 +50,11 @@ export function PageHeaderHeading({
     <h1
       className={cn(
         "text-3xl font-bold leading-tight tracking-tighter md:text-4xl lg:leading-[1.1]",
-        className
+        className,
       )}
       {...props}
     />
-  )
+  );
 }
 
 export function PageHeaderDescription({
@@ -69,9 +65,9 @@ export function PageHeaderDescription({
     <p
       className={cn(
         "max-w-[750px] text-lg font-light text-foreground/60",
-        className
+        className,
       )}
       {...props}
     />
-  )
-} 
+  );
+}

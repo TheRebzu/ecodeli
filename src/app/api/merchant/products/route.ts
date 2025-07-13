@@ -1,36 +1,45 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getCurrentUser } from '@/lib/auth/utils'
-import { prisma } from '@/lib/db'
+import { NextRequest, NextResponse } from "next/server";
+import { getCurrentUser } from "@/lib/auth/utils";
+import { prisma } from "@/lib/db";
 
 export async function GET(request: NextRequest) {
   try {
-    const user = await getCurrentUser()
-    
-    if (!user || user.role !== 'MERCHANT') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    const user = await getCurrentUser();
+
+    if (!user || user.role !== "MERCHANT") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     // Get merchant
     const merchant = await prisma.merchant.findUnique({
       where: { userId: user.id },
-    })
+    });
 
     if (!merchant) {
-      return NextResponse.json({ error: 'Merchant not found' }, { status: 404 })
+      return NextResponse.json(
+        { error: "Merchant not found" },
+        { status: 404 },
+      );
     }
 
     // Get products
     const products = await prisma.product.findMany({
       where: { merchantId: merchant.id },
-      orderBy: { createdAt: 'desc' },
-    })
+      orderBy: { createdAt: "desc" },
+    });
 
     // Calculate stats
-    const totalProducts = products.length
-    const activeProducts = products.filter(p => p.isActive).length
-    const lowStockProducts = products.filter(p => p.stockQuantity <= p.minStockAlert).length
-    const totalValue = products.reduce((sum, p) => sum + (p.price * p.stockQuantity), 0)
-    const categories = new Set(products.map(p => p.category).filter(Boolean)).size
+    const totalProducts = products.length;
+    const activeProducts = products.filter((p) => p.isActive).length;
+    const lowStockProducts = products.filter(
+      (p) => p.stockQuantity <= p.minStockAlert,
+    ).length;
+    const totalValue = products.reduce(
+      (sum, p) => sum + p.price * p.stockQuantity,
+      0,
+    );
+    const categories = new Set(products.map((p) => p.category).filter(Boolean))
+      .size;
 
     const stats = {
       totalProducts,
@@ -38,39 +47,42 @@ export async function GET(request: NextRequest) {
       lowStockProducts,
       totalValue,
       categories,
-    }
+    };
 
     return NextResponse.json({
       products,
       stats,
-    })
+    });
   } catch (error) {
-    console.error('Error fetching merchant products:', error)
+    console.error("Error fetching merchant products:", error);
     return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    )
+      { error: "Internal server error" },
+      { status: 500 },
+    );
   }
 }
 
 export async function POST(request: NextRequest) {
   try {
-    const user = await getCurrentUser()
-    
-    if (!user || user.role !== 'MERCHANT') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    const user = await getCurrentUser();
+
+    if (!user || user.role !== "MERCHANT") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     // Get merchant
     const merchant = await prisma.merchant.findUnique({
       where: { userId: user.id },
-    })
+    });
 
     if (!merchant) {
-      return NextResponse.json({ error: 'Merchant not found' }, { status: 404 })
+      return NextResponse.json(
+        { error: "Merchant not found" },
+        { status: 404 },
+      );
     }
 
-    const body = await request.json()
+    const body = await request.json();
     const {
       name,
       description,
@@ -86,26 +98,26 @@ export async function POST(request: NextRequest) {
       minStockAlert = 5,
       tags = [],
       metadata,
-    } = body
+    } = body;
 
     // Validate required fields
     if (!name || !price) {
       return NextResponse.json(
-        { error: 'Name and price are required' },
-        { status: 400 }
-      )
+        { error: "Name and price are required" },
+        { status: 400 },
+      );
     }
 
     // Check if SKU is unique
     if (sku) {
       const existingProduct = await prisma.product.findUnique({
         where: { sku },
-      })
+      });
       if (existingProduct) {
         return NextResponse.json(
-          { error: 'SKU already exists' },
-          { status: 409 }
-        )
+          { error: "SKU already exists" },
+          { status: 409 },
+        );
       }
     }
 
@@ -127,14 +139,14 @@ export async function POST(request: NextRequest) {
         tags,
         metadata,
       },
-    })
+    });
 
-    return NextResponse.json(product, { status: 201 })
+    return NextResponse.json(product, { status: 201 });
   } catch (error) {
-    console.error('Error creating product:', error)
+    console.error("Error creating product:", error);
     return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    )
+      { error: "Internal server error" },
+      { status: 500 },
+    );
   }
-} 
+}

@@ -1,62 +1,68 @@
-'use client'
+"use client";
 
-import { ReactNode } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Leaf, User, Truck, Store, Settings, Shield } from 'lucide-react'
-import { Role } from '@/lib/auth/config'
+import { ReactNode } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Leaf, User, Truck, Store, Settings, Shield } from "lucide-react";
+import { Role } from "@/lib/auth/config";
 
 interface AuthLayoutProps {
-  children: ReactNode
-  title: string
-  description: string
-  role?: Role
-  showRoleBadge?: boolean
+  children: ReactNode;
+  title: string;
+  description: string;
+  role?: Role;
+  showRoleBadge?: boolean;
 }
 
 const roleConfig = {
   CLIENT: {
     icon: User,
-    label: 'Client',
-    color: 'bg-blue-500',
-    description: 'Accès aux services de livraison'
+    label: "Client",
+    color: "bg-blue-500",
+    description: "Accès aux services de livraison",
   },
   DELIVERER: {
     icon: Truck,
-    label: 'Livreur',
-    color: 'bg-green-500',
-    description: 'Livraisons et trajets'
+    label: "Livreur",
+    color: "bg-green-500",
+    description: "Livraisons et trajets",
   },
   MERCHANT: {
     icon: Store,
-    label: 'Commerçant',
-    color: 'bg-purple-500',
-    description: 'Gestion des ventes'
+    label: "Commerçant",
+    color: "bg-purple-500",
+    description: "Gestion des ventes",
   },
   PROVIDER: {
     icon: Settings,
-    label: 'Prestataire',
-    color: 'bg-orange-500',
-    description: 'Services à la personne'
+    label: "Prestataire",
+    color: "bg-orange-500",
+    description: "Services à la personne",
   },
   ADMIN: {
     icon: Shield,
-    label: 'Administrateur',
-    color: 'bg-red-500',
-    description: 'Gestion de la plateforme'
-  }
-}
+    label: "Administrateur",
+    color: "bg-red-500",
+    description: "Gestion de la plateforme",
+  },
+};
 
 /**
  * Layout unifié pour toutes les pages d'authentification
  * Design cohérent avec l'identité EcoDeli
  */
-export function AuthLayout({ 
-  children, 
-  title, 
-  description, 
+export function AuthLayout({
+  children,
+  title,
+  description,
   role,
-  showRoleBadge = true 
+  showRoleBadge = true,
 }: AuthLayoutProps) {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-blue-50 p-4">
@@ -86,17 +92,13 @@ export function AuthLayout({
                   {description}
                 </CardDescription>
               </div>
-              
+
               {/* Badge de rôle */}
-              {role && showRoleBadge && (
-                <RoleBadge role={role} />
-              )}
+              {role && showRoleBadge && <RoleBadge role={role} />}
             </div>
           </CardHeader>
-          
-          <CardContent>
-            {children}
-          </CardContent>
+
+          <CardContent>{children}</CardContent>
         </Card>
 
         {/* Footer */}
@@ -118,20 +120,20 @@ export function AuthLayout({
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 function RoleBadge({ role }: { role: Role }) {
-  const config = roleConfig[role]
-  const Icon = config.icon
+  const config = roleConfig[role];
+  const Icon = config.icon;
 
   return (
-    <Badge 
-      variant="secondary" 
+    <Badge
+      variant="secondary"
       className={`${config.color} text-white border-0`}
     >
       <Icon className="h-3 w-3 mr-1" />
       {config.label}
     </Badge>
-  )
+  );
 }

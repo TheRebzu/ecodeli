@@ -1,38 +1,49 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { Button } from '@/components/ui/button'
-import { Checkbox } from '@/components/ui/checkbox'
-import { Badge } from '@/components/ui/badge'
-import { 
-  Eye, 
-  Check, 
-  X, 
-  AlertTriangle, 
+import { useState } from "react";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Badge } from "@/components/ui/badge";
+import {
+  Eye,
+  Check,
+  X,
+  AlertTriangle,
   User,
   Calendar,
   Download,
-  MoreHorizontal
-} from 'lucide-react'
+  MoreHorizontal,
+} from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
-import { formatDistanceToNow } from 'date-fns'
-import { fr } from 'date-fns/locale'
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { formatDistanceToNow } from "date-fns";
+import { fr } from "date-fns/locale";
 
 interface DocumentValidationTableProps {
-  documents: any[]
-  onValidate: (id: string, status: 'APPROVED' | 'REJECTED', notes?: string) => void
-  onView: (document: any) => void
-  getStatusBadge: (status: string) => React.ReactNode
-  getDocumentTypeLabel: (type: string) => string
-  getUrgencyLevel: (document: any) => 'low' | 'medium' | 'high'
+  documents: any[];
+  onValidate: (
+    id: string,
+    status: "APPROVED" | "REJECTED",
+    notes?: string,
+  ) => void;
+  onView: (document: any) => void;
+  getStatusBadge: (status: string) => React.ReactNode;
+  getDocumentTypeLabel: (type: string) => string;
+  getUrgencyLevel: (document: any) => "low" | "medium" | "high";
 }
 
 export function DocumentValidationTable({
@@ -41,86 +52,92 @@ export function DocumentValidationTable({
   onView,
   getStatusBadge,
   getDocumentTypeLabel,
-  getUrgencyLevel
+  getUrgencyLevel,
 }: DocumentValidationTableProps) {
-  const [selectedDocs, setSelectedDocs] = useState<string[]>([])
-  const [bulkValidating, setBulkValidating] = useState(false)
+  const [selectedDocs, setSelectedDocs] = useState<string[]>([]);
+  const [bulkValidating, setBulkValidating] = useState(false);
 
   const handleSelectDoc = (docId: string) => {
-    setSelectedDocs(prev => 
-      prev.includes(docId) 
-        ? prev.filter(id => id !== docId)
-        : [...prev, docId]
-    )
-  }
+    setSelectedDocs((prev) =>
+      prev.includes(docId)
+        ? prev.filter((id) => id !== docId)
+        : [...prev, docId],
+    );
+  };
 
   const handleSelectAll = () => {
-    const pendingDocs = documents.filter(doc => doc.validationStatus === 'PENDING')
+    const pendingDocs = documents.filter(
+      (doc) => doc.validationStatus === "PENDING",
+    );
     setSelectedDocs(
-      selectedDocs.length === pendingDocs.length 
-        ? [] 
-        : pendingDocs.map(doc => doc.id)
-    )
-  }
+      selectedDocs.length === pendingDocs.length
+        ? []
+        : pendingDocs.map((doc) => doc.id),
+    );
+  };
 
-  const handleBulkValidation = async (status: 'APPROVED' | 'REJECTED') => {
-    setBulkValidating(true)
+  const handleBulkValidation = async (status: "APPROVED" | "REJECTED") => {
+    setBulkValidating(true);
     try {
-      const response = await fetch('/api/admin/documents/validate?bulk=true', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/admin/documents/validate?bulk=true", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           documentIds: selectedDocs,
-          status
-        })
-      })
+          status,
+        }),
+      });
 
-      const data = await response.json()
+      const data = await response.json();
       if (data.success) {
-        setSelectedDocs([])
+        setSelectedDocs([]);
         // Rafraîchir la liste
-        window.location.reload()
+        window.location.reload();
       }
     } catch (error) {
-      console.error('Erreur validation en lot:', error)
+      console.error("Erreur validation en lot:", error);
     } finally {
-      setBulkValidating(false)
+      setBulkValidating(false);
     }
-  }
+  };
 
   const getUrgencyIndicator = (urgency: string) => {
     switch (urgency) {
-      case 'high':
-        return <AlertTriangle className="w-4 h-4 text-red-500" />
-      case 'medium':
-        return <AlertTriangle className="w-4 h-4 text-yellow-500" />
+      case "high":
+        return <AlertTriangle className="w-4 h-4 text-red-500" />;
+      case "medium":
+        return <AlertTriangle className="w-4 h-4 text-yellow-500" />;
       default:
-        return null
+        return null;
     }
-  }
+  };
 
   const getUserDisplayName = (user: any) => {
     if (user.profile?.firstName && user.profile?.lastName) {
-      return `${user.profile.firstName} ${user.profile.lastName}`
+      return `${user.profile.firstName} ${user.profile.lastName}`;
     }
-    return user.email
-  }
+    return user.email;
+  };
 
   const getUserInitials = (user: any) => {
     if (user.profile?.firstName && user.profile?.lastName) {
-      return `${user.profile.firstName[0]}${user.profile.lastName[0]}`
+      return `${user.profile.firstName[0]}${user.profile.lastName[0]}`;
     }
-    return user.email.substring(0, 2).toUpperCase()
-  }
+    return user.email.substring(0, 2).toUpperCase();
+  };
 
   const getRoleBadgeColor = (role: string) => {
     switch (role) {
-      case 'DELIVERER': return 'bg-blue-100 text-blue-800'
-      case 'PROVIDER': return 'bg-green-100 text-green-800'
-      case 'MERCHANT': return 'bg-purple-100 text-purple-800'
-      default: return 'bg-gray-100 text-gray-800'
+      case "DELIVERER":
+        return "bg-blue-100 text-blue-800";
+      case "PROVIDER":
+        return "bg-green-100 text-green-800";
+      case "MERCHANT":
+        return "bg-purple-100 text-purple-800";
+      default:
+        return "bg-gray-100 text-gray-800";
     }
-  }
+  };
 
   if (documents.length === 0) {
     return (
@@ -131,10 +148,12 @@ export function DocumentValidationTable({
           Aucun document ne correspond aux critères de recherche.
         </p>
       </div>
-    )
+    );
   }
 
-  const pendingDocs = documents.filter(doc => doc.validationStatus === 'PENDING')
+  const pendingDocs = documents.filter(
+    (doc) => doc.validationStatus === "PENDING",
+  );
 
   return (
     <div className="space-y-4">
@@ -148,7 +167,7 @@ export function DocumentValidationTable({
             <Button
               size="sm"
               variant="outline"
-              onClick={() => handleBulkValidation('APPROVED')}
+              onClick={() => handleBulkValidation("APPROVED")}
               disabled={bulkValidating}
               className="text-green-600 hover:text-green-700"
             >
@@ -158,7 +177,7 @@ export function DocumentValidationTable({
             <Button
               size="sm"
               variant="outline"
-              onClick={() => handleBulkValidation('REJECTED')}
+              onClick={() => handleBulkValidation("REJECTED")}
               disabled={bulkValidating}
               className="text-red-600 hover:text-red-700"
             >
@@ -183,7 +202,10 @@ export function DocumentValidationTable({
             <TableRow>
               <TableHead className="w-12">
                 <Checkbox
-                  checked={selectedDocs.length === pendingDocs.length && pendingDocs.length > 0}
+                  checked={
+                    selectedDocs.length === pendingDocs.length &&
+                    pendingDocs.length > 0
+                  }
                   onCheckedChange={handleSelectAll}
                 />
               </TableHead>
@@ -197,11 +219,14 @@ export function DocumentValidationTable({
           </TableHeader>
           <TableBody>
             {documents.map((document) => {
-              const urgency = getUrgencyLevel(document)
-              const isPending = document.validationStatus === 'PENDING'
-              
+              const urgency = getUrgencyLevel(document);
+              const isPending = document.validationStatus === "PENDING";
+
               return (
-                <TableRow key={document.id} className={urgency === 'high' ? 'bg-red-50' : ''}>
+                <TableRow
+                  key={document.id}
+                  className={urgency === "high" ? "bg-red-50" : ""}
+                >
                   <TableCell>
                     {isPending && (
                       <Checkbox
@@ -210,7 +235,7 @@ export function DocumentValidationTable({
                       />
                     )}
                   </TableCell>
-                  
+
                   <TableCell>
                     <div className="flex items-center gap-3">
                       <Avatar className="w-8 h-8">
@@ -223,7 +248,9 @@ export function DocumentValidationTable({
                           {getUserDisplayName(document.user)}
                         </div>
                         <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                          <Badge className={`text-xs ${getRoleBadgeColor(document.user.role)}`}>
+                          <Badge
+                            className={`text-xs ${getRoleBadgeColor(document.user.role)}`}
+                          >
                             {document.user.role}
                           </Badge>
                           {getUrgencyIndicator(urgency)}
@@ -235,7 +262,8 @@ export function DocumentValidationTable({
                   <TableCell>
                     <div className="font-medium text-sm">{document.name}</div>
                     <div className="text-xs text-muted-foreground">
-                      {document.size && `${Math.round(document.size / 1024)} KB`}
+                      {document.size &&
+                        `${Math.round(document.size / 1024)} KB`}
                     </div>
                   </TableCell>
 
@@ -251,9 +279,9 @@ export function DocumentValidationTable({
 
                   <TableCell>
                     <div className="text-sm">
-                      {formatDistanceToNow(new Date(document.createdAt), { 
-                        addSuffix: true, 
-                        locale: fr 
+                      {formatDistanceToNow(new Date(document.createdAt), {
+                        addSuffix: true,
+                        locale: fr,
                       })}
                     </div>
                   </TableCell>
@@ -273,7 +301,7 @@ export function DocumentValidationTable({
                           <Button
                             size="sm"
                             variant="ghost"
-                            onClick={() => onValidate(document.id, 'APPROVED')}
+                            onClick={() => onValidate(document.id, "APPROVED")}
                             className="text-green-600 hover:text-green-700"
                           >
                             <Check className="w-4 h-4" />
@@ -281,7 +309,7 @@ export function DocumentValidationTable({
                           <Button
                             size="sm"
                             variant="ghost"
-                            onClick={() => onValidate(document.id, 'REJECTED')}
+                            onClick={() => onValidate(document.id, "REJECTED")}
                             className="text-red-600 hover:text-red-700"
                           >
                             <X className="w-4 h-4" />
@@ -300,15 +328,20 @@ export function DocumentValidationTable({
                             <Eye className="w-4 h-4 mr-2" />
                             Voir les détails
                           </DropdownMenuItem>
-                          <DropdownMenuItem 
-                            onClick={() => window.open(document.url, '_blank')}
+                          <DropdownMenuItem
+                            onClick={() => window.open(document.url, "_blank")}
                           >
                             <Download className="w-4 h-4 mr-2" />
                             Télécharger
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
-                          <DropdownMenuItem 
-                            onClick={() => window.open(`/admin/users/${document.user.id}`, '_blank')}
+                          <DropdownMenuItem
+                            onClick={() =>
+                              window.open(
+                                `/admin/users/${document.user.id}`,
+                                "_blank",
+                              )
+                            }
                           >
                             <User className="w-4 h-4 mr-2" />
                             Voir le profil
@@ -318,11 +351,11 @@ export function DocumentValidationTable({
                     </div>
                   </TableCell>
                 </TableRow>
-              )
+              );
             })}
           </TableBody>
         </Table>
       </div>
     </div>
-  )
+  );
 }

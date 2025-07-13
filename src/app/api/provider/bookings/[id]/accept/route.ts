@@ -1,20 +1,20 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '@/lib/auth'
-import { prisma } from '@/lib/db'
-import { OneSignalService } from '@/lib/onesignal'
-import { EmailService } from '@/lib/email'
+import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@/lib/auth";
+import { prisma } from "@/lib/db";
+import { OneSignalService } from "@/lib/onesignal";
+import { EmailService } from "@/lib/email";
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const session = await auth()
-    if (!session || session.user.role !== 'PROVIDER') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    const session = await auth();
+    if (!session || session.user.role !== "PROVIDER") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { id: bookingId } = await params
+    const { id: bookingId } = await params;
 
     // Vérifier que le provider existe
     const provider = await prisma.provider.findUnique({
@@ -22,14 +22,17 @@ export async function POST(
       include: {
         user: {
           include: {
-            profile: true
-          }
-        }
-      }
-    })
+            profile: true,
+          },
+        },
+      },
+    });
 
     if (!provider) {
-      return NextResponse.json({ error: 'Provider not found' }, { status: 404 })
+      return NextResponse.json(
+        { error: "Provider not found" },
+        { status: 404 },
+      );
     }
 
     // Récupérer la réservation avec toutes les informations nécessaires
@@ -40,10 +43,10 @@ export async function POST(
           include: {
             user: {
               include: {
-                profile: true
-              }
-            }
-          }
+                profile: true,
+              },
+            },
+          },
         },
         service: {
           include: {
@@ -51,47 +54,50 @@ export async function POST(
               include: {
                 user: {
                   include: {
-                    profile: true
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    })
+                    profile: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
 
     if (!booking) {
-      return NextResponse.json({ error: 'Booking not found' }, { status: 404 })
+      return NextResponse.json({ error: "Booking not found" }, { status: 404 });
     }
 
     // Vérifier que la réservation appartient au provider
     if (booking.service.providerId !== provider.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
+      return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 
     // Vérifier que la réservation est en attente
-    if (booking.status !== 'PENDING') {
-      return NextResponse.json({ 
-        error: 'Booking cannot be accepted in current status' 
-      }, { status: 400 })
+    if (booking.status !== "PENDING") {
+      return NextResponse.json(
+        {
+          error: "Booking cannot be accepted in current status",
+        },
+        { status: 400 },
+      );
     }
 
     // Mettre à jour le statut de la réservation
     const updatedBooking = await prisma.booking.update({
       where: { id: bookingId },
       data: {
-        status: 'CONFIRMED'
+        status: "CONFIRMED",
       },
       include: {
         client: {
           include: {
             user: {
               include: {
-                profile: true
-              }
-            }
-          }
+                profile: true,
+              },
+            },
+          },
         },
         service: {
           include: {
@@ -99,45 +105,50 @@ export async function POST(
               include: {
                 user: {
                   include: {
-                    profile: true
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    })
+                    profile: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
 
     // Envoyer notification push au client
     try {
       await OneSignalService.sendToUser(
         booking.client.userId,
-        'Booking Confirmed! 🎉',
+        "Booking Confirmed! 🎉",
         `Your booking for "${booking.service.name}" has been accepted by the provider. Please proceed with payment to finalize your booking.`,
         {
-          type: 'BOOKING_CONFIRMED',
+          type: "BOOKING_CONFIRMED",
           bookingId: booking.id,
           serviceId: booking.service.id,
           providerId: booking.service.providerId,
-                     amount: booking.totalPrice.toString(),
-          requiresPayment: true
+          amount: booking.totalPrice.toString(),
+          requiresPayment: true,
         },
         {
-          url: `/client/bookings/${booking.id}/payment`
-        }
-      )
-      console.log('✅ Notification push envoyée au client pour acceptation de réservation')
+          url: `/client/bookings/${booking.id}/payment`,
+        },
+      );
+      console.log(
+        "✅ Notification push envoyée au client pour acceptation de réservation",
+      );
     } catch (error) {
-      console.error('❌ Erreur envoi notification push:', error)
+      console.error("❌ Erreur envoi notification push:", error);
     }
 
     // Envoyer email de confirmation au client
     try {
-      console.log('📧 Tentative d\'envoi email au client:', booking.client.user.email)
-      
+      console.log(
+        "📧 Tentative d'envoi email au client:",
+        booking.client.user.email,
+      );
+
       if (booking.client.user.email) {
-        const subject = `Booking Confirmed - ${booking.service.name}`
+        const subject = `Booking Confirmed - ${booking.service.name}`;
         const html = `
           <h2>🎉 Your booking has been confirmed!</h2>
           <p>Dear ${booking.client.user.profile.firstName} ${booking.client.user.profile.lastName},</p>
@@ -158,16 +169,20 @@ export async function POST(
           <p>You can also view your booking details <a href="${process.env.NEXT_PUBLIC_APP_URL}/client/bookings/${booking.id}">here</a>.</p>
           
           <p>Thank you for using EcoDeli!</p>
-        `
-        
-        console.log('📧 Envoi email en cours...')
-        const result = await EmailService.sendGenericEmail(booking.client.user.email, subject, html)
-        console.log('✅ Email de confirmation envoyé au client:', result)
+        `;
+
+        console.log("📧 Envoi email en cours...");
+        const result = await EmailService.sendGenericEmail(
+          booking.client.user.email,
+          subject,
+          html,
+        );
+        console.log("✅ Email de confirmation envoyé au client:", result);
       } else {
-        console.log('❌ Pas d\'email client disponible')
+        console.log("❌ Pas d'email client disponible");
       }
     } catch (error) {
-      console.error('❌ Erreur envoi email:', error)
+      console.error("❌ Erreur envoi email:", error);
     }
 
     // Créer une notification interne
@@ -175,33 +190,33 @@ export async function POST(
       await prisma.notification.create({
         data: {
           userId: booking.client.userId,
-          title: 'Booking Confirmed',
+          title: "Booking Confirmed",
           message: `Your booking for "${booking.service.name}" has been accepted. Complete your payment to finalize the booking.`,
-          type: 'BOOKING_CONFIRMED',
+          type: "BOOKING_CONFIRMED",
           data: {
             bookingId: booking.id,
             serviceId: booking.service.id,
-            providerId: booking.service.providerId
+            providerId: booking.service.providerId,
           },
-          isRead: false
-        }
-      })
-      console.log('✅ Notification interne créée')
+          isRead: false,
+        },
+      });
+      console.log("✅ Notification interne créée");
     } catch (error) {
-      console.error('❌ Erreur création notification interne:', error)
+      console.error("❌ Erreur création notification interne:", error);
     }
 
     return NextResponse.json({
       success: true,
       booking: updatedBooking,
-      message: 'Booking accepted successfully. Client has been notified to proceed with payment.'
-    })
-
+      message:
+        "Booking accepted successfully. Client has been notified to proceed with payment.",
+    });
   } catch (error) {
-    console.error('Error accepting booking:', error)
+    console.error("Error accepting booking:", error);
     return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    )
+      { error: "Internal server error" },
+      { status: 500 },
+    );
   }
-} 
+}

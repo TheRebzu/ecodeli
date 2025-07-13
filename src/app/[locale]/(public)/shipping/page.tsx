@@ -17,7 +17,8 @@ import {
   Shield,
   ShoppingBag,
   Truck,
-  Users} from "lucide-react";
+  Users,
+} from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -30,7 +31,8 @@ export default function ShippingPage() {
           className="w-full bg-muted/30 pt-12 pb-24 md:pt-24 md:pb-32 border-b relative overflow-hidden"
           style={{
             backgroundImage: "url(/images/shipping/pattern-bg.svg)",
-            backgroundSize: "cover"}}
+            backgroundSize: "cover",
+          }}
         >
           <div className="container mx-auto px-4 md:px-6 relative z-10">
             <div className="flex flex-col md:flex-row gap-12 items-center">
@@ -98,32 +100,39 @@ export default function ShippingPage() {
                   icon: Package,
                   title: "Transport de colis",
                   description:
-                    "Livraison de vos colis par des particuliers qui se déplacent déjà dans votre direction. Prise en charge intégrale ou partielle du trajet selon vos besoins."},
+                    "Livraison de vos colis par des particuliers qui se déplacent déjà dans votre direction. Prise en charge intégrale ou partielle du trajet selon vos besoins.",
+                },
                 {
                   icon: Users,
                   title: "Transport de personnes",
                   description:
-                    "Service de transport quotidien : accompagnement de personnes âgées chez un médecin, trajets vers le travail ou la gare, transferts aéroport au départ ou à l'arrivée."},
+                    "Service de transport quotidien : accompagnement de personnes âgées chez un médecin, trajets vers le travail ou la gare, transferts aéroport au départ ou à l'arrivée.",
+                },
                 {
                   icon: ShoppingBag,
                   title: "Courses et achats",
                   description:
-                    "Faites réaliser vos courses par un livreur EcoDeli. Achat de produits spécifiques, même à l'étranger (produits introuvables chez vous)."},
+                    "Faites réaliser vos courses par un livreur EcoDeli. Achat de produits spécifiques, même à l'étranger (produits introuvables chez vous).",
+                },
                 {
                   icon: Map,
                   title: "Lâcher de chariot",
                   description:
-                    "Faites vos achats chez un commerçant partenaire et profitez d'une livraison à domicile à l'adresse et au créneau horaire de votre choix."},
+                    "Faites vos achats chez un commerçant partenaire et profitez d'une livraison à domicile à l'adresse et au créneau horaire de votre choix.",
+                },
                 {
                   icon: Shield,
                   title: "Services à la personne",
                   description:
-                    "Garde d'animaux à domicile, petits travaux ménagers ou de jardinage pendant que vous êtes transporté(e) ailleurs."},
+                    "Garde d'animaux à domicile, petits travaux ménagers ou de jardinage pendant que vous êtes transporté(e) ailleurs.",
+                },
                 {
                   icon: Leaf,
                   title: "Écologique et solidaire",
                   description:
-                    "Réduction de l'impact environnemental des livraisons, pouvoir d'achat favorisé et lutte contre l'isolement social."}].map((service, index) => (
+                    "Réduction de l'impact environnemental des livraisons, pouvoir d'achat favorisé et lutte contre l'isolement social.",
+                },
+              ].map((service, index) => (
                 <Card
                   key={index}
                   className="flex flex-col p-6 border bg-background"
@@ -178,7 +187,8 @@ export default function ShippingPage() {
                         "Suivi en temps réel",
                         "Assurance proposée par la société",
                         "Code de confirmation à la livraison",
-                        "Paiement sécurisé"].map((feature, i) => (
+                        "Paiement sécurisé",
+                      ].map((feature, i) => (
                         <li key={i} className="flex items-center">
                           <CheckCircle className="h-5 w-5 text-primary mr-2" />
                           <span>{feature}</span>
@@ -220,7 +230,8 @@ export default function ShippingPage() {
                         "Idéal pour les commerçants locaux",
                         "Parfait pour les livraisons groupées",
                         "Notification aux destinataires",
-                        "Confirmation de livraison en temps réel"].map((feature, i) => (
+                        "Confirmation de livraison en temps réel",
+                      ].map((feature, i) => (
                         <li key={i} className="flex items-center">
                           <CheckCircle className="h-5 w-5 text-primary mr-2" />
                           <span>{feature}</span>
@@ -262,7 +273,8 @@ export default function ShippingPage() {
                         "Idéal pour les livraisons en plusieurs étapes",
                         "Sécurité garantie",
                         "Suivi en temps réel",
-                        "Flexibilité maximale"].map((feature, i) => (
+                        "Flexibilité maximale",
+                      ].map((feature, i) => (
                         <li key={i} className="flex items-center">
                           <CheckCircle className="h-5 w-5 text-primary mr-2" />
                           <span>{feature}</span>
@@ -310,25 +322,30 @@ export default function ShippingPage() {
                   title: "Publiez votre annonce",
                   description:
                     "Décrivez votre colis, indiquez les adresses de collecte et de livraison, et choisissez votre créneau horaire.",
-                  icon: Box},
+                  icon: Box,
+                },
                 {
                   number: "02",
                   title: "Un livreur accepte",
                   description:
                     "Notre système trouve le livreur idéal pour votre colis en fonction de son trajet prévu et de ses évaluations.",
-                  icon: Truck},
+                  icon: Truck,
+                },
                 {
                   number: "03",
                   title: "Suivez en temps réel",
                   description:
                     "Recevez des notifications à chaque étape et suivez le parcours de votre colis sur une carte.",
-                  icon: Forward},
+                  icon: Forward,
+                },
                 {
                   number: "04",
                   title: "Livraison confirmée",
                   description:
                     "Le destinataire communique un code au livreur pour confirmer la réception. Le paiement est alors débloqué.",
-                  icon: Package}].map((step, index) => (
+                  icon: Package,
+                },
+              ].map((step, index) => (
                 <Card key={index} className="relative p-6 border bg-background">
                   <div className="absolute -top-4 -right-4 w-8 h-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-semibold text-sm">
                     {step.number}
@@ -500,13 +517,17 @@ export default function ShippingPage() {
                   {[
                     {
                       icon: Package,
-                      text: "Livraison de colis"},
+                      text: "Livraison de colis",
+                    },
                     {
                       icon: Users,
-                      text: "Services à la personne"},
+                      text: "Services à la personne",
+                    },
                     {
                       icon: Leaf,
-                      text: "Démarche écologique"}].map((item, index) => (
+                      text: "Démarche écologique",
+                    },
+                  ].map((item, index) => (
                     <div
                       key={index}
                       className="flex items-center gap-2 text-sm text-muted-foreground"

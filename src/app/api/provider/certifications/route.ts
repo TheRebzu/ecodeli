@@ -5,12 +5,36 @@ import { z } from "zod";
 
 const certificationSchema = z.object({
   providerId: z.string().cuid(),
-  name: z.string().min(3, "Le nom de la certification doit faire au moins 3 caractères"),
-  type: z.enum(["DRIVING_LICENSE", "PROFESSIONAL_CARD", "INSURANCE", "TRAINING_CERTIFICATE", "HEALTH_CERTIFICATE", "BACKGROUND_CHECK", "FIRST_AID", "LANGUAGE_CERTIFICATE", "OTHER"]),
-  issuingOrganization: z.string().min(2, "L'organisation émettrice doit faire au moins 2 caractères"),
-  certificationNumber: z.string().min(1, "Le numéro de certification est requis"),
-  issuedDate: z.string().refine((date) => !isNaN(Date.parse(date)), "Date d'émission invalide"),
-  expirationDate: z.string().optional().refine((date) => !date || !isNaN(Date.parse(date)), "Date d'expiration invalide"),
+  name: z
+    .string()
+    .min(3, "Le nom de la certification doit faire au moins 3 caractères"),
+  type: z.enum([
+    "DRIVING_LICENSE",
+    "PROFESSIONAL_CARD",
+    "INSURANCE",
+    "TRAINING_CERTIFICATE",
+    "HEALTH_CERTIFICATE",
+    "BACKGROUND_CHECK",
+    "FIRST_AID",
+    "LANGUAGE_CERTIFICATE",
+    "OTHER",
+  ]),
+  issuingOrganization: z
+    .string()
+    .min(2, "L'organisation émettrice doit faire au moins 2 caractères"),
+  certificationNumber: z
+    .string()
+    .min(1, "Le numéro de certification est requis"),
+  issuedDate: z
+    .string()
+    .refine((date) => !isNaN(Date.parse(date)), "Date d'émission invalide"),
+  expirationDate: z
+    .string()
+    .optional()
+    .refine(
+      (date) => !date || !isNaN(Date.parse(date)),
+      "Date d'expiration invalide",
+    ),
   serviceTypes: z.array(z.string()).default([]),
 });
 
@@ -19,10 +43,7 @@ export async function GET(request: NextRequest) {
   try {
     const session = await auth();
     if (!session) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const { searchParams } = new URL(request.url);
@@ -31,7 +52,7 @@ export async function GET(request: NextRequest) {
     if (!providerId) {
       return NextResponse.json(
         { error: "Provider ID is required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -50,30 +71,27 @@ export async function GET(request: NextRequest) {
     if (!provider) {
       return NextResponse.json(
         { error: "Provider not found" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
     if (session.user.role !== "ADMIN" && provider.userId !== session.user.id) {
-      return NextResponse.json(
-        { error: "Forbidden" },
-        { status: 403 }
-      );
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
     // Récupérer les certifications liées aux documents
     const documents = await prisma.document.findMany({
-      where: { 
+      where: {
         userId: provider.userId,
         type: {
-          in: ["DRIVING_LICENSE", "INSURANCE", "CERTIFICATION", "OTHER"]
+          in: ["DRIVING_LICENSE", "INSURANCE", "CERTIFICATION", "OTHER"],
         },
       },
       orderBy: { createdAt: "desc" },
     });
 
     // Transformer les documents en format certifications
-    const certifications = documents.map(doc => ({
+    const certifications = documents.map((doc) => ({
       id: doc.id,
       name: getCertificationName(doc.type),
       type: doc.type,
@@ -94,7 +112,7 @@ export async function GET(request: NextRequest) {
     console.error("Error fetching provider certifications:", error);
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -104,10 +122,7 @@ export async function POST(request: NextRequest) {
   try {
     const session = await auth();
     if (!session || session.user.role !== "PROVIDER") {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const body = await request.json();
@@ -128,20 +143,17 @@ export async function POST(request: NextRequest) {
           userId: validatedData.providerId,
         },
       });
-      
+
       // Vérifier que ce provider appartient bien à l'utilisateur connecté
       if (provider && provider.userId !== session.user.id) {
-        return NextResponse.json(
-          { error: "Forbidden" },
-          { status: 403 }
-        );
+        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
       }
     }
 
     if (!provider) {
       return NextResponse.json(
         { error: "Provider not found" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -156,7 +168,9 @@ export async function POST(request: NextRequest) {
         size: 0, // Sera mis à jour lors de l'upload du fichier
         url: "", // Sera mis à jour lors de l'upload du fichier
         validationStatus: "PENDING",
-        expirationDate: validatedData.expirationDate ? new Date(validatedData.expirationDate) : null,
+        expirationDate: validatedData.expirationDate
+          ? new Date(validatedData.expirationDate)
+          : null,
       },
     });
 
@@ -188,14 +202,14 @@ export async function POST(request: NextRequest) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: "Validation error", details: error.errors },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     console.error("Error creating provider certification:", error);
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

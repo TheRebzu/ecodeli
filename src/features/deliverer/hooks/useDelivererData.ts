@@ -1,7 +1,7 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import { useApi } from '@/hooks/use-api'
+import { useState, useEffect } from "react";
+import { useApi } from "@/hooks/use-api";
 import type {
   DelivererProfile,
   DelivererDocument,
@@ -15,22 +15,22 @@ import type {
   NFCCard,
   DelivererAvailability,
   DelivererEarnings,
-  DelivererDashboardStats
-} from '../types'
+  DelivererDashboardStats,
+} from "../types";
 
 export function useDelivererProfile() {
-  const { data, loading, error, execute } = useApi<DelivererProfile>()
+  const { data, loading, error, execute } = useApi<DelivererProfile>();
 
   const fetchProfile = async () => {
-    await execute('/api/deliverer/profile')
-  }
+    await execute("/api/deliverer/profile");
+  };
 
   const updateProfile = async (profileData: Partial<DelivererProfile>) => {
-    await execute('/api/deliverer/profile', {
-      method: 'PUT',
-      body: JSON.stringify(profileData)
-    })
-  }
+    await execute("/api/deliverer/profile", {
+      method: "PUT",
+      body: JSON.stringify(profileData),
+    });
+  };
 
   return {
     profile: data,
@@ -38,33 +38,33 @@ export function useDelivererProfile() {
     error,
     fetchProfile,
     updateProfile,
-    refetch: fetchProfile
-  }
+    refetch: fetchProfile,
+  };
 }
 
 export function useDelivererDocuments() {
   const { data, loading, error, execute } = useApi<{
-    documents: DelivererDocument[]
-    summary: DelivererDocumentSummary
-  }>()
+    documents: DelivererDocument[];
+    summary: DelivererDocumentSummary;
+  }>();
 
   const fetchDocuments = async () => {
-    await execute('/api/deliverer/documents')
-  }
+    await execute("/api/deliverer/documents");
+  };
 
   const uploadDocument = async (formData: FormData) => {
-    await execute('/api/deliverer/documents', {
-      method: 'POST',
-      body: formData
-    })
-  }
+    await execute("/api/deliverer/documents", {
+      method: "POST",
+      body: formData,
+    });
+  };
 
   const deleteDocument = async (documentId: string) => {
     await execute(`/api/deliverer/documents`, {
-      method: 'DELETE',
-      body: JSON.stringify({ documentId })
-    })
-  }
+      method: "DELETE",
+      body: JSON.stringify({ documentId }),
+    });
+  };
 
   return {
     documents: data?.documents || [],
@@ -74,63 +74,66 @@ export function useDelivererDocuments() {
     fetchDocuments,
     uploadDocument,
     deleteDocument,
-    refetch: fetchDocuments
-  }
+    refetch: fetchDocuments,
+  };
 }
 
 export function useDelivererDeliveries() {
   const { data, loading, error, execute } = useApi<{
-    deliveries: DelivererDelivery[]
-    stats: DelivererDeliveryStats
+    deliveries: DelivererDelivery[];
+    stats: DelivererDeliveryStats;
     pagination: {
-      page: number
-      limit: number
-      total: number
-      pages: number
-    }
-  }>()
+      page: number;
+      limit: number;
+      total: number;
+      pages: number;
+    };
+  }>();
 
   const fetchDeliveries = async (params?: {
-    page?: number
-    limit?: number
-    status?: string
-    startDate?: string
-    endDate?: string
+    page?: number;
+    limit?: number;
+    status?: string;
+    startDate?: string;
+    endDate?: string;
   }) => {
-    const searchParams = new URLSearchParams()
+    const searchParams = new URLSearchParams();
     if (params) {
       Object.entries(params).forEach(([key, value]) => {
-        if (value) searchParams.append(key, value.toString())
-      })
+        if (value) searchParams.append(key, value.toString());
+      });
     }
-    
-    await execute(`/api/deliverer/deliveries?${searchParams.toString()}`)
-  }
+
+    await execute(`/api/deliverer/deliveries?${searchParams.toString()}`);
+  };
 
   const acceptOpportunity = async (opportunityData: {
-    announcementId: string
-    routeId?: string
-    notes?: string
+    announcementId: string;
+    routeId?: string;
+    notes?: string;
   }) => {
-    await execute('/api/deliverer/deliveries', {
-      method: 'POST',
-      body: JSON.stringify(opportunityData)
-    })
-  }
+    await execute("/api/deliverer/deliveries", {
+      method: "POST",
+      body: JSON.stringify(opportunityData),
+    });
+  };
 
   const updateDeliveryStatus = async (deliveryId: string, status: string) => {
-    await execute('/api/deliverer/deliveries', {
-      method: 'PUT',
-      body: JSON.stringify({ deliveryId, status })
-    })
-  }
+    await execute("/api/deliverer/deliveries", {
+      method: "PUT",
+      body: JSON.stringify({ deliveryId, status }),
+    });
+  };
 
-  const validateDelivery = async (deliveryId: string, validationCode: string) => {
+  const validateDelivery = async (
+    deliveryId: string,
+    validationCode: string,
+  ) => {
     await execute(`/api/deliverer/deliveries/${deliveryId}`, {
-      method: 'POST',
-      body: JSON.stringify({ validationCode })
-    })
-  }
+      method: "POST",
+      body: JSON.stringify({ validationCode }),
+    });
+  };
 
   return {
     deliveries: data?.deliveries || [],
@@ -142,44 +145,44 @@ export function useDelivererDeliveries() {
     acceptOpportunity,
     updateDeliveryStatus,
     validateDelivery,
-    refetch: fetchDeliveries
-  }
+    refetch: fetchDeliveries,
+  };
 }
 
 export function useDeliveryOpportunities() {
   const { data, loading, error, execute } = useApi<{
-    opportunities: DeliveryOpportunity[]
+    opportunities: DeliveryOpportunity[];
     pagination: {
-      page: number
-      limit: number
-      total: number
-      pages: number
-    }
-  }>()
+      page: number;
+      limit: number;
+      total: number;
+      pages: number;
+    };
+  }>();
 
   const fetchOpportunities = async (params?: {
-    page?: number
-    limit?: number
-    type?: string
-    maxDistance?: number
-    minEarnings?: number
+    page?: number;
+    limit?: number;
+    type?: string;
+    maxDistance?: number;
+    minEarnings?: number;
   }) => {
-    const searchParams = new URLSearchParams()
+    const searchParams = new URLSearchParams();
     if (params) {
       Object.entries(params).forEach(([key, value]) => {
-        if (value) searchParams.append(key, value.toString())
-      })
+        if (value) searchParams.append(key, value.toString());
+      });
     }
-    
-    await execute(`/api/deliverer/opportunities?${searchParams.toString()}`)
-  }
+
+    await execute(`/api/deliverer/opportunities?${searchParams.toString()}`);
+  };
 
   const acceptOpportunity = async (opportunityId: string, routeId?: string) => {
     await execute(`/api/deliverer/opportunities/${opportunityId}/accept`, {
-      method: 'POST',
-      body: JSON.stringify({ routeId })
-    })
-  }
+      method: "POST",
+      body: JSON.stringify({ routeId }),
+    });
+  };
 
   return {
     opportunities: data?.opportunities || [],
@@ -188,45 +191,48 @@ export function useDeliveryOpportunities() {
     error,
     fetchOpportunities,
     acceptOpportunity,
-    refetch: fetchOpportunities
-  }
+    refetch: fetchOpportunities,
+  };
 }
 
 export function useDelivererRoutes() {
-  const { data, loading, error, execute } = useApi<DelivererRoute[]>()
+  const { data, loading, error, execute } = useApi<DelivererRoute[]>();
 
   const fetchRoutes = async () => {
-    await execute('/api/deliverer/routes')
-  }
+    await execute("/api/deliverer/routes");
+  };
 
   const createRoute = async (routeData: {
-    name: string
-    startLocation: string
-    endLocation: string
-    startTime: string
-    endTime: string
-    isRecurring: boolean
-    recurringDays?: string[]
-    maxCapacity: number
+    name: string;
+    startLocation: string;
+    endLocation: string;
+    startTime: string;
+    endTime: string;
+    isRecurring: boolean;
+    recurringDays?: string[];
+    maxCapacity: number;
   }) => {
-    await execute('/api/deliverer/routes', {
-      method: 'POST',
-      body: JSON.stringify(routeData)
-    })
-  }
+    await execute("/api/deliverer/routes", {
+      method: "POST",
+      body: JSON.stringify(routeData),
+    });
+  };
 
-  const updateRoute = async (routeId: string, routeData: Partial<DelivererRoute>) => {
+  const updateRoute = async (
+    routeId: string,
+    routeData: Partial<DelivererRoute>,
+  ) => {
     await execute(`/api/deliverer/routes/${routeId}`, {
-      method: 'PUT',
-      body: JSON.stringify(routeData)
-    })
-  }
+      method: "PUT",
+      body: JSON.stringify(routeData),
+    });
+  };
 
   const deleteRoute = async (routeId: string) => {
     await execute(`/api/deliverer/routes/${routeId}`, {
-      method: 'DELETE'
-    })
-  }
+      method: "DELETE",
+    });
+  };
 
   return {
     routes: data || [],
@@ -236,37 +242,37 @@ export function useDelivererRoutes() {
     createRoute,
     updateRoute,
     deleteRoute,
-    refetch: fetchRoutes
-  }
+    refetch: fetchRoutes,
+  };
 }
 
 export function useDelivererWallet() {
-  const { data, loading, error, execute } = useApi<DelivererWallet>()
+  const { data, loading, error, execute } = useApi<DelivererWallet>();
 
   const fetchWallet = async (params?: {
-    page?: number
-    limit?: number
-    type?: string
+    page?: number;
+    limit?: number;
+    type?: string;
   }) => {
-    const searchParams = new URLSearchParams()
+    const searchParams = new URLSearchParams();
     if (params) {
       Object.entries(params).forEach(([key, value]) => {
-        if (value) searchParams.append(key, value.toString())
-      })
+        if (value) searchParams.append(key, value.toString());
+      });
     }
-    
-    await execute(`/api/deliverer/wallet?${searchParams.toString()}`)
-  }
+
+    await execute(`/api/deliverer/wallet?${searchParams.toString()}`);
+  };
 
   const requestWithdrawal = async (withdrawalData: {
-    amount: number
-    bankAccount: string
+    amount: number;
+    bankAccount: string;
   }) => {
-    await execute('/api/deliverer/wallet', {
-      method: 'POST',
-      body: JSON.stringify(withdrawalData)
-    })
-  }
+    await execute("/api/deliverer/wallet", {
+      method: "POST",
+      body: JSON.stringify(withdrawalData),
+    });
+  };
 
   return {
     wallet: data,
@@ -274,44 +280,44 @@ export function useDelivererWallet() {
     error,
     fetchWallet,
     requestWithdrawal,
-    refetch: fetchWallet
-  }
+    refetch: fetchWallet,
+  };
 }
 
 export function useWithdrawals() {
   const { data, loading, error, execute } = useApi<{
-    withdrawals: WithdrawalRequest[]
+    withdrawals: WithdrawalRequest[];
     stats: {
-      totalWithdrawn: number
-      pendingAmount: number
-      avgProcessingTime: number
-    }
-  }>()
+      totalWithdrawn: number;
+      pendingAmount: number;
+      avgProcessingTime: number;
+    };
+  }>();
 
   const fetchWithdrawals = async (params?: {
-    page?: number
-    limit?: number
-    status?: string
+    page?: number;
+    limit?: number;
+    status?: string;
   }) => {
-    const searchParams = new URLSearchParams()
+    const searchParams = new URLSearchParams();
     if (params) {
       Object.entries(params).forEach(([key, value]) => {
-        if (value) searchParams.append(key, value.toString())
-      })
+        if (value) searchParams.append(key, value.toString());
+      });
     }
-    
-    await execute(`/api/deliverer/wallet/withdraw?${searchParams.toString()}`)
-  }
+
+    await execute(`/api/deliverer/wallet/withdraw?${searchParams.toString()}`);
+  };
 
   const requestWithdrawal = async (withdrawalData: {
-    amount: number
-    bankAccount: string
+    amount: number;
+    bankAccount: string;
   }) => {
-    await execute('/api/deliverer/wallet/withdraw', {
-      method: 'POST',
-      body: JSON.stringify(withdrawalData)
-    })
-  }
+    await execute("/api/deliverer/wallet/withdraw", {
+      method: "POST",
+      body: JSON.stringify(withdrawalData),
+    });
+  };
 
   return {
     withdrawals: data?.withdrawals || [],
@@ -320,22 +326,22 @@ export function useWithdrawals() {
     error,
     fetchWithdrawals,
     requestWithdrawal,
-    refetch: fetchWithdrawals
-  }
+    refetch: fetchWithdrawals,
+  };
 }
 
 export function useNFCCard() {
-  const { data, loading, error, execute } = useApi<NFCCard>()
+  const { data, loading, error, execute } = useApi<NFCCard>();
 
   const fetchNFCCard = async () => {
-    await execute('/api/deliverer/nfc-card')
-  }
+    await execute("/api/deliverer/nfc-card");
+  };
 
   const generateNFCCard = async () => {
-    await execute('/api/deliverer/nfc-card', {
-      method: 'POST'
-    })
-  }
+    await execute("/api/deliverer/nfc-card", {
+      method: "POST",
+    });
+  };
 
   return {
     nfcCard: data,
@@ -343,51 +349,51 @@ export function useNFCCard() {
     error,
     fetchNFCCard,
     generateNFCCard,
-    refetch: fetchNFCCard
-  }
+    refetch: fetchNFCCard,
+  };
 }
 
 export function useDelivererPlanning() {
   const { data, loading, error, execute } = useApi<{
-    availabilities: DelivererAvailability[]
-    scheduledDeliveries: DelivererDelivery[]
-    plannedRoutes: DelivererRoute[]
-  }>()
+    availabilities: DelivererAvailability[];
+    scheduledDeliveries: DelivererDelivery[];
+    plannedRoutes: DelivererRoute[];
+  }>();
 
   const fetchPlanning = async (params?: {
-    startDate?: string
-    endDate?: string
+    startDate?: string;
+    endDate?: string;
   }) => {
-    const searchParams = new URLSearchParams()
+    const searchParams = new URLSearchParams();
     if (params) {
       Object.entries(params).forEach(([key, value]) => {
-        if (value) searchParams.append(key, value.toString())
-      })
+        if (value) searchParams.append(key, value.toString());
+      });
     }
-    
-    await execute(`/api/deliverer/planning?${searchParams.toString()}`)
-  }
+
+    await execute(`/api/deliverer/planning?${searchParams.toString()}`);
+  };
 
   const setAvailability = async (availabilityData: {
-    date?: string
-    startTime: string
-    endTime: string
-    isRecurring?: boolean
-    recurringPattern?: string
-    maxCapacity?: number
+    date?: string;
+    startTime: string;
+    endTime: string;
+    isRecurring?: boolean;
+    recurringPattern?: string;
+    maxCapacity?: number;
   }) => {
-    await execute('/api/deliverer/planning', {
-      method: 'POST',
-      body: JSON.stringify(availabilityData)
-    })
-  }
+    await execute("/api/deliverer/planning", {
+      method: "POST",
+      body: JSON.stringify(availabilityData),
+    });
+  };
 
   const removeAvailability = async (availabilityId: string) => {
-    await execute('/api/deliverer/planning', {
-      method: 'DELETE',
-      body: JSON.stringify({ availabilityId })
-    })
-  }
+    await execute("/api/deliverer/planning", {
+      method: "DELETE",
+      body: JSON.stringify({ availabilityId }),
+    });
+  };
 
   return {
     availabilities: data?.availabilities || [],
@@ -398,49 +404,49 @@ export function useDelivererPlanning() {
     fetchPlanning,
     setAvailability,
     removeAvailability,
-    refetch: fetchPlanning
-  }
+    refetch: fetchPlanning,
+  };
 }
 
 export function useDelivererEarnings() {
-  const { data, loading, error, execute } = useApi<DelivererEarnings>()
+  const { data, loading, error, execute } = useApi<DelivererEarnings>();
 
   const fetchEarnings = async (params?: {
-    period?: 'WEEK' | 'MONTH' | 'YEAR'
-    startDate?: string
-    endDate?: string
+    period?: "WEEK" | "MONTH" | "YEAR";
+    startDate?: string;
+    endDate?: string;
   }) => {
-    const searchParams = new URLSearchParams()
+    const searchParams = new URLSearchParams();
     if (params) {
       Object.entries(params).forEach(([key, value]) => {
-        if (value) searchParams.append(key, value.toString())
-      })
+        if (value) searchParams.append(key, value.toString());
+      });
     }
-    
-    await execute(`/api/deliverer/earnings?${searchParams.toString()}`)
-  }
+
+    await execute(`/api/deliverer/earnings?${searchParams.toString()}`);
+  };
 
   return {
     earnings: data,
     loading,
     error,
     fetchEarnings,
-    refetch: fetchEarnings
-  }
+    refetch: fetchEarnings,
+  };
 }
 
 export function useDelivererDashboard() {
-  const { data, loading, error, execute } = useApi<DelivererDashboardStats>()
+  const { data, loading, error, execute } = useApi<DelivererDashboardStats>();
 
   const fetchDashboard = async () => {
-    await execute('/api/deliverer/dashboard')
-  }
+    await execute("/api/deliverer/dashboard");
+  };
 
   return {
     stats: data,
     loading,
     error,
     fetchDashboard,
-    refetch: fetchDashboard
-  }
-} 
+    refetch: fetchDashboard,
+  };
+}

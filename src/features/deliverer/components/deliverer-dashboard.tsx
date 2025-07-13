@@ -5,15 +5,15 @@ import { useTranslations } from "next-intl";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { 
-  Package, 
-  Euro, 
-  Clock, 
+import {
+  Package,
+  Euro,
+  Clock,
   TrendingUp,
   MapPin,
   Calendar,
   FileText,
-  Star
+  Star,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -38,7 +38,7 @@ interface DashboardStats {
 
 interface RecentActivity {
   id: string;
-  type: 'delivery' | 'opportunity' | 'payment' | 'document';
+  type: "delivery" | "opportunity" | "payment" | "document";
   title: string;
   subtitle: string;
   timestamp: string;
@@ -49,7 +49,9 @@ interface RecentActivity {
 export function DelivererDashboard({ delivererId }: DelivererDashboardProps) {
   const t = useTranslations("deliverer.dashboard");
   const [stats, setStats] = useState<DashboardStats | null>(null);
-  const [recentActivities, setRecentActivities] = useState<RecentActivity[]>([]);
+  const [recentActivities, setRecentActivities] = useState<RecentActivity[]>(
+    [],
+  );
   const [loading, setLoading] = useState(true);
 
   const fetchDashboardData = async () => {
@@ -93,36 +95,58 @@ export function DelivererDashboard({ delivererId }: DelivererDashboardProps) {
 
   const getActivityIcon = (type: string) => {
     switch (type) {
-      case 'delivery': return <Package className="h-4 w-4" />;
-      case 'opportunity': return <MapPin className="h-4 w-4" />;
-      case 'payment': return <Euro className="h-4 w-4" />;
-      case 'document': return <FileText className="h-4 w-4" />;
-      default: return <Clock className="h-4 w-4" />;
+      case "delivery":
+        return <Package className="h-4 w-4" />;
+      case "opportunity":
+        return <MapPin className="h-4 w-4" />;
+      case "payment":
+        return <Euro className="h-4 w-4" />;
+      case "document":
+        return <FileText className="h-4 w-4" />;
+      default:
+        return <Clock className="h-4 w-4" />;
     }
   };
 
   const getActivityColor = (type: string) => {
     switch (type) {
-      case 'delivery': return 'text-blue-600';
-      case 'opportunity': return 'text-green-600';
-      case 'payment': return 'text-purple-600';
-      case 'document': return 'text-orange-600';
-      default: return 'text-gray-600';
+      case "delivery":
+        return "text-blue-600";
+      case "opportunity":
+        return "text-green-600";
+      case "payment":
+        return "text-purple-600";
+      case "document":
+        return "text-orange-600";
+      default:
+        return "text-gray-600";
     }
   };
 
   const getStatusBadge = (status: string) => {
     const statusConfig = {
-      completed: { color: "bg-green-100 text-green-800", label: t("status.completed") },
+      completed: {
+        color: "bg-green-100 text-green-800",
+        label: t("status.completed"),
+      },
       active: { color: "bg-blue-100 text-blue-800", label: t("status.active") },
-      pending: { color: "bg-yellow-100 text-yellow-800", label: t("status.pending") },
-      validated: { color: "bg-green-100 text-green-800", label: t("status.validated") },
-      rejected: { color: "bg-red-100 text-red-800", label: t("status.rejected") },
+      pending: {
+        color: "bg-yellow-100 text-yellow-800",
+        label: t("status.pending"),
+      },
+      validated: {
+        color: "bg-green-100 text-green-800",
+        label: t("status.validated"),
+      },
+      rejected: {
+        color: "bg-red-100 text-red-800",
+        label: t("status.rejected"),
+      },
     };
-    
+
     const config = statusConfig[status as keyof typeof statusConfig];
     if (!config) return null;
-    
+
     return <Badge className={config.color}>{config.label}</Badge>;
   };
 
@@ -168,7 +192,9 @@ export function DelivererDashboard({ delivererId }: DelivererDashboardProps) {
             <Euro className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.totalEarnings.toFixed(2)}€</div>
+            <div className="text-2xl font-bold">
+              {stats.totalEarnings.toFixed(2)}€
+            </div>
             <p className="text-xs text-muted-foreground">
               +{stats.weeklyEarnings.toFixed(2)}€ {t("stats.this_week")}
             </p>
@@ -183,7 +209,9 @@ export function DelivererDashboard({ delivererId }: DelivererDashboardProps) {
             <Star className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.averageRating.toFixed(1)}/5</div>
+            <div className="text-2xl font-bold">
+              {stats.averageRating.toFixed(1)}/5
+            </div>
             <p className="text-xs text-muted-foreground">
               {t("stats.average_rating")}
             </p>
@@ -201,24 +229,26 @@ export function DelivererDashboard({ delivererId }: DelivererDashboardProps) {
             <Link href="/deliverer/opportunities">
               <Button variant="outline" className="w-full h-20 flex flex-col">
                 <MapPin className="h-6 w-6 mb-2" />
-                <span className="text-sm">{t("quick_actions.opportunities")}</span>
+                <span className="text-sm">
+                  {t("quick_actions.opportunities")}
+                </span>
               </Button>
             </Link>
-            
+
             <Link href="/deliverer/deliveries">
               <Button variant="outline" className="w-full h-20 flex flex-col">
                 <Package className="h-6 w-6 mb-2" />
                 <span className="text-sm">{t("quick_actions.deliveries")}</span>
               </Button>
             </Link>
-            
+
             <Link href="/deliverer/wallet">
               <Button variant="outline" className="w-full h-20 flex flex-col">
                 <Euro className="h-6 w-6 mb-2" />
                 <span className="text-sm">{t("quick_actions.wallet")}</span>
               </Button>
             </Link>
-            
+
             <Link href="/deliverer/documents">
               <Button variant="outline" className="w-full h-20 flex flex-col">
                 <FileText className="h-6 w-6 mb-2" />
@@ -238,32 +268,38 @@ export function DelivererDashboard({ delivererId }: DelivererDashboardProps) {
           <CardContent>
             <div className="space-y-4">
               <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-600">{t("documents.validated")}</span>
+                <span className="text-sm text-gray-600">
+                  {t("documents.validated")}
+                </span>
                 <div className="flex items-center space-x-2">
                   <Badge className="bg-green-100 text-green-800">
                     {stats.documentsStatus.validated}
                   </Badge>
                 </div>
               </div>
-              
+
               <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-600">{t("documents.pending")}</span>
+                <span className="text-sm text-gray-600">
+                  {t("documents.pending")}
+                </span>
                 <div className="flex items-center space-x-2">
                   <Badge className="bg-yellow-100 text-yellow-800">
                     {stats.documentsStatus.pending}
                   </Badge>
                 </div>
               </div>
-              
+
               <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-600">{t("documents.rejected")}</span>
+                <span className="text-sm text-gray-600">
+                  {t("documents.rejected")}
+                </span>
                 <div className="flex items-center space-x-2">
                   <Badge className="bg-red-100 text-red-800">
                     {stats.documentsStatus.rejected}
                   </Badge>
                 </div>
               </div>
-              
+
               {stats.documentsStatus.pending > 0 && (
                 <Link href="/deliverer/documents">
                   <Button size="sm" className="w-full mt-4">
@@ -289,7 +325,9 @@ export function DelivererDashboard({ delivererId }: DelivererDashboardProps) {
               ) : (
                 recentActivities.slice(0, 5).map((activity) => (
                   <div key={activity.id} className="flex items-start space-x-3">
-                    <div className={`p-1 rounded-full ${getActivityColor(activity.type)}`}>
+                    <div
+                      className={`p-1 rounded-full ${getActivityColor(activity.type)}`}
+                    >
                       {getActivityIcon(activity.type)}
                     </div>
                     <div className="flex-1 min-w-0">
@@ -318,7 +356,7 @@ export function DelivererDashboard({ delivererId }: DelivererDashboardProps) {
                   </div>
                 ))
               )}
-              
+
               {recentActivities.length > 5 && (
                 <div className="text-center">
                   <Button variant="ghost" size="sm">

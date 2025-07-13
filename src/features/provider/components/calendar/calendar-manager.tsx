@@ -7,10 +7,10 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { 
-  Calendar, 
-  Clock, 
-  Plus, 
+import {
+  Calendar,
+  Clock,
+  Plus,
   Edit,
   Trash2,
   ChevronLeft,
@@ -18,7 +18,7 @@ import {
   User,
   MapPin,
   CheckCircle,
-  AlertCircle
+  AlertCircle,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -84,7 +84,8 @@ export default function CalendarManager({ providerId }: CalendarManagerProps) {
   const [loading, setLoading] = useState(true);
   const [currentWeek, setCurrentWeek] = useState(new Date());
   const [showAvailabilityDialog, setShowAvailabilityDialog] = useState(false);
-  const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
+  const [selectedAppointment, setSelectedAppointment] =
+    useState<Appointment | null>(null);
 
   const [newAvailability, setNewAvailability] = useState({
     dayOfWeek: 1,
@@ -98,7 +99,9 @@ export default function CalendarManager({ providerId }: CalendarManagerProps) {
   const fetchSchedule = async (weekStart: Date) => {
     try {
       setLoading(true);
-      const response = await fetch(`/api/provider/calendar?week=${weekStart.toISOString()}`);
+      const response = await fetch(
+        `/api/provider/calendar?week=${weekStart.toISOString()}`,
+      );
       if (response.ok) {
         const data = await response.json();
         setSchedule(data.schedule || []);
@@ -144,13 +147,19 @@ export default function CalendarManager({ providerId }: CalendarManagerProps) {
     }
   };
 
-  const updateAppointmentStatus = async (appointmentId: string, status: string) => {
+  const updateAppointmentStatus = async (
+    appointmentId: string,
+    status: string,
+  ) => {
     try {
-      const response = await fetch(`/api/provider/calendar/appointments/${appointmentId}/status`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status }),
-      });
+      const response = await fetch(
+        `/api/provider/calendar/appointments/${appointmentId}/status`,
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ status }),
+        },
+      );
 
       if (response.ok) {
         toast.success(t("success.status_updated"));
@@ -183,29 +192,56 @@ export default function CalendarManager({ providerId }: CalendarManagerProps) {
     return days;
   };
 
-  const navigateWeek = (direction: 'prev' | 'next') => {
+  const navigateWeek = (direction: "prev" | "next") => {
     const newWeek = new Date(currentWeek);
-    newWeek.setDate(currentWeek.getDate() + (direction === 'next' ? 7 : -7));
+    newWeek.setDate(currentWeek.getDate() + (direction === "next" ? 7 : -7));
     setCurrentWeek(newWeek);
     fetchSchedule(getWeekStart(newWeek));
   };
 
   const getStatusBadge = (status: string) => {
     const statusConfig = {
-      pending: { color: "bg-yellow-100 text-yellow-800", label: t("status.pending") },
-      confirmed: { color: "bg-blue-100 text-blue-800", label: t("status.confirmed") },
-      in_progress: { color: "bg-purple-100 text-purple-800", label: t("status.in_progress") },
-      completed: { color: "bg-green-100 text-green-800", label: t("status.completed") },
-      cancelled: { color: "bg-red-100 text-red-800", label: t("status.cancelled") },
-      no_show: { color: "bg-gray-100 text-gray-800", label: t("status.no_show") },
+      pending: {
+        color: "bg-yellow-100 text-yellow-800",
+        label: t("status.pending"),
+      },
+      confirmed: {
+        color: "bg-blue-100 text-blue-800",
+        label: t("status.confirmed"),
+      },
+      in_progress: {
+        color: "bg-purple-100 text-purple-800",
+        label: t("status.in_progress"),
+      },
+      completed: {
+        color: "bg-green-100 text-green-800",
+        label: t("status.completed"),
+      },
+      cancelled: {
+        color: "bg-red-100 text-red-800",
+        label: t("status.cancelled"),
+      },
+      no_show: {
+        color: "bg-gray-100 text-gray-800",
+        label: t("status.no_show"),
+      },
     };
-    
-    const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.pending;
+
+    const config =
+      statusConfig[status as keyof typeof statusConfig] || statusConfig.pending;
     return <Badge className={config.color}>{config.label}</Badge>;
   };
 
   const getDayName = (dayOfWeek: number) => {
-    const days = [t("days.sunday"), t("days.monday"), t("days.tuesday"), t("days.wednesday"), t("days.thursday"), t("days.friday"), t("days.saturday")];
+    const days = [
+      t("days.sunday"),
+      t("days.monday"),
+      t("days.tuesday"),
+      t("days.wednesday"),
+      t("days.thursday"),
+      t("days.friday"),
+      t("days.saturday"),
+    ];
     return days[dayOfWeek];
   };
 
@@ -247,16 +283,28 @@ export default function CalendarManager({ providerId }: CalendarManagerProps) {
               <span>{t("weekly_schedule")}</span>
             </div>
             <div className="flex items-center space-x-2">
-              <Button variant="outline" size="sm" onClick={() => navigateWeek('prev')}>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => navigateWeek("prev")}
+              >
                 <ChevronLeft className="w-4 h-4" />
               </Button>
               <span className="text-sm font-medium px-4">
-                {weekStart.toLocaleDateString()} - {getWeekDays(weekStart)[6].toLocaleDateString()}
+                {weekStart.toLocaleDateString()} -{" "}
+                {getWeekDays(weekStart)[6].toLocaleDateString()}
               </span>
-              <Button variant="outline" size="sm" onClick={() => navigateWeek('next')}>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => navigateWeek("next")}
+              >
                 <ChevronRight className="w-4 h-4" />
               </Button>
-              <Dialog open={showAvailabilityDialog} onOpenChange={setShowAvailabilityDialog}>
+              <Dialog
+                open={showAvailabilityDialog}
+                onOpenChange={setShowAvailabilityDialog}
+              >
                 <DialogTrigger asChild>
                   <Button size="sm">
                     <Plus className="w-4 h-4 mr-2" />
@@ -272,8 +320,18 @@ export default function CalendarManager({ providerId }: CalendarManagerProps) {
                   </DialogHeader>
                   <div className="space-y-4">
                     <div>
-                      <Label htmlFor="dayOfWeek">{t("availability_dialog.day")}</Label>
-                      <Select value={newAvailability.dayOfWeek.toString()} onValueChange={(value) => setNewAvailability({...newAvailability, dayOfWeek: parseInt(value)})}>
+                      <Label htmlFor="dayOfWeek">
+                        {t("availability_dialog.day")}
+                      </Label>
+                      <Select
+                        value={newAvailability.dayOfWeek.toString()}
+                        onValueChange={(value) =>
+                          setNewAvailability({
+                            ...newAvailability,
+                            dayOfWeek: parseInt(value),
+                          })
+                        }
+                      >
                         <SelectTrigger>
                           <SelectValue />
                         </SelectTrigger>
@@ -288,41 +346,69 @@ export default function CalendarManager({ providerId }: CalendarManagerProps) {
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <Label htmlFor="startTime">{t("availability_dialog.start_time")}</Label>
+                        <Label htmlFor="startTime">
+                          {t("availability_dialog.start_time")}
+                        </Label>
                         <Input
                           id="startTime"
                           type="time"
                           value={newAvailability.startTime}
-                          onChange={(e) => setNewAvailability({...newAvailability, startTime: e.target.value})}
+                          onChange={(e) =>
+                            setNewAvailability({
+                              ...newAvailability,
+                              startTime: e.target.value,
+                            })
+                          }
                         />
                       </div>
                       <div>
-                        <Label htmlFor="endTime">{t("availability_dialog.end_time")}</Label>
+                        <Label htmlFor="endTime">
+                          {t("availability_dialog.end_time")}
+                        </Label>
                         <Input
                           id="endTime"
                           type="time"
                           value={newAvailability.endTime}
-                          onChange={(e) => setNewAvailability({...newAvailability, endTime: e.target.value})}
+                          onChange={(e) =>
+                            setNewAvailability({
+                              ...newAvailability,
+                              endTime: e.target.value,
+                            })
+                          }
                         />
                       </div>
                     </div>
                     <div>
-                      <Label htmlFor="maxAppointments">{t("availability_dialog.max_appointments")}</Label>
+                      <Label htmlFor="maxAppointments">
+                        {t("availability_dialog.max_appointments")}
+                      </Label>
                       <Input
                         id="maxAppointments"
                         type="number"
                         value={newAvailability.maxAppointments}
-                        onChange={(e) => setNewAvailability({...newAvailability, maxAppointments: parseInt(e.target.value)})}
+                        onChange={(e) =>
+                          setNewAvailability({
+                            ...newAvailability,
+                            maxAppointments: parseInt(e.target.value),
+                          })
+                        }
                       />
                     </div>
                     {!newAvailability.isRecurring && (
                       <div>
-                        <Label htmlFor="specificDate">{t("availability_dialog.specific_date")}</Label>
+                        <Label htmlFor="specificDate">
+                          {t("availability_dialog.specific_date")}
+                        </Label>
                         <Input
                           id="specificDate"
                           type="date"
                           value={newAvailability.specificDate}
-                          onChange={(e) => setNewAvailability({...newAvailability, specificDate: e.target.value})}
+                          onChange={(e) =>
+                            setNewAvailability({
+                              ...newAvailability,
+                              specificDate: e.target.value,
+                            })
+                          }
                         />
                       </div>
                     )}
@@ -342,19 +428,24 @@ export default function CalendarManager({ providerId }: CalendarManagerProps) {
       {/* Weekly Calendar */}
       <div className="grid grid-cols-7 gap-4">
         {weekDays.map((day, index) => {
-          const daySchedule = schedule.find(s => 
-            new Date(s.date).toDateString() === day.toDateString()
+          const daySchedule = schedule.find(
+            (s) => new Date(s.date).toDateString() === day.toDateString(),
           );
           const isToday = day.toDateString() === new Date().toDateString();
-          
+
           return (
-            <Card key={index} className={`${isToday ? 'ring-2 ring-blue-500' : ''}`}>
+            <Card
+              key={index}
+              className={`${isToday ? "ring-2 ring-blue-500" : ""}`}
+            >
               <CardHeader className="pb-3">
                 <CardTitle className="text-sm text-center">
                   <div className="font-semibold">
-                    {day.toLocaleDateString('fr-FR', { weekday: 'short' })}
+                    {day.toLocaleDateString("fr-FR", { weekday: "short" })}
                   </div>
-                  <div className={`text-lg ${isToday ? 'text-blue-600 font-bold' : ''}`}>
+                  <div
+                    className={`text-lg ${isToday ? "text-blue-600 font-bold" : ""}`}
+                  >
                     {day.getDate()}
                   </div>
                   {daySchedule?.isAvailable && (
@@ -374,13 +465,17 @@ export default function CalendarManager({ providerId }: CalendarManagerProps) {
                         onClick={() => setSelectedAppointment(appointment)}
                       >
                         <div className="space-y-1">
-                          <p className="text-xs font-medium truncate">{appointment.serviceType}</p>
+                          <p className="text-xs font-medium truncate">
+                            {appointment.serviceType}
+                          </p>
                           <p className="text-xs text-gray-500">
                             {appointment.startTime} - {appointment.endTime}
                           </p>
                           <div className="flex items-center space-x-1 text-xs text-gray-600">
                             <User className="w-3 h-3" />
-                            <span className="truncate">{appointment.clientName}</span>
+                            <span className="truncate">
+                              {appointment.clientName}
+                            </span>
                           </div>
                           <div className="flex items-center justify-between">
                             {getStatusBadge(appointment.status)}
@@ -393,12 +488,18 @@ export default function CalendarManager({ providerId }: CalendarManagerProps) {
                     ))
                   ) : daySchedule?.isAvailable ? (
                     <div className="text-center py-4">
-                      <p className="text-xs text-green-600">{t("no_appointments")}</p>
-                      <p className="text-xs text-gray-400">{t("available_for_booking")}</p>
+                      <p className="text-xs text-green-600">
+                        {t("no_appointments")}
+                      </p>
+                      <p className="text-xs text-gray-400">
+                        {t("available_for_booking")}
+                      </p>
                     </div>
                   ) : (
                     <div className="text-center py-4">
-                      <p className="text-xs text-gray-400">{t("not_available")}</p>
+                      <p className="text-xs text-gray-400">
+                        {t("not_available")}
+                      </p>
                     </div>
                   )}
                 </div>
@@ -434,39 +535,69 @@ export default function CalendarManager({ providerId }: CalendarManagerProps) {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {availabilities.map((availability) => (
-                <Card key={availability.id} className="border-l-4 border-l-green-500">
+                <Card
+                  key={availability.id}
+                  className="border-l-4 border-l-green-500"
+                >
                   <CardContent className="p-4">
                     <div className="flex items-start justify-between mb-2">
                       <div>
-                        <h4 className="font-medium">{getDayName(availability.dayOfWeek)}</h4>
+                        <h4 className="font-medium">
+                          {getDayName(availability.dayOfWeek)}
+                        </h4>
                         <p className="text-sm text-gray-600">
                           {availability.startTime} - {availability.endTime}
                         </p>
                       </div>
-                      <Badge variant={availability.isRecurring ? "default" : "outline"}>
-                        {availability.isRecurring ? t("recurring") : t("one_time")}
+                      <Badge
+                        variant={
+                          availability.isRecurring ? "default" : "outline"
+                        }
+                      >
+                        {availability.isRecurring
+                          ? t("recurring")
+                          : t("one_time")}
                       </Badge>
                     </div>
                     <div className="space-y-1 text-sm">
                       <div className="flex justify-between">
-                        <span className="text-gray-600">{t("max_appointments")}:</span>
+                        <span className="text-gray-600">
+                          {t("max_appointments")}:
+                        </span>
                         <span>{availability.maxAppointments}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-gray-600">{t("current_bookings")}:</span>
-                        <span className={availability.currentAppointments >= availability.maxAppointments ? 'text-red-600' : 'text-green-600'}>
+                        <span className="text-gray-600">
+                          {t("current_bookings")}:
+                        </span>
+                        <span
+                          className={
+                            availability.currentAppointments >=
+                            availability.maxAppointments
+                              ? "text-red-600"
+                              : "text-green-600"
+                          }
+                        >
                           {availability.currentAppointments}
                         </span>
                       </div>
                       {availability.specificDate && (
                         <div className="flex justify-between">
                           <span className="text-gray-600">{t("date")}:</span>
-                          <span>{new Date(availability.specificDate).toLocaleDateString()}</span>
+                          <span>
+                            {new Date(
+                              availability.specificDate,
+                            ).toLocaleDateString()}
+                          </span>
                         </div>
                       )}
                     </div>
                     <div className="flex justify-between mt-3">
-                      <Button size="sm" variant="outline" className="flex-1 mr-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="flex-1 mr-2"
+                      >
                         <Edit className="w-3 h-3 mr-1" />
                         {t("edit")}
                       </Button>
@@ -489,9 +620,14 @@ export default function CalendarManager({ providerId }: CalendarManagerProps) {
             <div className="flex items-center space-x-2">
               <Calendar className="w-5 h-5 text-blue-600" />
               <div>
-                <p className="text-sm text-gray-600">{t("stats.total_appointments")}</p>
+                <p className="text-sm text-gray-600">
+                  {t("stats.total_appointments")}
+                </p>
                 <p className="text-xl font-bold">
-                  {schedule.reduce((total, day) => total + day.appointments.length, 0)}
+                  {schedule.reduce(
+                    (total, day) => total + day.appointments.length,
+                    0,
+                  )}
                 </p>
               </div>
             </div>
@@ -505,8 +641,12 @@ export default function CalendarManager({ providerId }: CalendarManagerProps) {
               <div>
                 <p className="text-sm text-gray-600">{t("stats.confirmed")}</p>
                 <p className="text-xl font-bold">
-                  {schedule.reduce((total, day) => 
-                    total + day.appointments.filter(a => a.status === 'confirmed').length, 0
+                  {schedule.reduce(
+                    (total, day) =>
+                      total +
+                      day.appointments.filter((a) => a.status === "confirmed")
+                        .length,
+                    0,
                   )}
                 </p>
               </div>
@@ -521,8 +661,12 @@ export default function CalendarManager({ providerId }: CalendarManagerProps) {
               <div>
                 <p className="text-sm text-gray-600">{t("stats.pending")}</p>
                 <p className="text-xl font-bold">
-                  {schedule.reduce((total, day) => 
-                    total + day.appointments.filter(a => a.status === 'pending').length, 0
+                  {schedule.reduce(
+                    (total, day) =>
+                      total +
+                      day.appointments.filter((a) => a.status === "pending")
+                        .length,
+                    0,
                   )}
                 </p>
               </div>
@@ -535,10 +679,14 @@ export default function CalendarManager({ providerId }: CalendarManagerProps) {
             <div className="flex items-center space-x-2">
               <Clock className="w-5 h-5 text-purple-600" />
               <div>
-                <p className="text-sm text-gray-600">{t("stats.available_slots")}</p>
+                <p className="text-sm text-gray-600">
+                  {t("stats.available_slots")}
+                </p>
                 <p className="text-xl font-bold">
-                  {availabilities.reduce((total, av) => 
-                    total + (av.maxAppointments - av.currentAppointments), 0
+                  {availabilities.reduce(
+                    (total, av) =>
+                      total + (av.maxAppointments - av.currentAppointments),
+                    0,
                   )}
                 </p>
               </div>
@@ -549,7 +697,10 @@ export default function CalendarManager({ providerId }: CalendarManagerProps) {
 
       {/* Appointment Details Dialog */}
       {selectedAppointment && (
-        <Dialog open={!!selectedAppointment} onOpenChange={() => setSelectedAppointment(null)}>
+        <Dialog
+          open={!!selectedAppointment}
+          onOpenChange={() => setSelectedAppointment(null)}
+        >
           <DialogContent>
             <DialogHeader>
               <DialogTitle>{t("appointment_details.title")}</DialogTitle>
@@ -558,7 +709,9 @@ export default function CalendarManager({ providerId }: CalendarManagerProps) {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label>{t("appointment_details.service")}</Label>
-                  <p className="font-medium">{selectedAppointment.serviceType}</p>
+                  <p className="font-medium">
+                    {selectedAppointment.serviceType}
+                  </p>
                 </div>
                 <div>
                   <Label>{t("appointment_details.status")}</Label>
@@ -568,18 +721,26 @@ export default function CalendarManager({ providerId }: CalendarManagerProps) {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label>{t("appointment_details.client")}</Label>
-                  <p className="font-medium">{selectedAppointment.clientName}</p>
-                  <p className="text-sm text-gray-600">{selectedAppointment.clientPhone}</p>
+                  <p className="font-medium">
+                    {selectedAppointment.clientName}
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    {selectedAppointment.clientPhone}
+                  </p>
                 </div>
                 <div>
                   <Label>{t("appointment_details.price")}</Label>
-                  <p className="font-medium text-green-600">{selectedAppointment.price}€</p>
+                  <p className="font-medium text-green-600">
+                    {selectedAppointment.price}€
+                  </p>
                 </div>
               </div>
               <div>
                 <Label>{t("appointment_details.time")}</Label>
                 <p className="font-medium">
-                  {selectedAppointment.startTime} - {selectedAppointment.endTime} ({selectedAppointment.duration}min)
+                  {selectedAppointment.startTime} -{" "}
+                  {selectedAppointment.endTime} ({selectedAppointment.duration}
+                  min)
                 </p>
               </div>
               <div>
@@ -597,22 +758,42 @@ export default function CalendarManager({ providerId }: CalendarManagerProps) {
               )}
             </div>
             <DialogFooter className="space-x-2">
-              {selectedAppointment.status === 'pending' && (
-                <Button onClick={() => updateAppointmentStatus(selectedAppointment.id, 'confirmed')}>
+              {selectedAppointment.status === "pending" && (
+                <Button
+                  onClick={() =>
+                    updateAppointmentStatus(selectedAppointment.id, "confirmed")
+                  }
+                >
                   {t("appointment_details.confirm")}
                 </Button>
               )}
-              {selectedAppointment.status === 'confirmed' && (
-                <Button onClick={() => updateAppointmentStatus(selectedAppointment.id, 'in_progress')}>
+              {selectedAppointment.status === "confirmed" && (
+                <Button
+                  onClick={() =>
+                    updateAppointmentStatus(
+                      selectedAppointment.id,
+                      "in_progress",
+                    )
+                  }
+                >
                   {t("appointment_details.start")}
                 </Button>
               )}
-              {selectedAppointment.status === 'in_progress' && (
-                <Button onClick={() => updateAppointmentStatus(selectedAppointment.id, 'completed')}>
+              {selectedAppointment.status === "in_progress" && (
+                <Button
+                  onClick={() =>
+                    updateAppointmentStatus(selectedAppointment.id, "completed")
+                  }
+                >
                   {t("appointment_details.complete")}
                 </Button>
               )}
-              <Button variant="outline" onClick={() => updateAppointmentStatus(selectedAppointment.id, 'cancelled')}>
+              <Button
+                variant="outline"
+                onClick={() =>
+                  updateAppointmentStatus(selectedAppointment.id, "cancelled")
+                }
+              >
                 {t("appointment_details.cancel")}
               </Button>
             </DialogFooter>

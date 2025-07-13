@@ -2,7 +2,13 @@
 
 import { useState, useEffect } from "react";
 import { useTranslations } from "next-intl";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -23,7 +29,15 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
-import { Calendar, Clock, User, MapPin, CheckCircle, XCircle, AlertCircle } from "lucide-react";
+import {
+  Calendar,
+  Clock,
+  User,
+  MapPin,
+  CheckCircle,
+  XCircle,
+  AlertCircle,
+} from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -63,7 +77,7 @@ export function ProviderBookings() {
   const fetchBookings = async () => {
     try {
       setLoading(true);
-      
+
       let url = `/api/provider/bookings?providerId=${user?.id}`;
       if (activeTab === "upcoming") {
         url = `/api/provider/bookings/upcoming?providerId=${user?.id}`;
@@ -85,19 +99,22 @@ export function ProviderBookings() {
 
   const updateBookingStatus = async (bookingId: string, status: string) => {
     try {
-      const response = await fetch(`/api/provider/bookings/${bookingId}/status`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status }),
-      });
+      const response = await fetch(
+        `/api/provider/bookings/${bookingId}/status`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ status }),
+        },
+      );
 
       if (response.ok) {
         toast.success(
-          status === "CONFIRMED" 
-            ? "Réservation confirmée" 
+          status === "CONFIRMED"
+            ? "Réservation confirmée"
             : status === "COMPLETED"
-            ? "Prestation marquée comme terminée"
-            : "Statut mis à jour"
+              ? "Prestation marquée comme terminée"
+              : "Statut mis à jour",
         );
         fetchBookings();
       }
@@ -110,11 +127,14 @@ export function ProviderBookings() {
     if (!selectedBooking) return;
 
     try {
-      const response = await fetch(`/api/provider/bookings/${selectedBooking.id}/cancel`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ reason: cancelReason }),
-      });
+      const response = await fetch(
+        `/api/provider/bookings/${selectedBooking.id}/cancel`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ reason: cancelReason }),
+        },
+      );
 
       if (response.ok) {
         toast.success("Réservation annulée");
@@ -135,7 +155,9 @@ export function ProviderBookings() {
       case "CONFIRMED":
         return <Badge className="bg-blue-100 text-blue-800">Confirmée</Badge>;
       case "IN_PROGRESS":
-        return <Badge className="bg-yellow-100 text-yellow-800">En cours</Badge>;
+        return (
+          <Badge className="bg-yellow-100 text-yellow-800">En cours</Badge>
+        );
       case "COMPLETED":
         return <Badge className="bg-green-100 text-green-800">Terminée</Badge>;
       case "CANCELLED":
@@ -146,10 +168,12 @@ export function ProviderBookings() {
   };
 
   const getBookingsByStatus = (status: string) => {
-    return bookings.filter(booking => {
+    return bookings.filter((booking) => {
       if (status === "upcoming") {
-        return ["PENDING", "CONFIRMED"].includes(booking.status) && 
-               new Date(booking.scheduledAt) > new Date();
+        return (
+          ["PENDING", "CONFIRMED"].includes(booking.status) &&
+          new Date(booking.scheduledAt) > new Date()
+        );
       }
       return booking.status === status;
     });
@@ -275,10 +299,14 @@ export function ProviderBookings() {
                         <TableCell>
                           <div>
                             <p className="font-medium">
-                              {format(new Date(booking.scheduledAt), "dd/MM/yyyy")}
+                              {format(
+                                new Date(booking.scheduledAt),
+                                "dd/MM/yyyy",
+                              )}
                             </p>
                             <p className="text-sm text-muted-foreground">
-                              {format(new Date(booking.scheduledAt), "HH:mm")} ({booking.duration}min)
+                              {format(new Date(booking.scheduledAt), "HH:mm")} (
+                              {booking.duration}min)
                             </p>
                           </div>
                         </TableCell>
@@ -297,7 +325,9 @@ export function ProviderBookings() {
                           {booking.clientAddress ? (
                             <div className="flex items-start gap-1">
                               <MapPin className="h-4 w-4 text-muted-foreground mt-0.5" />
-                              <span className="text-sm">{booking.clientAddress}</span>
+                              <span className="text-sm">
+                                {booking.clientAddress}
+                              </span>
                             </div>
                           ) : (
                             "-"
@@ -306,9 +336,7 @@ export function ProviderBookings() {
                         <TableCell className="font-semibold">
                           {booking.price.toFixed(2)}€
                         </TableCell>
-                        <TableCell>
-                          {getStatusBadge(booking.status)}
-                        </TableCell>
+                        <TableCell>{getStatusBadge(booking.status)}</TableCell>
                         <TableCell>
                           <div className="flex gap-2">
                             {booking.status === "PENDING" && (
@@ -316,7 +344,9 @@ export function ProviderBookings() {
                                 <Button
                                   size="sm"
                                   variant="outline"
-                                  onClick={() => updateBookingStatus(booking.id, "CONFIRMED")}
+                                  onClick={() =>
+                                    updateBookingStatus(booking.id, "CONFIRMED")
+                                  }
                                 >
                                   Confirmer
                                 </Button>
@@ -337,7 +367,12 @@ export function ProviderBookings() {
                                 <Button
                                   size="sm"
                                   variant="outline"
-                                  onClick={() => updateBookingStatus(booking.id, "IN_PROGRESS")}
+                                  onClick={() =>
+                                    updateBookingStatus(
+                                      booking.id,
+                                      "IN_PROGRESS",
+                                    )
+                                  }
                                 >
                                   Commencer
                                 </Button>
@@ -356,7 +391,9 @@ export function ProviderBookings() {
                             {booking.status === "IN_PROGRESS" && (
                               <Button
                                 size="sm"
-                                onClick={() => updateBookingStatus(booking.id, "COMPLETED")}
+                                onClick={() =>
+                                  updateBookingStatus(booking.id, "COMPLETED")
+                                }
                               >
                                 Terminer
                               </Button>
@@ -379,10 +416,11 @@ export function ProviderBookings() {
           <DialogHeader>
             <DialogTitle>Annuler la réservation</DialogTitle>
             <DialogDescription>
-              Veuillez indiquer la raison de l'annulation. Le client sera notifié.
+              Veuillez indiquer la raison de l'annulation. Le client sera
+              notifié.
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="space-y-4">
             <Textarea
               placeholder="Raison de l'annulation..."
@@ -393,14 +431,17 @@ export function ProviderBookings() {
           </div>
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => {
-              setShowCancelDialog(false);
-              setCancelReason("");
-            }}>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowCancelDialog(false);
+                setCancelReason("");
+              }}
+            >
               Retour
             </Button>
-            <Button 
-              variant="destructive" 
+            <Button
+              variant="destructive"
               onClick={cancelBooking}
               disabled={!cancelReason}
             >
@@ -411,4 +452,4 @@ export function ProviderBookings() {
       </Dialog>
     </div>
   );
-} 
+}

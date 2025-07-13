@@ -322,7 +322,7 @@
       },
       "status": {
         "pending": "Pending",
-        "confirmed": "Confirmed", 
+        "confirmed": "Confirmed",
         "in_progress": "In Progress",
         "completed": "Completed",
         "cancelled": "Cancelled"

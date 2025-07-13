@@ -1,108 +1,113 @@
-'use client'
+"use client";
 
-import { useEffect, useState } from 'react'
-import { useSearchParams, useRouter } from 'next/navigation'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { CheckCircle, CreditCard, User, Calendar, MapPin } from 'lucide-react'
-import { toast } from 'sonner'
+import { useEffect, useState } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { CheckCircle, CreditCard, User, Calendar, MapPin } from "lucide-react";
+import { toast } from "sonner";
 
 interface PaymentSuccessData {
-  applicationId: string
-  sessionId: string
-  amount: number
-  providerName: string
-  serviceTitle: string
-  status: 'success' | 'error' | 'loading'
+  applicationId: string;
+  sessionId: string;
+  amount: number;
+  providerName: string;
+  serviceTitle: string;
+  status: "success" | "error" | "loading";
 }
 
 export default function PaymentSuccessPage() {
-  const searchParams = useSearchParams()
-  const router = useRouter()
-  const [paymentData, setPaymentData] = useState<PaymentSuccessData | null>(null)
-  const [loading, setLoading] = useState(true)
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const [paymentData, setPaymentData] = useState<PaymentSuccessData | null>(
+    null,
+  );
+  const [loading, setLoading] = useState(true);
 
-  const sessionId = searchParams.get('session_id')
-  const applicationId = searchParams.get('application_id')
+  const sessionId = searchParams.get("session_id");
+  const applicationId = searchParams.get("application_id");
 
   useEffect(() => {
     const verifyPayment = async () => {
       if (!sessionId || !applicationId) {
         setPaymentData({
-          applicationId: applicationId || '',
-          sessionId: sessionId || '',
+          applicationId: applicationId || "",
+          sessionId: sessionId || "",
           amount: 0,
-          providerName: '',
-          serviceTitle: '',
-          status: 'error'
-        })
-        setLoading(false)
-        return
+          providerName: "",
+          serviceTitle: "",
+          status: "error",
+        });
+        setLoading(false);
+        return;
       }
 
       try {
         // Vérifier le paiement avec Stripe
-        const response = await fetch('/api/client/applications/verify-payment', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
+        const response = await fetch(
+          "/api/client/applications/verify-payment",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              sessionId,
+              applicationId,
+            }),
           },
-          body: JSON.stringify({
-            sessionId,
-            applicationId
-          })
-        })
+        );
 
         if (response.ok) {
-          const data = await response.json()
+          const data = await response.json();
           setPaymentData({
             applicationId,
             sessionId,
             amount: data.amount,
             providerName: data.providerName,
             serviceTitle: data.serviceTitle,
-            status: 'success'
-          })
-          
-          toast.success('Paiement confirmé avec succès !')
+            status: "success",
+          });
+
+          toast.success("Paiement confirmé avec succès !");
         } else {
           setPaymentData({
             applicationId,
             sessionId,
             amount: 0,
-            providerName: '',
-            serviceTitle: '',
-            status: 'error'
-          })
-          toast.error('Erreur lors de la vérification du paiement')
+            providerName: "",
+            serviceTitle: "",
+            status: "error",
+          });
+          toast.error("Erreur lors de la vérification du paiement");
         }
       } catch (error) {
-        console.error('Error verifying payment:', error)
+        console.error("Error verifying payment:", error);
         setPaymentData({
           applicationId,
           sessionId,
           amount: 0,
-          providerName: '',
-          serviceTitle: '',
-          status: 'error'
-        })
-        toast.error('Erreur lors de la vérification du paiement')
+          providerName: "",
+          serviceTitle: "",
+          status: "error",
+        });
+        toast.error("Erreur lors de la vérification du paiement");
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
+    };
 
-    verifyPayment()
-  }, [sessionId, applicationId])
+    verifyPayment();
+  }, [sessionId, applicationId]);
 
   const handleGoToApplications = () => {
-    router.push('/fr/client/applications')
-  }
+    router.push("/fr/client/applications");
+  };
 
   const handleGoToDashboard = () => {
-    router.push('/fr/client')
-  }
+    router.push("/fr/client");
+  };
 
   if (loading) {
     return (
@@ -111,16 +116,20 @@ export default function PaymentSuccessPage() {
           <CardContent className="p-8">
             <div className="text-center">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
-              <h2 className="text-xl font-semibold mb-2">Vérification du paiement...</h2>
-              <p className="text-gray-600">Veuillez patienter pendant que nous vérifions votre paiement.</p>
+              <h2 className="text-xl font-semibold mb-2">
+                Vérification du paiement...
+              </h2>
+              <p className="text-gray-600">
+                Veuillez patienter pendant que nous vérifions votre paiement.
+              </p>
             </div>
           </CardContent>
         </Card>
       </div>
-    )
+    );
   }
 
-  if (!paymentData || paymentData.status === 'error') {
+  if (!paymentData || paymentData.status === "error") {
     return (
       <div className="container mx-auto py-8 max-w-2xl">
         <Card>
@@ -129,13 +138,18 @@ export default function PaymentSuccessPage() {
               <div className="text-red-600 text-4xl mb-4">❌</div>
               <h2 className="text-xl font-semibold mb-2">Erreur de paiement</h2>
               <p className="text-gray-600 mb-6">
-                Une erreur s'est produite lors de la vérification de votre paiement.
+                Une erreur s'est produite lors de la vérification de votre
+                paiement.
               </p>
               <div className="space-y-3">
                 <Button onClick={handleGoToApplications} className="w-full">
                   Retour aux candidatures
                 </Button>
-                <Button variant="outline" onClick={handleGoToDashboard} className="w-full">
+                <Button
+                  variant="outline"
+                  onClick={handleGoToDashboard}
+                  className="w-full"
+                >
                   Retour au tableau de bord
                 </Button>
               </div>
@@ -143,7 +157,7 @@ export default function PaymentSuccessPage() {
           </CardContent>
         </Card>
       </div>
-    )
+    );
   }
 
   return (
@@ -162,7 +176,9 @@ export default function PaymentSuccessPage() {
             <div className="bg-green-50 p-6 rounded-lg border border-green-200">
               <div className="flex items-center justify-center gap-2 mb-4">
                 <CreditCard className="h-5 w-5 text-green-600" />
-                <span className="font-semibold text-green-600">Détails du paiement</span>
+                <span className="font-semibold text-green-600">
+                  Détails du paiement
+                </span>
               </div>
               <p className="text-sm text-green-700">
                 <strong>Montant:</strong> {paymentData.amount.toFixed(2)}€
@@ -198,7 +214,11 @@ export default function PaymentSuccessPage() {
               <Button onClick={handleGoToApplications} className="w-full">
                 Voir mes candidatures
               </Button>
-              <Button variant="outline" onClick={handleGoToDashboard} className="w-full">
+              <Button
+                variant="outline"
+                onClick={handleGoToDashboard}
+                className="w-full"
+              >
                 Retour au tableau de bord
               </Button>
             </div>
@@ -206,5 +226,5 @@ export default function PaymentSuccessPage() {
         </CardContent>
       </Card>
     </div>
-  )
-} 
+  );
+}

@@ -13,10 +13,7 @@ export async function POST(request: NextRequest) {
   try {
     const session = await auth();
     if (!session) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const body = await request.json();
@@ -24,22 +21,19 @@ export async function POST(request: NextRequest) {
 
     // Vérifier que l'utilisateur demande un retrait pour lui-même
     if (providerId !== session.user.id && session.user.role !== "ADMIN") {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 403 }
-      );
+      return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 
     // Vérifier que le provider existe
     const provider = await prisma.provider.findUnique({
       where: { userId: providerId },
-      include: { user: true }
+      include: { user: true },
     });
 
     if (!provider) {
       return NextResponse.json(
         { error: "Provider not found" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -47,7 +41,7 @@ export async function POST(request: NextRequest) {
     if (provider.validationStatus !== "APPROVED") {
       return NextResponse.json(
         { error: "Provider must be validated to withdraw earnings" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -80,12 +74,12 @@ export async function POST(request: NextRequest) {
 
     if (amount > availableBalance) {
       return NextResponse.json(
-        { 
+        {
           error: "Insufficient balance",
           availableBalance,
-          requestedAmount: amount
+          requestedAmount: amount,
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -93,7 +87,7 @@ export async function POST(request: NextRequest) {
     if (amount < 10) {
       return NextResponse.json(
         { error: "Minimum withdrawal amount is 10€" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -162,14 +156,14 @@ export async function POST(request: NextRequest) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: "Validation error", details: error.errors },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     console.error("Error processing withdrawal request:", error);
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -179,31 +173,25 @@ export async function GET(request: NextRequest) {
   try {
     const session = await auth();
     if (!session) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const { searchParams } = new URL(request.url);
     const providerId = searchParams.get("providerId");
-    const page = parseInt(searchParams.get('page') || '1');
-    const limit = parseInt(searchParams.get('limit') || '10');
-    const status = searchParams.get('status');
+    const page = parseInt(searchParams.get("page") || "1");
+    const limit = parseInt(searchParams.get("limit") || "10");
+    const status = searchParams.get("status");
 
     if (!providerId) {
       return NextResponse.json(
         { error: "Provider ID is required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     // Vérifier les permissions
     if (providerId !== session.user.id && session.user.role !== "ADMIN") {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 403 }
-      );
+      return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 
     // Construire la condition de recherche
@@ -229,7 +217,7 @@ export async function GET(request: NextRequest) {
       prisma.walletOperation.count({ where }),
     ]);
 
-    const formattedWithdrawals = withdrawals.map(withdrawal => ({
+    const formattedWithdrawals = withdrawals.map((withdrawal) => ({
       id: withdrawal.id,
       amount: Math.abs(withdrawal.amount),
       status: withdrawal.status,
@@ -251,7 +239,7 @@ export async function GET(request: NextRequest) {
     console.error("Error fetching withdrawal history:", error);
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
-} 
+}

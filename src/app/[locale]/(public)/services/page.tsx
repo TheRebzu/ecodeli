@@ -13,7 +13,7 @@ import {
   Heart,
   Leaf,
   Shield,
-  MapPin
+  MapPin,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -30,7 +30,8 @@ export default function ServicesPage() {
                 Des solutions pour tous vos besoins
               </h1>
               <p className="max-w-[700px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-                EcoDeli propose une gamme complète de services de crowdshipping pour particuliers et professionnels
+                EcoDeli propose une gamme complète de services de crowdshipping
+                pour particuliers et professionnels
               </p>
             </div>
           </div>
@@ -52,11 +53,15 @@ export default function ServicesPage() {
                 <ul className="grid gap-4">
                   <li className="flex items-center gap-2">
                     <CheckCircle className="h-5 w-5 text-primary flex-shrink-0" />
-                    <span>Livraison de colis de particuliers à particuliers</span>
+                    <span>
+                      Livraison de colis de particuliers à particuliers
+                    </span>
                   </li>
                   <li className="flex items-center gap-2">
                     <CheckCircle className="h-5 w-5 text-primary flex-shrink-0" />
-                    <span>Prise en charge intégrale ou partielle du trajet</span>
+                    <span>
+                      Prise en charge intégrale ou partielle du trajet
+                    </span>
                   </li>
                   <li className="flex items-center gap-2">
                     <CheckCircle className="h-5 w-5 text-primary flex-shrink-0" />
@@ -72,7 +77,9 @@ export default function ServicesPage() {
                   </li>
                   <li className="flex items-center gap-2">
                     <CheckCircle className="h-5 w-5 text-primary flex-shrink-0" />
-                    <span>Code de confirmation pour validation de livraison</span>
+                    <span>
+                      Code de confirmation pour validation de livraison
+                    </span>
                   </li>
                 </ul>
                 <div className="flex mt-8">
@@ -105,7 +112,8 @@ export default function ServicesPage() {
                 Services à la personne
               </h2>
               <p className="max-w-[700px] text-muted-foreground md:text-xl">
-                Au-delà du transport de colis, nous proposons plusieurs services complémentaires
+                Au-delà du transport de colis, nous proposons plusieurs services
+                complémentaires
               </p>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mt-12">
@@ -114,11 +122,14 @@ export default function ServicesPage() {
                   <div className="mb-4 w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
                     <User className="h-5 w-5 text-primary" />
                   </div>
-                  <CardTitle className="text-2xl">Transport de personnes</CardTitle>
+                  <CardTitle className="text-2xl">
+                    Transport de personnes
+                  </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <p className="text-muted-foreground">
-                    Transport quotidien pour rendez-vous médicaux, gare, aéroport, travail et autres déplacements.
+                    Transport quotidien pour rendez-vous médicaux, gare,
+                    aéroport, travail et autres déplacements.
                   </p>
                   <ul className="space-y-2">
                     <li className="flex items-center text-sm">
@@ -146,11 +157,14 @@ export default function ServicesPage() {
                   <div className="mb-4 w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
                     <ShoppingBag className="h-5 w-5 text-primary" />
                   </div>
-                  <CardTitle className="text-2xl">Services de courses</CardTitle>
+                  <CardTitle className="text-2xl">
+                    Services de courses
+                  </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <p className="text-muted-foreground">
-                    Nous effectuons vos courses selon vos besoins, même pour des produits spécifiques difficiles à trouver.
+                    Nous effectuons vos courses selon vos besoins, même pour des
+                    produits spécifiques difficiles à trouver.
                   </p>
                   <ul className="space-y-2">
                     <li className="flex items-center text-sm">
@@ -178,11 +192,14 @@ export default function ServicesPage() {
                   <div className="mb-4 w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
                     <Heart className="h-5 w-5 text-primary" />
                   </div>
-                  <CardTitle className="text-2xl">Services écologiques</CardTitle>
+                  <CardTitle className="text-2xl">
+                    Services écologiques
+                  </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <p className="text-muted-foreground">
-                    Des services complémentaires pour répondre à tous vos besoins quotidiens.
+                    Des services complémentaires pour répondre à tous vos
+                    besoins quotidiens.
                   </p>
                   <ul className="space-y-2">
                     <li className="flex items-center text-sm">
@@ -230,9 +247,12 @@ export default function ServicesPage() {
                     01
                   </div>
                 </div>
-                <h3 className="text-xl font-bold mb-2">Publiez votre annonce</h3>
+                <h3 className="text-xl font-bold mb-2">
+                  Publiez votre annonce
+                </h3>
                 <p className="text-muted-foreground">
-                  Décrivez votre besoin de service ou le service que vous proposez
+                  Décrivez votre besoin de service ou le service que vous
+                  proposez
                 </p>
               </div>
 
@@ -277,7 +297,8 @@ export default function ServicesPage() {
                 </div>
                 <h3 className="text-xl font-bold mb-2">Code de confirmation</h3>
                 <p className="text-muted-foreground">
-                  Un code de confirmation valide le service et déclenche le paiement
+                  Un code de confirmation valide le service et déclenche le
+                  paiement
                 </p>
               </div>
             </div>
@@ -304,7 +325,8 @@ export default function ServicesPage() {
                   </div>
                   <h3 className="text-xl font-bold mb-2">Écologique</h3>
                   <p className="text-muted-foreground">
-                    Réduction de l'empreinte carbone grâce à l'optimisation des trajets existants.
+                    Réduction de l'empreinte carbone grâce à l'optimisation des
+                    trajets existants.
                   </p>
                 </CardContent>
               </Card>
@@ -316,7 +338,8 @@ export default function ServicesPage() {
                   </div>
                   <h3 className="text-xl font-bold mb-2">Sécurisé</h3>
                   <p className="text-muted-foreground">
-                    Transactions sécurisées, assurance incluse et système de code de confirmation.
+                    Transactions sécurisées, assurance incluse et système de
+                    code de confirmation.
                   </p>
                 </CardContent>
               </Card>
@@ -328,7 +351,8 @@ export default function ServicesPage() {
                   </div>
                   <h3 className="text-xl font-bold mb-2">Flexible</h3>
                   <p className="text-muted-foreground">
-                    Des services adaptés à vos besoins, quand vous en avez besoin.
+                    Des services adaptés à vos besoins, quand vous en avez
+                    besoin.
                   </p>
                 </CardContent>
               </Card>
@@ -340,7 +364,8 @@ export default function ServicesPage() {
                   </div>
                   <h3 className="text-xl font-bold mb-2">Local</h3>
                   <p className="text-muted-foreground">
-                    Soutien à l'économie locale et création de liens dans votre communauté.
+                    Soutien à l'économie locale et création de liens dans votre
+                    communauté.
                   </p>
                 </CardContent>
               </Card>

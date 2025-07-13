@@ -1,8 +1,8 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Dialog,
   DialogContent,
@@ -10,41 +10,41 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Badge } from '@/components/ui/badge'
-import { 
-  Euro, 
-  CreditCard, 
-  AlertCircle, 
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import {
+  Euro,
+  CreditCard,
+  AlertCircle,
   Info,
   Calculator,
-  Download
-} from 'lucide-react'
-import { useWithdrawals } from '../../hooks/useDelivererData'
-import { withdrawalSchema, type WithdrawalInput } from '../../schemas'
-import { useTranslations } from 'next-intl'
+  Download,
+} from "lucide-react";
+import { useWithdrawals } from "../../hooks/useDelivererData";
+import { withdrawalSchema, type WithdrawalInput } from "../../schemas";
+import { useTranslations } from "next-intl";
 
 interface WithdrawalRequestDialogProps {
-  isOpen: boolean
-  onClose: () => void
-  availableBalance: number
-  onSuccess: () => void
+  isOpen: boolean;
+  onClose: () => void;
+  availableBalance: number;
+  onSuccess: () => void;
 }
 
-export function WithdrawalRequestDialog({ 
-  isOpen, 
-  onClose, 
+export function WithdrawalRequestDialog({
+  isOpen,
+  onClose,
   availableBalance,
-  onSuccess 
+  onSuccess,
 }: WithdrawalRequestDialogProps) {
-  const [processing, setProcessing] = useState(false)
-  const [error, setError] = useState('')
-  const { requestWithdrawal } = useWithdrawals()
-  const t = useTranslations('deliverer.wallet.withdrawal')
+  const [processing, setProcessing] = useState(false);
+  const [error, setError] = useState("");
+  const { requestWithdrawal } = useWithdrawals();
+  const t = useTranslations("deliverer.wallet.withdrawal");
 
   const {
     register,
@@ -52,53 +52,53 @@ export function WithdrawalRequestDialog({
     formState: { errors },
     reset,
     watch,
-    setValue
+    setValue,
   } = useForm<WithdrawalInput>({
-    resolver: zodResolver(withdrawalSchema)
-  })
+    resolver: zodResolver(withdrawalSchema),
+  });
 
-  const amountValue = watch('amount', 0)
-  const ibanValue = watch('bankAccount', '')
+  const amountValue = watch("amount", 0);
+  const ibanValue = watch("bankAccount", "");
 
   // Calcul des frais (2% minimum 1€)
   const calculateFee = (amount: number) => {
-    const percentageFee = amount * 0.02
-    return Math.max(percentageFee, 1)
-  }
+    const percentageFee = amount * 0.02;
+    return Math.max(percentageFee, 1);
+  };
 
-  const fee = calculateFee(amountValue || 0)
-  const netAmount = (amountValue || 0) - fee
+  const fee = calculateFee(amountValue || 0);
+  const netAmount = (amountValue || 0) - fee;
 
   const onSubmit = async (data: WithdrawalInput) => {
-    setProcessing(true)
-    setError('')
+    setProcessing(true);
+    setError("");
 
     try {
-      await requestWithdrawal(data)
-      onSuccess()
-      handleClose()
+      await requestWithdrawal(data);
+      onSuccess();
+      handleClose();
     } catch (error: any) {
-      setError(error.message || t('error.request_failed'))
+      setError(error.message || t("error.request_failed"));
     } finally {
-      setProcessing(false)
+      setProcessing(false);
     }
-  }
+  };
 
   const handleClose = () => {
-    reset()
-    setError('')
-    onClose()
-  }
+    reset();
+    setError("");
+    onClose();
+  };
 
   const setPresetAmount = (percentage: number) => {
-    const amount = Math.floor(availableBalance * percentage)
-    setValue('amount', amount)
-  }
+    const amount = Math.floor(availableBalance * percentage);
+    setValue("amount", amount);
+  };
 
   const formatIBAN = (iban: string) => {
     // Formate l'IBAN pour l'affichage (espaces tous les 4 caractères)
-    return iban.replace(/(.{4})/g, '$1 ').trim()
-  }
+    return iban.replace(/(.{4})/g, "$1 ").trim();
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
@@ -106,18 +106,18 @@ export function WithdrawalRequestDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center">
             <Download className="w-5 h-5 mr-2 text-blue-600" />
-            {t('title')}
+            {t("title")}
           </DialogTitle>
-          <DialogDescription>
-            {t('description')}
-          </DialogDescription>
+          <DialogDescription>{t("description")}</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
           {/* Solde disponible */}
           <div className="bg-blue-50 p-4 rounded-lg">
             <div className="flex items-center justify-between">
-              <span className="text-sm text-blue-800">{t('available_balance')}</span>
+              <span className="text-sm text-blue-800">
+                {t("available_balance")}
+              </span>
               <Badge variant="secondary" className="bg-blue-100 text-blue-800">
                 {availableBalance.toFixed(2)}€
               </Badge>
@@ -130,7 +130,7 @@ export function WithdrawalRequestDialog({
             <div className="space-y-2">
               <Label htmlFor="amount" className="flex items-center">
                 <Euro className="w-4 h-4 mr-2" />
-                {t('amount_label')}
+                {t("amount_label")}
               </Label>
               <Input
                 id="amount"
@@ -139,9 +139,9 @@ export function WithdrawalRequestDialog({
                 min="10"
                 max={availableBalance}
                 placeholder="50.00"
-                {...register('amount', { valueAsNumber: true })}
+                {...register("amount", { valueAsNumber: true })}
               />
-              
+
               {/* Boutons de montant prédéfinis */}
               <div className="flex space-x-2">
                 <Button
@@ -174,7 +174,7 @@ export function WithdrawalRequestDialog({
                   size="sm"
                   onClick={() => setPresetAmount(1)}
                 >
-                  {t('all')}
+                  {t("all")}
                 </Button>
               </div>
 
@@ -187,20 +187,22 @@ export function WithdrawalRequestDialog({
             <div className="space-y-2">
               <Label htmlFor="bankAccount" className="flex items-center">
                 <CreditCard className="w-4 h-4 mr-2" />
-                {t('iban_label')}
+                {t("iban_label")}
               </Label>
               <Input
                 id="bankAccount"
                 placeholder="FR76 1234 5678 9012 3456 7890 123"
-                {...register('bankAccount')}
+                {...register("bankAccount")}
                 onChange={(e) => {
                   // Formater l'IBAN en temps réel
-                  const value = e.target.value.replace(/\s/g, '').toUpperCase()
-                  e.target.value = formatIBAN(value)
+                  const value = e.target.value.replace(/\s/g, "").toUpperCase();
+                  e.target.value = formatIBAN(value);
                 }}
               />
               {errors.bankAccount && (
-                <p className="text-sm text-red-600">{errors.bankAccount.message}</p>
+                <p className="text-sm text-red-600">
+                  {errors.bankAccount.message}
+                </p>
               )}
             </div>
 
@@ -209,20 +211,20 @@ export function WithdrawalRequestDialog({
               <div className="bg-gray-50 p-4 rounded-lg space-y-2">
                 <div className="flex items-center text-sm text-gray-600 mb-2">
                   <Calculator className="w-4 h-4 mr-2" />
-                  {t('fee_calculation')}
+                  {t("fee_calculation")}
                 </div>
-                
+
                 <div className="space-y-1 text-sm">
                   <div className="flex justify-between">
-                    <span>{t('requested_amount')}</span>
+                    <span>{t("requested_amount")}</span>
                     <span>{amountValue.toFixed(2)}€</span>
                   </div>
                   <div className="flex justify-between text-orange-600">
-                    <span>{t('processing_fee')}</span>
+                    <span>{t("processing_fee")}</span>
                     <span>-{fee.toFixed(2)}€</span>
                   </div>
                   <div className="flex justify-between font-semibold text-green-600 border-t pt-1">
-                    <span>{t('net_amount')}</span>
+                    <span>{t("net_amount")}</span>
                     <span>{netAmount.toFixed(2)}€</span>
                   </div>
                 </div>
@@ -241,9 +243,9 @@ export function WithdrawalRequestDialog({
             <Alert>
               <Info className="h-4 w-4" />
               <AlertDescription className="space-y-1">
-                <p>{t('info.fee_structure')}</p>
-                <p>{t('info.processing_time')}</p>
-                <p>{t('info.minimum_amount')}</p>
+                <p>{t("info.fee_structure")}</p>
+                <p>{t("info.processing_time")}</p>
+                <p>{t("info.minimum_amount")}</p>
               </AlertDescription>
             </Alert>
 
@@ -254,22 +256,24 @@ export function WithdrawalRequestDialog({
                 onClick={handleClose}
                 disabled={processing}
               >
-                {t('cancel')}
+                {t("cancel")}
               </Button>
               <Button
                 type="submit"
-                disabled={!amountValue || amountValue < 10 || !ibanValue || processing}
+                disabled={
+                  !amountValue || amountValue < 10 || !ibanValue || processing
+                }
                 className="bg-blue-600 hover:bg-blue-700"
               >
                 {processing ? (
                   <>
                     <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
-                    {t('processing')}
+                    {t("processing")}
                   </>
                 ) : (
                   <>
                     <Download className="w-4 h-4 mr-2" />
-                    {t('request')} {netAmount.toFixed(2)}€
+                    {t("request")} {netAmount.toFixed(2)}€
                   </>
                 )}
               </Button>
@@ -278,7 +282,7 @@ export function WithdrawalRequestDialog({
         </div>
       </DialogContent>
     </Dialog>
-  )
-} 
+  );
+}
 
-export default WithdrawalRequestDialog 
+export default WithdrawalRequestDialog;

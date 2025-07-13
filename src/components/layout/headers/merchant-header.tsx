@@ -1,12 +1,12 @@
-"use client"
+"use client";
 
-import { useState } from 'react'
-import { useTranslations } from 'next-intl'
-import { Link } from '@/i18n/navigation'
-import { cn } from '@/lib/utils'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { useState } from "react";
+import { useTranslations } from "next-intl";
+import { Link } from "@/i18n/navigation";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,9 +14,9 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import { ThemeToggle } from '@/components/ui/theme-toggle'
-import { LanguageSwitcher } from '@/components/common/language-switcher'
+} from "@/components/ui/dropdown-menu";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { LanguageSwitcher } from "@/components/common/language-switcher";
 import {
   Menu,
   Bell,
@@ -30,48 +30,62 @@ import {
   BarChart3,
   DollarSign,
   ShoppingCart,
-  HelpCircle
-} from 'lucide-react'
+  HelpCircle,
+} from "lucide-react";
 
 interface MerchantHeaderProps {
   user: {
-    id: string
-    name?: string
-    email: string
-    role: string
-    avatar?: string
-    storeName?: string
-    contractType?: 'STANDARD' | 'PREMIUM' | 'CUSTOM'
-  }
-  onSidebarToggle?: () => void
+    id: string;
+    name?: string;
+    email: string;
+    role: string;
+    avatar?: string;
+    storeName?: string;
+    contractType?: "STANDARD" | "PREMIUM" | "CUSTOM";
+  };
+  onSidebarToggle?: () => void;
   notifications?: Array<{
-    id: string
-    title: string
-    message: string
-    type: 'info' | 'success' | 'warning' | 'error'
-    read: boolean
-    createdAt: Date
-  }>
+    id: string;
+    title: string;
+    message: string;
+    type: "info" | "success" | "warning" | "error";
+    read: boolean;
+    createdAt: Date;
+  }>;
 }
 
-export function MerchantHeader({ 
-  user, 
-  onSidebarToggle, 
-  notifications = [] 
+export function MerchantHeader({
+  user,
+  onSidebarToggle,
+  notifications = [],
 }: MerchantHeaderProps) {
-  const [showSearch, setShowSearch] = useState(false)
-  const unreadCount = notifications.filter(n => !n.read).length
+  const [showSearch, setShowSearch] = useState(false);
+  const unreadCount = notifications.filter((n) => !n.read).length;
 
   const getContractBadge = () => {
     switch (user.contractType) {
-      case 'PREMIUM':
-        return <Badge variant="default" className="bg-purple-500 hover:bg-purple-600">Premium</Badge>
-      case 'CUSTOM':
-        return <Badge variant="default" className="bg-orange-500 hover:bg-orange-600">Custom</Badge>
+      case "PREMIUM":
+        return (
+          <Badge
+            variant="default"
+            className="bg-purple-500 hover:bg-purple-600"
+          >
+            Premium
+          </Badge>
+        );
+      case "CUSTOM":
+        return (
+          <Badge
+            variant="default"
+            className="bg-orange-500 hover:bg-orange-600"
+          >
+            Custom
+          </Badge>
+        );
       default:
-        return <Badge variant="outline">Standard</Badge>
+        return <Badge variant="outline">Standard</Badge>;
     }
-  }
+  };
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 dark:bg-background/95">
@@ -88,7 +102,10 @@ export function MerchantHeader({
         </Button>
 
         {/* Logo (visible sur mobile uniquement) */}
-        <Link href="/merchant" className="flex items-center space-x-2 md:hidden ml-2">
+        <Link
+          href="/merchant"
+          className="flex items-center space-x-2 md:hidden ml-2"
+        >
           <Store className="h-6 w-6 text-purple-600 dark:text-purple-400" />
           <span className="font-bold text-xl">EcoDeli</span>
         </Link>
@@ -152,7 +169,7 @@ export function MerchantHeader({
                     variant="destructive"
                     className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs"
                   >
-                    {unreadCount > 9 ? '9+' : unreadCount}
+                    {unreadCount > 9 ? "9+" : unreadCount}
                   </Badge>
                 )}
                 <span className="sr-only">Notifications</span>
@@ -173,9 +190,14 @@ export function MerchantHeader({
               ) : (
                 <div className="max-h-80 overflow-y-auto">
                   {notifications.slice(0, 5).map((notification) => (
-                    <DropdownMenuItem key={notification.id} className="flex flex-col items-start space-y-1 p-3">
+                    <DropdownMenuItem
+                      key={notification.id}
+                      className="flex flex-col items-start space-y-1 p-3"
+                    >
                       <div className="flex items-center justify-between w-full">
-                        <span className="font-medium text-sm">{notification.title}</span>
+                        <span className="font-medium text-sm">
+                          {notification.title}
+                        </span>
                         {!notification.read && (
                           <div className="w-2 h-2 bg-purple-500 rounded-full" />
                         )}
@@ -190,7 +212,10 @@ export function MerchantHeader({
                   ))}
                   {notifications.length > 5 && (
                     <DropdownMenuItem asChild>
-                      <Link href="/merchant/notifications" className="text-center py-2">
+                      <Link
+                        href="/merchant/notifications"
+                        className="text-center py-2"
+                      >
                         Voir toutes les notifications
                       </Link>
                     </DropdownMenuItem>
@@ -211,9 +236,14 @@ export function MerchantHeader({
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="relative h-8 w-8 rounded-full">
                 <Avatar className="h-8 w-8">
-                  <AvatarImage src={user.avatar} alt={user.name || user.email} />
+                  <AvatarImage
+                    src={user.avatar}
+                    alt={user.name || user.email}
+                  />
                   <AvatarFallback>
-                    {user.name ? user.name.substring(0, 2).toUpperCase() : user.email.substring(0, 2).toUpperCase()}
+                    {user.name
+                      ? user.name.substring(0, 2).toUpperCase()
+                      : user.email.substring(0, 2).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
               </Button>
@@ -222,7 +252,7 @@ export function MerchantHeader({
               <DropdownMenuLabel className="font-normal">
                 <div className="flex flex-col space-y-1">
                   <p className="text-sm font-medium leading-none">
-                    {user.name || 'Commerçant'}
+                    {user.name || "Commerçant"}
                   </p>
                   {user.storeName && (
                     <p className="text-xs leading-none text-muted-foreground">
@@ -285,5 +315,5 @@ export function MerchantHeader({
         </div>
       </div>
     </header>
-  )
-} 
+  );
+}

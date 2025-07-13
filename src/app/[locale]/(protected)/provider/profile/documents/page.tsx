@@ -4,16 +4,22 @@ import { useAuth } from "@/hooks/use-auth";
 import { PageHeader } from "@/components/layout/page-header";
 import { useTranslations } from "next-intl";
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { 
-  FileText, 
-  Upload, 
+import {
+  FileText,
+  Upload,
   Download,
   Eye,
   Trash2,
@@ -23,15 +29,20 @@ import {
   AlertCircle,
   Plus,
   Image,
-  File
+  File,
 } from "lucide-react";
 
 interface Document {
   id: string;
-  type: 'IDENTITY' | 'DRIVING_LICENSE' | 'INSURANCE' | 'CERTIFICATION' | 'CONTRACT';
+  type:
+    | "IDENTITY"
+    | "DRIVING_LICENSE"
+    | "INSURANCE"
+    | "CERTIFICATION"
+    | "CONTRACT";
   filename: string;
   url: string;
-  status: 'PENDING' | 'APPROVED' | 'REJECTED';
+  status: "PENDING" | "APPROVED" | "REJECTED";
   uploadedAt: string;
   validatedAt?: string;
   validatedBy?: string;
@@ -51,29 +62,29 @@ interface DocumentType {
 
 const documentTypes: DocumentType[] = [
   {
-    key: 'IDENTITY',
-    label: 'Pièce d\'identité',
-    description: 'Carte d\'identité, passeport ou permis de conduire',
+    key: "IDENTITY",
+    label: "Pièce d'identité",
+    description: "Carte d'identité, passeport ou permis de conduire",
     required: true,
-    acceptedFormats: ['image/jpeg', 'image/png', 'application/pdf'],
-    maxSize: 5 * 1024 * 1024 // 5MB
+    acceptedFormats: ["image/jpeg", "image/png", "application/pdf"],
+    maxSize: 5 * 1024 * 1024, // 5MB
   },
   {
-    key: 'INSURANCE',
-    label: 'Assurance responsabilité civile',
-    description: 'Attestation d\'assurance professionnelle',
+    key: "INSURANCE",
+    label: "Assurance responsabilité civile",
+    description: "Attestation d'assurance professionnelle",
     required: true,
-    acceptedFormats: ['application/pdf', 'image/jpeg', 'image/png'],
-    maxSize: 10 * 1024 * 1024 // 10MB
+    acceptedFormats: ["application/pdf", "image/jpeg", "image/png"],
+    maxSize: 10 * 1024 * 1024, // 10MB
   },
   {
-    key: 'CERTIFICATION',
-    label: 'Certifications professionnelles',
-    description: 'Diplômes, certificats ou formations',
+    key: "CERTIFICATION",
+    label: "Certifications professionnelles",
+    description: "Diplômes, certificats ou formations",
     required: false,
-    acceptedFormats: ['application/pdf', 'image/jpeg', 'image/png'],
-    maxSize: 10 * 1024 * 1024 // 10MB
-  }
+    acceptedFormats: ["application/pdf", "image/jpeg", "image/png"],
+    maxSize: 10 * 1024 * 1024, // 10MB
+  },
 ];
 
 export default function ProviderDocumentsPage() {
@@ -87,9 +98,11 @@ export default function ProviderDocumentsPage() {
   useEffect(() => {
     const fetchDocuments = async () => {
       if (!user?.id) return;
-      
+
       try {
-        const response = await fetch(`/api/provider/profile/documents?userId=${user.id}`);
+        const response = await fetch(
+          `/api/provider/profile/documents?userId=${user.id}`,
+        );
         if (response.ok) {
           const data = await response.json();
           setDocuments(data.documents || []);
@@ -111,19 +124,19 @@ export default function ProviderDocumentsPage() {
     setUploadProgress(0);
 
     const formData = new FormData();
-    formData.append('file', file);
-    formData.append('type', documentType);
-    formData.append('userId', user.id);
+    formData.append("file", file);
+    formData.append("type", documentType);
+    formData.append("userId", user.id);
 
     try {
-      const response = await fetch('/api/provider/profile/documents/upload', {
-        method: 'POST',
-        body: formData
+      const response = await fetch("/api/provider/profile/documents/upload", {
+        method: "POST",
+        body: formData,
       });
 
       if (response.ok) {
         const newDocument = await response.json();
-        setDocuments(prev => [...prev, newDocument]);
+        setDocuments((prev) => [...prev, newDocument]);
       }
     } catch (error) {
       console.error("Error uploading document:", error);
@@ -135,12 +148,15 @@ export default function ProviderDocumentsPage() {
 
   const handleDeleteDocument = async (documentId: string) => {
     try {
-      const response = await fetch(`/api/provider/profile/documents/${documentId}`, {
-        method: 'DELETE'
-      });
+      const response = await fetch(
+        `/api/provider/profile/documents/${documentId}`,
+        {
+          method: "DELETE",
+        },
+      );
 
       if (response.ok) {
-        setDocuments(prev => prev.filter(doc => doc.id !== documentId));
+        setDocuments((prev) => prev.filter((doc) => doc.id !== documentId));
       }
     } catch (error) {
       console.error("Error deleting document:", error);
@@ -149,11 +165,11 @@ export default function ProviderDocumentsPage() {
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'APPROVED':
+      case "APPROVED":
         return <CheckCircle className="h-4 w-4 text-green-600" />;
-      case 'REJECTED':
+      case "REJECTED":
         return <XCircle className="h-4 w-4 text-red-600" />;
-      case 'PENDING':
+      case "PENDING":
         return <Clock className="h-4 w-4 text-yellow-600" />;
       default:
         return <AlertCircle className="h-4 w-4 text-gray-600" />;
@@ -162,38 +178,42 @@ export default function ProviderDocumentsPage() {
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case 'APPROVED':
+      case "APPROVED":
         return <Badge className="bg-green-100 text-green-800">Approuvé</Badge>;
-      case 'REJECTED':
+      case "REJECTED":
         return <Badge variant="destructive">Rejeté</Badge>;
-      case 'PENDING':
-        return <Badge className="bg-yellow-100 text-yellow-800">En attente</Badge>;
+      case "PENDING":
+        return (
+          <Badge className="bg-yellow-100 text-yellow-800">En attente</Badge>
+        );
       default:
         return <Badge variant="secondary">{status}</Badge>;
     }
   };
 
   const getFileIcon = (mimeType: string) => {
-    if (mimeType.startsWith('image/')) {
+    if (mimeType.startsWith("image/")) {
       return <Image className="h-4 w-4" />;
-    } else if (mimeType === 'application/pdf') {
+    } else if (mimeType === "application/pdf") {
       return <FileText className="h-4 w-4" />;
     }
     return <File className="h-4 w-4" />;
   };
 
   const formatFileSize = (bytes: number) => {
-    if (bytes === 0) return '0 Bytes';
+    if (bytes === 0) return "0 Bytes";
     const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const sizes = ["Bytes", "KB", "MB", "GB"];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
   };
 
   const calculateCompletionRate = () => {
-    const requiredTypes = documentTypes.filter(type => type.required);
-    const completedRequired = requiredTypes.filter(type => 
-      documents.some(doc => doc.type === type.key && doc.status === 'APPROVED')
+    const requiredTypes = documentTypes.filter((type) => type.required);
+    const completedRequired = requiredTypes.filter((type) =>
+      documents.some(
+        (doc) => doc.type === type.key && doc.status === "APPROVED",
+      ),
     );
     return Math.round((completedRequired.length / requiredTypes.length) * 100);
   };
@@ -240,23 +260,29 @@ export default function ProviderDocumentsPage() {
         <CardContent>
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium">Documents obligatoires</span>
-              <span className="text-sm text-muted-foreground">{completionRate}% complété</span>
+              <span className="text-sm font-medium">
+                Documents obligatoires
+              </span>
+              <span className="text-sm text-muted-foreground">
+                {completionRate}% complété
+              </span>
             </div>
             <Progress value={completionRate} className="w-full" />
-            
+
             {completionRate === 100 ? (
               <Alert className="border-green-200 bg-green-50">
                 <CheckCircle className="h-4 w-4 text-green-600" />
                 <AlertDescription className="text-green-800">
-                  Tous vos documents obligatoires ont été approuvés! Votre compte est entièrement vérifié.
+                  Tous vos documents obligatoires ont été approuvés! Votre
+                  compte est entièrement vérifié.
                 </AlertDescription>
               </Alert>
             ) : (
               <Alert>
                 <AlertCircle className="h-4 w-4" />
                 <AlertDescription>
-                  Veuillez télécharger et faire valider tous vos documents obligatoires pour activer pleinement votre compte.
+                  Veuillez télécharger et faire valider tous vos documents
+                  obligatoires pour activer pleinement votre compte.
                 </AlertDescription>
               </Alert>
             )}
@@ -267,8 +293,12 @@ export default function ProviderDocumentsPage() {
       {/* Document Types */}
       <div className="space-y-6">
         {documentTypes.map((docType) => {
-          const userDocuments = documents.filter(doc => doc.type === docType.key);
-          const hasApprovedDoc = userDocuments.some(doc => doc.status === 'APPROVED');
+          const userDocuments = documents.filter(
+            (doc) => doc.type === docType.key,
+          );
+          const hasApprovedDoc = userDocuments.some(
+            (doc) => doc.status === "APPROVED",
+          );
 
           return (
             <Card key={docType.key}>
@@ -279,7 +309,9 @@ export default function ProviderDocumentsPage() {
                       <FileText className="h-5 w-5" />
                       {docType.label}
                       {docType.required && (
-                        <Badge variant="outline" className="text-xs">Obligatoire</Badge>
+                        <Badge variant="outline" className="text-xs">
+                          Obligatoire
+                        </Badge>
                       )}
                     </CardTitle>
                     <CardDescription>{docType.description}</CardDescription>
@@ -293,16 +325,24 @@ export default function ProviderDocumentsPage() {
                 <div className="space-y-4">
                   {/* Existing Documents */}
                   {userDocuments.map((doc) => (
-                    <div key={doc.id} className="flex items-center justify-between p-4 border rounded-lg">
+                    <div
+                      key={doc.id}
+                      className="flex items-center justify-between p-4 border rounded-lg"
+                    >
                       <div className="flex items-center gap-3">
                         {getFileIcon(doc.mimeType)}
                         <div>
                           <p className="font-medium">{doc.filename}</p>
                           <p className="text-sm text-muted-foreground">
-                            {formatFileSize(doc.fileSize)} • {new Date(doc.uploadedAt).toLocaleDateString('fr-FR')}
+                            {formatFileSize(doc.fileSize)} •{" "}
+                            {new Date(doc.uploadedAt).toLocaleDateString(
+                              "fr-FR",
+                            )}
                           </p>
                           {doc.rejectionReason && (
-                            <p className="text-sm text-red-600 mt-1">{doc.rejectionReason}</p>
+                            <p className="text-sm text-red-600 mt-1">
+                              {doc.rejectionReason}
+                            </p>
                           )}
                         </div>
                       </div>
@@ -314,9 +354,9 @@ export default function ProviderDocumentsPage() {
                         <Button variant="outline" size="sm">
                           <Download className="h-4 w-4" />
                         </Button>
-                        {doc.status !== 'APPROVED' && (
-                          <Button 
-                            variant="outline" 
+                        {doc.status !== "APPROVED" && (
+                          <Button
+                            variant="outline"
                             size="sm"
                             onClick={() => handleDeleteDocument(doc.id)}
                           >
@@ -333,15 +373,18 @@ export default function ProviderDocumentsPage() {
                       <div className="text-center space-y-4">
                         <Upload className="h-12 w-12 mx-auto text-muted-foreground" />
                         <div>
-                          <p className="text-sm font-medium">Télécharger {docType.label}</p>
+                          <p className="text-sm font-medium">
+                            Télécharger {docType.label}
+                          </p>
                           <p className="text-xs text-muted-foreground">
-                            Formats acceptés: {docType.acceptedFormats.join(', ')} • 
-                            Taille max: {formatFileSize(docType.maxSize)}
+                            Formats acceptés:{" "}
+                            {docType.acceptedFormats.join(", ")} • Taille max:{" "}
+                            {formatFileSize(docType.maxSize)}
                           </p>
                         </div>
                         <Input
                           type="file"
-                          accept={docType.acceptedFormats.join(',')}
+                          accept={docType.acceptedFormats.join(",")}
                           onChange={(e) => {
                             const file = e.target.files?.[0];
                             if (file) {
@@ -353,7 +396,9 @@ export default function ProviderDocumentsPage() {
                         {uploading && (
                           <div className="space-y-2">
                             <Progress value={uploadProgress} />
-                            <p className="text-xs text-muted-foreground">Téléchargement...</p>
+                            <p className="text-xs text-muted-foreground">
+                              Téléchargement...
+                            </p>
                           </div>
                         )}
                       </div>
@@ -382,4 +427,4 @@ export default function ProviderDocumentsPage() {
       </Card>
     </div>
   );
-} 
+}

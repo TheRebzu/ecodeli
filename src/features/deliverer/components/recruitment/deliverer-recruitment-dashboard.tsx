@@ -1,110 +1,136 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { FileText, CheckCircle, ArrowRight, Loader2, TrendingUp, Package, Star } from 'lucide-react'
-import Link from 'next/link'
-import { useAuth } from '@/hooks/use-auth'
-import { toast } from 'sonner'
+import { useState, useEffect } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import {
+  FileText,
+  CheckCircle,
+  ArrowRight,
+  Loader2,
+  TrendingUp,
+  Package,
+  Star,
+} from "lucide-react";
+import Link from "next/link";
+import { useAuth } from "@/hooks/use-auth";
+import { toast } from "sonner";
 
 interface DashboardStats {
-  activeDeliveries: number
-  monthlyEarnings: number
-  averageRating: number
-  totalDeliveries: number
-  pendingRequests: number
+  activeDeliveries: number;
+  monthlyEarnings: number;
+  averageRating: number;
+  totalDeliveries: number;
+  pendingRequests: number;
 }
 
 interface CandidacyStatus {
-  status: string
-  message: string
+  status: string;
+  message: string;
 }
 
 export function DelivererDashboard() {
-  const { user } = useAuth()
-  const [loading, setLoading] = useState(true)
-  const [stats, setStats] = useState<DashboardStats | null>(null)
+  const { user } = useAuth();
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState<DashboardStats | null>(null);
   const [candidacyStatus, setCandidacyStatus] = useState<CandidacyStatus>({
-    status: 'DRAFT',
-    message: 'Votre candidature est en cours de préparation.'
-  })
+    status: "DRAFT",
+    message: "Votre candidature est en cours de préparation.",
+  });
 
   useEffect(() => {
     if (user) {
-      fetchDashboardData()
+      fetchDashboardData();
     }
-  }, [user])
+  }, [user]);
 
   const fetchDashboardData = async () => {
     try {
-      setLoading(true)
-      
+      setLoading(true);
+
       // Récupérer les statistiques du dashboard
-      const statsResponse = await fetch('/api/deliverer/dashboard/stats')
+      const statsResponse = await fetch("/api/deliverer/dashboard/stats");
       if (statsResponse.ok) {
-        const statsData = await statsResponse.json()
-        setStats(statsData)
+        const statsData = await statsResponse.json();
+        setStats(statsData);
       }
 
       // Récupérer le statut de candidature
-      const candidacyResponse = await fetch(`/api/deliverer/recruitment?userId=${user?.id}`)
+      const candidacyResponse = await fetch(
+        `/api/deliverer/recruitment?userId=${user?.id}`,
+      );
       if (candidacyResponse.ok) {
-        const candidacyData = await candidacyResponse.json()
+        const candidacyData = await candidacyResponse.json();
         if (candidacyData.application) {
-          updateCandidacyStatus(candidacyData.application.status)
+          updateCandidacyStatus(candidacyData.application.status);
         }
       }
     } catch (error) {
-      console.error('Erreur lors du chargement du dashboard:', error)
-      toast.error('Impossible de charger les données du dashboard')
+      console.error("Erreur lors du chargement du dashboard:", error);
+      toast.error("Impossible de charger les données du dashboard");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const updateCandidacyStatus = (status: string) => {
     const statusConfig = {
-      'DRAFT': {
-        status: 'DRAFT',
-        message: 'Votre candidature est en cours de préparation. Complétez tous les documents requis.'
+      DRAFT: {
+        status: "DRAFT",
+        message:
+          "Votre candidature est en cours de préparation. Complétez tous les documents requis.",
       },
-      'SUBMITTED': {
-        status: 'SUBMITTED',
-        message: 'Votre candidature a été soumise et est en cours d\'examen par notre équipe.'
+      SUBMITTED: {
+        status: "SUBMITTED",
+        message:
+          "Votre candidature a été soumise et est en cours d'examen par notre équipe.",
       },
-      'APPROVED': {
-        status: 'APPROVED',
-        message: 'Votre candidature a été validée. Vous pouvez maintenant accepter des livraisons.'
+      APPROVED: {
+        status: "APPROVED",
+        message:
+          "Votre candidature a été validée. Vous pouvez maintenant accepter des livraisons.",
       },
-      'REJECTED': {
-        status: 'REJECTED',
-        message: 'Votre candidature a été rejetée. Veuillez consulter les détails dans la section documents.'
-      }
-    }
+      REJECTED: {
+        status: "REJECTED",
+        message:
+          "Votre candidature a été rejetée. Veuillez consulter les détails dans la section documents.",
+      },
+    };
 
-    setCandidacyStatus(statusConfig[status as keyof typeof statusConfig] || statusConfig.DRAFT)
-  }
+    setCandidacyStatus(
+      statusConfig[status as keyof typeof statusConfig] || statusConfig.DRAFT,
+    );
+  };
 
   const getCandidacyStatusColor = (status: string) => {
     switch (status) {
-      case 'APPROVED': return 'bg-green-50 border-green-200'
-      case 'REJECTED': return 'bg-red-50 border-red-200'
-      case 'SUBMITTED': return 'bg-blue-50 border-blue-200'
-      case 'DRAFT': return 'bg-yellow-50 border-yellow-200'
-      default: return 'bg-gray-50 border-gray-200'
+      case "APPROVED":
+        return "bg-green-50 border-green-200";
+      case "REJECTED":
+        return "bg-red-50 border-red-200";
+      case "SUBMITTED":
+        return "bg-blue-50 border-blue-200";
+      case "DRAFT":
+        return "bg-yellow-50 border-yellow-200";
+      default:
+        return "bg-gray-50 border-gray-200";
     }
-  }
+  };
 
   const getCandidacyStatusIcon = (status: string) => {
     switch (status) {
-      case 'APPROVED': return <CheckCircle className="w-5 h-5 text-green-600" />
-      case 'REJECTED': return <FileText className="w-5 h-5 text-red-600" />
-      case 'SUBMITTED': return <FileText className="w-5 h-5 text-blue-600" />
-      case 'DRAFT': return <FileText className="w-5 h-5 text-yellow-600" />
-      default: return <FileText className="w-5 h-5 text-gray-600" />
+      case "APPROVED":
+        return <CheckCircle className="w-5 h-5 text-green-600" />;
+      case "REJECTED":
+        return <FileText className="w-5 h-5 text-red-600" />;
+      case "SUBMITTED":
+        return <FileText className="w-5 h-5 text-blue-600" />;
+      case "DRAFT":
+        return <FileText className="w-5 h-5 text-yellow-600" />;
+      default:
+        return <FileText className="w-5 h-5 text-gray-600" />;
     }
-  }
+  };
 
   if (loading) {
     return (
@@ -113,7 +139,7 @@ export function DelivererDashboard() {
           <Loader2 className="h-8 w-8 animate-spin" />
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -133,14 +159,27 @@ export function DelivererDashboard() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className={`p-4 rounded-lg border ${getCandidacyStatusColor(candidacyStatus.status)}`}>
-            <p className={candidacyStatus.status === 'APPROVED' ? 'text-green-800' : 
-                         candidacyStatus.status === 'REJECTED' ? 'text-red-800' : 
-                         candidacyStatus.status === 'SUBMITTED' ? 'text-blue-800' : 'text-yellow-800'}>
+          <div
+            className={`p-4 rounded-lg border ${getCandidacyStatusColor(candidacyStatus.status)}`}
+          >
+            <p
+              className={
+                candidacyStatus.status === "APPROVED"
+                  ? "text-green-800"
+                  : candidacyStatus.status === "REJECTED"
+                    ? "text-red-800"
+                    : candidacyStatus.status === "SUBMITTED"
+                      ? "text-blue-800"
+                      : "text-yellow-800"
+              }
+            >
               {candidacyStatus.message}
             </p>
             <Link href="/fr/deliverer/documents">
-              <Button variant="outline" className="bg-white hover:bg-green-100 mt-4">
+              <Button
+                variant="outline"
+                className="bg-white hover:bg-green-100 mt-4"
+              >
                 <FileText className="w-4 h-4 mr-2" />
                 Voir mes documents
                 <ArrowRight className="w-4 h-4 ml-2" />
@@ -160,8 +199,12 @@ export function DelivererDashboard() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-blue-600">{stats.activeDeliveries}</div>
-              <p className="text-sm text-muted-foreground">Livraisons actives</p>
+              <div className="text-2xl font-bold text-blue-600">
+                {stats.activeDeliveries}
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Livraisons actives
+              </p>
             </CardContent>
           </Card>
 
@@ -173,9 +216,13 @@ export function DelivererDashboard() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-green-600">€{stats.monthlyEarnings.toFixed(2)}</div>
+              <div className="text-2xl font-bold text-green-600">
+                €{stats.monthlyEarnings.toFixed(2)}
+              </div>
               <p className="text-sm text-muted-foreground">
-                {stats.monthlyEarnings > 0 ? '+12% vs mois dernier' : 'Aucun gain ce mois'}
+                {stats.monthlyEarnings > 0
+                  ? "+12% vs mois dernier"
+                  : "Aucun gain ce mois"}
               </p>
             </CardContent>
           </Card>
@@ -188,7 +235,9 @@ export function DelivererDashboard() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-yellow-600">{stats.averageRating.toFixed(1)}/5</div>
+              <div className="text-2xl font-bold text-yellow-600">
+                {stats.averageRating.toFixed(1)}/5
+              </div>
               <p className="text-sm text-muted-foreground">
                 Basé sur {stats.totalDeliveries} livraisons
               </p>
@@ -251,5 +300,5 @@ export function DelivererDashboard() {
         </Card>
       </div>
     </div>
-  )
+  );
 }

@@ -1,76 +1,77 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import { useAnnouncements } from '@/features/announcements/hooks/useAnnouncements'
-import { AnnouncementCard } from '../shared/announcement-card'
-import { AnnouncementFilters } from '../shared/announcement-filters'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Skeleton } from '@/components/ui/skeleton'
-import { Plus, Filter, Search } from 'lucide-react'
-import { AnnouncementType, AnnouncementStatus } from '@prisma/client'
-import { Input } from '@/components/ui/input'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { useRouter } from 'next/navigation'
-import { useTranslations } from 'next-intl'
+import { useState, useEffect } from "react";
+import { useAnnouncements } from "@/features/announcements/hooks/useAnnouncements";
+import { AnnouncementCard } from "../shared/announcement-card";
+import { AnnouncementFilters } from "../shared/announcement-filters";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Plus, Filter, Search } from "lucide-react";
+import { AnnouncementType, AnnouncementStatus } from "@prisma/client";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 
 interface AnnouncementListProps {
-  showCreateButton?: boolean
-  showFilters?: boolean
-  compactView?: boolean
+  showCreateButton?: boolean;
+  showFilters?: boolean;
+  compactView?: boolean;
 }
 
-export function AnnouncementList({ 
-  showCreateButton = true, 
+export function AnnouncementList({
+  showCreateButton = true,
   showFilters = true,
-  compactView = false 
+  compactView = false,
 }: AnnouncementListProps) {
-  const t = useTranslations('announcements')
-  const router = useRouter()
-  
+  const t = useTranslations("announcements");
+  const router = useRouter();
+
   const [filters, setFilters] = useState({
     page: 1,
     limit: compactView ? 5 : 10,
     type: undefined as AnnouncementType | undefined,
     status: undefined as AnnouncementStatus | undefined,
     urgent: undefined as boolean | undefined,
-    search: ''
-  })
+    search: "",
+  });
 
-  const { 
-    announcements, 
-    isLoading, 
-    error, 
-    pagination,
-    refresh
-  } = useAnnouncements(filters)
+  const { announcements, isLoading, error, pagination, refresh } =
+    useAnnouncements(filters);
 
   const handleFilterChange = (newFilters: Partial<typeof filters>) => {
-    setFilters(prev => ({ ...prev, ...newFilters, page: 1 }))
-  }
+    setFilters((prev) => ({ ...prev, ...newFilters, page: 1 }));
+  };
 
   const handlePageChange = (page: number) => {
-    setFilters(prev => ({ ...prev, page }))
-  }
+    setFilters((prev) => ({ ...prev, page }));
+  };
 
   const handleCreateNew = () => {
-    router.push('/client/announcements/create')
-  }
+    router.push("/client/announcements/create");
+  };
 
   if (error) {
     return (
       <Card className="w-full">
         <CardContent className="pt-6">
           <div className="text-center text-red-600">
-            <p>{t('error.loading')}</p>
+            <p>{t("error.loading")}</p>
             <Button onClick={refresh} variant="outline" className="mt-2">
-              {t('actions.retry')}
+              {t("actions.retry")}
             </Button>
           </div>
         </CardContent>
       </Card>
-    )
+    );
   }
 
   return (
@@ -78,15 +79,15 @@ export function AnnouncementList({
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-2xl font-bold">{t('title.myAnnouncements')}</h2>
+          <h2 className="text-2xl font-bold">{t("title.myAnnouncements")}</h2>
           <p className="text-muted-foreground">
-            {t('description.manageYourAnnouncements')}
+            {t("description.manageYourAnnouncements")}
           </p>
         </div>
         {showCreateButton && (
           <Button onClick={handleCreateNew} className="flex items-center gap-2">
             <Plus className="h-4 w-4" />
-            {t('actions.createNew')}
+            {t("actions.createNew")}
           </Button>
         )}
       </div>
@@ -97,7 +98,7 @@ export function AnnouncementList({
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Filter className="h-4 w-4" />
-              {t('filters.title')}
+              {t("filters.title")}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -106,62 +107,110 @@ export function AnnouncementList({
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder={t('filters.search')}
+                  placeholder={t("filters.search")}
                   value={filters.search}
-                  onChange={(e) => handleFilterChange({ search: e.target.value })}
+                  onChange={(e) =>
+                    handleFilterChange({ search: e.target.value })
+                  }
                   className="pl-10"
                 />
               </div>
 
               {/* Type Filter */}
-              <Select value={filters.type || ''} onValueChange={(value) => 
-                handleFilterChange({ type: value as AnnouncementType || undefined })
-              }>
+              <Select
+                value={filters.type || ""}
+                onValueChange={(value) =>
+                  handleFilterChange({
+                    type: (value as AnnouncementType) || undefined,
+                  })
+                }
+              >
                 <SelectTrigger>
-                  <SelectValue placeholder={t('filters.type')} />
+                  <SelectValue placeholder={t("filters.type")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">{t('filters.allTypes')}</SelectItem>
-                  <SelectItem value="PACKAGE_DELIVERY">{t('types.packageDelivery')}</SelectItem>
-                  <SelectItem value="PERSON_TRANSPORT">{t('types.personTransport')}</SelectItem>
-                  <SelectItem value="AIRPORT_TRANSFER">{t('types.airportTransfer')}</SelectItem>
-                  <SelectItem value="SHOPPING">{t('types.shopping')}</SelectItem>
-                  <SelectItem value="INTERNATIONAL_PURCHASE">{t('types.internationalPurchase')}</SelectItem>
-                  <SelectItem value="PET_SITTING">{t('types.petSitting')}</SelectItem>
-                  <SelectItem value="HOME_SERVICE">{t('types.homeService')}</SelectItem>
-                  <SelectItem value="CART_DROP">{t('types.cartDrop')}</SelectItem>
+                  <SelectItem value="">{t("filters.allTypes")}</SelectItem>
+                  <SelectItem value="PACKAGE_DELIVERY">
+                    {t("types.packageDelivery")}
+                  </SelectItem>
+                  <SelectItem value="PERSON_TRANSPORT">
+                    {t("types.personTransport")}
+                  </SelectItem>
+                  <SelectItem value="AIRPORT_TRANSFER">
+                    {t("types.airportTransfer")}
+                  </SelectItem>
+                  <SelectItem value="SHOPPING">
+                    {t("types.shopping")}
+                  </SelectItem>
+                  <SelectItem value="INTERNATIONAL_PURCHASE">
+                    {t("types.internationalPurchase")}
+                  </SelectItem>
+                  <SelectItem value="PET_SITTING">
+                    {t("types.petSitting")}
+                  </SelectItem>
+                  <SelectItem value="HOME_SERVICE">
+                    {t("types.homeService")}
+                  </SelectItem>
+                  <SelectItem value="CART_DROP">
+                    {t("types.cartDrop")}
+                  </SelectItem>
                 </SelectContent>
               </Select>
 
               {/* Status Filter */}
-              <Select value={filters.status || ''} onValueChange={(value) => 
-                handleFilterChange({ status: value as AnnouncementStatus || undefined })
-              }>
+              <Select
+                value={filters.status || ""}
+                onValueChange={(value) =>
+                  handleFilterChange({
+                    status: (value as AnnouncementStatus) || undefined,
+                  })
+                }
+              >
                 <SelectTrigger>
-                  <SelectValue placeholder={t('filters.status')} />
+                  <SelectValue placeholder={t("filters.status")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">{t('filters.allStatuses')}</SelectItem>
-                  <SelectItem value="DRAFT">{t('status.draft')}</SelectItem>
-                  <SelectItem value="ACTIVE">{t('status.active')}</SelectItem>
-                  <SelectItem value="IN_PROGRESS">{t('status.inProgress')}</SelectItem>
-                  <SelectItem value="COMPLETED">{t('status.completed')}</SelectItem>
-                  <SelectItem value="CANCELLED">{t('status.cancelled')}</SelectItem>
-                  <SelectItem value="EXPIRED">{t('status.expired')}</SelectItem>
+                  <SelectItem value="">{t("filters.allStatuses")}</SelectItem>
+                  <SelectItem value="DRAFT">{t("status.draft")}</SelectItem>
+                  <SelectItem value="ACTIVE">{t("status.active")}</SelectItem>
+                  <SelectItem value="IN_PROGRESS">
+                    {t("status.inProgress")}
+                  </SelectItem>
+                  <SelectItem value="COMPLETED">
+                    {t("status.completed")}
+                  </SelectItem>
+                  <SelectItem value="CANCELLED">
+                    {t("status.cancelled")}
+                  </SelectItem>
+                  <SelectItem value="EXPIRED">{t("status.expired")}</SelectItem>
                 </SelectContent>
               </Select>
 
               {/* Urgent Filter */}
-              <Select value={filters.urgent?.toString() || ''} onValueChange={(value) => 
-                handleFilterChange({ urgent: value === 'true' ? true : value === 'false' ? false : undefined })
-              }>
+              <Select
+                value={filters.urgent?.toString() || ""}
+                onValueChange={(value) =>
+                  handleFilterChange({
+                    urgent:
+                      value === "true"
+                        ? true
+                        : value === "false"
+                          ? false
+                          : undefined,
+                  })
+                }
+              >
                 <SelectTrigger>
-                  <SelectValue placeholder={t('filters.urgency')} />
+                  <SelectValue placeholder={t("filters.urgency")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">{t('filters.allUrgencies')}</SelectItem>
-                  <SelectItem value="true">{t('filters.urgentOnly')}</SelectItem>
-                  <SelectItem value="false">{t('filters.normalOnly')}</SelectItem>
+                  <SelectItem value="">{t("filters.allUrgencies")}</SelectItem>
+                  <SelectItem value="true">
+                    {t("filters.urgentOnly")}
+                  </SelectItem>
+                  <SelectItem value="false">
+                    {t("filters.normalOnly")}
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -173,10 +222,13 @@ export function AnnouncementList({
       {pagination && (
         <div className="flex items-center gap-4 text-sm text-muted-foreground">
           <Badge variant="outline">
-            {t('stats.total', { count: pagination.total })}
+            {t("stats.total", { count: pagination.total })}
           </Badge>
           <Badge variant="outline">
-            {t('stats.page', { current: pagination.page, total: pagination.totalPages })}
+            {t("stats.page", {
+              current: pagination.page,
+              total: pagination.totalPages,
+            })}
           </Badge>
         </div>
       )}
@@ -210,13 +262,18 @@ export function AnnouncementList({
                 <div className="space-y-4">
                   <div className="text-4xl">📢</div>
                   <div>
-                    <h3 className="text-lg font-medium">{t('empty.title')}</h3>
-                    <p className="text-muted-foreground">{t('empty.description')}</p>
+                    <h3 className="text-lg font-medium">{t("empty.title")}</h3>
+                    <p className="text-muted-foreground">
+                      {t("empty.description")}
+                    </p>
                   </div>
                   {showCreateButton && (
-                    <Button onClick={handleCreateNew} className="flex items-center gap-2">
+                    <Button
+                      onClick={handleCreateNew}
+                      className="flex items-center gap-2"
+                    >
                       <Plus className="h-4 w-4" />
-                      {t('actions.createFirst')}
+                      {t("actions.createFirst")}
                     </Button>
                   )}
                 </div>
@@ -230,8 +287,12 @@ export function AnnouncementList({
                   announcement={announcement}
                   variant="client"
                   compact={compactView}
-                  onView={() => router.push(`/client/announcements/${announcement.id}`)}
-                  onEdit={() => router.push(`/client/announcements/${announcement.id}/edit`)}
+                  onView={() =>
+                    router.push(`/client/announcements/${announcement.id}`)
+                  }
+                  onEdit={() =>
+                    router.push(`/client/announcements/${announcement.id}/edit`)
+                  }
                 />
               ))}
             </div>
@@ -248,23 +309,28 @@ export function AnnouncementList({
                     variant="outline"
                     size="sm"
                   >
-                    {t('pagination.previous')}
+                    {t("pagination.previous")}
                   </Button>
-                  
+
                   <div className="flex items-center gap-1">
-                    {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => {
-                      const page = i + 1
-                      return (
-                        <Button
-                          key={page}
-                          onClick={() => handlePageChange(page)}
-                          variant={page === pagination.page ? "default" : "outline"}
-                          size="sm"
-                        >
-                          {page}
-                        </Button>
-                      )
-                    })}
+                    {Array.from(
+                      { length: Math.min(5, pagination.totalPages) },
+                      (_, i) => {
+                        const page = i + 1;
+                        return (
+                          <Button
+                            key={page}
+                            onClick={() => handlePageChange(page)}
+                            variant={
+                              page === pagination.page ? "default" : "outline"
+                            }
+                            size="sm"
+                          >
+                            {page}
+                          </Button>
+                        );
+                      },
+                    )}
                   </div>
 
                   <Button
@@ -273,7 +339,7 @@ export function AnnouncementList({
                     variant="outline"
                     size="sm"
                   >
-                    {t('pagination.next')}
+                    {t("pagination.next")}
                   </Button>
                 </div>
               </CardContent>
@@ -282,5 +348,5 @@ export function AnnouncementList({
         </>
       )}
     </div>
-  )
+  );
 }

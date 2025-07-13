@@ -1,4 +1,4 @@
-import { ReactNode } from 'react';
+import { ReactNode } from "react";
 
 // Base types pour tous les headers
 export interface BaseHeaderProps {
@@ -15,8 +15,8 @@ export interface BaseHeaderProps {
 
 // Admin Header
 export interface AdminHeaderProps extends BaseHeaderProps {
-  user: BaseHeaderProps['user'] & {
-    role: 'ADMIN';
+  user: BaseHeaderProps["user"] & {
+    role: "ADMIN";
   };
   pendingValidations?: number;
   systemAlerts?: number;
@@ -24,9 +24,9 @@ export interface AdminHeaderProps extends BaseHeaderProps {
 
 // Client Header
 export interface ClientHeaderProps extends BaseHeaderProps {
-  user: BaseHeaderProps['user'] & {
-    role: 'CLIENT';
-    subscription?: 'FREE' | 'STARTER' | 'PREMIUM';
+  user: BaseHeaderProps["user"] & {
+    role: "CLIENT";
+    subscription?: "FREE" | "STARTER" | "PREMIUM";
   };
   activeDeliveries?: number;
   unreadNotifications?: number;
@@ -34,8 +34,8 @@ export interface ClientHeaderProps extends BaseHeaderProps {
 
 // Deliverer Header
 export interface DelivererHeaderProps extends BaseHeaderProps {
-  user: BaseHeaderProps['user'] & {
-    role: 'DELIVERER';
+  user: BaseHeaderProps["user"] & {
+    role: "DELIVERER";
     rating?: number;
   };
   activeDeliveries?: number;
@@ -49,8 +49,8 @@ export interface DelivererHeaderProps extends BaseHeaderProps {
 
 // Merchant Header
 export interface MerchantHeaderProps extends BaseHeaderProps {
-  user: BaseHeaderProps['user'] & {
-    role: 'MERCHANT';
+  user: BaseHeaderProps["user"] & {
+    role: "MERCHANT";
     storeName?: string;
   };
   pendingOrders?: number;
@@ -59,8 +59,8 @@ export interface MerchantHeaderProps extends BaseHeaderProps {
 
 // Provider Header
 export interface ProviderHeaderProps extends BaseHeaderProps {
-  user: BaseHeaderProps['user'] & {
-    role: 'PROVIDER';
+  user: BaseHeaderProps["user"] & {
+    role: "PROVIDER";
     specialties?: string[];
     rating?: number;
   };
@@ -102,15 +102,15 @@ export interface Breadcrumb {
 
 // Footer
 export interface FooterProps {
-  variant?: 'public' | 'dashboard';
+  variant?: "public" | "dashboard";
   className?: string;
 }
 
 // Layout wrappers
 export interface DashboardLayoutProps {
   children: ReactNode;
-  user: BaseHeaderProps['user'] & {
-    role: 'ADMIN' | 'CLIENT' | 'DELIVERER' | 'MERCHANT' | 'PROVIDER';
+  user: BaseHeaderProps["user"] & {
+    role: "ADMIN" | "CLIENT" | "DELIVERER" | "MERCHANT" | "PROVIDER";
   };
   header?: ReactNode;
   sidebar?: ReactNode;
@@ -137,7 +137,7 @@ export interface NavItem {
 }
 
 export interface UserMenuProps {
-  user: BaseHeaderProps['user'];
+  user: BaseHeaderProps["user"];
   onLogout: () => void;
   menuItems?: UserMenuItem[];
 }
@@ -147,7 +147,7 @@ export interface UserMenuItem {
   href?: string;
   icon?: ReactNode;
   onClick?: () => void;
-  variant?: 'default' | 'destructive';
+  variant?: "default" | "destructive";
 }
 
 // Notification types
@@ -155,7 +155,7 @@ export interface NotificationProps {
   id: string;
   title: string;
   message: string;
-  type: 'info' | 'success' | 'warning' | 'error';
+  type: "info" | "success" | "warning" | "error";
   timestamp: Date;
   isRead: boolean;
   action?: {
@@ -166,10 +166,10 @@ export interface NotificationProps {
 }
 
 // Theme types
-export type Theme = 'light' | 'dark' | 'system';
+export type Theme = "light" | "dark" | "system";
 
 // Layout variants
-export type LayoutVariant = 'default' | 'compact' | 'minimal';
+export type LayoutVariant = "default" | "compact" | "minimal";
 
 // Responsive breakpoints
-export type Breakpoint = 'mobile' | 'tablet' | 'desktop' | 'wide'; 
+export type Breakpoint = "mobile" | "tablet" | "desktop" | "wide";

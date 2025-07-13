@@ -5,13 +5,21 @@ import { z } from "zod";
 
 const profileUpdateSchema = z.object({
   providerId: z.string().cuid(),
-  businessName: z.string().min(2, "Le nom commercial doit faire au moins 2 caractères"),
+  businessName: z
+    .string()
+    .min(2, "Le nom commercial doit faire au moins 2 caractères"),
   siret: z.string().regex(/^\d{14}$/, "Le SIRET doit faire 14 chiffres"),
-  description: z.string().min(50, "La description doit faire au moins 50 caractères"),
-  phone: z.string().min(10, "Le numéro de téléphone doit faire au moins 10 caractères"),
+  description: z
+    .string()
+    .min(50, "La description doit faire au moins 50 caractères"),
+  phone: z
+    .string()
+    .min(10, "Le numéro de téléphone doit faire au moins 10 caractères"),
   street: z.string().min(5, "L'adresse doit faire au moins 5 caractères"),
   city: z.string().min(2, "La ville doit faire au moins 2 caractères"),
-  postalCode: z.string().regex(/^\d{5}$/, "Le code postal doit faire 5 chiffres"),
+  postalCode: z
+    .string()
+    .regex(/^\d{5}$/, "Le code postal doit faire 5 chiffres"),
   country: z.string().default("France"),
 });
 
@@ -20,10 +28,7 @@ export async function GET(request: NextRequest) {
   try {
     const session = await auth();
     if (!session) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const { searchParams } = new URL(request.url);
@@ -32,7 +37,7 @@ export async function GET(request: NextRequest) {
     if (!providerId) {
       return NextResponse.json(
         { error: "Provider ID is required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -115,21 +120,18 @@ export async function GET(request: NextRequest) {
     if (!provider) {
       return NextResponse.json(
         { error: "Provider not found" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
     // Vérifier les permissions (le prestataire ne peut voir que son profil, les admins peuvent tout voir)
     if (session.user.role !== "ADMIN" && provider.userId !== session.user.id) {
-      return NextResponse.json(
-        { error: "Forbidden" },
-        { status: 403 }
-      );
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
     // Récupérer les documents du prestataire
     const documents = await prisma.document.findMany({
-      where: { 
+      where: {
         userId: provider.userId,
       },
       select: {
@@ -158,7 +160,7 @@ export async function GET(request: NextRequest) {
       validationStatus: provider.validationStatus,
       validationNotes: null, // À ajouter au modèle si nécessaire
       validatedAt: provider.activatedAt,
-      documents: documents.map(doc => ({
+      documents: documents.map((doc) => ({
         id: doc.id,
         type: doc.type,
         filename: doc.filename,
@@ -172,7 +174,7 @@ export async function GET(request: NextRequest) {
     console.error("Error fetching provider validation profile:", error);
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -182,10 +184,7 @@ export async function POST(request: NextRequest) {
   try {
     const session = await auth();
     if (!session) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const body = await request.json();
@@ -240,21 +239,18 @@ export async function POST(request: NextRequest) {
     if (!provider) {
       return NextResponse.json(
         { error: "Provider not found" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
     // Vérifier les permissions
     if (session.user.role !== "ADMIN" && provider.userId !== session.user.id) {
-      return NextResponse.json(
-        { error: "Forbidden" },
-        { status: 403 }
-      );
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
     // Vérifier l'unicité du SIRET (sauf pour le provider actuel)
     const existingSiret = await prisma.provider.findFirst({
-      where: { 
+      where: {
         siret: validatedData.siret,
         id: { not: provider.id }, // Utiliser l'ID réel du provider
       },
@@ -263,7 +259,7 @@ export async function POST(request: NextRequest) {
     if (existingSiret) {
       return NextResponse.json(
         { error: "Ce numéro SIRET est déjà utilisé" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -311,14 +307,14 @@ export async function POST(request: NextRequest) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: "Validation error", details: error.errors },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     console.error("Error updating provider validation profile:", error);
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
-} 
+}

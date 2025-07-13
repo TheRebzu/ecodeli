@@ -6,11 +6,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { 
-  Activity, 
-  MapPin, 
-  Truck, 
-  Clock, 
+import {
+  Activity,
+  MapPin,
+  Truck,
+  Clock,
   TrendingUp,
   TrendingDown,
   AlertTriangle,
@@ -22,7 +22,7 @@ import {
   Package,
   User,
   Calendar,
-  RotateCcw
+  RotateCcw,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -98,12 +98,18 @@ interface DelivererLocation {
   speed?: number;
 }
 
-export default function DeliveryMonitoringDashboard({ adminId }: DeliveryMonitoringDashboardProps) {
+export default function DeliveryMonitoringDashboard({
+  adminId,
+}: DeliveryMonitoringDashboardProps) {
   const t = useTranslations("admin.deliveries.monitoring");
   const [stats, setStats] = useState<DeliveryStats | null>(null);
-  const [activeDeliveries, setActiveDeliveries] = useState<ActiveDelivery[]>([]);
+  const [activeDeliveries, setActiveDeliveries] = useState<ActiveDelivery[]>(
+    [],
+  );
   const [deliveryIssues, setDeliveryIssues] = useState<DeliveryIssue[]>([]);
-  const [delivererLocations, setDelivererLocations] = useState<DelivererLocation[]>([]);
+  const [delivererLocations, setDelivererLocations] = useState<
+    DelivererLocation[]
+  >([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -112,7 +118,9 @@ export default function DeliveryMonitoringDashboard({ adminId }: DeliveryMonitor
   const fetchMonitoringData = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`/api/admin/deliveries/monitoring?adminId=${adminId}`);
+      const response = await fetch(
+        `/api/admin/deliveries/monitoring?adminId=${adminId}`,
+      );
       if (response.ok) {
         const data = await response.json();
         setStats(data.stats);
@@ -130,16 +138,21 @@ export default function DeliveryMonitoringDashboard({ adminId }: DeliveryMonitor
 
   const resolveIssue = async (issueId: string) => {
     try {
-      const response = await fetch(`/api/admin/deliveries/issues/${issueId}/resolve`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ adminId }),
-      });
+      const response = await fetch(
+        `/api/admin/deliveries/issues/${issueId}/resolve`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ adminId }),
+        },
+      );
 
       if (response.ok) {
-        setDeliveryIssues(deliveryIssues.map(issue => 
-          issue.id === issueId ? { ...issue, isResolved: true } : issue
-        ));
+        setDeliveryIssues(
+          deliveryIssues.map((issue) =>
+            issue.id === issueId ? { ...issue, isResolved: true } : issue,
+          ),
+        );
         toast.success(t("success.issue_resolved"));
       }
     } catch (error) {
@@ -167,11 +180,14 @@ export default function DeliveryMonitoringDashboard({ adminId }: DeliveryMonitor
 
   const reassignDelivery = async (deliveryId: string) => {
     try {
-      const response = await fetch(`/api/admin/deliveries/${deliveryId}/reassign`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ adminId }),
-      });
+      const response = await fetch(
+        `/api/admin/deliveries/${deliveryId}/reassign`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ adminId }),
+        },
+      );
 
       if (response.ok) {
         toast.success(t("success.delivery_reassigned"));
@@ -192,50 +208,91 @@ export default function DeliveryMonitoringDashboard({ adminId }: DeliveryMonitor
 
   const getStatusBadge = (status: string) => {
     const statusConfig = {
-      pending: { color: "bg-yellow-100 text-yellow-800", label: t("status.pending") },
-      accepted: { color: "bg-blue-100 text-blue-800", label: t("status.accepted") },
-      picking_up: { color: "bg-purple-100 text-purple-800", label: t("status.picking_up") },
-      in_transit: { color: "bg-orange-100 text-orange-800", label: t("status.in_transit") },
-      delivered: { color: "bg-green-100 text-green-800", label: t("status.delivered") },
-      cancelled: { color: "bg-red-100 text-red-800", label: t("status.cancelled") },
+      pending: {
+        color: "bg-yellow-100 text-yellow-800",
+        label: t("status.pending"),
+      },
+      accepted: {
+        color: "bg-blue-100 text-blue-800",
+        label: t("status.accepted"),
+      },
+      picking_up: {
+        color: "bg-purple-100 text-purple-800",
+        label: t("status.picking_up"),
+      },
+      in_transit: {
+        color: "bg-orange-100 text-orange-800",
+        label: t("status.in_transit"),
+      },
+      delivered: {
+        color: "bg-green-100 text-green-800",
+        label: t("status.delivered"),
+      },
+      cancelled: {
+        color: "bg-red-100 text-red-800",
+        label: t("status.cancelled"),
+      },
       failed: { color: "bg-red-100 text-red-800", label: t("status.failed") },
     };
-    
-    const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.pending;
+
+    const config =
+      statusConfig[status as keyof typeof statusConfig] || statusConfig.pending;
     return <Badge className={config.color}>{config.label}</Badge>;
   };
 
   const getPriorityBadge = (priority: string) => {
     const priorityConfig = {
       low: { color: "bg-gray-100 text-gray-800", label: t("priority.low") },
-      medium: { color: "bg-blue-100 text-blue-800", label: t("priority.medium") },
-      high: { color: "bg-orange-100 text-orange-800", label: t("priority.high") },
+      medium: {
+        color: "bg-blue-100 text-blue-800",
+        label: t("priority.medium"),
+      },
+      high: {
+        color: "bg-orange-100 text-orange-800",
+        label: t("priority.high"),
+      },
       urgent: { color: "bg-red-100 text-red-800", label: t("priority.urgent") },
     };
-    
-    const config = priorityConfig[priority as keyof typeof priorityConfig] || priorityConfig.medium;
+
+    const config =
+      priorityConfig[priority as keyof typeof priorityConfig] ||
+      priorityConfig.medium;
     return <Badge className={config.color}>{config.label}</Badge>;
   };
 
   const getSeverityBadge = (severity: string) => {
     const severityConfig = {
       low: { color: "bg-gray-100 text-gray-800", label: t("severity.low") },
-      medium: { color: "bg-yellow-100 text-yellow-800", label: t("severity.medium") },
-      high: { color: "bg-orange-100 text-orange-800", label: t("severity.high") },
-      critical: { color: "bg-red-100 text-red-800", label: t("severity.critical") },
+      medium: {
+        color: "bg-yellow-100 text-yellow-800",
+        label: t("severity.medium"),
+      },
+      high: {
+        color: "bg-orange-100 text-orange-800",
+        label: t("severity.high"),
+      },
+      critical: {
+        color: "bg-red-100 text-red-800",
+        label: t("severity.critical"),
+      },
     };
-    
-    const config = severityConfig[severity as keyof typeof severityConfig] || severityConfig.medium;
+
+    const config =
+      severityConfig[severity as keyof typeof severityConfig] ||
+      severityConfig.medium;
     return <Badge className={config.color}>{config.label}</Badge>;
   };
 
-  const filteredDeliveries = activeDeliveries.filter(delivery => {
-    const matchesSearch = delivery.delivererName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         delivery.clientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         delivery.id.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === "all" || delivery.status === statusFilter;
-    const matchesPriority = priorityFilter === "all" || delivery.priority === priorityFilter;
-    
+  const filteredDeliveries = activeDeliveries.filter((delivery) => {
+    const matchesSearch =
+      delivery.delivererName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      delivery.clientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      delivery.id.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus =
+      statusFilter === "all" || delivery.status === statusFilter;
+    const matchesPriority =
+      priorityFilter === "all" || delivery.priority === priorityFilter;
+
     return matchesSearch && matchesStatus && matchesPriority;
   });
 
@@ -264,7 +321,9 @@ export default function DeliveryMonitoringDashboard({ adminId }: DeliveryMonitor
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{t("stats.active_deliveries")}</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              {t("stats.active_deliveries")}
+            </CardTitle>
             <Activity className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -275,14 +334,17 @@ export default function DeliveryMonitoringDashboard({ adminId }: DeliveryMonitor
               ) : (
                 <TrendingDown className="h-3 w-3 mr-1 text-red-600" />
               )}
-              {Math.abs(stats.activeDeliveriesChange)} {t("stats.since_yesterday")}
+              {Math.abs(stats.activeDeliveriesChange)}{" "}
+              {t("stats.since_yesterday")}
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{t("stats.active_deliverers")}</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              {t("stats.active_deliverers")}
+            </CardTitle>
             <Truck className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -295,11 +357,15 @@ export default function DeliveryMonitoringDashboard({ adminId }: DeliveryMonitor
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{t("stats.avg_delivery_time")}</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              {t("stats.avg_delivery_time")}
+            </CardTitle>
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.averageDeliveryTime}min</div>
+            <div className="text-2xl font-bold">
+              {stats.averageDeliveryTime}min
+            </div>
             <p className="text-xs text-muted-foreground">
               {t("stats.average_completion")}
             </p>
@@ -308,7 +374,9 @@ export default function DeliveryMonitoringDashboard({ adminId }: DeliveryMonitor
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{t("stats.success_rate")}</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              {t("stats.success_rate")}
+            </CardTitle>
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -326,7 +394,9 @@ export default function DeliveryMonitoringDashboard({ adminId }: DeliveryMonitor
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">{t("stats.pending_deliveries")}</p>
+                <p className="text-sm text-gray-600">
+                  {t("stats.pending_deliveries")}
+                </p>
                 <p className="text-2xl font-bold">{stats.pendingDeliveries}</p>
               </div>
               <Clock className="w-8 h-8 text-yellow-600" />
@@ -338,7 +408,9 @@ export default function DeliveryMonitoringDashboard({ adminId }: DeliveryMonitor
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">{t("stats.completed_today")}</p>
+                <p className="text-sm text-gray-600">
+                  {t("stats.completed_today")}
+                </p>
                 <p className="text-2xl font-bold">{stats.completedToday}</p>
               </div>
               <CheckCircle className="w-8 h-8 text-green-600" />
@@ -350,7 +422,9 @@ export default function DeliveryMonitoringDashboard({ adminId }: DeliveryMonitor
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">{t("stats.cancelled_today")}</p>
+                <p className="text-sm text-gray-600">
+                  {t("stats.cancelled_today")}
+                </p>
                 <p className="text-2xl font-bold">{stats.cancelledToday}</p>
               </div>
               <AlertTriangle className="w-8 h-8 text-red-600" />
@@ -362,7 +436,9 @@ export default function DeliveryMonitoringDashboard({ adminId }: DeliveryMonitor
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">{t("stats.delayed_deliveries")}</p>
+                <p className="text-sm text-gray-600">
+                  {t("stats.delayed_deliveries")}
+                </p>
                 <p className="text-2xl font-bold">{stats.delayedDeliveries}</p>
               </div>
               <Clock className="w-8 h-8 text-orange-600" />
@@ -377,7 +453,7 @@ export default function DeliveryMonitoringDashboard({ adminId }: DeliveryMonitor
           <div className="flex items-center justify-between">
             <CardTitle>{t("control_panel.title")}</CardTitle>
             <Button onClick={fetchMonitoringData} size="sm">
-                              <RotateCcw className="w-4 h-4 mr-2" />
+              <RotateCcw className="w-4 h-4 mr-2" />
               {t("control_panel.refresh")}
             </Button>
           </div>
@@ -403,8 +479,12 @@ export default function DeliveryMonitoringDashboard({ adminId }: DeliveryMonitor
                 <SelectItem value="all">{t("filters.all_statuses")}</SelectItem>
                 <SelectItem value="pending">{t("status.pending")}</SelectItem>
                 <SelectItem value="accepted">{t("status.accepted")}</SelectItem>
-                <SelectItem value="picking_up">{t("status.picking_up")}</SelectItem>
-                <SelectItem value="in_transit">{t("status.in_transit")}</SelectItem>
+                <SelectItem value="picking_up">
+                  {t("status.picking_up")}
+                </SelectItem>
+                <SelectItem value="in_transit">
+                  {t("status.in_transit")}
+                </SelectItem>
               </SelectContent>
             </Select>
             <Select value={priorityFilter} onValueChange={setPriorityFilter}>
@@ -412,7 +492,9 @@ export default function DeliveryMonitoringDashboard({ adminId }: DeliveryMonitor
                 <SelectValue placeholder={t("control_panel.filter_priority")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">{t("filters.all_priorities")}</SelectItem>
+                <SelectItem value="all">
+                  {t("filters.all_priorities")}
+                </SelectItem>
                 <SelectItem value="urgent">{t("priority.urgent")}</SelectItem>
                 <SelectItem value="high">{t("priority.high")}</SelectItem>
                 <SelectItem value="medium">{t("priority.medium")}</SelectItem>
@@ -426,9 +508,13 @@ export default function DeliveryMonitoringDashboard({ adminId }: DeliveryMonitor
       {/* Main Monitoring Tabs */}
       <Tabs defaultValue="active" className="space-y-4">
         <TabsList>
-          <TabsTrigger value="active">{t("tabs.active_deliveries")}</TabsTrigger>
+          <TabsTrigger value="active">
+            {t("tabs.active_deliveries")}
+          </TabsTrigger>
           <TabsTrigger value="issues">{t("tabs.issues")}</TabsTrigger>
-          <TabsTrigger value="locations">{t("tabs.deliverer_locations")}</TabsTrigger>
+          <TabsTrigger value="locations">
+            {t("tabs.deliverer_locations")}
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="active" className="space-y-4">
@@ -447,21 +533,28 @@ export default function DeliveryMonitoringDashboard({ adminId }: DeliveryMonitor
           ) : (
             <div className="space-y-4">
               {filteredDeliveries.map((delivery) => (
-                <Card key={delivery.id} className="hover:shadow-md transition-shadow">
+                <Card
+                  key={delivery.id}
+                  className="hover:shadow-md transition-shadow"
+                >
                   <CardContent className="p-4">
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <div className="flex items-center space-x-2 mb-2">
-                          <h4 className="font-medium">{t("delivery.id")}: {delivery.id}</h4>
+                          <h4 className="font-medium">
+                            {t("delivery.id")}: {delivery.id}
+                          </h4>
                           {getStatusBadge(delivery.status)}
                           {getPriorityBadge(delivery.priority)}
                         </div>
-                        
+
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                           <div>
                             <div className="flex items-center space-x-2 mb-1">
                               <User className="w-4 h-4 text-gray-400" />
-                              <span className="font-medium">{t("delivery.deliverer")}:</span>
+                              <span className="font-medium">
+                                {t("delivery.deliverer")}:
+                              </span>
                               <span>{delivery.delivererName}</span>
                             </div>
                             <div className="flex items-center space-x-2 mb-1">
@@ -470,34 +563,52 @@ export default function DeliveryMonitoringDashboard({ adminId }: DeliveryMonitor
                             </div>
                             <div className="flex items-center space-x-2 mb-1">
                               <User className="w-4 h-4 text-gray-400" />
-                              <span className="font-medium">{t("delivery.client")}:</span>
+                              <span className="font-medium">
+                                {t("delivery.client")}:
+                              </span>
                               <span>{delivery.clientName}</span>
                             </div>
                           </div>
-                          
+
                           <div>
                             <div className="flex items-center space-x-2 mb-1">
                               <MapPin className="w-4 h-4 text-gray-400" />
-                              <span className="font-medium">{t("delivery.pickup")}:</span>
+                              <span className="font-medium">
+                                {t("delivery.pickup")}:
+                              </span>
                             </div>
-                            <p className="text-xs text-gray-600 ml-6 mb-2">{delivery.pickupAddress}</p>
-                            
+                            <p className="text-xs text-gray-600 ml-6 mb-2">
+                              {delivery.pickupAddress}
+                            </p>
+
                             <div className="flex items-center space-x-2 mb-1">
                               <Navigation className="w-4 h-4 text-gray-400" />
-                              <span className="font-medium">{t("delivery.destination")}:</span>
+                              <span className="font-medium">
+                                {t("delivery.destination")}:
+                              </span>
                             </div>
-                            <p className="text-xs text-gray-600 ml-6">{delivery.deliveryAddress}</p>
+                            <p className="text-xs text-gray-600 ml-6">
+                              {delivery.deliveryAddress}
+                            </p>
                           </div>
                         </div>
 
                         <div className="flex items-center space-x-4 mt-3 text-xs text-gray-500">
                           <div className="flex items-center space-x-1">
                             <Calendar className="w-3 h-3" />
-                            <span>{t("delivery.created")}: {new Date(delivery.createdAt).toLocaleString()}</span>
+                            <span>
+                              {t("delivery.created")}:{" "}
+                              {new Date(delivery.createdAt).toLocaleString()}
+                            </span>
                           </div>
                           <div className="flex items-center space-x-1">
                             <Clock className="w-3 h-3" />
-                            <span>{t("delivery.estimated")}: {new Date(delivery.estimatedDeliveryTime).toLocaleString()}</span>
+                            <span>
+                              {t("delivery.estimated")}:{" "}
+                              {new Date(
+                                delivery.estimatedDeliveryTime,
+                              ).toLocaleString()}
+                            </span>
                           </div>
                           <div className="flex items-center space-x-1">
                             <Navigation className="w-3 h-3" />
@@ -507,26 +618,38 @@ export default function DeliveryMonitoringDashboard({ adminId }: DeliveryMonitor
 
                         {delivery.currentLocation && (
                           <div className="mt-2 p-2 bg-blue-50 rounded text-xs">
-                            <span className="font-medium">{t("delivery.last_location")}:</span> 
-                            {delivery.currentLocation.latitude}, {delivery.currentLocation.longitude}
+                            <span className="font-medium">
+                              {t("delivery.last_location")}:
+                            </span>
+                            {delivery.currentLocation.latitude},{" "}
+                            {delivery.currentLocation.longitude}
                             <span className="ml-2 text-gray-500">
-                              ({new Date(delivery.currentLocation.lastUpdate).toLocaleString()})
+                              (
+                              {new Date(
+                                delivery.currentLocation.lastUpdate,
+                              ).toLocaleString()}
+                              )
                             </span>
                           </div>
                         )}
                       </div>
-                      
+
                       <div className="flex flex-col space-y-2 ml-4">
-                        <Button 
-                          size="sm" 
+                        <Button
+                          size="sm"
                           variant="outline"
-                          onClick={() => contactDeliverer(delivery.delivererId, delivery.delivererPhone)}
+                          onClick={() =>
+                            contactDeliverer(
+                              delivery.delivererId,
+                              delivery.delivererPhone,
+                            )
+                          }
                         >
                           <Phone className="w-4 h-4 mr-1" />
                           {t("actions.contact")}
                         </Button>
-                        <Button 
-                          size="sm" 
+                        <Button
+                          size="sm"
                           variant="outline"
                           onClick={() => reassignDelivery(delivery.id)}
                         >
@@ -543,7 +666,7 @@ export default function DeliveryMonitoringDashboard({ adminId }: DeliveryMonitor
         </TabsContent>
 
         <TabsContent value="issues" className="space-y-4">
-          {deliveryIssues.filter(issue => !issue.isResolved).length === 0 ? (
+          {deliveryIssues.filter((issue) => !issue.isResolved).length === 0 ? (
             <Card>
               <CardContent className="text-center py-12">
                 <CheckCircle className="h-12 w-12 text-green-300 mx-auto mb-4" />
@@ -557,39 +680,54 @@ export default function DeliveryMonitoringDashboard({ adminId }: DeliveryMonitor
             </Card>
           ) : (
             <div className="space-y-4">
-              {deliveryIssues.filter(issue => !issue.isResolved).map((issue) => (
-                <Card key={issue.id} className="border-l-4 border-l-red-500">
-                  <CardContent className="p-4">
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center space-x-2 mb-2">
-                          <h4 className="font-medium">{issue.title}</h4>
-                          {getSeverityBadge(issue.severity)}
-                          <Badge variant="outline">{t(`issue_types.${issue.type}`)}</Badge>
+              {deliveryIssues
+                .filter((issue) => !issue.isResolved)
+                .map((issue) => (
+                  <Card key={issue.id} className="border-l-4 border-l-red-500">
+                    <CardContent className="p-4">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-2 mb-2">
+                            <h4 className="font-medium">{issue.title}</h4>
+                            {getSeverityBadge(issue.severity)}
+                            <Badge variant="outline">
+                              {t(`issue_types.${issue.type}`)}
+                            </Badge>
+                          </div>
+                          <p className="text-sm text-gray-600 mb-2">
+                            {issue.description}
+                          </p>
+                          <div className="text-xs text-gray-500 space-y-1">
+                            <p>
+                              {t("issues.delivery_id")}: {issue.deliveryId}
+                            </p>
+                            {issue.delivererName && (
+                              <p>
+                                {t("issues.deliverer")}: {issue.delivererName}
+                              </p>
+                            )}
+                            {issue.clientName && (
+                              <p>
+                                {t("issues.client")}: {issue.clientName}
+                              </p>
+                            )}
+                            <p>
+                              {t("issues.reported")}:{" "}
+                              {new Date(issue.createdAt).toLocaleString()}
+                            </p>
+                          </div>
                         </div>
-                        <p className="text-sm text-gray-600 mb-2">{issue.description}</p>
-                        <div className="text-xs text-gray-500 space-y-1">
-                          <p>{t("issues.delivery_id")}: {issue.deliveryId}</p>
-                          {issue.delivererName && (
-                            <p>{t("issues.deliverer")}: {issue.delivererName}</p>
-                          )}
-                          {issue.clientName && (
-                            <p>{t("issues.client")}: {issue.clientName}</p>
-                          )}
-                          <p>{t("issues.reported")}: {new Date(issue.createdAt).toLocaleString()}</p>
-                        </div>
+                        <Button
+                          size="sm"
+                          onClick={() => resolveIssue(issue.id)}
+                        >
+                          <CheckCircle className="w-4 h-4 mr-2" />
+                          {t("actions.resolve")}
+                        </Button>
                       </div>
-                      <Button 
-                        size="sm" 
-                        onClick={() => resolveIssue(issue.id)}
-                      >
-                        <CheckCircle className="w-4 h-4 mr-2" />
-                        {t("actions.resolve")}
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+                    </CardContent>
+                  </Card>
+                ))}
             </div>
           )}
         </TabsContent>
@@ -597,37 +735,50 @@ export default function DeliveryMonitoringDashboard({ adminId }: DeliveryMonitor
         <TabsContent value="locations" className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {delivererLocations.map((location) => (
-              <Card key={location.delivererId} className="hover:shadow-md transition-shadow">
+              <Card
+                key={location.delivererId}
+                className="hover:shadow-md transition-shadow"
+              >
                 <CardContent className="p-4">
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
                       <h4 className="font-medium">{location.delivererName}</h4>
-                      <Badge variant={location.status === "active" ? "default" : "secondary"}>
+                      <Badge
+                        variant={
+                          location.status === "active" ? "default" : "secondary"
+                        }
+                      >
                         {t(`deliverer_status.${location.status}`)}
                       </Badge>
                     </div>
-                    
+
                     <div className="text-sm space-y-1">
                       <div className="flex items-center space-x-2">
                         <MapPin className="w-4 h-4 text-gray-400" />
                         <span>{t("location.coordinates")}:</span>
-                        <span className="text-xs">{location.latitude}, {location.longitude}</span>
+                        <span className="text-xs">
+                          {location.latitude}, {location.longitude}
+                        </span>
                       </div>
-                      
+
                       {location.currentDeliveryId && (
                         <div className="flex items-center space-x-2">
                           <Package className="w-4 h-4 text-gray-400" />
                           <span>{t("location.current_delivery")}:</span>
-                          <span className="text-xs">{location.currentDeliveryId}</span>
+                          <span className="text-xs">
+                            {location.currentDeliveryId}
+                          </span>
                         </div>
                       )}
-                      
+
                       <div className="flex items-center space-x-2">
                         <Clock className="w-4 h-4 text-gray-400" />
                         <span>{t("location.last_update")}:</span>
-                        <span className="text-xs">{new Date(location.lastUpdate).toLocaleString()}</span>
+                        <span className="text-xs">
+                          {new Date(location.lastUpdate).toLocaleString()}
+                        </span>
                       </div>
-                      
+
                       {location.speed && (
                         <div className="flex items-center space-x-2">
                           <TrendingUp className="w-4 h-4 text-gray-400" />
@@ -635,12 +786,14 @@ export default function DeliveryMonitoringDashboard({ adminId }: DeliveryMonitor
                           <span className="text-xs">{location.speed} km/h</span>
                         </div>
                       )}
-                      
+
                       {location.batteryLevel && (
                         <div className="flex items-center space-x-2">
                           <Activity className="w-4 h-4 text-gray-400" />
                           <span>{t("location.battery")}:</span>
-                          <span className="text-xs">{location.batteryLevel}%</span>
+                          <span className="text-xs">
+                            {location.batteryLevel}%
+                          </span>
                         </div>
                       )}
                     </div>

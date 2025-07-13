@@ -1,14 +1,33 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useTranslations } from "next-intl";
 import {
   Star,
@@ -20,7 +39,7 @@ import {
   CheckCircle,
   AlertCircle,
   User,
-  BarChart3
+  BarChart3,
 } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
 
@@ -71,7 +90,9 @@ interface Pagination {
   totalPages: number;
 }
 
-export default function ProviderReviewDashboard({ providerId }: ProviderReviewDashboardProps) {
+export default function ProviderReviewDashboard({
+  providerId,
+}: ProviderReviewDashboardProps) {
   const t = useTranslations("provider.reviews");
   const [reviews, setReviews] = useState<Review[]>([]);
   const [stats, setStats] = useState<ReviewStats | null>(null);
@@ -84,7 +105,7 @@ export default function ProviderReviewDashboard({ providerId }: ProviderReviewDa
   const [filters, setFilters] = useState({
     rating: "",
     startDate: "",
-    endDate: ""
+    endDate: "",
   });
 
   useEffect(() => {
@@ -99,7 +120,9 @@ export default function ProviderReviewDashboard({ providerId }: ProviderReviewDa
       if (filters.startDate) params.append("startDate", filters.startDate);
       if (filters.endDate) params.append("endDate", filters.endDate);
 
-      const response = await fetch(`/api/provider/reviews?${params.toString()}`);
+      const response = await fetch(
+        `/api/provider/reviews?${params.toString()}`,
+      );
       if (response.ok) {
         const data = await response.json();
         setReviews(data.reviews || []);
@@ -110,7 +133,7 @@ export default function ProviderReviewDashboard({ providerId }: ProviderReviewDa
       console.error("Error fetching reviews:", error);
       toast({
         title: t("error.fetch_failed"),
-        variant: "destructive"
+        variant: "destructive",
       });
     } finally {
       setLoading(false);
@@ -127,16 +150,16 @@ export default function ProviderReviewDashboard({ providerId }: ProviderReviewDa
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           reviewId: selectedReview.id,
-          response: responseText.trim()
-        })
+          response: responseText.trim(),
+        }),
       });
 
       if (response.ok) {
         toast({
           title: t("success.response_added"),
-          description: t("success.response_added_desc")
+          description: t("success.response_added_desc"),
         });
-        
+
         setShowResponseDialog(false);
         setSelectedReview(null);
         setResponseText("");
@@ -148,8 +171,9 @@ export default function ProviderReviewDashboard({ providerId }: ProviderReviewDa
     } catch (error) {
       toast({
         title: t("error.response_failed"),
-        description: error instanceof Error ? error.message : t("error.generic"),
-        variant: "destructive"
+        description:
+          error instanceof Error ? error.message : t("error.generic"),
+        variant: "destructive",
       });
     } finally {
       setSubmitting(false);
@@ -174,22 +198,22 @@ export default function ProviderReviewDashboard({ providerId }: ProviderReviewDa
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('fr-FR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric'
+    return new Date(dateString).toLocaleDateString("fr-FR", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
     });
   };
 
   const getServiceTypeLabel = (serviceType: string) => {
     const labels: Record<string, string> = {
       HOME_CLEANING: "Ménage",
-      GARDENING: "Jardinage", 
+      GARDENING: "Jardinage",
       HANDYMAN: "Bricolage",
       TUTORING: "Cours particuliers",
       PET_CARE: "Garde d'animaux",
       BEAUTY: "Beauté",
-      OTHER: "Autre"
+      OTHER: "Autre",
     };
     return labels[serviceType] || serviceType;
   };
@@ -222,9 +246,13 @@ export default function ProviderReviewDashboard({ providerId }: ProviderReviewDa
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">{t("stats.average_rating")}</p>
+                  <p className="text-sm text-gray-600">
+                    {t("stats.average_rating")}
+                  </p>
                   <div className="flex items-center gap-2">
-                    <p className="text-2xl font-bold">{stats.averageRating.toFixed(1)}</p>
+                    <p className="text-2xl font-bold">
+                      {stats.averageRating.toFixed(1)}
+                    </p>
                     {renderStars(Math.round(stats.averageRating), "h-5 w-5")}
                   </div>
                 </div>
@@ -237,7 +265,9 @@ export default function ProviderReviewDashboard({ providerId }: ProviderReviewDa
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">{t("stats.total_reviews")}</p>
+                  <p className="text-sm text-gray-600">
+                    {t("stats.total_reviews")}
+                  </p>
                   <p className="text-2xl font-bold">{stats.totalReviews}</p>
                 </div>
                 <MessageSquare className="h-8 w-8 text-blue-600" />
@@ -249,9 +279,17 @@ export default function ProviderReviewDashboard({ providerId }: ProviderReviewDa
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">{t("stats.positive_reviews")}</p>
+                  <p className="text-sm text-gray-600">
+                    {t("stats.positive_reviews")}
+                  </p>
                   <p className="text-2xl font-bold">
-                    {Math.round(((stats.ratingDistribution[4] + stats.ratingDistribution[5]) / stats.totalReviews) * 100)}%
+                    {Math.round(
+                      ((stats.ratingDistribution[4] +
+                        stats.ratingDistribution[5]) /
+                        stats.totalReviews) *
+                        100,
+                    )}
+                    %
                   </p>
                 </div>
                 <TrendingUp className="h-8 w-8 text-green-600" />
@@ -263,9 +301,16 @@ export default function ProviderReviewDashboard({ providerId }: ProviderReviewDa
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">{t("stats.responses_rate")}</p>
+                  <p className="text-sm text-gray-600">
+                    {t("stats.responses_rate")}
+                  </p>
                   <p className="text-2xl font-bold">
-                    {Math.round((reviews.filter(r => r.response).length / reviews.length) * 100)}%
+                    {Math.round(
+                      (reviews.filter((r) => r.response).length /
+                        reviews.length) *
+                        100,
+                    )}
+                    %
                   </p>
                 </div>
                 <Reply className="h-8 w-8 text-purple-600" />
@@ -292,7 +337,12 @@ export default function ProviderReviewDashboard({ providerId }: ProviderReviewDa
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <Select value={filters.rating} onValueChange={(value) => setFilters({...filters, rating: value})}>
+                <Select
+                  value={filters.rating}
+                  onValueChange={(value) =>
+                    setFilters({ ...filters, rating: value })
+                  }
+                >
                   <SelectTrigger>
                     <SelectValue placeholder={t("filters.rating")} />
                   </SelectTrigger>
@@ -309,7 +359,9 @@ export default function ProviderReviewDashboard({ providerId }: ProviderReviewDa
                 <input
                   type="date"
                   value={filters.startDate}
-                  onChange={(e) => setFilters({...filters, startDate: e.target.value})}
+                  onChange={(e) =>
+                    setFilters({ ...filters, startDate: e.target.value })
+                  }
                   className="px-3 py-2 border rounded-md"
                   placeholder={t("filters.start_date")}
                 />
@@ -317,7 +369,9 @@ export default function ProviderReviewDashboard({ providerId }: ProviderReviewDa
                 <input
                   type="date"
                   value={filters.endDate}
-                  onChange={(e) => setFilters({...filters, endDate: e.target.value})}
+                  onChange={(e) =>
+                    setFilters({ ...filters, endDate: e.target.value })
+                  }
                   className="px-3 py-2 border rounded-md"
                   placeholder={t("filters.end_date")}
                 />
@@ -359,7 +413,9 @@ export default function ProviderReviewDashboard({ providerId }: ProviderReviewDa
                             )}
                           </div>
                           <div>
-                            <p className="font-medium">{review.client?.user?.name || "Client anonyme"}</p>
+                            <p className="font-medium">
+                              {review.client?.user?.name || "Client anonyme"}
+                            </p>
                             <div className="flex items-center gap-2">
                               {renderStars(review.rating)}
                               <span className="text-sm text-gray-600">
@@ -374,7 +430,7 @@ export default function ProviderReviewDashboard({ providerId }: ProviderReviewDa
                             </div>
                           </div>
                         </div>
-                        
+
                         {!review.response && (
                           <Button
                             variant="outline"
@@ -395,11 +451,15 @@ export default function ProviderReviewDashboard({ providerId }: ProviderReviewDa
                         <div className="bg-gray-50 rounded-lg p-3">
                           <div className="flex items-center gap-2 text-sm">
                             <Calendar className="h-4 w-4 text-gray-500" />
-                            <span>{getServiceTypeLabel(review.booking.serviceType)}</span>
+                            <span>
+                              {getServiceTypeLabel(review.booking.serviceType)}
+                            </span>
                             {review.booking.scheduledDate && (
                               <>
                                 <span>•</span>
-                                <span>{formatDate(review.booking.scheduledDate)}</span>
+                                <span>
+                                  {formatDate(review.booking.scheduledDate)}
+                                </span>
                               </>
                             )}
                           </div>
@@ -457,20 +517,30 @@ export default function ProviderReviewDashboard({ providerId }: ProviderReviewDa
                 <CardContent>
                   <div className="space-y-4">
                     {[5, 4, 3, 2, 1].map((rating) => {
-                      const count = stats.ratingDistribution[rating as keyof typeof stats.ratingDistribution];
-                      const percentage = stats.totalReviews > 0 ? (count / stats.totalReviews) * 100 : 0;
-                      
+                      const count =
+                        stats.ratingDistribution[
+                          rating as keyof typeof stats.ratingDistribution
+                        ];
+                      const percentage =
+                        stats.totalReviews > 0
+                          ? (count / stats.totalReviews) * 100
+                          : 0;
+
                       return (
                         <div key={rating} className="flex items-center gap-4">
                           <div className="flex items-center gap-2 w-20">
-                            <span className="text-sm font-medium">{rating}</span>
+                            <span className="text-sm font-medium">
+                              {rating}
+                            </span>
                             <Star className="h-4 w-4 text-yellow-400 fill-yellow-400" />
                           </div>
                           <div className="flex-1">
                             <Progress value={percentage} className="h-2" />
                           </div>
                           <div className="w-16 text-right">
-                            <span className="text-sm text-gray-600">{count}</span>
+                            <span className="text-sm text-gray-600">
+                              {count}
+                            </span>
                           </div>
                         </div>
                       );
@@ -487,54 +557,96 @@ export default function ProviderReviewDashboard({ providerId }: ProviderReviewDa
                 <CardContent>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                      <h4 className="font-medium mb-3">{t("analytics.satisfaction_level")}</h4>
+                      <h4 className="font-medium mb-3">
+                        {t("analytics.satisfaction_level")}
+                      </h4>
                       <div className="space-y-2">
                         <div className="flex justify-between items-center">
-                          <span className="text-sm text-gray-600">{t("analytics.excellent")} (5★)</span>
+                          <span className="text-sm text-gray-600">
+                            {t("analytics.excellent")} (5★)
+                          </span>
                           <span className="font-medium">
-                            {Math.round((stats.ratingDistribution[5] / stats.totalReviews) * 100)}%
+                            {Math.round(
+                              (stats.ratingDistribution[5] /
+                                stats.totalReviews) *
+                                100,
+                            )}
+                            %
                           </span>
                         </div>
                         <div className="flex justify-between items-center">
-                          <span className="text-sm text-gray-600">{t("analytics.good")} (4★)</span>
+                          <span className="text-sm text-gray-600">
+                            {t("analytics.good")} (4★)
+                          </span>
                           <span className="font-medium">
-                            {Math.round((stats.ratingDistribution[4] / stats.totalReviews) * 100)}%
+                            {Math.round(
+                              (stats.ratingDistribution[4] /
+                                stats.totalReviews) *
+                                100,
+                            )}
+                            %
                           </span>
                         </div>
                         <div className="flex justify-between items-center">
-                          <span className="text-sm text-gray-600">{t("analytics.average")} (3★)</span>
+                          <span className="text-sm text-gray-600">
+                            {t("analytics.average")} (3★)
+                          </span>
                           <span className="font-medium">
-                            {Math.round((stats.ratingDistribution[3] / stats.totalReviews) * 100)}%
+                            {Math.round(
+                              (stats.ratingDistribution[3] /
+                                stats.totalReviews) *
+                                100,
+                            )}
+                            %
                           </span>
                         </div>
                         <div className="flex justify-between items-center">
-                          <span className="text-sm text-gray-600">{t("analytics.poor")} (1-2★)</span>
+                          <span className="text-sm text-gray-600">
+                            {t("analytics.poor")} (1-2★)
+                          </span>
                           <span className="font-medium">
-                            {Math.round(((stats.ratingDistribution[1] + stats.ratingDistribution[2]) / stats.totalReviews) * 100)}%
+                            {Math.round(
+                              ((stats.ratingDistribution[1] +
+                                stats.ratingDistribution[2]) /
+                                stats.totalReviews) *
+                                100,
+                            )}
+                            %
                           </span>
                         </div>
                       </div>
                     </div>
 
                     <div>
-                      <h4 className="font-medium mb-3">{t("analytics.response_insights")}</h4>
+                      <h4 className="font-medium mb-3">
+                        {t("analytics.response_insights")}
+                      </h4>
                       <div className="space-y-2">
                         <div className="flex justify-between items-center">
-                          <span className="text-sm text-gray-600">{t("analytics.responded_reviews")}</span>
+                          <span className="text-sm text-gray-600">
+                            {t("analytics.responded_reviews")}
+                          </span>
                           <span className="font-medium">
-                            {reviews.filter(r => r.response).length}/{reviews.length}
+                            {reviews.filter((r) => r.response).length}/
+                            {reviews.length}
                           </span>
                         </div>
                         <div className="flex justify-between items-center">
-                          <span className="text-sm text-gray-600">{t("analytics.verified_reviews")}</span>
+                          <span className="text-sm text-gray-600">
+                            {t("analytics.verified_reviews")}
+                          </span>
                           <span className="font-medium">
-                            {reviews.filter(r => r.isVerified).length}/{reviews.length}
+                            {reviews.filter((r) => r.isVerified).length}/
+                            {reviews.length}
                           </span>
                         </div>
                         <div className="flex justify-between items-center">
-                          <span className="text-sm text-gray-600">{t("analytics.reviews_with_comments")}</span>
+                          <span className="text-sm text-gray-600">
+                            {t("analytics.reviews_with_comments")}
+                          </span>
                           <span className="font-medium">
-                            {reviews.filter(r => r.comment).length}/{reviews.length}
+                            {reviews.filter((r) => r.comment).length}/
+                            {reviews.length}
                           </span>
                         </div>
                       </div>
@@ -556,7 +668,7 @@ export default function ProviderReviewDashboard({ providerId }: ProviderReviewDa
               {t("response_dialog.description")}
             </DialogDescription>
           </DialogHeader>
-          
+
           {selectedReview && (
             <div className="space-y-4">
               <div className="bg-gray-50 rounded-lg p-4">
@@ -567,7 +679,9 @@ export default function ProviderReviewDashboard({ providerId }: ProviderReviewDa
                   </span>
                 </div>
                 {selectedReview.comment && (
-                  <p className="text-sm text-gray-700">{selectedReview.comment}</p>
+                  <p className="text-sm text-gray-700">
+                    {selectedReview.comment}
+                  </p>
                 )}
               </div>
 
@@ -605,7 +719,9 @@ export default function ProviderReviewDashboard({ providerId }: ProviderReviewDa
               onClick={handleResponseSubmit}
               disabled={!responseText.trim() || submitting}
             >
-              {submitting ? t("actions.submitting") : t("actions.submit_response")}
+              {submitting
+                ? t("actions.submitting")
+                : t("actions.submit_response")}
             </Button>
           </DialogFooter>
         </DialogContent>

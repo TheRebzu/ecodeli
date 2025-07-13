@@ -1,13 +1,25 @@
 "use client";
 
-import { useState, useEffect } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { 
+import { useState, useEffect } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
   BarChart3,
   TrendingUp,
   TrendingDown,
@@ -24,171 +36,214 @@ import {
   PieChart,
   Loader2,
   Filter,
-  RefreshCw
-} from 'lucide-react'
-import { useAuth } from '@/hooks/use-auth'
+  RefreshCw,
+} from "lucide-react";
+import { useAuth } from "@/hooks/use-auth";
 
 interface ReportData {
-  period: string
+  period: string;
   overview: {
-    totalRevenue: number
-    revenueGrowth: number
-    totalOrders: number
-    ordersGrowth: number
-    averageOrderValue: number
-    conversionRate: number
-    customerSatisfaction: number
-  }
+    totalRevenue: number;
+    revenueGrowth: number;
+    totalOrders: number;
+    ordersGrowth: number;
+    averageOrderValue: number;
+    conversionRate: number;
+    customerSatisfaction: number;
+  };
   salesByService: {
-    cartDrop: { revenue: number, orders: number }
-    delivery: { revenue: number, orders: number }
-    international: { revenue: number, orders: number }
-  }
+    cartDrop: { revenue: number; orders: number };
+    delivery: { revenue: number; orders: number };
+    international: { revenue: number; orders: number };
+  };
   topProducts: Array<{
-    name: string
-    sales: number
-    revenue: number
-    growth: number
-  }>
+    name: string;
+    sales: number;
+    revenue: number;
+    growth: number;
+  }>;
   customerInsights: {
-    newCustomers: number
-    returningCustomers: number
-    averageLifetimeValue: number
-    churnRate: number
-  }
+    newCustomers: number;
+    returningCustomers: number;
+    averageLifetimeValue: number;
+    churnRate: number;
+  };
   geographicData: Array<{
-    zone: string
-    orders: number
-    revenue: number
-    averageDeliveryTime: number
-  }>
+    zone: string;
+    orders: number;
+    revenue: number;
+    averageDeliveryTime: number;
+  }>;
   timeAnalysis: {
-    peakHours: string[]
-    busyDays: string[]
-    seasonal: Record<string, number>
-  }
+    peakHours: string[];
+    busyDays: string[];
+    seasonal: Record<string, number>;
+  };
 }
 
 export default function MerchantReportsPage() {
-  const { user } = useAuth()
-  const [reportData, setReportData] = useState<ReportData | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [selectedPeriod, setSelectedPeriod] = useState('30d')
-  const [selectedReport, setSelectedReport] = useState('overview')
-  const [generating, setGenerating] = useState(false)
+  const { user } = useAuth();
+  const [reportData, setReportData] = useState<ReportData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [selectedPeriod, setSelectedPeriod] = useState("30d");
+  const [selectedReport, setSelectedReport] = useState("overview");
+  const [generating, setGenerating] = useState(false);
 
   useEffect(() => {
-    fetchReportData()
-  }, [selectedPeriod])
+    fetchReportData();
+  }, [selectedPeriod]);
 
   const fetchReportData = async () => {
     try {
-      setLoading(true)
-      const response = await fetch(`/api/merchant/reports?period=${selectedPeriod}`, {
-        credentials: 'include'
-      })
-      
+      setLoading(true);
+      const response = await fetch(
+        `/api/merchant/reports?period=${selectedPeriod}`,
+        {
+          credentials: "include",
+        },
+      );
+
       if (response.ok) {
-        const data = await response.json()
-        setReportData(data)
+        const data = await response.json();
+        setReportData(data);
       } else {
         // Données de démonstration pour EcoDeli
         setReportData({
           period: selectedPeriod,
           overview: {
-            totalRevenue: 12547.80,
+            totalRevenue: 12547.8,
             revenueGrowth: 15.3,
             totalOrders: 347,
             ordersGrowth: 23.1,
             averageOrderValue: 36.15,
             conversionRate: 12.8,
-            customerSatisfaction: 4.6
+            customerSatisfaction: 4.6,
           },
           salesByService: {
-            cartDrop: { revenue: 7528.40, orders: 189 },
-            delivery: { revenue: 3764.20, orders: 98 },
-            international: { revenue: 1255.20, orders: 60 }
+            cartDrop: { revenue: 7528.4, orders: 189 },
+            delivery: { revenue: 3764.2, orders: 98 },
+            international: { revenue: 1255.2, orders: 60 },
           },
           topProducts: [
-            { name: 'Produits bio locaux', sales: 89, revenue: 2847.30, growth: 28.5 },
-            { name: 'Vins et spiritueux', sales: 67, revenue: 2134.90, growth: 18.2 },
-            { name: 'Électronique', sales: 45, revenue: 1892.40, growth: -5.1 },
-            { name: 'Mode et accessoires', sales: 78, revenue: 1567.80, growth: 42.3 },
-            { name: 'Livres et culture', sales: 34, revenue: 892.60, growth: 15.7 }
+            {
+              name: "Produits bio locaux",
+              sales: 89,
+              revenue: 2847.3,
+              growth: 28.5,
+            },
+            {
+              name: "Vins et spiritueux",
+              sales: 67,
+              revenue: 2134.9,
+              growth: 18.2,
+            },
+            { name: "Électronique", sales: 45, revenue: 1892.4, growth: -5.1 },
+            {
+              name: "Mode et accessoires",
+              sales: 78,
+              revenue: 1567.8,
+              growth: 42.3,
+            },
+            {
+              name: "Livres et culture",
+              sales: 34,
+              revenue: 892.6,
+              growth: 15.7,
+            },
           ],
           customerInsights: {
             newCustomers: 124,
             returningCustomers: 189,
-            averageLifetimeValue: 287.40,
-            churnRate: 8.3
+            averageLifetimeValue: 287.4,
+            churnRate: 8.3,
           },
           geographicData: [
-            { zone: 'Centre-ville Paris', orders: 156, revenue: 5847.20, averageDeliveryTime: 45 },
-            { zone: 'Banlieue proche', orders: 98, revenue: 3264.80, averageDeliveryTime: 62 },
-            { zone: 'Grande couronne', orders: 67, revenue: 2189.40, averageDeliveryTime: 78 },
-            { zone: 'Province', orders: 26, revenue: 1246.40, averageDeliveryTime: 120 }
+            {
+              zone: "Centre-ville Paris",
+              orders: 156,
+              revenue: 5847.2,
+              averageDeliveryTime: 45,
+            },
+            {
+              zone: "Banlieue proche",
+              orders: 98,
+              revenue: 3264.8,
+              averageDeliveryTime: 62,
+            },
+            {
+              zone: "Grande couronne",
+              orders: 67,
+              revenue: 2189.4,
+              averageDeliveryTime: 78,
+            },
+            {
+              zone: "Province",
+              orders: 26,
+              revenue: 1246.4,
+              averageDeliveryTime: 120,
+            },
           ],
           timeAnalysis: {
-            peakHours: ['11:00-12:00', '18:00-19:00', '20:00-21:00'],
-            busyDays: ['Samedi', 'Dimanche', 'Mercredi'],
+            peakHours: ["11:00-12:00", "18:00-19:00", "20:00-21:00"],
+            busyDays: ["Samedi", "Dimanche", "Mercredi"],
             seasonal: {
-              'Printemps': 8234.50,
-              'Été': 9847.20,
-              'Automne': 12547.80,
-              'Hiver': 10392.60
-            }
-          }
-        })
+              Printemps: 8234.5,
+              Été: 9847.2,
+              Automne: 12547.8,
+              Hiver: 10392.6,
+            },
+          },
+        });
       }
     } catch (error) {
-      console.error('Erreur chargement rapport:', error)
+      console.error("Erreur chargement rapport:", error);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
-  const handleExportReport = async (format: 'pdf' | 'excel') => {
+  const handleExportReport = async (format: "pdf" | "excel") => {
     try {
-      setGenerating(true)
+      setGenerating(true);
       const response = await fetch(`/api/merchant/reports/export`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ 
-          period: selectedPeriod, 
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          period: selectedPeriod,
           format,
-          reportType: selectedReport 
-        })
-      })
+          reportType: selectedReport,
+        }),
+      });
 
       if (response.ok) {
-        const blob = await response.blob()
-        const url = window.URL.createObjectURL(blob)
-        const a = document.createElement('a')
-        a.href = url
-        a.download = `rapport-ecodeli-${selectedPeriod}.${format}`
-        document.body.appendChild(a)
-        a.click()
-        window.URL.revokeObjectURL(url)
-        document.body.removeChild(a)
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `rapport-ecodeli-${selectedPeriod}.${format}`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
       }
     } catch (error) {
-      console.error('Erreur export rapport:', error)
+      console.error("Erreur export rapport:", error);
     } finally {
-      setGenerating(false)
+      setGenerating(false);
     }
-  }
+  };
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('fr-FR', {
-      style: 'currency',
-      currency: 'EUR'
-    }).format(amount)
-  }
+    return new Intl.NumberFormat("fr-FR", {
+      style: "currency",
+      currency: "EUR",
+    }).format(amount);
+  };
 
   const formatPercentage = (value: number) => {
-    return `${value > 0 ? '+' : ''}${value.toFixed(1)}%`
-  }
+    return `${value > 0 ? "+" : ""}${value.toFixed(1)}%`;
+  };
 
   if (loading) {
     return (
@@ -198,7 +253,7 @@ export default function MerchantReportsPage() {
           <p className="text-muted-foreground">Génération du rapport...</p>
         </div>
       </div>
-    )
+    );
   }
 
   if (!reportData) {
@@ -210,7 +265,7 @@ export default function MerchantReportsPage() {
           </AlertDescription>
         </Alert>
       </div>
-    )
+    );
   }
 
   return (
@@ -247,17 +302,22 @@ export default function MerchantReportsPage() {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Chiffre d'affaires</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Chiffre d'affaires
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(reportData.overview.totalRevenue)}</div>
+            <div className="text-2xl font-bold">
+              {formatCurrency(reportData.overview.totalRevenue)}
+            </div>
             <p className="text-xs text-muted-foreground flex items-center">
               {reportData.overview.revenueGrowth > 0 ? (
                 <TrendingUp className="h-3 w-3 mr-1 text-green-500" />
               ) : (
                 <TrendingDown className="h-3 w-3 mr-1 text-red-500" />
               )}
-              {formatPercentage(reportData.overview.revenueGrowth)} vs période précédente
+              {formatPercentage(reportData.overview.revenueGrowth)} vs période
+              précédente
             </p>
           </CardContent>
         </Card>
@@ -267,10 +327,13 @@ export default function MerchantReportsPage() {
             <CardTitle className="text-sm font-medium">Commandes</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{reportData.overview.totalOrders}</div>
+            <div className="text-2xl font-bold">
+              {reportData.overview.totalOrders}
+            </div>
             <p className="text-xs text-muted-foreground flex items-center">
               <TrendingUp className="h-3 w-3 mr-1 text-green-500" />
-              {formatPercentage(reportData.overview.ordersGrowth)} vs période précédente
+              {formatPercentage(reportData.overview.ordersGrowth)} vs période
+              précédente
             </p>
           </CardContent>
         </Card>
@@ -280,7 +343,9 @@ export default function MerchantReportsPage() {
             <CardTitle className="text-sm font-medium">Panier moyen</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(reportData.overview.averageOrderValue)}</div>
+            <div className="text-2xl font-bold">
+              {formatCurrency(reportData.overview.averageOrderValue)}
+            </div>
             <p className="text-xs text-muted-foreground">
               Valeur moyenne par commande
             </p>
@@ -289,7 +354,9 @@ export default function MerchantReportsPage() {
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Satisfaction client</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Satisfaction client
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold flex items-center">
@@ -303,7 +370,11 @@ export default function MerchantReportsPage() {
         </Card>
       </div>
 
-      <Tabs value={selectedReport} onValueChange={setSelectedReport} className="w-full">
+      <Tabs
+        value={selectedReport}
+        onValueChange={setSelectedReport}
+        className="w-full"
+      >
         <div className="flex items-center justify-between">
           <TabsList className="grid w-full max-w-2xl grid-cols-5">
             <TabsTrigger value="overview">Vue générale</TabsTrigger>
@@ -312,10 +383,10 @@ export default function MerchantReportsPage() {
             <TabsTrigger value="customers">Clients</TabsTrigger>
             <TabsTrigger value="geography">Géographie</TabsTrigger>
           </TabsList>
-          
+
           <div className="flex items-center gap-2">
-            <Button 
-              onClick={() => handleExportReport('pdf')} 
+            <Button
+              onClick={() => handleExportReport("pdf")}
               variant="outline"
               disabled={generating}
             >
@@ -323,8 +394,8 @@ export default function MerchantReportsPage() {
               <Download className="h-4 w-4 mr-2" />
               Export PDF
             </Button>
-            <Button 
-              onClick={() => handleExportReport('excel')} 
+            <Button
+              onClick={() => handleExportReport("excel")}
               variant="outline"
               disabled={generating}
             >
@@ -352,8 +423,14 @@ export default function MerchantReportsPage() {
                       <span className="text-sm">Lâcher de chariot</span>
                     </div>
                     <div className="text-right">
-                      <div className="font-medium">{formatCurrency(reportData.salesByService.cartDrop.revenue)}</div>
-                      <div className="text-xs text-muted-foreground">{reportData.salesByService.cartDrop.orders} commandes</div>
+                      <div className="font-medium">
+                        {formatCurrency(
+                          reportData.salesByService.cartDrop.revenue,
+                        )}
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        {reportData.salesByService.cartDrop.orders} commandes
+                      </div>
                     </div>
                   </div>
                   <div className="w-full bg-secondary rounded-full h-2">
@@ -368,8 +445,14 @@ export default function MerchantReportsPage() {
                       <span className="text-sm">Livraison classique</span>
                     </div>
                     <div className="text-right">
-                      <div className="font-medium">{formatCurrency(reportData.salesByService.delivery.revenue)}</div>
-                      <div className="text-xs text-muted-foreground">{reportData.salesByService.delivery.orders} commandes</div>
+                      <div className="font-medium">
+                        {formatCurrency(
+                          reportData.salesByService.delivery.revenue,
+                        )}
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        {reportData.salesByService.delivery.orders} commandes
+                      </div>
                     </div>
                   </div>
                   <div className="w-full bg-secondary rounded-full h-2">
@@ -384,8 +467,15 @@ export default function MerchantReportsPage() {
                       <span className="text-sm">Achat international</span>
                     </div>
                     <div className="text-right">
-                      <div className="font-medium">{formatCurrency(reportData.salesByService.international.revenue)}</div>
-                      <div className="text-xs text-muted-foreground">{reportData.salesByService.international.orders} commandes</div>
+                      <div className="font-medium">
+                        {formatCurrency(
+                          reportData.salesByService.international.revenue,
+                        )}
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        {reportData.salesByService.international.orders}{" "}
+                        commandes
+                      </div>
                     </div>
                   </div>
                   <div className="w-full bg-secondary rounded-full h-2">
@@ -417,7 +507,9 @@ export default function MerchantReportsPage() {
                 </div>
 
                 <div>
-                  <h4 className="font-medium text-sm mb-2">Jours les plus actifs</h4>
+                  <h4 className="font-medium text-sm mb-2">
+                    Jours les plus actifs
+                  </h4>
                   <div className="flex flex-wrap gap-2">
                     {reportData.timeAnalysis.busyDays.map((day, index) => (
                       <Badge key={index} variant="secondary">
@@ -428,14 +520,23 @@ export default function MerchantReportsPage() {
                 </div>
 
                 <div>
-                  <h4 className="font-medium text-sm mb-2">Performance saisonnière</h4>
+                  <h4 className="font-medium text-sm mb-2">
+                    Performance saisonnière
+                  </h4>
                   <div className="space-y-2">
-                    {Object.entries(reportData.timeAnalysis.seasonal).map(([season, revenue]) => (
-                      <div key={season} className="flex items-center justify-between">
-                        <span className="text-sm">{season}</span>
-                        <span className="font-medium">{formatCurrency(revenue)}</span>
-                      </div>
-                    ))}
+                    {Object.entries(reportData.timeAnalysis.seasonal).map(
+                      ([season, revenue]) => (
+                        <div
+                          key={season}
+                          className="flex items-center justify-between"
+                        >
+                          <span className="text-sm">{season}</span>
+                          <span className="font-medium">
+                            {formatCurrency(revenue)}
+                          </span>
+                        </div>
+                      ),
+                    )}
                   </div>
                 </div>
               </CardContent>
@@ -455,21 +556,32 @@ export default function MerchantReportsPage() {
             <CardContent>
               <div className="space-y-4">
                 {reportData.topProducts.map((product, index) => (
-                  <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
+                  <div
+                    key={index}
+                    className="flex items-center justify-between p-3 border rounded-lg"
+                  >
                     <div className="flex items-center gap-3">
                       <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10">
-                        <span className="text-sm font-medium">#{index + 1}</span>
+                        <span className="text-sm font-medium">
+                          #{index + 1}
+                        </span>
                       </div>
                       <div>
                         <h4 className="font-medium">{product.name}</h4>
-                        <p className="text-xs text-muted-foreground">{product.sales} ventes</p>
+                        <p className="text-xs text-muted-foreground">
+                          {product.sales} ventes
+                        </p>
                       </div>
                     </div>
                     <div className="text-right">
-                      <div className="font-medium">{formatCurrency(product.revenue)}</div>
-                      <div className={`text-xs flex items-center ${
-                        product.growth > 0 ? 'text-green-500' : 'text-red-500'
-                      }`}>
+                      <div className="font-medium">
+                        {formatCurrency(product.revenue)}
+                      </div>
+                      <div
+                        className={`text-xs flex items-center ${
+                          product.growth > 0 ? "text-green-500" : "text-red-500"
+                        }`}
+                      >
                         {product.growth > 0 ? (
                           <TrendingUp className="h-3 w-3 mr-1" />
                         ) : (
@@ -490,40 +602,60 @@ export default function MerchantReportsPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium">Nouveaux clients</CardTitle>
+                <CardTitle className="text-sm font-medium">
+                  Nouveaux clients
+                </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-green-600">{reportData.customerInsights.newCustomers}</div>
+                <div className="text-2xl font-bold text-green-600">
+                  {reportData.customerInsights.newCustomers}
+                </div>
                 <p className="text-xs text-muted-foreground">Cette période</p>
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium">Clients fidèles</CardTitle>
+                <CardTitle className="text-sm font-medium">
+                  Clients fidèles
+                </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-blue-600">{reportData.customerInsights.returningCustomers}</div>
-                <p className="text-xs text-muted-foreground">Commandes multiples</p>
+                <div className="text-2xl font-bold text-blue-600">
+                  {reportData.customerInsights.returningCustomers}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Commandes multiples
+                </p>
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium">Valeur vie client</CardTitle>
+                <CardTitle className="text-sm font-medium">
+                  Valeur vie client
+                </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{formatCurrency(reportData.customerInsights.averageLifetimeValue)}</div>
+                <div className="text-2xl font-bold">
+                  {formatCurrency(
+                    reportData.customerInsights.averageLifetimeValue,
+                  )}
+                </div>
                 <p className="text-xs text-muted-foreground">LTV moyenne</p>
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium">Taux d'attrition</CardTitle>
+                <CardTitle className="text-sm font-medium">
+                  Taux d'attrition
+                </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-orange-600">{reportData.customerInsights.churnRate}%</div>
+                <div className="text-2xl font-bold text-orange-600">
+                  {reportData.customerInsights.churnRate}%
+                </div>
                 <p className="text-xs text-muted-foreground">Clients perdus</p>
               </CardContent>
             </Card>
@@ -542,16 +674,23 @@ export default function MerchantReportsPage() {
             <CardContent>
               <div className="space-y-4">
                 {reportData.geographicData.map((zone, index) => (
-                  <div key={index} className="flex items-center justify-between p-4 border rounded-lg">
+                  <div
+                    key={index}
+                    className="flex items-center justify-between p-4 border rounded-lg"
+                  >
                     <div className="flex items-center gap-3">
                       <MapPin className="h-5 w-5 text-primary" />
                       <div>
                         <h4 className="font-medium">{zone.zone}</h4>
-                        <p className="text-xs text-muted-foreground">{zone.orders} commandes</p>
+                        <p className="text-xs text-muted-foreground">
+                          {zone.orders} commandes
+                        </p>
                       </div>
                     </div>
                     <div className="text-right">
-                      <div className="font-medium">{formatCurrency(zone.revenue)}</div>
+                      <div className="font-medium">
+                        {formatCurrency(zone.revenue)}
+                      </div>
                       <div className="text-xs text-muted-foreground flex items-center">
                         <Clock className="h-3 w-3 mr-1" />
                         {zone.averageDeliveryTime}min moyenne
@@ -565,5 +704,5 @@ export default function MerchantReportsPage() {
         </TabsContent>
       </Tabs>
     </div>
-  )
-} 
+  );
+}

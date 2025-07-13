@@ -1,28 +1,31 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '@/lib/auth'
-import { db } from '@/lib/db'
+import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@/lib/auth";
+import { db } from "@/lib/db";
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await auth()
+    const session = await auth();
     if (!session?.user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     // Vérifier que l'utilisateur est un livreur
-    if (session.user.role !== 'DELIVERER') {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    if (session.user.role !== "DELIVERER") {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    console.log('🔍 Recherche livraisons actives pour livreur:', session.user.id)
-    
+    console.log(
+      "🔍 Recherche livraisons actives pour livreur:",
+      session.user.id,
+    );
+
     // Récupérer les livraisons actives du livreur
     const activeDeliveries = await db.delivery.findMany({
       where: {
         delivererId: session.user.id,
         status: {
-          in: ['ACCEPTED', 'PICKED_UP', 'IN_TRANSIT']
-        }
+          in: ["ACCEPTED", "PICKED_UP", "IN_TRANSIT"],
+        },
       },
       include: {
         announcement: {
@@ -33,47 +36,47 @@ export async function GET(request: NextRequest) {
                   select: {
                     firstName: true,
                     lastName: true,
-                    phone: true
-                  }
-                }
-              }
-            }
-          }
-        }
+                    phone: true,
+                  },
+                },
+              },
+            },
+          },
+        },
       },
       orderBy: {
-        createdAt: 'asc'
-      }
-    })
+        createdAt: "asc",
+      },
+    });
 
-    console.log('📦 Livraisons actives trouvées:', activeDeliveries.length)
-    activeDeliveries.forEach(delivery => {
-      console.log(`  - ${delivery.id}: ${delivery.status}`)
-    })
+    console.log("📦 Livraisons actives trouvées:", activeDeliveries.length);
+    activeDeliveries.forEach((delivery) => {
+      console.log(`  - ${delivery.id}: ${delivery.status}`);
+    });
 
     // Debug: Vérifier toutes les livraisons du livreur
     const allDeliveries = await db.delivery.findMany({
       where: {
-        delivererId: session.user.id
+        delivererId: session.user.id,
       },
       select: {
         id: true,
-        status: true
-      }
-    })
-    console.log('🔍 Toutes les livraisons du livreur:', allDeliveries.length)
-    allDeliveries.forEach(delivery => {
-      console.log(`  - ${delivery.id}: ${delivery.status}`)
-    })
+        status: true,
+      },
+    });
+    console.log("🔍 Toutes les livraisons du livreur:", allDeliveries.length);
+    allDeliveries.forEach((delivery) => {
+      console.log(`  - ${delivery.id}: ${delivery.status}`);
+    });
 
     // Formatter les données pour le frontend
-    const formattedDeliveries = activeDeliveries.map(delivery => ({
+    const formattedDeliveries = activeDeliveries.map((delivery) => ({
       id: delivery.id,
       announcement: {
         id: delivery.announcement.id,
         title: delivery.announcement.title,
         description: delivery.announcement.description,
-        type: delivery.announcement.type
+        type: delivery.announcement.type,
       },
       pickupAddress: delivery.announcement.pickupAddress,
       deliveryAddress: delivery.announcement.deliveryAddress,
@@ -86,24 +89,24 @@ export async function GET(request: NextRequest) {
       validationCode: delivery.validationCode,
       client: {
         id: delivery.announcement.author.id,
-        firstName: delivery.announcement.author.profile?.firstName || '',
-        lastName: delivery.announcement.author.profile?.lastName || '',
-        phone: delivery.announcement.author.profile?.phone || ''
+        firstName: delivery.announcement.author.profile?.firstName || "",
+        lastName: delivery.announcement.author.profile?.lastName || "",
+        phone: delivery.announcement.author.profile?.phone || "",
       },
       createdAt: delivery.createdAt,
-      updatedAt: delivery.updatedAt
-    }))
+      updatedAt: delivery.updatedAt,
+    }));
 
     return NextResponse.json({
       success: true,
       data: formattedDeliveries,
-      count: formattedDeliveries.length
-    })
+      count: formattedDeliveries.length,
+    });
   } catch (error) {
-    console.error('Error fetching active deliveries:', error)
+    console.error("Error fetching active deliveries:", error);
     return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    )
+      { error: "Internal server error" },
+      { status: 500 },
+    );
   }
-} 
+}

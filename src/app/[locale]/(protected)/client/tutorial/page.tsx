@@ -22,9 +22,12 @@ export default function ClientTutorialPage() {
     <div className="space-y-6">
       <PageHeader
         title={t("page.title") || "Tutoriel d'utilisation"}
-        description={t("page.description") || "Apprenez à utiliser toutes les fonctionnalités d'EcoDeli"}
+        description={
+          t("page.description") ||
+          "Apprenez à utiliser toutes les fonctionnalités d'EcoDeli"
+        }
       />
-      
+
       <ClientTutorialSystem clientId={user.id} />
     </div>
   );

@@ -9,16 +9,13 @@ const validateServiceSchema = z.object({
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const { id } = await params
+    const { id } = await params;
     const session = await auth();
     if (!session || session.user.role !== "PROVIDER") {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const body = await request.json();
@@ -35,7 +32,7 @@ export async function POST(
     if (!service) {
       return NextResponse.json(
         { error: "Service not found or unauthorized" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -43,7 +40,7 @@ export async function POST(
     if (!service.name || !service.description || !service.basePrice) {
       return NextResponse.json(
         { error: "Service information incomplete" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -92,14 +89,14 @@ export async function POST(
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: "Validation error", details: error.errors },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     console.error("Error requesting service validation:", error);
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
-} 
+}

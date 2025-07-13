@@ -3,28 +3,28 @@
  * Fournit la structure commune et les fonctionnalités partagées
  */
 
-import { type ReactNode } from 'react'
-import Link from 'next/link'
-import { Menu, X } from 'lucide-react'
-import { cn } from '@/lib/utils'
-import { useLayout } from '../providers/layout-provider'
-import { NotificationBell } from '@/components/ui/notification-bell'
-import { UserMenu } from '@/components/ui/user-menu'
-import { SearchBar } from '@/components/ui/search-bar'
-import { LanguageSwitcher } from '@/components/ui/language-switcher'
-import { ThemeToggle } from '@/components/ui/theme-toggle'
-import { type BaseHeaderProps } from '../types/layout.types'
+import { type ReactNode } from "react";
+import Link from "next/link";
+import { Menu, X } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { useLayout } from "../providers/layout-provider";
+import { NotificationBell } from "@/components/ui/notification-bell";
+import { UserMenu } from "@/components/ui/user-menu";
+import { SearchBar } from "@/components/ui/search-bar";
+import { LanguageSwitcher } from "@/components/ui/language-switcher";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { type BaseHeaderProps } from "../types/layout.types";
 
 interface BaseHeaderLayoutProps extends BaseHeaderProps {
-  children?: ReactNode
-  logo?: ReactNode
-  navigation?: ReactNode
-  actions?: ReactNode
-  className?: string
-  sticky?: boolean
-  border?: boolean
-  showMobileMenu?: boolean
-  onMobileMenuToggle?: () => void
+  children?: ReactNode;
+  logo?: ReactNode;
+  navigation?: ReactNode;
+  actions?: ReactNode;
+  className?: string;
+  sticky?: boolean;
+  border?: boolean;
+  showMobileMenu?: boolean;
+  onMobileMenuToggle?: () => void;
 }
 
 export function BaseHeader({
@@ -42,25 +42,25 @@ export function BaseHeader({
   sticky = true,
   border = true,
   showMobileMenu = false,
-  onMobileMenuToggle
+  onMobileMenuToggle,
 }: BaseHeaderLayoutProps) {
-  const { isMobile, mobileMenuOpen, setMobileMenuOpen } = useLayout()
+  const { isMobile, mobileMenuOpen, setMobileMenuOpen } = useLayout();
 
   const handleMobileMenuToggle = () => {
     if (onMobileMenuToggle) {
-      onMobileMenuToggle()
+      onMobileMenuToggle();
     } else {
-      setMobileMenuOpen(!mobileMenuOpen)
+      setMobileMenuOpen(!mobileMenuOpen);
     }
-  }
+  };
 
   return (
-    <header 
+    <header
       className={cn(
         "bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60",
         sticky && "sticky top-0 z-50",
         border && "border-b border-border",
-        className
+        className,
       )}
     >
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -84,23 +84,15 @@ export function BaseHeader({
             )}
 
             {/* Logo */}
-            <div className="flex-shrink-0">
-              {logo || <DefaultLogo />}
-            </div>
+            <div className="flex-shrink-0">{logo || <DefaultLogo />}</div>
 
             {/* Navigation desktop */}
-            {navigation && (
-              <nav className="hidden lg:block">
-                {navigation}
-              </nav>
-            )}
+            {navigation && <nav className="hidden lg:block">{navigation}</nav>}
           </div>
 
           {/* Section centrale - Contenu custom */}
           {children && (
-            <div className="flex-1 flex justify-center px-4">
-              {children}
-            </div>
+            <div className="flex-1 flex justify-center px-4">{children}</div>
           )}
 
           {/* Section droite - Actions et utilisateur */}
@@ -130,7 +122,7 @@ export function BaseHeader({
         </div>
       </div>
     </header>
-  )
+  );
 }
 
 /**
@@ -146,7 +138,7 @@ function DefaultLogo() {
         EcoDeli
       </span>
     </Link>
-  )
+  );
 }
 
 /**
@@ -156,14 +148,8 @@ export function SimpleHeader({
   logo,
   className,
   ...props
-}: Omit<BaseHeaderLayoutProps, 'navigation' | 'actions' | 'children'>) {
-  return (
-    <BaseHeader
-      logo={logo}
-      className={className}
-      {...props}
-    />
-  )
+}: Omit<BaseHeaderLayoutProps, "navigation" | "actions" | "children">) {
+  return <BaseHeader logo={logo} className={className} {...props} />;
 }
 
 /**
@@ -177,16 +163,13 @@ export function SearchHeader({
   className,
   ...props
 }: BaseHeaderLayoutProps & {
-  searchPlaceholder?: string
-  onSearchChange?: (value: string) => void
-  onSearchSubmit?: (value: string) => void
-  searchValue?: string
+  searchPlaceholder?: string;
+  onSearchChange?: (value: string) => void;
+  onSearchSubmit?: (value: string) => void;
+  searchValue?: string;
 }) {
   return (
-    <BaseHeader
-      className={className}
-      {...props}
-    >
+    <BaseHeader className={className} {...props}>
       <div className="max-w-md w-full">
         <SearchBar
           placeholder={searchPlaceholder}
@@ -196,7 +179,7 @@ export function SearchHeader({
         />
       </div>
     </BaseHeader>
-  )
+  );
 }
 
 /**
@@ -208,8 +191,8 @@ export function ActionHeader({
   className,
   ...props
 }: BaseHeaderLayoutProps & {
-  primaryAction?: ReactNode
-  secondaryActions?: ReactNode[]
+  primaryAction?: ReactNode;
+  secondaryActions?: ReactNode[];
 }) {
   return (
     <BaseHeader
@@ -219,14 +202,12 @@ export function ActionHeader({
           {secondaryActions.map((action, index) => (
             <div key={index}>{action}</div>
           ))}
-          {primaryAction && (
-            <div className="ml-2">{primaryAction}</div>
-          )}
+          {primaryAction && <div className="ml-2">{primaryAction}</div>}
         </div>
       }
       {...props}
     />
-  )
+  );
 }
 
 /**
@@ -240,10 +221,10 @@ export function PublicHeaderBase({
   className,
   ...props
 }: BaseHeaderLayoutProps & {
-  showAuth?: boolean
-  showLanguage?: boolean
-  showTheme?: boolean
-  authActions?: ReactNode
+  showAuth?: boolean;
+  showLanguage?: boolean;
+  showTheme?: boolean;
+  authActions?: ReactNode;
 }) {
   return (
     <BaseHeader
@@ -252,8 +233,8 @@ export function PublicHeaderBase({
         <div className="flex items-center space-x-2">
           {showTheme && <ThemeToggle variant="icon-only" />}
           {showLanguage && <LanguageSwitcher variant="minimal" />}
-          {showAuth && (
-            authActions || (
+          {showAuth &&
+            (authActions || (
               <div className="flex items-center space-x-2">
                 <Link
                   href="/login"
@@ -268,13 +249,12 @@ export function PublicHeaderBase({
                   Inscription
                 </Link>
               </div>
-            )
-          )}
+            ))}
         </div>
       }
       {...props}
     />
-  )
+  );
 }
 
 /**
@@ -286,18 +266,18 @@ export function DashboardHeaderBase({
   className,
   ...props
 }: BaseHeaderLayoutProps & {
-  onSidebarToggle?: () => void
-  showSidebar?: boolean
+  onSidebarToggle?: () => void;
+  showSidebar?: boolean;
 }) {
-  const { toggleSidebar } = useLayout()
+  const { toggleSidebar } = useLayout();
 
   const handleSidebarToggle = () => {
     if (onSidebarToggle) {
-      onSidebarToggle()
+      onSidebarToggle();
     } else {
-      toggleSidebar()
+      toggleSidebar();
     }
-  }
+  };
 
   return (
     <BaseHeader
@@ -306,5 +286,5 @@ export function DashboardHeaderBase({
       onMobileMenuToggle={handleSidebarToggle}
       {...props}
     />
-  )
+  );
 }

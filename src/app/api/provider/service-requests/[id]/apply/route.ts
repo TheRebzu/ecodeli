@@ -1,84 +1,95 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getUserFromSession } from '@/lib/auth/utils'
-import { db } from '@/lib/db'
-import { z } from 'zod'
+import { NextRequest, NextResponse } from "next/server";
+import { getUserFromSession } from "@/lib/auth/utils";
+import { db } from "@/lib/db";
+import { z } from "zod";
 
 const applicationSchema = z.object({
-  price: z.number().positive('Le prix doit être positif'),
-  estimatedDuration: z.number().positive('La durée doit être positive'),
-  message: z.string().min(10, 'Le message doit faire au moins 10 caractères'),
-  availableDates: z.array(z.string()).optional()
-})
+  price: z.number().positive("Le prix doit être positif"),
+  estimatedDuration: z.number().positive("La durée doit être positive"),
+  message: z.string().min(10, "Le message doit faire au moins 10 caractères"),
+  availableDates: z.array(z.string()).optional(),
+});
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    console.log('🔍 [POST /api/provider/service-requests/[id]/apply] Candidature prestataire')
-    
-    const user = await getUserFromSession(request)
-    if (!user || user.role !== 'PROVIDER') {
-      console.log('❌ Utilisateur non authentifié ou non prestataire')
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    console.log(
+      "🔍 [POST /api/provider/service-requests/[id]/apply] Candidature prestataire",
+    );
+
+    const user = await getUserFromSession(request);
+    if (!user || user.role !== "PROVIDER") {
+      console.log("❌ Utilisateur non authentifié ou non prestataire");
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    console.log('✅ Prestataire authentifié:', user.id, user.role)
+    console.log("✅ Prestataire authentifié:", user.id, user.role);
 
-    const { id: serviceRequestId } = await params
-    const body = await request.json()
-    
+    const { id: serviceRequestId } = await params;
+    const body = await request.json();
+
     try {
-      const validatedData = applicationSchema.parse(body)
-      console.log('✅ Données de candidature validées')
-      
+      const validatedData = applicationSchema.parse(body);
+      console.log("✅ Données de candidature validées");
+
       // Récupérer le profil prestataire
       const provider = await db.provider.findUnique({
-        where: { userId: user.id }
-      })
+        where: { userId: user.id },
+      });
 
       if (!provider) {
-        console.log('❌ Profil prestataire non trouvé')
-        return NextResponse.json({ error: 'Profil prestataire non trouvé' }, { status: 404 })
+        console.log("❌ Profil prestataire non trouvé");
+        return NextResponse.json(
+          { error: "Profil prestataire non trouvé" },
+          { status: 404 },
+        );
       }
 
       // Vérifier que la demande de service existe et est active
       const serviceRequest = await db.announcement.findUnique({
-        where: { 
+        where: {
           id: serviceRequestId,
-          type: 'HOME_SERVICE',
-          status: 'ACTIVE'
+          type: "HOME_SERVICE",
+          status: "ACTIVE",
         },
         include: {
           author: {
             include: {
-              profile: true
-            }
-          }
-        }
-      })
+              profile: true,
+            },
+          },
+        },
+      });
 
       if (!serviceRequest) {
-        console.log('❌ Demande de service non trouvée ou non active')
-        return NextResponse.json({ error: 'Demande de service non trouvée' }, { status: 404 })
+        console.log("❌ Demande de service non trouvée ou non active");
+        return NextResponse.json(
+          { error: "Demande de service non trouvée" },
+          { status: 404 },
+        );
       }
 
       // Vérifier que le prestataire n'a pas déjà candidaté
       const existingApplication = await db.serviceApplication.findFirst({
         where: {
           serviceRequestId: serviceRequestId,
-          providerId: provider.id
-        }
-      })
+          providerId: provider.id,
+        },
+      });
 
       if (existingApplication) {
-        console.log('❌ Candidature déjà existante')
-        return NextResponse.json({ 
-          error: 'Vous avez déjà candidaté à cette demande de service' 
-        }, { status: 400 })
+        console.log("❌ Candidature déjà existante");
+        return NextResponse.json(
+          {
+            error: "Vous avez déjà candidaté à cette demande de service",
+          },
+          { status: 400 },
+        );
       }
 
-      console.log('🔍 Création de la candidature...')
+      console.log("🔍 Création de la candidature...");
 
       // Créer la candidature
       const application = await db.serviceApplication.create({
@@ -88,58 +99,58 @@ export async function POST(
           proposedPrice: validatedData.price,
           estimatedDuration: validatedData.estimatedDuration,
           message: validatedData.message,
-          status: 'PENDING',
-          availableDates: validatedData.availableDates || []
+          status: "PENDING",
+          availableDates: validatedData.availableDates || [],
         },
         include: {
           provider: {
             include: {
               user: {
                 include: {
-                  profile: true
-                }
-              }
-            }
+                  profile: true,
+                },
+              },
+            },
           },
           serviceRequest: {
             include: {
               author: {
                 include: {
-                  profile: true
-                }
-              }
-            }
-          }
-        }
-      })
+                  profile: true,
+                },
+              },
+            },
+          },
+        },
+      });
 
-      console.log('✅ Candidature créée avec succès')
+      console.log("✅ Candidature créée avec succès");
 
       // Créer une notification pour le client
       await db.notification.create({
         data: {
           userId: serviceRequest.authorId,
-          title: 'Nouvelle candidature reçue',
+          title: "Nouvelle candidature reçue",
           message: `Un prestataire a candidaté à votre demande "${serviceRequest.title}"`,
-          type: 'SERVICE_APPLICATION',
+          type: "SERVICE_APPLICATION",
           data: {
             serviceRequestId: serviceRequestId,
             applicationId: application.id,
-            providerId: provider.id
-          }
-        }
-      })
+            providerId: provider.id,
+          },
+        },
+      });
 
       // Créer une notification pour le prestataire
       await db.notification.create({
         data: {
           userId: user.id,
-          title: 'Candidature envoyée',
+          title: "Candidature envoyée",
           message: `Votre candidature pour "${serviceRequest.title}" a été envoyée avec succès`,
-          type: 'SERVICE_APPLICATION_SENT',
-          data: {}
-        }
-      })
+          type: "SERVICE_APPLICATION_SENT",
+          data: {},
+        },
+      });
 
       return NextResponse.json({
         success: true,
@@ -149,26 +160,24 @@ export async function POST(
           estimatedDuration: application.estimatedDuration,
           message: application.message,
           status: application.status,
-          createdAt: application.createdAt
-        }
-      })
-
+          createdAt: application.createdAt,
+        },
+      });
     } catch (validationError) {
-      console.error('❌ Erreur de validation:', validationError)
+      console.error("❌ Erreur de validation:", validationError);
       if (validationError instanceof z.ZodError) {
         return NextResponse.json(
-          { error: 'Données invalides', details: validationError.errors },
-          { status: 400 }
-        )
+          { error: "Données invalides", details: validationError.errors },
+          { status: 400 },
+        );
       }
-      throw validationError
+      throw validationError;
     }
-
   } catch (error) {
-    console.error('❌ Erreur générale:', error)
+    console.error("❌ Erreur générale:", error);
     return NextResponse.json(
-      { error: 'Erreur interne du serveur' },
-      { status: 500 }
-    )
+      { error: "Erreur interne du serveur" },
+      { status: 500 },
+    );
   }
-} 
+}

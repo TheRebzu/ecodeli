@@ -1,32 +1,32 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import { addDays, format } from "date-fns"
-import { fr } from "date-fns/locale"
-import { Calendar as CalendarIcon } from "lucide-react"
-import { DateRange } from "react-day-picker"
+import * as React from "react";
+import { addDays, format } from "date-fns";
+import { fr } from "date-fns/locale";
+import { Calendar as CalendarIcon } from "lucide-react";
+import { DateRange } from "react-day-picker";
 
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
-import { Calendar } from "@/components/ui/calendar"
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@/components/ui/popover"
+} from "@/components/ui/popover";
 
 interface DatePickerWithRangeProps {
-  className?: string
-  date?: DateRange
-  onDateChange?: (date: DateRange | undefined) => void
-  placeholder?: string
+  className?: string;
+  date?: DateRange;
+  onDateChange?: (date: DateRange | undefined) => void;
+  placeholder?: string;
 }
 
 export function DatePickerWithRange({
   className,
   date,
   onDateChange,
-  placeholder = "Sélectionner une période"
+  placeholder = "Sélectionner une période",
 }: DatePickerWithRangeProps) {
   return (
     <div className={cn("grid gap-2", className)}>
@@ -37,7 +37,7 @@ export function DatePickerWithRange({
             variant={"outline"}
             className={cn(
               "w-[300px] justify-start text-left font-normal",
-              !date && "text-muted-foreground"
+              !date && "text-muted-foreground",
             )}
           >
             <CalendarIcon className="mr-2 h-4 w-4" />
@@ -68,22 +68,22 @@ export function DatePickerWithRange({
         </PopoverContent>
       </Popover>
     </div>
-  )
+  );
 }
 
 // Composant simple pour sélection date unique
 interface DatePickerProps {
-  className?: string
-  date?: Date
-  onDateChange?: (date: Date | undefined) => void
-  placeholder?: string
+  className?: string;
+  date?: Date;
+  onDateChange?: (date: Date | undefined) => void;
+  placeholder?: string;
 }
 
 export function DatePicker({
   className,
   date,
   onDateChange,
-  placeholder = "Sélectionner une date"
+  placeholder = "Sélectionner une date",
 }: DatePickerProps) {
   return (
     <div className={cn("grid gap-2", className)}>
@@ -93,7 +93,7 @@ export function DatePicker({
             variant={"outline"}
             className={cn(
               "w-[280px] justify-start text-left font-normal",
-              !date && "text-muted-foreground"
+              !date && "text-muted-foreground",
             )}
           >
             <CalendarIcon className="mr-2 h-4 w-4" />
@@ -115,5 +115,5 @@ export function DatePicker({
         </PopoverContent>
       </Popover>
     </div>
-  )
-} 
+  );
+}

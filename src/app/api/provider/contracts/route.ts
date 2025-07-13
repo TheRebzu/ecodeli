@@ -1,27 +1,30 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getCurrentUser } from '@/lib/auth/utils'
-import { prisma } from '@/lib/db'
-import { providerContractSchema } from '@/features/provider/schemas/contract.schema'
+import { NextRequest, NextResponse } from "next/server";
+import { getCurrentUser } from "@/lib/auth/utils";
+import { prisma } from "@/lib/db";
+import { providerContractSchema } from "@/features/provider/schemas/contract.schema";
 
 export async function GET(request: NextRequest) {
   try {
-    const currentUser = await getCurrentUser()
-    if (!currentUser || currentUser.role !== 'PROVIDER') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    const currentUser = await getCurrentUser();
+    if (!currentUser || currentUser.role !== "PROVIDER") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const provider = await prisma.provider.findUnique({
       where: { userId: currentUser.id },
-      select: { id: true }
-    })
+      select: { id: true },
+    });
 
     if (!provider) {
-      return NextResponse.json({ error: 'Provider not found' }, { status: 404 })
+      return NextResponse.json(
+        { error: "Provider not found" },
+        { status: 404 },
+      );
     }
 
     const contracts = await prisma.providerContract.findMany({
       where: { providerId: provider.id },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" },
       include: {
         provider: {
           select: {
@@ -32,43 +35,46 @@ export async function GET(request: NextRequest) {
                 profile: {
                   select: {
                     firstName: true,
-                    lastName: true
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    })
+                    lastName: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
 
-    return NextResponse.json({ contracts })
+    return NextResponse.json({ contracts });
   } catch (error) {
-    console.error('Error fetching contracts:', error)
+    console.error("Error fetching contracts:", error);
     return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    )
+      { error: "Internal server error" },
+      { status: 500 },
+    );
   }
 }
 
 export async function POST(request: NextRequest) {
   try {
-    const currentUser = await getCurrentUser()
-    if (!currentUser || currentUser.role !== 'PROVIDER') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    const currentUser = await getCurrentUser();
+    if (!currentUser || currentUser.role !== "PROVIDER") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const body = await request.json()
-    const validatedData = providerContractSchema.parse(body)
+    const body = await request.json();
+    const validatedData = providerContractSchema.parse(body);
 
     const provider = await prisma.provider.findUnique({
       where: { userId: currentUser.id },
-      select: { id: true }
-    })
+      select: { id: true },
+    });
 
     if (!provider) {
-      return NextResponse.json({ error: 'Provider not found' }, { status: 404 })
+      return NextResponse.json(
+        { error: "Provider not found" },
+        { status: 404 },
+      );
     }
 
     const contract = await prisma.providerContract.create({
@@ -80,7 +86,7 @@ export async function POST(request: NextRequest) {
         endDate: validatedData.endDate ? new Date(validatedData.endDate) : null,
         terms: validatedData.terms,
         notes: validatedData.notes,
-        status: 'DRAFT'
+        status: "DRAFT",
       },
       include: {
         provider: {
@@ -92,22 +98,22 @@ export async function POST(request: NextRequest) {
                 profile: {
                   select: {
                     firstName: true,
-                    lastName: true
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    })
+                    lastName: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
 
-    return NextResponse.json(contract, { status: 201 })
+    return NextResponse.json(contract, { status: 201 });
   } catch (error) {
-    console.error('Error creating contract:', error)
+    console.error("Error creating contract:", error);
     return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    )
+      { error: "Internal server error" },
+      { status: 500 },
+    );
   }
-} 
+}

@@ -1,110 +1,124 @@
-'use client'
+"use client";
 
 /**
  * Header public EcoDeli - Version refactorisée
  * Pour les utilisateurs non connectés et les pages publiques
  */
 
-import { useState } from 'react'
-import { useTranslations } from 'next-intl'
-import { Link } from '@/i18n/navigation'
-import { Package, Truck, Users, Store, Home, Phone, Menu, X } from 'lucide-react'
-import { cn } from '@/lib/utils'
-import { PublicHeaderBase } from './base-header'
-import { MobileMenu } from '@/components/ui/mobile-menu'
-import { 
+import { useState } from "react";
+import { useTranslations } from "next-intl";
+import { Link } from "@/i18n/navigation";
+import {
+  Package,
+  Truck,
+  Users,
+  Store,
+  Home,
+  Phone,
+  Menu,
+  X,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+import { PublicHeaderBase } from "./base-header";
+import { MobileMenu } from "@/components/ui/mobile-menu";
+import {
   NavigationMenu,
   NavigationMenuContent,
   NavigationMenuItem,
   NavigationMenuLink,
   NavigationMenuList,
   NavigationMenuTrigger,
-} from '@/components/ui/navigation-menu'
-import { Button } from '@/components/ui/button'
-import { type PublicHeaderProps, type NavigationItem } from '../types'
+} from "@/components/ui/navigation-menu";
+import { Button } from "@/components/ui/button";
+import { type PublicHeaderProps, type NavigationItem } from "../types";
 
 // Configuration de navigation publique
 const getPublicNavigation = (t: any): NavigationItem[] => [
   {
-    key: 'services',
-    label: t('services'),
-    href: '/services',
+    key: "services",
+    label: t("services"),
+    href: "/services",
     children: [
       {
-        key: 'delivery',
-        label: t('delivery'),
-        href: '/services/delivery',
-        icon: 'Truck'
+        key: "delivery",
+        label: t("delivery"),
+        href: "/services/delivery",
+        icon: "Truck",
       },
       {
-        key: 'personal-services',
-        label: t('personal_services'),
-        href: '/services/personal',
-        icon: 'Users'
+        key: "personal-services",
+        label: t("personal_services"),
+        href: "/services/personal",
+        icon: "Users",
       },
       {
-        key: 'storage',
-        label: t('storage'),
-        href: '/services/storage',
-        icon: 'Package'
-      }
-    ]
+        key: "storage",
+        label: t("storage"),
+        href: "/services/storage",
+        icon: "Package",
+      },
+    ],
   },
   {
-    key: 'partners',
-    label: t('partners'),
-    href: '/partners',
+    key: "partners",
+    label: t("partners"),
+    href: "/partners",
     children: [
       {
-        key: 'merchants',
-        label: t('merchants'),
-        href: '/partners/merchants',
-        icon: 'Store'
+        key: "merchants",
+        label: t("merchants"),
+        href: "/partners/merchants",
+        icon: "Store",
       },
       {
-        key: 'providers',
-        label: t('providers'),
-        href: '/partners/providers',
-        icon: 'Users'
-      }
-    ]
+        key: "providers",
+        label: t("providers"),
+        href: "/partners/providers",
+        icon: "Users",
+      },
+    ],
   },
   {
-    key: 'pricing',
-    label: t('pricing'),
-    href: '/pricing'
+    key: "pricing",
+    label: t("pricing"),
+    href: "/pricing",
   },
   {
-    key: 'about',
-    label: t('about'),
-    href: '/about'
+    key: "about",
+    label: t("about"),
+    href: "/about",
   },
   {
-    key: 'contact',
-    label: t('contact'),
-    href: '/contact'
-  }
-]
+    key: "contact",
+    label: t("contact"),
+    href: "/contact",
+  },
+];
 
 export function PublicHeader({
   showAuth = true,
   showLanguageSwitcher = true,
   showThemeToggle = true,
-  className
+  className,
 }: PublicHeaderProps) {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const t = useTranslations('navigation')
-  const common = useTranslations('common')
-  
-  const navigationItems = getPublicNavigation(t)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const t = useTranslations("navigation");
+  const common = useTranslations("common");
+
+  const navigationItems = getPublicNavigation(t);
 
   const getIcon = (iconName: string) => {
     const icons: Record<string, any> = {
-      Truck, Users, Package, Store, Home, Phone
-    }
-    const IconComponent = icons[iconName]
-    return IconComponent ? <IconComponent className="h-4 w-4" /> : null
-  }
+      Truck,
+      Users,
+      Package,
+      Store,
+      Home,
+      Phone,
+    };
+    const IconComponent = icons[iconName];
+    return IconComponent ? <IconComponent className="h-4 w-4" /> : null;
+  };
 
   // Logo EcoDeli
   const logo = (
@@ -119,7 +133,7 @@ export function PublicHeader({
         EcoDeli
       </span>
     </Link>
-  )
+  );
 
   // Navigation principale
   const navigation = (
@@ -142,25 +156,32 @@ export function PublicHeader({
                             className="flex items-center space-x-3 p-3 hover:bg-muted rounded-lg transition-colors group"
                           >
                             <div className="p-2 bg-primary/10 rounded-md group-hover:bg-primary/20 transition-colors">
-                              {getIcon(child.icon || 'Package')}
+                              {getIcon(child.icon || "Package")}
                             </div>
                             <div>
-                              <div className="font-medium text-foreground">{child.label}</div>
+                              <div className="font-medium text-foreground">
+                                {child.label}
+                              </div>
                               <div className="text-sm text-muted-foreground">
-                                {child.key === 'delivery' && 'Livraisons écologiques'}
-                                {child.key === 'personal-services' && 'Services à domicile'}
-                                {child.key === 'storage' && 'Stockage intelligent'}
-                                {child.key === 'merchants' && 'Rejoignez notre réseau'}
-                                {child.key === 'providers' && 'Proposez vos services'}
+                                {child.key === "delivery" &&
+                                  "Livraisons écologiques"}
+                                {child.key === "personal-services" &&
+                                  "Services à domicile"}
+                                {child.key === "storage" &&
+                                  "Stockage intelligent"}
+                                {child.key === "merchants" &&
+                                  "Rejoignez notre réseau"}
+                                {child.key === "providers" &&
+                                  "Proposez vos services"}
                               </div>
                             </div>
                           </Link>
                         </NavigationMenuLink>
                       ))}
                     </div>
-                    
+
                     {/* CTA dans le dropdown */}
-                    {item.key === 'services' && (
+                    {item.key === "services" && (
                       <div className="border-t border-border pt-3 mt-2">
                         <Link
                           href="/register"
@@ -187,19 +208,22 @@ export function PublicHeader({
         ))}
       </NavigationMenuList>
     </NavigationMenu>
-  )
+  );
 
   // Actions d'authentification
   const authActions = (
     <div className="flex items-center space-x-2">
       <Button variant="ghost" asChild className="hidden sm:inline-flex">
-        <Link href="/login">{common('login')}</Link>
+        <Link href="/login">{common("login")}</Link>
       </Button>
-      <Button asChild className="bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700">
-        <Link href="/register">{common('register')}</Link>
+      <Button
+        asChild
+        className="bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700"
+      >
+        <Link href="/register">{common("register")}</Link>
       </Button>
     </div>
-  )
+  );
 
   return (
     <>
@@ -213,7 +237,7 @@ export function PublicHeader({
         className={cn(
           "bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60",
           "border-b border-border/50",
-          className
+          className,
         )}
         showMobileMenu={true}
         onMobileMenuToggle={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -221,20 +245,20 @@ export function PublicHeader({
 
       {/* Menu mobile */}
       <MobileMenu
-        items={navigationItems.map(item => ({
+        items={navigationItems.map((item) => ({
           key: item.key,
           label: item.label,
           href: item.href,
-          children: item.children?.map(child => ({
+          children: item.children?.map((child) => ({
             key: child.key,
             label: child.label,
-            href: child.href
-          }))
+            href: child.href,
+          })),
         }))}
         onClose={() => setMobileMenuOpen(false)}
       />
     </>
-  )
+  );
 }
 
 /**
@@ -243,11 +267,11 @@ export function PublicHeader({
 export function SimplePublicHeader({
   showBackButton = false,
   backHref = "/",
-  className
+  className,
 }: {
-  showBackButton?: boolean
-  backHref?: string
-  className?: string
+  showBackButton?: boolean;
+  backHref?: string;
+  className?: string;
 }) {
   const logo = (
     <Link href="/" className="flex items-center space-x-2">
@@ -256,7 +280,7 @@ export function SimplePublicHeader({
       </div>
       <span className="text-xl font-bold text-foreground">EcoDeli</span>
     </Link>
-  )
+  );
 
   const actions = (
     <div className="flex items-center space-x-2">
@@ -266,7 +290,7 @@ export function SimplePublicHeader({
         </Button>
       )}
     </div>
-  )
+  );
 
   return (
     <PublicHeaderBase
@@ -278,7 +302,7 @@ export function SimplePublicHeader({
       className={cn("border-b border-border", className)}
       sticky={false}
     />
-  )
+  );
 }
 
 /**
@@ -290,11 +314,11 @@ export function PublicHeaderWithBanner({
   showBanner = true,
   ...props
 }: PublicHeaderProps & {
-  bannerText?: string
-  bannerHref?: string
-  showBanner?: boolean
+  bannerText?: string;
+  bannerHref?: string;
+  showBanner?: boolean;
 }) {
-  const [bannerVisible, setBannerVisible] = useState(showBanner)
+  const [bannerVisible, setBannerVisible] = useState(showBanner);
 
   return (
     <>
@@ -316,5 +340,5 @@ export function PublicHeaderWithBanner({
       )}
       <PublicHeader {...props} />
     </>
-  )
+  );
 }

@@ -1,50 +1,57 @@
-'use client'
+"use client";
 
-import { useEffect, useState } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Switch } from '@/components/ui/switch'
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { 
-  Bell, 
-  BellOff, 
-  Smartphone, 
-  Settings, 
-  Check, 
-  X, 
+import { useEffect, useState } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  Bell,
+  BellOff,
+  Smartphone,
+  Settings,
+  Check,
+  X,
   AlertCircle,
   Shield,
   Volume2,
-  VolumeX
-} from 'lucide-react'
-import { useToast } from '@/components/ui/use-toast'
+  VolumeX,
+} from "lucide-react";
+import { useToast } from "@/components/ui/use-toast";
 
 interface NotificationSettings {
-  enabled: boolean
-  deliveryUpdates: boolean
-  newOpportunities: boolean
-  paymentNotifications: boolean
-  systemAlerts: boolean
-  marketing: boolean
-  soundEnabled: boolean
-  vibrationEnabled: boolean
+  enabled: boolean;
+  deliveryUpdates: boolean;
+  newOpportunities: boolean;
+  paymentNotifications: boolean;
+  systemAlerts: boolean;
+  marketing: boolean;
+  soundEnabled: boolean;
+  vibrationEnabled: boolean;
 }
 
 interface PushSubscription {
-  endpoint: string
-  expirationTime?: number
+  endpoint: string;
+  expirationTime?: number;
   keys: {
-    p256dh: string
-    auth: string
-  }
+    p256dh: string;
+    auth: string;
+  };
 }
 
 export function PushNotificationManager() {
-  const [isSupported, setIsSupported] = useState(false)
-  const [isSubscribed, setIsSubscribed] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
-  const [permission, setPermission] = useState<NotificationPermission>('default')
+  const [isSupported, setIsSupported] = useState(false);
+  const [isSubscribed, setIsSubscribed] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [permission, setPermission] =
+    useState<NotificationPermission>("default");
   const [settings, setSettings] = useState<NotificationSettings>({
     enabled: true,
     deliveryUpdates: true,
@@ -53,200 +60,200 @@ export function PushNotificationManager() {
     systemAlerts: true,
     marketing: false,
     soundEnabled: true,
-    vibrationEnabled: true
-  })
+    vibrationEnabled: true,
+  });
 
-  const { toast } = useToast()
+  const { toast } = useToast();
 
   useEffect(() => {
-    checkSupport()
-    loadSettings()
-  }, [])
+    checkSupport();
+    loadSettings();
+  }, []);
 
   const checkSupport = () => {
-    if ('serviceWorker' in navigator && 'PushManager' in window) {
-      setIsSupported(true)
-      setPermission(Notification.permission)
-      checkSubscription()
+    if ("serviceWorker" in navigator && "PushManager" in window) {
+      setIsSupported(true);
+      setPermission(Notification.permission);
+      checkSubscription();
     } else {
-      setIsSupported(false)
+      setIsSupported(false);
     }
-  }
+  };
 
   const checkSubscription = async () => {
     try {
-      const registration = await navigator.serviceWorker.ready
-      const subscription = await registration.pushManager.getSubscription()
-      setIsSubscribed(!!subscription)
+      const registration = await navigator.serviceWorker.ready;
+      const subscription = await registration.pushManager.getSubscription();
+      setIsSubscribed(!!subscription);
     } catch (error) {
-      console.error('Error checking subscription:', error)
+      console.error("Error checking subscription:", error);
     }
-  }
+  };
 
   const loadSettings = async () => {
     try {
-      const response = await fetch('/api/user/notification-settings')
+      const response = await fetch("/api/user/notification-settings");
       if (response.ok) {
-        const data = await response.json()
-        setSettings({ ...settings, ...data.settings })
+        const data = await response.json();
+        setSettings({ ...settings, ...data.settings });
       }
     } catch (error) {
-      console.error('Error loading notification settings:', error)
+      console.error("Error loading notification settings:", error);
     }
-  }
+  };
 
   const saveSettings = async (newSettings: NotificationSettings) => {
     try {
-      const response = await fetch('/api/user/notification-settings', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ settings: newSettings })
-      })
+      const response = await fetch("/api/user/notification-settings", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ settings: newSettings }),
+      });
 
       if (response.ok) {
-        setSettings(newSettings)
+        setSettings(newSettings);
         toast({
-          title: 'Paramètres sauvegardés',
-          description: 'Vos préférences de notification ont été mises à jour'
-        })
+          title: "Paramètres sauvegardés",
+          description: "Vos préférences de notification ont été mises à jour",
+        });
       }
     } catch (error) {
-      console.error('Error saving settings:', error)
+      console.error("Error saving settings:", error);
       toast({
-        title: 'Erreur',
-        description: 'Impossible de sauvegarder les paramètres',
-        variant: 'destructive'
-      })
+        title: "Erreur",
+        description: "Impossible de sauvegarder les paramètres",
+        variant: "destructive",
+      });
     }
-  }
+  };
 
   const subscribeToPush = async () => {
-    if (!isSupported) return
+    if (!isSupported) return;
 
     try {
-      setIsLoading(true)
+      setIsLoading(true);
 
       // Demander la permission
-      const permission = await Notification.requestPermission()
-      setPermission(permission)
+      const permission = await Notification.requestPermission();
+      setPermission(permission);
 
-      if (permission !== 'granted') {
+      if (permission !== "granted") {
         toast({
-          title: 'Permission refusée',
-          description: 'Les notifications push ne peuvent pas être activées sans votre autorisation',
-          variant: 'destructive'
-        })
-        return
+          title: "Permission refusée",
+          description:
+            "Les notifications push ne peuvent pas être activées sans votre autorisation",
+          variant: "destructive",
+        });
+        return;
       }
 
       // Obtenir le service worker
-      const registration = await navigator.serviceWorker.ready
+      const registration = await navigator.serviceWorker.ready;
 
       // S'abonner aux notifications push
       const subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
-        applicationServerKey: process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY
-      })
+        applicationServerKey: process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY,
+      });
 
       // Envoyer l'abonnement au serveur
-      const response = await fetch('/api/push/subscribe', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/push/subscribe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           subscription: subscription.toJSON(),
-          settings
-        })
-      })
+          settings,
+        }),
+      });
 
       if (response.ok) {
-        setIsSubscribed(true)
+        setIsSubscribed(true);
         toast({
-          title: 'Notifications activées',
-          description: 'Vous recevrez maintenant des notifications push'
-        })
+          title: "Notifications activées",
+          description: "Vous recevrez maintenant des notifications push",
+        });
       } else {
-        throw new Error('Failed to register subscription')
+        throw new Error("Failed to register subscription");
       }
-
     } catch (error) {
-      console.error('Error subscribing to push:', error)
+      console.error("Error subscribing to push:", error);
       toast({
-        title: 'Erreur d\'activation',
-        description: 'Impossible d\'activer les notifications push',
-        variant: 'destructive'
-      })
+        title: "Erreur d'activation",
+        description: "Impossible d'activer les notifications push",
+        variant: "destructive",
+      });
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const unsubscribeFromPush = async () => {
     try {
-      setIsLoading(true)
+      setIsLoading(true);
 
-      const registration = await navigator.serviceWorker.ready
-      const subscription = await registration.pushManager.getSubscription()
+      const registration = await navigator.serviceWorker.ready;
+      const subscription = await registration.pushManager.getSubscription();
 
       if (subscription) {
-        await subscription.unsubscribe()
-        
+        await subscription.unsubscribe();
+
         // Notifier le serveur
-        await fetch('/api/push/unsubscribe', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+        await fetch("/api/push/unsubscribe", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            endpoint: subscription.endpoint
-          })
-        })
+            endpoint: subscription.endpoint,
+          }),
+        });
       }
 
-      setIsSubscribed(false)
+      setIsSubscribed(false);
       toast({
-        title: 'Notifications désactivées',
-        description: 'Vous ne recevrez plus de notifications push'
-      })
-
+        title: "Notifications désactivées",
+        description: "Vous ne recevrez plus de notifications push",
+      });
     } catch (error) {
-      console.error('Error unsubscribing from push:', error)
+      console.error("Error unsubscribing from push:", error);
       toast({
-        title: 'Erreur',
-        description: 'Impossible de désactiver les notifications',
-        variant: 'destructive'
-      })
+        title: "Erreur",
+        description: "Impossible de désactiver les notifications",
+        variant: "destructive",
+      });
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const testNotification = async () => {
-    if (!isSubscribed) return
+    if (!isSubscribed) return;
 
     try {
-      const response = await fetch('/api/push/test', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
-      })
+      const response = await fetch("/api/push/test", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
 
       if (response.ok) {
         toast({
-          title: 'Notification de test envoyée',
-          description: 'Vous devriez recevoir une notification dans quelques secondes'
-        })
+          title: "Notification de test envoyée",
+          description:
+            "Vous devriez recevoir une notification dans quelques secondes",
+        });
       }
     } catch (error) {
-      console.error('Error sending test notification:', error)
+      console.error("Error sending test notification:", error);
       toast({
-        title: 'Erreur',
-        description: 'Impossible d\'envoyer la notification de test',
-        variant: 'destructive'
-      })
+        title: "Erreur",
+        description: "Impossible d'envoyer la notification de test",
+        variant: "destructive",
+      });
     }
-  }
+  };
 
   const updateSetting = (key: keyof NotificationSettings, value: boolean) => {
-    const newSettings = { ...settings, [key]: value }
-    saveSettings(newSettings)
-  }
+    const newSettings = { ...settings, [key]: value };
+    saveSettings(newSettings);
+  };
 
   if (!isSupported) {
     return (
@@ -261,13 +268,13 @@ export function PushNotificationManager() {
           <Alert>
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>
-              Votre navigateur ne supporte pas les notifications push.
-              Veuillez utiliser un navigateur moderne pour cette fonctionnalité.
+              Votre navigateur ne supporte pas les notifications push. Veuillez
+              utiliser un navigateur moderne pour cette fonctionnalité.
             </AlertDescription>
           </Alert>
         </CardContent>
       </Card>
-    )
+    );
   }
 
   return (
@@ -292,54 +299,57 @@ export function PushNotificationManager() {
             <div className="space-y-1">
               <div className="font-medium">État des notifications</div>
               <div className="text-sm text-gray-600">
-                {permission === 'granted' && isSubscribed && 'Activées et fonctionnelles'}
-                {permission === 'granted' && !isSubscribed && 'Permission accordée, non configurées'}
-                {permission === 'denied' && 'Permission refusée par l\'utilisateur'}
-                {permission === 'default' && 'En attente de permission'}
+                {permission === "granted" &&
+                  isSubscribed &&
+                  "Activées et fonctionnelles"}
+                {permission === "granted" &&
+                  !isSubscribed &&
+                  "Permission accordée, non configurées"}
+                {permission === "denied" &&
+                  "Permission refusée par l'utilisateur"}
+                {permission === "default" && "En attente de permission"}
               </div>
             </div>
-            
-            <Badge 
-              variant={isSubscribed ? 'default' : 'secondary'}
-              className={isSubscribed ? 'bg-green-600' : ''}
+
+            <Badge
+              variant={isSubscribed ? "default" : "secondary"}
+              className={isSubscribed ? "bg-green-600" : ""}
             >
-              {isSubscribed ? 'Actives' : 'Inactives'}
+              {isSubscribed ? "Actives" : "Inactives"}
             </Badge>
           </div>
 
-          {permission === 'denied' && (
+          {permission === "denied" && (
             <Alert>
               <Shield className="h-4 w-4" />
               <AlertDescription>
-                Les notifications ont été bloquées. Pour les réactiver, cliquez sur l'icône 
-                de cadenas dans la barre d'adresse et autorisez les notifications.
+                Les notifications ont été bloquées. Pour les réactiver, cliquez
+                sur l'icône de cadenas dans la barre d'adresse et autorisez les
+                notifications.
               </AlertDescription>
             </Alert>
           )}
 
           <div className="flex gap-2">
             {!isSubscribed ? (
-              <Button 
+              <Button
                 onClick={subscribeToPush}
-                disabled={isLoading || permission === 'denied'}
+                disabled={isLoading || permission === "denied"}
                 className="flex-1"
               >
-                {isLoading ? 'Activation...' : 'Activer les notifications'}
+                {isLoading ? "Activation..." : "Activer les notifications"}
               </Button>
             ) : (
               <>
-                <Button 
+                <Button
                   onClick={unsubscribeFromPush}
                   disabled={isLoading}
                   variant="outline"
                   className="flex-1"
                 >
-                  {isLoading ? 'Désactivation...' : 'Désactiver'}
+                  {isLoading ? "Désactivation..." : "Désactiver"}
                 </Button>
-                <Button 
-                  onClick={testNotification}
-                  variant="outline"
-                >
+                <Button onClick={testNotification} variant="outline">
                   Tester
                 </Button>
               </>
@@ -364,7 +374,7 @@ export function PushNotificationManager() {
             {/* Notifications par catégorie */}
             <div className="space-y-4">
               <h4 className="font-medium">Types de notifications</h4>
-              
+
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <div className="space-y-1">
@@ -375,7 +385,9 @@ export function PushNotificationManager() {
                   </div>
                   <Switch
                     checked={settings.deliveryUpdates}
-                    onCheckedChange={(checked) => updateSetting('deliveryUpdates', checked)}
+                    onCheckedChange={(checked) =>
+                      updateSetting("deliveryUpdates", checked)
+                    }
                   />
                 </div>
 
@@ -388,7 +400,9 @@ export function PushNotificationManager() {
                   </div>
                   <Switch
                     checked={settings.newOpportunities}
-                    onCheckedChange={(checked) => updateSetting('newOpportunities', checked)}
+                    onCheckedChange={(checked) =>
+                      updateSetting("newOpportunities", checked)
+                    }
                   />
                 </div>
 
@@ -401,7 +415,9 @@ export function PushNotificationManager() {
                   </div>
                   <Switch
                     checked={settings.paymentNotifications}
-                    onCheckedChange={(checked) => updateSetting('paymentNotifications', checked)}
+                    onCheckedChange={(checked) =>
+                      updateSetting("paymentNotifications", checked)
+                    }
                   />
                 </div>
 
@@ -414,7 +430,9 @@ export function PushNotificationManager() {
                   </div>
                   <Switch
                     checked={settings.systemAlerts}
-                    onCheckedChange={(checked) => updateSetting('systemAlerts', checked)}
+                    onCheckedChange={(checked) =>
+                      updateSetting("systemAlerts", checked)
+                    }
                   />
                 </div>
 
@@ -427,7 +445,9 @@ export function PushNotificationManager() {
                   </div>
                   <Switch
                     checked={settings.marketing}
-                    onCheckedChange={(checked) => updateSetting('marketing', checked)}
+                    onCheckedChange={(checked) =>
+                      updateSetting("marketing", checked)
+                    }
                   />
                 </div>
               </div>
@@ -436,7 +456,7 @@ export function PushNotificationManager() {
             {/* Paramètres audio/vibration */}
             <div className="space-y-4 border-t pt-4">
               <h4 className="font-medium">Paramètres audio</h4>
-              
+
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
@@ -454,7 +474,9 @@ export function PushNotificationManager() {
                   </div>
                   <Switch
                     checked={settings.soundEnabled}
-                    onCheckedChange={(checked) => updateSetting('soundEnabled', checked)}
+                    onCheckedChange={(checked) =>
+                      updateSetting("soundEnabled", checked)
+                    }
                   />
                 </div>
 
@@ -470,7 +492,9 @@ export function PushNotificationManager() {
                   </div>
                   <Switch
                     checked={settings.vibrationEnabled}
-                    onCheckedChange={(checked) => updateSetting('vibrationEnabled', checked)}
+                    onCheckedChange={(checked) =>
+                      updateSetting("vibrationEnabled", checked)
+                    }
                   />
                 </div>
               </div>
@@ -489,24 +513,28 @@ export function PushNotificationManager() {
             <div className="flex justify-between">
               <span className="text-gray-600">Statut du navigateur:</span>
               <span className="font-medium">
-                {permission === 'granted' ? 'Autorisé' : permission === 'denied' ? 'Refusé' : 'En attente'}
+                {permission === "granted"
+                  ? "Autorisé"
+                  : permission === "denied"
+                    ? "Refusé"
+                    : "En attente"}
               </span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-600">Service Worker:</span>
               <span className="font-medium">
-                {'serviceWorker' in navigator ? 'Disponible' : 'Non supporté'}
+                {"serviceWorker" in navigator ? "Disponible" : "Non supporté"}
               </span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-600">Push Manager:</span>
               <span className="font-medium">
-                {'PushManager' in window ? 'Disponible' : 'Non supporté'}
+                {"PushManager" in window ? "Disponible" : "Non supporté"}
               </span>
             </div>
           </CardContent>
         </Card>
       )}
     </div>
-  )
+  );
 }

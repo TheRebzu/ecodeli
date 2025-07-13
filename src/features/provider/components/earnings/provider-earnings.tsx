@@ -2,7 +2,13 @@
 
 import { useState, useEffect } from "react";
 import { useTranslations } from "next-intl";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -16,10 +22,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { 
-  Euro, 
-  TrendingUp, 
-  Download, 
+import {
+  Euro,
+  TrendingUp,
+  Download,
   CreditCard,
   Calendar,
   FileText,
@@ -27,7 +33,7 @@ import {
   CheckCircle,
   Clock,
   ArrowUpRight,
-  ArrowDownRight
+  ArrowDownRight,
 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useApi } from "@/hooks/use-api";
@@ -84,14 +90,14 @@ export function ProviderEarnings() {
 
   // Créer les méthodes GET et POST basées sur execute
   const get = async (url: string) => {
-    return await execute(url, { method: 'GET' });
+    return await execute(url, { method: "GET" });
   };
 
   const post = async (url: string, options: { body: string }) => {
-    return await execute(url, { 
-      method: 'POST',
+    return await execute(url, {
+      method: "POST",
       body: options.body,
-      headers: { 'Content-Type': 'application/json' }
+      headers: { "Content-Type": "application/json" },
     });
   };
 
@@ -107,7 +113,7 @@ export function ProviderEarnings() {
       const [summaryRes, transactionsRes, invoicesRes] = await Promise.all([
         get(`/api/provider/earnings/summary?providerId=${user.id}`),
         get(`/api/provider/earnings/transactions?providerId=${user.id}`),
-        get(`/api/provider/billing/invoices?providerId=${user.id}`)
+        get(`/api/provider/billing/invoices?providerId=${user.id}`),
       ]);
 
       if (summaryRes) setSummary(summaryRes);
@@ -137,8 +143,8 @@ export function ProviderEarnings() {
       const response = await post("/api/provider/earnings/withdraw", {
         body: JSON.stringify({
           providerId: user?.id,
-          amount
-        })
+          amount,
+        }),
       });
 
       if (response) {
@@ -155,7 +161,9 @@ export function ProviderEarnings() {
 
   const downloadInvoice = async (invoiceId: string) => {
     try {
-      const response = await get(`/api/provider/billing/invoices/${invoiceId}/download`);
+      const response = await get(
+        `/api/provider/billing/invoices/${invoiceId}/download`,
+      );
       if (response?.url) {
         window.open(response.url, "_blank");
       }
@@ -169,7 +177,7 @@ export function ProviderEarnings() {
       <div className="space-y-4">
         <h1 className="text-3xl font-bold">{t("title")}</h1>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {[1, 2, 3].map(i => (
+          {[1, 2, 3].map((i) => (
             <Card key={i}>
               <CardContent className="p-6">
                 <div className="animate-pulse space-y-2">
@@ -184,8 +192,9 @@ export function ProviderEarnings() {
     );
   }
 
-  const monthlyTrend = summary 
-    ? ((summary.currentMonth - summary.previousMonth) / summary.previousMonth) * 100 
+  const monthlyTrend = summary
+    ? ((summary.currentMonth - summary.previousMonth) / summary.previousMonth) *
+      100
     : 0;
 
   return (
@@ -203,17 +212,23 @@ export function ProviderEarnings() {
             <Euro className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{summary?.currentMonth.toFixed(2)}€</div>
+            <div className="text-2xl font-bold">
+              {summary?.currentMonth.toFixed(2)}€
+            </div>
             <p className="text-xs text-muted-foreground flex items-center mt-1">
               {monthlyTrend > 0 ? (
                 <>
                   <ArrowUpRight className="h-3 w-3 text-green-600 mr-1" />
-                  <span className="text-green-600">+{monthlyTrend.toFixed(1)}%</span>
+                  <span className="text-green-600">
+                    +{monthlyTrend.toFixed(1)}%
+                  </span>
                 </>
               ) : monthlyTrend < 0 ? (
                 <>
                   <ArrowDownRight className="h-3 w-3 text-red-600 mr-1" />
-                  <span className="text-red-600">{monthlyTrend.toFixed(1)}%</span>
+                  <span className="text-red-600">
+                    {monthlyTrend.toFixed(1)}%
+                  </span>
                 </>
               ) : (
                 <span>Stable</span>
@@ -225,7 +240,9 @@ export function ProviderEarnings() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Disponible au retrait</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Disponible au retrait
+            </CardTitle>
             <CreditCard className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -240,11 +257,15 @@ export function ProviderEarnings() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total des gains</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Total des gains
+            </CardTitle>
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{summary?.totalEarnings.toFixed(2)}€</div>
+            <div className="text-2xl font-bold">
+              {summary?.totalEarnings.toFixed(2)}€
+            </div>
             {summary?.lastWithdrawal && (
               <p className="text-xs text-muted-foreground">
                 Dernier retrait: {summary.lastWithdrawal.amount}€
@@ -284,9 +305,13 @@ export function ProviderEarnings() {
               </p>
             </div>
             <div className="flex items-end">
-              <Button 
+              <Button
                 onClick={requestWithdrawal}
-                disabled={isWithdrawing || !withdrawalAmount || parseFloat(withdrawalAmount) <= 0}
+                disabled={
+                  isWithdrawing ||
+                  !withdrawalAmount ||
+                  parseFloat(withdrawalAmount) <= 0
+                }
               >
                 {isWithdrawing ? "Traitement..." : "Demander le virement"}
               </Button>
@@ -298,7 +323,9 @@ export function ProviderEarnings() {
       {/* Historique et factures */}
       <Tabs defaultValue="transactions" className="w-full">
         <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="transactions">Historique des transactions</TabsTrigger>
+          <TabsTrigger value="transactions">
+            Historique des transactions
+          </TabsTrigger>
           <TabsTrigger value="invoices">Factures mensuelles</TabsTrigger>
         </TabsList>
 
@@ -322,20 +349,35 @@ export function ProviderEarnings() {
                   {transactions.map((transaction) => (
                     <TableRow key={transaction.id}>
                       <TableCell>
-                        {format(new Date(transaction.createdAt), "dd/MM/yyyy", { locale: fr })}
+                        {format(new Date(transaction.createdAt), "dd/MM/yyyy", {
+                          locale: fr,
+                        })}
                       </TableCell>
                       <TableCell>
                         <div>
-                          <p className="font-medium">{transaction.description}</p>
+                          <p className="font-medium">
+                            {transaction.description}
+                          </p>
                           {transaction.serviceName && (
-                            <p className="text-sm text-muted-foreground">{transaction.serviceName}</p>
+                            <p className="text-sm text-muted-foreground">
+                              {transaction.serviceName}
+                            </p>
                           )}
                         </div>
                       </TableCell>
                       <TableCell>
-                        <Badge variant={transaction.type === "EARNING" ? "default" : "secondary"}>
-                          {transaction.type === "EARNING" ? "Gain" : 
-                           transaction.type === "WITHDRAWAL" ? "Retrait" : "Remboursement"}
+                        <Badge
+                          variant={
+                            transaction.type === "EARNING"
+                              ? "default"
+                              : "secondary"
+                          }
+                        >
+                          {transaction.type === "EARNING"
+                            ? "Gain"
+                            : transaction.type === "WITHDRAWAL"
+                              ? "Retrait"
+                              : "Remboursement"}
                         </Badge>
                       </TableCell>
                       <TableCell>
@@ -359,8 +401,15 @@ export function ProviderEarnings() {
                         )}
                       </TableCell>
                       <TableCell className="text-right font-medium">
-                        <span className={transaction.type === "EARNING" ? "text-green-600" : "text-red-600"}>
-                          {transaction.type === "EARNING" ? "+" : "-"}{transaction.amount.toFixed(2)}€
+                        <span
+                          className={
+                            transaction.type === "EARNING"
+                              ? "text-green-600"
+                              : "text-red-600"
+                          }
+                        >
+                          {transaction.type === "EARNING" ? "+" : "-"}
+                          {transaction.amount.toFixed(2)}€
                         </span>
                       </TableCell>
                     </TableRow>
@@ -382,24 +431,40 @@ export function ProviderEarnings() {
             <CardContent>
               <div className="space-y-4">
                 {invoices.map((invoice) => (
-                  <div key={invoice.id} className="flex items-center justify-between p-4 border rounded-lg">
+                  <div
+                    key={invoice.id}
+                    className="flex items-center justify-between p-4 border rounded-lg"
+                  >
                     <div className="flex items-center gap-4">
                       <div className="p-2 bg-gray-100 rounded">
                         <FileText className="h-5 w-5 text-gray-600" />
                       </div>
                       <div>
                         <h4 className="font-medium">
-                          Facture {format(new Date(`${invoice.year}-${invoice.month}-01`), "MMMM yyyy", { locale: fr })}
+                          Facture{" "}
+                          {format(
+                            new Date(`${invoice.year}-${invoice.month}-01`),
+                            "MMMM yyyy",
+                            { locale: fr },
+                          )}
                         </h4>
                         <p className="text-sm text-muted-foreground">
-                          {invoice.servicesCount} prestations • {invoice.totalAmount.toFixed(2)}€
+                          {invoice.servicesCount} prestations •{" "}
+                          {invoice.totalAmount.toFixed(2)}€
                         </p>
                       </div>
                     </div>
                     <div className="flex items-center gap-3">
-                      <Badge variant={invoice.status === "PAID" ? "default" : "secondary"}>
-                        {invoice.status === "PAID" ? "Payée" : 
-                         invoice.status === "GENERATED" ? "Générée" : "En attente"}
+                      <Badge
+                        variant={
+                          invoice.status === "PAID" ? "default" : "secondary"
+                        }
+                      >
+                        {invoice.status === "PAID"
+                          ? "Payée"
+                          : invoice.status === "GENERATED"
+                            ? "Générée"
+                            : "En attente"}
                       </Badge>
                       <Button
                         variant="outline"
@@ -421,17 +486,27 @@ export function ProviderEarnings() {
       {/* Information importante */}
       <Card className="bg-amber-50 border-amber-200">
         <CardHeader>
-          <CardTitle className="text-amber-900">Informations importantes</CardTitle>
+          <CardTitle className="text-amber-900">
+            Informations importantes
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <ul className="space-y-2 text-sm text-amber-800">
             <li>• La facturation est automatique le 30 de chaque mois à 23h</li>
-            <li>• Les virements sont effectués automatiquement après génération de la facture</li>
-            <li>• Les gains sont calculés selon les tarifs négociés avec EcoDeli</li>
-            <li>• Conservez toutes vos factures pour votre comptabilité d'autoentrepreneur</li>
+            <li>
+              • Les virements sont effectués automatiquement après génération de
+              la facture
+            </li>
+            <li>
+              • Les gains sont calculés selon les tarifs négociés avec EcoDeli
+            </li>
+            <li>
+              • Conservez toutes vos factures pour votre comptabilité
+              d'autoentrepreneur
+            </li>
           </ul>
         </CardContent>
       </Card>
     </div>
   );
-} 
+}

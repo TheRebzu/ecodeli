@@ -1,27 +1,39 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Switch } from '@/components/ui/switch'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Separator } from '@/components/ui/separator'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { 
-  Shield, 
-  Lock, 
-  Eye, 
-  Key, 
+import { useState } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Shield,
+  Lock,
+  Eye,
+  Key,
   AlertTriangle,
   CheckCircle,
   Clock,
-  Users
-} from 'lucide-react'
+  Users,
+} from "lucide-react";
 
 interface SecuritySettingsProps {
-  onSettingsChange: () => void
+  onSettingsChange: () => void;
 }
 
 export function SecuritySettings({ onSettingsChange }: SecuritySettingsProps) {
@@ -33,7 +45,7 @@ export function SecuritySettings({ onSettingsChange }: SecuritySettingsProps) {
     requireEmailVerification: true,
     requirePhoneVerification: false,
     enableTwoFactor: true,
-    
+
     // Mots de passe
     minPasswordLength: 8,
     requireUppercase: true,
@@ -41,49 +53,52 @@ export function SecuritySettings({ onSettingsChange }: SecuritySettingsProps) {
     requireNumbers: true,
     requireSpecialChars: true,
     passwordExpiryDays: 90,
-    
+
     // Sécurité réseau
     enableRateLimiting: true,
     maxRequestsPerMinute: 100,
     enableCORS: true,
-    allowedOrigins: ['https://ecodeli.fr', 'https://app.ecodeli.fr'],
-    
+    allowedOrigins: ["https://ecodeli.fr", "https://app.ecodeli.fr"],
+
     // Audit et logs
     enableAuditLogs: true,
     logRetentionDays: 365,
     enableIPWhitelist: false,
     whitelistedIPs: [],
-    
+
     // Protection contre les attaques
     enableCSRFProtection: true,
     enableXSSProtection: true,
     enableSQLInjectionProtection: true,
-    enableBruteForceProtection: true
-  })
+    enableBruteForceProtection: true,
+  });
 
   const handleChange = (key: string, value: any) => {
-    setSettings(prev => ({
+    setSettings((prev) => ({
       ...prev,
-      [key]: value
-    }))
-    onSettingsChange()
-  }
+      [key]: value,
+    }));
+    onSettingsChange();
+  };
 
   const getPasswordStrength = () => {
-    let score = 0
-    if (settings.minPasswordLength >= 8) score++
-    if (settings.requireUppercase) score++
-    if (settings.requireLowercase) score++
-    if (settings.requireNumbers) score++
-    if (settings.requireSpecialChars) score++
-    
-    if (score <= 2) return { level: 'Faible', color: 'text-red-600', bg: 'bg-red-100' }
-    if (score <= 3) return { level: 'Moyen', color: 'text-orange-600', bg: 'bg-orange-100' }
-    if (score <= 4) return { level: 'Bon', color: 'text-yellow-600', bg: 'bg-yellow-100' }
-    return { level: 'Fort', color: 'text-green-600', bg: 'bg-green-100' }
-  }
+    let score = 0;
+    if (settings.minPasswordLength >= 8) score++;
+    if (settings.requireUppercase) score++;
+    if (settings.requireLowercase) score++;
+    if (settings.requireNumbers) score++;
+    if (settings.requireSpecialChars) score++;
 
-  const passwordStrength = getPasswordStrength()
+    if (score <= 2)
+      return { level: "Faible", color: "text-red-600", bg: "bg-red-100" };
+    if (score <= 3)
+      return { level: "Moyen", color: "text-orange-600", bg: "bg-orange-100" };
+    if (score <= 4)
+      return { level: "Bon", color: "text-yellow-600", bg: "bg-yellow-100" };
+    return { level: "Fort", color: "text-green-600", bg: "bg-green-100" };
+  };
+
+  const passwordStrength = getPasswordStrength();
 
   return (
     <div className="space-y-6">
@@ -101,42 +116,54 @@ export function SecuritySettings({ onSettingsChange }: SecuritySettingsProps) {
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <Label htmlFor="sessionTimeout">Timeout de session (heures)</Label>
+              <Label htmlFor="sessionTimeout">
+                Timeout de session (heures)
+              </Label>
               <Input
                 id="sessionTimeout"
                 type="number"
                 value={settings.sessionTimeout}
-                onChange={(e) => handleChange('sessionTimeout', parseInt(e.target.value))}
+                onChange={(e) =>
+                  handleChange("sessionTimeout", parseInt(e.target.value))
+                }
                 min="1"
                 max="168"
               />
             </div>
-            
+
             <div>
-              <Label htmlFor="maxLoginAttempts">Tentatives de connexion max</Label>
+              <Label htmlFor="maxLoginAttempts">
+                Tentatives de connexion max
+              </Label>
               <Input
                 id="maxLoginAttempts"
                 type="number"
                 value={settings.maxLoginAttempts}
-                onChange={(e) => handleChange('maxLoginAttempts', parseInt(e.target.value))}
+                onChange={(e) =>
+                  handleChange("maxLoginAttempts", parseInt(e.target.value))
+                }
                 min="3"
                 max="10"
               />
             </div>
-            
+
             <div>
-              <Label htmlFor="lockoutDuration">Durée de verrouillage (min)</Label>
+              <Label htmlFor="lockoutDuration">
+                Durée de verrouillage (min)
+              </Label>
               <Input
                 id="lockoutDuration"
                 type="number"
                 value={settings.lockoutDuration}
-                onChange={(e) => handleChange('lockoutDuration', parseInt(e.target.value))}
+                onChange={(e) =>
+                  handleChange("lockoutDuration", parseInt(e.target.value))
+                }
                 min="5"
                 max="1440"
               />
             </div>
           </div>
-          
+
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
@@ -147,12 +174,14 @@ export function SecuritySettings({ onSettingsChange }: SecuritySettingsProps) {
               </div>
               <Switch
                 checked={settings.requireEmailVerification}
-                onCheckedChange={(checked) => handleChange('requireEmailVerification', checked)}
+                onCheckedChange={(checked) =>
+                  handleChange("requireEmailVerification", checked)
+                }
               />
             </div>
-            
+
             <Separator />
-            
+
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
                 <Label>Vérification téléphone</Label>
@@ -162,12 +191,14 @@ export function SecuritySettings({ onSettingsChange }: SecuritySettingsProps) {
               </div>
               <Switch
                 checked={settings.requirePhoneVerification}
-                onCheckedChange={(checked) => handleChange('requirePhoneVerification', checked)}
+                onCheckedChange={(checked) =>
+                  handleChange("requirePhoneVerification", checked)
+                }
               />
             </div>
-            
+
             <Separator />
-            
+
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
                 <Label>Authentification à deux facteurs</Label>
@@ -177,7 +208,9 @@ export function SecuritySettings({ onSettingsChange }: SecuritySettingsProps) {
               </div>
               <Switch
                 checked={settings.enableTwoFactor}
-                onCheckedChange={(checked) => handleChange('enableTwoFactor', checked)}
+                onCheckedChange={(checked) =>
+                  handleChange("enableTwoFactor", checked)
+                }
               />
             </div>
           </div>
@@ -190,7 +223,9 @@ export function SecuritySettings({ onSettingsChange }: SecuritySettingsProps) {
           <CardTitle className="flex items-center space-x-2">
             <Key className="h-5 w-5" />
             <span>Politique des Mots de Passe</span>
-            <Badge className={`${passwordStrength.bg} ${passwordStrength.color}`}>
+            <Badge
+              className={`${passwordStrength.bg} ${passwordStrength.color}`}
+            >
               {passwordStrength.level}
             </Badge>
           </CardTitle>
@@ -206,25 +241,29 @@ export function SecuritySettings({ onSettingsChange }: SecuritySettingsProps) {
                 id="minPasswordLength"
                 type="number"
                 value={settings.minPasswordLength}
-                onChange={(e) => handleChange('minPasswordLength', parseInt(e.target.value))}
+                onChange={(e) =>
+                  handleChange("minPasswordLength", parseInt(e.target.value))
+                }
                 min="6"
                 max="32"
               />
             </div>
-            
+
             <div>
               <Label htmlFor="passwordExpiryDays">Expiration (jours)</Label>
               <Input
                 id="passwordExpiryDays"
                 type="number"
                 value={settings.passwordExpiryDays}
-                onChange={(e) => handleChange('passwordExpiryDays', parseInt(e.target.value))}
+                onChange={(e) =>
+                  handleChange("passwordExpiryDays", parseInt(e.target.value))
+                }
                 min="30"
                 max="365"
               />
             </div>
           </div>
-          
+
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
@@ -235,12 +274,14 @@ export function SecuritySettings({ onSettingsChange }: SecuritySettingsProps) {
               </div>
               <Switch
                 checked={settings.requireUppercase}
-                onCheckedChange={(checked) => handleChange('requireUppercase', checked)}
+                onCheckedChange={(checked) =>
+                  handleChange("requireUppercase", checked)
+                }
               />
             </div>
-            
+
             <Separator />
-            
+
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
                 <Label>Minuscules obligatoires</Label>
@@ -250,12 +291,14 @@ export function SecuritySettings({ onSettingsChange }: SecuritySettingsProps) {
               </div>
               <Switch
                 checked={settings.requireLowercase}
-                onCheckedChange={(checked) => handleChange('requireLowercase', checked)}
+                onCheckedChange={(checked) =>
+                  handleChange("requireLowercase", checked)
+                }
               />
             </div>
-            
+
             <Separator />
-            
+
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
                 <Label>Chiffres obligatoires</Label>
@@ -265,12 +308,14 @@ export function SecuritySettings({ onSettingsChange }: SecuritySettingsProps) {
               </div>
               <Switch
                 checked={settings.requireNumbers}
-                onCheckedChange={(checked) => handleChange('requireNumbers', checked)}
+                onCheckedChange={(checked) =>
+                  handleChange("requireNumbers", checked)
+                }
               />
             </div>
-            
+
             <Separator />
-            
+
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
                 <Label>Caractères spéciaux</Label>
@@ -280,7 +325,9 @@ export function SecuritySettings({ onSettingsChange }: SecuritySettingsProps) {
               </div>
               <Switch
                 checked={settings.requireSpecialChars}
-                onCheckedChange={(checked) => handleChange('requireSpecialChars', checked)}
+                onCheckedChange={(checked) =>
+                  handleChange("requireSpecialChars", checked)
+                }
               />
             </div>
           </div>
@@ -301,30 +348,38 @@ export function SecuritySettings({ onSettingsChange }: SecuritySettingsProps) {
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="maxRequestsPerMinute">Requêtes max par minute</Label>
+              <Label htmlFor="maxRequestsPerMinute">
+                Requêtes max par minute
+              </Label>
               <Input
                 id="maxRequestsPerMinute"
                 type="number"
                 value={settings.maxRequestsPerMinute}
-                onChange={(e) => handleChange('maxRequestsPerMinute', parseInt(e.target.value))}
+                onChange={(e) =>
+                  handleChange("maxRequestsPerMinute", parseInt(e.target.value))
+                }
                 min="10"
                 max="1000"
               />
             </div>
-            
+
             <div>
-              <Label htmlFor="logRetentionDays">Rétention des logs (jours)</Label>
+              <Label htmlFor="logRetentionDays">
+                Rétention des logs (jours)
+              </Label>
               <Input
                 id="logRetentionDays"
                 type="number"
                 value={settings.logRetentionDays}
-                onChange={(e) => handleChange('logRetentionDays', parseInt(e.target.value))}
+                onChange={(e) =>
+                  handleChange("logRetentionDays", parseInt(e.target.value))
+                }
                 min="30"
                 max="1095"
               />
             </div>
           </div>
-          
+
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
@@ -335,12 +390,14 @@ export function SecuritySettings({ onSettingsChange }: SecuritySettingsProps) {
               </div>
               <Switch
                 checked={settings.enableRateLimiting}
-                onCheckedChange={(checked) => handleChange('enableRateLimiting', checked)}
+                onCheckedChange={(checked) =>
+                  handleChange("enableRateLimiting", checked)
+                }
               />
             </div>
-            
+
             <Separator />
-            
+
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
                 <Label>CORS</Label>
@@ -350,12 +407,14 @@ export function SecuritySettings({ onSettingsChange }: SecuritySettingsProps) {
               </div>
               <Switch
                 checked={settings.enableCORS}
-                onCheckedChange={(checked) => handleChange('enableCORS', checked)}
+                onCheckedChange={(checked) =>
+                  handleChange("enableCORS", checked)
+                }
               />
             </div>
-            
+
             <Separator />
-            
+
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
                 <Label>Liste blanche IP</Label>
@@ -365,11 +424,13 @@ export function SecuritySettings({ onSettingsChange }: SecuritySettingsProps) {
               </div>
               <Switch
                 checked={settings.enableIPWhitelist}
-                onCheckedChange={(checked) => handleChange('enableIPWhitelist', checked)}
+                onCheckedChange={(checked) =>
+                  handleChange("enableIPWhitelist", checked)
+                }
               />
             </div>
           </div>
-          
+
           {settings.enableCORS && (
             <div>
               <Label>Origines autorisées</Label>
@@ -392,9 +453,7 @@ export function SecuritySettings({ onSettingsChange }: SecuritySettingsProps) {
             <AlertTriangle className="h-5 w-5" />
             <span>Protection contre les Attaques</span>
           </CardTitle>
-          <CardDescription>
-            Mesures de sécurité avancées
-          </CardDescription>
+          <CardDescription>Mesures de sécurité avancées</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-4">
@@ -407,12 +466,14 @@ export function SecuritySettings({ onSettingsChange }: SecuritySettingsProps) {
               </div>
               <Switch
                 checked={settings.enableCSRFProtection}
-                onCheckedChange={(checked) => handleChange('enableCSRFProtection', checked)}
+                onCheckedChange={(checked) =>
+                  handleChange("enableCSRFProtection", checked)
+                }
               />
             </div>
-            
+
             <Separator />
-            
+
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
                 <Label>Protection XSS</Label>
@@ -422,12 +483,14 @@ export function SecuritySettings({ onSettingsChange }: SecuritySettingsProps) {
               </div>
               <Switch
                 checked={settings.enableXSSProtection}
-                onCheckedChange={(checked) => handleChange('enableXSSProtection', checked)}
+                onCheckedChange={(checked) =>
+                  handleChange("enableXSSProtection", checked)
+                }
               />
             </div>
-            
+
             <Separator />
-            
+
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
                 <Label>Protection injection SQL</Label>
@@ -437,12 +500,14 @@ export function SecuritySettings({ onSettingsChange }: SecuritySettingsProps) {
               </div>
               <Switch
                 checked={settings.enableSQLInjectionProtection}
-                onCheckedChange={(checked) => handleChange('enableSQLInjectionProtection', checked)}
+                onCheckedChange={(checked) =>
+                  handleChange("enableSQLInjectionProtection", checked)
+                }
               />
             </div>
-            
+
             <Separator />
-            
+
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
                 <Label>Protection force brute</Label>
@@ -452,7 +517,9 @@ export function SecuritySettings({ onSettingsChange }: SecuritySettingsProps) {
               </div>
               <Switch
                 checked={settings.enableBruteForceProtection}
-                onCheckedChange={(checked) => handleChange('enableBruteForceProtection', checked)}
+                onCheckedChange={(checked) =>
+                  handleChange("enableBruteForceProtection", checked)
+                }
               />
             </div>
           </div>
@@ -466,9 +533,7 @@ export function SecuritySettings({ onSettingsChange }: SecuritySettingsProps) {
             <Eye className="h-5 w-5" />
             <span>Audit et Logs</span>
           </CardTitle>
-          <CardDescription>
-            Configuration des logs de sécurité
-          </CardDescription>
+          <CardDescription>Configuration des logs de sécurité</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center justify-between">
@@ -480,10 +545,12 @@ export function SecuritySettings({ onSettingsChange }: SecuritySettingsProps) {
             </div>
             <Switch
               checked={settings.enableAuditLogs}
-              onCheckedChange={(checked) => handleChange('enableAuditLogs', checked)}
+              onCheckedChange={(checked) =>
+                handleChange("enableAuditLogs", checked)
+              }
             />
           </div>
-          
+
           {settings.enableAuditLogs && (
             <div className="p-4 bg-blue-50 rounded-lg">
               <div className="flex items-center space-x-2 text-blue-800">
@@ -491,12 +558,13 @@ export function SecuritySettings({ onSettingsChange }: SecuritySettingsProps) {
                 <span className="text-sm font-medium">Logs d'audit actifs</span>
               </div>
               <p className="text-sm text-blue-600 mt-1">
-                Toutes les actions d'administration sont enregistrées pour la sécurité
+                Toutes les actions d'administration sont enregistrées pour la
+                sécurité
               </p>
             </div>
           )}
         </CardContent>
       </Card>
     </div>
-  )
-} 
+  );
+}

@@ -1,6 +1,6 @@
-import { useState, useEffect, useCallback } from 'react'
-import { 
-  AnalyticsDashboard, 
+import { useState, useEffect, useCallback } from "react";
+import {
+  AnalyticsDashboard,
   AnalyticsTimeRange,
   RevenueMetrics,
   CustomerMetrics,
@@ -9,35 +9,37 @@ import {
   MarketingMetrics,
   OperationalMetrics,
   CompetitiveAnalysis,
-  PredictiveInsights
-} from '../services/analytics.service'
+  PredictiveInsights,
+} from "../services/analytics.service";
 
 interface UseAnalyticsState {
-  dashboard: AnalyticsDashboard | null
-  isLoading: boolean
-  error: string | null
-  lastRefresh: Date | null
+  dashboard: AnalyticsDashboard | null;
+  isLoading: boolean;
+  error: string | null;
+  lastRefresh: Date | null;
 }
 
 interface UseAnalyticsActions {
-  refreshDashboard: () => Promise<void>
-  setTimeRange: (timeRange: AnalyticsTimeRange) => void
-  exportData: (format: 'csv' | 'pdf' | 'excel') => Promise<void>
-  downloadReport: (type: 'summary' | 'detailed') => Promise<void>
+  refreshDashboard: () => Promise<void>;
+  setTimeRange: (timeRange: AnalyticsTimeRange) => void;
+  exportData: (format: "csv" | "pdf" | "excel") => Promise<void>;
+  downloadReport: (type: "summary" | "detailed") => Promise<void>;
 }
 
-export interface UseAnalyticsReturn extends UseAnalyticsState, UseAnalyticsActions {
-  timeRange: AnalyticsTimeRange
+export interface UseAnalyticsReturn
+  extends UseAnalyticsState,
+    UseAnalyticsActions {
+  timeRange: AnalyticsTimeRange;
   metrics: {
-    revenue: RevenueMetrics | null
-    customers: CustomerMetrics | null
-    deliveries: DeliveryMetrics | null
-    cartDrop: CartDropMetrics | null
-    marketing: MarketingMetrics | null
-    operations: OperationalMetrics | null
-    competitive: CompetitiveAnalysis | null
-    insights: PredictiveInsights | null
-  }
+    revenue: RevenueMetrics | null;
+    customers: CustomerMetrics | null;
+    deliveries: DeliveryMetrics | null;
+    cartDrop: CartDropMetrics | null;
+    marketing: MarketingMetrics | null;
+    operations: OperationalMetrics | null;
+    competitive: CompetitiveAnalysis | null;
+    insights: PredictiveInsights | null;
+  };
 }
 
 /**
@@ -49,159 +51,162 @@ export function useMerchantAnalytics(merchantId: string): UseAnalyticsReturn {
     dashboard: null,
     isLoading: false,
     error: null,
-    lastRefresh: null
-  })
+    lastRefresh: null,
+  });
 
   // Période par défaut (30 derniers jours)
   const [timeRange, setTimeRange] = useState<AnalyticsTimeRange>(() => {
-    const endDate = new Date()
-    const startDate = new Date()
-    startDate.setDate(startDate.getDate() - 30)
-    
+    const endDate = new Date();
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - 30);
+
     return {
       startDate,
       endDate,
-      period: 'day'
-    }
-  })
+      period: "day",
+    };
+  });
 
   /**
    * Récupère le dashboard analytics
    */
   const refreshDashboard = useCallback(async () => {
-    if (!merchantId) return
+    if (!merchantId) return;
 
-    setState(prev => ({ ...prev, isLoading: true, error: null }))
+    setState((prev) => ({ ...prev, isLoading: true, error: null }));
 
     try {
-      const response = await fetch('/api/merchant/analytics/dashboard', {
-        method: 'POST',
+      const response = await fetch("/api/merchant/analytics/dashboard", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json'
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           merchantId,
-          timeRange
-        })
-      })
+          timeRange,
+        }),
+      });
 
       if (!response.ok) {
-        throw new Error('Erreur lors du chargement des analytics')
+        throw new Error("Erreur lors du chargement des analytics");
       }
 
-      const dashboard: AnalyticsDashboard = await response.json()
+      const dashboard: AnalyticsDashboard = await response.json();
 
-      setState(prev => ({
+      setState((prev) => ({
         ...prev,
         dashboard,
         isLoading: false,
-        lastRefresh: new Date()
-      }))
-
+        lastRefresh: new Date(),
+      }));
     } catch (error) {
-      console.error('Erreur analytics:', error)
-      setState(prev => ({
+      console.error("Erreur analytics:", error);
+      setState((prev) => ({
         ...prev,
         isLoading: false,
-        error: error instanceof Error ? error.message : 'Erreur inconnue'
-      }))
+        error: error instanceof Error ? error.message : "Erreur inconnue",
+      }));
     }
-  }, [merchantId, timeRange])
+  }, [merchantId, timeRange]);
 
   /**
    * Change la période d'analyse
    */
   const handleSetTimeRange = useCallback((newTimeRange: AnalyticsTimeRange) => {
-    setTimeRange(newTimeRange)
-  }, [])
+    setTimeRange(newTimeRange);
+  }, []);
 
   /**
    * Exporte les données analytics
    */
-  const exportData = useCallback(async (format: 'csv' | 'pdf' | 'excel') => {
-    if (!merchantId || !state.dashboard) return
+  const exportData = useCallback(
+    async (format: "csv" | "pdf" | "excel") => {
+      if (!merchantId || !state.dashboard) return;
 
-    try {
-      const response = await fetch('/api/merchant/analytics/export', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          merchantId,
-          timeRange,
-          format,
-          data: state.dashboard
-        })
-      })
+      try {
+        const response = await fetch("/api/merchant/analytics/export", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            merchantId,
+            timeRange,
+            format,
+            data: state.dashboard,
+          }),
+        });
 
-      if (!response.ok) {
-        throw new Error('Erreur lors de l\'export')
+        if (!response.ok) {
+          throw new Error("Erreur lors de l'export");
+        }
+
+        // Télécharger le fichier
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.style.display = "none";
+        a.href = url;
+        a.download = `analytics-${format}-${Date.now()}.${format}`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+      } catch (error) {
+        console.error("Erreur export:", error);
+        throw error;
       }
-
-      // Télécharger le fichier
-      const blob = await response.blob()
-      const url = window.URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.style.display = 'none'
-      a.href = url
-      a.download = `analytics-${format}-${Date.now()}.${format}`
-      document.body.appendChild(a)
-      a.click()
-      window.URL.revokeObjectURL(url)
-      document.body.removeChild(a)
-
-    } catch (error) {
-      console.error('Erreur export:', error)
-      throw error
-    }
-  }, [merchantId, timeRange, state.dashboard])
+    },
+    [merchantId, timeRange, state.dashboard],
+  );
 
   /**
    * Télécharge un rapport détaillé
    */
-  const downloadReport = useCallback(async (type: 'summary' | 'detailed') => {
-    if (!merchantId) return
+  const downloadReport = useCallback(
+    async (type: "summary" | "detailed") => {
+      if (!merchantId) return;
 
-    try {
-      const response = await fetch('/api/merchant/analytics/report', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          merchantId,
-          timeRange,
-          type
-        })
-      })
+      try {
+        const response = await fetch("/api/merchant/analytics/report", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            merchantId,
+            timeRange,
+            type,
+          }),
+        });
 
-      if (!response.ok) {
-        throw new Error('Erreur lors de la génération du rapport')
+        if (!response.ok) {
+          throw new Error("Erreur lors de la génération du rapport");
+        }
+
+        // Télécharger le PDF
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.style.display = "none";
+        a.href = url;
+        a.download = `rapport-${type}-${Date.now()}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+      } catch (error) {
+        console.error("Erreur rapport:", error);
+        throw error;
       }
-
-      // Télécharger le PDF
-      const blob = await response.blob()
-      const url = window.URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.style.display = 'none'
-      a.href = url
-      a.download = `rapport-${type}-${Date.now()}.pdf`
-      document.body.appendChild(a)
-      a.click()
-      window.URL.revokeObjectURL(url)
-      document.body.removeChild(a)
-
-    } catch (error) {
-      console.error('Erreur rapport:', error)
-      throw error
-    }
-  }, [merchantId, timeRange])
+    },
+    [merchantId, timeRange],
+  );
 
   // Charger les données au montage et quand la période change
   useEffect(() => {
-    refreshDashboard()
-  }, [refreshDashboard])
+    refreshDashboard();
+  }, [refreshDashboard]);
 
   // Extraire les métriques du dashboard
   const metrics = {
@@ -212,8 +217,8 @@ export function useMerchantAnalytics(merchantId: string): UseAnalyticsReturn {
     marketing: state.dashboard?.marketing || null,
     operations: state.dashboard?.operations || null,
     competitive: state.dashboard?.competitive || null,
-    insights: state.dashboard?.insights || null
-  }
+    insights: state.dashboard?.insights || null,
+  };
 
   return {
     ...state,
@@ -222,305 +227,311 @@ export function useMerchantAnalytics(merchantId: string): UseAnalyticsReturn {
     refreshDashboard,
     setTimeRange: handleSetTimeRange,
     exportData,
-    downloadReport
-  }
+    downloadReport,
+  };
 }
 
 /**
  * Hook pour les métriques de revenus uniquement
  */
-export function useRevenueMetrics(merchantId: string, timeRange: AnalyticsTimeRange) {
-  const [metrics, setMetrics] = useState<RevenueMetrics | null>(null)
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+export function useRevenueMetrics(
+  merchantId: string,
+  timeRange: AnalyticsTimeRange,
+) {
+  const [metrics, setMetrics] = useState<RevenueMetrics | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const fetchMetrics = useCallback(async () => {
-    if (!merchantId) return
+    if (!merchantId) return;
 
-    setIsLoading(true)
-    setError(null)
+    setIsLoading(true);
+    setError(null);
 
     try {
-      const response = await fetch('/api/merchant/analytics/revenue', {
-        method: 'POST',
+      const response = await fetch("/api/merchant/analytics/revenue", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json'
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           merchantId,
-          timeRange
-        })
-      })
+          timeRange,
+        }),
+      });
 
       if (!response.ok) {
-        throw new Error('Erreur lors du chargement des métriques de revenus')
+        throw new Error("Erreur lors du chargement des métriques de revenus");
       }
 
-      const data: RevenueMetrics = await response.json()
-      setMetrics(data)
-
+      const data: RevenueMetrics = await response.json();
+      setMetrics(data);
     } catch (error) {
-      console.error('Erreur métriques revenus:', error)
-      setError(error instanceof Error ? error.message : 'Erreur inconnue')
+      console.error("Erreur métriques revenus:", error);
+      setError(error instanceof Error ? error.message : "Erreur inconnue");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }, [merchantId, timeRange])
+  }, [merchantId, timeRange]);
 
   useEffect(() => {
-    fetchMetrics()
-  }, [fetchMetrics])
+    fetchMetrics();
+  }, [fetchMetrics]);
 
   return {
     metrics,
     isLoading,
     error,
-    refresh: fetchMetrics
-  }
+    refresh: fetchMetrics,
+  };
 }
 
 /**
  * Hook pour les métriques clients uniquement
  */
-export function useCustomerMetrics(merchantId: string, timeRange: AnalyticsTimeRange) {
-  const [metrics, setMetrics] = useState<CustomerMetrics | null>(null)
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+export function useCustomerMetrics(
+  merchantId: string,
+  timeRange: AnalyticsTimeRange,
+) {
+  const [metrics, setMetrics] = useState<CustomerMetrics | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const fetchMetrics = useCallback(async () => {
-    if (!merchantId) return
+    if (!merchantId) return;
 
-    setIsLoading(true)
-    setError(null)
+    setIsLoading(true);
+    setError(null);
 
     try {
-      const response = await fetch('/api/merchant/analytics/customers', {
-        method: 'POST',
+      const response = await fetch("/api/merchant/analytics/customers", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json'
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           merchantId,
-          timeRange
-        })
-      })
+          timeRange,
+        }),
+      });
 
       if (!response.ok) {
-        throw new Error('Erreur lors du chargement des métriques clients')
+        throw new Error("Erreur lors du chargement des métriques clients");
       }
 
-      const data: CustomerMetrics = await response.json()
-      setMetrics(data)
-
+      const data: CustomerMetrics = await response.json();
+      setMetrics(data);
     } catch (error) {
-      console.error('Erreur métriques clients:', error)
-      setError(error instanceof Error ? error.message : 'Erreur inconnue')
+      console.error("Erreur métriques clients:", error);
+      setError(error instanceof Error ? error.message : "Erreur inconnue");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }, [merchantId, timeRange])
+  }, [merchantId, timeRange]);
 
   useEffect(() => {
-    fetchMetrics()
-  }, [fetchMetrics])
+    fetchMetrics();
+  }, [fetchMetrics]);
 
   return {
     metrics,
     isLoading,
     error,
-    refresh: fetchMetrics
-  }
+    refresh: fetchMetrics,
+  };
 }
 
 /**
  * Hook pour les insights prédictifs
  */
-export function usePredictiveInsights(merchantId: string, timeRange: AnalyticsTimeRange) {
-  const [insights, setInsights] = useState<PredictiveInsights | null>(null)
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+export function usePredictiveInsights(
+  merchantId: string,
+  timeRange: AnalyticsTimeRange,
+) {
+  const [insights, setInsights] = useState<PredictiveInsights | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const fetchInsights = useCallback(async () => {
-    if (!merchantId) return
+    if (!merchantId) return;
 
-    setIsLoading(true)
-    setError(null)
+    setIsLoading(true);
+    setError(null);
 
     try {
-      const response = await fetch('/api/merchant/analytics/insights', {
-        method: 'POST',
+      const response = await fetch("/api/merchant/analytics/insights", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json'
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           merchantId,
-          timeRange
-        })
-      })
+          timeRange,
+        }),
+      });
 
       if (!response.ok) {
-        throw new Error('Erreur lors du chargement des insights')
+        throw new Error("Erreur lors du chargement des insights");
       }
 
-      const data: PredictiveInsights = await response.json()
-      setInsights(data)
-
+      const data: PredictiveInsights = await response.json();
+      setInsights(data);
     } catch (error) {
-      console.error('Erreur insights prédictifs:', error)
-      setError(error instanceof Error ? error.message : 'Erreur inconnue')
+      console.error("Erreur insights prédictifs:", error);
+      setError(error instanceof Error ? error.message : "Erreur inconnue");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }, [merchantId, timeRange])
+  }, [merchantId, timeRange]);
 
   useEffect(() => {
-    fetchInsights()
-  }, [fetchInsights])
+    fetchInsights();
+  }, [fetchInsights]);
 
   return {
     insights,
     isLoading,
     error,
-    refresh: fetchInsights
-  }
+    refresh: fetchInsights,
+  };
 }
 
 /**
  * Hook pour comparer les performances entre périodes
  */
 export function usePerformanceComparison(
-  merchantId: string, 
+  merchantId: string,
   currentPeriod: AnalyticsTimeRange,
-  comparisonPeriod: AnalyticsTimeRange
+  comparisonPeriod: AnalyticsTimeRange,
 ) {
   const [comparison, setComparison] = useState<{
-    current: AnalyticsDashboard | null
-    previous: AnalyticsDashboard | null
+    current: AnalyticsDashboard | null;
+    previous: AnalyticsDashboard | null;
     changes: {
-      revenue: number
-      customers: number
-      orders: number
-      avgOrderValue: number
-    } | null
+      revenue: number;
+      customers: number;
+      orders: number;
+      avgOrderValue: number;
+    } | null;
   }>({
     current: null,
     previous: null,
-    changes: null
-  })
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+    changes: null,
+  });
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const fetchComparison = useCallback(async () => {
-    if (!merchantId) return
+    if (!merchantId) return;
 
-    setIsLoading(true)
-    setError(null)
+    setIsLoading(true);
+    setError(null);
 
     try {
-      const response = await fetch('/api/merchant/analytics/comparison', {
-        method: 'POST',
+      const response = await fetch("/api/merchant/analytics/comparison", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json'
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           merchantId,
           currentPeriod,
-          comparisonPeriod
-        })
-      })
+          comparisonPeriod,
+        }),
+      });
 
       if (!response.ok) {
-        throw new Error('Erreur lors du chargement de la comparaison')
+        throw new Error("Erreur lors du chargement de la comparaison");
       }
 
-      const data = await response.json()
-      setComparison(data)
-
+      const data = await response.json();
+      setComparison(data);
     } catch (error) {
-      console.error('Erreur comparaison performances:', error)
-      setError(error instanceof Error ? error.message : 'Erreur inconnue')
+      console.error("Erreur comparaison performances:", error);
+      setError(error instanceof Error ? error.message : "Erreur inconnue");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }, [merchantId, currentPeriod, comparisonPeriod])
+  }, [merchantId, currentPeriod, comparisonPeriod]);
 
   useEffect(() => {
-    fetchComparison()
-  }, [fetchComparison])
+    fetchComparison();
+  }, [fetchComparison]);
 
   return {
     comparison,
     isLoading,
     error,
-    refresh: fetchComparison
-  }
+    refresh: fetchComparison,
+  };
 }
 
 /**
  * Hook pour les alertes et notifications business
  */
 export function useBusinessAlerts(merchantId: string) {
-  const [alerts, setAlerts] = useState<Array<{
-    id: string
-    type: 'warning' | 'danger' | 'info' | 'success'
-    title: string
-    message: string
-    priority: 'low' | 'medium' | 'high'
-    createdAt: Date
-    isRead: boolean
-    actionUrl?: string
-  }>>([])
-  const [isLoading, setIsLoading] = useState(false)
+  const [alerts, setAlerts] = useState<
+    Array<{
+      id: string;
+      type: "warning" | "danger" | "info" | "success";
+      title: string;
+      message: string;
+      priority: "low" | "medium" | "high";
+      createdAt: Date;
+      isRead: boolean;
+      actionUrl?: string;
+    }>
+  >([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   const fetchAlerts = useCallback(async () => {
-    if (!merchantId) return
+    if (!merchantId) return;
 
-    setIsLoading(true)
+    setIsLoading(true);
 
     try {
-      const response = await fetch(`/api/merchant/analytics/alerts?merchantId=${merchantId}`)
-      
+      const response = await fetch(
+        `/api/merchant/analytics/alerts?merchantId=${merchantId}`,
+      );
+
       if (!response.ok) {
-        throw new Error('Erreur lors du chargement des alertes')
+        throw new Error("Erreur lors du chargement des alertes");
       }
 
-      const data = await response.json()
-      setAlerts(data)
-
+      const data = await response.json();
+      setAlerts(data);
     } catch (error) {
-      console.error('Erreur alertes business:', error)
+      console.error("Erreur alertes business:", error);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }, [merchantId])
+  }, [merchantId]);
 
   const markAsRead = useCallback(async (alertId: string) => {
     try {
       await fetch(`/api/merchant/analytics/alerts/${alertId}/read`, {
-        method: 'PATCH'
-      })
+        method: "PATCH",
+      });
 
-      setAlerts(prev => 
-        prev.map(alert => 
-          alert.id === alertId 
-            ? { ...alert, isRead: true }
-            : alert
-        )
-      )
+      setAlerts((prev) =>
+        prev.map((alert) =>
+          alert.id === alertId ? { ...alert, isRead: true } : alert,
+        ),
+      );
     } catch (error) {
-      console.error('Erreur marquage alerte:', error)
+      console.error("Erreur marquage alerte:", error);
     }
-  }, [])
+  }, []);
 
   useEffect(() => {
-    fetchAlerts()
-  }, [fetchAlerts])
+    fetchAlerts();
+  }, [fetchAlerts]);
 
   return {
     alerts,
     isLoading,
     refresh: fetchAlerts,
     markAsRead,
-    unreadCount: alerts.filter(alert => !alert.isRead).length
-  }
-} 
+    unreadCount: alerts.filter((alert) => !alert.isRead).length,
+  };
+}

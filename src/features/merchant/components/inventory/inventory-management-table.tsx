@@ -1,11 +1,17 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { 
+import {
   Table,
   TableBody,
   TableCell,
@@ -13,7 +19,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { 
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -21,10 +27,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { 
-  Search, 
-  Filter, 
-  Download, 
+import {
+  Search,
+  Filter,
+  Download,
   Plus,
   Package,
   AlertTriangle,
@@ -35,7 +41,7 @@ import {
   Trash2,
   Eye,
   Loader2,
-  AlertCircle
+  AlertCircle,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
@@ -89,38 +95,56 @@ export function InventoryManagementTable() {
     fetchInventory();
   }, []);
 
-  const filteredInventory = inventory.filter(item => {
-    const matchesSearch = 
+  const filteredInventory = inventory.filter((item) => {
+    const matchesSearch =
       item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       item.sku.toLowerCase().includes(searchTerm.toLowerCase()) ||
       item.description.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesCategory = filterCategory === "all" || item.category === filterCategory;
-    const matchesStatus = filterStatus === "all" || item.status === filterStatus;
-    
+
+    const matchesCategory =
+      filterCategory === "all" || item.category === filterCategory;
+    const matchesStatus =
+      filterStatus === "all" || item.status === filterStatus;
+
     return matchesSearch && matchesCategory && matchesStatus;
   });
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "IN_STOCK": return "bg-green-100 text-green-800";
-      case "LOW_STOCK": return "bg-yellow-100 text-yellow-800";
-      case "OUT_OF_STOCK": return "bg-red-100 text-red-800";
-      case "DISCONTINUED": return "bg-gray-100 text-gray-800";
-      default: return "bg-gray-100 text-gray-800";
+      case "IN_STOCK":
+        return "bg-green-100 text-green-800";
+      case "LOW_STOCK":
+        return "bg-yellow-100 text-yellow-800";
+      case "OUT_OF_STOCK":
+        return "bg-red-100 text-red-800";
+      case "DISCONTINUED":
+        return "bg-gray-100 text-gray-800";
+      default:
+        return "bg-gray-100 text-gray-800";
     }
   };
 
   const getStockAlert = (item: InventoryItem) => {
     if (item.stockLevel <= 0) return { type: "error", message: "Out of stock" };
-    if (item.stockLevel <= item.minStockLevel) return { type: "warning", message: "Low stock" };
+    if (item.stockLevel <= item.minStockLevel)
+      return { type: "warning", message: "Low stock" };
     return null;
   };
 
   const exportInventory = () => {
     const csvContent = [
-      ["Name", "SKU", "Category", "Price", "Cost", "Stock Level", "Status", "Sales (Month)", "Revenue (Month)"],
-      ...filteredInventory.map(item => [
+      [
+        "Name",
+        "SKU",
+        "Category",
+        "Price",
+        "Cost",
+        "Stock Level",
+        "Status",
+        "Sales (Month)",
+        "Revenue (Month)",
+      ],
+      ...filteredInventory.map((item) => [
         item.name,
         item.sku,
         item.category,
@@ -129,9 +153,11 @@ export function InventoryManagementTable() {
         item.stockLevel.toString(),
         item.status,
         item.salesThisMonth.toString(),
-        item.revenueThisMonth.toFixed(2)
-      ])
-    ].map(row => row.join(",")).join("\n");
+        item.revenueThisMonth.toFixed(2),
+      ]),
+    ]
+      .map((row) => row.join(","))
+      .join("\n");
 
     const blob = new Blob([csvContent], { type: "text/csv" });
     const url = window.URL.createObjectURL(blob);
@@ -143,9 +169,14 @@ export function InventoryManagementTable() {
     toast.success("Inventory data exported successfully");
   };
 
-  const lowStockItems = inventory.filter(item => item.stockLevel <= item.minStockLevel);
-  const outOfStockItems = inventory.filter(item => item.stockLevel === 0);
-  const totalValue = inventory.reduce((sum, item) => sum + (item.stockLevel * item.cost), 0);
+  const lowStockItems = inventory.filter(
+    (item) => item.stockLevel <= item.minStockLevel,
+  );
+  const outOfStockItems = inventory.filter((item) => item.stockLevel === 0);
+  const totalValue = inventory.reduce(
+    (sum, item) => sum + item.stockLevel * item.cost,
+    0,
+  );
 
   if (loading) {
     return (
@@ -168,18 +199,23 @@ export function InventoryManagementTable() {
           <CardContent>
             <div className="text-2xl font-bold">{inventory.length}</div>
             <p className="text-xs text-muted-foreground">
-              {inventory.filter(item => item.status === "IN_STOCK").length} in stock
+              {inventory.filter((item) => item.status === "IN_STOCK").length} in
+              stock
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Low Stock Alerts</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Low Stock Alerts
+            </CardTitle>
             <AlertTriangle className="h-4 w-4 text-yellow-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-yellow-600">{lowStockItems.length}</div>
+            <div className="text-2xl font-bold text-yellow-600">
+              {lowStockItems.length}
+            </div>
             <p className="text-xs text-muted-foreground">
               {outOfStockItems.length} out of stock
             </p>
@@ -188,7 +224,9 @@ export function InventoryManagementTable() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Inventory Value</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Inventory Value
+            </CardTitle>
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -209,7 +247,10 @@ export function InventoryManagementTable() {
               {inventory.reduce((sum, item) => sum + item.salesThisMonth, 0)}
             </div>
             <p className="text-xs text-muted-foreground">
-              {inventory.reduce((sum, item) => sum + item.revenueThisMonth, 0).toFixed(2)}€ revenue
+              {inventory
+                .reduce((sum, item) => sum + item.revenueThisMonth, 0)
+                .toFixed(2)}
+              € revenue
             </p>
           </CardContent>
         </Card>
@@ -235,7 +276,7 @@ export function InventoryManagementTable() {
                   className="pl-10 w-full md:w-64"
                 />
               </div>
-              
+
               <select
                 value={filterCategory}
                 onChange={(e) => setFilterCategory(e.target.value)}
@@ -249,7 +290,7 @@ export function InventoryManagementTable() {
                 <option value="Books">Books</option>
                 <option value="Food">Food</option>
               </select>
-              
+
               <select
                 value={filterStatus}
                 onChange={(e) => setFilterStatus(e.target.value)}
@@ -262,7 +303,7 @@ export function InventoryManagementTable() {
                 <option value="DISCONTINUED">Discontinued</option>
               </select>
             </div>
-            
+
             <div className="flex gap-2">
               <Button variant="outline" onClick={exportInventory}>
                 <Download className="h-4 w-4 mr-2" />
@@ -282,7 +323,8 @@ export function InventoryManagementTable() {
         <CardHeader>
           <CardTitle>Inventory List</CardTitle>
           <CardDescription>
-            Detailed view of all products with stock levels and performance metrics
+            Detailed view of all products with stock levels and performance
+            metrics
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -314,7 +356,9 @@ export function InventoryManagementTable() {
                         {stockAlert && (
                           <div className="flex items-center mt-1">
                             <AlertCircle className="h-3 w-3 text-red-500 mr-1" />
-                            <span className="text-xs text-red-600">{stockAlert.message}</span>
+                            <span className="text-xs text-red-600">
+                              {stockAlert.message}
+                            </span>
                           </div>
                         )}
                       </div>
@@ -326,7 +370,9 @@ export function InventoryManagementTable() {
                       <Badge variant="outline">{item.category}</Badge>
                     </TableCell>
                     <TableCell>
-                      <div className="font-medium">{item.price.toFixed(2)}€</div>
+                      <div className="font-medium">
+                        {item.price.toFixed(2)}€
+                      </div>
                       <div className="text-xs text-muted-foreground">
                         Cost: {item.cost.toFixed(2)}€
                       </div>
@@ -353,7 +399,9 @@ export function InventoryManagementTable() {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <div className="font-medium">{item.revenueThisMonth.toFixed(2)}€</div>
+                      <div className="font-medium">
+                        {item.revenueThisMonth.toFixed(2)}€
+                      </div>
                     </TableCell>
                     <TableCell className="text-right">
                       <DropdownMenu>
@@ -389,10 +437,12 @@ export function InventoryManagementTable() {
               })}
             </TableBody>
           </Table>
-          
+
           {filteredInventory.length === 0 && (
             <div className="text-center py-8">
-              <p className="text-muted-foreground">No products found matching your criteria</p>
+              <p className="text-muted-foreground">
+                No products found matching your criteria
+              </p>
             </div>
           )}
         </CardContent>
@@ -413,7 +463,10 @@ export function InventoryManagementTable() {
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {lowStockItems.slice(0, 6).map((item) => (
-                <div key={item.id} className="flex items-center justify-between p-3 bg-white rounded-lg border">
+                <div
+                  key={item.id}
+                  className="flex items-center justify-between p-3 bg-white rounded-lg border"
+                >
                   <div>
                     <div className="font-medium">{item.name}</div>
                     <div className="text-sm text-muted-foreground">
@@ -431,4 +484,4 @@ export function InventoryManagementTable() {
       )}
     </div>
   );
-} 
+}

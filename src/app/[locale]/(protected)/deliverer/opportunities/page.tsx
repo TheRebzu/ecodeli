@@ -6,18 +6,18 @@ import { PageHeader } from "@/components/layout/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { 
-  Package, 
-  MapPin, 
-  Clock, 
-  Euro, 
+import {
+  Package,
+  MapPin,
+  Clock,
+  Euro,
   Star,
   CheckCircle,
   XCircle,
   Truck,
   Calendar,
   Filter,
-  RefreshCw
+  RefreshCw,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -54,13 +54,13 @@ export default function DelivererOpportunitiesPage() {
   const fetchOpportunities = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/deliverer/opportunities');
+      const response = await fetch("/api/deliverer/opportunities");
       if (response.ok) {
         const data = await response.json();
         setOpportunities(data.opportunities);
       }
     } catch (error) {
-      console.error('Error fetching opportunities:', error);
+      console.error("Error fetching opportunities:", error);
       toast.error("Erreur lors du chargement des opportunités");
     } finally {
       setLoading(false);
@@ -81,9 +81,12 @@ export default function DelivererOpportunitiesPage() {
 
   const acceptOpportunity = async (opportunityId: string) => {
     try {
-      const response = await fetch(`/api/deliverer/opportunities/${opportunityId}/accept`, {
-        method: 'POST'
-      });
+      const response = await fetch(
+        `/api/deliverer/opportunities/${opportunityId}/accept`,
+        {
+          method: "POST",
+        },
+      );
 
       if (response.ok) {
         toast.success("Opportunité acceptée avec succès");
@@ -93,16 +96,19 @@ export default function DelivererOpportunitiesPage() {
         toast.error(errorData.error || "Erreur lors de l'acceptation");
       }
     } catch (error) {
-      console.error('Error accepting opportunity:', error);
+      console.error("Error accepting opportunity:", error);
       toast.error("Erreur lors de l'acceptation");
     }
   };
 
   const rejectOpportunity = async (opportunityId: string) => {
     try {
-      const response = await fetch(`/api/deliverer/opportunities/${opportunityId}/reject`, {
-        method: 'POST'
-      });
+      const response = await fetch(
+        `/api/deliverer/opportunities/${opportunityId}/reject`,
+        {
+          method: "POST",
+        },
+      );
 
       if (response.ok) {
         toast.success("Opportunité rejetée");
@@ -112,18 +118,18 @@ export default function DelivererOpportunitiesPage() {
         toast.error(errorData.error || "Erreur lors du rejet");
       }
     } catch (error) {
-      console.error('Error rejecting opportunity:', error);
+      console.error("Error rejecting opportunity:", error);
       toast.error("Erreur lors du rejet");
     }
   };
 
   const getTypeIcon = (type: string) => {
     switch (type) {
-      case 'PACKAGE_DELIVERY':
+      case "PACKAGE_DELIVERY":
         return <Package className="h-4 w-4" />;
-      case 'PERSON_TRANSPORT':
+      case "PERSON_TRANSPORT":
         return <Truck className="h-4 w-4" />;
-      case 'AIRPORT_TRANSFER':
+      case "AIRPORT_TRANSFER":
         return <Calendar className="h-4 w-4" />;
       default:
         return <Package className="h-4 w-4" />;
@@ -132,12 +138,12 @@ export default function DelivererOpportunitiesPage() {
 
   const getTypeLabel = (type: string) => {
     switch (type) {
-      case 'PACKAGE_DELIVERY':
-        return 'Livraison colis';
-      case 'PERSON_TRANSPORT':
-        return 'Transport personne';
-      case 'AIRPORT_TRANSFER':
-        return 'Transfert aéroport';
+      case "PACKAGE_DELIVERY":
+        return "Livraison colis";
+      case "PERSON_TRANSPORT":
+        return "Transport personne";
+      case "AIRPORT_TRANSFER":
+        return "Transfert aéroport";
       default:
         return type;
     }
@@ -151,16 +157,16 @@ export default function DelivererOpportunitiesPage() {
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('fr-FR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+    return new Date(dateString).toLocaleDateString("fr-FR", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
-  const filteredOpportunities = opportunities.filter(opportunity => {
+  const filteredOpportunities = opportunities.filter((opportunity) => {
     if (selectedFilter === "all") return true;
     if (selectedFilter === "high-score") return opportunity.matchScore >= 80;
     if (selectedFilter === "nearby") return opportunity.distance <= 5;
@@ -201,7 +207,9 @@ export default function DelivererOpportunitiesPage() {
         description="Découvrez les annonces qui correspondent à vos trajets"
       >
         <Button onClick={refreshOpportunities} disabled={refreshing}>
-          <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
+          <RefreshCw
+            className={`h-4 w-4 mr-2 ${refreshing ? "animate-spin" : ""}`}
+          />
           {refreshing ? "Actualisation..." : "Actualiser"}
         </Button>
       </PageHeader>
@@ -248,10 +256,9 @@ export default function DelivererOpportunitiesPage() {
               Aucune opportunité trouvée
             </h3>
             <p className="text-gray-600 mb-4">
-              {selectedFilter === "all" 
+              {selectedFilter === "all"
                 ? "Aucune annonce ne correspond à vos trajets pour le moment."
-                : "Aucune opportunité ne correspond aux critères sélectionnés."
-              }
+                : "Aucune opportunité ne correspond aux critères sélectionnés."}
             </p>
             <Button onClick={refreshOpportunities} variant="outline">
               <RefreshCw className="h-4 w-4 mr-2" />
@@ -262,7 +269,10 @@ export default function DelivererOpportunitiesPage() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredOpportunities.map((opportunity) => (
-            <Card key={opportunity.id} className="hover:shadow-lg transition-shadow">
+            <Card
+              key={opportunity.id}
+              className="hover:shadow-lg transition-shadow"
+            >
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-2">
@@ -277,7 +287,7 @@ export default function DelivererOpportunitiesPage() {
                 </div>
                 <CardTitle className="text-lg">{opportunity.title}</CardTitle>
               </CardHeader>
-              
+
               <CardContent className="space-y-4">
                 <p className="text-gray-600 text-sm line-clamp-2">
                   {opportunity.description}
@@ -287,12 +297,16 @@ export default function DelivererOpportunitiesPage() {
                   <div className="flex items-center gap-2 text-sm">
                     <MapPin className="h-4 w-4 text-gray-500" />
                     <span className="font-medium">De:</span>
-                    <span className="text-gray-600 truncate">{opportunity.pickupAddress}</span>
+                    <span className="text-gray-600 truncate">
+                      {opportunity.pickupAddress}
+                    </span>
                   </div>
                   <div className="flex items-center gap-2 text-sm">
                     <MapPin className="h-4 w-4 text-gray-500" />
                     <span className="font-medium">Vers:</span>
-                    <span className="text-gray-600 truncate">{opportunity.deliveryAddress}</span>
+                    <span className="text-gray-600 truncate">
+                      {opportunity.deliveryAddress}
+                    </span>
                   </div>
                 </div>
 

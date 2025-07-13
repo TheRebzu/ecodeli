@@ -1,36 +1,71 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from 'react'
-import { useParams, useRouter } from 'next/navigation'
-import { useAuth } from '@/hooks/use-auth'
-import { useTranslations } from 'next-intl'
-import { PageHeader } from '@/components/layout/page-header'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Separator } from '@/components/ui/separator'
-import { useToast } from '@/components/ui/use-toast'
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Package, MapPin, Clock, Euro, AlertCircle, Edit, Trash2, Eye, Users, CheckCircle, XCircle, Calendar, DollarSign, Route, Star, TrendingUp, AlertTriangle, ArrowLeft, MessageCircle, Phone } from 'lucide-react'
-import { Announcement } from '@/features/announcements/types/announcement.types'
-import { format } from 'date-fns'
-import { fr } from 'date-fns/locale'
-import Link from 'next/link'
+import { useState, useEffect } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { useAuth } from "@/hooks/use-auth";
+import { useTranslations } from "next-intl";
+import { PageHeader } from "@/components/layout/page-header";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import { useToast } from "@/components/ui/use-toast";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  Package,
+  MapPin,
+  Clock,
+  Euro,
+  AlertCircle,
+  Edit,
+  Trash2,
+  Eye,
+  Users,
+  CheckCircle,
+  XCircle,
+  Calendar,
+  DollarSign,
+  Route,
+  Star,
+  TrendingUp,
+  AlertTriangle,
+  ArrowLeft,
+  MessageCircle,
+  Phone,
+} from "lucide-react";
+import { Announcement } from "@/features/announcements/types/announcement.types";
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
+import Link from "next/link";
 
 // Fonction utilitaire pour formater les dates de manière sécurisée
-const safeFormatDate = (dateValue: any, formatString: string, fallback: string = 'Date non disponible') => {
+const safeFormatDate = (
+  dateValue: any,
+  formatString: string,
+  fallback: string = "Date non disponible",
+) => {
   try {
-    if (!dateValue) return fallback
-    const date = new Date(dateValue)
-    if (isNaN(date.getTime())) return fallback
-    return format(date, formatString, { locale: fr })
+    if (!dateValue) return fallback;
+    const date = new Date(dateValue);
+    if (isNaN(date.getTime())) return fallback;
+    return format(date, formatString, { locale: fr });
   } catch (error) {
-    console.warn('Erreur de formatage de date:', dateValue, error)
-    return fallback
+    console.warn("Erreur de formatage de date:", dateValue, error);
+    return fallback;
   }
-}
+};
 
 interface AnnouncementDetails {
   id: string;
@@ -39,23 +74,23 @@ interface AnnouncementDetails {
   type: string;
   deliveryType?: string;
   status: string;
-  
+
   // Prix (format API)
   price?: number;
   currency: string;
-  
+
   // Options (format API)
   urgent?: boolean;
   flexibleDates?: boolean;
   specialInstructions?: string;
-  
+
   // Dates
   createdAt: string;
   updatedAt: string;
   publishedAt?: string;
   desiredDate?: string;
   viewCount?: number;
-  
+
   // Adresses (format API)
   startLocation?: {
     address: string;
@@ -73,7 +108,7 @@ interface AnnouncementDetails {
     lat?: number;
     lng?: number;
   };
-  
+
   // Auteur principal (format API)
   author?: {
     id: string;
@@ -84,7 +119,7 @@ interface AnnouncementDetails {
       avatar?: string;
     };
   };
-  
+
   // Client/Merchant info (format API)
   client?: {
     id: string;
@@ -103,7 +138,7 @@ interface AnnouncementDetails {
       avatar?: string;
     };
   };
-  
+
   // Détails du colis (format API)
   packageDetails?: {
     weight: number;
@@ -115,7 +150,7 @@ interface AnnouncementDetails {
     requiresInsurance: boolean;
     insuredValue?: number;
   };
-  
+
   // Détails du service (format API)
   serviceDetails?: {
     serviceType: string;
@@ -125,7 +160,7 @@ interface AnnouncementDetails {
     recurringPattern?: string;
     specialRequirements?: string;
   };
-  
+
   // Correspondances de trajets (format API)
   routeMatches?: Array<{
     id: string;
@@ -159,7 +194,7 @@ interface AnnouncementDetails {
       };
     };
   }>;
-  
+
   // Livraison (format API)
   delivery?: {
     id: string;
@@ -175,162 +210,170 @@ interface AnnouncementDetails {
       };
     };
   };
-  
+
   // Évaluations et pièces jointes
   reviews?: Array<any>;
   attachments?: Array<any>;
 }
 
 const statusLabels = {
-  'DRAFT': { label: 'Brouillon', color: 'bg-gray-100 text-gray-800' },
-  'ACTIVE': { label: 'Publiée', color: 'bg-green-100 text-green-800' },
-  'MATCHED': { label: 'Matchée', color: 'bg-blue-100 text-blue-800' },
-  'IN_PROGRESS': { label: 'En cours', color: 'bg-orange-100 text-orange-800' },
-  'COMPLETED': { label: 'Terminée', color: 'bg-green-100 text-green-800' },
-  'CANCELLED': { label: 'Annulée', color: 'bg-red-100 text-red-800' }
+  DRAFT: { label: "Brouillon", color: "bg-gray-100 text-gray-800" },
+  ACTIVE: { label: "Publiée", color: "bg-green-100 text-green-800" },
+  MATCHED: { label: "Matchée", color: "bg-blue-100 text-blue-800" },
+  IN_PROGRESS: { label: "En cours", color: "bg-orange-100 text-orange-800" },
+  COMPLETED: { label: "Terminée", color: "bg-green-100 text-green-800" },
+  CANCELLED: { label: "Annulée", color: "bg-red-100 text-red-800" },
 };
 
 const typeLabels = {
-  'PACKAGE_DELIVERY': { label: 'Livraison de colis', icon: Package },
-  'PERSON_TRANSPORT': { label: 'Transport de personnes', icon: Users },
-  'AIRPORT_TRANSFER': { label: 'Transfert aéroport', icon: Users },
-  'SHOPPING': { label: 'Courses', icon: Package },
-  'INTERNATIONAL_PURCHASE': { label: 'Achat international', icon: Package },
-  'PET_SITTING': { label: 'Garde d\'animaux', icon: Package },
-  'HOME_SERVICE': { label: 'Service à domicile', icon: Package },
-  'CART_DROP': { label: 'Lâcher de chariot', icon: Package }
+  PACKAGE_DELIVERY: { label: "Livraison de colis", icon: Package },
+  PERSON_TRANSPORT: { label: "Transport de personnes", icon: Users },
+  AIRPORT_TRANSFER: { label: "Transfert aéroport", icon: Users },
+  SHOPPING: { label: "Courses", icon: Package },
+  INTERNATIONAL_PURCHASE: { label: "Achat international", icon: Package },
+  PET_SITTING: { label: "Garde d'animaux", icon: Package },
+  HOME_SERVICE: { label: "Service à domicile", icon: Package },
+  CART_DROP: { label: "Lâcher de chariot", icon: Package },
 };
 
 const deliveryTypeLabels = {
-  'FULL': 'Prise en charge intégrale',
-  'PARTIAL': 'Prise en charge partielle',
-  'FINAL': 'Livraison finale'
+  FULL: "Prise en charge intégrale",
+  PARTIAL: "Prise en charge partielle",
+  FINAL: "Livraison finale",
 };
 
 export default function AnnouncementDetailPage() {
-  const { id } = useParams()
-  const { user } = useAuth()
-  const router = useRouter()
-  const t = useTranslations('client.announcements')
-  const { toast } = useToast()
-  const [announcement, setAnnouncement] = useState<AnnouncementDetails | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [deleting, setDeleting] = useState(false)
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [actionLoading, setActionLoading] = useState(false)
+  const { id } = useParams();
+  const { user } = useAuth();
+  const router = useRouter();
+  const t = useTranslations("client.announcements");
+  const { toast } = useToast();
+  const [announcement, setAnnouncement] = useState<AnnouncementDetails | null>(
+    null,
+  );
+  const [loading, setLoading] = useState(true);
+  const [deleting, setDeleting] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [actionLoading, setActionLoading] = useState(false);
 
   useEffect(() => {
     if (id && user) {
-      fetchAnnouncement()
+      fetchAnnouncement();
     }
-  }, [id, user])
+  }, [id, user]);
 
   const fetchAnnouncement = async () => {
     try {
-      setLoading(true)
+      setLoading(true);
       const response = await fetch(`/api/client/announcements/${id}`, {
-        method: 'GET',
-        credentials: 'include', // Important : inclure les cookies de session
+        method: "GET",
+        credentials: "include", // Important : inclure les cookies de session
         headers: {
-          'Content-Type': 'application/json'
-        }
-      })
+          "Content-Type": "application/json",
+        },
+      });
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}))
-        throw new Error(errorData.error || 'Annonce non trouvée')
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || "Annonce non trouvée");
       }
 
-      const data = await response.json()
-      console.log('📡 Données reçues de l\'API:', data)
-      
+      const data = await response.json();
+      console.log("📡 Données reçues de l'API:", data);
+
       // L'API retourne directement l'annonce transformée
-      setAnnouncement(data)
+      setAnnouncement(data);
     } catch (err: any) {
-      console.error('❌ Erreur chargement annonce:', err)
-      setError(err.message || 'Erreur de chargement')
+      console.error("❌ Erreur chargement annonce:", err);
+      setError(err.message || "Erreur de chargement");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const handleDelete = async () => {
-    if (!announcement || !window.confirm('Êtes-vous sûr de vouloir supprimer cette annonce ?')) {
-      return
+    if (
+      !announcement ||
+      !window.confirm("Êtes-vous sûr de vouloir supprimer cette annonce ?")
+    ) {
+      return;
     }
 
-    setActionLoading(true)
+    setActionLoading(true);
     try {
       const response = await fetch(`/api/client/announcements/${id}`, {
-        method: 'DELETE',
-        credentials: 'include',
+        method: "DELETE",
+        credentials: "include",
         headers: {
-          'Content-Type': 'application/json'
-        }
-      })
-      
+          "Content-Type": "application/json",
+        },
+      });
+
       if (response.ok) {
-        router.push('/client/announcements')
+        router.push("/client/announcements");
       } else {
-        const error = await response.json()
-        alert(`Erreur: ${error.error || 'Impossible de supprimer'}`)
+        const error = await response.json();
+        alert(`Erreur: ${error.error || "Impossible de supprimer"}`);
       }
     } catch (err) {
-      console.error('❌ Erreur suppression:', err)
-      alert('Erreur de connexion')
+      console.error("❌ Erreur suppression:", err);
+      alert("Erreur de connexion");
     } finally {
-      setActionLoading(false)
+      setActionLoading(false);
     }
-  }
+  };
 
   const handleAcceptMatch = async (matchId: string) => {
-    setActionLoading(true)
+    setActionLoading(true);
     try {
-      const response = await fetch(`/api/client/announcements/${id}/matches/${matchId}/accept`, {
-        method: 'POST',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      })
-      
+      const response = await fetch(
+        `/api/client/announcements/${id}/matches/${matchId}/accept`,
+        {
+          method: "POST",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        },
+      );
+
       if (response.ok) {
         // Recharger les données
-        window.location.reload()
+        window.location.reload();
       } else {
-        const error = await response.json()
-        alert(`Erreur: ${error.error || 'Impossible d\'accepter'}`)
+        const error = await response.json();
+        alert(`Erreur: ${error.error || "Impossible d'accepter"}`);
       }
     } catch (err) {
-      console.error('❌ Erreur acceptation:', err)
-      alert('Erreur de connexion')
+      console.error("❌ Erreur acceptation:", err);
+      alert("Erreur de connexion");
     } finally {
-      setActionLoading(false)
+      setActionLoading(false);
     }
-  }
+  };
 
   const getStatusColor = (status: string) => {
-    const statusInfo = statusLabels[status as keyof typeof statusLabels]
-    return statusInfo ? statusInfo.color : 'bg-gray-100 text-gray-800'
-  }
+    const statusInfo = statusLabels[status as keyof typeof statusLabels];
+    return statusInfo ? statusInfo.color : "bg-gray-100 text-gray-800";
+  };
 
   const getStatusIcon = (status: string) => {
-    const statusInfo = statusLabels[status as keyof typeof statusLabels]
+    const statusInfo = statusLabels[status as keyof typeof statusLabels];
     if (statusInfo) {
-      if (status === 'ACTIVE') return <CheckCircle className="h-4 w-4" />
-      if (status === 'IN_PROGRESS') return <Clock className="h-4 w-4" />
-      if (status === 'COMPLETED') return <CheckCircle className="h-4 w-4" />
-      if (status === 'CANCELLED') return <XCircle className="h-4 w-4" />
-      if (status === 'MATCHED') return <Users className="h-4 w-4" />
+      if (status === "ACTIVE") return <CheckCircle className="h-4 w-4" />;
+      if (status === "IN_PROGRESS") return <Clock className="h-4 w-4" />;
+      if (status === "COMPLETED") return <CheckCircle className="h-4 w-4" />;
+      if (status === "CANCELLED") return <XCircle className="h-4 w-4" />;
+      if (status === "MATCHED") return <Users className="h-4 w-4" />;
     }
-    return <AlertCircle className="h-4 w-4" />
-  }
+    return <AlertCircle className="h-4 w-4" />;
+  };
 
   const getTypeLabel = (type: string) => {
-    const typeInfo = typeLabels[type as keyof typeof typeLabels]
-    return typeInfo ? typeInfo.label : type
-  }
+    const typeInfo = typeLabels[type as keyof typeof typeLabels];
+    return typeInfo ? typeInfo.label : type;
+  };
 
   if (loading) {
     return (
@@ -340,7 +383,7 @@ export default function AnnouncementDetailPage() {
           <p className="text-gray-600">Chargement de l'annonce...</p>
         </div>
       </div>
-    )
+    );
   }
 
   if (error || !announcement) {
@@ -362,24 +405,30 @@ export default function AnnouncementDetailPage() {
           </Link>
         </div>
       </div>
-    )
+    );
   }
 
-  const statusInfo = statusLabels[announcement.status as keyof typeof statusLabels]
-  const typeInfo = typeLabels[announcement.type as keyof typeof typeLabels]
-  const TypeIcon = typeInfo?.icon || Package
+  const statusInfo =
+    statusLabels[announcement.status as keyof typeof statusLabels];
+  const typeInfo = typeLabels[announcement.type as keyof typeof typeLabels];
+  const TypeIcon = typeInfo?.icon || Package;
 
   // Actions disponibles selon le statut
-  const canEdit = announcement.status === 'DRAFT'
-  const canDelete = ['DRAFT', 'ACTIVE'].includes(announcement.status)
-  const canViewCandidates = announcement.status === 'ACTIVE' && announcement.routeMatches && announcement.routeMatches.length > 0
-  const hasDelivery = ['MATCHED', 'IN_PROGRESS', 'COMPLETED'].includes(announcement.status)
+  const canEdit = announcement.status === "DRAFT";
+  const canDelete = ["DRAFT", "ACTIVE"].includes(announcement.status);
+  const canViewCandidates =
+    announcement.status === "ACTIVE" &&
+    announcement.routeMatches &&
+    announcement.routeMatches.length > 0;
+  const hasDelivery = ["MATCHED", "IN_PROGRESS", "COMPLETED"].includes(
+    announcement.status,
+  );
 
   return (
     <div className="space-y-6">
       <PageHeader
         title={announcement.title}
-        description={`Annonce créée le ${safeFormatDate(announcement.createdAt, 'dd MMMM yyyy')}`}
+        description={`Annonce créée le ${safeFormatDate(announcement.createdAt, "dd MMMM yyyy")}`}
         action={
           <div className="flex gap-2">
             <Link href="/client/announcements">
@@ -405,7 +454,11 @@ export default function AnnouncementDetailPage() {
               </Link>
             )}
             {canDelete && (
-              <Button variant="destructive" onClick={handleDelete} disabled={actionLoading}>
+              <Button
+                variant="destructive"
+                onClick={handleDelete}
+                disabled={actionLoading}
+              >
                 <Trash2 className="h-4 w-4 mr-2" />
                 Supprimer
               </Button>
@@ -427,15 +480,15 @@ export default function AnnouncementDetailPage() {
                 <div className="flex items-center gap-2">
                   <Badge className={getStatusColor(announcement.status)}>
                     {getStatusIcon(announcement.status)}
-                    <span className="ml-1">{statusInfo?.label || announcement.status}</span>
+                    <span className="ml-1">
+                      {statusInfo?.label || announcement.status}
+                    </span>
                   </Badge>
                   <Badge variant="outline">
                     {getTypeLabel(announcement.type)}
                   </Badge>
                   {announcement.urgent && (
-                    <Badge variant="destructive">
-                      Urgent
-                    </Badge>
+                    <Badge variant="destructive">Urgent</Badge>
                   )}
                 </div>
               </div>
@@ -449,7 +502,9 @@ export default function AnnouncementDetailPage() {
               {announcement.specialInstructions && (
                 <div>
                   <h4 className="font-medium mb-2">Instructions spéciales</h4>
-                  <p className="text-gray-600">{announcement.specialInstructions}</p>
+                  <p className="text-gray-600">
+                    {announcement.specialInstructions}
+                  </p>
                 </div>
               )}
 
@@ -462,8 +517,8 @@ export default function AnnouncementDetailPage() {
                     <p className="text-sm font-medium">Date souhaitée</p>
                     <p className="text-sm text-gray-600">
                       {safeFormatDate(
-                        announcement.desiredDate, 
-                        'dd MMMM yyyy à HH:mm'
+                        announcement.desiredDate,
+                        "dd MMMM yyyy à HH:mm",
                       )}
                     </p>
                   </div>
@@ -474,7 +529,7 @@ export default function AnnouncementDetailPage() {
                   <div>
                     <p className="text-sm font-medium">Prix</p>
                     <p className="text-sm text-gray-600">
-                      {(announcement.price || 0)} {announcement.currency || 'EUR'}
+                      {announcement.price || 0} {announcement.currency || "EUR"}
                     </p>
                   </div>
                 </div>
@@ -494,7 +549,7 @@ export default function AnnouncementDetailPage() {
                   <div>
                     <p className="text-sm font-medium">Dates flexibles</p>
                     <p className="text-sm text-gray-600">
-                      {announcement.flexibleDates ? 'Oui' : 'Non'}
+                      {announcement.flexibleDates ? "Oui" : "Non"}
                     </p>
                   </div>
                 </div>
@@ -512,9 +567,12 @@ export default function AnnouncementDetailPage() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <h4 className="font-medium mb-2 text-green-600">📍 Point de départ</h4>
+                <h4 className="font-medium mb-2 text-green-600">
+                  📍 Point de départ
+                </h4>
                 <p className="text-gray-600">
-                  {announcement.startLocation?.address || 'Adresse non renseignée'}
+                  {announcement.startLocation?.address ||
+                    "Adresse non renseignée"}
                 </p>
               </div>
 
@@ -523,16 +581,24 @@ export default function AnnouncementDetailPage() {
               </div>
 
               <div>
-                <h4 className="font-medium mb-2 text-red-600">📍 Point d'arrivée</h4>
+                <h4 className="font-medium mb-2 text-red-600">
+                  📍 Point d'arrivée
+                </h4>
                 <p className="text-gray-600">
-                  {announcement.endLocation?.address || 'Adresse non renseignée'}
+                  {announcement.endLocation?.address ||
+                    "Adresse non renseignée"}
                 </p>
               </div>
             </CardContent>
           </Card>
 
           {/* Détails du colis si applicable */}
-          {(['PACKAGE_DELIVERY', 'SHOPPING', 'INTERNATIONAL_PURCHASE', 'CART_DROP'].includes(announcement.type)) && (
+          {[
+            "PACKAGE_DELIVERY",
+            "SHOPPING",
+            "INTERNATIONAL_PURCHASE",
+            "CART_DROP",
+          ].includes(announcement.type) && (
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -547,27 +613,35 @@ export default function AnnouncementDetailPage() {
                       {announcement.packageDetails.weight && (
                         <div>
                           <h4 className="font-medium mb-2">Poids</h4>
-                          <p className="text-gray-600">{announcement.packageDetails.weight} kg</p>
-                        </div>
-                      )}
-                      {(announcement.packageDetails.length && announcement.packageDetails.width && announcement.packageDetails.height) && (
-                        <div>
-                          <h4 className="font-medium mb-2">Dimensions</h4>
                           <p className="text-gray-600">
-                            {announcement.packageDetails.length} x {announcement.packageDetails.width} x {announcement.packageDetails.height} cm
+                            {announcement.packageDetails.weight} kg
                           </p>
                         </div>
                       )}
+                      {announcement.packageDetails.length &&
+                        announcement.packageDetails.width &&
+                        announcement.packageDetails.height && (
+                          <div>
+                            <h4 className="font-medium mb-2">Dimensions</h4>
+                            <p className="text-gray-600">
+                              {announcement.packageDetails.length} x{" "}
+                              {announcement.packageDetails.width} x{" "}
+                              {announcement.packageDetails.height} cm
+                            </p>
+                          </div>
+                        )}
                       {announcement.packageDetails.content && (
                         <div>
                           <h4 className="font-medium mb-2">Contenu</h4>
-                          <p className="text-gray-600">{announcement.packageDetails.content}</p>
+                          <p className="text-gray-600">
+                            {announcement.packageDetails.content}
+                          </p>
                         </div>
                       )}
                       <div>
                         <h4 className="font-medium mb-2">Fragile</h4>
                         <p className="text-gray-600">
-                          {announcement.packageDetails.fragile ? 'Oui' : 'Non'}
+                          {announcement.packageDetails.fragile ? "Oui" : "Non"}
                         </p>
                       </div>
                     </div>
@@ -576,7 +650,8 @@ export default function AnnouncementDetailPage() {
                       <div>
                         <h4 className="font-medium mb-2">Assurance</h4>
                         <p className="text-gray-600">
-                          Valeur assurée: {announcement.packageDetails.insuredValue || 0} €
+                          Valeur assurée:{" "}
+                          {announcement.packageDetails.insuredValue || 0} €
                         </p>
                       </div>
                     )}
@@ -584,9 +659,13 @@ export default function AnnouncementDetailPage() {
                 ) : (
                   <div className="text-center py-4">
                     <Package className="h-12 w-12 text-gray-400 mx-auto mb-2" />
-                    <p className="text-gray-600 mb-2">Détails du colis non renseignés</p>
+                    <p className="text-gray-600 mb-2">
+                      Détails du colis non renseignés
+                    </p>
                     <p className="text-sm text-gray-500">
-                      Les informations détaillées du colis (poids, dimensions, contenu) n'ont pas été précisées lors de la création de l'annonce.
+                      Les informations détaillées du colis (poids, dimensions,
+                      contenu) n'ont pas été précisées lors de la création de
+                      l'annonce.
                     </p>
                   </div>
                 )}
@@ -607,39 +686,47 @@ export default function AnnouncementDetailPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <h4 className="font-medium mb-2">Type de service</h4>
-                    <p className="text-gray-600">{announcement.serviceDetails.serviceType}</p>
+                    <p className="text-gray-600">
+                      {announcement.serviceDetails.serviceType}
+                    </p>
                   </div>
                   {announcement.serviceDetails.numberOfPeople && (
                     <div>
                       <h4 className="font-medium mb-2">Nombre de personnes</h4>
-                      <p className="text-gray-600">{announcement.serviceDetails.numberOfPeople} personnes</p>
+                      <p className="text-gray-600">
+                        {announcement.serviceDetails.numberOfPeople} personnes
+                      </p>
                     </div>
                   )}
                   {announcement.serviceDetails.duration && (
                     <div>
                       <h4 className="font-medium mb-2">Durée</h4>
-                      <p className="text-gray-600">{announcement.serviceDetails.duration} minutes</p>
+                      <p className="text-gray-600">
+                        {announcement.serviceDetails.duration} minutes
+                      </p>
                     </div>
                   )}
                   {announcement.serviceDetails.recurringService && (
                     <div>
                       <h4 className="font-medium mb-2">Service récurrent</h4>
                       <p className="text-gray-600">
-                        {announcement.serviceDetails.recurringPattern || 'Oui'}
+                        {announcement.serviceDetails.recurringPattern || "Oui"}
                       </p>
                     </div>
                   )}
                 </div>
 
-                                 {announcement.serviceDetails.specialRequirements && (
-                   <div>
-                     <h4 className="font-medium mb-2">Exigences spéciales</h4>
-                     <p className="text-gray-600">{announcement.serviceDetails.specialRequirements}</p>
-                   </div>
-                 )}
-               </CardContent>
-             </Card>
-           )}
+                {announcement.serviceDetails.specialRequirements && (
+                  <div>
+                    <h4 className="font-medium mb-2">Exigences spéciales</h4>
+                    <p className="text-gray-600">
+                      {announcement.serviceDetails.specialRequirements}
+                    </p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
 
           {/* Pièces jointes si disponibles */}
           {announcement.attachments && announcement.attachments.length > 0 && (
@@ -652,20 +739,29 @@ export default function AnnouncementDetailPage() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
-                  {announcement.attachments.map((attachment: any, index: number) => (
-                    <div key={index} className="flex items-center gap-3 p-3 border rounded-lg">
-                      <Package className="h-4 w-4 text-gray-500" />
-                      <div className="flex-1">
-                        <p className="text-sm font-medium">{attachment.filename || `Fichier ${index + 1}`}</p>
-                        <p className="text-xs text-gray-500">{attachment.type || 'Type inconnu'}</p>
+                  {announcement.attachments.map(
+                    (attachment: any, index: number) => (
+                      <div
+                        key={index}
+                        className="flex items-center gap-3 p-3 border rounded-lg"
+                      >
+                        <Package className="h-4 w-4 text-gray-500" />
+                        <div className="flex-1">
+                          <p className="text-sm font-medium">
+                            {attachment.filename || `Fichier ${index + 1}`}
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            {attachment.type || "Type inconnu"}
+                          </p>
+                        </div>
+                        {attachment.url && (
+                          <Button variant="ghost" size="sm">
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                        )}
                       </div>
-                      {attachment.url && (
-                        <Button variant="ghost" size="sm">
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                      )}
-                    </div>
-                  ))}
+                    ),
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -682,27 +778,35 @@ export default function AnnouncementDetailPage() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  {announcement.reviews.slice(0, 3).map((review: any, index: number) => (
-                    <div key={index} className="p-3 border rounded-lg">
-                      <div className="flex items-center gap-2 mb-2">
-                        <div className="flex">
-                          {[1, 2, 3, 4, 5].map((star) => (
-                            <Star 
-                              key={star} 
-                              className={`h-4 w-4 ${star <= (review.rating || 0) ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'}`} 
-                            />
-                          ))}
+                  {announcement.reviews
+                    .slice(0, 3)
+                    .map((review: any, index: number) => (
+                      <div key={index} className="p-3 border rounded-lg">
+                        <div className="flex items-center gap-2 mb-2">
+                          <div className="flex">
+                            {[1, 2, 3, 4, 5].map((star) => (
+                              <Star
+                                key={star}
+                                className={`h-4 w-4 ${star <= (review.rating || 0) ? "fill-yellow-400 text-yellow-400" : "text-gray-300"}`}
+                              />
+                            ))}
+                          </div>
+                          <span className="text-sm font-medium">
+                            {review.rating}/5
+                          </span>
                         </div>
-                        <span className="text-sm font-medium">{review.rating}/5</span>
+                        {review.comment && (
+                          <p className="text-sm text-gray-600">
+                            "{review.comment}"
+                          </p>
+                        )}
+                        <p className="text-xs text-gray-500 mt-2">
+                          {new Date(review.createdAt).toLocaleDateString(
+                            "fr-FR",
+                          )}
+                        </p>
                       </div>
-                      {review.comment && (
-                        <p className="text-sm text-gray-600">"{review.comment}"</p>
-                      )}
-                      <p className="text-xs text-gray-500 mt-2">
-                        {new Date(review.createdAt).toLocaleDateString('fr-FR')}
-                      </p>
-                    </div>
-                  ))}
+                    ))}
                   {announcement.reviews.length > 3 && (
                     <p className="text-sm text-gray-500 text-center">
                       +{announcement.reviews.length - 3} autres évaluations
@@ -717,7 +821,7 @@ export default function AnnouncementDetailPage() {
         {/* Sidebar */}
         <div className="space-y-6">
           {/* Debug - Données de l'API (temporaire) */}
-          {process.env.NODE_ENV === 'development' && (
+          {process.env.NODE_ENV === "development" && (
             <Card>
               <CardHeader>
                 <CardTitle className="text-xs text-red-600">
@@ -726,7 +830,9 @@ export default function AnnouncementDetailPage() {
               </CardHeader>
               <CardContent>
                 <details className="text-xs">
-                  <summary className="cursor-pointer font-medium">Voir les données brutes</summary>
+                  <summary className="cursor-pointer font-medium">
+                    Voir les données brutes
+                  </summary>
                   <pre className="mt-2 p-2 bg-gray-100 rounded text-xs overflow-auto">
                     {JSON.stringify(announcement, null, 2)}
                   </pre>
@@ -744,12 +850,12 @@ export default function AnnouncementDetailPage() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-                              <div className="space-y-2">
-                  <p className="text-sm font-medium">Publié le</p>
-                  <p className="text-sm text-gray-600">
-                    {new Date(announcement.createdAt).toLocaleDateString('fr-FR')}
-                  </p>
-                </div>
+              <div className="space-y-2">
+                <p className="text-sm font-medium">Publié le</p>
+                <p className="text-sm text-gray-600">
+                  {new Date(announcement.createdAt).toLocaleDateString("fr-FR")}
+                </p>
+              </div>
 
               <div className="space-y-2">
                 <p className="text-sm font-medium">Type de service</p>
@@ -767,18 +873,19 @@ export default function AnnouncementDetailPage() {
                 </div>
               )}
 
-              {announcement.viewCount !== undefined && announcement.viewCount > 0 && (
-                <div className="space-y-2">
-                  <p className="text-sm font-medium">Vues</p>
-                  <p className="text-sm text-gray-600">{announcement.viewCount} vues</p>
-                </div>
-              )}
+              {announcement.viewCount !== undefined &&
+                announcement.viewCount > 0 && (
+                  <div className="space-y-2">
+                    <p className="text-sm font-medium">Vues</p>
+                    <p className="text-sm text-gray-600">
+                      {announcement.viewCount} vues
+                    </p>
+                  </div>
+                )}
 
               <div className="space-y-2">
                 <p className="text-sm font-medium">Statut actuel</p>
-                <Badge className={statusInfo.color}>
-                  {statusInfo.label}
-                </Badge>
+                <Badge className={statusInfo.color}>{statusInfo.label}</Badge>
               </div>
             </CardContent>
           </Card>
@@ -797,15 +904,16 @@ export default function AnnouncementDetailPage() {
                   <Avatar>
                     <AvatarImage src={announcement.author.profile.avatar} />
                     <AvatarFallback>
-                      {announcement.author.profile.firstName?.[0] || 'U'}{announcement.author.profile.lastName?.[0] || 'E'}
+                      {announcement.author.profile.firstName?.[0] || "U"}
+                      {announcement.author.profile.lastName?.[0] || "E"}
                     </AvatarFallback>
                   </Avatar>
                   <div>
                     <p className="font-medium">
-                      {announcement.author.profile.firstName && announcement.author.profile.lastName
+                      {announcement.author.profile.firstName &&
+                      announcement.author.profile.lastName
                         ? `${announcement.author.profile.firstName} ${announcement.author.profile.lastName}`
-                        : 'Utilisateur anonyme'
-                      }
+                        : "Utilisateur anonyme"}
                     </p>
                     <p className="text-sm text-gray-600">Auteur de l'annonce</p>
                   </div>
@@ -815,15 +923,16 @@ export default function AnnouncementDetailPage() {
                   <Avatar>
                     <AvatarImage src={announcement.client.profile.avatar} />
                     <AvatarFallback>
-                      {announcement.client.profile.firstName?.[0] || 'C'}{announcement.client.profile.lastName?.[0] || 'L'}
+                      {announcement.client.profile.firstName?.[0] || "C"}
+                      {announcement.client.profile.lastName?.[0] || "L"}
                     </AvatarFallback>
                   </Avatar>
                   <div>
                     <p className="font-medium">
-                      {announcement.client.profile.firstName && announcement.client.profile.lastName
+                      {announcement.client.profile.firstName &&
+                      announcement.client.profile.lastName
                         ? `${announcement.client.profile.firstName} ${announcement.client.profile.lastName}`
-                        : 'Client anonyme'
-                      }
+                        : "Client anonyme"}
                     </p>
                     <p className="text-sm text-gray-600">Client particulier</p>
                   </div>
@@ -833,19 +942,22 @@ export default function AnnouncementDetailPage() {
                   <Avatar>
                     <AvatarImage src={announcement.merchant.profile.avatar} />
                     <AvatarFallback>
-                      {announcement.merchant.profile.businessName?.[0] || 
-                       announcement.merchant.profile.firstName?.[0] || 'M'}
+                      {announcement.merchant.profile.businessName?.[0] ||
+                        announcement.merchant.profile.firstName?.[0] ||
+                        "M"}
                     </AvatarFallback>
                   </Avatar>
                   <div>
                     <p className="font-medium">
-                      {announcement.merchant.profile.businessName || 
-                       (announcement.merchant.profile.firstName && announcement.merchant.profile.lastName
-                         ? `${announcement.merchant.profile.firstName} ${announcement.merchant.profile.lastName}`
-                         : 'Commerçant'
-                       )}
+                      {announcement.merchant.profile.businessName ||
+                        (announcement.merchant.profile.firstName &&
+                        announcement.merchant.profile.lastName
+                          ? `${announcement.merchant.profile.firstName} ${announcement.merchant.profile.lastName}`
+                          : "Commerçant")}
                     </p>
-                    <p className="text-sm text-gray-600">Commerçant partenaire</p>
+                    <p className="text-sm text-gray-600">
+                      Commerçant partenaire
+                    </p>
                   </div>
                 </div>
               ) : (
@@ -855,7 +967,9 @@ export default function AnnouncementDetailPage() {
                   </Avatar>
                   <div>
                     <p className="font-medium">Utilisateur EcoDeli</p>
-                    <p className="text-sm text-gray-600">Profil non disponible</p>
+                    <p className="text-sm text-gray-600">
+                      Profil non disponible
+                    </p>
                   </div>
                 </div>
               )}
@@ -863,29 +977,36 @@ export default function AnnouncementDetailPage() {
           </Card>
 
           {/* Candidats (si statut ACTIVE) */}
-          {canViewCandidates && announcement.routeMatches && announcement.routeMatches.length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Users className="h-5 w-5" />
-                  Correspondances de trajets ({announcement.routeMatches.length})
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <p className="text-sm text-gray-600">
-                    {announcement.routeMatches.length} trajets compatibles trouvés.
-                  </p>
-                  <Link href={`/client/announcements/${id}/candidates`} className="w-full">
-                    <Button className="w-full">
-                      <Users className="h-4 w-4 mr-2" />
-                      Voir tous les candidats
-                    </Button>
-                  </Link>
-                </div>
-              </CardContent>
-            </Card>
-          )}
+          {canViewCandidates &&
+            announcement.routeMatches &&
+            announcement.routeMatches.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Users className="h-5 w-5" />
+                    Correspondances de trajets (
+                    {announcement.routeMatches.length})
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <p className="text-sm text-gray-600">
+                      {announcement.routeMatches.length} trajets compatibles
+                      trouvés.
+                    </p>
+                    <Link
+                      href={`/client/announcements/${id}/candidates`}
+                      className="w-full"
+                    >
+                      <Button className="w-full">
+                        <Users className="h-4 w-4 mr-2" />
+                        Voir tous les candidats
+                      </Button>
+                    </Link>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
           {/* Actions rapides */}
           <Card>
@@ -897,15 +1018,21 @@ export default function AnnouncementDetailPage() {
             </CardHeader>
             <CardContent className="space-y-3">
               {/* Boutons selon le statut */}
-              {announcement.status === 'DRAFT' && (
+              {announcement.status === "DRAFT" && (
                 <div className="space-y-2">
-                  <Link href={`/client/announcements/${id}/edit`} className="w-full">
+                  <Link
+                    href={`/client/announcements/${id}/edit`}
+                    className="w-full"
+                  >
                     <Button variant="outline" className="w-full">
                       <Edit className="h-4 w-4 mr-2" />
                       Modifier l'annonce
                     </Button>
                   </Link>
-                  <Link href={`/client/announcements/${id}/payment`} className="w-full">
+                  <Link
+                    href={`/client/announcements/${id}/payment`}
+                    className="w-full"
+                  >
                     <Button className="w-full">
                       <DollarSign className="h-4 w-4 mr-2" />
                       Procéder au paiement
@@ -914,17 +1041,24 @@ export default function AnnouncementDetailPage() {
                 </div>
               )}
 
-              {announcement.status === 'ACTIVE' && (
+              {announcement.status === "ACTIVE" && (
                 <div className="space-y-2">
                   {canViewCandidates && (
-                    <Link href={`/client/announcements/${id}/candidates`} className="w-full">
+                    <Link
+                      href={`/client/announcements/${id}/candidates`}
+                      className="w-full"
+                    >
                       <Button className="w-full">
                         <Users className="h-4 w-4 mr-2" />
-                        Voir candidats ({announcement.routeMatches?.length || 0})
+                        Voir candidats ({announcement.routeMatches?.length || 0}
+                        )
                       </Button>
                     </Link>
                   )}
-                  <Link href={`/client/announcements/${id}/tracking`} className="w-full">
+                  <Link
+                    href={`/client/announcements/${id}/tracking`}
+                    className="w-full"
+                  >
                     <Button variant="outline" className="w-full">
                       <MapPin className="h-4 w-4 mr-2" />
                       Suivi en temps réel
@@ -933,22 +1067,31 @@ export default function AnnouncementDetailPage() {
                 </div>
               )}
 
-              {['MATCHED', 'IN_PROGRESS'].includes(announcement.status) && (
+              {["MATCHED", "IN_PROGRESS"].includes(announcement.status) && (
                 <div className="space-y-2">
-                  <Link href={`/client/announcements/${id}/tracking`} className="w-full">
+                  <Link
+                    href={`/client/announcements/${id}/tracking`}
+                    className="w-full"
+                  >
                     <Button className="w-full">
                       <MapPin className="h-4 w-4 mr-2" />
                       Suivre la livraison
                     </Button>
                   </Link>
-                  <Link href={`/client/announcements/${id}/validation-code`} className="w-full">
+                  <Link
+                    href={`/client/announcements/${id}/validation-code`}
+                    className="w-full"
+                  >
                     <Button variant="outline" className="w-full">
                       <Eye className="h-4 w-4 mr-2" />
                       Code de validation
                     </Button>
                   </Link>
-                  {announcement.status === 'MATCHED' && (
-                    <Link href={`/client/announcements/${id}/payment`} className="w-full">
+                  {announcement.status === "MATCHED" && (
+                    <Link
+                      href={`/client/announcements/${id}/payment`}
+                      className="w-full"
+                    >
                       <Button variant="outline" className="w-full">
                         <DollarSign className="h-4 w-4 mr-2" />
                         Gérer le paiement
@@ -958,15 +1101,21 @@ export default function AnnouncementDetailPage() {
                 </div>
               )}
 
-              {announcement.status === 'COMPLETED' && (
+              {announcement.status === "COMPLETED" && (
                 <div className="space-y-2">
-                  <Link href={`/client/announcements/${id}/tracking`} className="w-full">
+                  <Link
+                    href={`/client/announcements/${id}/tracking`}
+                    className="w-full"
+                  >
                     <Button variant="outline" className="w-full">
                       <MapPin className="h-4 w-4 mr-2" />
                       Voir l'historique
                     </Button>
                   </Link>
-                  <Link href={`/client/announcements/${id}/review`} className="w-full">
+                  <Link
+                    href={`/client/announcements/${id}/review`}
+                    className="w-full"
+                  >
                     <Button className="w-full">
                       <Star className="h-4 w-4 mr-2" />
                       Évaluer le livreur
@@ -975,9 +1124,12 @@ export default function AnnouncementDetailPage() {
                 </div>
               )}
 
-              {announcement.status === 'CANCELLED' && (
+              {announcement.status === "CANCELLED" && (
                 <div className="space-y-2">
-                  <Link href={`/client/announcements/${id}/tracking`} className="w-full">
+                  <Link
+                    href={`/client/announcements/${id}/tracking`}
+                    className="w-full"
+                  >
                     <Button variant="outline" className="w-full">
                       <MapPin className="h-4 w-4 mr-2" />
                       Voir l'historique
@@ -1007,11 +1159,15 @@ export default function AnnouncementDetailPage() {
                 <Alert>
                   <AlertTriangle className="h-4 w-4" />
                   <AlertDescription>
-                    Une livraison est associée à cette annonce. Consultez la page de suivi pour plus de détails.
+                    Une livraison est associée à cette annonce. Consultez la
+                    page de suivi pour plus de détails.
                   </AlertDescription>
                 </Alert>
-                
-                <Link href={`/client/announcements/${id}/tracking`} className="w-full">
+
+                <Link
+                  href={`/client/announcements/${id}/tracking`}
+                  className="w-full"
+                >
                   <Button className="w-full">
                     <MapPin className="h-4 w-4 mr-2" />
                     Voir le suivi de livraison
@@ -1029,7 +1185,8 @@ export default function AnnouncementDetailPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Confirmer la suppression</AlertDialogTitle>
             <AlertDialogDescription>
-              Êtes-vous sûr de vouloir supprimer cette annonce ? Cette action est irréversible.
+              Êtes-vous sûr de vouloir supprimer cette annonce ? Cette action
+              est irréversible.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -1039,11 +1196,11 @@ export default function AnnouncementDetailPage() {
               className="bg-red-600 hover:bg-red-700"
               disabled={actionLoading}
             >
-              {actionLoading ? 'Suppression...' : 'Supprimer'}
+              {actionLoading ? "Suppression..." : "Supprimer"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
     </div>
-  )
-} 
+  );
+}

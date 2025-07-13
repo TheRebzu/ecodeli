@@ -1,37 +1,37 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/db'
-import { getCurrentUser } from '@/lib/auth/utils'
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/db";
+import { getCurrentUser } from "@/lib/auth/utils";
 
 export async function GET(request: NextRequest) {
   try {
-    const user = await getCurrentUser()
-    
-    if (!user || user.role !== 'ADMIN') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    const user = await getCurrentUser();
+
+    if (!user || user.role !== "ADMIN") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { searchParams } = new URL(request.url)
-    const status = searchParams.get('status') || 'PENDING'
-    const type = searchParams.get('type')
-    const userRole = searchParams.get('userRole')
-    const userId = searchParams.get('userId')
+    const { searchParams } = new URL(request.url);
+    const status = searchParams.get("status") || "PENDING";
+    const type = searchParams.get("type");
+    const userRole = searchParams.get("userRole");
+    const userId = searchParams.get("userId");
 
     const whereConditions: any = {
-      validationStatus: status as any
-    }
+      validationStatus: status as any,
+    };
 
     if (type) {
-      whereConditions.type = type
+      whereConditions.type = type;
     }
 
     if (userRole) {
       whereConditions.user = {
-        role: userRole
-      }
+        role: userRole,
+      };
     }
 
     if (userId) {
-      whereConditions.userId = userId
+      whereConditions.userId = userId;
     }
 
     const documents = await prisma.document.findMany({
@@ -45,20 +45,20 @@ export async function GET(request: NextRequest) {
             profile: {
               select: {
                 firstName: true,
-                lastName: true
-              }
-            }
-          }
-        }
+                lastName: true,
+              },
+            },
+          },
+        },
       },
       orderBy: {
-        createdAt: 'desc'
-      }
-    })
+        createdAt: "desc",
+      },
+    });
 
     return NextResponse.json({
       success: true,
-      documents: documents.map(doc => ({
+      documents: documents.map((doc) => ({
         id: doc.id,
         type: doc.type,
         name: doc.originalName,
@@ -71,17 +71,17 @@ export async function GET(request: NextRequest) {
           role: doc.user.role,
           profile: {
             firstName: doc.user.profile?.firstName,
-            lastName: doc.user.profile?.lastName
-          }
+            lastName: doc.user.profile?.lastName,
+          },
         },
-        validationNotes: doc.rejectionReason
-      }))
-    })
+        validationNotes: doc.rejectionReason,
+      })),
+    });
   } catch (error) {
-    console.error('Erreur récupération documents:', error)
+    console.error("Erreur récupération documents:", error);
     return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    )
+      { error: "Internal server error" },
+      { status: 500 },
+    );
   }
-} 
+}

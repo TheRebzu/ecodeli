@@ -1,101 +1,111 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from 'react'
-import { useParams, useRouter } from 'next/navigation'
-import { useAuth } from '@/hooks/use-auth'
-import { useTranslations } from 'next-intl'
-import { PageHeader } from '@/components/layout/page-header'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Copy, CheckCircle, ArrowLeft, Package, Shield, User } from 'lucide-react'
-import Link from 'next/link'
-import { useToast } from '@/components/ui/use-toast'
+import { useState, useEffect } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { useAuth } from "@/hooks/use-auth";
+import { useTranslations } from "next-intl";
+import { PageHeader } from "@/components/layout/page-header";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import {
+  Copy,
+  CheckCircle,
+  ArrowLeft,
+  Package,
+  Shield,
+  User,
+} from "lucide-react";
+import Link from "next/link";
+import { useToast } from "@/components/ui/use-toast";
 
 interface ValidationCodeData {
   announcement: {
-    id: string
-    title: string
-    description: string
-    status: string
-  }
+    id: string;
+    title: string;
+    description: string;
+    status: string;
+  };
   delivery: {
-    id: string
-    status: string
-    validationCode: string
+    id: string;
+    status: string;
+    validationCode: string;
     deliverer: {
-      id: string
-      name: string
-      phone?: string
-      avatar?: string
-    }
-  }
+      id: string;
+      name: string;
+      phone?: string;
+      avatar?: string;
+    };
+  };
 }
 
 export default function ValidationCodePage() {
-  const { id } = useParams()
-  const { user } = useAuth()
-  const router = useRouter()
-  const t = useTranslations('client.announcements')
-  const { toast } = useToast()
-  
-  const [data, setData] = useState<ValidationCodeData | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [copied, setCopied] = useState(false)
+  const { id } = useParams();
+  const { user } = useAuth();
+  const router = useRouter();
+  const t = useTranslations("client.announcements");
+  const { toast } = useToast();
+
+  const [data, setData] = useState<ValidationCodeData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     if (id && user) {
-      fetchValidationCode()
+      fetchValidationCode();
     }
-  }, [id, user])
+  }, [id, user]);
 
   const fetchValidationCode = async () => {
     try {
-      setLoading(true)
-      const response = await fetch(`/api/client/announcements/${id}/validation-code`, {
-        method: 'GET',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      })
+      setLoading(true);
+      const response = await fetch(
+        `/api/client/announcements/${id}/validation-code`,
+        {
+          method: "GET",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        },
+      );
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}))
-        throw new Error(errorData.error || 'Code de validation non trouvé')
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || "Code de validation non trouvé");
       }
 
-      const responseData = await response.json()
-      setData(responseData)
+      const responseData = await response.json();
+      setData(responseData);
     } catch (err: any) {
-      console.error('❌ Erreur chargement code:', err)
-      setError(err.message || 'Erreur de chargement')
+      console.error("❌ Erreur chargement code:", err);
+      setError(err.message || "Erreur de chargement");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const copyToClipboard = async () => {
-    if (!data?.delivery.validationCode) return
+    if (!data?.delivery.validationCode) return;
 
     try {
-      await navigator.clipboard.writeText(data.delivery.validationCode)
-      setCopied(true)
+      await navigator.clipboard.writeText(data.delivery.validationCode);
+      setCopied(true);
       toast({
         title: "Code copié",
         description: "Le code de validation a été copié dans le presse-papiers",
-      })
-      
-      setTimeout(() => setCopied(false), 2000)
+      });
+
+      setTimeout(() => setCopied(false), 2000);
     } catch (err) {
       toast({
         title: "Erreur",
         description: "Impossible de copier le code",
         variant: "destructive",
-      })
+      });
     }
-  }
+  };
 
   if (loading) {
     return (
@@ -105,7 +115,7 @@ export default function ValidationCodePage() {
           <p className="text-gray-600">Chargement du code de validation...</p>
         </div>
       </div>
-    )
+    );
   }
 
   if (error || !data) {
@@ -127,7 +137,7 @@ export default function ValidationCodePage() {
           </Link>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -178,11 +188,12 @@ export default function ValidationCodePage() {
                 )}
               </Button>
             </div>
-            
+
             <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
               <p className="text-sm text-yellow-800">
-                <strong>Important :</strong> Communiquez ce code uniquement au livreur 
-                lors de la réception de votre colis pour confirmer la livraison.
+                <strong>Important :</strong> Communiquez ce code uniquement au
+                livreur lors de la réception de votre colis pour confirmer la
+                livraison.
               </p>
             </div>
           </CardContent>
@@ -204,10 +215,12 @@ export default function ValidationCodePage() {
                 {data.announcement.status}
               </Badge>
             </div>
-            
+
             <div>
               <h4 className="font-medium text-gray-900 mb-1">Description</h4>
-              <p className="text-gray-600 text-sm">{data.announcement.description}</p>
+              <p className="text-gray-600 text-sm">
+                {data.announcement.description}
+              </p>
             </div>
           </CardContent>
         </Card>
@@ -224,8 +237,8 @@ export default function ValidationCodePage() {
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
                 {data.delivery.deliverer.avatar ? (
-                  <img 
-                    src={data.delivery.deliverer.avatar} 
+                  <img
+                    src={data.delivery.deliverer.avatar}
                     alt={data.delivery.deliverer.name}
                     className="w-12 h-12 rounded-full object-cover"
                   />
@@ -274,7 +287,9 @@ export default function ValidationCodePage() {
               </li>
               <li className="flex gap-2">
                 <span className="font-medium">5.</span>
-                <span>La livraison sera automatiquement marquée comme terminée</span>
+                <span>
+                  La livraison sera automatiquement marquée comme terminée
+                </span>
               </li>
             </ol>
           </CardContent>
@@ -283,17 +298,13 @@ export default function ValidationCodePage() {
         {/* Actions supplémentaires */}
         <div className="flex gap-3 justify-center">
           <Link href={`/client/announcements/${id}/tracking`}>
-            <Button variant="outline">
-              Suivre la livraison
-            </Button>
+            <Button variant="outline">Suivre la livraison</Button>
           </Link>
           <Link href={`/client/deliveries/${data.delivery.id}`}>
-            <Button>
-              Voir les détails
-            </Button>
+            <Button>Voir les détails</Button>
           </Link>
         </div>
       </div>
     </div>
-  )
-} 
+  );
+}

@@ -1,18 +1,30 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from 'react'
-import { useAuth } from '@/hooks/use-auth'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { 
-  TrendingUp, 
+import { useState, useEffect } from "react";
+import { useAuth } from "@/hooks/use-auth";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  TrendingUp,
   TrendingDown,
-  Euro, 
-  Package, 
-  Users, 
+  Euro,
+  Package,
+  Users,
   ShoppingCart,
   Target,
   MapPin,
@@ -24,105 +36,110 @@ import {
   CalendarIcon,
   ShoppingCartIcon,
   PackageIcon,
-  EuroIcon
-} from 'lucide-react'
-import { useToast } from '@/components/ui/use-toast'
-import { DatePickerWithRange } from '@/components/ui/date-picker'
-import { DateRange } from 'react-day-picker'
-import { subDays, format } from 'date-fns'
-import { fr } from 'date-fns/locale'
-import { Separator } from '@/components/ui/separator'
-import { cn } from '@/lib/utils'
+  EuroIcon,
+} from "lucide-react";
+import { useToast } from "@/components/ui/use-toast";
+import { DatePickerWithRange } from "@/components/ui/date-picker";
+import { DateRange } from "react-day-picker";
+import { subDays, format } from "date-fns";
+import { fr } from "date-fns/locale";
+import { Separator } from "@/components/ui/separator";
+import { cn } from "@/lib/utils";
 
 interface AnalyticsData {
   overview: {
     revenue: {
-      totalRevenue: number
-      growthRate: number
-      averageOrderValue: number
-      totalOrders: number
+      totalRevenue: number;
+      growthRate: number;
+      averageOrderValue: number;
+      totalOrders: number;
       revenueByDay: Array<{
-        date: string
-        revenue: number
-        orders: number
-      }>
-    }
+        date: string;
+        revenue: number;
+        orders: number;
+      }>;
+    };
     customers: {
-      totalCustomers: number
-      newCustomers: number
-      returningCustomers: number
-      customerRetentionRate: number
-    }
+      totalCustomers: number;
+      newCustomers: number;
+      returningCustomers: number;
+      customerRetentionRate: number;
+    };
     deliveries: {
-      totalDeliveries: number
-      successfulDeliveries: number
-      onTimeDeliveryRate: number
-    }
+      totalDeliveries: number;
+      successfulDeliveries: number;
+      onTimeDeliveryRate: number;
+    };
     cartDrop: {
-      totalCartDropOrders: number
-      cartDropRevenue: number
-      averageCartValue: number
-    }
-  }
-  lastUpdated: string
+      totalCartDropOrders: number;
+      cartDropRevenue: number;
+      averageCartValue: number;
+    };
+  };
+  lastUpdated: string;
 }
 
 export default function MerchantAnalyticsPage() {
-  const { user } = useAuth()
-  const { toast } = useToast()
-  const [analyticsData, setAnalyticsData] = useState<AnalyticsData | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [timeRange, setTimeRange] = useState('30d')
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const [analyticsData, setAnalyticsData] = useState<AnalyticsData | null>(
+    null,
+  );
+  const [loading, setLoading] = useState(true);
+  const [timeRange, setTimeRange] = useState("30d");
   const [dateRange, setDateRange] = useState<DateRange | undefined>({
     from: subDays(new Date(), 30),
-    to: new Date()
-  })
+    to: new Date(),
+  });
 
   useEffect(() => {
-    fetchAnalyticsData()
-  }, [timeRange, dateRange])
+    fetchAnalyticsData();
+  }, [timeRange, dateRange]);
 
   const fetchAnalyticsData = async () => {
     try {
-      setLoading(true)
-      
+      setLoading(true);
+
       const params = new URLSearchParams({
         timeRange,
         ...(dateRange?.from && { startDate: dateRange.from.toISOString() }),
-        ...(dateRange?.to && { endDate: dateRange.to.toISOString() })
-      })
+        ...(dateRange?.to && { endDate: dateRange.to.toISOString() }),
+      });
 
-      const response = await fetch(`/api/merchant/analytics/dashboard?${params}`)
-      if (!response.ok) throw new Error('Erreur lors du chargement des analytics')
-      
-      const data = await response.json()
-      setAnalyticsData(data)
+      const response = await fetch(
+        `/api/merchant/analytics/dashboard?${params}`,
+      );
+      if (!response.ok)
+        throw new Error("Erreur lors du chargement des analytics");
+
+      const data = await response.json();
+      setAnalyticsData(data);
     } catch (error) {
-      console.error('Erreur analytics:', error)
+      console.error("Erreur analytics:", error);
       toast({
         title: "Erreur",
         description: "Impossible de charger les analytics",
-        variant: "destructive"
-      })
+        variant: "destructive",
+      });
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('fr-FR', {
-      style: 'currency',
-      currency: 'EUR'
-    }).format(amount)
-  }
+    return new Intl.NumberFormat("fr-FR", {
+      style: "currency",
+      currency: "EUR",
+    }).format(amount);
+  };
 
   const formatNumber = (num: number) => {
-    return new Intl.NumberFormat('fr-FR').format(num)
-  }
+    return new Intl.NumberFormat("fr-FR").format(num);
+  };
 
   const formatPercentage = (value: number) => {
-    return `${value >= 0 ? '+' : ''}${value.toFixed(1)}%`
-  }
+    return `${value >= 0 ? "+" : ""}${value.toFixed(1)}%`;
+  };
 
   if (loading) {
     return (
@@ -141,7 +158,7 @@ export default function MerchantAnalyticsPage() {
           ))}
         </div>
       </div>
-    )
+    );
   }
 
   if (!analyticsData) {
@@ -149,17 +166,19 @@ export default function MerchantAnalyticsPage() {
       <div className="p-6">
         <Card>
           <CardContent className="p-6 text-center">
-            <p className="text-muted-foreground">Impossible de charger les données analytics</p>
+            <p className="text-muted-foreground">
+              Impossible de charger les données analytics
+            </p>
             <Button onClick={fetchAnalyticsData} className="mt-4">
               Réessayer
             </Button>
           </CardContent>
         </Card>
       </div>
-    )
+    );
   }
 
-  const { overview } = analyticsData
+  const { overview } = analyticsData;
 
   return (
     <div className="p-6 space-y-6">
@@ -171,7 +190,7 @@ export default function MerchantAnalyticsPage() {
             Tableau de bord et métriques de performance
           </p>
         </div>
-        
+
         <div className="flex flex-col sm:flex-row gap-2">
           <Select value={timeRange} onValueChange={setTimeRange}>
             <SelectTrigger className="w-[180px]">
@@ -193,7 +212,9 @@ export default function MerchantAnalyticsPage() {
         {/* Revenus */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Chiffre d'affaires</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Chiffre d'affaires
+            </CardTitle>
             <EuroIcon className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -206,9 +227,13 @@ export default function MerchantAnalyticsPage() {
               ) : (
                 <TrendingDown className="h-4 w-4 text-red-500 mr-1" />
               )}
-              <span className={`text-sm ${
-                overview.revenue.growthRate >= 0 ? 'text-green-500' : 'text-red-500'
-              }`}>
+              <span
+                className={`text-sm ${
+                  overview.revenue.growthRate >= 0
+                    ? "text-green-500"
+                    : "text-red-500"
+                }`}
+              >
                 {formatPercentage(overview.revenue.growthRate)}
               </span>
               <span className="text-sm text-muted-foreground ml-1">
@@ -226,7 +251,7 @@ export default function MerchantAnalyticsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {overview.revenue.totalOrders.toLocaleString('fr-FR')}
+              {overview.revenue.totalOrders.toLocaleString("fr-FR")}
             </div>
             <p className="text-sm text-muted-foreground">
               Panier moyen: {formatCurrency(overview.revenue.averageOrderValue)}
@@ -242,7 +267,7 @@ export default function MerchantAnalyticsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {overview.customers.totalCustomers.toLocaleString('fr-FR')}
+              {overview.customers.totalCustomers.toLocaleString("fr-FR")}
             </div>
             <div className="flex gap-2 mt-1">
               <Badge variant="secondary">
@@ -258,12 +283,14 @@ export default function MerchantAnalyticsPage() {
         {/* Lâcher de chariot */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Lâcher de chariot</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Lâcher de chariot
+            </CardTitle>
             <ShoppingCartIcon className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {overview.cartDrop.totalCartDropOrders.toLocaleString('fr-FR')}
+              {overview.cartDrop.totalCartDropOrders.toLocaleString("fr-FR")}
             </div>
             <p className="text-sm text-muted-foreground">
               CA: {formatCurrency(overview.cartDrop.cartDropRevenue)}
@@ -286,32 +313,47 @@ export default function MerchantAnalyticsPage() {
             <div className="flex justify-between items-center">
               <span className="text-sm font-medium">Total des livraisons</span>
               <span className="text-lg font-bold">
-                {overview.deliveries.totalDeliveries.toLocaleString('fr-FR')}
+                {overview.deliveries.totalDeliveries.toLocaleString("fr-FR")}
               </span>
             </div>
-            
+
             <Separator />
-            
+
             <div className="flex justify-between items-center">
               <span className="text-sm font-medium">Livraisons réussies</span>
               <div className="flex items-center gap-2">
                 <span className="text-lg font-bold text-green-600">
-                  {overview.deliveries.successfulDeliveries.toLocaleString('fr-FR')}
+                  {overview.deliveries.successfulDeliveries.toLocaleString(
+                    "fr-FR",
+                  )}
                 </span>
                 <Badge variant="secondary">
-                  {((overview.deliveries.successfulDeliveries / overview.deliveries.totalDeliveries) * 100).toFixed(1)}%
+                  {(
+                    (overview.deliveries.successfulDeliveries /
+                      overview.deliveries.totalDeliveries) *
+                    100
+                  ).toFixed(1)}
+                  %
                 </Badge>
               </div>
             </div>
-            
+
             <div className="flex justify-between items-center">
               <span className="text-sm font-medium">Livraisons à l'heure</span>
               <div className="flex items-center gap-2">
                 <span className="text-lg font-bold text-blue-600">
                   {overview.deliveries.onTimeDeliveryRate.toFixed(1)}%
                 </span>
-                <Badge variant={overview.deliveries.onTimeDeliveryRate >= 90 ? 'default' : 'destructive'}>
-                  {overview.deliveries.onTimeDeliveryRate >= 90 ? 'Excellent' : 'À améliorer'}
+                <Badge
+                  variant={
+                    overview.deliveries.onTimeDeliveryRate >= 90
+                      ? "default"
+                      : "destructive"
+                  }
+                >
+                  {overview.deliveries.onTimeDeliveryRate >= 90
+                    ? "Excellent"
+                    : "À améliorer"}
                 </Badge>
               </div>
             </div>
@@ -333,14 +375,22 @@ export default function MerchantAnalyticsPage() {
                 <span className="text-lg font-bold text-green-600">
                   {overview.customers.customerRetentionRate.toFixed(1)}%
                 </span>
-                <Badge variant={overview.customers.customerRetentionRate >= 75 ? 'default' : 'secondary'}>
-                  {overview.customers.customerRetentionRate >= 75 ? 'Bon' : 'Moyen'}
+                <Badge
+                  variant={
+                    overview.customers.customerRetentionRate >= 75
+                      ? "default"
+                      : "secondary"
+                  }
+                >
+                  {overview.customers.customerRetentionRate >= 75
+                    ? "Bon"
+                    : "Moyen"}
                 </Badge>
               </div>
             </div>
-            
+
             <Separator />
-            
+
             <div className="grid grid-cols-2 gap-4">
               <div className="text-center">
                 <div className="text-2xl font-bold text-blue-600">
@@ -350,7 +400,7 @@ export default function MerchantAnalyticsPage() {
                   Nouveaux clients
                 </div>
               </div>
-              
+
               <div className="text-center">
                 <div className="text-2xl font-bold text-green-600">
                   {overview.customers.returningCustomers}
@@ -382,7 +432,7 @@ export default function MerchantAnalyticsPage() {
                 </div>
               </a>
             </Button>
-            
+
             <Button asChild variant="outline" className="h-16">
               <a href="/merchant/announcements">
                 <div className="text-center">
@@ -391,7 +441,7 @@ export default function MerchantAnalyticsPage() {
                 </div>
               </a>
             </Button>
-            
+
             <Button asChild variant="outline" className="h-16">
               <a href="/merchant/payments">
                 <div className="text-center">
@@ -404,5 +454,5 @@ export default function MerchantAnalyticsPage() {
         </CardContent>
       </Card>
     </div>
-  )
-} 
+  );
+}

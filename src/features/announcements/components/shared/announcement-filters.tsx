@@ -1,109 +1,114 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { useRouter, useSearchParams } from "next/navigation"
+import { useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 
 interface FilterOption {
-  key: string
-  label: string
-  count?: number
+  key: string;
+  label: string;
+  count?: number;
 }
 
 interface AnnouncementFiltersProps {
-  statusFilters?: FilterOption[]
-  typeFilters?: FilterOption[]
-  urgencyFilters?: FilterOption[]
-  onFiltersChange?: (filters: Record<string, any>) => void
-  showSearch?: boolean
+  statusFilters?: FilterOption[];
+  typeFilters?: FilterOption[];
+  urgencyFilters?: FilterOption[];
+  onFiltersChange?: (filters: Record<string, any>) => void;
+  showSearch?: boolean;
 }
 
 export function AnnouncementFilters({
   statusFilters = [
-    { key: 'all', label: 'Toutes' },
-    { key: 'ACTIVE', label: 'Actives' },
-    { key: 'MATCHED', label: 'Matchées' },
-    { key: 'IN_PROGRESS', label: 'En cours' },
-    { key: 'COMPLETED', label: 'Terminées' },
-    { key: 'CANCELLED', label: 'Annulées' }
+    { key: "all", label: "Toutes" },
+    { key: "ACTIVE", label: "Actives" },
+    { key: "MATCHED", label: "Matchées" },
+    { key: "IN_PROGRESS", label: "En cours" },
+    { key: "COMPLETED", label: "Terminées" },
+    { key: "CANCELLED", label: "Annulées" },
   ],
   typeFilters = [
-    { key: 'all', label: 'Tous types' },
-    { key: 'PACKAGE', label: '📦 Colis' },
-    { key: 'SERVICE', label: '🛠️ Service' },
-    { key: 'CART_DROP', label: '🛒 Chariot' }
+    { key: "all", label: "Tous types" },
+    { key: "PACKAGE", label: "📦 Colis" },
+    { key: "SERVICE", label: "🛠️ Service" },
+    { key: "CART_DROP", label: "🛒 Chariot" },
   ],
   urgencyFilters = [
-    { key: 'all', label: 'Toutes' },
-    { key: 'LOW', label: 'Faible' },
-    { key: 'MEDIUM', label: 'Moyenne' },
-    { key: 'HIGH', label: 'Élevée' },
-    { key: 'URGENT', label: '🚨 Urgente' }
+    { key: "all", label: "Toutes" },
+    { key: "LOW", label: "Faible" },
+    { key: "MEDIUM", label: "Moyenne" },
+    { key: "HIGH", label: "Élevée" },
+    { key: "URGENT", label: "🚨 Urgente" },
   ],
   onFiltersChange,
-  showSearch = true
+  showSearch = true,
 }: AnnouncementFiltersProps) {
-  const router = useRouter()
-  const searchParams = useSearchParams()
-  
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
   const [filters, setFilters] = useState({
-    search: searchParams.get('search') || '',
-    status: searchParams.get('status') || 'all',
-    type: searchParams.get('type') || 'all',
-    urgency: searchParams.get('urgency') || 'all',
-    minPrice: searchParams.get('minPrice') || '',
-    maxPrice: searchParams.get('maxPrice') || '',
-    dateFrom: searchParams.get('dateFrom') || '',
-    dateTo: searchParams.get('dateTo') || ''
-  })
+    search: searchParams.get("search") || "",
+    status: searchParams.get("status") || "all",
+    type: searchParams.get("type") || "all",
+    urgency: searchParams.get("urgency") || "all",
+    minPrice: searchParams.get("minPrice") || "",
+    maxPrice: searchParams.get("maxPrice") || "",
+    dateFrom: searchParams.get("dateFrom") || "",
+    dateTo: searchParams.get("dateTo") || "",
+  });
 
   const updateFilters = (newFilters: Partial<typeof filters>) => {
-    const updatedFilters = { ...filters, ...newFilters }
-    setFilters(updatedFilters)
-    
+    const updatedFilters = { ...filters, ...newFilters };
+    setFilters(updatedFilters);
+
     // Update URL
-    const params = new URLSearchParams()
+    const params = new URLSearchParams();
     Object.entries(updatedFilters).forEach(([key, value]) => {
-      if (value && value !== 'all' && value !== '') {
-        params.set(key, value)
+      if (value && value !== "all" && value !== "") {
+        params.set(key, value);
       }
-    })
-    
-    const queryString = params.toString()
-    router.push(`?${queryString}`)
-    
+    });
+
+    const queryString = params.toString();
+    router.push(`?${queryString}`);
+
     // Notify parent component
     if (onFiltersChange) {
       const cleanFilters = Object.fromEntries(
-        Object.entries(updatedFilters).filter(([_, value]) => value && value !== 'all' && value !== '')
-      )
-      onFiltersChange(cleanFilters)
+        Object.entries(updatedFilters).filter(
+          ([_, value]) => value && value !== "all" && value !== "",
+        ),
+      );
+      onFiltersChange(cleanFilters);
     }
-  }
+  };
 
   const clearFilters = () => {
     const clearedFilters = {
-      search: '',
-      status: 'all',
-      type: 'all',
-      urgency: 'all',
-      minPrice: '',
-      maxPrice: '',
-      dateFrom: '',
-      dateTo: ''
-    }
-    setFilters(clearedFilters)
-    router.push('?')
+      search: "",
+      status: "all",
+      type: "all",
+      urgency: "all",
+      minPrice: "",
+      maxPrice: "",
+      dateFrom: "",
+      dateTo: "",
+    };
+    setFilters(clearedFilters);
+    router.push("?");
     if (onFiltersChange) {
-      onFiltersChange({})
+      onFiltersChange({});
     }
-  }
+  };
 
   return (
     <div className="bg-white border border-gray-200 rounded-lg p-6 space-y-6">
       {/* Search */}
       {showSearch && (
         <div>
-          <label htmlFor="search" className="block text-sm font-medium text-gray-700 mb-2">
+          <label
+            htmlFor="search"
+            className="block text-sm font-medium text-gray-700 mb-2"
+          >
             Rechercher
           </label>
           <input
@@ -129,13 +134,15 @@ export function AnnouncementFilters({
               onClick={() => updateFilters({ status: option.key })}
               className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
                 filters.status === option.key
-                  ? 'bg-green-600 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  ? "bg-green-600 text-white"
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
               }`}
             >
               {option.label}
               {option.count !== undefined && (
-                <span className="ml-1 text-xs opacity-75">({option.count})</span>
+                <span className="ml-1 text-xs opacity-75">
+                  ({option.count})
+                </span>
               )}
             </button>
           ))}
@@ -154,13 +161,15 @@ export function AnnouncementFilters({
               onClick={() => updateFilters({ type: option.key })}
               className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
                 filters.type === option.key
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  ? "bg-blue-600 text-white"
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
               }`}
             >
               {option.label}
               {option.count !== undefined && (
-                <span className="ml-1 text-xs opacity-75">({option.count})</span>
+                <span className="ml-1 text-xs opacity-75">
+                  ({option.count})
+                </span>
               )}
             </button>
           ))}
@@ -179,13 +188,15 @@ export function AnnouncementFilters({
               onClick={() => updateFilters({ urgency: option.key })}
               className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
                 filters.urgency === option.key
-                  ? 'bg-orange-600 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  ? "bg-orange-600 text-white"
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
               }`}
             >
               {option.label}
               {option.count !== undefined && (
-                <span className="ml-1 text-xs opacity-75">({option.count})</span>
+                <span className="ml-1 text-xs opacity-75">
+                  ({option.count})
+                </span>
               )}
             </button>
           ))}
@@ -246,5 +257,5 @@ export function AnnouncementFilters({
         </button>
       </div>
     </div>
-  )
+  );
 }

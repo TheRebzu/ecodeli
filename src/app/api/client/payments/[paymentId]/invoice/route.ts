@@ -1,32 +1,37 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getUserFromSession } from '@/lib/auth/utils'
-import { db } from '@/lib/db'
+import { NextRequest, NextResponse } from "next/server";
+import { getUserFromSession } from "@/lib/auth/utils";
+import { db } from "@/lib/db";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ paymentId: string }> }
+  { params }: { params: Promise<{ paymentId: string }> },
 ) {
   try {
-    const user = await getUserFromSession(request)
+    const user = await getUserFromSession(request);
     if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { paymentId } = await params
-    console.log('Génération facture pour payment:', paymentId, 'user:', user.id)
+    const { paymentId } = await params;
+    console.log(
+      "Génération facture pour payment:",
+      paymentId,
+      "user:",
+      user.id,
+    );
 
     // Récupérer le paiement
     const payment = await db.payment.findUnique({
-      where: { 
+      where: {
         id: paymentId,
-        userId: user.id
+        userId: user.id,
       },
       include: {
         user: {
           select: {
             name: true,
-            email: true
-          }
+            email: true,
+          },
         },
         delivery: {
           select: {
@@ -34,10 +39,10 @@ export async function GET(
             announcement: {
               select: {
                 title: true,
-                description: true
-              }
-            }
-          }
+                description: true,
+              },
+            },
+          },
         },
         booking: {
           select: {
@@ -45,20 +50,20 @@ export async function GET(
             service: {
               select: {
                 name: true,
-                description: true
-              }
-            }
-          }
-        }
-      }
-    })
+                description: true,
+              },
+            },
+          },
+        },
+      },
+    });
 
     if (!payment) {
-      console.log('Paiement non trouvé pour ID:', paymentId)
-      return NextResponse.json({ error: 'Payment not found' }, { status: 404 })
+      console.log("Paiement non trouvé pour ID:", paymentId);
+      return NextResponse.json({ error: "Payment not found" }, { status: 404 });
     }
 
-    console.log('Paiement trouvé:', payment.id, payment.amount)
+    console.log("Paiement trouvé:", payment.id, payment.amount);
 
     // Générer la facture HTML
     const invoiceHtml = `
@@ -155,60 +160,67 @@ export async function GET(
         <div class="details">
           <div class="client-info">
             <div class="section-title">Informations client</div>
-            <div class="info-line"><strong>Nom:</strong> ${payment.user?.name || 'N/A'}</div>
-            <div class="info-line"><strong>Email:</strong> ${payment.user?.email || 'N/A'}</div>
+            <div class="info-line"><strong>Nom:</strong> ${payment.user?.name || "N/A"}</div>
+            <div class="info-line"><strong>Email:</strong> ${payment.user?.email || "N/A"}</div>
           </div>
           
           <div class="invoice-info">
             <div class="section-title">Informations facture</div>
-            <div class="info-line"><strong>Date:</strong> ${new Date(payment.createdAt).toLocaleDateString('fr-FR')}</div>
+            <div class="info-line"><strong>Date:</strong> ${new Date(payment.createdAt).toLocaleDateString("fr-FR")}</div>
             <div class="info-line"><strong>Statut:</strong> 
               <span class="status status-${payment.status.toLowerCase()}">${payment.status}</span>
             </div>
-            <div class="info-line"><strong>Méthode:</strong> ${payment.paymentMethod || 'Carte bancaire'}</div>
+            <div class="info-line"><strong>Méthode:</strong> ${payment.paymentMethod || "Carte bancaire"}</div>
           </div>
         </div>
 
         <div class="payment-details">
           <div class="section-title">Détails du paiement</div>
-          <div class="info-line"><strong>Type:</strong> ${payment.metadata?.type || 'Paiement'}</div>
+          <div class="info-line"><strong>Type:</strong> ${payment.metadata?.type || "Paiement"}</div>
           <div class="info-line"><strong>Description:</strong> ${payment.metadata?.description || `Paiement ${payment.amount}€`}</div>
           
-          ${payment.delivery ? `
-            <div class="info-line"><strong>Livraison:</strong> ${payment.delivery.announcement?.title || 'N/A'}</div>
-          ` : ''}
+          ${
+            payment.delivery
+              ? `
+            <div class="info-line"><strong>Livraison:</strong> ${payment.delivery.announcement?.title || "N/A"}</div>
+          `
+              : ""
+          }
           
-          ${payment.booking ? `
-            <div class="info-line"><strong>Service:</strong> ${payment.booking.service?.name || 'N/A'}</div>
-          ` : ''}
+          ${
+            payment.booking
+              ? `
+            <div class="info-line"><strong>Service:</strong> ${payment.booking.service?.name || "N/A"}</div>
+          `
+              : ""
+          }
         </div>
 
         <div class="amount">
           Montant: ${payment.amount.toFixed(2)} ${payment.currency}
-          ${payment.refundAmount ? `<br><small style="color: #DC2626;">Remboursé: ${payment.refundAmount.toFixed(2)} ${payment.currency}</small>` : ''}
+          ${payment.refundAmount ? `<br><small style="color: #DC2626;">Remboursé: ${payment.refundAmount.toFixed(2)} ${payment.currency}</small>` : ""}
         </div>
 
         <div class="footer">
           <div>EcoDeli - Plateforme de livraison écologique</div>
-          <div>Cette facture a été générée automatiquement le ${new Date().toLocaleDateString('fr-FR')}</div>
-          ${payment.stripePaymentId ? `<div>ID Stripe: ${payment.stripePaymentId}</div>` : ''}
+          <div>Cette facture a été générée automatiquement le ${new Date().toLocaleDateString("fr-FR")}</div>
+          ${payment.stripePaymentId ? `<div>ID Stripe: ${payment.stripePaymentId}</div>` : ""}
         </div>
       </body>
       </html>
-    `
+    `;
 
     return new NextResponse(invoiceHtml, {
       headers: {
-        'Content-Type': 'text/html',
-        'Content-Disposition': `attachment; filename="facture-${paymentId.slice(-8)}.html"`
-      }
-    })
-
+        "Content-Type": "text/html",
+        "Content-Disposition": `attachment; filename="facture-${paymentId.slice(-8)}.html"`,
+      },
+    });
   } catch (error) {
-    console.error('Error generating invoice:', error)
+    console.error("Error generating invoice:", error);
     return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    )
+      { error: "Internal server error" },
+      { status: 500 },
+    );
   }
 }

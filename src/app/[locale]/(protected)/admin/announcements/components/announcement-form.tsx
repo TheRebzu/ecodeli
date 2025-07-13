@@ -1,45 +1,47 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { z } from "zod"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { Label } from "@/components/ui/label"
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
-} from "@/components/ui/select"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { 
-  Package, 
-  User, 
-  Plane, 
-  ShoppingCart, 
-  Globe, 
-  Heart, 
-  Home, 
-  Truck 
-} from "lucide-react"
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Package,
+  User,
+  Plane,
+  ShoppingCart,
+  Globe,
+  Heart,
+  Home,
+  Truck,
+} from "lucide-react";
 
 const announcementSchema = z.object({
   title: z.string().min(5, "Le titre doit faire au moins 5 caractères"),
-  description: z.string().min(20, "La description doit faire au moins 20 caractères"),
+  description: z
+    .string()
+    .min(20, "La description doit faire au moins 20 caractères"),
   type: z.enum([
     "PACKAGE_DELIVERY",
-    "PERSON_TRANSPORT", 
+    "PERSON_TRANSPORT",
     "AIRPORT_TRANSFER",
     "SHOPPING",
     "INTERNATIONAL_PURCHASE",
     "PET_SITTING",
     "HOME_SERVICE",
-    "CART_DROP"
+    "CART_DROP",
   ]),
   basePrice: z.number().min(0, "Le prix doit être positif"),
   pickupAddress: z.string().min(10, "Adresse de récupération requise"),
@@ -50,15 +52,15 @@ const announcementSchema = z.object({
   isFlexibleDate: z.boolean().default(false),
   preferredTimeSlot: z.enum(["MORNING", "AFTERNOON", "EVENING"]).optional(),
   specialInstructions: z.string().optional(),
-  internalNotes: z.string().optional()
-})
+  internalNotes: z.string().optional(),
+});
 
-type AnnouncementFormData = z.infer<typeof announcementSchema>
+type AnnouncementFormData = z.infer<typeof announcementSchema>;
 
 interface AnnouncementFormProps {
-  announcement?: any
-  onSuccess: () => void
-  onCancel: () => void
+  announcement?: any;
+  onSuccess: () => void;
+  onCancel: () => void;
 }
 
 const typeConfig = {
@@ -69,19 +71,25 @@ const typeConfig = {
   INTERNATIONAL_PURCHASE: { label: "Achat International", icon: Globe },
   PET_SITTING: { label: "Garde d'Animaux", icon: Heart },
   HOME_SERVICE: { label: "Service à Domicile", icon: Home },
-  CART_DROP: { label: "Lâcher de Chariot", icon: Truck }
-}
+  CART_DROP: { label: "Lâcher de Chariot", icon: Truck },
+};
 
-export function AnnouncementForm({ announcement, onSuccess, onCancel }: AnnouncementFormProps) {
-  const [loading, setLoading] = useState(false)
-  const [selectedType, setSelectedType] = useState(announcement?.type || "PACKAGE_DELIVERY")
+export function AnnouncementForm({
+  announcement,
+  onSuccess,
+  onCancel,
+}: AnnouncementFormProps) {
+  const [loading, setLoading] = useState(false);
+  const [selectedType, setSelectedType] = useState(
+    announcement?.type || "PACKAGE_DELIVERY",
+  );
 
   const {
     register,
     handleSubmit,
     formState: { errors },
     setValue,
-    watch
+    watch,
   } = useForm<AnnouncementFormData>({
     resolver: zodResolver(announcementSchema) as any,
     defaultValues: {
@@ -91,43 +99,47 @@ export function AnnouncementForm({ announcement, onSuccess, onCancel }: Announce
       basePrice: announcement?.basePrice || 0,
       pickupAddress: announcement?.pickupAddress || "",
       deliveryAddress: announcement?.deliveryAddress || "",
-      pickupDate: announcement?.pickupDate ? new Date(announcement.pickupDate).toISOString().slice(0, 16) : "",
-      deliveryDate: announcement?.deliveryDate ? new Date(announcement.deliveryDate).toISOString().slice(0, 16) : "",
+      pickupDate: announcement?.pickupDate
+        ? new Date(announcement.pickupDate).toISOString().slice(0, 16)
+        : "",
+      deliveryDate: announcement?.deliveryDate
+        ? new Date(announcement.deliveryDate).toISOString().slice(0, 16)
+        : "",
       isUrgent: announcement?.isUrgent || false,
       isFlexibleDate: announcement?.isFlexibleDate || false,
       preferredTimeSlot: announcement?.preferredTimeSlot || "MORNING",
       specialInstructions: announcement?.specialInstructions || "",
-      internalNotes: announcement?.internalNotes || ""
-    }
-  })
+      internalNotes: announcement?.internalNotes || "",
+    },
+  });
 
   const onSubmit = async (data: AnnouncementFormData) => {
     try {
-      setLoading(true)
-      
-      const url = announcement 
+      setLoading(true);
+
+      const url = announcement
         ? `/api/admin/announcements/${announcement.id}`
-        : "/api/admin/announcements"
-      
-      const method = announcement ? "PUT" : "POST"
-      
+        : "/api/admin/announcements";
+
+      const method = announcement ? "PUT" : "POST";
+
       const response = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data)
-      })
+        body: JSON.stringify(data),
+      });
 
       if (!response.ok) {
-        throw new Error("Erreur lors de la sauvegarde")
+        throw new Error("Erreur lors de la sauvegarde");
       }
 
-      onSuccess()
+      onSuccess();
     } catch (error) {
-      console.error("Erreur formulaire:", error)
+      console.error("Erreur formulaire:", error);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
@@ -152,11 +164,11 @@ export function AnnouncementForm({ announcement, onSuccess, onCancel }: Announce
 
             <div className="space-y-2">
               <Label htmlFor="type">Type d'annonce *</Label>
-              <Select 
-                value={selectedType} 
+              <Select
+                value={selectedType}
                 onValueChange={(value) => {
-                  setSelectedType(value)
-                  setValue("type", value as any)
+                  setSelectedType(value);
+                  setValue("type", value as any);
                 }}
               >
                 <SelectTrigger>
@@ -164,7 +176,7 @@ export function AnnouncementForm({ announcement, onSuccess, onCancel }: Announce
                 </SelectTrigger>
                 <SelectContent>
                   {Object.entries(typeConfig).map(([key, config]) => {
-                    const Icon = config.icon
+                    const Icon = config.icon;
                     return (
                       <SelectItem key={key} value={key}>
                         <div className="flex items-center gap-2">
@@ -172,7 +184,7 @@ export function AnnouncementForm({ announcement, onSuccess, onCancel }: Announce
                           {config.label}
                         </div>
                       </SelectItem>
-                    )
+                    );
                   })}
                 </SelectContent>
               </Select>
@@ -191,7 +203,9 @@ export function AnnouncementForm({ announcement, onSuccess, onCancel }: Announce
               rows={4}
             />
             {errors.description && (
-              <p className="text-sm text-red-600">{errors.description.message}</p>
+              <p className="text-sm text-red-600">
+                {errors.description.message}
+              </p>
             )}
           </div>
 
@@ -206,15 +220,19 @@ export function AnnouncementForm({ announcement, onSuccess, onCancel }: Announce
                 placeholder="0.00"
               />
               {errors.basePrice && (
-                <p className="text-sm text-red-600">{errors.basePrice.message}</p>
+                <p className="text-sm text-red-600">
+                  {errors.basePrice.message}
+                </p>
               )}
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="preferredTimeSlot">Créneau préféré</Label>
-              <Select 
-                value={watch("preferredTimeSlot") || "MORNING"} 
-                onValueChange={(value) => setValue("preferredTimeSlot", value as any)}
+              <Select
+                value={watch("preferredTimeSlot") || "MORNING"}
+                onValueChange={(value) =>
+                  setValue("preferredTimeSlot", value as any)
+                }
               >
                 <SelectTrigger>
                   <SelectValue />
@@ -244,7 +262,9 @@ export function AnnouncementForm({ announcement, onSuccess, onCancel }: Announce
               placeholder="Adresse complète de récupération"
             />
             {errors.pickupAddress && (
-              <p className="text-sm text-red-600">{errors.pickupAddress.message}</p>
+              <p className="text-sm text-red-600">
+                {errors.pickupAddress.message}
+              </p>
             )}
           </div>
 
@@ -256,7 +276,9 @@ export function AnnouncementForm({ announcement, onSuccess, onCancel }: Announce
               placeholder="Adresse complète de livraison"
             />
             {errors.deliveryAddress && (
-              <p className="text-sm text-red-600">{errors.deliveryAddress.message}</p>
+              <p className="text-sm text-red-600">
+                {errors.deliveryAddress.message}
+              </p>
             )}
           </div>
         </CardContent>
@@ -293,7 +315,9 @@ export function AnnouncementForm({ announcement, onSuccess, onCancel }: Announce
               <Checkbox
                 id="isUrgent"
                 {...register("isUrgent")}
-                onCheckedChange={(checked) => setValue("isUrgent", checked as boolean)}
+                onCheckedChange={(checked) =>
+                  setValue("isUrgent", checked as boolean)
+                }
               />
               <Label htmlFor="isUrgent">Annonce urgente</Label>
             </div>
@@ -302,7 +326,9 @@ export function AnnouncementForm({ announcement, onSuccess, onCancel }: Announce
               <Checkbox
                 id="isFlexibleDate"
                 {...register("isFlexibleDate")}
-                onCheckedChange={(checked) => setValue("isFlexibleDate", checked as boolean)}
+                onCheckedChange={(checked) =>
+                  setValue("isFlexibleDate", checked as boolean)
+                }
               />
               <Label htmlFor="isFlexibleDate">Dates flexibles</Label>
             </div>
@@ -348,5 +374,5 @@ export function AnnouncementForm({ announcement, onSuccess, onCancel }: Announce
         </Button>
       </div>
     </form>
-  )
-} 
+  );
+}

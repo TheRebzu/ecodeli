@@ -1,31 +1,28 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getCurrentUser } from '@/lib/auth/utils';
-import { prisma } from '@/lib/db';
-import { z } from 'zod';
+import { NextRequest, NextResponse } from "next/server";
+import { getCurrentUser } from "@/lib/auth/utils";
+import { prisma } from "@/lib/db";
+import { z } from "zod";
 
 const reservationSchema = z.object({
-  warehouseId: z.string().min(1, 'Warehouse ID is required'),
-  boxSize: z.enum(['SMALL', 'MEDIUM', 'LARGE', 'EXTRA_LARGE']),
-  startDate: z.string().datetime('Invalid start date format'),
-  endDate: z.string().datetime('Invalid end date format'),
+  warehouseId: z.string().min(1, "Warehouse ID is required"),
+  boxSize: z.enum(["SMALL", "MEDIUM", "LARGE", "EXTRA_LARGE"]),
+  startDate: z.string().datetime("Invalid start date format"),
+  endDate: z.string().datetime("Invalid end date format"),
 });
 
 // GET - Récupérer les réservations de l'utilisateur
 export async function GET(request: NextRequest) {
   try {
     const user = await getCurrentUser();
-    
+
     if (!user) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const { searchParams } = new URL(request.url);
-    const page = parseInt(searchParams.get('page') || '1');
-    const limit = parseInt(searchParams.get('limit') || '10');
-    const status = searchParams.get('status');
+    const page = parseInt(searchParams.get("page") || "1");
+    const limit = parseInt(searchParams.get("limit") || "10");
+    const status = searchParams.get("status");
     const skip = (page - 1) * limit;
 
     // Construire les conditions de filtrage
@@ -50,9 +47,9 @@ export async function GET(request: NextRequest) {
                   name: true,
                   address: true,
                   city: true,
-                }
-              }
-            }
+                },
+              },
+            },
           },
           payment: {
             select: {
@@ -60,18 +57,18 @@ export async function GET(request: NextRequest) {
               amount: true,
               status: true,
               createdAt: true,
-            }
-          }
+            },
+          },
         },
         orderBy: {
-          startDate: 'desc'
+          startDate: "desc",
         },
         skip,
         take: limit,
       }),
       prisma.storageReservation.count({
         where: whereConditions,
-      })
+      }),
     ]);
 
     return NextResponse.json({
@@ -81,12 +78,11 @@ export async function GET(request: NextRequest) {
       limit,
       totalPages: Math.ceil(total / limit),
     });
-
   } catch (error) {
-    console.error('Error fetching storage reservations:', error);
+    console.error("Error fetching storage reservations:", error);
     return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
+      { error: "Internal server error" },
+      { status: 500 },
     );
   }
 }
@@ -95,19 +91,16 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const user = await getCurrentUser();
-    
+
     if (!user) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     // Vérifier que l'utilisateur est un client
-    if (user.role !== 'CLIENT') {
+    if (user.role !== "CLIENT") {
       return NextResponse.json(
-        { error: 'Only clients can create storage reservations' },
-        { status: 403 }
+        { error: "Only clients can create storage reservations" },
+        { status: 403 },
       );
     }
 
@@ -121,15 +114,15 @@ export async function POST(request: NextRequest) {
 
     if (startDate < now) {
       return NextResponse.json(
-        { error: 'Start date must be in the future' },
-        { status: 400 }
+        { error: "Start date must be in the future" },
+        { status: 400 },
       );
     }
 
     if (endDate <= startDate) {
       return NextResponse.json(
-        { error: 'End date must be after start date' },
-        { status: 400 }
+        { error: "End date must be after start date" },
+        { status: 400 },
       );
     }
 
@@ -138,7 +131,7 @@ export async function POST(request: NextRequest) {
       where: {
         warehouseId: validatedData.warehouseId,
         size: validatedData.boxSize,
-        status: 'AVAILABLE',
+        status: "AVAILABLE",
         // Vérifier qu'il n'y a pas de conflit de réservation
         reservations: {
           none: {
@@ -146,26 +139,28 @@ export async function POST(request: NextRequest) {
               {
                 startDate: { lte: endDate },
                 endDate: { gte: startDate },
-                status: { in: ['ACTIVE', 'PENDING'] }
-              }
-            ]
-          }
-        }
+                status: { in: ["ACTIVE", "PENDING"] },
+              },
+            ],
+          },
+        },
       },
       include: {
-        warehouse: true
-      }
+        warehouse: true,
+      },
     });
 
     if (!availableBox) {
       return NextResponse.json(
-        { error: 'No available box found for the specified criteria' },
-        { status: 404 }
+        { error: "No available box found for the specified criteria" },
+        { status: 404 },
       );
     }
 
     // Calculer le prix total
-    const days = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+    const days = Math.ceil(
+      (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24),
+    );
     const months = Math.ceil(days / 30);
     const totalPrice = availableBox.monthlyPrice * months;
 
@@ -177,16 +172,16 @@ export async function POST(request: NextRequest) {
         startDate,
         endDate,
         totalPrice,
-        status: 'PENDING',
+        status: "PENDING",
         accessCode: Math.random().toString(36).substring(2, 8).toUpperCase(), // Code d'accès aléatoire
       },
       include: {
         storageBox: {
           include: {
-            warehouse: true
-          }
-        }
-      }
+            warehouse: true,
+          },
+        },
+      },
     });
 
     // Créer le paiement associé
@@ -194,35 +189,35 @@ export async function POST(request: NextRequest) {
       data: {
         userId: user.id,
         amount: totalPrice,
-        currency: 'EUR',
-        status: 'PENDING',
-        type: 'STORAGE',
+        currency: "EUR",
+        status: "PENDING",
+        type: "STORAGE",
         stripePaymentId: null, // Sera mis à jour lors du paiement Stripe
-      }
+      },
     });
 
     // Associer le paiement à la réservation
     await prisma.storageReservation.update({
       where: { id: reservation.id },
-      data: { paymentId: payment.id }
+      data: { paymentId: payment.id },
     });
 
     // Marquer le box comme occupé
     await prisma.storageBox.update({
       where: { id: availableBox.id },
-      data: { status: 'OCCUPIED' }
+      data: { status: "OCCUPIED" },
     });
 
     // Ici, vous pourriez intégrer Stripe pour le paiement
     // Pour l'instant, on simule un paiement réussi
     await prisma.payment.update({
       where: { id: payment.id },
-      data: { status: 'COMPLETED' }
+      data: { status: "COMPLETED" },
     });
 
     await prisma.storageReservation.update({
       where: { id: reservation.id },
-      data: { status: 'ACTIVE' }
+      data: { status: "ACTIVE" },
     });
 
     // Récupérer la réservation mise à jour
@@ -231,30 +226,32 @@ export async function POST(request: NextRequest) {
       include: {
         storageBox: {
           include: {
-            warehouse: true
-          }
+            warehouse: true,
+          },
         },
-        payment: true
-      }
+        payment: true,
+      },
     });
 
-    return NextResponse.json({
-      reservation: updatedReservation,
-      payment,
-    }, { status: 201 });
-
+    return NextResponse.json(
+      {
+        reservation: updatedReservation,
+        payment,
+      },
+      { status: 201 },
+    );
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: 'Validation error', details: error.errors },
-        { status: 400 }
+        { error: "Validation error", details: error.errors },
+        { status: 400 },
       );
     }
 
-    console.error('Error creating storage reservation:', error);
+    console.error("Error creating storage reservation:", error);
     return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
+      { error: "Internal server error" },
+      { status: 500 },
     );
   }
-} 
+}

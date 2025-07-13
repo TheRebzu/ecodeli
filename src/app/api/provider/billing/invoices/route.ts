@@ -1,29 +1,29 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '@/lib/auth'
-import { prisma } from '@/lib/db'
+import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@/lib/auth";
+import { prisma } from "@/lib/db";
 
 /**
  * GET - Récupérer les factures du prestataire
  */
 export async function GET(request: NextRequest) {
   try {
-    const session = await auth()
-    
+    const session = await auth();
+
     if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { searchParams } = new URL(request.url)
-    const providerId = searchParams.get('providerId')
-    const page = parseInt(searchParams.get('page') || '1')
-    const limit = parseInt(searchParams.get('limit') || '10')
-    const status = searchParams.get('status')
+    const { searchParams } = new URL(request.url);
+    const providerId = searchParams.get("providerId");
+    const page = parseInt(searchParams.get("page") || "1");
+    const limit = parseInt(searchParams.get("limit") || "10");
+    const status = searchParams.get("status");
 
     if (!providerId) {
       return NextResponse.json(
-        { error: 'Provider ID is required' },
-        { status: 400 }
-      )
+        { error: "Provider ID is required" },
+        { status: 400 },
+      );
     }
 
     // Vérifier que le provider existe en utilisant l'userId
@@ -34,17 +34,17 @@ export async function GET(request: NextRequest) {
     if (!provider) {
       return NextResponse.json(
         { error: "Provider not found" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
     // Construire les conditions de recherche avec l'ID du provider
     const where: any = {
       providerId: provider.id,
-    }
+    };
 
     if (status) {
-      where.status = status
+      where.status = status;
     }
 
     // Récupérer les factures mensuelles du prestataire
@@ -85,16 +85,16 @@ export async function GET(request: NextRequest) {
           },
         },
         orderBy: {
-          createdAt: 'desc',
+          createdAt: "desc",
         },
         skip: (page - 1) * limit,
         take: limit,
       }),
       prisma.providerMonthlyInvoice.count({ where }),
-    ])
+    ]);
 
     // Formater les données
-    const formattedInvoices = invoices.map(invoice => {
+    const formattedInvoices = invoices.map((invoice) => {
       // Calculer les dates de période pour le mois/année
       const periodStart = new Date(invoice.year, invoice.month - 1, 1);
       const periodEnd = new Date(invoice.year, invoice.month, 0); // Dernier jour du mois
@@ -119,15 +119,16 @@ export async function GET(request: NextRequest) {
         invoiceUrl: invoice.invoiceUrl,
         createdAt: invoice.createdAt.toISOString(),
         itemsCount: invoice.interventions.length,
-        interventions: invoice.interventions.map(item => ({
+        interventions: invoice.interventions.map((item) => ({
           id: item.intervention.id,
-          serviceName: item.intervention.booking?.service?.name || "Service non spécifié",
+          serviceName:
+            item.intervention.booking?.service?.name || "Service non spécifié",
           hours: item.hours,
           rate: item.rate,
           amount: item.amount,
         })),
       };
-    })
+    });
 
     return NextResponse.json({
       invoices: formattedInvoices,
@@ -137,12 +138,12 @@ export async function GET(request: NextRequest) {
         total: totalCount,
         totalPages: Math.ceil(totalCount / limit),
       },
-    })
+    });
   } catch (error) {
-    console.error('Error fetching invoices:', error)
+    console.error("Error fetching invoices:", error);
     return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    )
+      { error: "Internal server error" },
+      { status: 500 },
+    );
   }
 }

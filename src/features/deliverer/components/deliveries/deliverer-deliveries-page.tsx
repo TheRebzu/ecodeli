@@ -1,285 +1,340 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Separator } from '@/components/ui/separator'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Input } from '@/components/ui/input'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { 
-  Loader2, 
-  MapPin, 
-  Clock, 
-  Package, 
-  Euro, 
-  AlertCircle, 
-  CheckCircle, 
-  Star, 
-  Search, 
-  Filter, 
-  Truck, 
-  Calendar, 
+import { useState, useEffect } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Loader2,
+  MapPin,
+  Clock,
+  Package,
+  Euro,
+  AlertCircle,
+  CheckCircle,
+  Star,
+  Search,
+  Filter,
+  Truck,
+  Calendar,
   User,
   Phone,
   FileText,
   Navigation,
   Camera,
-  QrCode
-} from 'lucide-react'
-import { useToast } from '@/components/ui/use-toast'
-import { useRouter } from 'next/navigation'
+  QrCode,
+} from "lucide-react";
+import { useToast } from "@/components/ui/use-toast";
+import { useRouter } from "next/navigation";
 
 interface Delivery {
-  id: string
-  status: 'ACCEPTED' | 'PICKED_UP' | 'IN_TRANSIT' | 'DELIVERED' | 'CANCELLED'
-  validationCode: string
-  pickupLocation: any
-  deliveryLocation: any
-  scheduledPickupTime?: string
-  scheduledDeliveryTime?: string
-  actualPickupTime?: string
-  actualDeliveryTime?: string
-  notes?: string
-  createdAt: string
-  updatedAt: string
-  
+  id: string;
+  status: "ACCEPTED" | "PICKED_UP" | "IN_TRANSIT" | "DELIVERED" | "CANCELLED";
+  validationCode: string;
+  pickupLocation: any;
+  deliveryLocation: any;
+  scheduledPickupTime?: string;
+  scheduledDeliveryTime?: string;
+  actualPickupTime?: string;
+  actualDeliveryTime?: string;
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
+
   announcement: {
-    id: string
-    title: string
-    description: string
-    type: string
-    basePrice: number
-    finalPrice: number
-    currency: string
-    isUrgent: boolean
-    pickupAddress: string
-    deliveryAddress: string
+    id: string;
+    title: string;
+    description: string;
+    type: string;
+    basePrice: number;
+    finalPrice: number;
+    currency: string;
+    isUrgent: boolean;
+    pickupAddress: string;
+    deliveryAddress: string;
     packageDetails?: {
-      weight?: number
-      length?: number
-      width?: number
-      height?: number
-      fragile?: boolean
-      insuredValue?: number
-    }
+      weight?: number;
+      length?: number;
+      width?: number;
+      height?: number;
+      fragile?: boolean;
+      insuredValue?: number;
+    };
     client: {
-      id: string
-      name: string
-      avatar?: string
-      phone?: string
-    }
-  }
-  
+      id: string;
+      name: string;
+      avatar?: string;
+      phone?: string;
+    };
+  };
+
   payment?: {
-    amount: number
-    status: string
-    paidAt?: string
-  }
-  
+    amount: number;
+    status: string;
+    paidAt?: string;
+  };
+
   proofOfDelivery?: {
-    id: string
-    recipientName?: string
-    validatedWithCode: boolean
-    createdAt: string
-  }
-  
+    id: string;
+    recipientName?: string;
+    validatedWithCode: boolean;
+    createdAt: string;
+  };
+
   tracking: Array<{
-    id: string
-    status: string
-    message: string
-    location?: any
-    createdAt: string
-  }>
+    id: string;
+    status: string;
+    message: string;
+    location?: any;
+    createdAt: string;
+  }>;
 }
 
 interface DeliveriesResponse {
-  deliveries: Delivery[]
+  deliveries: Delivery[];
   pagination: {
-    page: number
-    limit: number
-    total: number
-    totalPages: number
-    hasNext: boolean
-    hasPrev: boolean
-  }
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+    hasNext: boolean;
+    hasPrev: boolean;
+  };
   stats: {
-    total: number
-    byStatus: Record<string, number>
-    activeDeliveries: number
-    completedDeliveries: number
-    totalEarnings: number
-  }
+    total: number;
+    byStatus: Record<string, number>;
+    activeDeliveries: number;
+    completedDeliveries: number;
+    totalEarnings: number;
+  };
 }
 
 const statusConfig = {
-  ACCEPTED: { label: 'Acceptée', color: 'bg-blue-500', textColor: 'text-blue-600', icon: '✅' },
-  PICKED_UP: { label: 'Récupérée', color: 'bg-orange-500', textColor: 'text-orange-600', icon: '📦' },
-  IN_TRANSIT: { label: 'En transit', color: 'bg-yellow-500', textColor: 'text-yellow-600', icon: '🚚' },
-  DELIVERED: { label: 'Livrée', color: 'bg-green-500', textColor: 'text-green-600', icon: '✅' },
-  CANCELLED: { label: 'Annulée', color: 'bg-red-500', textColor: 'text-red-600', icon: '❌' }
-}
+  ACCEPTED: {
+    label: "Acceptée",
+    color: "bg-blue-500",
+    textColor: "text-blue-600",
+    icon: "✅",
+  },
+  PICKED_UP: {
+    label: "Récupérée",
+    color: "bg-orange-500",
+    textColor: "text-orange-600",
+    icon: "📦",
+  },
+  IN_TRANSIT: {
+    label: "En transit",
+    color: "bg-yellow-500",
+    textColor: "text-yellow-600",
+    icon: "🚚",
+  },
+  DELIVERED: {
+    label: "Livrée",
+    color: "bg-green-500",
+    textColor: "text-green-600",
+    icon: "✅",
+  },
+  CANCELLED: {
+    label: "Annulée",
+    color: "bg-red-500",
+    textColor: "text-red-600",
+    icon: "❌",
+  },
+};
 
 const getTypeLabel = (type: string) => {
   const types: Record<string, string> = {
-    'PACKAGE_DELIVERY': '📦 Colis standard',
-    'DOCUMENT_DELIVERY': '📄 Documents',
-    'CART_DROP': '🛒 Lâcher de chariot',
-    'SHOPPING_DELIVERY': '🛍️ Courses',
-    'AIRPORT_TRANSFER': '✈️ Aéroport',
-    'INTERNATIONAL_PURCHASE': '🌍 International',
-    'FRAGILE_DELIVERY': '⚠️ Fragile',
-    'URGENT_DELIVERY': '⚡ Express'
-  }
-  return types[type] || type
-}
+    PACKAGE_DELIVERY: "📦 Colis standard",
+    DOCUMENT_DELIVERY: "📄 Documents",
+    CART_DROP: "🛒 Lâcher de chariot",
+    SHOPPING_DELIVERY: "🛍️ Courses",
+    AIRPORT_TRANSFER: "✈️ Aéroport",
+    INTERNATIONAL_PURCHASE: "🌍 International",
+    FRAGILE_DELIVERY: "⚠️ Fragile",
+    URGENT_DELIVERY: "⚡ Express",
+  };
+  return types[type] || type;
+};
 
 export function DelivererDeliveriesPage() {
-  const { toast } = useToast()
-  const router = useRouter()
-  const [loading, setLoading] = useState(true)
-  const [data, setData] = useState<DeliveriesResponse | null>(null)
-  const [activeTab, setActiveTab] = useState('active')
-  
+  const { toast } = useToast();
+  const router = useRouter();
+  const [loading, setLoading] = useState(true);
+  const [data, setData] = useState<DeliveriesResponse | null>(null);
+  const [activeTab, setActiveTab] = useState("active");
+
   // Filtres
-  const [searchTerm, setSearchTerm] = useState('')
-  const [selectedStatus, setSelectedStatus] = useState<string>('all')
-  const [sortBy, setSortBy] = useState('createdAt')
-  const [sortOrder, setSortOrder] = useState('desc')
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedStatus, setSelectedStatus] = useState<string>("all");
+  const [sortBy, setSortBy] = useState("createdAt");
+  const [sortOrder, setSortOrder] = useState("desc");
 
   useEffect(() => {
-    loadDeliveries()
-  }, [selectedStatus, sortBy, sortOrder])
+    loadDeliveries();
+  }, [selectedStatus, sortBy, sortOrder]);
 
   const loadDeliveries = async () => {
     try {
-      setLoading(true)
-      
+      setLoading(true);
+
       const params = new URLSearchParams({
         sortBy,
-        sortOrder
-      })
-      
-      if (selectedStatus !== 'all') params.append('status', selectedStatus)
-      
-      const response = await fetch(`/api/deliverer/deliveries?${params}`)
+        sortOrder,
+      });
+
+      if (selectedStatus !== "all") params.append("status", selectedStatus);
+
+      const response = await fetch(`/api/deliverer/deliveries?${params}`);
       if (!response.ok) {
-        throw new Error('Erreur de chargement')
+        throw new Error("Erreur de chargement");
       }
-      
-      const responseData = await response.json()
-      setData(responseData)
-      
+
+      const responseData = await response.json();
+      setData(responseData);
     } catch (error) {
-      console.error('Erreur chargement livraisons:', error)
+      console.error("Erreur chargement livraisons:", error);
       toast({
-        title: '❌ Erreur',
-        description: 'Impossible de charger vos livraisons',
-        variant: 'destructive'
-      })
+        title: "❌ Erreur",
+        description: "Impossible de charger vos livraisons",
+        variant: "destructive",
+      });
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const formatDate = (dateString?: string) => {
-    if (!dateString) return 'Non spécifié'
-    return new Date(dateString).toLocaleString('fr-FR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    })
-  }
+    if (!dateString) return "Non spécifié";
+    return new Date(dateString).toLocaleString("fr-FR", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
 
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('fr-FR', {
-      style: 'currency',
-      currency: 'EUR'
-    }).format(price)
-  }
+    return new Intl.NumberFormat("fr-FR", {
+      style: "currency",
+      currency: "EUR",
+    }).format(price);
+  };
 
   // Filtrer les livraisons par terme de recherche et onglet
   const getFilteredDeliveries = () => {
-    if (!data?.deliveries) return []
-    
-    let filtered = data.deliveries
+    if (!data?.deliveries) return [];
+
+    let filtered = data.deliveries;
 
     // Filtre par onglet
-    if (activeTab === 'active') {
-      filtered = filtered.filter(d => ['ACCEPTED', 'PICKED_UP', 'IN_TRANSIT'].includes(d.status))
-    } else if (activeTab === 'completed') {
-      filtered = filtered.filter(d => d.status === 'DELIVERED')
-    } else if (activeTab === 'cancelled') {
-      filtered = filtered.filter(d => d.status === 'CANCELLED')
+    if (activeTab === "active") {
+      filtered = filtered.filter((d) =>
+        ["ACCEPTED", "PICKED_UP", "IN_TRANSIT"].includes(d.status),
+      );
+    } else if (activeTab === "completed") {
+      filtered = filtered.filter((d) => d.status === "DELIVERED");
+    } else if (activeTab === "cancelled") {
+      filtered = filtered.filter((d) => d.status === "CANCELLED");
     }
 
     // Filtre par recherche
     if (searchTerm) {
-      filtered = filtered.filter(d => 
-        d.announcement.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        d.announcement.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        d.announcement.pickupAddress.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        d.announcement.deliveryAddress.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        d.announcement.client.name.toLowerCase().includes(searchTerm.toLowerCase())
-      )
+      filtered = filtered.filter(
+        (d) =>
+          d.announcement.title
+            .toLowerCase()
+            .includes(searchTerm.toLowerCase()) ||
+          d.announcement.description
+            .toLowerCase()
+            .includes(searchTerm.toLowerCase()) ||
+          d.announcement.pickupAddress
+            .toLowerCase()
+            .includes(searchTerm.toLowerCase()) ||
+          d.announcement.deliveryAddress
+            .toLowerCase()
+            .includes(searchTerm.toLowerCase()) ||
+          d.announcement.client.name
+            .toLowerCase()
+            .includes(searchTerm.toLowerCase()),
+      );
     }
 
-    return filtered
-  }
+    return filtered;
+  };
 
-  const filteredDeliveries = getFilteredDeliveries()
+  const filteredDeliveries = getFilteredDeliveries();
 
   const handleMarkAsPickedUp = async (deliveryId: string) => {
     try {
-      const response = await fetch(`/api/deliverer/deliveries/${deliveryId}/pickup`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
-      })
+      const response = await fetch(
+        `/api/deliverer/deliveries/${deliveryId}/pickup`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+        },
+      );
 
-      if (!response.ok) throw new Error('Erreur lors de la confirmation')
+      if (!response.ok) throw new Error("Erreur lors de la confirmation");
 
       toast({
-        title: '✅ Colis récupéré',
-        description: 'Le statut de la livraison a été mis à jour',
-      })
-      
-      loadDeliveries() // Recharger les données
+        title: "✅ Colis récupéré",
+        description: "Le statut de la livraison a été mis à jour",
+      });
+
+      loadDeliveries(); // Recharger les données
     } catch (error) {
       toast({
-        title: '❌ Erreur',
-        description: 'Impossible de mettre à jour le statut',
-        variant: 'destructive'
-      })
+        title: "❌ Erreur",
+        description: "Impossible de mettre à jour le statut",
+        variant: "destructive",
+      });
     }
-  }
+  };
 
   const handleMarkAsInTransit = async (deliveryId: string) => {
     try {
-      const response = await fetch(`/api/deliverer/deliveries/${deliveryId}/start`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
-      })
+      const response = await fetch(
+        `/api/deliverer/deliveries/${deliveryId}/start`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+        },
+      );
 
-      if (!response.ok) throw new Error('Erreur lors du démarrage')
+      if (!response.ok) throw new Error("Erreur lors du démarrage");
 
       toast({
-        title: '🚚 Livraison démarrée',
-        description: 'Vous êtes maintenant en transit',
-      })
-      
-      loadDeliveries()
+        title: "🚚 Livraison démarrée",
+        description: "Vous êtes maintenant en transit",
+      });
+
+      loadDeliveries();
     } catch (error) {
       toast({
-        title: '❌ Erreur',
-        description: 'Impossible de démarrer la livraison',
-        variant: 'destructive'
-      })
+        title: "❌ Erreur",
+        description: "Impossible de démarrer la livraison",
+        variant: "destructive",
+      });
     }
-  }
+  };
 
   if (loading) {
     return (
@@ -287,7 +342,7 @@ export function DelivererDeliveriesPage() {
         <Loader2 className="h-8 w-8 animate-spin" />
         <span className="ml-2">Chargement de vos livraisons...</span>
       </div>
-    )
+    );
   }
 
   return (
@@ -296,33 +351,45 @@ export function DelivererDeliveriesPage() {
       <div className="bg-gradient-to-r from-blue-50 to-green-50 rounded-lg p-6 border">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">🚚 Mes Livraisons</h1>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+              🚚 Mes Livraisons
+            </h1>
             <p className="text-gray-600">
               Gérez vos livraisons en cours et consultez votre historique
             </p>
           </div>
           <div className="text-right">
-            <div className="text-2xl font-bold text-blue-600">{data?.stats.activeDeliveries || 0}</div>
+            <div className="text-2xl font-bold text-blue-600">
+              {data?.stats.activeDeliveries || 0}
+            </div>
             <div className="text-sm text-gray-600">livraisons actives</div>
           </div>
         </div>
-        
+
         {data?.stats && (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="bg-white rounded-lg p-3 text-center">
-              <div className="text-lg font-bold text-blue-600">{data.stats.activeDeliveries}</div>
+              <div className="text-lg font-bold text-blue-600">
+                {data.stats.activeDeliveries}
+              </div>
               <div className="text-xs text-gray-600">En cours</div>
             </div>
             <div className="bg-white rounded-lg p-3 text-center">
-              <div className="text-lg font-bold text-green-600">{data.stats.completedDeliveries}</div>
+              <div className="text-lg font-bold text-green-600">
+                {data.stats.completedDeliveries}
+              </div>
               <div className="text-xs text-gray-600">Terminées</div>
             </div>
             <div className="bg-white rounded-lg p-3 text-center">
-              <div className="text-lg font-bold text-purple-600">{data.stats.total}</div>
+              <div className="text-lg font-bold text-purple-600">
+                {data.stats.total}
+              </div>
               <div className="text-xs text-gray-600">Total</div>
             </div>
             <div className="bg-white rounded-lg p-3 text-center">
-              <div className="text-lg font-bold text-orange-600">{formatPrice(data.stats.totalEarnings)}</div>
+              <div className="text-lg font-bold text-orange-600">
+                {formatPrice(data.stats.totalEarnings)}
+              </div>
               <div className="text-xs text-gray-600">Gains</div>
             </div>
           </div>
@@ -350,7 +417,7 @@ export function DelivererDeliveriesPage() {
                 />
               </div>
             </div>
-            
+
             <Select value={selectedStatus} onValueChange={setSelectedStatus}>
               <SelectTrigger className="w-48">
                 <SelectValue placeholder="Statut" />
@@ -364,25 +431,33 @@ export function DelivererDeliveriesPage() {
                 ))}
               </SelectContent>
             </Select>
-            
+
             <Select value={sortBy} onValueChange={setSortBy}>
               <SelectTrigger className="w-48">
                 <SelectValue placeholder="Trier par" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="createdAt">Date de création</SelectItem>
-                <SelectItem value="scheduledPickupTime">Heure d'enlèvement</SelectItem>
-                <SelectItem value="scheduledDeliveryTime">Heure de livraison</SelectItem>
+                <SelectItem value="scheduledPickupTime">
+                  Heure d'enlèvement
+                </SelectItem>
+                <SelectItem value="scheduledDeliveryTime">
+                  Heure de livraison
+                </SelectItem>
               </SelectContent>
             </Select>
           </div>
-          
-          <Button variant="outline" size="sm" onClick={() => {
-            setSearchTerm('')
-            setSelectedStatus('all')
-            setSortBy('createdAt')
-            setSortOrder('desc')
-          }}>
+
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              setSearchTerm("");
+              setSelectedStatus("all");
+              setSortBy("createdAt");
+              setSortOrder("desc");
+            }}
+          >
             Réinitialiser
           </Button>
         </CardContent>
@@ -410,19 +485,21 @@ export function DelivererDeliveriesPage() {
             <Alert>
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>
-                {data?.deliveries.length === 0 
+                {data?.deliveries.length === 0
                   ? "Vous n'avez pas encore de livraisons. Consultez les opportunités disponibles !"
-                  : "Aucune livraison ne correspond à vos critères de recherche."
-                }
+                  : "Aucune livraison ne correspond à vos critères de recherche."}
               </AlertDescription>
             </Alert>
           ) : (
             <div className="grid gap-4">
               {filteredDeliveries.map((delivery) => {
-                const statusInfo = statusConfig[delivery.status]
-                
+                const statusInfo = statusConfig[delivery.status];
+
                 return (
-                  <Card key={delivery.id} className="hover:shadow-lg transition-all duration-200 border-l-4 border-l-blue-500">
+                  <Card
+                    key={delivery.id}
+                    className="hover:shadow-lg transition-all duration-200 border-l-4 border-l-blue-500"
+                  >
                     <CardHeader>
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
@@ -439,7 +516,9 @@ export function DelivererDeliveriesPage() {
                               </Badge>
                             )}
                           </div>
-                          <CardTitle className="text-lg">{delivery.announcement.title}</CardTitle>
+                          <CardTitle className="text-lg">
+                            {delivery.announcement.title}
+                          </CardTitle>
                           <CardDescription className="mt-1 line-clamp-2">
                             {delivery.announcement.description}
                           </CardDescription>
@@ -454,7 +533,7 @@ export function DelivererDeliveriesPage() {
                         </div>
                       </div>
                     </CardHeader>
-                    
+
                     <CardContent className="space-y-4">
                       {/* Informations de livraison */}
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -472,7 +551,7 @@ export function DelivererDeliveriesPage() {
                             </p>
                           )}
                         </div>
-                        
+
                         <div className="space-y-2">
                           <div className="flex items-center gap-2 text-sm">
                             <MapPin className="h-4 w-4 text-green-500" />
@@ -494,16 +573,41 @@ export function DelivererDeliveriesPage() {
                         <div className="bg-gray-50 rounded-lg p-3">
                           <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm">
                             {delivery.announcement.packageDetails.weight && (
-                              <div>Poids: <strong>{delivery.announcement.packageDetails.weight}kg</strong></div>
+                              <div>
+                                Poids:{" "}
+                                <strong>
+                                  {delivery.announcement.packageDetails.weight}
+                                  kg
+                                </strong>
+                              </div>
                             )}
                             {delivery.announcement.packageDetails.length && (
-                              <div>Taille: <strong>{delivery.announcement.packageDetails.length}×{delivery.announcement.packageDetails.width}×{delivery.announcement.packageDetails.height}cm</strong></div>
+                              <div>
+                                Taille:{" "}
+                                <strong>
+                                  {delivery.announcement.packageDetails.length}×
+                                  {delivery.announcement.packageDetails.width}×
+                                  {delivery.announcement.packageDetails.height}
+                                  cm
+                                </strong>
+                              </div>
                             )}
                             {delivery.announcement.packageDetails.fragile && (
-                              <div className="text-red-600">⚠️ <strong>Fragile</strong></div>
+                              <div className="text-red-600">
+                                ⚠️ <strong>Fragile</strong>
+                              </div>
                             )}
-                            {delivery.announcement.packageDetails.insuredValue && (
-                              <div>Assuré: <strong>{formatPrice(delivery.announcement.packageDetails.insuredValue)}</strong></div>
+                            {delivery.announcement.packageDetails
+                              .insuredValue && (
+                              <div>
+                                Assuré:{" "}
+                                <strong>
+                                  {formatPrice(
+                                    delivery.announcement.packageDetails
+                                      .insuredValue,
+                                  )}
+                                </strong>
+                              </div>
                             )}
                           </div>
                         </div>
@@ -513,9 +617,11 @@ export function DelivererDeliveriesPage() {
                       <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
                         <div className="flex items-center gap-3">
                           <User className="h-4 w-4 text-blue-500" />
-                          <span className="font-medium">{delivery.announcement.client.name}</span>
+                          <span className="font-medium">
+                            {delivery.announcement.client.name}
+                          </span>
                           {delivery.announcement.client.phone && (
-                            <a 
+                            <a
                               href={`tel:${delivery.announcement.client.phone}`}
                               className="flex items-center gap-1 text-blue-600 hover:text-blue-700"
                             >
@@ -529,10 +635,15 @@ export function DelivererDeliveriesPage() {
                       {/* Suivi récent */}
                       {delivery.tracking.length > 0 && (
                         <div className="space-y-2">
-                          <p className="text-sm font-medium">Dernières activités:</p>
+                          <p className="text-sm font-medium">
+                            Dernières activités:
+                          </p>
                           <div className="space-y-1">
                             {delivery.tracking.slice(0, 3).map((track) => (
-                              <div key={track.id} className="text-xs text-gray-600 flex items-center gap-2">
+                              <div
+                                key={track.id}
+                                className="text-xs text-gray-600 flex items-center gap-2"
+                              >
                                 <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
                                 <span>{track.message}</span>
                                 <span className="text-gray-400">
@@ -552,12 +663,16 @@ export function DelivererDeliveriesPage() {
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => router.push(`/deliverer/deliveries/${delivery.id}`)}
+                            onClick={() =>
+                              router.push(
+                                `/deliverer/deliveries/${delivery.id}`,
+                              )
+                            }
                           >
                             👁️ Détails
                           </Button>
-                          
-                          {delivery.status === 'ACCEPTED' && (
+
+                          {delivery.status === "ACCEPTED" && (
                             <Button
                               size="sm"
                               onClick={() => handleMarkAsPickedUp(delivery.id)}
@@ -566,8 +681,8 @@ export function DelivererDeliveriesPage() {
                               📦 Marquer récupéré
                             </Button>
                           )}
-                          
-                          {delivery.status === 'PICKED_UP' && (
+
+                          {delivery.status === "PICKED_UP" && (
                             <Button
                               size="sm"
                               onClick={() => handleMarkAsInTransit(delivery.id)}
@@ -576,30 +691,34 @@ export function DelivererDeliveriesPage() {
                               🚚 Démarrer livraison
                             </Button>
                           )}
-                          
-                          {delivery.status === 'IN_TRANSIT' && (
+
+                          {delivery.status === "IN_TRANSIT" && (
                             <Button
                               size="sm"
-                              onClick={() => router.push(`/deliverer/deliveries/${delivery.id}/validate`)}
+                              onClick={() =>
+                                router.push(
+                                  `/deliverer/deliveries/${delivery.id}/validate`,
+                                )
+                              }
                               className="bg-green-600 hover:bg-green-700"
                             >
                               ✅ Valider livraison
                             </Button>
                           )}
                         </div>
-                        
+
                         <div className="text-xs text-gray-500">
                           Créée le {formatDate(delivery.createdAt)}
                         </div>
                       </div>
                     </CardContent>
                   </Card>
-                )
+                );
               })}
             </div>
           )}
         </TabsContent>
       </Tabs>
     </div>
-  )
+  );
 }

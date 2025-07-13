@@ -1,136 +1,156 @@
-'use client'
+"use client";
 
-import { useEffect, useState } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Progress } from '@/components/ui/progress'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Button } from '@/components/ui/button'
-import { 
-  Activity, 
-  AlertTriangle, 
-  CheckCircle, 
-  Cpu, 
-  Database, 
-  HardDrive, 
-  RefreshCw, 
-  Server, 
-  Shield, 
+import { useEffect, useState } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import {
+  Activity,
+  AlertTriangle,
+  CheckCircle,
+  Cpu,
+  Database,
+  HardDrive,
+  RefreshCw,
+  Server,
+  Shield,
   Users,
   Package,
   FileText,
-  Wifi 
-} from 'lucide-react'
+  Wifi,
+} from "lucide-react";
 
 // Interface pour les nouvelles métriques simplifiées
 interface SimpleMetrics {
-  totalUsers: number
-  totalDeliveries: number
-  totalAnnouncements: number
-  activeDeliveries: number
+  totalUsers: number;
+  totalDeliveries: number;
+  totalAnnouncements: number;
+  activeDeliveries: number;
 }
 
 interface SystemAlert {
-  id: string
-  type: 'error' | 'warning' | 'info'
-  title: string
-  message: string
-  timestamp: string
-  severity: 'low' | 'medium' | 'high' | 'critical'
+  id: string;
+  type: "error" | "warning" | "info";
+  title: string;
+  message: string;
+  timestamp: string;
+  severity: "low" | "medium" | "high" | "critical";
 }
 
 interface ServiceStatus {
-  name: string
-  status: 'online' | 'offline' | 'degraded'
-  responseTime: number
-  uptime: number
-  lastCheck: string
+  name: string;
+  status: "online" | "offline" | "degraded";
+  responseTime: number;
+  uptime: number;
+  lastCheck: string;
 }
 
 export function MonitoringDashboard() {
-  const [metrics, setMetrics] = useState<SimpleMetrics | null>(null)
-  const [alerts, setAlerts] = useState<SystemAlert[]>([])
-  const [services, setServices] = useState<ServiceStatus[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const [metrics, setMetrics] = useState<SimpleMetrics | null>(null);
+  const [alerts, setAlerts] = useState<SystemAlert[]>([]);
+  const [services, setServices] = useState<ServiceStatus[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const fetchMonitoringData = async () => {
     try {
-      setLoading(true)
-      setError(null)
+      setLoading(true);
+      setError(null);
 
       // Récupérer les métriques
-      const metricsResponse = await fetch('/api/admin/monitoring/metrics')
+      const metricsResponse = await fetch("/api/admin/monitoring/metrics");
       if (metricsResponse.ok) {
-        const metricsData = await metricsResponse.json()
-        setMetrics(metricsData.metrics)
+        const metricsData = await metricsResponse.json();
+        setMetrics(metricsData.metrics);
       }
 
       // Récupérer les alertes
-      const alertsResponse = await fetch('/api/admin/monitoring/alerts')
+      const alertsResponse = await fetch("/api/admin/monitoring/alerts");
       if (alertsResponse.ok) {
-        const alertsData = await alertsResponse.json()
-        setAlerts(alertsData.alerts || [])
+        const alertsData = await alertsResponse.json();
+        setAlerts(alertsData.alerts || []);
       }
 
       // Récupérer les services
-      const servicesResponse = await fetch('/api/admin/monitoring/services')
+      const servicesResponse = await fetch("/api/admin/monitoring/services");
       if (servicesResponse.ok) {
-        const servicesData = await servicesResponse.json()
+        const servicesData = await servicesResponse.json();
         // Convertir les services en format attendu
-        const formattedServices = (servicesData.services || []).map((service: any) => ({
-          name: service.name || 'Service inconnu',
-          status: 'online' as const,
-          responseTime: 50,
-          uptime: 99.9,
-          lastCheck: new Date().toISOString()
-        }))
-        setServices(formattedServices)
+        const formattedServices = (servicesData.services || []).map(
+          (service: any) => ({
+            name: service.name || "Service inconnu",
+            status: "online" as const,
+            responseTime: 50,
+            uptime: 99.9,
+            lastCheck: new Date().toISOString(),
+          }),
+        );
+        setServices(formattedServices);
       }
-
     } catch (err) {
-      console.error('Erreur récupération données monitoring:', err)
-      setError('Erreur lors de la récupération des données')
+      console.error("Erreur récupération données monitoring:", err);
+      setError("Erreur lors de la récupération des données");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   useEffect(() => {
-    fetchMonitoringData()
-    
+    fetchMonitoringData();
+
     // Rafraîchir toutes les 30 secondes
-    const interval = setInterval(fetchMonitoringData, 30000)
-    return () => clearInterval(interval)
-  }, [])
+    const interval = setInterval(fetchMonitoringData, 30000);
+    return () => clearInterval(interval);
+  }, []);
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'online': return 'bg-green-100 text-green-800'
-      case 'offline': return 'bg-red-100 text-red-800'
-      case 'degraded': return 'bg-yellow-100 text-yellow-800'
-      default: return 'bg-gray-100 text-gray-800'
+      case "online":
+        return "bg-green-100 text-green-800";
+      case "offline":
+        return "bg-red-100 text-red-800";
+      case "degraded":
+        return "bg-yellow-100 text-yellow-800";
+      default:
+        return "bg-gray-100 text-gray-800";
     }
-  }
+  };
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'online': return <CheckCircle className="w-5 h-5 text-green-600" />
-      case 'offline': return <AlertTriangle className="w-5 h-5 text-red-600" />
-      case 'degraded': return <Activity className="w-5 h-5 text-yellow-600" />
-      default: return <Server className="w-5 h-5 text-gray-600" />
+      case "online":
+        return <CheckCircle className="w-5 h-5 text-green-600" />;
+      case "offline":
+        return <AlertTriangle className="w-5 h-5 text-red-600" />;
+      case "degraded":
+        return <Activity className="w-5 h-5 text-yellow-600" />;
+      default:
+        return <Server className="w-5 h-5 text-gray-600" />;
     }
-  }
+  };
 
   const getSeverityColor = (severity: string) => {
     switch (severity) {
-      case 'critical': return 'bg-red-100 text-red-800'
-      case 'high': return 'bg-orange-100 text-orange-800'
-      case 'medium': return 'bg-yellow-100 text-yellow-800'
-      case 'low': return 'bg-blue-100 text-blue-800'
-      default: return 'bg-gray-100 text-gray-800'
+      case "critical":
+        return "bg-red-100 text-red-800";
+      case "high":
+        return "bg-orange-100 text-orange-800";
+      case "medium":
+        return "bg-yellow-100 text-yellow-800";
+      case "low":
+        return "bg-blue-100 text-blue-800";
+      default:
+        return "bg-gray-100 text-gray-800";
     }
-  }
+  };
 
   if (loading) {
     return (
@@ -138,7 +158,7 @@ export function MonitoringDashboard() {
         <RefreshCw className="w-8 h-8 animate-spin" />
         <span className="ml-2">Chargement des métriques...</span>
       </div>
-    )
+    );
   }
 
   if (error) {
@@ -150,7 +170,7 @@ export function MonitoringDashboard() {
           Réessayer
         </Button>
       </div>
-    )
+    );
   }
 
   return (
@@ -173,7 +193,9 @@ export function MonitoringDashboard() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Utilisateurs</CardTitle>
+              <CardTitle className="text-sm font-medium">
+                Utilisateurs
+              </CardTitle>
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -190,7 +212,9 @@ export function MonitoringDashboard() {
               <Package className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{metrics.totalDeliveries}</div>
+              <div className="text-2xl font-bold">
+                {metrics.totalDeliveries}
+              </div>
               <p className="text-xs text-muted-foreground mt-1">
                 {metrics.activeDeliveries} en cours
               </p>
@@ -203,7 +227,9 @@ export function MonitoringDashboard() {
               <FileText className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{metrics.totalAnnouncements}</div>
+              <div className="text-2xl font-bold">
+                {metrics.totalAnnouncements}
+              </div>
               <p className="text-xs text-muted-foreground mt-1">
                 Total des annonces
               </p>
@@ -216,7 +242,9 @@ export function MonitoringDashboard() {
               <Server className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-green-600">Opérationnel</div>
+              <div className="text-2xl font-bold text-green-600">
+                Opérationnel
+              </div>
               <p className="text-xs text-muted-foreground mt-1">
                 Système stable
               </p>
@@ -237,7 +265,9 @@ export function MonitoringDashboard() {
           <CardContent className="space-y-3">
             <div className="flex justify-between">
               <span className="text-sm">Statut</span>
-              <Badge variant="default" className="text-xs">Connecté</Badge>
+              <Badge variant="default" className="text-xs">
+                Connecté
+              </Badge>
             </div>
             <div className="flex justify-between">
               <span className="text-sm">Latence</span>
@@ -260,7 +290,9 @@ export function MonitoringDashboard() {
           <CardContent className="space-y-3">
             <div className="flex justify-between">
               <span className="text-sm">Statut</span>
-              <Badge variant="default" className="text-xs">Opérationnel</Badge>
+              <Badge variant="default" className="text-xs">
+                Opérationnel
+              </Badge>
             </div>
             <div className="flex justify-between">
               <span className="text-sm">Connexions</span>
@@ -283,7 +315,9 @@ export function MonitoringDashboard() {
           <CardContent className="space-y-3">
             <div className="flex justify-between">
               <span className="text-sm">Statut</span>
-              <Badge variant="default" className="text-xs">Sécurisé</Badge>
+              <Badge variant="default" className="text-xs">
+                Sécurisé
+              </Badge>
             </div>
             <div className="flex justify-between">
               <span className="text-sm">Tentatives d'accès</span>
@@ -321,19 +355,25 @@ export function MonitoringDashboard() {
             <CardContent>
               <div className="space-y-4">
                 {services.map((service) => (
-                  <div key={service.name} className="flex items-center justify-between p-4 border rounded-lg">
+                  <div
+                    key={service.name}
+                    className="flex items-center justify-between p-4 border rounded-lg"
+                  >
                     <div className="flex items-center gap-3">
                       {getStatusIcon(service.status)}
                       <div>
                         <h4 className="font-medium">{service.name}</h4>
                         <p className="text-sm text-muted-foreground">
-                          Uptime: {service.uptime}% • Réponse: {service.responseTime}ms
+                          Uptime: {service.uptime}% • Réponse:{" "}
+                          {service.responseTime}ms
                         </p>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Badge 
-                        variant={service.status === 'online' ? 'default' : 'secondary'}
+                      <Badge
+                        variant={
+                          service.status === "online" ? "default" : "secondary"
+                        }
                         className={getStatusColor(service.status)}
                       >
                         {service.status}
@@ -366,13 +406,16 @@ export function MonitoringDashboard() {
               ) : (
                 <div className="space-y-4">
                   {alerts.map((alert) => (
-                    <div key={alert.id} className="flex items-start gap-3 p-4 border rounded-lg">
+                    <div
+                      key={alert.id}
+                      className="flex items-start gap-3 p-4 border rounded-lg"
+                    >
                       <AlertTriangle className="w-5 h-5 text-red-600 mt-0.5" />
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-1">
                           <h4 className="font-medium">{alert.title}</h4>
-                          <Badge 
-                            variant="secondary" 
+                          <Badge
+                            variant="secondary"
                             className={getSeverityColor(alert.severity)}
                           >
                             {alert.severity}
@@ -394,5 +437,5 @@ export function MonitoringDashboard() {
         </TabsContent>
       </Tabs>
     </div>
-  )
-} 
+  );
+}

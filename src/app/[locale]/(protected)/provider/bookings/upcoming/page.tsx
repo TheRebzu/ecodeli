@@ -1,98 +1,106 @@
-'use client'
+"use client";
 
-import { useEffect, useState } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Calendar, Clock, MapPin, User, Phone, Euro } from 'lucide-react'
-import { format } from 'date-fns'
-import { fr } from 'date-fns/locale'
-import { useRouter } from 'next/navigation'
-import { useAuth } from '@/hooks/use-auth'
+import { useEffect, useState } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Calendar, Clock, MapPin, User, Phone, Euro } from "lucide-react";
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/hooks/use-auth";
 
 interface UpcomingBooking {
-  id: string
-  status: string
-  scheduledDate: string
-  scheduledTime: string
-  duration: number
-  totalPrice: number
-  address: any
-  notes?: string
+  id: string;
+  status: string;
+  scheduledDate: string;
+  scheduledTime: string;
+  duration: number;
+  totalPrice: number;
+  address: any;
+  notes?: string;
   client: {
-    id: string
+    id: string;
     user: {
       profile?: {
-        firstName?: string
-        lastName?: string
-        phone?: string
-      }
-    }
-  }
+        firstName?: string;
+        lastName?: string;
+        phone?: string;
+      };
+    };
+  };
   service: {
-    id: string
-    name: string
-    type: string
-  }
+    id: string;
+    name: string;
+    type: string;
+  };
 }
 
 export default function UpcomingBookingsPage() {
-  const [bookings, setBookings] = useState<UpcomingBooking[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const router = useRouter()
-  const { user } = useAuth()
+  const [bookings, setBookings] = useState<UpcomingBooking[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
+  const { user } = useAuth();
 
   useEffect(() => {
-    fetchUpcomingBookings()
-  }, [])
+    fetchUpcomingBookings();
+  }, []);
 
   const fetchUpcomingBookings = async () => {
     try {
-      setLoading(true)
-      const response = await fetch('/api/provider/bookings/upcoming', {
-        credentials: 'include'
-      })
+      setLoading(true);
+      const response = await fetch("/api/provider/bookings/upcoming", {
+        credentials: "include",
+      });
 
       if (!response.ok) {
-        throw new Error('Erreur lors du chargement des réservations')
+        throw new Error("Erreur lors du chargement des réservations");
       }
 
-      const data = await response.json()
-      setBookings(data.bookings || [])
+      const data = await response.json();
+      setBookings(data.bookings || []);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Une erreur est survenue')
+      setError(err instanceof Error ? err.message : "Une erreur est survenue");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const getStatusBadge = (status: string) => {
     const statusConfig = {
-      PENDING: { label: 'En attente', variant: 'outline' as const },
-      CONFIRMED: { label: 'Confirmée', variant: 'default' as const },
-      IN_PROGRESS: { label: 'En cours', variant: 'secondary' as const }
-    }
-    
-    const config = statusConfig[status as keyof typeof statusConfig] || 
-                  { label: status, variant: 'outline' as const }
-    
-    return <Badge variant={config.variant}>{config.label}</Badge>
-  }
+      PENDING: { label: "En attente", variant: "outline" as const },
+      CONFIRMED: { label: "Confirmée", variant: "default" as const },
+      IN_PROGRESS: { label: "En cours", variant: "secondary" as const },
+    };
+
+    const config = statusConfig[status as keyof typeof statusConfig] || {
+      label: status,
+      variant: "outline" as const,
+    };
+
+    return <Badge variant={config.variant}>{config.label}</Badge>;
+  };
 
   const handleViewDetails = (bookingId: string) => {
-    router.push(`/provider/bookings/${bookingId}`)
-  }
+    router.push(`/provider/bookings/${bookingId}`);
+  };
 
   const handleStartIntervention = (bookingId: string) => {
-    router.push(`/provider/interventions/${bookingId}`)
-  }
+    router.push(`/provider/interventions/${bookingId}`);
+  };
 
   if (loading) {
     return (
       <div className="container mx-auto py-6">
         <div className="animate-pulse space-y-4">
-          {[1, 2, 3].map(i => (
+          {[1, 2, 3].map((i) => (
             <Card key={i}>
               <CardHeader>
                 <div className="h-4 bg-gray-200 rounded w-3/4"></div>
@@ -108,7 +116,7 @@ export default function UpcomingBookingsPage() {
           ))}
         </div>
       </div>
-    )
+    );
   }
 
   if (error) {
@@ -118,9 +126,9 @@ export default function UpcomingBookingsPage() {
           <CardContent className="py-6">
             <div className="text-center text-red-600">
               <p>Erreur : {error}</p>
-              <Button 
-                onClick={fetchUpcomingBookings} 
-                variant="outline" 
+              <Button
+                onClick={fetchUpcomingBookings}
+                variant="outline"
                 className="mt-4"
               >
                 Réessayer
@@ -129,7 +137,7 @@ export default function UpcomingBookingsPage() {
           </CardContent>
         </Card>
       </div>
-    )
+    );
   }
 
   return (
@@ -142,7 +150,7 @@ export default function UpcomingBookingsPage() {
           </p>
         </div>
         <Badge variant="secondary">
-          {bookings.length} réservation{bookings.length > 1 ? 's' : ''}
+          {bookings.length} réservation{bookings.length > 1 ? "s" : ""}
         </Badge>
       </div>
 
@@ -151,7 +159,9 @@ export default function UpcomingBookingsPage() {
           <CardContent className="py-12">
             <div className="text-center">
               <Calendar className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-medium">Aucune réservation à venir</h3>
+              <h3 className="text-lg font-medium">
+                Aucune réservation à venir
+              </h3>
               <p className="text-muted-foreground">
                 Vous n'avez aucune intervention programmée pour le moment.
               </p>
@@ -161,7 +171,10 @@ export default function UpcomingBookingsPage() {
       ) : (
         <div className="grid gap-4">
           {bookings.map((booking) => (
-            <Card key={booking.id} className="hover:shadow-md transition-shadow">
+            <Card
+              key={booking.id}
+              className="hover:shadow-md transition-shadow"
+            >
               <CardHeader>
                 <div className="flex justify-between items-start">
                   <div>
@@ -172,7 +185,11 @@ export default function UpcomingBookingsPage() {
                     <CardDescription className="flex items-center gap-4 mt-2">
                       <span className="flex items-center gap-1">
                         <Calendar className="h-4 w-4" />
-                        {format(new Date(booking.scheduledDate), 'EEEE dd MMMM yyyy', { locale: fr })}
+                        {format(
+                          new Date(booking.scheduledDate),
+                          "EEEE dd MMMM yyyy",
+                          { locale: fr },
+                        )}
                       </span>
                       <span className="flex items-center gap-1">
                         <Clock className="h-4 w-4" />
@@ -188,7 +205,7 @@ export default function UpcomingBookingsPage() {
                   </div>
                 </div>
               </CardHeader>
-              
+
               <CardContent>
                 <div className="grid md:grid-cols-2 gap-4">
                   <div className="space-y-3">
@@ -196,8 +213,8 @@ export default function UpcomingBookingsPage() {
                       <User className="h-4 w-4 mt-1 text-muted-foreground" />
                       <div>
                         <p className="font-medium">
-                          {booking.client.user.profile?.firstName || 'Client'}{' '}
-                          {booking.client.user.profile?.lastName || ''}
+                          {booking.client.user.profile?.firstName || "Client"}{" "}
+                          {booking.client.user.profile?.lastName || ""}
                         </p>
                         {booking.client.user.profile?.phone && (
                           <p className="text-sm text-muted-foreground flex items-center gap-1">
@@ -212,10 +229,9 @@ export default function UpcomingBookingsPage() {
                       <MapPin className="h-4 w-4 mt-1 text-muted-foreground" />
                       <div>
                         <p className="text-sm">
-                          {typeof booking.address === 'object' ? 
-                            `${booking.address.street}, ${booking.address.city}` : 
-                            booking.address
-                          }
+                          {typeof booking.address === "object"
+                            ? `${booking.address.street}, ${booking.address.city}`
+                            : booking.address}
                         </p>
                       </div>
                     </div>
@@ -235,8 +251,8 @@ export default function UpcomingBookingsPage() {
                     >
                       Voir détails
                     </Button>
-                    
-                    {booking.status === 'CONFIRMED' && (
+
+                    {booking.status === "CONFIRMED" && (
                       <Button
                         onClick={() => handleStartIntervention(booking.id)}
                         size="sm"
@@ -252,5 +268,5 @@ export default function UpcomingBookingsPage() {
         </div>
       )}
     </div>
-  )
-} 
+  );
+}

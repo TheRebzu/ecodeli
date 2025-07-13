@@ -1,84 +1,120 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Badge } from "@/components/ui/badge"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Switch } from "@/components/ui/switch"
-import { 
-  Bell, 
-  Send, 
-  CheckCircle, 
-  XCircle, 
+import { useState } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Switch } from "@/components/ui/switch";
+import {
+  Bell,
+  Send,
+  CheckCircle,
+  XCircle,
   AlertTriangle,
   Loader2,
   Users,
-  Target
-} from "lucide-react"
+  Target,
+} from "lucide-react";
 
 interface NotificationTestResult {
-  success: boolean
-  message: string
-  timestamp: string
-  notificationId?: string
+  success: boolean;
+  message: string;
+  timestamp: string;
+  notificationId?: string;
 }
 
 export function NotificationTests() {
-  const [title, setTitle] = useState("Test Notification EcoDeli")
-  const [message, setMessage] = useState("Ceci est un test de notification OneSignal")
-  const [targetType, setTargetType] = useState("all")
-  const [targetValue, setTargetValue] = useState("")
-  const [includeImage, setIncludeImage] = useState(false)
-  const [imageUrl, setImageUrl] = useState("")
-  const [isLoading, setIsLoading] = useState(false)
-  const [results, setResults] = useState<NotificationTestResult[]>([])
+  const [title, setTitle] = useState("Test Notification EcoDeli");
+  const [message, setMessage] = useState(
+    "Ceci est un test de notification OneSignal",
+  );
+  const [targetType, setTargetType] = useState("all");
+  const [targetValue, setTargetValue] = useState("");
+  const [includeImage, setIncludeImage] = useState(false);
+  const [imageUrl, setImageUrl] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [results, setResults] = useState<NotificationTestResult[]>([]);
 
   const targetTypes = [
-    { value: "all", label: "Tous les utilisateurs", description: "Envoi à tous les utilisateurs inscrits" },
-    { value: "role", label: "Par rôle", description: "Envoi aux utilisateurs d'un rôle spécifique" },
-    { value: "user", label: "Utilisateur spécifique", description: "Envoi à un utilisateur par email" },
-    { value: "segment", label: "Segment personnalisé", description: "Envoi à un segment OneSignal" }
-  ]
+    {
+      value: "all",
+      label: "Tous les utilisateurs",
+      description: "Envoi à tous les utilisateurs inscrits",
+    },
+    {
+      value: "role",
+      label: "Par rôle",
+      description: "Envoi aux utilisateurs d'un rôle spécifique",
+    },
+    {
+      value: "user",
+      label: "Utilisateur spécifique",
+      description: "Envoi à un utilisateur par email",
+    },
+    {
+      value: "segment",
+      label: "Segment personnalisé",
+      description: "Envoi à un segment OneSignal",
+    },
+  ];
 
   const roles = [
     { value: "CLIENT", label: "Clients" },
     { value: "DELIVERER", label: "Livreurs" },
     { value: "MERCHANT", label: "Commerçants" },
     { value: "PROVIDER", label: "Prestataires" },
-    { value: "ADMIN", label: "Administrateurs" }
-  ]
+    { value: "ADMIN", label: "Administrateurs" },
+  ];
 
   const handleSendTestNotification = async () => {
     if (!title || !message) {
-      setResults(prev => [...prev, {
-        success: false,
-        message: "Veuillez saisir un titre et un message",
-        timestamp: new Date().toLocaleString()
-      }])
-      return
+      setResults((prev) => [
+        ...prev,
+        {
+          success: false,
+          message: "Veuillez saisir un titre et un message",
+          timestamp: new Date().toLocaleString(),
+        },
+      ]);
+      return;
     }
 
     if (targetType === "user" && !targetValue) {
-      setResults(prev => [...prev, {
-        success: false,
-        message: "Veuillez saisir un email pour l'envoi ciblé",
-        timestamp: new Date().toLocaleString()
-      }])
-      return
+      setResults((prev) => [
+        ...prev,
+        {
+          success: false,
+          message: "Veuillez saisir un email pour l'envoi ciblé",
+          timestamp: new Date().toLocaleString(),
+        },
+      ]);
+      return;
     }
 
-    setIsLoading(true)
-    
+    setIsLoading(true);
+
     try {
-      const response = await fetch('/api/admin/tests/notification', {
-        method: 'POST',
+      const response = await fetch("/api/admin/tests/notification", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           title,
@@ -86,32 +122,42 @@ export function NotificationTests() {
           targetType,
           targetValue,
           includeImage,
-          imageUrl
-        })
-      })
+          imageUrl,
+        }),
+      });
 
-      const data = await response.json()
+      const data = await response.json();
 
-      setResults(prev => [...prev, {
-        success: response.ok,
-        message: data.message || (response.ok ? "Notification envoyée avec succès" : "Erreur lors de l'envoi"),
-        timestamp: new Date().toLocaleString(),
-        notificationId: data.notificationId
-      }])
+      setResults((prev) => [
+        ...prev,
+        {
+          success: response.ok,
+          message:
+            data.message ||
+            (response.ok
+              ? "Notification envoyée avec succès"
+              : "Erreur lors de l'envoi"),
+          timestamp: new Date().toLocaleString(),
+          notificationId: data.notificationId,
+        },
+      ]);
     } catch (error) {
-      setResults(prev => [...prev, {
-        success: false,
-        message: "Erreur de connexion au serveur",
-        timestamp: new Date().toLocaleString()
-      }])
+      setResults((prev) => [
+        ...prev,
+        {
+          success: false,
+          message: "Erreur de connexion au serveur",
+          timestamp: new Date().toLocaleString(),
+        },
+      ]);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const clearResults = () => {
-    setResults([])
-  }
+    setResults([]);
+  };
 
   return (
     <div className="space-y-6">
@@ -137,7 +183,7 @@ export function NotificationTests() {
                 onChange={(e) => setTitle(e.target.value)}
               />
             </div>
-            
+
             <div className="space-y-2">
               <Label htmlFor="target-type">Type de ciblage</Label>
               <Select value={targetType} onValueChange={setTargetType}>
@@ -149,7 +195,9 @@ export function NotificationTests() {
                     <SelectItem key={type.value} value={type.value}>
                       <div>
                         <div className="font-medium">{type.label}</div>
-                        <div className="text-xs text-gray-500">{type.description}</div>
+                        <div className="text-xs text-gray-500">
+                          {type.description}
+                        </div>
                       </div>
                     </SelectItem>
                   ))}
@@ -235,8 +283,8 @@ export function NotificationTests() {
           )}
 
           <div className="flex gap-2">
-            <Button 
-              onClick={handleSendTestNotification} 
+            <Button
+              onClick={handleSendTestNotification}
               disabled={isLoading}
               className="flex items-center gap-2"
             >
@@ -247,9 +295,9 @@ export function NotificationTests() {
               )}
               Envoyer Notification de Test
             </Button>
-            
-            <Button 
-              variant="outline" 
+
+            <Button
+              variant="outline"
               onClick={clearResults}
               disabled={results.length === 0}
             >
@@ -271,7 +319,10 @@ export function NotificationTests() {
           <CardContent>
             <div className="space-y-3">
               {results.map((result, index) => (
-                <Alert key={index} variant={result.success ? "default" : "destructive"}>
+                <Alert
+                  key={index}
+                  variant={result.success ? "default" : "destructive"}
+                >
                   <div className="flex items-center gap-2">
                     {result.success ? (
                       <CheckCircle className="h-4 w-4" />
@@ -312,12 +363,16 @@ export function NotificationTests() {
         <CardContent>
           <div className="space-y-2 text-sm text-gray-600">
             <p>• Les notifications sont envoyées via OneSignal</p>
-            <p>• Vérifiez que les utilisateurs ont autorisé les notifications</p>
-            <p>• Les notifications peuvent prendre quelques secondes à arriver</p>
+            <p>
+              • Vérifiez que les utilisateurs ont autorisé les notifications
+            </p>
+            <p>
+              • Les notifications peuvent prendre quelques secondes à arriver
+            </p>
             <p>• Les logs d'envoi sont disponibles dans la console OneSignal</p>
           </div>
         </CardContent>
       </Card>
     </div>
-  )
-} 
+  );
+}

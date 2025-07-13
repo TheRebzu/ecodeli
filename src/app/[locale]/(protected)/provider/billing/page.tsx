@@ -5,8 +5,8 @@ interface ProviderBillingPageProps {
   params: Promise<{ locale: string }>;
 }
 
-export default async function ProviderBillingPage({ 
-  params 
+export default async function ProviderBillingPage({
+  params,
 }: ProviderBillingPageProps) {
   const { locale } = await params;
   await setRequestLocale(locale);

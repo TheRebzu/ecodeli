@@ -1,121 +1,120 @@
-import { db } from '@/lib/db'
-import { 
-  generatePDF, 
-  createDocumentTemplate, 
-  generateInvoiceNumber, 
-  formatCurrency, 
-  formatDate 
-} from '@/lib/utils/pdf'
-import QRCode from 'qrcode'
+import { db } from "@/lib/db";
+import {
+  generatePDF,
+  createDocumentTemplate,
+  generateInvoiceNumber,
+  formatCurrency,
+  formatDate,
+} from "@/lib/utils/pdf";
+import QRCode from "qrcode";
 
 interface DeliverySlipData {
-  announcementId: string
-  deliveryId: string
-  validationCode: string
-  pickupAddress: string
-  deliveryAddress: string
+  announcementId: string;
+  deliveryId: string;
+  validationCode: string;
+  pickupAddress: string;
+  deliveryAddress: string;
   packageDetails: {
-    weight?: number
-    dimensions?: string
-    fragile?: boolean
-    description: string
-  }
+    weight?: number;
+    dimensions?: string;
+    fragile?: boolean;
+    description: string;
+  };
   customerInfo: {
-    name: string
-    phone: string
-    email: string
-  }
+    name: string;
+    phone: string;
+    email: string;
+  };
   delivererInfo: {
-    name: string
-    phone: string
-    vehicleInfo?: string
-  }
+    name: string;
+    phone: string;
+    vehicleInfo?: string;
+  };
   timeline: {
-    createdAt: Date
-    pickupDate?: Date
-    deliveryDate?: Date
-    estimatedDuration: number
-  }
+    createdAt: Date;
+    pickupDate?: Date;
+    deliveryDate?: Date;
+    estimatedDuration: number;
+  };
   pricing: {
-    basePrice: number
-    finalPrice?: number
-    urgentSurcharge?: number
-    insuranceFee?: number
-  }
-  specialInstructions?: string
+    basePrice: number;
+    finalPrice?: number;
+    urgentSurcharge?: number;
+    insuranceFee?: number;
+  };
+  specialInstructions?: string;
 }
 
 interface ContractData {
-  contractId: string
+  contractId: string;
   providerInfo: {
-    name: string
-    businessName: string
-    siret: string
-    address: string
-    email: string
-    phone: string
-  }
+    name: string;
+    businessName: string;
+    siret: string;
+    address: string;
+    email: string;
+    phone: string;
+  };
   clientInfo: {
-    name: string
-    address: string
-    email: string
-    phone: string
-  }
+    name: string;
+    address: string;
+    email: string;
+    phone: string;
+  };
   serviceDetails: {
-    type: string
-    description: string
-    duration: string
-    location: string
-  }
+    type: string;
+    description: string;
+    duration: string;
+    location: string;
+  };
   financialTerms: {
-    totalAmount: number
-    paymentSchedule: string
-    paymentMethod: string
-    lateFees?: number
-  }
+    totalAmount: number;
+    paymentSchedule: string;
+    paymentMethod: string;
+    lateFees?: number;
+  };
   contractDates: {
-    startDate: Date
-    endDate: Date
-    signedDate?: Date
-  }
-  terms: string[]
+    startDate: Date;
+    endDate: Date;
+    signedDate?: Date;
+  };
+  terms: string[];
 }
 
 interface InvoiceData {
-  invoiceNumber: string
+  invoiceNumber: string;
   customerInfo: {
-    name: string
-    address: string
-    email: string
-    vatNumber?: string
-  }
+    name: string;
+    address: string;
+    email: string;
+    vatNumber?: string;
+  };
   companyInfo: {
-    name: string
-    address: string
-    siret: string
-    vatNumber: string
-  }
+    name: string;
+    address: string;
+    siret: string;
+    vatNumber: string;
+  };
   items: Array<{
-    description: string
-    quantity: number
-    unitPrice: number
-    vatRate: number
-    total: number
-  }>
+    description: string;
+    quantity: number;
+    unitPrice: number;
+    vatRate: number;
+    total: number;
+  }>;
   totals: {
-    subtotal: number
-    vatAmount: number
-    total: number
-  }
+    subtotal: number;
+    vatAmount: number;
+    total: number;
+  };
   paymentInfo: {
-    dueDate: Date
-    paymentMethod: string
-    bankDetails?: string
-  }
+    dueDate: Date;
+    paymentMethod: string;
+    bankDetails?: string;
+  };
 }
 
 class PDFGeneratorService {
-
   /**
    * Générer un bordereau de livraison complet
    */
@@ -126,74 +125,76 @@ class PDFGeneratorService {
         where: { id: announcementId },
         include: {
           author: {
-            include: { profile: true }
+            include: { profile: true },
           },
           deliverer: {
-            include: { profile: true }
+            include: { profile: true },
           },
           delivery: {
             include: {
               validationCodes: {
                 where: { isUsed: false },
-                orderBy: { createdAt: 'desc' },
-                take: 1
-              }
-            }
-          }
-        }
-      })
+                orderBy: { createdAt: "desc" },
+                take: 1,
+              },
+            },
+          },
+        },
+      });
 
       if (!announcement) {
-        throw new Error('Annonce introuvable')
+        throw new Error("Annonce introuvable");
       }
 
       const deliverySlipData: DeliverySlipData = {
         announcementId: announcement.id,
-        deliveryId: announcement.delivery?.id || '',
-        validationCode: announcement.delivery?.validationCodes[0]?.code || 'N/A',
+        deliveryId: announcement.delivery?.id || "",
+        validationCode:
+          announcement.delivery?.validationCodes[0]?.code || "N/A",
         pickupAddress: announcement.pickupAddress,
         deliveryAddress: announcement.deliveryAddress,
         packageDetails: {
           weight: announcement.packageWeight,
           dimensions: announcement.packageDimensions,
           fragile: announcement.packageFragile,
-          description: announcement.description
+          description: announcement.description,
         },
         customerInfo: {
           name: `${announcement.author.profile?.firstName} ${announcement.author.profile?.lastName}`,
-          phone: announcement.author.profile?.phone || 'N/A',
-          email: announcement.author.email
+          phone: announcement.author.profile?.phone || "N/A",
+          email: announcement.author.email,
         },
         delivererInfo: {
-          name: announcement.deliverer ? 
-            `${announcement.deliverer.profile?.firstName} ${announcement.deliverer.profile?.lastName}` : 
-            'Non assigné',
-          phone: announcement.deliverer?.profile?.phone || 'N/A',
-          vehicleInfo: announcement.deliverer?.profile?.vehicleInfo
+          name: announcement.deliverer
+            ? `${announcement.deliverer.profile?.firstName} ${announcement.deliverer.profile?.lastName}`
+            : "Non assigné",
+          phone: announcement.deliverer?.profile?.phone || "N/A",
+          vehicleInfo: announcement.deliverer?.profile?.vehicleInfo,
         },
         timeline: {
           createdAt: announcement.createdAt,
           pickupDate: announcement.pickupDate,
           deliveryDate: announcement.deliveryDate,
-          estimatedDuration: 60 // minutes
+          estimatedDuration: 60, // minutes
         },
         pricing: {
           basePrice: announcement.basePrice,
           finalPrice: announcement.finalPrice,
-          urgentSurcharge: announcement.isUrgent ? announcement.basePrice * 0.2 : 0,
-          insuranceFee: announcement.requiresInsurance ? 5 : 0
+          urgentSurcharge: announcement.isUrgent
+            ? announcement.basePrice * 0.2
+            : 0,
+          insuranceFee: announcement.requiresInsurance ? 5 : 0,
         },
-        specialInstructions: announcement.specialInstructions
-      }
+        specialInstructions: announcement.specialInstructions,
+      };
 
-      const htmlContent = await this.createDeliverySlipHTML(deliverySlipData)
-      const fileName = `bordereau-livraison-${announcementId}.pdf`
-      
-      return await generatePDF(htmlContent, fileName)
+      const htmlContent = await this.createDeliverySlipHTML(deliverySlipData);
+      const fileName = `bordereau-livraison-${announcementId}.pdf`;
 
+      return await generatePDF(htmlContent, fileName);
     } catch (error) {
-      console.error('Error generating delivery slip:', error)
-      throw new Error('Erreur lors de la génération du bordereau de livraison')
+      console.error("Error generating delivery slip:", error);
+      throw new Error("Erreur lors de la génération du bordereau de livraison");
     }
   }
 
@@ -206,62 +207,61 @@ class PDFGeneratorService {
         where: { id: contractId },
         include: {
           provider: {
-            include: { profile: true }
+            include: { profile: true },
           },
           client: {
-            include: { profile: true }
-          }
-        }
-      })
+            include: { profile: true },
+          },
+        },
+      });
 
       if (!contract) {
-        throw new Error('Contrat introuvable')
+        throw new Error("Contrat introuvable");
       }
 
       const contractData: ContractData = {
         contractId: contract.id,
         providerInfo: {
           name: `${contract.provider.profile?.firstName} ${contract.provider.profile?.lastName}`,
-          businessName: contract.provider.profile?.businessName || 'N/A',
-          siret: contract.provider.profile?.siret || 'N/A',
-          address: contract.provider.profile?.address || 'N/A',
+          businessName: contract.provider.profile?.businessName || "N/A",
+          siret: contract.provider.profile?.siret || "N/A",
+          address: contract.provider.profile?.address || "N/A",
           email: contract.provider.email,
-          phone: contract.provider.profile?.phone || 'N/A'
+          phone: contract.provider.profile?.phone || "N/A",
         },
         clientInfo: {
           name: `${contract.client.profile?.firstName} ${contract.client.profile?.lastName}`,
-          address: contract.client.profile?.address || 'N/A',
+          address: contract.client.profile?.address || "N/A",
           email: contract.client.email,
-          phone: contract.client.profile?.phone || 'N/A'
+          phone: contract.client.profile?.phone || "N/A",
         },
         serviceDetails: {
           type: contract.serviceType,
           description: contract.description,
           duration: contract.duration,
-          location: contract.location
+          location: contract.location,
         },
         financialTerms: {
           totalAmount: contract.totalAmount,
           paymentSchedule: contract.paymentSchedule,
           paymentMethod: contract.paymentMethod,
-          lateFees: contract.lateFees
+          lateFees: contract.lateFees,
         },
         contractDates: {
           startDate: contract.startDate,
           endDate: contract.endDate,
-          signedDate: contract.signedDate
+          signedDate: contract.signedDate,
         },
-        terms: contract.terms as string[]
-      }
+        terms: contract.terms as string[],
+      };
 
-      const htmlContent = await this.createContractHTML(contractData)
-      const fileName = `contrat-${contractId}.pdf`
-      
-      return await generatePDF(htmlContent, fileName)
+      const htmlContent = await this.createContractHTML(contractData);
+      const fileName = `contrat-${contractId}.pdf`;
 
+      return await generatePDF(htmlContent, fileName);
     } catch (error) {
-      console.error('Error generating contract:', error)
-      throw new Error('Erreur lors de la génération du contrat')
+      console.error("Error generating contract:", error);
+      throw new Error("Erreur lors de la génération du contrat");
     }
   }
 
@@ -276,58 +276,59 @@ class PDFGeneratorService {
           announcement: {
             include: {
               author: {
-                include: { profile: true }
-              }
-            }
-          }
-        }
-      })
+                include: { profile: true },
+              },
+            },
+          },
+        },
+      });
 
       if (!payment) {
-        throw new Error('Paiement introuvable')
+        throw new Error("Paiement introuvable");
       }
 
       const invoiceData: InvoiceData = {
         invoiceNumber: generateInvoiceNumber(),
         customerInfo: {
           name: `${payment.announcement.author.profile?.firstName} ${payment.announcement.author.profile?.lastName}`,
-          address: payment.announcement.author.profile?.address || 'N/A',
+          address: payment.announcement.author.profile?.address || "N/A",
           email: payment.announcement.author.email,
-          vatNumber: payment.announcement.author.profile?.vatNumber
+          vatNumber: payment.announcement.author.profile?.vatNumber,
         },
         companyInfo: {
-          name: 'EcoDeli SAS',
-          address: '123 Avenue des Livraisons Écologiques, 75001 Paris',
-          siret: '12345678901234',
-          vatNumber: 'FR12345678901'
+          name: "EcoDeli SAS",
+          address: "123 Avenue des Livraisons Écologiques, 75001 Paris",
+          siret: "12345678901234",
+          vatNumber: "FR12345678901",
         },
-        items: [{
-          description: payment.announcement.title,
-          quantity: 1,
-          unitPrice: payment.amount,
-          vatRate: 20,
-          total: payment.amount
-        }],
+        items: [
+          {
+            description: payment.announcement.title,
+            quantity: 1,
+            unitPrice: payment.amount,
+            vatRate: 20,
+            total: payment.amount,
+          },
+        ],
         totals: {
           subtotal: payment.amount / 1.2,
-          vatAmount: payment.amount - (payment.amount / 1.2),
-          total: payment.amount
+          vatAmount: payment.amount - payment.amount / 1.2,
+          total: payment.amount,
         },
         paymentInfo: {
           dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 jours
           paymentMethod: payment.paymentMethod,
-          bankDetails: 'IBAN: FR76 1234 5678 9012 3456 78'
-        }
-      }
+          bankDetails: "IBAN: FR76 1234 5678 9012 3456 78",
+        },
+      };
 
-      const htmlContent = await this.createInvoiceHTML(invoiceData)
-      const fileName = `facture-${invoiceData.invoiceNumber}.pdf`
-      
-      return await generatePDF(htmlContent, fileName)
+      const htmlContent = await this.createInvoiceHTML(invoiceData);
+      const fileName = `facture-${invoiceData.invoiceNumber}.pdf`;
 
+      return await generatePDF(htmlContent, fileName);
     } catch (error) {
-      console.error('Error generating invoice:', error)
-      throw new Error('Erreur lors de la génération de la facture')
+      console.error("Error generating invoice:", error);
+      throw new Error("Erreur lors de la génération de la facture");
     }
   }
 
@@ -342,25 +343,25 @@ class PDFGeneratorService {
           announcement: {
             include: {
               author: { include: { profile: true } },
-              deliverer: { include: { profile: true } }
-            }
+              deliverer: { include: { profile: true } },
+            },
           },
           validationCodes: {
             where: { isUsed: true },
-            orderBy: { usedAt: 'desc' },
-            take: 1
-          }
-        }
-      })
+            orderBy: { usedAt: "desc" },
+            take: 1,
+          },
+        },
+      });
 
-      if (!delivery || delivery.status !== 'DELIVERED') {
-        throw new Error('Livraison non trouvée ou non complétée')
+      if (!delivery || delivery.status !== "DELIVERED") {
+        throw new Error("Livraison non trouvée ou non complétée");
       }
 
-      const validationCode = delivery.validationCodes[0]
+      const validationCode = delivery.validationCodes[0];
       const qrCodeDataURL = await QRCode.toDataURL(
-        `${process.env.NEXTAUTH_URL}/verify/delivery/${delivery.id}?code=${validationCode.code}`
-      )
+        `${process.env.NEXTAUTH_URL}/verify/delivery/${delivery.id}?code=${validationCode.code}`,
+      );
 
       const htmlContent = await this.createDeliveryCertificateHTML({
         delivery,
@@ -371,25 +372,28 @@ class PDFGeneratorService {
         delivererName: `${delivery.announcement.deliverer?.profile?.firstName} ${delivery.announcement.deliverer?.profile?.lastName}`,
         announcementTitle: delivery.announcement.title,
         pickupAddress: delivery.announcement.pickupAddress,
-        deliveryAddress: delivery.announcement.deliveryAddress
-      })
+        deliveryAddress: delivery.announcement.deliveryAddress,
+      });
 
-      const fileName = `certificat-livraison-${deliveryId}.pdf`
-      
-      return await generatePDF(htmlContent, fileName)
+      const fileName = `certificat-livraison-${deliveryId}.pdf`;
 
+      return await generatePDF(htmlContent, fileName);
     } catch (error) {
-      console.error('Error generating delivery certificate:', error)
-      throw new Error('Erreur lors de la génération du certificat de livraison')
+      console.error("Error generating delivery certificate:", error);
+      throw new Error(
+        "Erreur lors de la génération du certificat de livraison",
+      );
     }
   }
 
   // Méthodes privées pour générer le HTML
 
-  private async createDeliverySlipHTML(data: DeliverySlipData): Promise<string> {
+  private async createDeliverySlipHTML(
+    data: DeliverySlipData,
+  ): Promise<string> {
     const qrCodeDataURL = await QRCode.toDataURL(
-      `${process.env.NEXTAUTH_URL}/delivery/track/${data.deliveryId}?code=${data.validationCode}`
-    )
+      `${process.env.NEXTAUTH_URL}/delivery/track/${data.deliveryId}?code=${data.validationCode}`,
+    );
 
     const content = `
       <div class="section">
@@ -444,15 +448,15 @@ class PDFGeneratorService {
           </div>
           <div class="info-item">
             <div class="info-label">Poids</div>
-            <div class="info-value">${data.packageDetails.weight ? data.packageDetails.weight + ' kg' : 'Non spécifié'}</div>
+            <div class="info-value">${data.packageDetails.weight ? data.packageDetails.weight + " kg" : "Non spécifié"}</div>
           </div>
           <div class="info-item">
             <div class="info-label">Dimensions</div>
-            <div class="info-value">${data.packageDetails.dimensions || 'Non spécifiées'}</div>
+            <div class="info-value">${data.packageDetails.dimensions || "Non spécifiées"}</div>
           </div>
           <div class="info-item">
             <div class="info-label">Fragile</div>
-                          <div class="info-value">${data.packageDetails.fragile ? 'OUI' : 'Non'}</div>
+                          <div class="info-value">${data.packageDetails.fragile ? "OUI" : "Non"}</div>
           </div>
         </div>
       </div>
@@ -470,7 +474,7 @@ class PDFGeneratorService {
             <div class="info-label">Livreur</div>
             <div class="info-value">${data.delivererInfo.name}</div>
             <div class="info-value">${data.delivererInfo.phone}</div>
-            ${data.delivererInfo.vehicleInfo ? `<div class="info-value">Véhicule: ${data.delivererInfo.vehicleInfo}</div>` : ''}
+            ${data.delivererInfo.vehicleInfo ? `<div class="info-value">Véhicule: ${data.delivererInfo.vehicleInfo}</div>` : ""}
           </div>
         </div>
       </div>
@@ -482,18 +486,26 @@ class PDFGeneratorService {
             <td>Prix de base</td>
             <td style="text-align: right;">${formatCurrency(data.pricing.basePrice)}</td>
           </tr>
-          ${data.pricing.urgentSurcharge ? `
+          ${
+            data.pricing.urgentSurcharge
+              ? `
           <tr>
             <td>Supplément urgent</td>
             <td style="text-align: right;">${formatCurrency(data.pricing.urgentSurcharge)}</td>
           </tr>
-          ` : ''}
-          ${data.pricing.insuranceFee ? `
+          `
+              : ""
+          }
+          ${
+            data.pricing.insuranceFee
+              ? `
           <tr>
             <td>Assurance</td>
             <td style="text-align: right;">${formatCurrency(data.pricing.insuranceFee)}</td>
           </tr>
-          ` : ''}
+          `
+              : ""
+          }
           <tr style="font-weight: bold; border-top: 2px solid #e2e8f0;">
             <td>Prix final</td>
             <td style="text-align: right;">${formatCurrency(data.pricing.finalPrice || data.pricing.basePrice)}</td>
@@ -501,14 +513,18 @@ class PDFGeneratorService {
         </table>
       </div>
 
-      ${data.specialInstructions ? `
+      ${
+        data.specialInstructions
+          ? `
       <div class="section">
         <div class="section-title">📝 Instructions Spéciales</div>
         <div style="padding: 15px; background-color: #fef3c7; border-left: 4px solid #f59e0b; border-radius: 4px;">
           ${data.specialInstructions}
         </div>
       </div>
-      ` : ''}
+      `
+          : ""
+      }
 
       <div class="signature-zone">
         <div class="signature-box">
@@ -526,9 +542,9 @@ class PDFGeneratorService {
           </div>
         </div>
       </div>
-    `
+    `;
 
-    return createDocumentTemplate('Bordereau de Livraison', content)
+    return createDocumentTemplate("Bordereau de Livraison", content);
   }
 
   private async createContractHTML(data: ContractData): Promise<string> {
@@ -542,7 +558,7 @@ class PDFGeneratorService {
           </div>
           <div class="info-item">
             <div class="info-label">Date de signature</div>
-            <div class="info-value">${data.contractDates.signedDate ? formatDate(data.contractDates.signedDate) : 'Non signé'}</div>
+            <div class="info-value">${data.contractDates.signedDate ? formatDate(data.contractDates.signedDate) : "Non signé"}</div>
           </div>
           <div class="info-item">
             <div class="info-label">Date de début</div>
@@ -638,19 +654,23 @@ class PDFGeneratorService {
             <td>Méthode de paiement</td>
             <td style="text-align: right;">${data.financialTerms.paymentMethod}</td>
           </tr>
-          ${data.financialTerms.lateFees ? `
+          ${
+            data.financialTerms.lateFees
+              ? `
           <tr>
             <td>Pénalités de retard</td>
             <td style="text-align: right;">${formatCurrency(data.financialTerms.lateFees)} par jour</td>
           </tr>
-          ` : ''}
+          `
+              : ""
+          }
         </table>
       </div>
 
       <div class="section">
         <div class="section-title">CONDITIONS GÉNÉRALES</div>
         <ol style="padding-left: 20px; line-height: 1.8;">
-          ${data.terms.map(term => `<li>${term}</li>`).join('')}
+          ${data.terms.map((term) => `<li>${term}</li>`).join("")}
         </ol>
       </div>
 
@@ -672,9 +692,9 @@ class PDFGeneratorService {
           </div>
         </div>
       </div>
-    `
+    `;
 
-    return createDocumentTemplate('Contrat de Service', content)
+    return createDocumentTemplate("Contrat de Service", content);
   }
 
   private async createInvoiceHTML(data: InvoiceData): Promise<string> {
@@ -710,7 +730,7 @@ class PDFGeneratorService {
           <strong>${data.customerInfo.name}</strong><br>
           ${data.customerInfo.address}<br>
           ${data.customerInfo.email}
-          ${data.customerInfo.vatNumber ? `<br>TVA: ${data.customerInfo.vatNumber}` : ''}
+          ${data.customerInfo.vatNumber ? `<br>TVA: ${data.customerInfo.vatNumber}` : ""}
         </div>
       </div>
 
@@ -727,7 +747,9 @@ class PDFGeneratorService {
             </tr>
           </thead>
           <tbody>
-            ${data.items.map(item => `
+            ${data.items
+              .map(
+                (item) => `
               <tr>
                 <td>${item.description}</td>
                 <td style="text-align: center;">${item.quantity}</td>
@@ -735,7 +757,9 @@ class PDFGeneratorService {
                 <td style="text-align: center;">${item.vatRate}%</td>
                 <td style="text-align: right;">${formatCurrency(item.total / 1.2)}</td>
               </tr>
-            `).join('')}
+            `,
+              )
+              .join("")}
           </tbody>
         </table>
       </div>
@@ -748,12 +772,16 @@ class PDFGeneratorService {
               <div class="info-label">Méthode de paiement</div>
               <div class="info-value">${data.paymentInfo.paymentMethod}</div>
             </div>
-            ${data.paymentInfo.bankDetails ? `
+            ${
+              data.paymentInfo.bankDetails
+                ? `
             <div class="info-item">
               <div class="info-label">Coordonnées bancaires</div>
               <div class="info-value">${data.paymentInfo.bankDetails}</div>
             </div>
-            ` : ''}
+            `
+                : ""
+            }
           </div>
           <div>
             <table class="table" style="margin: 0;">
@@ -781,9 +809,9 @@ class PDFGeneratorService {
           En cas de retard de paiement, des pénalités de 3 fois le taux légal seront appliquées.
         </p>
       </div>
-    `
+    `;
 
-    return createDocumentTemplate(`Facture ${data.invoiceNumber}`, content)
+    return createDocumentTemplate(`Facture ${data.invoiceNumber}`, content);
   }
 
   private async createDeliveryCertificateHTML(data: any): Promise<string> {
@@ -810,7 +838,7 @@ class PDFGeneratorService {
           </div>
           <div class="info-item">
             <div class="info-label">Date et heure de livraison</div>
-            <div class="info-value">${formatDate(data.deliveredAt)} à ${data.deliveredAt.toLocaleTimeString('fr-FR')}</div>
+            <div class="info-value">${formatDate(data.deliveredAt)} à ${data.deliveredAt.toLocaleTimeString("fr-FR")}</div>
           </div>
           <div class="info-item">
             <div class="info-label">Statut</div>
@@ -870,10 +898,10 @@ class PDFGeneratorService {
           <br>Pour toute vérification, contactez notre service client au contact@ecodeli.fr
         </div>
       </div>
-    `
+    `;
 
-    return createDocumentTemplate('Certificat de Livraison', content)
+    return createDocumentTemplate("Certificat de Livraison", content);
   }
 }
 
-export const pdfGeneratorService = new PDFGeneratorService()
+export const pdfGeneratorService = new PDFGeneratorService();

@@ -15,10 +15,8 @@ export default function ClientServicesPage() {
         title="Services Disponibles"
         description="Découvrez tous les services proposés par nos prestataires qualifiés"
       />
-      
-      {user && (
-        <ServicesBrowser clientId={user.id} />
-      )}
+
+      {user && <ServicesBrowser clientId={user.id} />}
     </div>
   );
 }

@@ -1,73 +1,76 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useRouter } from "next/navigation"
-import { useTranslations } from "next-intl"
-import { providerRegisterSchema, type ProviderRegisterData } from "@/features/auth/schemas/auth.schema"
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
+import {
+  providerRegisterSchema,
+  type ProviderRegisterData,
+} from "@/features/auth/schemas/auth.schema";
 
 export default function ProviderRegisterForm() {
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const router = useRouter()
-  const t = useTranslations()
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
+  const t = useTranslations();
 
   const {
     register,
     handleSubmit,
-    formState: { errors }
+    formState: { errors },
   } = useForm<ProviderRegisterData>({
     resolver: zodResolver(providerRegisterSchema),
     defaultValues: {
-      serviceType: 'CLEANING'
-    }
-  })
+      serviceType: "CLEANING",
+    },
+  });
 
   const onSubmit = async (data: ProviderRegisterData) => {
-    setIsLoading(true)
-    setError(null)
+    setIsLoading(true);
+    setError(null);
 
     try {
-      const response = await fetch('/api/auth/sign-up/email', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/auth/sign-up/email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           email: data.email,
           password: data.password,
           name: data.businessName,
-          role: 'PROVIDER',
+          role: "PROVIDER",
           // Propriétés additionnelles pour NextAuth
           isActive: false,
-          validationStatus: 'PENDING'
-        })
-      })
+          validationStatus: "PENDING",
+        }),
+      });
 
-      const result = await response.json()
+      const result = await response.json();
 
       if (!response.ok) {
-        setError(result.error || 'Une erreur est survenue')
-        return
+        setError(result.error || "Une erreur est survenue");
+        return;
       }
 
-      router.push('/verify-email?email=' + encodeURIComponent(data.email))
+      router.push("/verify-email?email=" + encodeURIComponent(data.email));
     } catch (err) {
-      setError('Une erreur est survenue lors de l\'inscription')
+      setError("Une erreur est survenue lors de l'inscription");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const serviceTypes = [
-    { value: 'CLEANING', label: 'Ménage / Nettoyage' },
-    { value: 'GARDENING', label: 'Jardinage' },
-    { value: 'HANDYMAN', label: 'Bricolage / Réparations' },
-    { value: 'TUTORING', label: 'Cours particuliers' },
-    { value: 'HEALTHCARE', label: 'Soins / Santé' },
-    { value: 'BEAUTY', label: 'Beauté / Esthétique' },
-    { value: 'PET_SITTING', label: 'Garde d\'animaux' },
-    { value: 'OTHER', label: 'Autre' }
-  ]
+    { value: "CLEANING", label: "Ménage / Nettoyage" },
+    { value: "GARDENING", label: "Jardinage" },
+    { value: "HANDYMAN", label: "Bricolage / Réparations" },
+    { value: "TUTORING", label: "Cours particuliers" },
+    { value: "HEALTHCARE", label: "Soins / Santé" },
+    { value: "BEAUTY", label: "Beauté / Esthétique" },
+    { value: "PET_SITTING", label: "Garde d'animaux" },
+    { value: "OTHER", label: "Autre" },
+  ];
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -78,7 +81,10 @@ export default function ProviderRegisterForm() {
       )}
 
       <div>
-        <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
+        <label
+          htmlFor="name"
+          className="block text-sm font-medium text-gray-700 mb-1"
+        >
           Nom complet *
         </label>
         <input
@@ -94,7 +100,10 @@ export default function ProviderRegisterForm() {
       </div>
 
       <div>
-        <label htmlFor="serviceType" className="block text-sm font-medium text-gray-700 mb-1">
+        <label
+          htmlFor="serviceType"
+          className="block text-sm font-medium text-gray-700 mb-1"
+        >
           Type de service *
         </label>
         <select
@@ -109,12 +118,17 @@ export default function ProviderRegisterForm() {
           ))}
         </select>
         {errors.serviceType && (
-          <p className="mt-1 text-sm text-red-600">{errors.serviceType.message}</p>
+          <p className="mt-1 text-sm text-red-600">
+            {errors.serviceType.message}
+          </p>
         )}
       </div>
 
       <div>
-        <label htmlFor="experience" className="block text-sm font-medium text-gray-700 mb-1">
+        <label
+          htmlFor="experience"
+          className="block text-sm font-medium text-gray-700 mb-1"
+        >
           Années d'expérience *
         </label>
         <input
@@ -127,12 +141,17 @@ export default function ProviderRegisterForm() {
           placeholder="5"
         />
         {errors.experience && (
-          <p className="mt-1 text-sm text-red-600">{errors.experience.message}</p>
+          <p className="mt-1 text-sm text-red-600">
+            {errors.experience.message}
+          </p>
         )}
       </div>
 
       <div>
-        <label htmlFor="certifications" className="block text-sm font-medium text-gray-700 mb-1">
+        <label
+          htmlFor="certifications"
+          className="block text-sm font-medium text-gray-700 mb-1"
+        >
           Certifications / Diplômes
         </label>
         <textarea
@@ -143,12 +162,17 @@ export default function ProviderRegisterForm() {
           placeholder="Listez vos diplômes, certifications ou formations pertinentes..."
         />
         {errors.certifications && (
-          <p className="mt-1 text-sm text-red-600">{errors.certifications.message}</p>
+          <p className="mt-1 text-sm text-red-600">
+            {errors.certifications.message}
+          </p>
         )}
       </div>
 
       <div>
-        <label htmlFor="serviceArea" className="block text-sm font-medium text-gray-700 mb-1">
+        <label
+          htmlFor="serviceArea"
+          className="block text-sm font-medium text-gray-700 mb-1"
+        >
           Zone d'intervention *
         </label>
         <input
@@ -159,12 +183,17 @@ export default function ProviderRegisterForm() {
           placeholder="Paris 15ème, Boulogne-Billancourt..."
         />
         {errors.serviceArea && (
-          <p className="mt-1 text-sm text-red-600">{errors.serviceArea.message}</p>
+          <p className="mt-1 text-sm text-red-600">
+            {errors.serviceArea.message}
+          </p>
         )}
       </div>
 
       <div>
-        <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+        <label
+          htmlFor="email"
+          className="block text-sm font-medium text-gray-700 mb-1"
+        >
           Email *
         </label>
         <input
@@ -180,7 +209,10 @@ export default function ProviderRegisterForm() {
       </div>
 
       <div>
-        <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">
+        <label
+          htmlFor="phone"
+          className="block text-sm font-medium text-gray-700 mb-1"
+        >
           Téléphone *
         </label>
         <input
@@ -196,7 +228,10 @@ export default function ProviderRegisterForm() {
       </div>
 
       <div>
-        <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+        <label
+          htmlFor="password"
+          className="block text-sm font-medium text-gray-700 mb-1"
+        >
           Mot de passe *
         </label>
         <input
@@ -212,7 +247,10 @@ export default function ProviderRegisterForm() {
       </div>
 
       <div>
-        <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1">
+        <label
+          htmlFor="confirmPassword"
+          className="block text-sm font-medium text-gray-700 mb-1"
+        >
           Confirmer le mot de passe *
         </label>
         <input
@@ -223,7 +261,9 @@ export default function ProviderRegisterForm() {
           placeholder="Confirmez votre mot de passe"
         />
         {errors.confirmPassword && (
-          <p className="mt-1 text-sm text-red-600">{errors.confirmPassword.message}</p>
+          <p className="mt-1 text-sm text-red-600">
+            {errors.confirmPassword.message}
+          </p>
         )}
       </div>
 
@@ -236,11 +276,17 @@ export default function ProviderRegisterForm() {
         />
         <label htmlFor="acceptTerms" className="text-sm text-gray-700">
           J'accepte les{" "}
-          <a href="/terms" className="text-green-600 hover:text-green-500 underline">
+          <a
+            href="/terms"
+            className="text-green-600 hover:text-green-500 underline"
+          >
             conditions d'utilisation
           </a>{" "}
           et la{" "}
-          <a href="/privacy" className="text-green-600 hover:text-green-500 underline">
+          <a
+            href="/privacy"
+            className="text-green-600 hover:text-green-500 underline"
+          >
             politique de confidentialité
           </a>
         </label>
@@ -254,8 +300,8 @@ export default function ProviderRegisterForm() {
         disabled={isLoading}
         className="w-full bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
       >
-        {isLoading ? 'Inscription en cours...' : 'S\'inscrire comme prestataire'}
+        {isLoading ? "Inscription en cours..." : "S'inscrire comme prestataire"}
       </button>
     </form>
-  )
-} 
+  );
+}

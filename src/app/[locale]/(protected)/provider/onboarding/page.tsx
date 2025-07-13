@@ -1,48 +1,68 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useRouter } from "next/navigation"
-import { z } from "zod"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Label } from "@/components/ui/label"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Badge } from "@/components/ui/badge"
-import { 
-  User, 
-  Briefcase, 
-  MapPin, 
-  Phone, 
-  Mail, 
-  FileText, 
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useRouter } from "next/navigation";
+import { z } from "zod";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Badge } from "@/components/ui/badge";
+import {
+  User,
+  Briefcase,
+  MapPin,
+  Phone,
+  Mail,
+  FileText,
   Upload,
   CheckCircle,
   AlertCircle,
-  ArrowRight
-} from "lucide-react"
+  ArrowRight,
+} from "lucide-react";
 
 const providerOnboardingSchema = z.object({
-  businessName: z.string().min(2, "Le nom de l'entreprise doit faire au moins 2 caractères"),
-  description: z.string().min(20, "La description doit faire au moins 20 caractères"),
+  businessName: z
+    .string()
+    .min(2, "Le nom de l'entreprise doit faire au moins 2 caractères"),
+  description: z
+    .string()
+    .min(20, "La description doit faire au moins 20 caractères"),
   phone: z.string().min(10, "Numéro de téléphone invalide"),
   address: z.string().min(10, "Adresse requise"),
   city: z.string().min(2, "Ville requise"),
   postalCode: z.string().min(5, "Code postal invalide"),
-  serviceCategories: z.array(z.string()).min(1, "Sélectionnez au moins une catégorie de service"),
+  serviceCategories: z
+    .array(z.string())
+    .min(1, "Sélectionnez au moins une catégorie de service"),
   hourlyRate: z.number().min(10, "Tarif horaire minimum : 10€"),
   experience: z.string().min(1, "Sélectionnez votre niveau d'expérience"),
   certifications: z.array(z.string()).optional(),
   insurance: z.boolean(),
-  acceptTerms: z.boolean().refine(val => val === true, "Vous devez accepter les conditions")
-})
+  acceptTerms: z
+    .boolean()
+    .refine((val) => val === true, "Vous devez accepter les conditions"),
+});
 
-type ProviderOnboardingData = z.infer<typeof providerOnboardingSchema>
+type ProviderOnboardingData = z.infer<typeof providerOnboardingSchema>;
 
 const serviceCategories = [
   { value: "CLEANING", label: "Ménage / Nettoyage" },
@@ -52,15 +72,15 @@ const serviceCategories = [
   { value: "HEALTHCARE", label: "Soins / Santé" },
   { value: "BEAUTY", label: "Beauté / Esthétique" },
   { value: "PET_SITTING", label: "Garde d'animaux" },
-  { value: "OTHER", label: "Autre" }
-]
+  { value: "OTHER", label: "Autre" },
+];
 
 const experienceLevels = [
   { value: "BEGINNER", label: "Débutant (0-2 ans)" },
   { value: "INTERMEDIATE", label: "Intermédiaire (2-5 ans)" },
   { value: "EXPERIENCED", label: "Expérimenté (5-10 ans)" },
-  { value: "EXPERT", label: "Expert (10+ ans)" }
-]
+  { value: "EXPERT", label: "Expert (10+ ans)" },
+];
 
 const availableCertifications = [
   "Certification Qualiopi",
@@ -69,112 +89,119 @@ const availableCertifications = [
   "Diplôme d'État",
   "Formation continue",
   "Certification sécurité",
-  "Certification qualité"
-]
+  "Certification qualité",
+];
 
 export default function ProviderOnboardingPage() {
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [currentStep, setCurrentStep] = useState(1)
-  const router = useRouter()
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [currentStep, setCurrentStep] = useState(1);
+  const router = useRouter();
 
   const {
     register,
     handleSubmit,
     watch,
     setValue,
-    formState: { errors, isValid }
+    formState: { errors, isValid },
   } = useForm<ProviderOnboardingData>({
     resolver: zodResolver(providerOnboardingSchema),
     defaultValues: {
       serviceCategories: [],
       certifications: [],
       insurance: false,
-      acceptTerms: false
-    }
-  })
+      acceptTerms: false,
+    },
+  });
 
-  const watchedServiceCategories = watch("serviceCategories")
-  const watchedCertifications = watch("certifications")
-  const watchedInsurance = watch("insurance")
-  const watchedAcceptTerms = watch("acceptTerms")
+  const watchedServiceCategories = watch("serviceCategories");
+  const watchedCertifications = watch("certifications");
+  const watchedInsurance = watch("insurance");
+  const watchedAcceptTerms = watch("acceptTerms");
 
   const toggleServiceCategory = (category: string) => {
-    const current = watchedServiceCategories || []
+    const current = watchedServiceCategories || [];
     if (current.includes(category)) {
-      setValue("serviceCategories", current.filter(c => c !== category))
+      setValue(
+        "serviceCategories",
+        current.filter((c) => c !== category),
+      );
     } else {
-      setValue("serviceCategories", [...current, category])
+      setValue("serviceCategories", [...current, category]);
     }
-  }
+  };
 
   const toggleCertification = (certification: string) => {
-    const current = watchedCertifications || []
+    const current = watchedCertifications || [];
     if (current.includes(certification)) {
-      setValue("certifications", current.filter(c => c !== certification))
+      setValue(
+        "certifications",
+        current.filter((c) => c !== certification),
+      );
     } else {
-      setValue("certifications", [...current, certification])
+      setValue("certifications", [...current, certification]);
     }
-  }
+  };
 
   const onSubmit = async (data: ProviderOnboardingData) => {
-    setIsLoading(true)
-    setError(null)
-    console.log('SUBMIT', data)
+    setIsLoading(true);
+    setError(null);
+    console.log("SUBMIT", data);
     try {
-      const response = await fetch('/api/provider/onboarding', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-      })
+      const response = await fetch("/api/provider/onboarding", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
 
-      const result = await response.json()
+      const result = await response.json();
 
       if (!response.ok) {
-        setError(result.error || 'Une erreur est survenue')
-        return
+        setError(result.error || "Une erreur est survenue");
+        return;
       }
 
       // Rediriger vers le dashboard
-      router.push('/provider')
+      router.push("/provider");
     } catch (err) {
-      setError('Une erreur est survenue lors de la sauvegarde')
+      setError("Une erreur est survenue lors de la sauvegarde");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const nextStep = () => {
     if (currentStep < 4) {
-      setCurrentStep(currentStep + 1)
+      setCurrentStep(currentStep + 1);
     }
-  }
+  };
 
   const prevStep = () => {
     if (currentStep > 1) {
-      setCurrentStep(currentStep - 1)
+      setCurrentStep(currentStep - 1);
     }
-  }
+  };
 
   function isStepValid(step: number) {
     if (step === 1) {
-      const businessName = watch('businessName');
-      const description = watch('description');
-      const phone = watch('phone');
-      const hourlyRate = watch('hourlyRate');
-      
-      console.log('STEP 1 VALIDATION:', {
+      const businessName = watch("businessName");
+      const description = watch("description");
+      const phone = watch("phone");
+      const hourlyRate = watch("hourlyRate");
+
+      console.log("STEP 1 VALIDATION:", {
         businessName,
         description,
         descriptionLength: description?.length,
         phone,
         hourlyRate,
         businessNameValid: !!businessName && !errors.businessName,
-        descriptionValid: !!description && description.length >= 20 && !errors.description,
+        descriptionValid:
+          !!description && description.length >= 20 && !errors.description,
         phoneValid: !!phone && !errors.phone,
-        hourlyRateValid: !!hourlyRate && !errors.hourlyRate
+        hourlyRateValid: !!hourlyRate && !errors.hourlyRate,
       });
-      
+
       return (
         !!businessName &&
         !errors.businessName &&
@@ -189,36 +216,40 @@ export default function ProviderOnboardingPage() {
     }
     if (step === 2) {
       return (
-        !!watch('address') &&
+        !!watch("address") &&
         !errors.address &&
-        !!watch('city') &&
+        !!watch("city") &&
         !errors.city &&
-        !!watch('postalCode') &&
+        !!watch("postalCode") &&
         !errors.postalCode
       );
     }
     if (step === 3) {
       return (
-        watch('serviceCategories')?.length > 0 &&
+        watch("serviceCategories")?.length > 0 &&
         !errors.serviceCategories &&
-        !!watch('experience') &&
+        !!watch("experience") &&
         !errors.experience
       );
     }
     if (step === 4) {
-      const insurance = watch('insurance');
-      const acceptTerms = watch('acceptTerms');
+      const insurance = watch("insurance");
+      const acceptTerms = watch("acceptTerms");
       const insuranceError = errors.insurance;
       const acceptTermsError = errors.acceptTerms;
-      
-      console.log('STEP 4 VALIDATION:', {
+
+      console.log("STEP 4 VALIDATION:", {
         insurance,
         acceptTerms,
         insuranceError,
         acceptTermsError,
-        result: insurance === true && acceptTerms === true && !insuranceError && !acceptTermsError
+        result:
+          insurance === true &&
+          acceptTerms === true &&
+          !insuranceError &&
+          !acceptTermsError,
       });
-      
+
       return (
         insurance === true &&
         acceptTerms === true &&
@@ -233,9 +264,12 @@ export default function ProviderOnboardingPage() {
     <div className="container mx-auto py-8 max-w-4xl">
       {/* En-tête */}
       <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold mb-2">Configuration de votre profil prestataire</h1>
+        <h1 className="text-3xl font-bold mb-2">
+          Configuration de votre profil prestataire
+        </h1>
         <p className="text-muted-foreground">
-          Complétez votre profil pour commencer à proposer vos services sur EcoDeli
+          Complétez votre profil pour commencer à proposer vos services sur
+          EcoDeli
         </p>
       </div>
 
@@ -244,20 +278,29 @@ export default function ProviderOnboardingPage() {
         <div className="flex items-center space-x-4">
           {[1, 2, 3, 4].map((step) => (
             <div key={step} className="flex items-center">
-              <div className={`
+              <div
+                className={`
                 w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium
-                ${currentStep >= step 
-                  ? 'bg-green-600 text-white' 
-                  : 'bg-gray-200 text-gray-600'
+                ${
+                  currentStep >= step
+                    ? "bg-green-600 text-white"
+                    : "bg-gray-200 text-gray-600"
                 }
-              `}>
-                {currentStep > step ? <CheckCircle className="w-4 h-4" /> : step}
+              `}
+              >
+                {currentStep > step ? (
+                  <CheckCircle className="w-4 h-4" />
+                ) : (
+                  step
+                )}
               </div>
               {step < 4 && (
-                <div className={`
+                <div
+                  className={`
                   w-16 h-1 mx-2
-                  ${currentStep > step ? 'bg-green-600' : 'bg-gray-200'}
-                `} />
+                  ${currentStep > step ? "bg-green-600" : "bg-gray-200"}
+                `}
+                />
               )}
             </div>
           ))}
@@ -265,10 +308,13 @@ export default function ProviderOnboardingPage() {
       </div>
 
       {/* Étapes */}
-      <form onSubmit={handleSubmit((data) => { 
-        console.log('HANDLE SUBMIT CALLED', data); 
-        return onSubmit(data) 
-      })} className="space-y-6">
+      <form
+        onSubmit={handleSubmit((data) => {
+          console.log("HANDLE SUBMIT CALLED", data);
+          return onSubmit(data);
+        })}
+        className="space-y-6"
+      >
         {/* Étape 1: Informations de base */}
         {currentStep === 1 && (
           <Card>
@@ -290,12 +336,16 @@ export default function ProviderOnboardingPage() {
                   placeholder="Ex: Services Pro Ménage"
                 />
                 {errors.businessName && (
-                  <p className="text-sm text-red-600 mt-1">{errors.businessName.message}</p>
+                  <p className="text-sm text-red-600 mt-1">
+                    {errors.businessName.message}
+                  </p>
                 )}
               </div>
 
               <div>
-                <Label htmlFor="description">Description de vos services *</Label>
+                <Label htmlFor="description">
+                  Description de vos services *
+                </Label>
                 <Textarea
                   {...register("description")}
                   id="description"
@@ -306,12 +356,16 @@ export default function ProviderOnboardingPage() {
                   <p className="text-xs text-muted-foreground">
                     Minimum 20 caractères requis
                   </p>
-                  <p className={`text-xs ${watch('description')?.length >= 20 ? 'text-green-600' : 'text-red-600'}`}>
-                    {watch('description')?.length || 0}/20 caractères
+                  <p
+                    className={`text-xs ${watch("description")?.length >= 20 ? "text-green-600" : "text-red-600"}`}
+                  >
+                    {watch("description")?.length || 0}/20 caractères
                   </p>
                 </div>
                 {errors.description && (
-                  <p className="text-sm text-red-600 mt-1">{errors.description.message}</p>
+                  <p className="text-sm text-red-600 mt-1">
+                    {errors.description.message}
+                  </p>
                 )}
               </div>
 
@@ -325,7 +379,9 @@ export default function ProviderOnboardingPage() {
                     placeholder="+33 6 12 34 56 78"
                   />
                   {errors.phone && (
-                    <p className="text-sm text-red-600 mt-1">{errors.phone.message}</p>
+                    <p className="text-sm text-red-600 mt-1">
+                      {errors.phone.message}
+                    </p>
                   )}
                 </div>
 
@@ -339,7 +395,9 @@ export default function ProviderOnboardingPage() {
                     placeholder="25"
                   />
                   {errors.hourlyRate && (
-                    <p className="text-sm text-red-600 mt-1">{errors.hourlyRate.message}</p>
+                    <p className="text-sm text-red-600 mt-1">
+                      {errors.hourlyRate.message}
+                    </p>
                   )}
                 </div>
               </div>
@@ -355,9 +413,7 @@ export default function ProviderOnboardingPage() {
                 <MapPin className="w-5 h-5" />
                 Localisation
               </CardTitle>
-              <CardDescription>
-                Votre zone d'intervention
-              </CardDescription>
+              <CardDescription>Votre zone d'intervention</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
@@ -368,20 +424,20 @@ export default function ProviderOnboardingPage() {
                   placeholder="123 Rue de la Paix"
                 />
                 {errors.address && (
-                  <p className="text-sm text-red-600 mt-1">{errors.address.message}</p>
+                  <p className="text-sm text-red-600 mt-1">
+                    {errors.address.message}
+                  </p>
                 )}
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="city">Ville *</Label>
-                  <Input
-                    {...register("city")}
-                    id="city"
-                    placeholder="Paris"
-                  />
+                  <Input {...register("city")} id="city" placeholder="Paris" />
                   {errors.city && (
-                    <p className="text-sm text-red-600 mt-1">{errors.city.message}</p>
+                    <p className="text-sm text-red-600 mt-1">
+                      {errors.city.message}
+                    </p>
                   )}
                 </div>
 
@@ -393,7 +449,9 @@ export default function ProviderOnboardingPage() {
                     placeholder="75001"
                   />
                   {errors.postalCode && (
-                    <p className="text-sm text-red-600 mt-1">{errors.postalCode.message}</p>
+                    <p className="text-sm text-red-600 mt-1">
+                      {errors.postalCode.message}
+                    </p>
                   )}
                 </div>
               </div>
@@ -418,11 +476,18 @@ export default function ProviderOnboardingPage() {
                 <Label>Catégories de services *</Label>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mt-2">
                   {serviceCategories.map((category) => (
-                    <div key={category.value} className="flex items-center space-x-2">
+                    <div
+                      key={category.value}
+                      className="flex items-center space-x-2"
+                    >
                       <Checkbox
                         id={category.value}
-                        checked={watchedServiceCategories?.includes(category.value)}
-                        onCheckedChange={() => toggleServiceCategory(category.value)}
+                        checked={watchedServiceCategories?.includes(
+                          category.value,
+                        )}
+                        onCheckedChange={() =>
+                          toggleServiceCategory(category.value)
+                        }
                       />
                       <Label htmlFor={category.value} className="text-sm">
                         {category.label}
@@ -431,13 +496,17 @@ export default function ProviderOnboardingPage() {
                   ))}
                 </div>
                 {errors.serviceCategories && (
-                  <p className="text-sm text-red-600 mt-1">{errors.serviceCategories.message}</p>
+                  <p className="text-sm text-red-600 mt-1">
+                    {errors.serviceCategories.message}
+                  </p>
                 )}
               </div>
 
               <div>
                 <Label htmlFor="experience">Niveau d'expérience *</Label>
-                <Select onValueChange={(value) => setValue("experience", value)}>
+                <Select
+                  onValueChange={(value) => setValue("experience", value)}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Sélectionnez votre niveau d'expérience" />
                   </SelectTrigger>
@@ -450,7 +519,9 @@ export default function ProviderOnboardingPage() {
                   </SelectContent>
                 </Select>
                 {errors.experience && (
-                  <p className="text-sm text-red-600 mt-1">{errors.experience.message}</p>
+                  <p className="text-sm text-red-600 mt-1">
+                    {errors.experience.message}
+                  </p>
                 )}
               </div>
 
@@ -458,11 +529,16 @@ export default function ProviderOnboardingPage() {
                 <Label>Certifications (optionnel)</Label>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-2">
                   {availableCertifications.map((certification) => (
-                    <div key={certification} className="flex items-center space-x-2">
+                    <div
+                      key={certification}
+                      className="flex items-center space-x-2"
+                    >
                       <Checkbox
                         id={certification}
                         checked={watchedCertifications?.includes(certification)}
-                        onCheckedChange={() => toggleCertification(certification)}
+                        onCheckedChange={() =>
+                          toggleCertification(certification)
+                        }
                       />
                       <Label htmlFor={certification} className="text-sm">
                         {certification}
@@ -491,8 +567,8 @@ export default function ProviderOnboardingPage() {
               <Alert>
                 <AlertCircle className="h-4 w-4" />
                 <AlertDescription>
-                  Votre profil sera soumis à validation par notre équipe. 
-                  Vous recevrez une notification une fois validé.
+                  Votre profil sera soumis à validation par notre équipe. Vous
+                  recevrez une notification une fois validé.
                 </AlertDescription>
               </Alert>
 
@@ -502,15 +578,20 @@ export default function ProviderOnboardingPage() {
                     id="insurance"
                     checked={watchedInsurance}
                     onCheckedChange={(checked) => {
-                      setValue("insurance", checked as boolean, { shouldValidate: true });
+                      setValue("insurance", checked as boolean, {
+                        shouldValidate: true,
+                      });
                     }}
                   />
                   <Label htmlFor="insurance" className="text-sm">
-                    Je confirme avoir une assurance professionnelle en cours de validité
+                    Je confirme avoir une assurance professionnelle en cours de
+                    validité
                   </Label>
                 </div>
                 {errors.insurance && (
-                  <p className="text-sm text-red-600">{errors.insurance.message}</p>
+                  <p className="text-sm text-red-600">
+                    {errors.insurance.message}
+                  </p>
                 )}
 
                 <div className="flex items-start space-x-2">
@@ -518,22 +599,32 @@ export default function ProviderOnboardingPage() {
                     id="acceptTerms"
                     checked={watchedAcceptTerms}
                     onCheckedChange={(checked) => {
-                      setValue("acceptTerms", checked as boolean, { shouldValidate: true });
+                      setValue("acceptTerms", checked as boolean, {
+                        shouldValidate: true,
+                      });
                     }}
                   />
                   <Label htmlFor="acceptTerms" className="text-sm">
                     J'accepte les{" "}
-                    <a href="/terms" className="text-green-600 hover:text-green-500 underline">
+                    <a
+                      href="/terms"
+                      className="text-green-600 hover:text-green-500 underline"
+                    >
                       conditions d'utilisation
                     </a>{" "}
                     et la{" "}
-                    <a href="/privacy" className="text-green-600 hover:text-green-500 underline">
+                    <a
+                      href="/privacy"
+                      className="text-green-600 hover:text-green-500 underline"
+                    >
                       politique de confidentialité
                     </a>
                   </Label>
                 </div>
                 {errors.acceptTerms && (
-                  <p className="text-sm text-red-600">{errors.acceptTerms.message}</p>
+                  <p className="text-sm text-red-600">
+                    {errors.acceptTerms.message}
+                  </p>
                 )}
               </div>
 
@@ -572,25 +663,33 @@ export default function ProviderOnboardingPage() {
               type="submit"
               disabled={isLoading || !isStepValid(currentStep)}
               onClick={() => {
-                console.log('CLICK SUBMIT BUTTON');
-                console.log('BUTTON STATE:', { isLoading, currentStep, isStepValid: isStepValid(currentStep), disabled: isLoading || !isStepValid(currentStep) });
-                console.log('FORM STATE:', { 
-                  isValid, 
-                  errors
+                console.log("CLICK SUBMIT BUTTON");
+                console.log("BUTTON STATE:", {
+                  isLoading,
+                  currentStep,
+                  isStepValid: isStepValid(currentStep),
+                  disabled: isLoading || !isStepValid(currentStep),
                 });
-                console.log('DETAILED ERRORS:', JSON.stringify(errors, null, 2));
-                console.log('ALL FORM VALUES:', {
-                  businessName: watch('businessName'),
-                  description: watch('description'),
-                  phone: watch('phone'),
-                  hourlyRate: watch('hourlyRate'),
-                  address: watch('address'),
-                  city: watch('city'),
-                  postalCode: watch('postalCode'),
-                  serviceCategories: watch('serviceCategories'),
-                  experience: watch('experience'),
-                  insurance: watch('insurance'),
-                  acceptTerms: watch('acceptTerms')
+                console.log("FORM STATE:", {
+                  isValid,
+                  errors,
+                });
+                console.log(
+                  "DETAILED ERRORS:",
+                  JSON.stringify(errors, null, 2),
+                );
+                console.log("ALL FORM VALUES:", {
+                  businessName: watch("businessName"),
+                  description: watch("description"),
+                  phone: watch("phone"),
+                  hourlyRate: watch("hourlyRate"),
+                  address: watch("address"),
+                  city: watch("city"),
+                  postalCode: watch("postalCode"),
+                  serviceCategories: watch("serviceCategories"),
+                  experience: watch("experience"),
+                  insurance: watch("insurance"),
+                  acceptTerms: watch("acceptTerms"),
                 });
               }}
             >
@@ -600,5 +699,5 @@ export default function ProviderOnboardingPage() {
         </div>
       </form>
     </div>
-  )
-} 
+  );
+}

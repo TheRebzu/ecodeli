@@ -1,17 +1,47 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Progress } from "@/components/ui/progress";
-import { Star, User, ThumbsUp, ThumbsDown, MessageSquare, Flag, Calendar, TrendingUp, BarChart3 } from "lucide-react";
+import {
+  Star,
+  User,
+  ThumbsUp,
+  ThumbsDown,
+  MessageSquare,
+  Flag,
+  Calendar,
+  TrendingUp,
+  BarChart3,
+} from "lucide-react";
 import { useTranslations } from "next-intl";
 
 interface ReviewsManagementSystemProps {
@@ -85,7 +115,10 @@ interface ReviewForm {
   photos: File[];
 }
 
-export default function ReviewsManagementSystem({ userId, userType }: ReviewsManagementSystemProps) {
+export default function ReviewsManagementSystem({
+  userId,
+  userType,
+}: ReviewsManagementSystemProps) {
   const t = useTranslations("reviews");
   const [reviews, setReviews] = useState<Review[]>([]);
   const [stats, setStats] = useState<ReviewStats | null>(null);
@@ -107,7 +140,7 @@ export default function ReviewsManagementSystem({ userId, userType }: ReviewsMan
     pros: [],
     cons: [],
     recommendations: "",
-    photos: []
+    photos: [],
   });
 
   const [newPro, setNewPro] = useState("");
@@ -120,13 +153,14 @@ export default function ReviewsManagementSystem({ userId, userType }: ReviewsMan
 
   const fetchReviewsData = async () => {
     try {
-      const endpoint = userType === "admin" 
-        ? "/api/admin/reviews"
-        : `/api/${userType}/reviews?userId=${userId}`;
-      
+      const endpoint =
+        userType === "admin"
+          ? "/api/admin/reviews"
+          : `/api/${userType}/reviews?userId=${userId}`;
+
       const [reviewsRes, statsRes] = await Promise.all([
         fetch(endpoint),
-        fetch(`${endpoint}/stats`)
+        fetch(`${endpoint}/stats`),
       ]);
 
       if (reviewsRes.ok) {
@@ -148,19 +182,22 @@ export default function ReviewsManagementSystem({ userId, userType }: ReviewsMan
   const handleSubmitReview = async () => {
     try {
       const formData = new FormData();
-      formData.append("reviewData", JSON.stringify({
-        ...reviewForm,
-        reviewerId: userId,
-        reviewerType: userType
-      }));
-      
+      formData.append(
+        "reviewData",
+        JSON.stringify({
+          ...reviewForm,
+          reviewerId: userId,
+          reviewerType: userType,
+        }),
+      );
+
       reviewForm.photos.forEach((photo, index) => {
         formData.append(`photo-${index}`, photo);
       });
 
       const response = await fetch("/api/reviews", {
         method: "POST",
-        body: formData
+        body: formData,
       });
 
       if (response.ok) {
@@ -175,7 +212,7 @@ export default function ReviewsManagementSystem({ userId, userType }: ReviewsMan
           pros: [],
           cons: [],
           recommendations: "",
-          photos: []
+          photos: [],
         });
       }
     } catch (error) {
@@ -190,8 +227,8 @@ export default function ReviewsManagementSystem({ userId, userType }: ReviewsMan
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           userId,
-          response: providerResponse
-        })
+          response: providerResponse,
+        }),
       });
 
       if (response.ok) {
@@ -210,7 +247,7 @@ export default function ReviewsManagementSystem({ userId, userType }: ReviewsMan
       const response = await fetch(`/api/reviews/${reviewId}/helpful`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId, helpful })
+        body: JSON.stringify({ userId, helpful }),
       });
 
       if (response.ok) {
@@ -226,7 +263,7 @@ export default function ReviewsManagementSystem({ userId, userType }: ReviewsMan
       const response = await fetch(`/api/reviews/${reviewId}/report`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId, reason })
+        body: JSON.stringify({ userId, reason }),
       });
 
       if (response.ok) {
@@ -241,7 +278,7 @@ export default function ReviewsManagementSystem({ userId, userType }: ReviewsMan
     if (newPro.trim()) {
       setReviewForm({
         ...reviewForm,
-        pros: [...reviewForm.pros, newPro.trim()]
+        pros: [...reviewForm.pros, newPro.trim()],
       });
       setNewPro("");
     }
@@ -251,7 +288,7 @@ export default function ReviewsManagementSystem({ userId, userType }: ReviewsMan
     if (newCon.trim()) {
       setReviewForm({
         ...reviewForm,
-        cons: [...reviewForm.cons, newCon.trim()]
+        cons: [...reviewForm.cons, newCon.trim()],
       });
       setNewCon("");
     }
@@ -260,23 +297,32 @@ export default function ReviewsManagementSystem({ userId, userType }: ReviewsMan
   const removePro = (index: number) => {
     setReviewForm({
       ...reviewForm,
-      pros: reviewForm.pros.filter((_, i) => i !== index)
+      pros: reviewForm.pros.filter((_, i) => i !== index),
     });
   };
 
   const removeCon = (index: number) => {
     setReviewForm({
       ...reviewForm,
-      cons: reviewForm.cons.filter((_, i) => i !== index)
+      cons: reviewForm.cons.filter((_, i) => i !== index),
     });
   };
 
   const getStatusBadge = (status: string) => {
     const statusConfig = {
-      pending: { color: "bg-yellow-100 text-yellow-800", label: t("status.pending") },
-      published: { color: "bg-green-100 text-green-800", label: t("status.published") },
+      pending: {
+        color: "bg-yellow-100 text-yellow-800",
+        label: t("status.pending"),
+      },
+      published: {
+        color: "bg-green-100 text-green-800",
+        label: t("status.published"),
+      },
       hidden: { color: "bg-gray-100 text-gray-800", label: t("status.hidden") },
-      disputed: { color: "bg-red-100 text-red-800", label: t("status.disputed") }
+      disputed: {
+        color: "bg-red-100 text-red-800",
+        label: t("status.disputed"),
+      },
     };
 
     const config = statusConfig[status as keyof typeof statusConfig];
@@ -287,7 +333,7 @@ export default function ReviewsManagementSystem({ userId, userType }: ReviewsMan
     const sizeClasses = {
       sm: "h-3 w-3",
       md: "h-4 w-4",
-      lg: "h-5 w-5"
+      lg: "h-5 w-5",
     };
 
     return (
@@ -296,7 +342,9 @@ export default function ReviewsManagementSystem({ userId, userType }: ReviewsMan
           <Star
             key={star}
             className={`${sizeClasses[size]} ${
-              star <= rating ? "fill-yellow-400 text-yellow-400" : "text-gray-300"
+              star <= rating
+                ? "fill-yellow-400 text-yellow-400"
+                : "text-gray-300"
             }`}
           />
         ))}
@@ -304,27 +352,36 @@ export default function ReviewsManagementSystem({ userId, userType }: ReviewsMan
     );
   };
 
-  const filteredReviews = reviews.filter(review => {
-    if (filterRating !== "all" && review.rating !== parseInt(filterRating)) return false;
-    if (filterStatus !== "all" && review.status !== filterStatus) return false;
-    if (filterType !== "all" && review.subjectType !== filterType) return false;
-    return true;
-  }).sort((a, b) => {
-    switch (sortBy) {
-      case "newest":
-        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-      case "oldest":
-        return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
-      case "highest":
-        return b.rating - a.rating;
-      case "lowest":
-        return a.rating - b.rating;
-      case "helpful":
-        return b.helpfulCount - a.helpfulCount;
-      default:
-        return 0;
-    }
-  });
+  const filteredReviews = reviews
+    .filter((review) => {
+      if (filterRating !== "all" && review.rating !== parseInt(filterRating))
+        return false;
+      if (filterStatus !== "all" && review.status !== filterStatus)
+        return false;
+      if (filterType !== "all" && review.subjectType !== filterType)
+        return false;
+      return true;
+    })
+    .sort((a, b) => {
+      switch (sortBy) {
+        case "newest":
+          return (
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+          );
+        case "oldest":
+          return (
+            new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+          );
+        case "highest":
+          return b.rating - a.rating;
+        case "lowest":
+          return a.rating - b.rating;
+        case "helpful":
+          return b.helpfulCount - a.helpfulCount;
+        default:
+          return 0;
+      }
+    });
 
   if (loading) {
     return <div className="flex justify-center p-8">{t("loading")}</div>;
@@ -357,15 +414,28 @@ export default function ReviewsManagementSystem({ userId, userType }: ReviewsMan
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <Label>{t("write_dialog.subject_type")}</Label>
-                      <Select value={reviewForm.subjectType} onValueChange={(value) => setReviewForm({...reviewForm, subjectType: value})}>
+                      <Select
+                        value={reviewForm.subjectType}
+                        onValueChange={(value) =>
+                          setReviewForm({ ...reviewForm, subjectType: value })
+                        }
+                      >
                         <SelectTrigger>
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="provider">{t("subject_types.provider")}</SelectItem>
-                          <SelectItem value="deliverer">{t("subject_types.deliverer")}</SelectItem>
-                          <SelectItem value="service">{t("subject_types.service")}</SelectItem>
-                          <SelectItem value="delivery">{t("subject_types.delivery")}</SelectItem>
+                          <SelectItem value="provider">
+                            {t("subject_types.provider")}
+                          </SelectItem>
+                          <SelectItem value="deliverer">
+                            {t("subject_types.deliverer")}
+                          </SelectItem>
+                          <SelectItem value="service">
+                            {t("subject_types.service")}
+                          </SelectItem>
+                          <SelectItem value="delivery">
+                            {t("subject_types.delivery")}
+                          </SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -376,9 +446,13 @@ export default function ReviewsManagementSystem({ userId, userType }: ReviewsMan
                           <Star
                             key={star}
                             className={`h-6 w-6 cursor-pointer ${
-                              star <= reviewForm.rating ? "fill-yellow-400 text-yellow-400" : "text-gray-300"
+                              star <= reviewForm.rating
+                                ? "fill-yellow-400 text-yellow-400"
+                                : "text-gray-300"
                             }`}
-                            onClick={() => setReviewForm({...reviewForm, rating: star})}
+                            onClick={() =>
+                              setReviewForm({ ...reviewForm, rating: star })
+                            }
                           />
                         ))}
                       </div>
@@ -390,7 +464,9 @@ export default function ReviewsManagementSystem({ userId, userType }: ReviewsMan
                     <Input
                       id="title"
                       value={reviewForm.title}
-                      onChange={(e) => setReviewForm({...reviewForm, title: e.target.value})}
+                      onChange={(e) =>
+                        setReviewForm({ ...reviewForm, title: e.target.value })
+                      }
                       placeholder={t("write_dialog.title_placeholder")}
                     />
                   </div>
@@ -400,7 +476,12 @@ export default function ReviewsManagementSystem({ userId, userType }: ReviewsMan
                     <Textarea
                       id="content"
                       value={reviewForm.content}
-                      onChange={(e) => setReviewForm({...reviewForm, content: e.target.value})}
+                      onChange={(e) =>
+                        setReviewForm({
+                          ...reviewForm,
+                          content: e.target.value,
+                        })
+                      }
                       placeholder={t("write_dialog.content_placeholder")}
                       rows={4}
                     />
@@ -416,13 +497,24 @@ export default function ReviewsManagementSystem({ userId, userType }: ReviewsMan
                           placeholder={t("write_dialog.add_pro")}
                           onKeyPress={(e) => e.key === "Enter" && addPro()}
                         />
-                        <Button size="sm" onClick={addPro}>+</Button>
+                        <Button size="sm" onClick={addPro}>
+                          +
+                        </Button>
                       </div>
                       <div className="space-y-1">
                         {reviewForm.pros.map((pro, index) => (
-                          <div key={index} className="flex items-center justify-between p-2 bg-green-50 rounded">
+                          <div
+                            key={index}
+                            className="flex items-center justify-between p-2 bg-green-50 rounded"
+                          >
                             <span className="text-sm">{pro}</span>
-                            <Button size="sm" variant="ghost" onClick={() => removePro(index)}>×</Button>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => removePro(index)}
+                            >
+                              ×
+                            </Button>
                           </div>
                         ))}
                       </div>
@@ -436,13 +528,24 @@ export default function ReviewsManagementSystem({ userId, userType }: ReviewsMan
                           placeholder={t("write_dialog.add_con")}
                           onKeyPress={(e) => e.key === "Enter" && addCon()}
                         />
-                        <Button size="sm" onClick={addCon}>+</Button>
+                        <Button size="sm" onClick={addCon}>
+                          +
+                        </Button>
                       </div>
                       <div className="space-y-1">
                         {reviewForm.cons.map((con, index) => (
-                          <div key={index} className="flex items-center justify-between p-2 bg-red-50 rounded">
+                          <div
+                            key={index}
+                            className="flex items-center justify-between p-2 bg-red-50 rounded"
+                          >
                             <span className="text-sm">{con}</span>
-                            <Button size="sm" variant="ghost" onClick={() => removeCon(index)}>×</Button>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => removeCon(index)}
+                            >
+                              ×
+                            </Button>
                           </div>
                         ))}
                       </div>
@@ -450,12 +553,21 @@ export default function ReviewsManagementSystem({ userId, userType }: ReviewsMan
                   </div>
 
                   <div>
-                    <Label htmlFor="recommendations">{t("write_dialog.recommendations")}</Label>
+                    <Label htmlFor="recommendations">
+                      {t("write_dialog.recommendations")}
+                    </Label>
                     <Textarea
                       id="recommendations"
                       value={reviewForm.recommendations}
-                      onChange={(e) => setReviewForm({...reviewForm, recommendations: e.target.value})}
-                      placeholder={t("write_dialog.recommendations_placeholder")}
+                      onChange={(e) =>
+                        setReviewForm({
+                          ...reviewForm,
+                          recommendations: e.target.value,
+                        })
+                      }
+                      placeholder={t(
+                        "write_dialog.recommendations_placeholder",
+                      )}
                     />
                   </div>
 
@@ -468,7 +580,7 @@ export default function ReviewsManagementSystem({ userId, userType }: ReviewsMan
                       accept="image/*"
                       onChange={(e) => {
                         const files = Array.from(e.target.files || []);
-                        setReviewForm({...reviewForm, photos: files});
+                        setReviewForm({ ...reviewForm, photos: files });
                       }}
                     />
                   </div>
@@ -488,7 +600,9 @@ export default function ReviewsManagementSystem({ userId, userType }: ReviewsMan
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">{t("stats.total_reviews")}</CardTitle>
+              <CardTitle className="text-sm font-medium">
+                {t("stats.total_reviews")}
+              </CardTitle>
               <MessageSquare className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -498,11 +612,15 @@ export default function ReviewsManagementSystem({ userId, userType }: ReviewsMan
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">{t("stats.average_rating")}</CardTitle>
+              <CardTitle className="text-sm font-medium">
+                {t("stats.average_rating")}
+              </CardTitle>
               <Star className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.averageRating.toFixed(1)}</div>
+              <div className="text-2xl font-bold">
+                {stats.averageRating.toFixed(1)}
+              </div>
               <div className="flex items-center mt-1">
                 {renderStars(Math.round(stats.averageRating))}
               </div>
@@ -511,7 +629,9 @@ export default function ReviewsManagementSystem({ userId, userType }: ReviewsMan
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">{t("stats.rating_distribution")}</CardTitle>
+              <CardTitle className="text-sm font-medium">
+                {t("stats.rating_distribution")}
+              </CardTitle>
               <BarChart3 className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -519,12 +639,22 @@ export default function ReviewsManagementSystem({ userId, userType }: ReviewsMan
                 {[5, 4, 3, 2, 1].map((rating) => (
                   <div key={rating} className="flex items-center gap-2">
                     <span className="text-xs w-3">{rating}★</span>
-                    <Progress 
-                      value={(stats.ratingDistribution[rating as keyof typeof stats.ratingDistribution] / stats.totalReviews) * 100} 
+                    <Progress
+                      value={
+                        (stats.ratingDistribution[
+                          rating as keyof typeof stats.ratingDistribution
+                        ] /
+                          stats.totalReviews) *
+                        100
+                      }
                       className="flex-1 h-2"
                     />
                     <span className="text-xs text-gray-600 w-8">
-                      {stats.ratingDistribution[rating as keyof typeof stats.ratingDistribution]}
+                      {
+                        stats.ratingDistribution[
+                          rating as keyof typeof stats.ratingDistribution
+                        ]
+                      }
                     </span>
                   </div>
                 ))}
@@ -534,7 +664,9 @@ export default function ReviewsManagementSystem({ userId, userType }: ReviewsMan
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">{t("stats.monthly_trend")}</CardTitle>
+              <CardTitle className="text-sm font-medium">
+                {t("stats.monthly_trend")}
+              </CardTitle>
               <TrendingUp className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -628,38 +760,51 @@ export default function ReviewsManagementSystem({ userId, userType }: ReviewsMan
               {review.title && (
                 <h3 className="font-semibold mb-2">{review.title}</h3>
               )}
-              
+
               <p className="text-gray-700 mb-4">{review.content}</p>
 
-              {(review.pros && review.pros.length > 0) || (review.cons && review.cons.length > 0) && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                  {review.pros && review.pros.length > 0 && (
-                    <div>
-                      <h5 className="font-medium text-green-700 mb-2">{t("pros")}:</h5>
-                      <ul className="space-y-1">
-                        {review.pros.map((pro, index) => (
-                          <li key={index} className="text-sm text-green-600">+ {pro}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                  {review.cons && review.cons.length > 0 && (
-                    <div>
-                      <h5 className="font-medium text-red-700 mb-2">{t("cons")}:</h5>
-                      <ul className="space-y-1">
-                        {review.cons.map((con, index) => (
-                          <li key={index} className="text-sm text-red-600">- {con}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                </div>
-              )}
+              {(review.pros && review.pros.length > 0) ||
+                (review.cons && review.cons.length > 0 && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    {review.pros && review.pros.length > 0 && (
+                      <div>
+                        <h5 className="font-medium text-green-700 mb-2">
+                          {t("pros")}:
+                        </h5>
+                        <ul className="space-y-1">
+                          {review.pros.map((pro, index) => (
+                            <li key={index} className="text-sm text-green-600">
+                              + {pro}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    {review.cons && review.cons.length > 0 && (
+                      <div>
+                        <h5 className="font-medium text-red-700 mb-2">
+                          {t("cons")}:
+                        </h5>
+                        <ul className="space-y-1">
+                          {review.cons.map((con, index) => (
+                            <li key={index} className="text-sm text-red-600">
+                              - {con}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                ))}
 
               {review.recommendations && (
                 <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded">
-                  <h5 className="font-medium text-blue-700 mb-1">{t("recommendations")}:</h5>
-                  <p className="text-sm text-blue-600">{review.recommendations}</p>
+                  <h5 className="font-medium text-blue-700 mb-1">
+                    {t("recommendations")}:
+                  </h5>
+                  <p className="text-sm text-blue-600">
+                    {review.recommendations}
+                  </p>
                 </div>
               )}
 
@@ -682,7 +827,11 @@ export default function ReviewsManagementSystem({ userId, userType }: ReviewsMan
                 <div className="mb-4">
                   <div className="flex flex-wrap gap-1">
                     {review.tags.map((tag, index) => (
-                      <Badge key={index} variant="secondary" className="text-xs">
+                      <Badge
+                        key={index}
+                        variant="secondary"
+                        className="text-xs"
+                      >
                         {tag}
                       </Badge>
                     ))}
@@ -694,9 +843,12 @@ export default function ReviewsManagementSystem({ userId, userType }: ReviewsMan
                 <div className="mt-4 p-4 bg-gray-50 border border-gray-200 rounded">
                   <div className="flex items-center gap-2 mb-2">
                     <User className="h-4 w-4" />
-                    <span className="font-medium">{t("provider_response")}</span>
+                    <span className="font-medium">
+                      {t("provider_response")}
+                    </span>
                     <span className="text-sm text-gray-600">
-                      {review.responseDate && new Date(review.responseDate).toLocaleDateString()}
+                      {review.responseDate &&
+                        new Date(review.responseDate).toLocaleDateString()}
                     </span>
                   </div>
                   <p className="text-sm">{review.responseFromProvider}</p>
@@ -722,24 +874,28 @@ export default function ReviewsManagementSystem({ userId, userType }: ReviewsMan
                 </div>
 
                 <div className="flex items-center gap-2">
-                  {userType === "provider" && review.subjectId === userId && !review.responseFromProvider && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        setSelectedReview(review);
-                        setShowResponseDialog(true);
-                      }}
-                    >
-                      <MessageSquare className="h-3 w-3 mr-1" />
-                      {t("actions.respond")}
-                    </Button>
-                  )}
+                  {userType === "provider" &&
+                    review.subjectId === userId &&
+                    !review.responseFromProvider && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setSelectedReview(review);
+                          setShowResponseDialog(true);
+                        }}
+                      >
+                        <MessageSquare className="h-3 w-3 mr-1" />
+                        {t("actions.respond")}
+                      </Button>
+                    )}
 
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => handleReportReview(review.id, "inappropriate")}
+                    onClick={() =>
+                      handleReportReview(review.id, "inappropriate")
+                    }
                   >
                     <Flag className="h-3 w-3 mr-1" />
                     {t("actions.report")}
@@ -755,7 +911,9 @@ export default function ReviewsManagementSystem({ userId, userType }: ReviewsMan
             <CardContent className="flex flex-col items-center justify-center py-12">
               <Star className="h-12 w-12 text-gray-400 mb-4" />
               <h3 className="text-lg font-semibold mb-2">{t("empty.title")}</h3>
-              <p className="text-gray-600 text-center">{t("empty.description")}</p>
+              <p className="text-gray-600 text-center">
+                {t("empty.description")}
+              </p>
             </CardContent>
           </Card>
         )}
@@ -767,19 +925,25 @@ export default function ReviewsManagementSystem({ userId, userType }: ReviewsMan
             <DialogHeader>
               <DialogTitle>{t("response_dialog.title")}</DialogTitle>
               <DialogDescription>
-                {t("response_dialog.description", { reviewer: selectedReview.reviewerName })}
+                {t("response_dialog.description", {
+                  reviewer: selectedReview.reviewerName,
+                })}
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
               <div className="p-4 bg-gray-50 rounded">
                 <div className="flex items-center gap-2 mb-2">
                   {renderStars(selectedReview.rating)}
-                  <span className="font-medium">{selectedReview.reviewerName}</span>
+                  <span className="font-medium">
+                    {selectedReview.reviewerName}
+                  </span>
                 </div>
                 <p className="text-sm">{selectedReview.content}</p>
               </div>
               <div>
-                <Label htmlFor="response">{t("response_dialog.your_response")}</Label>
+                <Label htmlFor="response">
+                  {t("response_dialog.your_response")}
+                </Label>
                 <Textarea
                   id="response"
                   value={providerResponse}

@@ -1,11 +1,17 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { 
+import {
   Table,
   TableBody,
   TableCell,
@@ -13,10 +19,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { 
-  TrendingUp, 
-  TrendingDown, 
-  DollarSign, 
+import {
+  TrendingUp,
+  TrendingDown,
+  DollarSign,
   CreditCard,
   FileText,
   Calendar,
@@ -25,7 +31,7 @@ import {
   Loader2,
   AlertCircle,
   CheckCircle,
-  Clock
+  Clock,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
@@ -85,7 +91,9 @@ export function FinancialDashboard() {
   const fetchFinancialData = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`/api/merchant/finances?timeRange=${timeRange}`);
+      const response = await fetch(
+        `/api/merchant/finances?timeRange=${timeRange}`,
+      );
       if (response.ok) {
         const financialData = await response.json();
         setData(financialData);
@@ -106,35 +114,45 @@ export function FinancialDashboard() {
 
   const getPaymentStatusColor = (status: string) => {
     switch (status) {
-      case "COMPLETED": return "bg-green-100 text-green-800";
-      case "PENDING": return "bg-yellow-100 text-yellow-800";
-      case "FAILED": return "bg-red-100 text-red-800";
-      default: return "bg-gray-100 text-gray-800";
+      case "COMPLETED":
+        return "bg-green-100 text-green-800";
+      case "PENDING":
+        return "bg-yellow-100 text-yellow-800";
+      case "FAILED":
+        return "bg-red-100 text-red-800";
+      default:
+        return "bg-gray-100 text-gray-800";
     }
   };
 
   const getPaymentStatusIcon = (status: string) => {
     switch (status) {
-      case "COMPLETED": return <CheckCircle className="h-4 w-4 text-green-600" />;
-      case "PENDING": return <Clock className="h-4 w-4 text-yellow-600" />;
-      case "FAILED": return <AlertCircle className="h-4 w-4 text-red-600" />;
-      default: return <Clock className="h-4 w-4 text-gray-600" />;
+      case "COMPLETED":
+        return <CheckCircle className="h-4 w-4 text-green-600" />;
+      case "PENDING":
+        return <Clock className="h-4 w-4 text-yellow-600" />;
+      case "FAILED":
+        return <AlertCircle className="h-4 w-4 text-red-600" />;
+      default:
+        return <Clock className="h-4 w-4 text-gray-600" />;
     }
   };
 
   const exportFinancialData = () => {
     if (!data) return;
-    
+
     const csvContent = [
       ["Date", "Type", "Amount", "Status", "Description"],
-      ...data.payments.paymentHistory.map(payment => [
+      ...data.payments.paymentHistory.map((payment) => [
         new Date(payment.date).toLocaleDateString(),
         payment.type,
         payment.amount.toFixed(2),
         payment.status,
-        payment.description
-      ])
-    ].map(row => row.join(",")).join("\n");
+        payment.description,
+      ]),
+    ]
+      .map((row) => row.join(","))
+      .join("\n");
 
     const blob = new Blob([csvContent], { type: "text/csv" });
     const url = window.URL.createObjectURL(blob);
@@ -173,7 +191,9 @@ export function FinancialDashboard() {
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{data.revenue.totalRevenue.toFixed(2)}€</div>
+            <div className="text-2xl font-bold">
+              {data.revenue.totalRevenue.toFixed(2)}€
+            </div>
             <div className="flex items-center text-xs text-muted-foreground">
               {data.revenue.revenueGrowth > 0 ? (
                 <TrendingUp className="h-3 w-3 text-green-600 mr-1" />
@@ -187,11 +207,15 @@ export function FinancialDashboard() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Monthly Revenue</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Monthly Revenue
+            </CardTitle>
             <Calendar className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{data.revenue.monthlyRevenue.toFixed(2)}€</div>
+            <div className="text-2xl font-bold">
+              {data.revenue.monthlyRevenue.toFixed(2)}€
+            </div>
             <p className="text-xs text-muted-foreground">
               {data.revenue.totalOrders} orders this month
             </p>
@@ -204,7 +228,9 @@ export function FinancialDashboard() {
             <CreditCard className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{data.commissions.totalCommissions.toFixed(2)}€</div>
+            <div className="text-2xl font-bold">
+              {data.commissions.totalCommissions.toFixed(2)}€
+            </div>
             <p className="text-xs text-muted-foreground">
               {data.commissions.pendingCommissions.toFixed(2)}€ pending
             </p>
@@ -218,10 +244,18 @@ export function FinancialDashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {(data.revenue.totalRevenue - data.expenses.totalExpenses).toFixed(2)}€
+              {(
+                data.revenue.totalRevenue - data.expenses.totalExpenses
+              ).toFixed(2)}
+              €
             </div>
             <p className="text-xs text-muted-foreground">
-              {((data.revenue.totalRevenue - data.expenses.totalExpenses) / data.revenue.totalRevenue * 100).toFixed(1)}% margin
+              {(
+                ((data.revenue.totalRevenue - data.expenses.totalExpenses) /
+                  data.revenue.totalRevenue) *
+                100
+              ).toFixed(1)}
+              % margin
             </p>
           </CardContent>
         </Card>
@@ -331,12 +365,16 @@ export function FinancialDashboard() {
                         <Badge variant="outline">{payment.type}</Badge>
                       </TableCell>
                       <TableCell>
-                        <div className="font-medium">{payment.amount.toFixed(2)}€</div>
+                        <div className="font-medium">
+                          {payment.amount.toFixed(2)}€
+                        </div>
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center">
                           {getPaymentStatusIcon(payment.status)}
-                          <Badge className={`ml-2 ${getPaymentStatusColor(payment.status)}`}>
+                          <Badge
+                            className={`ml-2 ${getPaymentStatusColor(payment.status)}`}
+                          >
                             {payment.status}
                           </Badge>
                         </div>
@@ -370,15 +408,21 @@ export function FinancialDashboard() {
               <CardContent className="space-y-4">
                 <div className="flex justify-between">
                   <span>Total Commissions</span>
-                  <span className="font-semibold">{data.commissions.totalCommissions.toFixed(2)}€</span>
+                  <span className="font-semibold">
+                    {data.commissions.totalCommissions.toFixed(2)}€
+                  </span>
                 </div>
                 <div className="flex justify-between">
                   <span>Monthly Commissions</span>
-                  <span className="font-semibold">{data.commissions.monthlyCommissions.toFixed(2)}€</span>
+                  <span className="font-semibold">
+                    {data.commissions.monthlyCommissions.toFixed(2)}€
+                  </span>
                 </div>
                 <div className="flex justify-between">
                   <span>Commission Rate</span>
-                  <span className="font-semibold">{data.commissions.commissionRate}%</span>
+                  <span className="font-semibold">
+                    {data.commissions.commissionRate}%
+                  </span>
                 </div>
                 <div className="flex justify-between">
                   <span>Pending</span>
@@ -396,22 +440,37 @@ export function FinancialDashboard() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  {data.commissions.commissionHistory.slice(0, 5).map((commission) => (
-                    <div key={commission.id} className="flex justify-between items-center">
-                      <div>
-                        <div className="font-medium">Order #{commission.orderId}</div>
-                        <div className="text-xs text-muted-foreground">
-                          {new Date(commission.date).toLocaleDateString()}
+                  {data.commissions.commissionHistory
+                    .slice(0, 5)
+                    .map((commission) => (
+                      <div
+                        key={commission.id}
+                        className="flex justify-between items-center"
+                      >
+                        <div>
+                          <div className="font-medium">
+                            Order #{commission.orderId}
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            {new Date(commission.date).toLocaleDateString()}
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="font-medium">
+                            {commission.amount.toFixed(2)}€
+                          </div>
+                          <Badge
+                            className={
+                              commission.status === "PAID"
+                                ? "bg-green-100 text-green-800"
+                                : "bg-yellow-100 text-yellow-800"
+                            }
+                          >
+                            {commission.status}
+                          </Badge>
                         </div>
                       </div>
-                      <div className="text-right">
-                        <div className="font-medium">{commission.amount.toFixed(2)}€</div>
-                        <Badge className={commission.status === "PAID" ? "bg-green-100 text-green-800" : "bg-yellow-100 text-yellow-800"}>
-                          {commission.status}
-                        </Badge>
-                      </div>
-                    </div>
-                  ))}
+                    ))}
                 </div>
               </CardContent>
             </Card>
@@ -424,7 +483,13 @@ export function FinancialDashboard() {
               <CardContent>
                 <div className="text-center">
                   <div className="text-2xl font-bold text-green-600">
-                    +{((data.commissions.monthlyCommissions / data.commissions.totalCommissions) * 100).toFixed(1)}%
+                    +
+                    {(
+                      (data.commissions.monthlyCommissions /
+                        data.commissions.totalCommissions) *
+                      100
+                    ).toFixed(1)}
+                    %
                   </div>
                   <div className="text-sm text-muted-foreground">
                     This month vs average
@@ -446,16 +511,25 @@ export function FinancialDashboard() {
               <CardContent className="space-y-4">
                 <div className="flex justify-between">
                   <span>Total Expenses</span>
-                  <span className="font-semibold">{data.expenses.totalExpenses.toFixed(2)}€</span>
+                  <span className="font-semibold">
+                    {data.expenses.totalExpenses.toFixed(2)}€
+                  </span>
                 </div>
                 <div className="flex justify-between">
                   <span>Monthly Expenses</span>
-                  <span className="font-semibold">{data.expenses.monthlyExpenses.toFixed(2)}€</span>
+                  <span className="font-semibold">
+                    {data.expenses.monthlyExpenses.toFixed(2)}€
+                  </span>
                 </div>
                 <div className="flex justify-between">
                   <span>Expense Ratio</span>
                   <span className="font-semibold">
-                    {((data.expenses.totalExpenses / data.revenue.totalRevenue) * 100).toFixed(1)}%
+                    {(
+                      (data.expenses.totalExpenses /
+                        data.revenue.totalRevenue) *
+                      100
+                    ).toFixed(1)}
+                    %
                   </span>
                 </div>
               </CardContent>
@@ -469,10 +543,15 @@ export function FinancialDashboard() {
               <CardContent>
                 <div className="space-y-3">
                   {data.expenses.expenseCategories.map((category, index) => (
-                    <div key={index} className="flex justify-between items-center">
+                    <div
+                      key={index}
+                      className="flex justify-between items-center"
+                    >
                       <span className="text-sm">{category.category}</span>
                       <div className="text-right">
-                        <div className="font-medium">{category.amount.toFixed(2)}€</div>
+                        <div className="font-medium">
+                          {category.amount.toFixed(2)}€
+                        </div>
                         <div className="text-xs text-muted-foreground">
                           {category.percentage.toFixed(1)}%
                         </div>
@@ -487,4 +566,4 @@ export function FinancialDashboard() {
       </Tabs>
     </div>
   );
-} 
+}

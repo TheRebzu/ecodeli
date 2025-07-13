@@ -1,52 +1,58 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { 
-  Settings, 
-  Shield, 
-  CreditCard, 
-  Users, 
-  Package, 
-  Bell, 
-  Database, 
+import { useState } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Settings,
+  Shield,
+  CreditCard,
+  Users,
+  Package,
+  Bell,
+  Database,
   Globe,
   Save,
   RefreshCw,
   AlertTriangle,
-  CheckCircle
-} from 'lucide-react'
-import { GeneralSettings } from './general-settings'
-import { SecuritySettings } from './security-settings'
-import { PaymentSettings } from './payment-settings'
-import { NotificationSettings } from './notification-settings'
-import { SystemSettings } from './system-settings'
+  CheckCircle,
+} from "lucide-react";
+import { GeneralSettings } from "./general-settings";
+import { SecuritySettings } from "./security-settings";
+import { PaymentSettings } from "./payment-settings";
+import { NotificationSettings } from "./notification-settings";
+import { SystemSettings } from "./system-settings";
 
 export function SettingsDashboard() {
-  const [activeTab, setActiveTab] = useState('general')
-  const [isSaving, setIsSaving] = useState(false)
-  const [hasChanges, setHasChanges] = useState(false)
+  const [activeTab, setActiveTab] = useState("general");
+  const [isSaving, setIsSaving] = useState(false);
+  const [hasChanges, setHasChanges] = useState(false);
 
   const handleSave = async () => {
-    setIsSaving(true)
+    setIsSaving(true);
     try {
       // Simulation de sauvegarde
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      setHasChanges(false)
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      setHasChanges(false);
     } catch (error) {
-      console.error('Erreur lors de la sauvegarde:', error)
+      console.error("Erreur lors de la sauvegarde:", error);
     } finally {
-      setIsSaving(false)
+      setIsSaving(false);
     }
-  }
+  };
 
   const handleReset = () => {
-    setHasChanges(false)
+    setHasChanges(false);
     // Logique de réinitialisation
-  }
+  };
 
   return (
     <div className="space-y-6">
@@ -61,28 +67,24 @@ export function SettingsDashboard() {
             </p>
           </div>
         </div>
-        
+
         <div className="flex items-center space-x-3">
           {hasChanges && (
-            <Badge variant="outline" className="text-orange-600 border-orange-200">
+            <Badge
+              variant="outline"
+              className="text-orange-600 border-orange-200"
+            >
               <AlertTriangle className="h-3 w-3 mr-1" />
               Modifications non sauvegardées
             </Badge>
           )}
-          
-          <Button 
-            variant="outline" 
-            onClick={handleReset}
-            disabled={isSaving}
-          >
+
+          <Button variant="outline" onClick={handleReset} disabled={isSaving}>
             <RefreshCw className="h-4 w-4 mr-2" />
             Réinitialiser
           </Button>
-          
-          <Button 
-            onClick={handleSave}
-            disabled={!hasChanges || isSaving}
-          >
+
+          <Button onClick={handleSave} disabled={!hasChanges || isSaving}>
             {isSaving ? (
               <>
                 <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
@@ -109,7 +111,7 @@ export function SettingsDashboard() {
             <p className="text-xs text-muted-foreground mt-1">Opérationnel</p>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center space-x-2">
@@ -119,7 +121,7 @@ export function SettingsDashboard() {
             <p className="text-xs text-muted-foreground mt-1">Connectée</p>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center space-x-2">
@@ -129,7 +131,7 @@ export function SettingsDashboard() {
             <p className="text-xs text-muted-foreground mt-1">Stripe actif</p>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center space-x-2">
@@ -150,25 +152,44 @@ export function SettingsDashboard() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <Tabs
+            value={activeTab}
+            onValueChange={setActiveTab}
+            className="w-full"
+          >
             <TabsList className="grid w-full grid-cols-5">
-              <TabsTrigger value="general" className="flex items-center space-x-2">
+              <TabsTrigger
+                value="general"
+                className="flex items-center space-x-2"
+              >
                 <Settings className="h-4 w-4" />
                 <span className="hidden sm:inline">Général</span>
               </TabsTrigger>
-              <TabsTrigger value="security" className="flex items-center space-x-2">
+              <TabsTrigger
+                value="security"
+                className="flex items-center space-x-2"
+              >
                 <Shield className="h-4 w-4" />
                 <span className="hidden sm:inline">Sécurité</span>
               </TabsTrigger>
-              <TabsTrigger value="payments" className="flex items-center space-x-2">
+              <TabsTrigger
+                value="payments"
+                className="flex items-center space-x-2"
+              >
                 <CreditCard className="h-4 w-4" />
                 <span className="hidden sm:inline">Paiements</span>
               </TabsTrigger>
-              <TabsTrigger value="notifications" className="flex items-center space-x-2">
+              <TabsTrigger
+                value="notifications"
+                className="flex items-center space-x-2"
+              >
                 <Bell className="h-4 w-4" />
                 <span className="hidden sm:inline">Notifications</span>
               </TabsTrigger>
-              <TabsTrigger value="system" className="flex items-center space-x-2">
+              <TabsTrigger
+                value="system"
+                className="flex items-center space-x-2"
+              >
                 <Database className="h-4 w-4" />
                 <span className="hidden sm:inline">Système</span>
               </TabsTrigger>
@@ -187,7 +208,9 @@ export function SettingsDashboard() {
             </TabsContent>
 
             <TabsContent value="notifications" className="mt-6">
-              <NotificationSettings onSettingsChange={() => setHasChanges(true)} />
+              <NotificationSettings
+                onSettingsChange={() => setHasChanges(true)}
+              />
             </TabsContent>
 
             <TabsContent value="system" className="mt-6">
@@ -197,5 +220,5 @@ export function SettingsDashboard() {
         </CardContent>
       </Card>
     </div>
-  )
-} 
+  );
+}

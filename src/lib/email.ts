@@ -1,22 +1,22 @@
-import nodemailer from 'nodemailer'
+import nodemailer from "nodemailer";
 
 /**
  * Configuration Nodemailer pour SMTP
  */
 const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST || 'mail.celian-vf.fr',
-  port: parseInt(process.env.SMTP_PORT || '587'),
-  secure: process.env.SMTP_SECURE === 'true', // true pour 465, false pour 587 (STARTTLS)
+  host: process.env.SMTP_HOST || "mail.celian-vf.fr",
+  port: parseInt(process.env.SMTP_PORT || "587"),
+  secure: process.env.SMTP_SECURE === "true", // true pour 465, false pour 587 (STARTTLS)
   requireTLS: true, // Force TLS
   auth: {
-    user: process.env.GMAIL_USER || '',
-    pass: process.env.GMAIL_APP_PASSWORD || ''
+    user: process.env.GMAIL_USER || "",
+    pass: process.env.GMAIL_APP_PASSWORD || "",
   },
   tls: {
     // Ne pas échouer sur les certificats invalides en dev
-    rejectUnauthorized: process.env.NODE_ENV === 'production'
-  }
-})
+    rejectUnauthorized: process.env.NODE_ENV === "production",
+  },
+});
 
 /**
  * Service d'envoi d'emails SMTP
@@ -25,11 +25,16 @@ export class EmailService {
   /**
    * Envoyer un email de vérification
    */
-  static async sendVerificationEmail(email: string, verificationUrl: string, locale: string = 'fr') {
-    const subject = locale === 'fr' 
-      ? '🔐 Vérifiez votre email - EcoDeli'
-      : '🔐 Verify your email - EcoDeli'
-    
+  static async sendVerificationEmail(
+    email: string,
+    verificationUrl: string,
+    locale: string = "fr",
+  ) {
+    const subject =
+      locale === "fr"
+        ? "🔐 Vérifiez votre email - EcoDeli"
+        : "🔐 Verify your email - EcoDeli";
+
     const html = `
       <!DOCTYPE html>
       <html lang="${locale}">
@@ -52,62 +57,70 @@ export class EmailService {
             <div class="logo">🌱 EcoDeli</div>
           </div>
           
-          <h2>${locale === 'fr' ? 'Vérifiez votre adresse email' : 'Verify your email address'}</h2>
+          <h2>${locale === "fr" ? "Vérifiez votre adresse email" : "Verify your email address"}</h2>
           
-          <p>${locale === 'fr' 
-            ? 'Merci de vous être inscrit sur EcoDeli ! Pour activer votre compte, veuillez cliquer sur le bouton ci-dessous :'
-            : 'Thank you for signing up with EcoDeli! To activate your account, please click the button below:'
+          <p>${
+            locale === "fr"
+              ? "Merci de vous être inscrit sur EcoDeli ! Pour activer votre compte, veuillez cliquer sur le bouton ci-dessous :"
+              : "Thank you for signing up with EcoDeli! To activate your account, please click the button below:"
           }</p>
           
           <div style="text-align: center;">
             <a href="${verificationUrl}" class="button">
-              ${locale === 'fr' ? '✅ Vérifier mon email' : '✅ Verify my email'}
+              ${locale === "fr" ? "✅ Vérifier mon email" : "✅ Verify my email"}
             </a>
           </div>
           
-          <p>${locale === 'fr' 
-            ? 'Si le bouton ne fonctionne pas, copiez et collez ce lien dans votre navigateur :'
-            : 'If the button doesn\'t work, copy and paste this link into your browser:'
+          <p>${
+            locale === "fr"
+              ? "Si le bouton ne fonctionne pas, copiez et collez ce lien dans votre navigateur :"
+              : "If the button doesn't work, copy and paste this link into your browser:"
           }</p>
           <p style="word-break: break-all; color: #666;">${verificationUrl}</p>
           
           <div class="footer">
-            <p>${locale === 'fr' 
-              ? 'Cet email a été envoyé automatiquement, merci de ne pas y répondre.'
-              : 'This email was sent automatically, please do not reply.'
+            <p>${
+              locale === "fr"
+                ? "Cet email a été envoyé automatiquement, merci de ne pas y répondre."
+                : "This email was sent automatically, please do not reply."
             }</p>
-            <p>© 2025 EcoDeli - ${locale === 'fr' ? 'Livraison écologique' : 'Eco-friendly delivery'}</p>
+            <p>© 2025 EcoDeli - ${locale === "fr" ? "Livraison écologique" : "Eco-friendly delivery"}</p>
           </div>
         </div>
       </body>
       </html>
-    `
+    `;
 
     const mailOptions = {
-      from: process.env.GMAIL_USER || 'noreply@ecodeli.com',
+      from: process.env.GMAIL_USER || "noreply@ecodeli.com",
       to: email,
       subject,
-      html
-    }
+      html,
+    };
 
     try {
-      const result = await transporter.sendMail(mailOptions)
+      const result = await transporter.sendMail(mailOptions);
       // Email de vérification envoyé
-      return { success: true, messageId: result.messageId }
+      return { success: true, messageId: result.messageId };
     } catch (error) {
-      console.error('Erreur envoi email:', error)
-      throw error
+      console.error("Erreur envoi email:", error);
+      throw error;
     }
   }
 
   /**
    * Envoyer un email de reset de mot de passe
    */
-  static async sendPasswordResetEmail(email: string, resetUrl: string, locale: string = 'fr') {
-    const subject = locale === 'fr' 
-      ? '🔑 Réinitialisation de votre mot de passe - EcoDeli'
-      : '🔑 Password reset - EcoDeli'
-    
+  static async sendPasswordResetEmail(
+    email: string,
+    resetUrl: string,
+    locale: string = "fr",
+  ) {
+    const subject =
+      locale === "fr"
+        ? "🔑 Réinitialisation de votre mot de passe - EcoDeli"
+        : "🔑 Password reset - EcoDeli";
+
     const html = `
       <!DOCTYPE html>
       <html lang="${locale}">
@@ -130,50 +143,53 @@ export class EmailService {
             <div class="logo">🌱 EcoDeli</div>
           </div>
           
-          <h2>${locale === 'fr' ? 'Réinitialisation de votre mot de passe' : 'Password reset'}</h2>
+          <h2>${locale === "fr" ? "Réinitialisation de votre mot de passe" : "Password reset"}</h2>
           
-          <p>${locale === 'fr' 
-            ? 'Vous avez demandé la réinitialisation de votre mot de passe. Cliquez sur le bouton ci-dessous pour créer un nouveau mot de passe :'
-            : 'You have requested a password reset. Click the button below to create a new password:'
+          <p>${
+            locale === "fr"
+              ? "Vous avez demandé la réinitialisation de votre mot de passe. Cliquez sur le bouton ci-dessous pour créer un nouveau mot de passe :"
+              : "You have requested a password reset. Click the button below to create a new password:"
           }</p>
           
           <div style="text-align: center;">
             <a href="${resetUrl}" class="button">
-              ${locale === 'fr' ? '🔑 Réinitialiser mon mot de passe' : '🔑 Reset my password'}
+              ${locale === "fr" ? "🔑 Réinitialiser mon mot de passe" : "🔑 Reset my password"}
             </a>
           </div>
           
-          <p>${locale === 'fr' 
-            ? 'Si vous n\'avez pas demandé cette réinitialisation, ignorez cet email.'
-            : 'If you didn\'t request this reset, please ignore this email.'
+          <p>${
+            locale === "fr"
+              ? "Si vous n'avez pas demandé cette réinitialisation, ignorez cet email."
+              : "If you didn't request this reset, please ignore this email."
           }</p>
           
           <div class="footer">
-            <p>${locale === 'fr' 
-              ? 'Ce lien expirera dans 24 heures pour votre sécurité.'
-              : 'This link will expire in 24 hours for your security.'
+            <p>${
+              locale === "fr"
+                ? "Ce lien expirera dans 24 heures pour votre sécurité."
+                : "This link will expire in 24 hours for your security."
             }</p>
-            <p>© 2025 EcoDeli - ${locale === 'fr' ? 'Livraison écologique' : 'Eco-friendly delivery'}</p>
+            <p>© 2025 EcoDeli - ${locale === "fr" ? "Livraison écologique" : "Eco-friendly delivery"}</p>
           </div>
         </div>
       </body>
       </html>
-    `
+    `;
 
     const mailOptions = {
-      from: process.env.GMAIL_USER || 'noreply@ecodeli.com',
+      from: process.env.GMAIL_USER || "noreply@ecodeli.com",
       to: email,
       subject,
-      html
-    }
+      html,
+    };
 
     try {
-      const result = await transporter.sendMail(mailOptions)
+      const result = await transporter.sendMail(mailOptions);
       // Email de reset envoyé
-      return { success: true, messageId: result.messageId }
+      return { success: true, messageId: result.messageId };
     } catch (error) {
-      console.error('Erreur envoi email:', error)
-      throw error
+      console.error("Erreur envoi email:", error);
+      throw error;
     }
   }
 
@@ -182,19 +198,19 @@ export class EmailService {
    */
   static async sendGenericEmail(email: string, subject: string, html: string) {
     const mailOptions = {
-      from: process.env.GMAIL_USER || 'noreply@ecodeli.com',
+      from: process.env.GMAIL_USER || "noreply@ecodeli.com",
       to: email,
       subject,
-      html
-    }
-    
+      html,
+    };
+
     try {
-      const result = await transporter.sendMail(mailOptions)
+      const result = await transporter.sendMail(mailOptions);
       // Email générique envoyé
-      return { success: true, messageId: result.messageId }
+      return { success: true, messageId: result.messageId };
     } catch (error) {
-      console.error('Erreur envoi email générique:', error)
-      throw error
+      console.error("Erreur envoi email générique:", error);
+      throw error;
     }
   }
 
@@ -204,22 +220,23 @@ export class EmailService {
   static async sendBookingConfirmationEmail(
     clientEmail: string,
     bookingData: {
-      clientName: string
-      serviceName: string
-      providerName: string
-      scheduledDate: string
-      scheduledTime: string
-      location: string
-      totalPrice: number
-      bookingId: string
-      notes?: string
+      clientName: string;
+      serviceName: string;
+      providerName: string;
+      scheduledDate: string;
+      scheduledTime: string;
+      location: string;
+      totalPrice: number;
+      bookingId: string;
+      notes?: string;
     },
-    locale: string = 'fr'
+    locale: string = "fr",
   ) {
-    const subject = locale === 'fr' 
-      ? '📅 Confirmation de réservation - EcoDeli'
-      : '📅 Booking confirmation - EcoDeli'
-    
+    const subject =
+      locale === "fr"
+        ? "📅 Confirmation de réservation - EcoDeli"
+        : "📅 Booking confirmation - EcoDeli";
+
     const html = `
       <!DOCTYPE html>
       <html lang="${locale}">
@@ -248,105 +265,115 @@ export class EmailService {
         <div class="container">
           <div class="header">
             <div class="logo">🌱 EcoDeli</div>
-            <div class="subtitle">${locale === 'fr' ? 'Votre plateforme de services éco-responsables' : 'Your eco-friendly services platform'}</div>
+            <div class="subtitle">${locale === "fr" ? "Votre plateforme de services éco-responsables" : "Your eco-friendly services platform"}</div>
           </div>
           
-          <h2>${locale === 'fr' ? '✅ Réservation confirmée !' : '✅ Booking confirmed!'}</h2>
+          <h2>${locale === "fr" ? "✅ Réservation confirmée !" : "✅ Booking confirmed!"}</h2>
           
-          <p>${locale === 'fr' 
-            ? `Bonjour ${bookingData.clientName},`
-            : `Hello ${bookingData.clientName},`
+          <p>${
+            locale === "fr"
+              ? `Bonjour ${bookingData.clientName},`
+              : `Hello ${bookingData.clientName},`
           }</p>
           
-          <p>${locale === 'fr' 
-            ? 'Votre réservation a été créée avec succès. Voici les détails :'
-            : 'Your booking has been created successfully. Here are the details:'
+          <p>${
+            locale === "fr"
+              ? "Votre réservation a été créée avec succès. Voici les détails :"
+              : "Your booking has been created successfully. Here are the details:"
           }</p>
           
           <div class="booking-card">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
               <h3 style="margin: 0; color: #16a34a;">${bookingData.serviceName}</h3>
-              <span class="status-badge">${locale === 'fr' ? 'EN ATTENTE' : 'PENDING'}</span>
+              <span class="status-badge">${locale === "fr" ? "EN ATTENTE" : "PENDING"}</span>
             </div>
             
             <div class="booking-detail">
-              <span class="label">${locale === 'fr' ? 'Prestataire :' : 'Provider:'}</span>
+              <span class="label">${locale === "fr" ? "Prestataire :" : "Provider:"}</span>
               <span class="value">${bookingData.providerName}</span>
             </div>
             
             <div class="booking-detail">
-              <span class="label">${locale === 'fr' ? 'Date :' : 'Date:'}</span>
+              <span class="label">${locale === "fr" ? "Date :" : "Date:"}</span>
               <span class="value">${bookingData.scheduledDate}</span>
             </div>
             
             <div class="booking-detail">
-              <span class="label">${locale === 'fr' ? 'Heure :' : 'Time:'}</span>
+              <span class="label">${locale === "fr" ? "Heure :" : "Time:"}</span>
               <span class="value">${bookingData.scheduledTime}</span>
             </div>
             
             <div class="booking-detail">
-              <span class="label">${locale === 'fr' ? 'Lieu :' : 'Location:'}</span>
+              <span class="label">${locale === "fr" ? "Lieu :" : "Location:"}</span>
               <span class="value">${bookingData.location}</span>
             </div>
             
             <div class="booking-detail">
-              <span class="label">${locale === 'fr' ? 'Référence :' : 'Reference:'}</span>
+              <span class="label">${locale === "fr" ? "Référence :" : "Reference:"}</span>
               <span class="value">#${bookingData.bookingId.slice(-8).toUpperCase()}</span>
             </div>
             
-            ${bookingData.notes ? `
+            ${
+              bookingData.notes
+                ? `
             <div class="booking-detail">
-              <span class="label">${locale === 'fr' ? 'Notes :' : 'Notes:'}</span>
+              <span class="label">${locale === "fr" ? "Notes :" : "Notes:"}</span>
               <span class="value">${bookingData.notes}</span>
             </div>
-            ` : ''}
+            `
+                : ""
+            }
           </div>
           
           <div class="price">
-            💰 ${locale === 'fr' ? 'Prix total :' : 'Total price:'} ${bookingData.totalPrice.toFixed(2)}€
+            💰 ${locale === "fr" ? "Prix total :" : "Total price:"} ${bookingData.totalPrice.toFixed(2)}€
           </div>
           
           <div style="text-align: center;">
-            <a href="${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/client/bookings/${bookingData.bookingId}" class="button">
-              ${locale === 'fr' ? '📱 Voir ma réservation' : '📱 View my booking'}
+            <a href="${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/client/bookings/${bookingData.bookingId}" class="button">
+              ${locale === "fr" ? "📱 Voir ma réservation" : "📱 View my booking"}
             </a>
           </div>
           
           <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 15px; margin: 20px 0;">
-            <h4 style="margin-top: 0; color: #1e40af;">${locale === 'fr' ? '📋 Prochaines étapes' : '📋 Next steps'}</h4>
+            <h4 style="margin-top: 0; color: #1e40af;">${locale === "fr" ? "📋 Prochaines étapes" : "📋 Next steps"}</h4>
             <ul style="margin: 0; padding-left: 20px; color: #374151;">
-              <li>${locale === 'fr' ? 'Le prestataire va confirmer votre réservation' : 'The provider will confirm your booking'}</li>
-              <li>${locale === 'fr' ? 'Vous recevrez une notification de confirmation' : 'You will receive a confirmation notification'}</li>
-              <li>${locale === 'fr' ? 'Le paiement sera effectué après confirmation' : 'Payment will be processed after confirmation'}</li>
+              <li>${locale === "fr" ? "Le prestataire va confirmer votre réservation" : "The provider will confirm your booking"}</li>
+              <li>${locale === "fr" ? "Vous recevrez une notification de confirmation" : "You will receive a confirmation notification"}</li>
+              <li>${locale === "fr" ? "Le paiement sera effectué après confirmation" : "Payment will be processed after confirmation"}</li>
             </ul>
           </div>
           
           <div class="footer">
-            <p>${locale === 'fr' 
-              ? 'Besoin d\'aide ? Contactez notre support à'
-              : 'Need help? Contact our support at'
+            <p>${
+              locale === "fr"
+                ? "Besoin d'aide ? Contactez notre support à"
+                : "Need help? Contact our support at"
             } <a href="mailto:support@ecodeli.com">support@ecodeli.com</a></p>
-            <p>© 2025 EcoDeli - ${locale === 'fr' ? 'Livraison écologique' : 'Eco-friendly delivery'}</p>
+            <p>© 2025 EcoDeli - ${locale === "fr" ? "Livraison écologique" : "Eco-friendly delivery"}</p>
           </div>
         </div>
       </body>
       </html>
-    `
+    `;
 
     const mailOptions = {
-      from: process.env.GMAIL_USER || 'noreply@ecodeli.com',
+      from: process.env.GMAIL_USER || "noreply@ecodeli.com",
       to: clientEmail,
       subject,
-      html
-    }
+      html,
+    };
 
     try {
-      const result = await transporter.sendMail(mailOptions)
-      console.log('📧 Email de confirmation de réservation envoyé:', result.messageId)
-      return { success: true, messageId: result.messageId }
+      const result = await transporter.sendMail(mailOptions);
+      console.log(
+        "📧 Email de confirmation de réservation envoyé:",
+        result.messageId,
+      );
+      return { success: true, messageId: result.messageId };
     } catch (error) {
-      console.error('❌ Erreur envoi email de réservation:', error)
-      throw error
+      console.error("❌ Erreur envoi email de réservation:", error);
+      throw error;
     }
   }
 
@@ -356,22 +383,23 @@ export class EmailService {
   static async sendNewBookingNotificationEmail(
     providerEmail: string,
     bookingData: {
-      providerName: string
-      clientName: string
-      serviceName: string
-      scheduledDate: string
-      scheduledTime: string
-      location: string
-      totalPrice: number
-      bookingId: string
-      notes?: string
+      providerName: string;
+      clientName: string;
+      serviceName: string;
+      scheduledDate: string;
+      scheduledTime: string;
+      location: string;
+      totalPrice: number;
+      bookingId: string;
+      notes?: string;
     },
-    locale: string = 'fr'
+    locale: string = "fr",
   ) {
-    const subject = locale === 'fr' 
-      ? '🔔 Nouvelle réservation reçue - EcoDeli'
-      : '🔔 New booking received - EcoDeli'
-    
+    const subject =
+      locale === "fr"
+        ? "🔔 Nouvelle réservation reçue - EcoDeli"
+        : "🔔 New booking received - EcoDeli";
+
     const html = `
       <!DOCTYPE html>
       <html lang="${locale}">
@@ -402,106 +430,117 @@ export class EmailService {
         <div class="container">
           <div class="header">
             <div class="logo">🌱 EcoDeli</div>
-            <div class="subtitle">${locale === 'fr' ? 'Espace Prestataire' : 'Provider Dashboard'}</div>
+            <div class="subtitle">${locale === "fr" ? "Espace Prestataire" : "Provider Dashboard"}</div>
           </div>
           
-          <h2>${locale === 'fr' ? '🎉 Nouvelle réservation !' : '🎉 New booking!'}</h2>
+          <h2>${locale === "fr" ? "🎉 Nouvelle réservation !" : "🎉 New booking!"}</h2>
           
-          <p>${locale === 'fr' 
-            ? `Bonjour ${bookingData.providerName},`
-            : `Hello ${bookingData.providerName},`
+          <p>${
+            locale === "fr"
+              ? `Bonjour ${bookingData.providerName},`
+              : `Hello ${bookingData.providerName},`
           }</p>
           
-          <p>${locale === 'fr' 
-            ? 'Vous avez reçu une nouvelle réservation pour votre service. Voici les détails :'
-            : 'You have received a new booking for your service. Here are the details:'
+          <p>${
+            locale === "fr"
+              ? "Vous avez reçu une nouvelle réservation pour votre service. Voici les détails :"
+              : "You have received a new booking for your service. Here are the details:"
           }</p>
           
           <div class="booking-card">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
               <h3 style="margin: 0; color: #3b82f6;">${bookingData.serviceName}</h3>
-              <span class="status-badge">${locale === 'fr' ? 'NOUVELLE' : 'NEW'}</span>
+              <span class="status-badge">${locale === "fr" ? "NOUVELLE" : "NEW"}</span>
             </div>
             
             <div class="booking-detail">
-              <span class="label">${locale === 'fr' ? 'Client :' : 'Client:'}</span>
+              <span class="label">${locale === "fr" ? "Client :" : "Client:"}</span>
               <span class="value">${bookingData.clientName}</span>
             </div>
             
             <div class="booking-detail">
-              <span class="label">${locale === 'fr' ? 'Date :' : 'Date:'}</span>
+              <span class="label">${locale === "fr" ? "Date :" : "Date:"}</span>
               <span class="value">${bookingData.scheduledDate}</span>
             </div>
             
             <div class="booking-detail">
-              <span class="label">${locale === 'fr' ? 'Heure :' : 'Time:'}</span>
+              <span class="label">${locale === "fr" ? "Heure :" : "Time:"}</span>
               <span class="value">${bookingData.scheduledTime}</span>
             </div>
             
             <div class="booking-detail">
-              <span class="label">${locale === 'fr' ? 'Lieu :' : 'Location:'}</span>
+              <span class="label">${locale === "fr" ? "Lieu :" : "Location:"}</span>
               <span class="value">${bookingData.location}</span>
             </div>
             
             <div class="booking-detail">
-              <span class="label">${locale === 'fr' ? 'Référence :' : 'Reference:'}</span>
+              <span class="label">${locale === "fr" ? "Référence :" : "Reference:"}</span>
               <span class="value">#${bookingData.bookingId.slice(-8).toUpperCase()}</span>
             </div>
             
-            ${bookingData.notes ? `
+            ${
+              bookingData.notes
+                ? `
             <div class="booking-detail">
-              <span class="label">${locale === 'fr' ? 'Notes du client :' : 'Client notes:'}</span>
+              <span class="label">${locale === "fr" ? "Notes du client :" : "Client notes:"}</span>
               <span class="value">${bookingData.notes}</span>
             </div>
-            ` : ''}
+            `
+                : ""
+            }
           </div>
           
           <div class="price">
-            💰 ${locale === 'fr' ? 'Montant de la réservation :' : 'Booking amount:'} ${bookingData.totalPrice.toFixed(2)}€
+            💰 ${locale === "fr" ? "Montant de la réservation :" : "Booking amount:"} ${bookingData.totalPrice.toFixed(2)}€
           </div>
           
           <div style="text-align: center;">
-            <a href="${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/provider/bookings/${bookingData.bookingId}" class="button btn-view">
-              ${locale === 'fr' ? '📱 Voir la réservation' : '📱 View booking'}
+            <a href="${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/provider/bookings/${bookingData.bookingId}" class="button btn-view">
+              ${locale === "fr" ? "📱 Voir la réservation" : "📱 View booking"}
             </a>
           </div>
           
           <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 15px; margin: 20px 0;">
-            <h4 style="margin-top: 0; color: #166534;">${locale === 'fr' ? '⚡ Actions rapides' : '⚡ Quick actions'}</h4>
+            <h4 style="margin-top: 0; color: #166534;">${locale === "fr" ? "⚡ Actions rapides" : "⚡ Quick actions"}</h4>
             <p style="margin: 10px 0; color: #374151;">
-              ${locale === 'fr' 
-                ? 'Connectez-vous à votre espace prestataire pour accepter ou modifier cette réservation.'
-                : 'Log in to your provider dashboard to accept or modify this booking.'
+              ${
+                locale === "fr"
+                  ? "Connectez-vous à votre espace prestataire pour accepter ou modifier cette réservation."
+                  : "Log in to your provider dashboard to accept or modify this booking."
               }
             </p>
           </div>
           
           <div class="footer">
-            <p>${locale === 'fr' 
-              ? 'Questions ? Contactez notre support à'
-              : 'Questions? Contact our support at'
+            <p>${
+              locale === "fr"
+                ? "Questions ? Contactez notre support à"
+                : "Questions? Contact our support at"
             } <a href="mailto:support@ecodeli.com">support@ecodeli.com</a></p>
-            <p>© 2025 EcoDeli - ${locale === 'fr' ? 'Services écologiques' : 'Eco-friendly services'}</p>
+            <p>© 2025 EcoDeli - ${locale === "fr" ? "Services écologiques" : "Eco-friendly services"}</p>
           </div>
         </div>
       </body>
       </html>
-    `
+    `;
 
     const mailOptions = {
-      from: process.env.GMAIL_USER || 'noreply@ecodeli.com',
+      from: process.env.GMAIL_USER || "noreply@ecodeli.com",
       to: providerEmail,
       subject,
-      html
-    }
+      html,
+    };
 
     try {
-      const result = await transporter.sendMail(mailOptions)
-      console.log('📧 Email de nouvelle réservation envoyé au prestataire:', result.messageId)
-      return { success: true, messageId: result.messageId }
+      const result = await transporter.sendMail(mailOptions);
+      console.log(
+        "📧 Email de nouvelle réservation envoyé au prestataire:",
+        result.messageId,
+      );
+      return { success: true, messageId: result.messageId };
     } catch (error) {
-      console.error('❌ Erreur envoi email prestataire:', error)
-      throw error
+      console.error("❌ Erreur envoi email prestataire:", error);
+      throw error;
     }
   }
 
@@ -510,12 +549,12 @@ export class EmailService {
    */
   static async testConnection() {
     try {
-      await transporter.verify()
+      await transporter.verify();
       // Connexion SMTP réussie
-      return { success: true }
+      return { success: true };
     } catch (error) {
-      console.error('Erreur connexion SMTP:', error)
-      throw error
+      console.error("Erreur connexion SMTP:", error);
+      throw error;
     }
   }
-} 
+}

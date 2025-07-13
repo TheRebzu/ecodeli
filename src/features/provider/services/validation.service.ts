@@ -3,32 +3,67 @@ import { z } from "zod";
 
 // Schémas de validation
 export const providerCandidateSchema = z.object({
-  businessName: z.string().min(2, "Le nom commercial doit faire au moins 2 caractères"),
+  businessName: z
+    .string()
+    .min(2, "Le nom commercial doit faire au moins 2 caractères"),
   siret: z.string().regex(/^\d{14}$/, "Le SIRET doit faire 14 chiffres"),
-  description: z.string().min(50, "La description doit faire au moins 50 caractères"),
-  specialties: z.array(z.string()).min(1, "Au moins une spécialité doit être sélectionnée"),
-  hourlyRate: z.number().min(10, "Le taux horaire doit être d'au moins 10€").max(200, "Le taux horaire ne peut pas dépasser 200€"),
-  zone: z.object({
-    coordinates: z.array(z.number()).length(2),
-    radius: z.number().min(1).max(100),
-  }).optional(),
+  description: z
+    .string()
+    .min(50, "La description doit faire au moins 50 caractères"),
+  specialties: z
+    .array(z.string())
+    .min(1, "Au moins une spécialité doit être sélectionnée"),
+  hourlyRate: z
+    .number()
+    .min(10, "Le taux horaire doit être d'au moins 10€")
+    .max(200, "Le taux horaire ne peut pas dépasser 200€"),
+  zone: z
+    .object({
+      coordinates: z.array(z.number()).length(2),
+      radius: z.number().min(1).max(100),
+    })
+    .optional(),
 });
 
 export const serviceCreateSchema = z.object({
   name: z.string().min(5, "Le nom du service doit faire au moins 5 caractères"),
-  description: z.string().min(20, "La description doit faire au moins 20 caractères"),
-  type: z.enum(["HOME_CLEANING", "GARDENING", "HANDYMAN", "TUTORING", "HEALTHCARE", "BEAUTY", "PET_CARE", "OTHER"]),
+  description: z
+    .string()
+    .min(20, "La description doit faire au moins 20 caractères"),
+  type: z.enum([
+    "HOME_CLEANING",
+    "GARDENING",
+    "HANDYMAN",
+    "TUTORING",
+    "HEALTHCARE",
+    "BEAUTY",
+    "PET_CARE",
+    "OTHER",
+  ]),
   basePrice: z.number().positive("Le prix de base doit être positif"),
   priceUnit: z.enum(["HOUR", "FLAT", "KM"]).default("HOUR"),
-  duration: z.number().min(15, "La durée minimale est de 15 minutes").optional(),
+  duration: z
+    .number()
+    .min(15, "La durée minimale est de 15 minutes")
+    .optional(),
   requirements: z.array(z.string()).default([]),
-  minAdvanceBooking: z.number().min(1, "Le délai minimum de réservation doit être d'au moins 1 heure").default(24),
-  maxAdvanceBooking: z.number().max(8760, "Le délai maximum ne peut pas dépasser 1 an").default(720),
+  minAdvanceBooking: z
+    .number()
+    .min(1, "Le délai minimum de réservation doit être d'au moins 1 heure")
+    .default(24),
+  maxAdvanceBooking: z
+    .number()
+    .max(8760, "Le délai maximum ne peut pas dépasser 1 an")
+    .default(720),
 });
 
 export const certificationSchema = z.object({
-  name: z.string().min(3, "Le nom de la certification doit faire au moins 3 caractères"),
-  issuingOrganization: z.string().min(3, "L'organisme émetteur doit faire au moins 3 caractères"),
+  name: z
+    .string()
+    .min(3, "Le nom de la certification doit faire au moins 3 caractères"),
+  issuingOrganization: z
+    .string()
+    .min(3, "L'organisme émetteur doit faire au moins 3 caractères"),
   issueDate: z.date(),
   expiryDate: z.date().optional(),
   certificateNumber: z.string().optional(),
@@ -51,13 +86,13 @@ export interface ValidationStep {
   id: string;
   title: string;
   description: string;
-  status: 'pending' | 'in_progress' | 'completed' | 'failed';
+  status: "pending" | "in_progress" | "completed" | "failed";
   completedAt?: Date;
   errorMessage?: string;
 }
 
 export interface ProviderValidationStatus {
-  currentStatus: 'PENDING' | 'IN_REVIEW' | 'APPROVED' | 'REJECTED';
+  currentStatus: "PENDING" | "IN_REVIEW" | "APPROVED" | "REJECTED";
   steps: ValidationStep[];
   progress: number;
   estimatedCompletionDate?: Date;
@@ -72,7 +107,7 @@ export interface CertificationRequirement {
   category: string;
   level: string;
   isRequired: boolean;
-  status: 'not_started' | 'in_progress' | 'completed' | 'failed' | 'expired';
+  status: "not_started" | "in_progress" | "completed" | "failed" | "expired";
   expiresAt?: Date;
   certificateUrl?: string;
   score?: number;
@@ -86,7 +121,7 @@ export class ProviderValidationService {
    */
   static async submitCandidature(
     userId: string,
-    validationData: ProviderValidationData
+    validationData: ProviderValidationData,
   ) {
     try {
       // Vérifier que l'utilisateur a le rôle PROVIDER
@@ -105,16 +140,20 @@ export class ProviderValidationService {
       });
 
       if (existingProvider) {
-        throw new Error("Un profil prestataire existe déjà pour cet utilisateur");
+        throw new Error(
+          "Un profil prestataire existe déjà pour cet utilisateur",
+        );
       }
 
       // Valider les données
-      const validatedProfile = providerCandidateSchema.parse(validationData.profile);
-      const validatedServices = validationData.services.map(service => 
-        serviceCreateSchema.parse(service)
+      const validatedProfile = providerCandidateSchema.parse(
+        validationData.profile,
       );
-      const validatedCertifications = validationData.certifications.map(cert => 
-        certificationSchema.parse(cert)
+      const validatedServices = validationData.services.map((service) =>
+        serviceCreateSchema.parse(service),
+      );
+      const validatedCertifications = validationData.certifications.map(
+        (cert) => certificationSchema.parse(cert),
       );
 
       // Vérifier l'unicité du SIRET
@@ -216,7 +255,8 @@ export class ProviderValidationService {
       return {
         providerId: provider.id,
         status: "PENDING_VALIDATION",
-        message: "Candidature soumise avec succès. Elle sera examinée par notre équipe sous 48h.",
+        message:
+          "Candidature soumise avec succès. Elle sera examinée par notre équipe sous 48h.",
       };
     } catch (error) {
       console.error("Error submitting provider candidature:", error);
@@ -230,7 +270,7 @@ export class ProviderValidationService {
   static async validateCandidature(
     providerId: string,
     decision: "VALIDATED" | "REJECTED",
-    adminNotes?: string
+    adminNotes?: string,
   ) {
     try {
       const provider = await prisma.provider.findUnique({
@@ -278,7 +318,7 @@ export class ProviderValidationService {
         });
 
         // Créer les disponibilités par défaut (du lundi au vendredi, 9h-18h)
-        const defaultAvailabilities = [1, 2, 3, 4, 5].map(dayOfWeek => ({
+        const defaultAvailabilities = [1, 2, 3, 4, 5].map((dayOfWeek) => ({
           providerId,
           dayOfWeek,
           startTime: "09:00",
@@ -295,12 +335,14 @@ export class ProviderValidationService {
       await prisma.notification.create({
         data: {
           userId: provider.userId,
-          title: decision === "VALIDATED" 
-            ? "Candidature acceptée !" 
-            : "Candidature refusée",
-          content: decision === "VALIDATED"
-            ? "Félicitations ! Votre candidature a été acceptée. Vous pouvez maintenant recevoir des demandes de clients."
-            : `Votre candidature a été refusée. ${adminNotes || "Contactez le support pour plus d'informations."}`,
+          title:
+            decision === "VALIDATED"
+              ? "Candidature acceptée !"
+              : "Candidature refusée",
+          content:
+            decision === "VALIDATED"
+              ? "Félicitations ! Votre candidature a été acceptée. Vous pouvez maintenant recevoir des demandes de clients."
+              : `Votre candidature a été refusée. ${adminNotes || "Contactez le support pour plus d'informations."}`,
           type: "PROVIDER_VALIDATION",
           priority: "HIGH",
           data: {
@@ -313,9 +355,10 @@ export class ProviderValidationService {
       return {
         providerId,
         status: decision,
-        message: decision === "VALIDATED" 
-          ? "Prestataire validé avec succès" 
-          : "Candidature rejetée",
+        message:
+          decision === "VALIDATED"
+            ? "Prestataire validé avec succès"
+            : "Candidature rejetée",
       };
     } catch (error) {
       console.error("Error validating provider candidature:", error);
@@ -347,7 +390,7 @@ export class ProviderValidationService {
         },
       });
 
-      return pendingProviders.map(provider => ({
+      return pendingProviders.map((provider) => ({
         id: provider.id,
         businessName: provider.businessName,
         siret: provider.siret,
@@ -377,7 +420,7 @@ export class ProviderValidationService {
   static async validateService(
     serviceId: string,
     status: "VALIDATED" | "REJECTED",
-    adminNotes?: string
+    adminNotes?: string,
   ) {
     try {
       const service = await prisma.service.findUnique({
@@ -408,12 +451,11 @@ export class ProviderValidationService {
       await prisma.notification.create({
         data: {
           userId: service.provider.userId,
-          title: status === "VALIDATED" 
-            ? "Service validé" 
-            : "Service refusé",
-          content: status === "VALIDATED"
-            ? `Votre service "${service.name}" a été validé et est maintenant actif.`
-            : `Votre service "${service.name}" a été refusé. ${adminNotes || "Contactez le support pour plus d'informations."}`,
+          title: status === "VALIDATED" ? "Service validé" : "Service refusé",
+          content:
+            status === "VALIDATED"
+              ? `Votre service "${service.name}" a été validé et est maintenant actif.`
+              : `Votre service "${service.name}" a été refusé. ${adminNotes || "Contactez le support pour plus d'informations."}`,
           type: "SERVICE_VALIDATION",
           priority: "MEDIUM",
           data: {
@@ -428,9 +470,10 @@ export class ProviderValidationService {
       return {
         serviceId,
         status,
-        message: status === "VALIDATED" 
-          ? "Service validé avec succès" 
-          : "Service refusé",
+        message:
+          status === "VALIDATED"
+            ? "Service validé avec succès"
+            : "Service refusé",
       };
     } catch (error) {
       console.error("Error validating service:", error);
@@ -448,10 +491,12 @@ export class ProviderValidationService {
         pendingProviders,
         validatedProviders,
         rejectedProviders,
-        activeProviders
+        activeProviders,
       ] = await Promise.all([
         prisma.provider.count(),
-        prisma.provider.count({ where: { validationStatus: "PENDING_VALIDATION" } }),
+        prisma.provider.count({
+          where: { validationStatus: "PENDING_VALIDATION" },
+        }),
         prisma.provider.count({ where: { validationStatus: "VALIDATED" } }),
         prisma.provider.count({ where: { validationStatus: "REJECTED" } }),
         prisma.provider.count({ where: { isActive: true } }),
@@ -463,7 +508,8 @@ export class ProviderValidationService {
         validatedProviders,
         rejectedProviders,
         activeProviders,
-        validationRate: totalProviders > 0 ? (validatedProviders / totalProviders) * 100 : 0,
+        validationRate:
+          totalProviders > 0 ? (validatedProviders / totalProviders) * 100 : 0,
       };
     } catch (error) {
       console.error("Error fetching validation stats:", error);
@@ -474,57 +520,60 @@ export class ProviderValidationService {
   /**
    * Démarre le processus de validation d'un prestataire
    */
-  static async startValidationProcess(userId: string, validationData: ProviderValidationData) {
+  static async startValidationProcess(
+    userId: string,
+    validationData: ProviderValidationData,
+  ) {
     try {
       // Vérifier si l'utilisateur existe et n'a pas déjà un profil provider
       const user = await prisma.user.findUnique({
         where: { id: userId },
-        include: { provider: true }
-      })
+        include: { provider: true },
+      });
 
       if (!user) {
-        throw new Error('Utilisateur non trouvé')
+        throw new Error("Utilisateur non trouvé");
       }
 
       if (user.provider) {
-        throw new Error('Profil prestataire déjà existant')
+        throw new Error("Profil prestataire déjà existant");
       }
 
       // Vérifier l'unicité du SIRET
       const existingSiret = await prisma.provider.findUnique({
-        where: { siret: validationData.profile.siret }
-      })
+        where: { siret: validationData.profile.siret },
+      });
 
       if (existingSiret) {
-        throw new Error('SIRET déjà utilisé par un autre prestataire')
+        throw new Error("SIRET déjà utilisé par un autre prestataire");
       }
 
       // Créer le profil provider avec statut PENDING
       const provider = await prisma.provider.create({
         data: {
           userId,
-          validationStatus: 'PENDING',
+          validationStatus: "PENDING",
           businessName: validationData.profile.businessName,
           siret: validationData.profile.siret,
           specialties: validationData.profile.specialties,
           description: validationData.profile.description,
           hourlyRate: validationData.profile.hourlyRate,
           zone: validationData.profile.zone,
-          isActive: false // Inactif jusqu'à validation
-        }
-      })
+          isActive: false, // Inactif jusqu'à validation
+        },
+      });
 
       // Créer les documents associés
       for (const doc of validationData.documents) {
         await prisma.document.create({
           data: {
-            profileId: user.profile?.id || '', // Assumer que le profile existe
+            profileId: user.profile?.id || "", // Assumer que le profile existe
             type: doc.type as any,
             filename: doc.filename,
             url: doc.url,
-            status: 'PENDING'
-          }
-        })
+            status: "PENDING",
+          },
+        });
       }
 
       // Inscrire aux certifications requises
@@ -533,36 +582,37 @@ export class ProviderValidationService {
           data: {
             providerId: provider.id,
             certificationId: certId,
-            status: 'NOT_STARTED'
-          }
-        })
+            status: "NOT_STARTED",
+          },
+        });
       }
 
       // Créer l'audit trail
       await prisma.certificationAudit.create({
         data: {
-          entityType: 'provider',
+          entityType: "provider",
           entityId: provider.id,
-          certificationId: validationData.requiredCertifications[0] || '',
-          action: 'ENROLLED',
-          newStatus: 'NOT_STARTED',
+          certificationId: validationData.requiredCertifications[0] || "",
+          action: "ENROLLED",
+          newStatus: "NOT_STARTED",
           performedBy: userId,
-          reason: 'Inscription initiale du prestataire'
-        }
-      })
+          reason: "Inscription initiale du prestataire",
+        },
+      });
 
-      return provider
-
+      return provider;
     } catch (error) {
-      console.error('Erreur lors du démarrage de la validation:', error)
-      throw error
+      console.error("Erreur lors du démarrage de la validation:", error);
+      throw error;
     }
   }
 
   /**
    * Récupère le statut de validation d'un prestataire
    */
-  static async getValidationStatus(providerId: string): Promise<ProviderValidationStatus> {
+  static async getValidationStatus(
+    providerId: string,
+  ): Promise<ProviderValidationStatus> {
     try {
       const provider = await prisma.provider.findUnique({
         where: { id: providerId },
@@ -571,103 +621,121 @@ export class ProviderValidationService {
             include: {
               profile: {
                 include: {
-                  documents: true
-                }
-              }
-            }
+                  documents: true,
+                },
+              },
+            },
           },
           certifications: {
             include: {
-              certification: true
-            }
-          }
-        }
-      })
+              certification: true,
+            },
+          },
+        },
+      });
 
       if (!provider) {
-        throw new Error('Prestataire non trouvé')
+        throw new Error("Prestataire non trouvé");
       }
 
       // Construire les étapes de validation
       const steps: ValidationStep[] = [
         {
-          id: 'documents',
-          title: 'Vérification des documents',
-          description: 'Validation des pièces justificatives (SIRET, assurance, etc.)',
-          status: this.getDocumentValidationStatus(provider.user.profile?.documents || [])
+          id: "documents",
+          title: "Vérification des documents",
+          description:
+            "Validation des pièces justificatives (SIRET, assurance, etc.)",
+          status: this.getDocumentValidationStatus(
+            provider.user.profile?.documents || [],
+          ),
         },
         {
-          id: 'certifications',
-          title: 'Certifications obligatoires',
-          description: 'Obtention des certifications requises pour vos spécialités',
-          status: this.getCertificationValidationStatus(provider.certifications)
+          id: "certifications",
+          title: "Certifications obligatoires",
+          description:
+            "Obtention des certifications requises pour vos spécialités",
+          status: this.getCertificationValidationStatus(
+            provider.certifications,
+          ),
         },
         {
-          id: 'admin_review',
-          title: 'Validation administrative',
-          description: 'Examen final par l\'équipe EcoDeli',
-          status: provider.validationStatus === 'APPROVED' ? 'completed' : 
-                   provider.validationStatus === 'REJECTED' ? 'failed' : 'pending'
+          id: "admin_review",
+          title: "Validation administrative",
+          description: "Examen final par l'équipe EcoDeli",
+          status:
+            provider.validationStatus === "APPROVED"
+              ? "completed"
+              : provider.validationStatus === "REJECTED"
+                ? "failed"
+                : "pending",
         },
         {
-          id: 'activation',
-          title: 'Activation du compte',
-          description: 'Mise en ligne de votre profil prestataire',
-          status: provider.isActive ? 'completed' : 'pending'
-        }
-      ]
+          id: "activation",
+          title: "Activation du compte",
+          description: "Mise en ligne de votre profil prestataire",
+          status: provider.isActive ? "completed" : "pending",
+        },
+      ];
 
       // Calculer le progrès
-      const completedSteps = steps.filter(step => step.status === 'completed').length
-      const progress = Math.round((completedSteps / steps.length) * 100)
+      const completedSteps = steps.filter(
+        (step) => step.status === "completed",
+      ).length;
+      const progress = Math.round((completedSteps / steps.length) * 100);
 
       return {
         currentStatus: provider.validationStatus as any,
         steps,
         progress,
         estimatedCompletionDate: this.calculateEstimatedCompletion(steps),
-        rejectionReason: provider.validationStatus === 'REJECTED' ? 'Documents incomplets' : undefined,
-        nextAction: this.getNextAction(steps, provider.validationStatus as any)
-      }
-
+        rejectionReason:
+          provider.validationStatus === "REJECTED"
+            ? "Documents incomplets"
+            : undefined,
+        nextAction: this.getNextAction(steps, provider.validationStatus as any),
+      };
     } catch (error) {
-      console.error('Erreur lors de la récupération du statut:', error)
-      throw error
+      console.error("Erreur lors de la récupération du statut:", error);
+      throw error;
     }
   }
 
   /**
    * Récupère les certifications requises pour un prestataire
    */
-  static async getRequiredCertifications(specialties: string[]): Promise<CertificationRequirement[]> {
+  static async getRequiredCertifications(
+    specialties: string[],
+  ): Promise<CertificationRequirement[]> {
     try {
       // Récupérer les certifications requises selon les spécialités
       const requirements = await prisma.qualificationRequirement.findMany({
         where: {
           serviceType: {
-            in: specialties
-          }
+            in: specialties,
+          },
         },
         include: {
-          certification: true
-        }
-      })
+          certification: true,
+        },
+      });
 
-      return requirements.map(req => ({
+      return requirements.map((req) => ({
         id: req.certification.id,
         name: req.certification.name,
         description: req.certification.description,
         category: req.certification.category,
         level: req.certification.level,
         isRequired: req.isRequired,
-        status: 'not_started',
+        status: "not_started",
         attempts: 0,
-        maxAttempts: req.certification.maxAttempts
-      }))
-
+        maxAttempts: req.certification.maxAttempts,
+      }));
     } catch (error) {
-      console.error('Erreur lors de la récupération des certifications:', error)
-      throw error
+      console.error(
+        "Erreur lors de la récupération des certifications:",
+        error,
+      );
+      throw error;
     }
   }
 
@@ -675,50 +743,49 @@ export class ProviderValidationService {
    * Met à jour le statut de validation d'un prestataire (admin)
    */
   static async updateValidationStatus(
-    providerId: string, 
-    status: 'APPROVED' | 'REJECTED',
+    providerId: string,
+    status: "APPROVED" | "REJECTED",
     adminId: string,
-    reason?: string
+    reason?: string,
   ) {
     try {
       const updateData: any = {
         validationStatus: status,
-        updatedAt: new Date()
-      }
+        updatedAt: new Date(),
+      };
 
-      if (status === 'APPROVED') {
-        updateData.isActive = true
-        updateData.activatedAt = new Date()
+      if (status === "APPROVED") {
+        updateData.isActive = true;
+        updateData.activatedAt = new Date();
       }
 
       const provider = await prisma.provider.update({
         where: { id: providerId },
-        data: updateData
-      })
+        data: updateData,
+      });
 
       // Créer l'audit trail
       await prisma.certificationAudit.create({
         data: {
-          entityType: 'provider',
+          entityType: "provider",
           entityId: providerId,
-          certificationId: '', // Pas de certification spécifique
-          action: status === 'APPROVED' ? 'APPROVED' : 'REJECTED',
-          newStatus: status === 'APPROVED' ? 'COMPLETED' : 'FAILED',
+          certificationId: "", // Pas de certification spécifique
+          action: status === "APPROVED" ? "APPROVED" : "REJECTED",
+          newStatus: status === "APPROVED" ? "COMPLETED" : "FAILED",
           performedBy: adminId,
-          reason: reason || `Validation ${status.toLowerCase()} par l'admin`
-        }
-      })
+          reason: reason || `Validation ${status.toLowerCase()} par l'admin`,
+        },
+      });
 
       // Si approuvé, générer le certificat de validation
-      if (status === 'APPROVED') {
-        await this.generateProviderCertificate(providerId)
+      if (status === "APPROVED") {
+        await this.generateProviderCertificate(providerId);
       }
 
-      return provider
-
+      return provider;
     } catch (error) {
-      console.error('Erreur lors de la mise à jour du statut:', error)
-      throw error
+      console.error("Erreur lors de la mise à jour du statut:", error);
+      throw error;
     }
   }
 
@@ -732,36 +799,39 @@ export class ProviderValidationService {
         where: {
           providerId_certificationId: {
             providerId,
-            certificationId
-          }
+            certificationId,
+          },
         },
         include: {
           certification: {
             include: {
               modules: {
-                orderBy: { orderIndex: 'asc' }
-              }
-            }
-          }
-        }
-      })
+                orderBy: { orderIndex: "asc" },
+              },
+            },
+          },
+        },
+      });
 
       if (!providerCert) {
-        throw new Error('Certification non trouvée pour ce prestataire')
+        throw new Error("Certification non trouvée pour ce prestataire");
       }
 
-      if (providerCert.status !== 'NOT_STARTED' && providerCert.status !== 'ENROLLED') {
-        throw new Error('Certification déjà commencée ou terminée')
+      if (
+        providerCert.status !== "NOT_STARTED" &&
+        providerCert.status !== "ENROLLED"
+      ) {
+        throw new Error("Certification déjà commencée ou terminée");
       }
 
       // Mettre à jour le statut
       const updated = await prisma.providerCertification.update({
         where: { id: providerCert.id },
         data: {
-          status: 'IN_PROGRESS',
-          startedAt: new Date()
-        }
-      })
+          status: "IN_PROGRESS",
+          startedAt: new Date(),
+        },
+      });
 
       // Créer les progrès pour chaque module
       for (const module of providerCert.certification.modules) {
@@ -769,16 +839,15 @@ export class ProviderValidationService {
           data: {
             moduleId: module.id,
             providerCertificationId: providerCert.id,
-            status: 'NOT_STARTED'
-          }
-        })
+            status: "NOT_STARTED",
+          },
+        });
       }
 
-      return updated
-
+      return updated;
     } catch (error) {
-      console.error('Erreur lors du démarrage de la certification:', error)
-      throw error
+      console.error("Erreur lors du démarrage de la certification:", error);
+      throw error;
     }
   }
 
@@ -786,76 +855,82 @@ export class ProviderValidationService {
    * Termine un module de certification
    */
   static async completeModule(
-    providerId: string, 
-    certificationId: string, 
-    moduleId: string, 
-    score: number
+    providerId: string,
+    certificationId: string,
+    moduleId: string,
+    score: number,
   ) {
     try {
       const providerCert = await prisma.providerCertification.findUnique({
         where: {
           providerId_certificationId: {
             providerId,
-            certificationId
-          }
-        }
-      })
+            certificationId,
+          },
+        },
+      });
 
       if (!providerCert) {
-        throw new Error('Certification non trouvée')
+        throw new Error("Certification non trouvée");
       }
 
       // Mettre à jour le progrès du module
       const moduleProgress = await prisma.moduleProgress.updateMany({
         where: {
           moduleId,
-          providerCertificationId: providerCert.id
+          providerCertificationId: providerCert.id,
         },
         data: {
-          status: score >= 80 ? 'COMPLETED' : 'FAILED', // 80% minimum
+          status: score >= 80 ? "COMPLETED" : "FAILED", // 80% minimum
           completedAt: new Date(),
           score,
-          attempts: { increment: 1 }
-        }
-      })
+          attempts: { increment: 1 },
+        },
+      });
 
       // Vérifier si tous les modules sont terminés
       const allProgress = await prisma.moduleProgress.findMany({
         where: {
-          providerCertificationId: providerCert.id
-        }
-      })
+          providerCertificationId: providerCert.id,
+        },
+      });
 
-      const completedModules = allProgress.filter(p => p.status === 'COMPLETED')
-      const allCompleted = completedModules.length === allProgress.length
+      const completedModules = allProgress.filter(
+        (p) => p.status === "COMPLETED",
+      );
+      const allCompleted = completedModules.length === allProgress.length;
 
       if (allCompleted) {
         // Calculer le score moyen
-        const averageScore = allProgress.reduce((sum, p) => sum + (p.score || 0), 0) / allProgress.length
+        const averageScore =
+          allProgress.reduce((sum, p) => sum + (p.score || 0), 0) /
+          allProgress.length;
 
         // Mettre à jour la certification
         await prisma.providerCertification.update({
           where: { id: providerCert.id },
           data: {
-            status: averageScore >= 80 ? 'COMPLETED' : 'FAILED',
+            status: averageScore >= 80 ? "COMPLETED" : "FAILED",
             completedAt: new Date(),
             score: averageScore,
             isValid: averageScore >= 80,
-            expiresAt: averageScore >= 80 ? this.calculateExpirationDate(certificationId) : null
-          }
-        })
+            expiresAt:
+              averageScore >= 80
+                ? this.calculateExpirationDate(certificationId)
+                : null,
+          },
+        });
 
         // Générer le certificat si réussi
         if (averageScore >= 80) {
-          await this.generateCertificate(providerId, certificationId)
+          await this.generateCertificate(providerId, certificationId);
         }
       }
 
-      return moduleProgress
-
+      return moduleProgress;
     } catch (error) {
-      console.error('Erreur lors de la complétion du module:', error)
-      throw error
+      console.error("Erreur lors de la complétion du module:", error);
+      throw error;
     }
   }
 
@@ -865,153 +940,188 @@ export class ProviderValidationService {
   static async getValidationStatistics() {
     try {
       const stats = await prisma.provider.groupBy({
-        by: ['validationStatus'],
+        by: ["validationStatus"],
         _count: {
-          validationStatus: true
-        }
-      })
+          validationStatus: true,
+        },
+      });
 
       const certificationStats = await prisma.providerCertification.groupBy({
-        by: ['status'],
+        by: ["status"],
         _count: {
-          status: true
-        }
-      })
+          status: true,
+        },
+      });
 
       return {
-        providers: stats.reduce((acc, stat) => {
-          acc[stat.validationStatus] = stat._count.validationStatus
-          return acc
-        }, {} as Record<string, number>),
-        certifications: certificationStats.reduce((acc, stat) => {
-          acc[stat.status] = stat._count.status
-          return acc
-        }, {} as Record<string, number>)
-      }
-
+        providers: stats.reduce(
+          (acc, stat) => {
+            acc[stat.validationStatus] = stat._count.validationStatus;
+            return acc;
+          },
+          {} as Record<string, number>,
+        ),
+        certifications: certificationStats.reduce(
+          (acc, stat) => {
+            acc[stat.status] = stat._count.status;
+            return acc;
+          },
+          {} as Record<string, number>,
+        ),
+      };
     } catch (error) {
-      console.error('Erreur lors de la récupération des statistiques:', error)
-      throw error
+      console.error("Erreur lors de la récupération des statistiques:", error);
+      throw error;
     }
   }
 
   // Méthodes utilitaires privées
-  private static getDocumentValidationStatus(documents: any[]): 'pending' | 'in_progress' | 'completed' | 'failed' {
-    if (documents.length === 0) return 'pending'
-    
-    const approvedDocs = documents.filter(doc => doc.status === 'APPROVED')
-    const rejectedDocs = documents.filter(doc => doc.status === 'REJECTED')
-    
-    if (rejectedDocs.length > 0) return 'failed'
-    if (approvedDocs.length === documents.length) return 'completed'
-    return 'in_progress'
+  private static getDocumentValidationStatus(
+    documents: any[],
+  ): "pending" | "in_progress" | "completed" | "failed" {
+    if (documents.length === 0) return "pending";
+
+    const approvedDocs = documents.filter((doc) => doc.status === "APPROVED");
+    const rejectedDocs = documents.filter((doc) => doc.status === "REJECTED");
+
+    if (rejectedDocs.length > 0) return "failed";
+    if (approvedDocs.length === documents.length) return "completed";
+    return "in_progress";
   }
 
-  private static getCertificationValidationStatus(certifications: any[]): 'pending' | 'in_progress' | 'completed' | 'failed' {
-    if (certifications.length === 0) return 'pending'
-    
-    const completedCerts = certifications.filter(cert => cert.status === 'COMPLETED')
-    const failedCerts = certifications.filter(cert => cert.status === 'FAILED')
-    
-    if (failedCerts.length > 0) return 'failed'
-    if (completedCerts.length === certifications.length) return 'completed'
-    return 'in_progress'
+  private static getCertificationValidationStatus(
+    certifications: any[],
+  ): "pending" | "in_progress" | "completed" | "failed" {
+    if (certifications.length === 0) return "pending";
+
+    const completedCerts = certifications.filter(
+      (cert) => cert.status === "COMPLETED",
+    );
+    const failedCerts = certifications.filter(
+      (cert) => cert.status === "FAILED",
+    );
+
+    if (failedCerts.length > 0) return "failed";
+    if (completedCerts.length === certifications.length) return "completed";
+    return "in_progress";
   }
 
-  private static calculateEstimatedCompletion(steps: ValidationStep[]): Date | undefined {
-    const pendingSteps = steps.filter(step => step.status === 'pending' || step.status === 'in_progress')
-    if (pendingSteps.length === 0) return undefined
-    
+  private static calculateEstimatedCompletion(
+    steps: ValidationStep[],
+  ): Date | undefined {
+    const pendingSteps = steps.filter(
+      (step) => step.status === "pending" || step.status === "in_progress",
+    );
+    if (pendingSteps.length === 0) return undefined;
+
     // Estimation : 7 jours par étape restante
-    const daysToAdd = pendingSteps.length * 7
-    const estimatedDate = new Date()
-    estimatedDate.setDate(estimatedDate.getDate() + daysToAdd)
-    
-    return estimatedDate
+    const daysToAdd = pendingSteps.length * 7;
+    const estimatedDate = new Date();
+    estimatedDate.setDate(estimatedDate.getDate() + daysToAdd);
+
+    return estimatedDate;
   }
 
-  private static getNextAction(steps: ValidationStep[], currentStatus: string): string {
-    const firstPendingStep = steps.find(step => step.status === 'pending' || step.status === 'in_progress')
-    
+  private static getNextAction(
+    steps: ValidationStep[],
+    currentStatus: string,
+  ): string {
+    const firstPendingStep = steps.find(
+      (step) => step.status === "pending" || step.status === "in_progress",
+    );
+
     if (!firstPendingStep) {
-      return currentStatus === 'APPROVED' ? 'Profil activé' : 'En attente de validation finale'
+      return currentStatus === "APPROVED"
+        ? "Profil activé"
+        : "En attente de validation finale";
     }
-    
+
     switch (firstPendingStep.id) {
-      case 'documents':
-        return 'Télécharger les documents manquants'
-      case 'certifications':
-        return 'Compléter les certifications requises'
-      case 'admin_review':
-        return 'En attente de validation administrative'
-      case 'activation':
-        return 'Activation automatique en cours'
+      case "documents":
+        return "Télécharger les documents manquants";
+      case "certifications":
+        return "Compléter les certifications requises";
+      case "admin_review":
+        return "En attente de validation administrative";
+      case "activation":
+        return "Activation automatique en cours";
       default:
-        return 'Continuer le processus de validation'
+        return "Continuer le processus de validation";
     }
   }
 
-  private static async calculateExpirationDate(certificationId: string): Promise<Date | null> {
+  private static async calculateExpirationDate(
+    certificationId: string,
+  ): Promise<Date | null> {
     const certification = await prisma.certification.findUnique({
-      where: { id: certificationId }
-    })
-    
-    if (!certification?.validityDuration) return null
-    
-    const expirationDate = new Date()
-    expirationDate.setMonth(expirationDate.getMonth() + certification.validityDuration)
-    
-    return expirationDate
+      where: { id: certificationId },
+    });
+
+    if (!certification?.validityDuration) return null;
+
+    const expirationDate = new Date();
+    expirationDate.setMonth(
+      expirationDate.getMonth() + certification.validityDuration,
+    );
+
+    return expirationDate;
   }
 
-  private static async generateCertificate(providerId: string, certificationId: string): Promise<string> {
+  private static async generateCertificate(
+    providerId: string,
+    certificationId: string,
+  ): Promise<string> {
     // Simuler la génération de certificat
     // Dans une vraie application, utiliser jsPDF ou une API de génération
-    const certificateUrl = `https://ecodeli.fr/certificates/${providerId}/${certificationId}.pdf`
-    
+    const certificateUrl = `https://ecodeli.fr/certificates/${providerId}/${certificationId}.pdf`;
+
     await prisma.providerCertification.updateMany({
       where: {
         providerId,
-        certificationId
+        certificationId,
       },
       data: {
-        certificateUrl
-      }
-    })
-    
-    return certificateUrl
+        certificateUrl,
+      },
+    });
+
+    return certificateUrl;
   }
 
-  private static async generateProviderCertificate(providerId: string): Promise<string> {
+  private static async generateProviderCertificate(
+    providerId: string,
+  ): Promise<string> {
     // Générer le certificat de validation prestataire
-    const certificateUrl = `https://ecodeli.fr/certificates/provider/${providerId}/validation.pdf`
-    
+    const certificateUrl = `https://ecodeli.fr/certificates/provider/${providerId}/validation.pdf`;
+
     // Dans une vraie application, générer le PDF avec jsPDF
-    return certificateUrl
+    return certificateUrl;
   }
 }
 
 // Schémas de validation Zod
 export const providerValidationSchema = z.object({
-  businessName: z.string().min(2, 'Nom d\'entreprise requis'),
-  siret: z.string().regex(/^\d{14}$/, 'SIRET invalide (14 chiffres)'),
-  specialties: z.array(z.string()).min(1, 'Au moins une spécialité requise'),
-  description: z.string().min(50, 'Description minimum 50 caractères'),
-  hourlyRate: z.number().positive('Taux horaire doit être positif'),
+  businessName: z.string().min(2, "Nom d'entreprise requis"),
+  siret: z.string().regex(/^\d{14}$/, "SIRET invalide (14 chiffres)"),
+  specialties: z.array(z.string()).min(1, "Au moins une spécialité requise"),
+  description: z.string().min(50, "Description minimum 50 caractères"),
+  hourlyRate: z.number().positive("Taux horaire doit être positif"),
   zone: z.object({
     coordinates: z.array(z.number()).length(2),
-    radius: z.number().positive()
+    radius: z.number().positive(),
   }),
   requiredCertifications: z.array(z.string()),
-  documents: z.array(z.object({
-    type: z.string(),
-    url: z.string().url(),
-    filename: z.string()
-  }))
-})
+  documents: z.array(
+    z.object({
+      type: z.string(),
+      url: z.string().url(),
+      filename: z.string(),
+    }),
+  ),
+});
 
 export const moduleCompletionSchema = z.object({
   moduleId: z.string(),
   score: z.number().min(0).max(100),
-  timeSpent: z.number().positive()
-}) 
+  timeSpent: z.number().positive(),
+});
