@@ -1,35 +1,35 @@
-import { prisma } from '@/lib/db'
-import { z } from 'zod'
+import { prisma } from "@/lib/db";
+import { z } from "zod";
 
 export interface BillingFilters {
-  status?: string
-  dateFrom?: string
-  dateTo?: string
-  page?: number
-  limit?: number
+  status?: string;
+  dateFrom?: string;
+  dateTo?: string;
+  page?: number;
+  limit?: number;
 }
 
 export interface BillingStats {
-  totalInvoices: number
-  pendingInvoices: number
-  paidInvoices: number
-  totalAmount: number
-  monthlyRevenue: number
-  averageInvoiceAmount: number
+  totalInvoices: number;
+  pendingInvoices: number;
+  paidInvoices: number;
+  totalAmount: number;
+  monthlyRevenue: number;
+  averageInvoiceAmount: number;
 }
 
 export interface InvoiceTemplate {
-  id: string
-  name: string
-  description: string
-  defaultItems: InvoiceItem[]
+  id: string;
+  name: string;
+  description: string;
+  defaultItems: InvoiceItem[];
 }
 
 export interface InvoiceItem {
-  description: string
-  quantity: number
-  unitPrice: number
-  totalPrice: number
+  description: string;
+  quantity: number;
+  unitPrice: number;
+  totalPrice: number;
 }
 
 export class MerchantBillingService {
@@ -38,37 +38,47 @@ export class MerchantBillingService {
    */
   static async getBillingStats(userId: string): Promise<BillingStats> {
     const merchant = await prisma.merchant.findUnique({
-      where: { userId }
-    })
+      where: { userId },
+    });
 
     if (!merchant) {
-      throw new Error('Merchant profile not found')
+      throw new Error("Merchant profile not found");
     }
 
     const invoices = await prisma.invoice.findMany({
       where: {
-        merchantId: merchant.id
-      }
-    })
+        merchantId: merchant.id,
+      },
+    });
 
-    const totalInvoices = invoices.length
-    const pendingInvoices = invoices.filter(i => i.status === 'PENDING').length
-    const paidInvoices = invoices.filter(i => i.status === 'PAID').length
-    
+    const totalInvoices = invoices.length;
+    const pendingInvoices = invoices.filter(
+      (i) => i.status === "PENDING",
+    ).length;
+    const paidInvoices = invoices.filter((i) => i.status === "PAID").length;
+
     const totalAmount = invoices
-      .filter(i => i.status === 'PAID')
-      .reduce((sum, i) => sum + i.amount, 0)
+      .filter((i) => i.status === "PAID")
+      .reduce((sum, i) => sum + i.amount, 0);
 
     // Revenus du mois actuel
-    const currentMonth = new Date()
-    const firstDayOfMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1)
-    
-    const monthlyInvoices = invoices.filter(i => 
-      new Date(i.createdAt) >= firstDayOfMonth && i.status === 'PAID'
-    )
-    const monthlyRevenue = monthlyInvoices.reduce((sum, i) => sum + i.amount, 0)
+    const currentMonth = new Date();
+    const firstDayOfMonth = new Date(
+      currentMonth.getFullYear(),
+      currentMonth.getMonth(),
+      1,
+    );
 
-    const averageInvoiceAmount = paidInvoices > 0 ? totalAmount / paidInvoices : 0
+    const monthlyInvoices = invoices.filter(
+      (i) => new Date(i.createdAt) >= firstDayOfMonth && i.status === "PAID",
+    );
+    const monthlyRevenue = monthlyInvoices.reduce(
+      (sum, i) => sum + i.amount,
+      0,
+    );
+
+    const averageInvoiceAmount =
+      paidInvoices > 0 ? totalAmount / paidInvoices : 0;
 
     return {
       totalInvoices,
@@ -76,40 +86,40 @@ export class MerchantBillingService {
       paidInvoices,
       totalAmount,
       monthlyRevenue,
-      averageInvoiceAmount
-    }
+      averageInvoiceAmount,
+    };
   }
 
   /**
    * Récupère l'historique des factures
    */
   static async getInvoices(userId: string, filters: BillingFilters = {}) {
-    const { page = 1, limit = 20, status, dateFrom, dateTo } = filters
-    const skip = (page - 1) * limit
+    const { page = 1, limit = 20, status, dateFrom, dateTo } = filters;
+    const skip = (page - 1) * limit;
 
     const merchant = await prisma.merchant.findUnique({
-      where: { userId }
-    })
+      where: { userId },
+    });
 
     if (!merchant) {
-      throw new Error('Merchant profile not found')
+      throw new Error("Merchant profile not found");
     }
 
     const whereClause: any = {
-      merchantId: merchant.id
-    }
+      merchantId: merchant.id,
+    };
 
-    if (status && status !== 'ALL') {
-      whereClause.status = status
+    if (status && status !== "ALL") {
+      whereClause.status = status;
     }
 
     if (dateFrom || dateTo) {
-      whereClause.createdAt = {}
+      whereClause.createdAt = {};
       if (dateFrom) {
-        whereClause.createdAt.gte = new Date(dateFrom)
+        whereClause.createdAt.gte = new Date(dateFrom);
       }
       if (dateTo) {
-        whereClause.createdAt.lte = new Date(dateTo)
+        whereClause.createdAt.lte = new Date(dateTo);
       }
     }
 
@@ -121,104 +131,116 @@ export class MerchantBillingService {
             include: {
               user: {
                 include: {
-                  profile: true
-                }
-              }
-            }
-          }
+                  profile: true,
+                },
+              },
+            },
+          },
         },
-        orderBy: { createdAt: 'desc' },
+        orderBy: { createdAt: "desc" },
         skip,
-        take: limit
+        take: limit,
       }),
-      prisma.invoice.count({ where: whereClause })
-    ])
+      prisma.invoice.count({ where: whereClause }),
+    ]);
 
     return {
       invoices,
       totalCount,
       currentPage: page,
-      totalPages: Math.ceil(totalCount / limit)
-    }
+      totalPages: Math.ceil(totalCount / limit),
+    };
   }
 
   /**
    * Crée une nouvelle facture
    */
-  static async createInvoice(userId: string, invoiceData: {
-    clientEmail: string
-    items: InvoiceItem[]
-    dueDate?: Date
-    notes?: string
-  }) {
+  static async createInvoice(
+    userId: string,
+    invoiceData: {
+      clientEmail: string;
+      items: InvoiceItem[];
+      dueDate?: Date;
+      notes?: string;
+    },
+  ) {
     const merchant = await prisma.merchant.findUnique({
-      where: { userId }
-    })
+      where: { userId },
+    });
 
     if (!merchant) {
-      throw new Error('Merchant profile not found')
+      throw new Error("Merchant profile not found");
     }
 
-    const totalAmount = invoiceData.items.reduce((sum, item) => sum + item.totalPrice, 0)
+    const totalAmount = invoiceData.items.reduce(
+      (sum, item) => sum + item.totalPrice,
+      0,
+    );
 
     const invoice = await prisma.invoice.create({
       data: {
         merchantId: merchant.id,
         clientEmail: invoiceData.clientEmail,
         amount: totalAmount,
-        status: 'PENDING',
-        dueDate: invoiceData.dueDate || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 jours par défaut
+        status: "PENDING",
+        dueDate:
+          invoiceData.dueDate ||
+          new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 jours par défaut
         items: invoiceData.items,
         notes: invoiceData.notes,
-        invoiceNumber: `INV-${Date.now()}`
+        invoiceNumber: `INV-${Date.now()}`,
       },
       include: {
         merchant: {
           include: {
             user: {
               include: {
-                profile: true
-              }
-            }
-          }
-        }
-      }
-    })
+                profile: true,
+              },
+            },
+          },
+        },
+      },
+    });
 
-    return invoice
+    return invoice;
   }
 
   /**
    * Met à jour le statut d'une facture
    */
-  static async updateInvoiceStatus(userId: string, invoiceId: string, status: string) {
+  static async updateInvoiceStatus(
+    userId: string,
+    invoiceId: string,
+    status: string,
+  ) {
     const merchant = await prisma.merchant.findUnique({
-      where: { userId }
-    })
+      where: { userId },
+    });
 
     if (!merchant) {
-      throw new Error('Merchant profile not found')
+      throw new Error("Merchant profile not found");
     }
 
     // Vérifier que la facture appartient au merchant
     const invoice = await prisma.invoice.findFirst({
       where: {
         id: invoiceId,
-        merchantId: merchant.id
-      }
-    })
+        merchantId: merchant.id,
+      },
+    });
 
     if (!invoice) {
-      throw new Error('Facture non trouvée ou accès non autorisé')
+      throw new Error("Facture non trouvée ou accès non autorisé");
     }
 
     return await prisma.invoice.update({
       where: { id: invoiceId },
-      data: { 
+      data: {
         status,
-        paidAt: status === 'PAID' ? new Date() : null
-      }
-    })
+        paidAt: status === "PAID" ? new Date() : null,
+      },
+    });
   }
 
   /**
@@ -230,25 +252,25 @@ export class MerchantBillingService {
       include: {
         user: {
           include: {
-            profile: true
-          }
-        }
-      }
-    })
+            profile: true,
+          },
+        },
+      },
+    });
 
     if (!merchant) {
-      throw new Error('Merchant profile not found')
+      throw new Error("Merchant profile not found");
     }
 
     const invoice = await prisma.invoice.findFirst({
       where: {
         id: invoiceId,
-        merchantId: merchant.id
-      }
-    })
+        merchantId: merchant.id,
+      },
+    });
 
     if (!invoice) {
-      throw new Error('Facture non trouvée')
+      throw new Error("Facture non trouvée");
     }
 
     // Dans une vraie implémentation, on utiliserait jsPDF ici
@@ -256,8 +278,8 @@ export class MerchantBillingService {
     return {
       invoice,
       merchant,
-      pdfUrl: `/api/merchant/billing/invoice/${invoiceId}/pdf`
-    }
+      pdfUrl: `/api/merchant/billing/invoice/${invoiceId}/pdf`,
+    };
   }
 
   /**
@@ -268,38 +290,38 @@ export class MerchantBillingService {
     // Dans une vraie version, ceux-ci seraient stockés en base
     return [
       {
-        id: 'template-1',
-        name: 'Facture Standard',
-        description: 'Template de base pour facturation de services',
+        id: "template-1",
+        name: "Facture Standard",
+        description: "Template de base pour facturation de services",
         defaultItems: [
           {
-            description: 'Service de livraison',
+            description: "Service de livraison",
             quantity: 1,
-            unitPrice: 25.00,
-            totalPrice: 25.00
-          }
-        ]
+            unitPrice: 25.0,
+            totalPrice: 25.0,
+          },
+        ],
       },
       {
-        id: 'template-2',
-        name: 'Facture Lâcher de Chariot',
-        description: 'Template spécialisé pour le service phare EcoDeli',
+        id: "template-2",
+        name: "Facture Lâcher de Chariot",
+        description: "Template spécialisé pour le service phare EcoDeli",
         defaultItems: [
           {
-            description: 'Lâcher de chariot - Livraison à domicile',
+            description: "Lâcher de chariot - Livraison à domicile",
             quantity: 1,
-            unitPrice: 15.00,
-            totalPrice: 15.00
+            unitPrice: 15.0,
+            totalPrice: 15.0,
           },
           {
-            description: 'Frais de manutention',
+            description: "Frais de manutention",
             quantity: 1,
-            unitPrice: 5.00,
-            totalPrice: 5.00
-          }
-        ]
-      }
-    ]
+            unitPrice: 5.0,
+            totalPrice: 5.0,
+          },
+        ],
+      },
+    ];
   }
 
   /**
@@ -311,14 +333,14 @@ export class MerchantBillingService {
       include: {
         user: {
           include: {
-            profile: true
-          }
-        }
-      }
-    })
+            profile: true,
+          },
+        },
+      },
+    });
 
     if (!merchant) {
-      throw new Error('Merchant profile not found')
+      throw new Error("Merchant profile not found");
     }
 
     // Retourne les paramètres de facturation
@@ -327,15 +349,15 @@ export class MerchantBillingService {
       companyName: merchant.companyName,
       siret: merchant.siret,
       vatNumber: merchant.vatNumber,
-      invoicePrefix: 'INV',
+      invoicePrefix: "INV",
       defaultPaymentTerms: 30,
       autoSendReminders: true,
       reminderDays: [7, 3, 1], // Jours avant échéance
       bankDetails: {
-        iban: '****1234',
-        bic: 'ABCDFRPP'
-      }
-    }
+        iban: "****1234",
+        bic: "ABCDFRPP",
+      },
+    };
   }
 }
 
@@ -345,17 +367,21 @@ export const billingFiltersSchema = z.object({
   dateFrom: z.string().optional(),
   dateTo: z.string().optional(),
   page: z.number().min(1).optional(),
-  limit: z.number().min(1).max(50).optional()
-})
+  limit: z.number().min(1).max(50).optional(),
+});
 
 export const createInvoiceSchema = z.object({
-  clientEmail: z.string().email('Email client requis'),
-  items: z.array(z.object({
-    description: z.string().min(1, 'Description requise'),
-    quantity: z.number().positive('Quantité positive requise'),
-    unitPrice: z.number().positive('Prix unitaire positif requis'),
-    totalPrice: z.number().positive('Prix total positif requis')
-  })).min(1, 'Au moins un item requis'),
+  clientEmail: z.string().email("Email client requis"),
+  items: z
+    .array(
+      z.object({
+        description: z.string().min(1, "Description requise"),
+        quantity: z.number().positive("Quantité positive requise"),
+        unitPrice: z.number().positive("Prix unitaire positif requis"),
+        totalPrice: z.number().positive("Prix total positif requis"),
+      }),
+    )
+    .min(1, "Au moins un item requis"),
   dueDate: z.string().optional(),
-  notes: z.string().optional()
-}) 
+  notes: z.string().optional(),
+});

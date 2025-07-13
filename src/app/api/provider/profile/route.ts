@@ -7,10 +7,7 @@ export async function GET(request: NextRequest) {
   try {
     const session = await auth();
     if (!session) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const { searchParams } = new URL(request.url);
@@ -19,7 +16,7 @@ export async function GET(request: NextRequest) {
     if (!userId) {
       return NextResponse.json(
         { error: "User ID is required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -32,7 +29,7 @@ export async function GET(request: NextRequest) {
     if (!user || user.role !== "PROVIDER") {
       return NextResponse.json(
         { error: "User is not a provider" },
-        { status: 403 }
+        { status: 403 },
       );
     }
 
@@ -78,7 +75,7 @@ export async function GET(request: NextRequest) {
     // Calculer les statistiques
     const now = new Date();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-    
+
     // Réservations du mois en cours
     const monthlyBookings = await prisma.booking.count({
       where: {
@@ -110,21 +107,27 @@ export async function GET(request: NextRequest) {
       take: 20,
     });
 
-    const averageRating = reviews.length > 0 
-      ? reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length
-      : 0;
+    const averageRating =
+      reviews.length > 0
+        ? reviews.reduce((sum, review) => sum + review.rating, 0) /
+          reviews.length
+        : 0;
 
     // Calculer la tendance (comparer les 10 dernières vs les 10 précédentes)
     const recentReviews = reviews.slice(0, 10);
     const olderReviews = reviews.slice(10, 20);
-    
-    const recentAvg = recentReviews.length > 0 
-      ? recentReviews.reduce((sum, review) => sum + review.rating, 0) / recentReviews.length
-      : 0;
-    
-    const olderAvg = olderReviews.length > 0 
-      ? olderReviews.reduce((sum, review) => sum + review.rating, 0) / olderReviews.length
-      : 0;
+
+    const recentAvg =
+      recentReviews.length > 0
+        ? recentReviews.reduce((sum, review) => sum + review.rating, 0) /
+          recentReviews.length
+        : 0;
+
+    const olderAvg =
+      olderReviews.length > 0
+        ? olderReviews.reduce((sum, review) => sum + review.rating, 0) /
+          olderReviews.length
+        : 0;
 
     let trend = "stable";
     if (recentAvg > olderAvg + 0.2) trend = "up";
@@ -145,7 +148,7 @@ export async function GET(request: NextRequest) {
     console.error("Error fetching provider profile:", error);
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -155,21 +158,12 @@ export async function PUT(request: NextRequest) {
   try {
     const session = await auth();
     if (!session || session.user.role !== "PROVIDER") {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const body = await request.json();
-    const { 
-      businessName, 
-      siret, 
-      description, 
-      specialties, 
-      hourlyRate,
-      zone 
-    } = body;
+    const { businessName, siret, description, specialties, hourlyRate, zone } =
+      body;
 
     // Trouver le provider existant
     const existingProvider = await prisma.provider.findUnique({
@@ -179,7 +173,7 @@ export async function PUT(request: NextRequest) {
     if (!existingProvider) {
       return NextResponse.json(
         { error: "Provider profile not found" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -216,7 +210,7 @@ export async function PUT(request: NextRequest) {
     console.error("Error updating provider profile:", error);
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
-} 
+}

@@ -8,7 +8,7 @@ interface PublicLayoutProps {
 
 export default async function PublicLayout({
   children,
-  params
+  params,
 }: PublicLayoutProps) {
   // Safely extract locale using await
   const { locale } = await params;

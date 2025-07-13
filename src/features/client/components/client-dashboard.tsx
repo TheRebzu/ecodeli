@@ -1,16 +1,16 @@
-"use client"
+"use client";
 
-import { useTranslations } from "next-intl"
-import Link from "next/link"
-import { useClientDashboard } from "../hooks/useClientDashboard"
-import { StorageStatusWidget } from './storage/storage-status-widget'
-import { TutorialStatusWidget } from '@/features/tutorials/components/tutorial-status-widget'
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Skeleton } from "@/components/ui/skeleton"
+import { useTranslations } from "next-intl";
+import Link from "next/link";
+import { useClientDashboard } from "../hooks/useClientDashboard";
+import { StorageStatusWidget } from "./storage/storage-status-widget";
+import { TutorialStatusWidget } from "@/features/tutorials/components/tutorial-status-widget";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export function ClientDashboard() {
-  const t = useTranslations()
-  const { dashboardData, isLoading } = useClientDashboard()
+  const t = useTranslations();
+  const { dashboardData, isLoading } = useClientDashboard();
 
   const quickActions = [
     {
@@ -18,30 +18,30 @@ export function ClientDashboard() {
       description: t("dashboard.actions.newAnnouncementDesc"),
       href: "/client/announcements/create",
       icon: "📦",
-      color: "bg-blue-500"
+      color: "bg-blue-500",
     },
     {
       title: t("dashboard.actions.bookService"),
       description: t("dashboard.actions.bookServiceDesc"),
       href: "/client/services",
       icon: "🔧",
-      color: "bg-green-500"
+      color: "bg-green-500",
     },
     {
       title: t("dashboard.actions.myDeliveries"),
       description: t("dashboard.actions.myDeliveriesDesc"),
       href: "/client/deliveries",
       icon: "🚚",
-      color: "bg-orange-500"
+      color: "bg-orange-500",
     },
     {
       title: t("dashboard.actions.storage"),
       description: t("dashboard.actions.storageDesc"),
       href: "/client/storage",
       icon: "📦",
-      color: "bg-purple-500"
-    }
-  ]
+      color: "bg-purple-500",
+    },
+  ];
 
   if (isLoading) {
     return (
@@ -56,7 +56,7 @@ export function ClientDashboard() {
           ))}
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -77,7 +77,9 @@ export function ClientDashboard() {
           <CardContent className="p-4 lg:p-6">
             <div className="flex items-center">
               <div className="p-2 bg-blue-100 dark:bg-blue-900 rounded-lg flex-shrink-0">
-                <div className="text-blue-600 dark:text-blue-400 text-lg lg:text-base">📦</div>
+                <div className="text-blue-600 dark:text-blue-400 text-lg lg:text-base">
+                  📦
+                </div>
               </div>
               <div className="ml-3 lg:ml-4">
                 <h3 className="text-xs lg:text-sm font-medium text-gray-500 dark:text-gray-400">
@@ -95,7 +97,9 @@ export function ClientDashboard() {
           <CardContent className="p-4 lg:p-6">
             <div className="flex items-center">
               <div className="p-2 bg-green-100 dark:bg-green-900 rounded-lg flex-shrink-0">
-                <div className="text-green-600 dark:text-green-400 font-semibold text-xs lg:text-sm">✓</div>
+                <div className="text-green-600 dark:text-green-400 font-semibold text-xs lg:text-sm">
+                  ✓
+                </div>
               </div>
               <div className="ml-3 lg:ml-4">
                 <h3 className="text-xs lg:text-sm font-medium text-gray-500 dark:text-gray-400">
@@ -113,7 +117,9 @@ export function ClientDashboard() {
           <CardContent className="p-4 lg:p-6">
             <div className="flex items-center">
               <div className="p-2 bg-orange-100 dark:bg-orange-900 rounded-lg flex-shrink-0">
-                <div className="text-orange-600 dark:text-orange-400 text-lg lg:text-base">🚛</div>
+                <div className="text-orange-600 dark:text-orange-400 text-lg lg:text-base">
+                  🚛
+                </div>
               </div>
               <div className="ml-3 lg:ml-4">
                 <h3 className="text-xs lg:text-sm font-medium text-gray-500 dark:text-gray-400">
@@ -131,7 +137,9 @@ export function ClientDashboard() {
           <CardContent className="p-4 lg:p-6">
             <div className="flex items-center">
               <div className="p-2 bg-purple-100 dark:bg-purple-900 rounded-lg flex-shrink-0">
-                <div className="text-purple-600 dark:text-purple-400 text-lg lg:text-base">💰</div>
+                <div className="text-purple-600 dark:text-purple-400 text-lg lg:text-base">
+                  💰
+                </div>
               </div>
               <div className="ml-3 lg:ml-4">
                 <h3 className="text-xs lg:text-sm font-medium text-gray-500 dark:text-gray-400">
@@ -160,7 +168,9 @@ export function ClientDashboard() {
                 className="bg-white dark:bg-gray-800 rounded-lg p-4 lg:p-6 shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-md dark:hover:shadow-lg transition-shadow group"
               >
                 <div className="flex items-start space-x-3 lg:space-x-4">
-                  <div className={`p-2 lg:p-3 rounded-lg ${action.color} text-white text-lg lg:text-xl flex-shrink-0`}>
+                  <div
+                    className={`p-2 lg:p-3 rounded-lg ${action.color} text-white text-lg lg:text-xl flex-shrink-0`}
+                  >
                     {action.icon}
                   </div>
                   <div className="flex-1 min-w-0">
@@ -197,14 +207,24 @@ export function ClientDashboard() {
             </CardHeader>
             <CardContent>
               <div className="space-y-3 lg:space-y-4">
-                {dashboardData?.recentActivities && dashboardData.recentActivities.length > 0 ? (
+                {dashboardData?.recentActivities &&
+                dashboardData.recentActivities.length > 0 ? (
                   dashboardData.recentActivities.map((activity) => (
-                    <div key={activity.id} className="flex items-start space-x-2 lg:space-x-3">
-                      <div className={`w-2 h-2 rounded-full mt-1.5 lg:mt-2 flex-shrink-0 ${
-                        activity.type === 'delivery_completed' ? 'bg-green-500' : 
-                        activity.type === 'announcement_created' ? 'bg-blue-500' :
-                        activity.type === 'payment_received' ? 'bg-purple-500' : 'bg-gray-500'
-                      }`}></div>
+                    <div
+                      key={activity.id}
+                      className="flex items-start space-x-2 lg:space-x-3"
+                    >
+                      <div
+                        className={`w-2 h-2 rounded-full mt-1.5 lg:mt-2 flex-shrink-0 ${
+                          activity.type === "delivery_completed"
+                            ? "bg-green-500"
+                            : activity.type === "announcement_created"
+                              ? "bg-blue-500"
+                              : activity.type === "payment_received"
+                                ? "bg-purple-500"
+                                : "bg-gray-500"
+                        }`}
+                      ></div>
                       <div className="flex-1 min-w-0">
                         <h4 className="text-xs lg:text-sm font-medium text-gray-900 dark:text-gray-100">
                           {activity.title}
@@ -225,7 +245,7 @@ export function ClientDashboard() {
                 )}
               </div>
               <div className="pt-4 border-t mt-4">
-                <Link 
+                <Link
                   href="/client/notifications"
                   className="text-xs lg:text-sm text-green-600 hover:text-green-700 font-medium"
                 >
@@ -237,5 +257,5 @@ export function ClientDashboard() {
         </div>
       </div>
     </div>
-  )
+  );
 }

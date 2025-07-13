@@ -1,9 +1,15 @@
-'use client';
+"use client";
 
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { useApi } from "@/hooks/use-api";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -19,7 +25,7 @@ interface MonthlyBilling {
   totalRevenue: number;
   ecoDeliCommission: number;
   netAmount: number;
-  status: 'DRAFT' | 'GENERATED' | 'SENT' | 'PAID';
+  status: "DRAFT" | "GENERATED" | "SENT" | "PAID";
   invoiceUrl?: string;
   generatedAt?: string;
   paidAt?: string;
@@ -45,14 +51,14 @@ export function CurrentMonthSummary() {
   const [generating, setGenerating] = useState(false);
 
   const get = async (url: string) => {
-    return await execute(url, { method: 'GET' });
+    return await execute(url, { method: "GET" });
   };
 
   const post = async (url: string, options: { body: string }) => {
-    return await execute(url, { 
-      method: 'POST',
+    return await execute(url, {
+      method: "POST",
       body: options.body,
-      headers: { 'Content-Type': 'application/json' }
+      headers: { "Content-Type": "application/json" },
     });
   };
 
@@ -62,15 +68,17 @@ export function CurrentMonthSummary() {
 
   const fetchCurrentMonthBilling = async () => {
     if (!user?.id) return;
-    
+
     try {
       setLoading(true);
       const currentDate = new Date();
       const year = currentDate.getFullYear();
       const month = currentDate.getMonth() + 1;
-      
-      const response = await get(`/api/provider/billing/monthly?providerId=${user.id}&year=${year}&month=${month}`);
-      
+
+      const response = await get(
+        `/api/provider/billing/monthly?providerId=${user.id}&year=${year}&month=${month}`,
+      );
+
       if (response) {
         setBilling(response);
       }
@@ -83,15 +91,15 @@ export function CurrentMonthSummary() {
 
   const generateInvoice = async () => {
     if (!billing) return;
-    
+
     try {
       setGenerating(true);
       const response = await post(`/api/provider/billing/invoices`, {
         body: JSON.stringify({
           providerId: user?.id,
           year: billing.year,
-          month: billing.month
-        })
+          month: billing.month,
+        }),
       });
 
       if (response) {
@@ -123,8 +131,18 @@ export function CurrentMonthSummary() {
 
   const currentDate = new Date();
   const monthNames = [
-    "Janvier", "Février", "Mars", "Avril", "Mai", "Juin",
-    "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"
+    "Janvier",
+    "Février",
+    "Mars",
+    "Avril",
+    "Mai",
+    "Juin",
+    "Juillet",
+    "Août",
+    "Septembre",
+    "Octobre",
+    "Novembre",
+    "Décembre",
   ];
 
   const getStatusBadge = (status: string) => {
@@ -132,15 +150,11 @@ export function CurrentMonthSummary() {
       DRAFT: { color: "bg-gray-100 text-gray-800", label: "Brouillon" },
       GENERATED: { color: "bg-blue-100 text-blue-800", label: "Générée" },
       SENT: { color: "bg-yellow-100 text-yellow-800", label: "Envoyée" },
-      PAID: { color: "bg-green-100 text-green-800", label: "Payée" }
+      PAID: { color: "bg-green-100 text-green-800", label: "Payée" },
     };
 
     const statusConfig = config[status as keyof typeof config] || config.DRAFT;
-    return (
-      <Badge className={statusConfig.color}>
-        {statusConfig.label}
-      </Badge>
-    );
+    return <Badge className={statusConfig.color}>{statusConfig.label}</Badge>;
   };
 
   return (
@@ -164,7 +178,8 @@ export function CurrentMonthSummary() {
                     Résumé du mois
                   </CardTitle>
                   <CardDescription>
-                    Prestations réalisées en {monthNames[billing.month - 1]} {billing.year}
+                    Prestations réalisées en {monthNames[billing.month - 1]}{" "}
+                    {billing.year}
                   </CardDescription>
                 </div>
                 {getStatusBadge(billing.status)}
@@ -173,20 +188,26 @@ export function CurrentMonthSummary() {
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-blue-600">{billing.totalServices}</div>
+                  <div className="text-2xl font-bold text-blue-600">
+                    {billing.totalServices}
+                  </div>
                   <p className="text-sm text-muted-foreground">Prestations</p>
                 </div>
                 <div className="text-center">
                   <div className="text-2xl font-bold text-green-600">
                     {billing.totalRevenue.toFixed(2)}€
                   </div>
-                  <p className="text-sm text-muted-foreground">Chiffre d'affaires</p>
+                  <p className="text-sm text-muted-foreground">
+                    Chiffre d'affaires
+                  </p>
                 </div>
                 <div className="text-center">
                   <div className="text-2xl font-bold text-orange-600">
                     {billing.ecoDeliCommission.toFixed(2)}€
                   </div>
-                  <p className="text-sm text-muted-foreground">Commission EcoDeli</p>
+                  <p className="text-sm text-muted-foreground">
+                    Commission EcoDeli
+                  </p>
                 </div>
                 <div className="text-center">
                   <div className="text-2xl font-bold text-purple-600">
@@ -209,25 +230,34 @@ export function CurrentMonthSummary() {
             <CardContent>
               {billing.services.length === 0 ? (
                 <div className="text-center py-8">
-                  <p className="text-muted-foreground">Aucune prestation réalisée ce mois-ci</p>
+                  <p className="text-muted-foreground">
+                    Aucune prestation réalisée ce mois-ci
+                  </p>
                 </div>
               ) : (
                 <div className="space-y-4">
                   {billing.services.map((service) => (
-                    <div key={service.id} className="flex items-center justify-between p-4 border rounded-lg">
+                    <div
+                      key={service.id}
+                      className="flex items-center justify-between p-4 border rounded-lg"
+                    >
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-1">
                           <h4 className="font-medium">{service.name}</h4>
                           <Badge variant="outline">{service.category}</Badge>
                         </div>
                         <p className="text-sm text-muted-foreground">
-                          Client: {service.clientName} • {new Date(service.completedAt).toLocaleDateString()}
+                          Client: {service.clientName} •{" "}
+                          {new Date(service.completedAt).toLocaleDateString()}
                         </p>
                       </div>
                       <div className="text-right">
-                        <div className="font-medium">{service.price.toFixed(2)}€</div>
+                        <div className="font-medium">
+                          {service.price.toFixed(2)}€
+                        </div>
                         <div className="text-sm text-muted-foreground">
-                          -{service.commission.toFixed(2)}€ = {service.netAmount.toFixed(2)}€
+                          -{service.commission.toFixed(2)}€ ={" "}
+                          {service.netAmount.toFixed(2)}€
                         </div>
                       </div>
                     </div>
@@ -247,7 +277,7 @@ export function CurrentMonthSummary() {
             </CardHeader>
             <CardContent>
               <div className="flex gap-4">
-                {billing.status === 'DRAFT' && billing.totalServices > 0 && (
+                {billing.status === "DRAFT" && billing.totalServices > 0 && (
                   <Button
                     onClick={generateInvoice}
                     disabled={generating}
@@ -257,11 +287,11 @@ export function CurrentMonthSummary() {
                     {generating ? "Génération..." : "Générer la facture"}
                   </Button>
                 )}
-                
+
                 {billing.invoiceUrl && (
                   <Button
                     variant="outline"
-                    onClick={() => window.open(billing.invoiceUrl, '_blank')}
+                    onClick={() => window.open(billing.invoiceUrl, "_blank")}
                     className="flex items-center gap-2"
                   >
                     <FileText className="h-4 w-4" />
@@ -270,9 +300,10 @@ export function CurrentMonthSummary() {
                 )}
               </div>
 
-              {billing.status === 'DRAFT' && billing.totalServices === 0 && (
+              {billing.status === "DRAFT" && billing.totalServices === 0 && (
                 <p className="text-sm text-muted-foreground">
-                  Aucune prestation réalisée ce mois-ci. La facture sera générée automatiquement le 30 du mois.
+                  Aucune prestation réalisée ce mois-ci. La facture sera générée
+                  automatiquement le 30 du mois.
                 </p>
               )}
             </CardContent>
@@ -286,11 +317,12 @@ export function CurrentMonthSummary() {
               Aucune donnée de facturation
             </h3>
             <p className="text-gray-600">
-              Les données de facturation apparaîtront dès que vous aurez réalisé des prestations.
+              Les données de facturation apparaîtront dès que vous aurez réalisé
+              des prestations.
             </p>
           </CardContent>
         </Card>
       )}
     </div>
   );
-} 
+}

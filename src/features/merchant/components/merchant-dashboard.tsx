@@ -1,27 +1,33 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { 
-  Loader2, 
-  Store, 
-  Package, 
-  ShoppingCart, 
-  Euro, 
-  Plus, 
-  AlertCircle, 
-  TrendingUp, 
-  Bell, 
-  Calendar, 
-  MapPin, 
-  Clock, 
+import {
+  Loader2,
+  Store,
+  Package,
+  ShoppingCart,
+  Euro,
+  Plus,
+  AlertCircle,
+  TrendingUp,
+  Bell,
+  Calendar,
+  MapPin,
+  Clock,
   CreditCard,
   FileText,
   Users,
-  Target
+  Target,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
@@ -59,7 +65,9 @@ interface RecentAnnouncement {
 export function MerchantDashboard({ merchantId }: MerchantDashboardProps) {
   const t = useTranslations("merchant.dashboard");
   const [stats, setStats] = useState<DashboardStats | null>(null);
-  const [recentAnnouncements, setRecentAnnouncements] = useState<RecentAnnouncement[]>([]);
+  const [recentAnnouncements, setRecentAnnouncements] = useState<
+    RecentAnnouncement[]
+  >([]);
   const [loading, setLoading] = useState(true);
 
   const fetchDashboardData = async () => {
@@ -85,15 +93,25 @@ export function MerchantDashboard({ merchantId }: MerchantDashboardProps) {
 
   const getStatusBadge = (status: string) => {
     const statusConfig = {
-      active: { color: "bg-green-100 text-green-800", label: t("status.active") },
+      active: {
+        color: "bg-green-100 text-green-800",
+        label: t("status.active"),
+      },
       draft: { color: "bg-gray-100 text-gray-800", label: t("status.draft") },
-      completed: { color: "bg-blue-100 text-blue-800", label: t("status.completed") },
-      cancelled: { color: "bg-red-100 text-red-800", label: t("status.cancelled") },
+      completed: {
+        color: "bg-blue-100 text-blue-800",
+        label: t("status.completed"),
+      },
+      cancelled: {
+        color: "bg-red-100 text-red-800",
+        label: t("status.cancelled"),
+      },
     };
-    
-    const config = statusConfig[status.toLowerCase() as keyof typeof statusConfig];
+
+    const config =
+      statusConfig[status.toLowerCase() as keyof typeof statusConfig];
     if (!config) return null;
-    
+
     return <Badge className={config.color}>{config.label}</Badge>;
   };
 
@@ -128,7 +146,9 @@ export function MerchantDashboard({ merchantId }: MerchantDashboardProps) {
             <Package className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.activeAnnouncements}</div>
+            <div className="text-2xl font-bold">
+              {stats.activeAnnouncements}
+            </div>
             <p className="text-xs text-muted-foreground">
               {stats.totalAnnouncements} {t("stats.total")}
             </p>
@@ -158,7 +178,9 @@ export function MerchantDashboard({ merchantId }: MerchantDashboardProps) {
             <Euro className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.monthlyRevenue.toFixed(2)}€</div>
+            <div className="text-2xl font-bold">
+              {stats.monthlyRevenue.toFixed(2)}€
+            </div>
             <p className="text-xs text-green-600">
               {stats.totalRevenue.toFixed(2)}€ {t("stats.total")}
             </p>
@@ -173,7 +195,9 @@ export function MerchantDashboard({ merchantId }: MerchantDashboardProps) {
             <Target className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.conversionRate.toFixed(1)}%</div>
+            <div className="text-2xl font-bold">
+              {stats.conversionRate.toFixed(1)}%
+            </div>
             <p className="text-xs text-muted-foreground">
               {t("stats.average_order")}: {stats.averageOrderValue.toFixed(2)}€
             </p>
@@ -185,33 +209,33 @@ export function MerchantDashboard({ merchantId }: MerchantDashboardProps) {
       <Card>
         <CardHeader>
           <CardTitle>{t("quick_actions.title")}</CardTitle>
-          <CardDescription>
-            {t("quick_actions.description")}
-          </CardDescription>
+          <CardDescription>{t("quick_actions.description")}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <Link href="/merchant/announcements">
               <Button variant="outline" className="w-full h-20 flex flex-col">
                 <Package className="h-6 w-6 mb-2" />
-                <span className="text-sm">{t("quick_actions.announcements")}</span>
+                <span className="text-sm">
+                  {t("quick_actions.announcements")}
+                </span>
               </Button>
             </Link>
-            
+
             <Link href="/merchant/contracts">
               <Button variant="outline" className="w-full h-20 flex flex-col">
                 <FileText className="h-6 w-6 mb-2" />
                 <span className="text-sm">{t("quick_actions.contracts")}</span>
               </Button>
             </Link>
-            
+
             <Link href="/merchant/billing">
               <Button variant="outline" className="w-full h-20 flex flex-col">
                 <CreditCard className="h-6 w-6 mb-2" />
                 <span className="text-sm">{t("quick_actions.billing")}</span>
               </Button>
             </Link>
-            
+
             <Link href="/merchant/analytics">
               <Button variant="outline" className="w-full h-20 flex flex-col">
                 <TrendingUp className="h-6 w-6 mb-2" />
@@ -257,7 +281,10 @@ export function MerchantDashboard({ merchantId }: MerchantDashboardProps) {
               </div>
             ) : (
               recentAnnouncements.map((announcement) => (
-                <Card key={announcement.id} className="border-l-4 border-l-blue-500">
+                <Card
+                  key={announcement.id}
+                  className="border-l-4 border-l-blue-500"
+                >
                   <CardContent className="p-4">
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
@@ -269,10 +296,14 @@ export function MerchantDashboard({ merchantId }: MerchantDashboardProps) {
                             </Badge>
                           )}
                         </div>
-                        
-                        <h4 className="font-medium text-lg mb-1">{announcement.title}</h4>
-                        <p className="text-gray-600 text-sm mb-2">{announcement.description}</p>
-                        
+
+                        <h4 className="font-medium text-lg mb-1">
+                          {announcement.title}
+                        </h4>
+                        <p className="text-gray-600 text-sm mb-2">
+                          {announcement.description}
+                        </p>
+
                         <div className="flex items-center gap-4 text-sm text-gray-500">
                           <span className="flex items-center gap-1">
                             <MapPin className="h-3 w-3" />
@@ -280,16 +311,18 @@ export function MerchantDashboard({ merchantId }: MerchantDashboardProps) {
                           </span>
                           <span className="flex items-center gap-1">
                             <Calendar className="h-3 w-3" />
-                            {new Date(announcement.createdAt).toLocaleDateString()}
+                            {new Date(
+                              announcement.createdAt,
+                            ).toLocaleDateString()}
                           </span>
                         </div>
                       </div>
-                      
+
                       <div className="text-right">
                         <div className="text-2xl font-bold text-green-600 mb-2">
                           {announcement.finalPrice.toFixed(2)}€
                         </div>
-                        
+
                         {announcement.hasDeliverer && (
                           <div className="text-xs text-green-600">
                             ✅ {t("status.deliverer_assigned")}
@@ -304,14 +337,17 @@ export function MerchantDashboard({ merchantId }: MerchantDashboardProps) {
                           {t("actions.view_details")}
                         </Button>
                       </Link>
-                      
-                      {announcement.status === "active" && !announcement.hasDeliverer && (
-                        <Link href={`/merchant/announcements/${announcement.id}/edit`}>
-                          <Button variant="outline" size="sm">
-                            {t("actions.edit")}
-                          </Button>
-                        </Link>
-                      )}
+
+                      {announcement.status === "active" &&
+                        !announcement.hasDeliverer && (
+                          <Link
+                            href={`/merchant/announcements/${announcement.id}/edit`}
+                          >
+                            <Button variant="outline" size="sm">
+                              {t("actions.edit")}
+                            </Button>
+                          </Link>
+                        )}
                     </div>
                   </CardContent>
                 </Card>

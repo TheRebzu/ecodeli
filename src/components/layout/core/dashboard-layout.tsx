@@ -3,25 +3,25 @@
  * Utilise le nouveau système de sidebar et header
  */
 
-import { type ReactNode } from 'react'
-import { useAuth } from '@/hooks/use-auth'
-import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar'
-import { BaseLayout } from './base-layout'
-import { DashboardHeaderBase } from '../headers/base-header'
-import { AutoBreadcrumbs } from '@/components/ui/breadcrumbs'
-import { ClientSidebar } from '../sidebars/client-sidebar'
-import { BaseSidebar } from '../sidebars/base-sidebar'
-import { cn } from '@/lib/utils'
-import { type DashboardLayoutProps } from '../types/layout.types'
+import { type ReactNode } from "react";
+import { useAuth } from "@/hooks/use-auth";
+import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
+import { BaseLayout } from "./base-layout";
+import { DashboardHeaderBase } from "../headers/base-header";
+import { AutoBreadcrumbs } from "@/components/ui/breadcrumbs";
+import { ClientSidebar } from "../sidebars/client-sidebar";
+import { BaseSidebar } from "../sidebars/base-sidebar";
+import { cn } from "@/lib/utils";
+import { type DashboardLayoutProps } from "../types/layout.types";
 
 // Composants de sidebar par rôle
 const SIDEBAR_COMPONENTS = {
   CLIENT: ClientSidebar,
   DELIVERER: BaseSidebar, // TODO: Créer DelivererSidebar
-  MERCHANT: BaseSidebar,  // TODO: Créer MerchantSidebar
-  PROVIDER: BaseSidebar,  // TODO: Créer ProviderSidebar
-  ADMIN: BaseSidebar      // TODO: Créer AdminSidebar
-}
+  MERCHANT: BaseSidebar, // TODO: Créer MerchantSidebar
+  PROVIDER: BaseSidebar, // TODO: Créer ProviderSidebar
+  ADMIN: BaseSidebar, // TODO: Créer AdminSidebar
+};
 
 export function DashboardLayout({
   children,
@@ -35,53 +35,53 @@ export function DashboardLayout({
   sidebarCollapsed,
   onSidebarToggle,
   showBreadcrumbs = true,
-  breadcrumbs
+  breadcrumbs,
 }: DashboardLayoutProps) {
   // Obtenir le composant de sidebar approprié
-  const SidebarComponent = SIDEBAR_COMPONENTS[role] || BaseSidebar
+  const SidebarComponent = SIDEBAR_COMPONENTS[role] || BaseSidebar;
 
   // Gestion de la déconnexion
   const handleLogout = async () => {
     try {
-      const response = await fetch('/api/auth/sign-out', {
-        method: 'POST',
-        credentials: 'include'
-      })
-      
+      const response = await fetch("/api/auth/sign-out", {
+        method: "POST",
+        credentials: "include",
+      });
+
       if (response.ok) {
-        window.location.href = '/login'
+        window.location.href = "/login";
       } else {
-        console.error('Erreur lors de la déconnexion')
+        console.error("Erreur lors de la déconnexion");
       }
     } catch (error) {
-      console.error('Erreur lors de la déconnexion:', error)
+      console.error("Erreur lors de la déconnexion:", error);
     }
-  }
+  };
 
   const handleUserMenuAction = (action: string) => {
     switch (action) {
-      case 'logout':
-        handleLogout()
-        break
-      case 'profile':
-        window.location.href = '/profile'
-        break
-      case 'settings':
-        window.location.href = '/settings'
-        break
+      case "logout":
+        handleLogout();
+        break;
+      case "profile":
+        window.location.href = "/profile";
+        break;
+      case "settings":
+        window.location.href = "/settings";
+        break;
       default:
-        console.log('Action non gérée:', action)
+        console.log("Action non gérée:", action);
     }
-  }
+  };
 
   return (
-    <BaseLayout 
-      user={user} 
-      loading={loading} 
+    <BaseLayout
+      user={user}
+      loading={loading}
       error={error}
       withProvider={false} // Le provider est déjà fourni par le layout principal
     >
-      <SidebarProvider 
+      <SidebarProvider
         defaultOpen={!sidebarCollapsed}
         onOpenChange={onSidebarToggle}
       >
@@ -131,7 +131,7 @@ export function DashboardLayout({
         </div>
       </SidebarProvider>
     </BaseLayout>
-  )
+  );
 }
 
 /**
@@ -146,29 +146,29 @@ export function SimpleDashboardLayout({
   description,
   actions,
   showBackButton = false,
-  backHref = '..'
+  backHref = "..",
 }: {
-  children: ReactNode
-  user?: any
-  loading?: boolean
-  error?: string
-  title?: string
-  description?: string
-  actions?: ReactNode
-  showBackButton?: boolean
-  backHref?: string
+  children: ReactNode;
+  user?: any;
+  loading?: boolean;
+  error?: string;
+  title?: string;
+  description?: string;
+  actions?: ReactNode;
+  showBackButton?: boolean;
+  backHref?: string;
 }) {
   const handleUserMenuAction = (action: string) => {
-    if (action === 'logout') {
+    if (action === "logout") {
       // Gestion de la déconnexion
-      window.location.href = '/login'
+      window.location.href = "/login";
     }
-  }
+  };
 
   return (
-    <BaseLayout 
-      user={user} 
-      loading={loading} 
+    <BaseLayout
+      user={user}
+      loading={loading}
       error={error}
       withProvider={false}
       className="min-h-screen bg-gray-50 dark:bg-gray-900"
@@ -189,14 +189,16 @@ export function SimpleDashboardLayout({
                 )}
                 <div>
                   {title && (
-                    <h1 className="text-2xl font-bold text-foreground">{title}</h1>
+                    <h1 className="text-2xl font-bold text-foreground">
+                      {title}
+                    </h1>
                   )}
                   {description && (
                     <p className="text-muted-foreground">{description}</p>
                   )}
                 </div>
               </div>
-              
+
               <div className="flex items-center space-x-4">
                 {actions}
                 {user && (
@@ -210,12 +212,10 @@ export function SimpleDashboardLayout({
         </header>
 
         {/* Contenu */}
-        <main className="flex-1 container mx-auto px-4 py-6">
-          {children}
-        </main>
+        <main className="flex-1 container mx-auto px-4 py-6">{children}</main>
       </div>
     </BaseLayout>
-  )
+  );
 }
 
 /**
@@ -228,9 +228,9 @@ export function TabbedDashboardLayout({
   onTabChange,
   ...props
 }: DashboardLayoutProps & {
-  tabs: Array<{ key: string; label: string; href?: string }>
-  activeTab: string
-  onTabChange?: (tabKey: string) => void
+  tabs: Array<{ key: string; label: string; href?: string }>;
+  activeTab: string;
+  onTabChange?: (tabKey: string) => void;
 }) {
   return (
     <DashboardLayout {...props}>
@@ -242,16 +242,16 @@ export function TabbedDashboardLayout({
               key={tab.key}
               onClick={() => {
                 if (tab.href) {
-                  window.location.href = tab.href
+                  window.location.href = tab.href;
                 } else if (onTabChange) {
-                  onTabChange(tab.key)
+                  onTabChange(tab.key);
                 }
               }}
               className={cn(
                 "whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors",
                 activeTab === tab.key
                   ? "border-primary text-primary"
-                  : "border-transparent text-muted-foreground hover:text-foreground hover:border-muted-foreground"
+                  : "border-transparent text-muted-foreground hover:text-foreground hover:border-muted-foreground",
               )}
             >
               {tab.label}
@@ -263,7 +263,7 @@ export function TabbedDashboardLayout({
       {/* Contenu des onglets */}
       {children}
     </DashboardLayout>
-  )
+  );
 }
 
 /**
@@ -272,46 +272,96 @@ export function TabbedDashboardLayout({
 export function useDashboardConfig(role: string) {
   const configs = {
     CLIENT: {
-      title: 'Espace Client',
-      description: 'Gérez vos annonces et services',
+      title: "Espace Client",
+      description: "Gérez vos annonces et services",
       quickActions: [
-        { key: 'new-announcement', label: 'Nouvelle annonce', icon: 'Plus', href: '/client/announcements/create' },
-        { key: 'track-delivery', label: 'Suivi livraison', icon: 'MapPin', href: '/client/tracking' }
-      ]
+        {
+          key: "new-announcement",
+          label: "Nouvelle annonce",
+          icon: "Plus",
+          href: "/client/announcements/create",
+        },
+        {
+          key: "track-delivery",
+          label: "Suivi livraison",
+          icon: "MapPin",
+          href: "/client/tracking",
+        },
+      ],
     },
     DELIVERER: {
-      title: 'Espace Livreur',
-      description: 'Gérez vos livraisons et planning',
+      title: "Espace Livreur",
+      description: "Gérez vos livraisons et planning",
       quickActions: [
-        { key: 'declare-trip', label: 'Déclarer un trajet', icon: 'Plus', href: '/deliverer/trips/create' },
-        { key: 'scan-qr', label: 'Scanner QR', icon: 'QrCode', onClick: () => {} }
-      ]
+        {
+          key: "declare-trip",
+          label: "Déclarer un trajet",
+          icon: "Plus",
+          href: "/deliverer/trips/create",
+        },
+        {
+          key: "scan-qr",
+          label: "Scanner QR",
+          icon: "QrCode",
+          onClick: () => {},
+        },
+      ],
     },
     MERCHANT: {
-      title: 'Espace Commerçant',
-      description: 'Gérez vos magasins et commandes',
+      title: "Espace Commerçant",
+      description: "Gérez vos magasins et commandes",
       quickActions: [
-        { key: 'bulk-import', label: 'Import en lot', icon: 'Upload', href: '/merchant/bulk-import' },
-        { key: 'new-announcement', label: 'Nouvelle annonce', icon: 'Plus', href: '/merchant/announcements/create' }
-      ]
+        {
+          key: "bulk-import",
+          label: "Import en lot",
+          icon: "Upload",
+          href: "/merchant/bulk-import",
+        },
+        {
+          key: "new-announcement",
+          label: "Nouvelle annonce",
+          icon: "Plus",
+          href: "/merchant/announcements/create",
+        },
+      ],
     },
     PROVIDER: {
-      title: 'Espace Prestataire',
-      description: 'Gérez vos services et interventions',
+      title: "Espace Prestataire",
+      description: "Gérez vos services et interventions",
       quickActions: [
-        { key: 'availability', label: 'Disponibilités', icon: 'Calendar', href: '/provider/availability' },
-        { key: 'new-service', label: 'Nouveau service', icon: 'Plus', href: '/provider/services/create' }
-      ]
+        {
+          key: "availability",
+          label: "Disponibilités",
+          icon: "Calendar",
+          href: "/provider/availability",
+        },
+        {
+          key: "new-service",
+          label: "Nouveau service",
+          icon: "Plus",
+          href: "/provider/services/create",
+        },
+      ],
     },
     ADMIN: {
-      title: 'Administration',
-      description: 'Gérez la plateforme EcoDeli',
+      title: "Administration",
+      description: "Gérez la plateforme EcoDeli",
       quickActions: [
-        { key: 'validations', label: 'Validations', icon: 'Shield', href: '/admin/validations' },
-        { key: 'monitoring', label: 'Monitoring', icon: 'Activity', href: '/admin/monitoring' }
-      ]
-    }
-  }
+        {
+          key: "validations",
+          label: "Validations",
+          icon: "Shield",
+          href: "/admin/validations",
+        },
+        {
+          key: "monitoring",
+          label: "Monitoring",
+          icon: "Activity",
+          href: "/admin/monitoring",
+        },
+      ],
+    },
+  };
 
-  return configs[role as keyof typeof configs] || configs.CLIENT
+  return configs[role as keyof typeof configs] || configs.CLIENT;
 }

@@ -1,12 +1,12 @@
-"use client"
+"use client";
 
-import { useState } from 'react'
-import { useTranslations } from 'next-intl'
-import { Link } from '@/i18n/navigation'
-import { cn } from '@/lib/utils'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { useState } from "react";
+import { useTranslations } from "next-intl";
+import { Link } from "@/i18n/navigation";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,9 +14,9 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import { ThemeToggle } from '@/components/ui/theme-toggle'
-import { LanguageSwitcher } from '@/components/common/language-switcher'
+} from "@/components/ui/dropdown-menu";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { LanguageSwitcher } from "@/components/common/language-switcher";
 import {
   Menu,
   Bell,
@@ -29,37 +29,37 @@ import {
   DollarSign,
   Star,
   CheckCircle,
-  HelpCircle
-} from 'lucide-react'
+  HelpCircle,
+} from "lucide-react";
 
 interface ProviderHeaderProps {
   user: {
-    id: string
-    name?: string
-    email: string
-    role: string
-    avatar?: string
-    rating?: number
-    isValidated?: boolean
-  }
-  onSidebarToggle?: () => void
+    id: string;
+    name?: string;
+    email: string;
+    role: string;
+    avatar?: string;
+    rating?: number;
+    isValidated?: boolean;
+  };
+  onSidebarToggle?: () => void;
   notifications?: Array<{
-    id: string
-    title: string
-    message: string
-    type: 'info' | 'success' | 'warning' | 'error'
-    read: boolean
-    createdAt: Date
-  }>
+    id: string;
+    title: string;
+    message: string;
+    type: "info" | "success" | "warning" | "error";
+    read: boolean;
+    createdAt: Date;
+  }>;
 }
 
-export function ProviderHeader({ 
-  user, 
-  onSidebarToggle, 
-  notifications = [] 
+export function ProviderHeader({
+  user,
+  onSidebarToggle,
+  notifications = [],
 }: ProviderHeaderProps) {
-  const [showSearch, setShowSearch] = useState(false)
-  const unreadCount = notifications.filter(n => !n.read).length
+  const [showSearch, setShowSearch] = useState(false);
+  const unreadCount = notifications.filter((n) => !n.read).length;
 
   const getValidationStatus = () => {
     if (user.isValidated) {
@@ -68,15 +68,15 @@ export function ProviderHeader({
           <CheckCircle className="h-3 w-3 text-green-500" />
           <span className="text-xs text-green-600">Validé</span>
         </div>
-      )
+      );
     }
     return (
       <div className="flex items-center space-x-1">
         <div className="h-2 w-2 bg-orange-500 rounded-full animate-pulse" />
         <span className="text-xs text-orange-600">En attente</span>
       </div>
-    )
-  }
+    );
+  };
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 dark:bg-background/95">
@@ -93,7 +93,10 @@ export function ProviderHeader({
         </Button>
 
         {/* Logo (visible sur mobile uniquement) */}
-        <Link href="/provider" className="flex items-center space-x-2 md:hidden ml-2">
+        <Link
+          href="/provider"
+          className="flex items-center space-x-2 md:hidden ml-2"
+        >
           <Wrench className="h-6 w-6 text-green-600 dark:text-green-400" />
           <span className="font-bold text-xl">EcoDeli</span>
         </Link>
@@ -157,7 +160,7 @@ export function ProviderHeader({
                     variant="destructive"
                     className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs"
                   >
-                    {unreadCount > 9 ? '9+' : unreadCount}
+                    {unreadCount > 9 ? "9+" : unreadCount}
                   </Badge>
                 )}
                 <span className="sr-only">Notifications</span>
@@ -178,9 +181,14 @@ export function ProviderHeader({
               ) : (
                 <div className="max-h-80 overflow-y-auto">
                   {notifications.slice(0, 5).map((notification) => (
-                    <DropdownMenuItem key={notification.id} className="flex flex-col items-start space-y-1 p-3">
+                    <DropdownMenuItem
+                      key={notification.id}
+                      className="flex flex-col items-start space-y-1 p-3"
+                    >
                       <div className="flex items-center justify-between w-full">
-                        <span className="font-medium text-sm">{notification.title}</span>
+                        <span className="font-medium text-sm">
+                          {notification.title}
+                        </span>
                         {!notification.read && (
                           <div className="w-2 h-2 bg-green-500 rounded-full" />
                         )}
@@ -195,7 +203,10 @@ export function ProviderHeader({
                   ))}
                   {notifications.length > 5 && (
                     <DropdownMenuItem asChild>
-                      <Link href="/provider/notifications" className="text-center py-2">
+                      <Link
+                        href="/provider/notifications"
+                        className="text-center py-2"
+                      >
                         Voir toutes les notifications
                       </Link>
                     </DropdownMenuItem>
@@ -216,9 +227,14 @@ export function ProviderHeader({
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="relative h-8 w-8 rounded-full">
                 <Avatar className="h-8 w-8">
-                  <AvatarImage src={user.avatar} alt={user.name || user.email} />
+                  <AvatarImage
+                    src={user.avatar}
+                    alt={user.name || user.email}
+                  />
                   <AvatarFallback>
-                    {user.name ? user.name.substring(0, 2).toUpperCase() : user.email.substring(0, 2).toUpperCase()}
+                    {user.name
+                      ? user.name.substring(0, 2).toUpperCase()
+                      : user.email.substring(0, 2).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
               </Button>
@@ -227,7 +243,7 @@ export function ProviderHeader({
               <DropdownMenuLabel className="font-normal">
                 <div className="flex flex-col space-y-1">
                   <p className="text-sm font-medium leading-none">
-                    {user.name || 'Prestataire'}
+                    {user.name || "Prestataire"}
                   </p>
                   <p className="text-xs leading-none text-muted-foreground">
                     {user.email}
@@ -237,7 +253,9 @@ export function ProviderHeader({
                     {user.rating && (
                       <div className="flex items-center space-x-1">
                         <Star className="h-3 w-3 text-yellow-500 fill-current" />
-                        <span className="text-xs">{user.rating.toFixed(1)}</span>
+                        <span className="text-xs">
+                          {user.rating.toFixed(1)}
+                        </span>
                       </div>
                     )}
                   </div>
@@ -284,5 +302,5 @@ export function ProviderHeader({
         </div>
       </div>
     </header>
-  )
-} 
+  );
+}

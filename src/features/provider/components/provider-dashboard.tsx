@@ -5,17 +5,17 @@ import { useTranslations } from "next-intl";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { 
-  Calendar, 
-  Euro, 
-  Clock, 
+import {
+  Calendar,
+  Euro,
+  Clock,
   Star,
   FileText,
   TrendingUp,
   Users,
   CheckCircle,
   AlertCircle,
-  MapPin
+  MapPin,
 } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
@@ -56,7 +56,9 @@ interface RecentIntervention {
 export function ProviderDashboard({ providerId }: ProviderDashboardProps) {
   const t = useTranslations("provider.dashboard");
   const [stats, setStats] = useState<DashboardStats | null>(null);
-  const [recentInterventions, setRecentInterventions] = useState<RecentIntervention[]>([]);
+  const [recentInterventions, setRecentInterventions] = useState<
+    RecentIntervention[]
+  >([]);
   const [loading, setLoading] = useState(true);
 
   const fetchDashboardData = async () => {
@@ -82,27 +84,59 @@ export function ProviderDashboard({ providerId }: ProviderDashboardProps) {
 
   const getStatusBadge = (status: string) => {
     const statusConfig = {
-      pending: { color: "bg-yellow-100 text-yellow-800", label: t("status.pending") },
-      confirmed: { color: "bg-blue-100 text-blue-800", label: t("status.confirmed") },
-      in_progress: { color: "bg-purple-100 text-purple-800", label: t("status.in_progress") },
-      completed: { color: "bg-green-100 text-green-800", label: t("status.completed") },
-      cancelled: { color: "bg-red-100 text-red-800", label: t("status.cancelled") },
+      pending: {
+        color: "bg-yellow-100 text-yellow-800",
+        label: t("status.pending"),
+      },
+      confirmed: {
+        color: "bg-blue-100 text-blue-800",
+        label: t("status.confirmed"),
+      },
+      in_progress: {
+        color: "bg-purple-100 text-purple-800",
+        label: t("status.in_progress"),
+      },
+      completed: {
+        color: "bg-green-100 text-green-800",
+        label: t("status.completed"),
+      },
+      cancelled: {
+        color: "bg-red-100 text-red-800",
+        label: t("status.cancelled"),
+      },
     };
-    
-    const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.pending;
+
+    const config =
+      statusConfig[status as keyof typeof statusConfig] || statusConfig.pending;
     return <Badge className={config.color}>{config.label}</Badge>;
   };
 
   const getValidationStatusBadge = (status: string) => {
     switch (status) {
       case "validated":
-        return <Badge className="bg-green-100 text-green-800">{t("validation.validated")}</Badge>;
+        return (
+          <Badge className="bg-green-100 text-green-800">
+            {t("validation.validated")}
+          </Badge>
+        );
       case "pending":
-        return <Badge className="bg-yellow-100 text-yellow-800">{t("validation.pending")}</Badge>;
+        return (
+          <Badge className="bg-yellow-100 text-yellow-800">
+            {t("validation.pending")}
+          </Badge>
+        );
       case "rejected":
-        return <Badge className="bg-red-100 text-red-800">{t("validation.rejected")}</Badge>;
+        return (
+          <Badge className="bg-red-100 text-red-800">
+            {t("validation.rejected")}
+          </Badge>
+        );
       default:
-        return <Badge className="bg-gray-100 text-gray-800">{t("validation.unknown")}</Badge>;
+        return (
+          <Badge className="bg-gray-100 text-gray-800">
+            {t("validation.unknown")}
+          </Badge>
+        );
     }
   };
 
@@ -176,7 +210,9 @@ export function ProviderDashboard({ providerId }: ProviderDashboardProps) {
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.activeInterventions}</div>
+            <div className="text-2xl font-bold">
+              {stats.activeInterventions}
+            </div>
             <p className="text-xs text-muted-foreground">
               {t("stats.this_week")}
             </p>
@@ -191,7 +227,9 @@ export function ProviderDashboard({ providerId }: ProviderDashboardProps) {
             <Euro className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.totalEarnings.toFixed(2)}€</div>
+            <div className="text-2xl font-bold">
+              {stats.totalEarnings.toFixed(2)}€
+            </div>
             <p className="text-xs text-green-600">
               +{stats.monthlyEarnings.toFixed(2)}€ {t("stats.this_month")}
             </p>
@@ -206,7 +244,9 @@ export function ProviderDashboard({ providerId }: ProviderDashboardProps) {
             <Star className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.averageRating.toFixed(1)}/5</div>
+            <div className="text-2xl font-bold">
+              {stats.averageRating.toFixed(1)}/5
+            </div>
             <p className="text-xs text-muted-foreground">
               {t("stats.average_rating")}
             </p>
@@ -227,21 +267,21 @@ export function ProviderDashboard({ providerId }: ProviderDashboardProps) {
                 <span className="text-sm">{t("quick_actions.calendar")}</span>
               </Button>
             </Link>
-            
+
             <Link href="/provider/documents">
               <Button variant="outline" className="w-full h-20 flex flex-col">
                 <FileText className="h-6 w-6 mb-2" />
                 <span className="text-sm">{t("quick_actions.documents")}</span>
               </Button>
             </Link>
-            
+
             <Link href="/provider/validation">
               <Button variant="outline" className="w-full h-20 flex flex-col">
                 <CheckCircle className="h-6 w-6 mb-2" />
                 <span className="text-sm">{t("quick_actions.validation")}</span>
               </Button>
             </Link>
-            
+
             <Link href="/provider/billing">
               <Button variant="outline" className="w-full h-20 flex flex-col">
                 <Euro className="h-6 w-6 mb-2" />
@@ -264,33 +304,41 @@ export function ProviderDashboard({ providerId }: ProviderDashboardProps) {
           <CardContent>
             <div className="space-y-4">
               <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-600">{t("validation.status")}</span>
+                <span className="text-sm text-gray-600">
+                  {t("validation.status")}
+                </span>
                 {getValidationStatusBadge(stats.validationStatus)}
               </div>
-              
+
               <div className="space-y-3">
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">{t("documents.validated")}</span>
+                  <span className="text-sm text-gray-600">
+                    {t("documents.validated")}
+                  </span>
                   <Badge className="bg-green-100 text-green-800">
                     {stats.documentsStatus.validated}
                   </Badge>
                 </div>
-                
+
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">{t("documents.pending")}</span>
+                  <span className="text-sm text-gray-600">
+                    {t("documents.pending")}
+                  </span>
                   <Badge className="bg-yellow-100 text-yellow-800">
                     {stats.documentsStatus.pending}
                   </Badge>
                 </div>
-                
+
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">{t("documents.rejected")}</span>
+                  <span className="text-sm text-gray-600">
+                    {t("documents.rejected")}
+                  </span>
                   <Badge className="bg-red-100 text-red-800">
                     {stats.documentsStatus.rejected}
                   </Badge>
                 </div>
               </div>
-              
+
               {stats.documentsStatus.pending > 0 && (
                 <Link href="/provider/documents">
                   <Button size="sm" className="w-full mt-4">
@@ -315,7 +363,10 @@ export function ProviderDashboard({ providerId }: ProviderDashboardProps) {
                 </p>
               ) : (
                 recentInterventions.slice(0, 5).map((intervention) => (
-                  <div key={intervention.id} className="flex items-start space-x-3 p-3 border rounded-lg">
+                  <div
+                    key={intervention.id}
+                    className="flex items-start space-x-3 p-3 border rounded-lg"
+                  >
                     <div className="flex-1 min-w-0">
                       <div className="flex justify-between items-start mb-2">
                         <div>
@@ -328,12 +379,15 @@ export function ProviderDashboard({ providerId }: ProviderDashboardProps) {
                         </div>
                         {getStatusBadge(intervention.status)}
                       </div>
-                      
+
                       <div className="space-y-1 text-xs text-gray-500">
                         <div className="flex items-center space-x-1">
                           <Calendar className="h-3 w-3" />
                           <span>
-                            {new Date(intervention.scheduledDate).toLocaleDateString()} {intervention.scheduledTime}
+                            {new Date(
+                              intervention.scheduledDate,
+                            ).toLocaleDateString()}{" "}
+                            {intervention.scheduledTime}
                           </span>
                         </div>
                         <div className="flex items-center space-x-1">
@@ -341,7 +395,7 @@ export function ProviderDashboard({ providerId }: ProviderDashboardProps) {
                           <span>{intervention.address}</span>
                         </div>
                       </div>
-                      
+
                       <div className="flex justify-between items-center mt-2">
                         <span className="text-sm font-semibold text-green-600">
                           {intervention.price.toFixed(2)}€
@@ -349,7 +403,9 @@ export function ProviderDashboard({ providerId }: ProviderDashboardProps) {
                         {intervention.rating && (
                           <div className="flex items-center space-x-1">
                             <Star className="h-3 w-3 text-yellow-400" />
-                            <span className="text-xs">{intervention.rating}/5</span>
+                            <span className="text-xs">
+                              {intervention.rating}/5
+                            </span>
                           </div>
                         )}
                       </div>
@@ -357,7 +413,7 @@ export function ProviderDashboard({ providerId }: ProviderDashboardProps) {
                   </div>
                 ))
               )}
-              
+
               {recentInterventions.length > 5 && (
                 <div className="text-center">
                   <Link href="/provider/interventions">

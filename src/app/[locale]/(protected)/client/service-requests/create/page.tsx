@@ -1,17 +1,17 @@
-import { useTranslations } from "next-intl"
-import Link from "next/link"
-import { CreateServiceRequestForm } from "@/features/services/components/create-service-request-form"
+import { useTranslations } from "next-intl";
+import Link from "next/link";
+import { CreateServiceRequestForm } from "@/features/services/components/create-service-request-form";
 
 export default function CreateServiceRequestPage() {
-  const t = useTranslations()
+  const t = useTranslations();
 
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-4xl mx-auto p-6">
         {/* Header */}
         <div className="mb-8">
-          <Link 
-            href="/client/service-requests" 
+          <Link
+            href="/client/service-requests"
             className="text-green-600 hover:text-green-700 text-sm font-medium mb-4 inline-block"
           >
             ← Retour aux demandes de services
@@ -20,7 +20,8 @@ export default function CreateServiceRequestPage() {
             Créer une demande de service
           </h1>
           <p className="text-gray-600">
-            Décrivez vos besoins et recevez des propositions de prestataires qualifiés
+            Décrivez vos besoins et recevez des propositions de prestataires
+            qualifiés
           </p>
         </div>
 
@@ -58,7 +59,9 @@ export default function CreateServiceRequestPage() {
             <li>• Indiquez une adresse complète et des instructions d'accès</li>
             <li>• Proposez un budget réaliste selon la complexité</li>
             <li>• Mentionnez toutes les contraintes spécifiques</li>
-            <li>• Soyez disponible pour répondre aux questions des prestataires</li>
+            <li>
+              • Soyez disponible pour répondre aux questions des prestataires
+            </li>
             <li>• Vérifiez les profils et avis avant de choisir</li>
           </ul>
         </div>
@@ -70,7 +73,9 @@ export default function CreateServiceRequestPage() {
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
             <div>
-              <h4 className="font-medium text-gray-800 mb-2">🏠 Services d'entretien</h4>
+              <h4 className="font-medium text-gray-800 mb-2">
+                🏠 Services d'entretien
+              </h4>
               <ul className="space-y-1 text-gray-600">
                 <li>• Ménage complet ou partiel</li>
                 <li>• Nettoyage de vitres</li>
@@ -79,7 +84,9 @@ export default function CreateServiceRequestPage() {
               </ul>
             </div>
             <div>
-              <h4 className="font-medium text-gray-800 mb-2">🔧 Services techniques</h4>
+              <h4 className="font-medium text-gray-800 mb-2">
+                🔧 Services techniques
+              </h4>
               <ul className="space-y-1 text-gray-600">
                 <li>• Petites réparations</li>
                 <li>• Montage de meubles</li>
@@ -88,7 +95,9 @@ export default function CreateServiceRequestPage() {
               </ul>
             </div>
             <div>
-              <h4 className="font-medium text-gray-800 mb-2">👥 Services à la personne</h4>
+              <h4 className="font-medium text-gray-800 mb-2">
+                👥 Services à la personne
+              </h4>
               <ul className="space-y-1 text-gray-600">
                 <li>• Garde d'animaux à domicile</li>
                 <li>• Accompagnement personnes âgées</li>
@@ -97,7 +106,9 @@ export default function CreateServiceRequestPage() {
               </ul>
             </div>
             <div>
-              <h4 className="font-medium text-gray-800 mb-2">🛒 Services personnalisés</h4>
+              <h4 className="font-medium text-gray-800 mb-2">
+                🛒 Services personnalisés
+              </h4>
               <ul className="space-y-1 text-gray-600">
                 <li>• Courses sur mesure</li>
                 <li>• Aide administrative</li>
@@ -109,5 +120,5 @@ export default function CreateServiceRequestPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }

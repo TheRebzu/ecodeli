@@ -1,15 +1,15 @@
-"use client"
+"use client";
 
-import { useAuth } from "@/hooks/use-auth"
-import { ServiceRequestsBrowser } from "@/features/provider/components/service-requests-browser"
-import { PageHeader } from "@/components/layout/page-header"
-import { useTranslations } from "next-intl"
+import { useAuth } from "@/hooks/use-auth";
+import { ServiceRequestsBrowser } from "@/features/provider/components/service-requests-browser";
+import { PageHeader } from "@/components/layout/page-header";
+import { useTranslations } from "next-intl";
 
 export default function ProviderServiceRequestsPage() {
-  const { user } = useAuth()
-  const t = useTranslations("provider.serviceRequests")
+  const { user } = useAuth();
+  const t = useTranslations("provider.serviceRequests");
 
-  if (!user || user.role !== 'PROVIDER') {
+  if (!user || user.role !== "PROVIDER") {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
@@ -21,7 +21,7 @@ export default function ProviderServiceRequestsPage() {
           </p>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -30,8 +30,8 @@ export default function ProviderServiceRequestsPage() {
         title="Demandes de Services"
         description="Consultez les demandes de services des clients et candidater aux missions qui vous intéressent"
       />
-      
+
       <ServiceRequestsBrowser />
     </div>
-  )
-} 
+  );
+}

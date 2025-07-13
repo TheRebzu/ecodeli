@@ -46,7 +46,7 @@
 :root {
   /* Configuration EcoDeli */
   --radius: 0.625rem;
-  
+
   /* Couleurs principales EcoDeli */
   --background: oklch(1 0 0);
   --foreground: oklch(0.141 0.005 285.823);
@@ -54,7 +54,7 @@
   --card-foreground: oklch(0.141 0.005 285.823);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.141 0.005 285.823);
-  
+
   /* Couleurs de marque EcoDeli - Vert écologique */
   --primary: oklch(0.45 0.15 150); /* Vert EcoDeli */
   --primary-foreground: oklch(0.985 0 0);
@@ -68,14 +68,14 @@
   --border: oklch(0.92 0.004 286.32);
   --input: oklch(0.92 0.004 286.32);
   --ring: oklch(0.45 0.15 150); /* Ring vert EcoDeli */
-  
+
   /* Couleurs des graphiques */
   --chart-1: oklch(0.45 0.15 150); /* Vert principal */
   --chart-2: oklch(0.6 0.118 184.704); /* Bleu */
   --chart-3: oklch(0.398 0.07 227.392); /* Violet */
   --chart-4: oklch(0.828 0.189 84.429); /* Jaune */
   --chart-5: oklch(0.769 0.188 70.08); /* Orange */
-  
+
   /* Sidebar */
   --sidebar: oklch(0.985 0 0);
   --sidebar-foreground: oklch(0.141 0.005 285.823);
@@ -128,17 +128,24 @@
   body {
     @apply bg-background text-foreground font-sans;
   }
-  
+
   /* Amélioration de la lisibilité avec Geist */
-  h1, h2, h3, h4, h5, h6 {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     @apply font-sans tracking-tight;
   }
-  
+
   /* Code avec Geist Mono */
-  code, pre, .font-mono {
+  code,
+  pre,
+  .font-mono {
     @apply font-mono;
   }
-  
+
   /* Amélioration des transitions */
   * {
     @apply transition-colors duration-200;

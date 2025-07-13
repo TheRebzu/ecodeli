@@ -1,104 +1,122 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Input } from '@/components/ui/input'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { MapPin, Clock, Euro, Package, Filter } from 'lucide-react'
+import { useState, useEffect } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { MapPin, Clock, Euro, Package, Filter } from "lucide-react";
 
 interface Opportunity {
-  id: string
-  title: string
-  description: string
-  type: string
-  basePrice: number
-  distance: number
-  pickupAddress: string
-  deliveryAddress: string
-  isUrgent: boolean
-  estimatedDuration: number
+  id: string;
+  title: string;
+  description: string;
+  type: string;
+  basePrice: number;
+  distance: number;
+  pickupAddress: string;
+  deliveryAddress: string;
+  isUrgent: boolean;
+  estimatedDuration: number;
   client: {
-    name: string
-    rating?: number
-  }
+    name: string;
+    rating?: number;
+  };
 }
 
 export function OpportunitiesList() {
-  const [opportunities, setOpportunities] = useState<Opportunity[]>([])
-  const [loading, setLoading] = useState(true)
+  const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
+  const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({
     maxDistance: 50,
-    minPrice: '',
-    type: '',
-    urgentOnly: false
-  })
+    minPrice: "",
+    type: "",
+    urgentOnly: false,
+  });
 
   useEffect(() => {
-    fetchOpportunities()
-  }, [filters])
+    fetchOpportunities();
+  }, [filters]);
 
   const fetchOpportunities = async () => {
-    setLoading(true)
+    setLoading(true);
     try {
-      const params = new URLSearchParams()
-      if (filters.maxDistance) params.append('maxDistance', filters.maxDistance.toString())
-      if (filters.minPrice) params.append('minPrice', filters.minPrice)
-      if (filters.type) params.append('type', filters.type)
-      if (filters.urgentOnly) params.append('urgentOnly', 'true')
+      const params = new URLSearchParams();
+      if (filters.maxDistance)
+        params.append("maxDistance", filters.maxDistance.toString());
+      if (filters.minPrice) params.append("minPrice", filters.minPrice);
+      if (filters.type) params.append("type", filters.type);
+      if (filters.urgentOnly) params.append("urgentOnly", "true");
 
-      const response = await fetch(`/api/deliverer/opportunities?${params}`)
+      const response = await fetch(`/api/deliverer/opportunities?${params}`);
       if (response.ok) {
-        const data = await response.json()
-        setOpportunities(data.opportunities || [])
+        const data = await response.json();
+        setOpportunities(data.opportunities || []);
       }
     } catch (error) {
-      console.error('Erreur chargement opportunités:', error)
+      console.error("Erreur chargement opportunités:", error);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const acceptOpportunity = async (opportunityId: string) => {
     try {
-      const response = await fetch(`/api/deliverer/opportunities/${opportunityId}/accept`, {
-        method: 'POST'
-      })
-      
+      const response = await fetch(
+        `/api/deliverer/opportunities/${opportunityId}/accept`,
+        {
+          method: "POST",
+        },
+      );
+
       if (response.ok) {
         // Retirer l'opportunité de la liste après acceptation
-        setOpportunities(prev => prev.filter(opp => opp.id !== opportunityId))
+        setOpportunities((prev) =>
+          prev.filter((opp) => opp.id !== opportunityId),
+        );
       }
     } catch (error) {
-      console.error('Erreur acceptation:', error)
+      console.error("Erreur acceptation:", error);
     }
-  }
+  };
 
   const getTypeLabel = (type: string) => {
     const types = {
-      'PACKAGE_DELIVERY': 'Colis',
-      'DOCUMENT_DELIVERY': 'Documents', 
-      'SHOPPING_DELIVERY': 'Courses',
-      'URGENT_DELIVERY': 'Express'
-    }
-    return types[type] || type
-  }
+      PACKAGE_DELIVERY: "Colis",
+      DOCUMENT_DELIVERY: "Documents",
+      SHOPPING_DELIVERY: "Courses",
+      URGENT_DELIVERY: "Express",
+    };
+    return types[type] || type;
+  };
 
   const getTypeColor = (type: string) => {
     const colors = {
-      'PACKAGE_DELIVERY': 'bg-blue-100 text-blue-800',
-      'DOCUMENT_DELIVERY': 'bg-green-100 text-green-800',
-      'SHOPPING_DELIVERY': 'bg-purple-100 text-purple-800', 
-      'URGENT_DELIVERY': 'bg-red-100 text-red-800'
-    }
-    return colors[type] || 'bg-gray-100 text-gray-800'
-  }
+      PACKAGE_DELIVERY: "bg-blue-100 text-blue-800",
+      DOCUMENT_DELIVERY: "bg-green-100 text-green-800",
+      SHOPPING_DELIVERY: "bg-purple-100 text-purple-800",
+      URGENT_DELIVERY: "bg-red-100 text-red-800",
+    };
+    return colors[type] || "bg-gray-100 text-gray-800";
+  };
 
   if (loading) {
     return (
       <div className="space-y-4">
-        {[1, 2, 3].map(i => (
+        {[1, 2, 3].map((i) => (
           <Card key={i} className="animate-pulse">
             <CardContent className="p-6">
               <div className="h-4 bg-gray-200 rounded w-3/4 mb-4"></div>
@@ -107,7 +125,7 @@ export function OpportunitiesList() {
           </Card>
         ))}
       </div>
-    )
+    );
   }
 
   return (
@@ -130,7 +148,12 @@ export function OpportunitiesList() {
               <Input
                 type="number"
                 value={filters.maxDistance}
-                onChange={(e) => setFilters(prev => ({ ...prev, maxDistance: parseInt(e.target.value) || 50 }))}
+                onChange={(e) =>
+                  setFilters((prev) => ({
+                    ...prev,
+                    maxDistance: parseInt(e.target.value) || 50,
+                  }))
+                }
                 placeholder="50"
               />
             </div>
@@ -139,15 +162,19 @@ export function OpportunitiesList() {
               <Input
                 type="number"
                 value={filters.minPrice}
-                onChange={(e) => setFilters(prev => ({ ...prev, minPrice: e.target.value }))}
+                onChange={(e) =>
+                  setFilters((prev) => ({ ...prev, minPrice: e.target.value }))
+                }
                 placeholder="0"
               />
             </div>
             <div>
               <label className="text-sm font-medium">Type de livraison</label>
-              <Select 
-                value={filters.type} 
-                onValueChange={(value) => setFilters(prev => ({ ...prev, type: value }))}
+              <Select
+                value={filters.type}
+                onValueChange={(value) =>
+                  setFilters((prev) => ({ ...prev, type: value }))
+                }
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Tous types" />
@@ -162,7 +189,11 @@ export function OpportunitiesList() {
               </Select>
             </div>
             <div className="flex items-end">
-              <Button variant="outline" onClick={fetchOpportunities} className="w-full">
+              <Button
+                variant="outline"
+                onClick={fetchOpportunities}
+                className="w-full"
+              >
                 <Filter className="w-4 h-4 mr-2" />
                 Filtrer
               </Button>
@@ -176,7 +207,9 @@ export function OpportunitiesList() {
         <Card>
           <CardContent className="p-8 text-center">
             <Package className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-            <h3 className="text-lg font-medium mb-2">Aucune opportunité disponible</h3>
+            <h3 className="text-lg font-medium mb-2">
+              Aucune opportunité disponible
+            </h3>
             <p className="text-muted-foreground">
               Modifiez vos filtres ou réessayez plus tard
             </p>
@@ -185,12 +218,17 @@ export function OpportunitiesList() {
       ) : (
         <div className="space-y-4">
           {opportunities.map((opportunity) => (
-            <Card key={opportunity.id} className="hover:shadow-md transition-shadow">
+            <Card
+              key={opportunity.id}
+              className="hover:shadow-md transition-shadow"
+            >
               <CardContent className="p-6">
                 <div className="flex justify-between items-start mb-4">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-2">
-                      <h3 className="font-semibold text-lg">{opportunity.title}</h3>
+                      <h3 className="font-semibold text-lg">
+                        {opportunity.title}
+                      </h3>
                       <Badge className={getTypeColor(opportunity.type)}>
                         {getTypeLabel(opportunity.type)}
                       </Badge>
@@ -198,9 +236,11 @@ export function OpportunitiesList() {
                         <Badge variant="destructive">Urgent</Badge>
                       )}
                     </div>
-                    <p className="text-muted-foreground mb-3">{opportunity.description}</p>
+                    <p className="text-muted-foreground mb-3">
+                      {opportunity.description}
+                    </p>
                   </div>
-                  
+
                   <div className="text-right">
                     <div className="text-2xl font-bold text-green-600">
                       {opportunity.basePrice}€
@@ -224,7 +264,7 @@ export function OpportunitiesList() {
                       <span>{opportunity.deliveryAddress}</span>
                     </div>
                   </div>
-                  
+
                   <div className="space-y-2">
                     <div className="flex items-center gap-2 text-sm">
                       <Clock className="w-4 h-4" />
@@ -236,7 +276,9 @@ export function OpportunitiesList() {
                       <span className="font-medium">Client:</span>
                       <span>{opportunity.client.name}</span>
                       {opportunity.client.rating && (
-                        <span className="text-yellow-500">★ {opportunity.client.rating}/5</span>
+                        <span className="text-yellow-500">
+                          ★ {opportunity.client.rating}/5
+                        </span>
                       )}
                     </div>
                   </div>
@@ -244,9 +286,11 @@ export function OpportunitiesList() {
 
                 <div className="flex justify-between items-center pt-4 border-t">
                   <div className="text-sm text-muted-foreground">
-                    Revenus: {(opportunity.basePrice * 0.85).toFixed(2)}€ • Commission EcoDeli: {(opportunity.basePrice * 0.15).toFixed(2)}€
+                    Revenus: {(opportunity.basePrice * 0.85).toFixed(2)}€ •
+                    Commission EcoDeli:{" "}
+                    {(opportunity.basePrice * 0.15).toFixed(2)}€
                   </div>
-                  <Button 
+                  <Button
                     onClick={() => acceptOpportunity(opportunity.id)}
                     className="bg-green-600 hover:bg-green-700"
                   >
@@ -259,5 +303,5 @@ export function OpportunitiesList() {
         </div>
       )}
     </div>
-  )
+  );
 }

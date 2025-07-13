@@ -1,9 +1,9 @@
-import { OpenAPIV3 } from 'openapi-types'
+import { OpenAPIV3 } from "openapi-types";
 
 export const openApiSpec: OpenAPIV3.Document = {
-  openapi: '3.0.3',
+  openapi: "3.0.3",
   info: {
-    title: 'EcoDeli API',
+    title: "EcoDeli API",
     description: `
 # API EcoDeli - Plateforme de Crowdshipping et Services
 
@@ -71,1163 +71,1210 @@ Authorization: Bearer YOUR_JWT_TOKEN
 - **Documentation** : https://docs.ecodeli.fr
 - **Status** : https://status.ecodeli.fr
 `,
-    version: '1.0.0',
+    version: "1.0.0",
     contact: {
-      name: 'EcoDeli API Support',
-      email: 'api-support@ecodeli.fr',
-      url: 'https://ecodeli.fr/support'
+      name: "EcoDeli API Support",
+      email: "api-support@ecodeli.fr",
+      url: "https://ecodeli.fr/support",
     },
     license: {
-      name: 'Proprietary',
-      url: 'https://ecodeli.fr/license'
+      name: "Proprietary",
+      url: "https://ecodeli.fr/license",
     },
-    termsOfService: 'https://ecodeli.fr/terms'
+    termsOfService: "https://ecodeli.fr/terms",
   },
   servers: [
     {
-      url: 'https://api.ecodeli.fr/v1',
-      description: 'Production'
+      url: "https://api.ecodeli.fr/v1",
+      description: "Production",
     },
     {
-      url: 'https://staging-api.ecodeli.fr/v1',
-      description: 'Staging'
+      url: "https://staging-api.ecodeli.fr/v1",
+      description: "Staging",
     },
     {
-      url: 'http://windows:3000/api',
-      description: 'Development'
-    }
+      url: "http://windows:3000/api",
+      description: "Development",
+    },
   ],
   tags: [
     {
-      name: 'Auth',
-      description: 'Authentification et gestion des sessions'
+      name: "Auth",
+      description: "Authentification et gestion des sessions",
     },
     {
-      name: 'Users',
-      description: 'Gestion des utilisateurs et profils'
+      name: "Users",
+      description: "Gestion des utilisateurs et profils",
     },
     {
-      name: 'Announcements',
-      description: 'Annonces de livraison et services'
+      name: "Announcements",
+      description: "Annonces de livraison et services",
     },
     {
-      name: 'Deliveries',
-      description: 'Gestion des livraisons'
+      name: "Deliveries",
+      description: "Gestion des livraisons",
     },
     {
-      name: 'Bookings',
-      description: 'Réservations de services'
+      name: "Bookings",
+      description: "Réservations de services",
     },
     {
-      name: 'Payments',
-      description: 'Paiements et transactions'
+      name: "Payments",
+      description: "Paiements et transactions",
     },
     {
-      name: 'Notifications',
-      description: 'Système de notifications'
+      name: "Notifications",
+      description: "Système de notifications",
     },
     {
-      name: 'Admin',
-      description: 'Administration de la plateforme'
+      name: "Admin",
+      description: "Administration de la plateforme",
     },
     {
-      name: 'Analytics',
-      description: 'Statistiques et analytics'
-    }
+      name: "Analytics",
+      description: "Statistiques et analytics",
+    },
   ],
   components: {
     securitySchemes: {
       BearerAuth: {
-        type: 'http',
-        scheme: 'bearer',
-        bearerFormat: 'JWT',
-        description: 'Token JWT obtenu via /auth/login'
-      }
+        type: "http",
+        scheme: "bearer",
+        bearerFormat: "JWT",
+        description: "Token JWT obtenu via /auth/login",
+      },
     },
     schemas: {
       // Schémas de base
       User: {
-        type: 'object',
+        type: "object",
         properties: {
-          id: { type: 'string', format: 'cuid' },
-          email: { type: 'string', format: 'email' },
-          firstName: { type: 'string' },
-          lastName: { type: 'string' },
-          phoneNumber: { type: 'string' },
+          id: { type: "string", format: "cuid" },
+          email: { type: "string", format: "email" },
+          firstName: { type: "string" },
+          lastName: { type: "string" },
+          phoneNumber: { type: "string" },
           role: {
-            type: 'string',
-            enum: ['CLIENT', 'DELIVERER', 'MERCHANT', 'PROVIDER', 'ADMIN']
+            type: "string",
+            enum: ["CLIENT", "DELIVERER", "MERCHANT", "PROVIDER", "ADMIN"],
           },
-          isVerified: { type: 'boolean' },
-          isActive: { type: 'boolean' },
-          createdAt: { type: 'string', format: 'date-time' },
-          updatedAt: { type: 'string', format: 'date-time' }
+          isVerified: { type: "boolean" },
+          isActive: { type: "boolean" },
+          createdAt: { type: "string", format: "date-time" },
+          updatedAt: { type: "string", format: "date-time" },
         },
-        required: ['id', 'email', 'role']
+        required: ["id", "email", "role"],
       },
-      
+
       profile: {
-        type: 'object',
+        type: "object",
         properties: {
-          id: { type: 'string' },
-          firstName: { type: 'string' },
-          lastName: { type: 'string' },
-          phone: { type: 'string' },
-          address: { type: 'string' },
-          city: { type: 'string' },
-          postalCode: { type: 'string' },
-          country: { type: 'string', default: 'FR' },
-          avatar: { type: 'string', format: 'uri' },
-          dateOfBirth: { type: 'string', format: 'date' }
-        }
+          id: { type: "string" },
+          firstName: { type: "string" },
+          lastName: { type: "string" },
+          phone: { type: "string" },
+          address: { type: "string" },
+          city: { type: "string" },
+          postalCode: { type: "string" },
+          country: { type: "string", default: "FR" },
+          avatar: { type: "string", format: "uri" },
+          dateOfBirth: { type: "string", format: "date" },
+        },
       },
 
       // Authentification
       LoginRequest: {
-        type: 'object',
+        type: "object",
         properties: {
-          email: { type: 'string', format: 'email' },
-          password: { type: 'string', minLength: 8 }
+          email: { type: "string", format: "email" },
+          password: { type: "string", minLength: 8 },
         },
-        required: ['email', 'password']
+        required: ["email", "password"],
       },
 
       LoginResponse: {
-        type: 'object',
+        type: "object",
         properties: {
-          success: { type: 'boolean' },
-          user: { $ref: '#/components/schemas/User' },
-          token: { type: 'string' },
-          expiresAt: { type: 'string', format: 'date-time' }
-        }
+          success: { type: "boolean" },
+          user: { $ref: "#/components/schemas/User" },
+          token: { type: "string" },
+          expiresAt: { type: "string", format: "date-time" },
+        },
       },
 
       RegisterRequest: {
-        type: 'object',
+        type: "object",
         properties: {
-          email: { type: 'string', format: 'email' },
-          password: { type: 'string', minLength: 8 },
-          firstName: { type: 'string' },
-          lastName: { type: 'string' },
-          phoneNumber: { type: 'string' },
+          email: { type: "string", format: "email" },
+          password: { type: "string", minLength: 8 },
+          firstName: { type: "string" },
+          lastName: { type: "string" },
+          phoneNumber: { type: "string" },
           role: {
-            type: 'string',
-            enum: ['CLIENT', 'DELIVERER', 'MERCHANT', 'PROVIDER']
+            type: "string",
+            enum: ["CLIENT", "DELIVERER", "MERCHANT", "PROVIDER"],
           },
           // Champs spécifiques selon le rôle
-          vehicleType: { type: 'string' },
-          licensePlate: { type: 'string' },
-          maxWeight: { type: 'number' },
-          maxVolume: { type: 'number' },
-          companyName: { type: 'string' },
-          siret: { type: 'string' },
-          vatNumber: { type: 'string' },
-          businessName: { type: 'string' },
+          vehicleType: { type: "string" },
+          licensePlate: { type: "string" },
+          maxWeight: { type: "number" },
+          maxVolume: { type: "number" },
+          companyName: { type: "string" },
+          siret: { type: "string" },
+          vatNumber: { type: "string" },
+          businessName: { type: "string" },
           specialties: {
-            type: 'array',
-            items: { type: 'string' }
+            type: "array",
+            items: { type: "string" },
           },
-          hourlyRate: { type: 'number' },
-          description: { type: 'string' }
+          hourlyRate: { type: "number" },
+          description: { type: "string" },
         },
-        required: ['email', 'password', 'firstName', 'lastName', 'role']
+        required: ["email", "password", "firstName", "lastName", "role"],
       },
 
       // Annonces
       Announcement: {
-        type: 'object',
+        type: "object",
         properties: {
-          id: { type: 'string' },
-          title: { type: 'string' },
-          description: { type: 'string' },
+          id: { type: "string" },
+          title: { type: "string" },
+          description: { type: "string" },
           type: {
-            type: 'string',
-            enum: ['PACKAGE_DELIVERY', 'PERSON_TRANSPORT', 'SHOPPING', 'HOME_SERVICE']
+            type: "string",
+            enum: [
+              "PACKAGE_DELIVERY",
+              "PERSON_TRANSPORT",
+              "SHOPPING",
+              "HOME_SERVICE",
+            ],
           },
           startLocation: {
-            type: 'object',
+            type: "object",
             properties: {
-              address: { type: 'string' },
-              city: { type: 'string' },
-              postalCode: { type: 'string' },
-              lat: { type: 'number' },
-              lng: { type: 'number' }
-            }
+              address: { type: "string" },
+              city: { type: "string" },
+              postalCode: { type: "string" },
+              lat: { type: "number" },
+              lng: { type: "number" },
+            },
           },
           endLocation: {
-            type: 'object',
+            type: "object",
             properties: {
-              address: { type: 'string' },
-              city: { type: 'string' },
-              postalCode: { type: 'string' },
-              lat: { type: 'number' },
-              lng: { type: 'number' }
-            }
+              address: { type: "string" },
+              city: { type: "string" },
+              postalCode: { type: "string" },
+              lat: { type: "number" },
+              lng: { type: "number" },
+            },
           },
-          desiredDate: { type: 'string', format: 'date-time' },
-          price: { type: 'number', minimum: 0 },
-          currency: { type: 'string', default: 'EUR' },
+          desiredDate: { type: "string", format: "date-time" },
+          price: { type: "number", minimum: 0 },
+          currency: { type: "string", default: "EUR" },
           status: {
-            type: 'string',
-            enum: ['DRAFT', 'ACTIVE', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED']
+            type: "string",
+            enum: ["DRAFT", "ACTIVE", "IN_PROGRESS", "COMPLETED", "CANCELLED"],
           },
-          createdAt: { type: 'string', format: 'date-time' },
-          updatedAt: { type: 'string', format: 'date-time' }
-        }
+          createdAt: { type: "string", format: "date-time" },
+          updatedAt: { type: "string", format: "date-time" },
+        },
       },
 
       CreateAnnouncementRequest: {
-        type: 'object',
+        type: "object",
         properties: {
-          title: { type: 'string', minLength: 5, maxLength: 100 },
-          description: { type: 'string', minLength: 10, maxLength: 1000 },
+          title: { type: "string", minLength: 5, maxLength: 100 },
+          description: { type: "string", minLength: 10, maxLength: 1000 },
           type: {
-            type: 'string',
-            enum: ['PACKAGE_DELIVERY', 'PERSON_TRANSPORT', 'SHOPPING', 'HOME_SERVICE']
+            type: "string",
+            enum: [
+              "PACKAGE_DELIVERY",
+              "PERSON_TRANSPORT",
+              "SHOPPING",
+              "HOME_SERVICE",
+            ],
           },
           startLocation: {
-            type: 'object',
+            type: "object",
             properties: {
-              address: { type: 'string' },
-              city: { type: 'string' },
-              postalCode: { type: 'string' },
-              lat: { type: 'number' },
-              lng: { type: 'number' }
+              address: { type: "string" },
+              city: { type: "string" },
+              postalCode: { type: "string" },
+              lat: { type: "number" },
+              lng: { type: "number" },
             },
-            required: ['address', 'city', 'postalCode']
+            required: ["address", "city", "postalCode"],
           },
           endLocation: {
-            type: 'object',
+            type: "object",
             properties: {
-              address: { type: 'string' },
-              city: { type: 'string' },
-              postalCode: { type: 'string' },
-              lat: { type: 'number' },
-              lng: { type: 'number' }
+              address: { type: "string" },
+              city: { type: "string" },
+              postalCode: { type: "string" },
+              lat: { type: "number" },
+              lng: { type: "number" },
             },
-            required: ['address', 'city', 'postalCode']
+            required: ["address", "city", "postalCode"],
           },
-          desiredDate: { type: 'string', format: 'date-time' },
-          price: { type: 'number', minimum: 1 },
+          desiredDate: { type: "string", format: "date-time" },
+          price: { type: "number", minimum: 1 },
           packageDetails: {
-            type: 'object',
+            type: "object",
             properties: {
-              weight: { type: 'number', minimum: 0.1 },
-              length: { type: 'number', minimum: 1 },
-              width: { type: 'number', minimum: 1 },
-              height: { type: 'number', minimum: 1 },
-              fragile: { type: 'boolean' },
-              requiresInsurance: { type: 'boolean' },
-              insuredValue: { type: 'number' }
-            }
-          }
+              weight: { type: "number", minimum: 0.1 },
+              length: { type: "number", minimum: 1 },
+              width: { type: "number", minimum: 1 },
+              height: { type: "number", minimum: 1 },
+              fragile: { type: "boolean" },
+              requiresInsurance: { type: "boolean" },
+              insuredValue: { type: "number" },
+            },
+          },
         },
-        required: ['title', 'description', 'type', 'startLocation', 'endLocation', 'desiredDate', 'price']
+        required: [
+          "title",
+          "description",
+          "type",
+          "startLocation",
+          "endLocation",
+          "desiredDate",
+          "price",
+        ],
       },
 
       // Livraisons
       Delivery: {
-        type: 'object',
+        type: "object",
         properties: {
-          id: { type: 'string' },
-          trackingNumber: { type: 'string' },
+          id: { type: "string" },
+          trackingNumber: { type: "string" },
           status: {
-            type: 'string',
-            enum: ['PENDING', 'ACCEPTED', 'IN_PROGRESS', 'DELIVERED', 'CANCELLED']
+            type: "string",
+            enum: [
+              "PENDING",
+              "ACCEPTED",
+              "IN_PROGRESS",
+              "DELIVERED",
+              "CANCELLED",
+            ],
           },
-          validationCode: { type: 'string', minLength: 6, maxLength: 6 },
-          pickupDate: { type: 'string', format: 'date-time' },
-          deliveryDate: { type: 'string', format: 'date-time' },
-          price: { type: 'number' },
-          delivererFee: { type: 'number' },
-          platformFee: { type: 'number' },
+          validationCode: { type: "string", minLength: 6, maxLength: 6 },
+          pickupDate: { type: "string", format: "date-time" },
+          deliveryDate: { type: "string", format: "date-time" },
+          price: { type: "number" },
+          delivererFee: { type: "number" },
+          platformFee: { type: "number" },
           currentLocation: {
-            type: 'object',
+            type: "object",
             properties: {
-              address: { type: 'string' },
-              lat: { type: 'number' },
-              lng: { type: 'number' },
-              updatedAt: { type: 'string', format: 'date-time' }
-            }
+              address: { type: "string" },
+              lat: { type: "number" },
+              lng: { type: "number" },
+              updatedAt: { type: "string", format: "date-time" },
+            },
           },
-          announcement: { $ref: '#/components/schemas/Announcement' },
-          createdAt: { type: 'string', format: 'date-time' },
-          updatedAt: { type: 'string', format: 'date-time' }
-        }
+          announcement: { $ref: "#/components/schemas/Announcement" },
+          createdAt: { type: "string", format: "date-time" },
+          updatedAt: { type: "string", format: "date-time" },
+        },
       },
 
       // Paiements
       Payment: {
-        type: 'object',
+        type: "object",
         properties: {
-          id: { type: 'string' },
-          amount: { type: 'number' },
-          currency: { type: 'string' },
+          id: { type: "string" },
+          amount: { type: "number" },
+          currency: { type: "string" },
           status: {
-            type: 'string',
-            enum: ['PENDING', 'PROCESSING', 'COMPLETED', 'FAILED', 'REFUNDED']
+            type: "string",
+            enum: ["PENDING", "PROCESSING", "COMPLETED", "FAILED", "REFUNDED"],
           },
-          paymentMethod: { type: 'string' },
-          stripePaymentId: { type: 'string' },
-          paidAt: { type: 'string', format: 'date-time' },
-          createdAt: { type: 'string', format: 'date-time' }
-        }
+          paymentMethod: { type: "string" },
+          stripePaymentId: { type: "string" },
+          paidAt: { type: "string", format: "date-time" },
+          createdAt: { type: "string", format: "date-time" },
+        },
       },
 
       PaymentIntent: {
-        type: 'object',
+        type: "object",
         properties: {
-          id: { type: 'string' },
-          clientSecret: { type: 'string' },
-          amount: { type: 'number' },
-          currency: { type: 'string' },
-          status: { type: 'string' }
-        }
+          id: { type: "string" },
+          clientSecret: { type: "string" },
+          amount: { type: "number" },
+          currency: { type: "string" },
+          status: { type: "string" },
+        },
       },
 
       CreatePaymentIntentRequest: {
-        type: 'object',
+        type: "object",
         properties: {
           type: {
-            type: 'string',
-            enum: ['delivery', 'booking', 'subscription']
+            type: "string",
+            enum: ["delivery", "booking", "subscription"],
           },
-          entityId: { type: 'string' },
+          entityId: { type: "string" },
           planType: {
-            type: 'string',
-            enum: ['STARTER', 'PREMIUM']
-          }
+            type: "string",
+            enum: ["STARTER", "PREMIUM"],
+          },
         },
-        required: ['type']
+        required: ["type"],
       },
 
       // Notifications
       Notification: {
-        type: 'object',
+        type: "object",
         properties: {
-          id: { type: 'string' },
-          type: { type: 'string' },
-          title: { type: 'string' },
-          message: { type: 'string' },
-          data: { type: 'object' },
-          isRead: { type: 'boolean' },
-          isPush: { type: 'boolean' },
-          createdAt: { type: 'string', format: 'date-time' },
-          readAt: { type: 'string', format: 'date-time' }
-        }
+          id: { type: "string" },
+          type: { type: "string" },
+          title: { type: "string" },
+          message: { type: "string" },
+          data: { type: "object" },
+          isRead: { type: "boolean" },
+          isPush: { type: "boolean" },
+          createdAt: { type: "string", format: "date-time" },
+          readAt: { type: "string", format: "date-time" },
+        },
       },
 
       // Réponses standardisées
       ApiResponse: {
-        type: 'object',
+        type: "object",
         properties: {
-          success: { type: 'boolean' },
-          message: { type: 'string' },
-          data: { type: 'object' }
-        }
+          success: { type: "boolean" },
+          message: { type: "string" },
+          data: { type: "object" },
+        },
       },
 
       ErrorResponse: {
-        type: 'object',
+        type: "object",
         properties: {
-          success: { type: 'boolean', enum: [false] },
-          message: { type: 'string' },
-          error: { type: 'string' },
-          details: { type: 'object' }
-        }
+          success: { type: "boolean", enum: [false] },
+          message: { type: "string" },
+          error: { type: "string" },
+          details: { type: "object" },
+        },
       },
 
       ValidationError: {
-        type: 'object',
+        type: "object",
         properties: {
-          success: { type: 'boolean', enum: [false] },
-          message: { type: 'string' },
+          success: { type: "boolean", enum: [false] },
+          message: { type: "string" },
           errors: {
-            type: 'array',
+            type: "array",
             items: {
-              type: 'object',
+              type: "object",
               properties: {
-                field: { type: 'string' },
-                message: { type: 'string' },
-                code: { type: 'string' }
-              }
-            }
-          }
-        }
-      }
+                field: { type: "string" },
+                message: { type: "string" },
+                code: { type: "string" },
+              },
+            },
+          },
+        },
+      },
     },
     responses: {
       UnauthorizedError: {
-        description: 'Token d\'authentification manquant ou invalide',
+        description: "Token d'authentification manquant ou invalide",
         content: {
-          'application/json': {
-            schema: { $ref: '#/components/schemas/ErrorResponse' },
+          "application/json": {
+            schema: { $ref: "#/components/schemas/ErrorResponse" },
             example: {
               success: false,
-              message: 'Non authentifié',
-              error: 'UNAUTHORIZED'
-            }
-          }
-        }
+              message: "Non authentifié",
+              error: "UNAUTHORIZED",
+            },
+          },
+        },
       },
       ForbiddenError: {
-        description: 'Accès interdit pour ce rôle',
+        description: "Accès interdit pour ce rôle",
         content: {
-          'application/json': {
-            schema: { $ref: '#/components/schemas/ErrorResponse' },
+          "application/json": {
+            schema: { $ref: "#/components/schemas/ErrorResponse" },
             example: {
               success: false,
-              message: 'Accès interdit',
-              error: 'FORBIDDEN'
-            }
-          }
-        }
+              message: "Accès interdit",
+              error: "FORBIDDEN",
+            },
+          },
+        },
       },
       NotFoundError: {
-        description: 'Ressource non trouvée',
+        description: "Ressource non trouvée",
         content: {
-          'application/json': {
-            schema: { $ref: '#/components/schemas/ErrorResponse' },
+          "application/json": {
+            schema: { $ref: "#/components/schemas/ErrorResponse" },
             example: {
               success: false,
-              message: 'Ressource non trouvée',
-              error: 'NOT_FOUND'
-            }
-          }
-        }
+              message: "Ressource non trouvée",
+              error: "NOT_FOUND",
+            },
+          },
+        },
       },
       ValidationError: {
-        description: 'Erreur de validation des données',
+        description: "Erreur de validation des données",
         content: {
-          'application/json': {
-            schema: { $ref: '#/components/schemas/ValidationError' },
+          "application/json": {
+            schema: { $ref: "#/components/schemas/ValidationError" },
             example: {
               success: false,
-              message: 'Données invalides',
+              message: "Données invalides",
               errors: [
                 {
-                  field: 'email',
-                  message: 'Format d\'email invalide',
-                  code: 'INVALID_EMAIL'
-                }
-              ]
-            }
-          }
-        }
-      }
-    }
+                  field: "email",
+                  message: "Format d'email invalide",
+                  code: "INVALID_EMAIL",
+                },
+              ],
+            },
+          },
+        },
+      },
+    },
   },
   paths: {
     // Authentification
-    '/api/auth/login': {
+    "/api/auth/login": {
       post: {
-        tags: ['Auth'],
-        summary: 'Connexion utilisateur',
-        description: 'Authentifie un utilisateur et retourne un token JWT',
+        tags: ["Auth"],
+        summary: "Connexion utilisateur",
+        description: "Authentifie un utilisateur et retourne un token JWT",
         requestBody: {
           required: true,
           content: {
-            'application/json': {
-              schema: { $ref: '#/components/schemas/LoginRequest' }
-            }
-          }
+            "application/json": {
+              schema: { $ref: "#/components/schemas/LoginRequest" },
+            },
+          },
         },
         responses: {
-          '200': {
-            description: 'Connexion réussie',
+          "200": {
+            description: "Connexion réussie",
             content: {
-              'application/json': {
-                schema: { $ref: '#/components/schemas/LoginResponse' }
-              }
-            }
+              "application/json": {
+                schema: { $ref: "#/components/schemas/LoginResponse" },
+              },
+            },
           },
-          '401': { $ref: '#/components/responses/UnauthorizedError' },
-          '422': { $ref: '#/components/responses/ValidationError' }
-        }
-      }
+          "401": { $ref: "#/components/responses/UnauthorizedError" },
+          "422": { $ref: "#/components/responses/ValidationError" },
+        },
+      },
     },
 
-    '/api/auth/logout': {
+    "/api/auth/logout": {
       post: {
-        tags: ['Auth'],
-        summary: 'Déconnexion',
-        description: 'Invalide le token JWT actuel',
+        tags: ["Auth"],
+        summary: "Déconnexion",
+        description: "Invalide le token JWT actuel",
         security: [{ BearerAuth: [] }],
         responses: {
-          '200': {
-            description: 'Déconnexion réussie',
+          "200": {
+            description: "Déconnexion réussie",
             content: {
-              'application/json': {
-                schema: { $ref: '#/components/schemas/ApiResponse' }
-              }
-            }
-          }
-        }
-      }
+              "application/json": {
+                schema: { $ref: "#/components/schemas/ApiResponse" },
+              },
+            },
+          },
+        },
+      },
     },
 
-    '/api/auth/refresh': {
+    "/api/auth/refresh": {
       post: {
-        tags: ['Auth'],
-        summary: 'Renouveler le token',
-        description: 'Génère un nouveau token JWT',
+        tags: ["Auth"],
+        summary: "Renouveler le token",
+        description: "Génère un nouveau token JWT",
         security: [{ BearerAuth: [] }],
         responses: {
-          '200': {
-            description: 'Token renouvelé',
+          "200": {
+            description: "Token renouvelé",
             content: {
-              'application/json': {
-                schema: { $ref: '#/components/schemas/LoginResponse' }
-              }
-            }
+              "application/json": {
+                schema: { $ref: "#/components/schemas/LoginResponse" },
+              },
+            },
           },
-          '401': { $ref: '#/components/responses/UnauthorizedError' }
-        }
-      }
+          "401": { $ref: "#/components/responses/UnauthorizedError" },
+        },
+      },
     },
 
     // Gestion des utilisateurs
-    '/api/users/profile': {
+    "/api/users/profile": {
       get: {
-        tags: ['Users'],
-        summary: 'Obtenir le profil utilisateur',
+        tags: ["Users"],
+        summary: "Obtenir le profil utilisateur",
         security: [{ BearerAuth: [] }],
         responses: {
-          '200': {
-            description: 'Profil utilisateur',
+          "200": {
+            description: "Profil utilisateur",
             content: {
-              'application/json': {
+              "application/json": {
                 schema: {
-                  type: 'object',
+                  type: "object",
                   properties: {
-                    success: { type: 'boolean' },
-                    data: { $ref: '#/components/schemas/User' }
-                  }
-                }
-              }
-            }
+                    success: { type: "boolean" },
+                    data: { $ref: "#/components/schemas/User" },
+                  },
+                },
+              },
+            },
           },
-          '401': { $ref: '#/components/responses/UnauthorizedError' }
-        }
+          "401": { $ref: "#/components/responses/UnauthorizedError" },
+        },
       },
       put: {
-        tags: ['Users'],
-        summary: 'Mettre à jour le profil',
+        tags: ["Users"],
+        summary: "Mettre à jour le profil",
         security: [{ BearerAuth: [] }],
         requestBody: {
           required: true,
           content: {
-            'application/json': {
-              schema: { $ref: '#/components/schemas/Profile' }
-            }
-          }
+            "application/json": {
+              schema: { $ref: "#/components/schemas/Profile" },
+            },
+          },
         },
         responses: {
-          '200': {
-            description: 'Profil mis à jour',
+          "200": {
+            description: "Profil mis à jour",
             content: {
-              'application/json': {
-                schema: { $ref: '#/components/schemas/ApiResponse' }
-              }
-            }
+              "application/json": {
+                schema: { $ref: "#/components/schemas/ApiResponse" },
+              },
+            },
           },
-          '401': { $ref: '#/components/responses/UnauthorizedError' },
-          '422': { $ref: '#/components/responses/ValidationError' }
-        }
-      }
+          "401": { $ref: "#/components/responses/UnauthorizedError" },
+          "422": { $ref: "#/components/responses/ValidationError" },
+        },
+      },
     },
 
     // Annonces
-    '/api/announcements': {
+    "/api/announcements": {
       get: {
-        tags: ['Announcements'],
-        summary: 'Lister les annonces',
-        description: 'Récupère la liste des annonces avec filtres',
+        tags: ["Announcements"],
+        summary: "Lister les annonces",
+        description: "Récupère la liste des annonces avec filtres",
         security: [{ BearerAuth: [] }],
         parameters: [
           {
-            name: 'type',
-            in: 'query',
+            name: "type",
+            in: "query",
             schema: {
-              type: 'string',
-              enum: ['PACKAGE_DELIVERY', 'PERSON_TRANSPORT', 'SHOPPING', 'HOME_SERVICE']
-            }
+              type: "string",
+              enum: [
+                "PACKAGE_DELIVERY",
+                "PERSON_TRANSPORT",
+                "SHOPPING",
+                "HOME_SERVICE",
+              ],
+            },
           },
           {
-            name: 'status',
-            in: 'query',
+            name: "status",
+            in: "query",
             schema: {
-              type: 'string',
-              enum: ['DRAFT', 'ACTIVE', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED']
-            }
+              type: "string",
+              enum: [
+                "DRAFT",
+                "ACTIVE",
+                "IN_PROGRESS",
+                "COMPLETED",
+                "CANCELLED",
+              ],
+            },
           },
           {
-            name: 'city',
-            in: 'query',
-            schema: { type: 'string' }
+            name: "city",
+            in: "query",
+            schema: { type: "string" },
           },
           {
-            name: 'page',
-            in: 'query',
-            schema: { type: 'integer', minimum: 1, default: 1 }
+            name: "page",
+            in: "query",
+            schema: { type: "integer", minimum: 1, default: 1 },
           },
           {
-            name: 'limit',
-            in: 'query',
-            schema: { type: 'integer', minimum: 1, maximum: 100, default: 20 }
-          }
+            name: "limit",
+            in: "query",
+            schema: { type: "integer", minimum: 1, maximum: 100, default: 20 },
+          },
         ],
         responses: {
-          '200': {
-            description: 'Liste des annonces',
+          "200": {
+            description: "Liste des annonces",
             content: {
-              'application/json': {
+              "application/json": {
                 schema: {
-                  type: 'object',
+                  type: "object",
                   properties: {
-                    success: { type: 'boolean' },
+                    success: { type: "boolean" },
                     data: {
-                      type: 'array',
-                      items: { $ref: '#/components/schemas/Announcement' }
+                      type: "array",
+                      items: { $ref: "#/components/schemas/Announcement" },
                     },
                     pagination: {
-                      type: 'object',
+                      type: "object",
                       properties: {
-                        total: { type: 'integer' },
-                        page: { type: 'integer' },
-                        limit: { type: 'integer' },
-                        totalPages: { type: 'integer' }
-                      }
-                    }
-                  }
-                }
-              }
-            }
+                        total: { type: "integer" },
+                        page: { type: "integer" },
+                        limit: { type: "integer" },
+                        totalPages: { type: "integer" },
+                      },
+                    },
+                  },
+                },
+              },
+            },
           },
-          '401': { $ref: '#/components/responses/UnauthorizedError' }
-        }
+          "401": { $ref: "#/components/responses/UnauthorizedError" },
+        },
       },
       post: {
-        tags: ['Announcements'],
-        summary: 'Créer une annonce',
-        description: 'Crée une nouvelle annonce (CLIENT uniquement)',
+        tags: ["Announcements"],
+        summary: "Créer une annonce",
+        description: "Crée une nouvelle annonce (CLIENT uniquement)",
         security: [{ BearerAuth: [] }],
         requestBody: {
           required: true,
           content: {
-            'application/json': {
-              schema: { $ref: '#/components/schemas/CreateAnnouncementRequest' }
-            }
-          }
+            "application/json": {
+              schema: {
+                $ref: "#/components/schemas/CreateAnnouncementRequest",
+              },
+            },
+          },
         },
         responses: {
-          '201': {
-            description: 'Annonce créée',
+          "201": {
+            description: "Annonce créée",
             content: {
-              'application/json': {
+              "application/json": {
                 schema: {
-                  type: 'object',
+                  type: "object",
                   properties: {
-                    success: { type: 'boolean' },
-                    data: { $ref: '#/components/schemas/Announcement' }
-                  }
-                }
-              }
-            }
+                    success: { type: "boolean" },
+                    data: { $ref: "#/components/schemas/Announcement" },
+                  },
+                },
+              },
+            },
           },
-          '401': { $ref: '#/components/responses/UnauthorizedError' },
-          '403': { $ref: '#/components/responses/ForbiddenError' },
-          '422': { $ref: '#/components/responses/ValidationError' }
-        }
-      }
+          "401": { $ref: "#/components/responses/UnauthorizedError" },
+          "403": { $ref: "#/components/responses/ForbiddenError" },
+          "422": { $ref: "#/components/responses/ValidationError" },
+        },
+      },
     },
 
-    '/api/announcements/{id}': {
+    "/api/announcements/{id}": {
       get: {
-        tags: ['Announcements'],
-        summary: 'Obtenir une annonce',
+        tags: ["Announcements"],
+        summary: "Obtenir une annonce",
         security: [{ BearerAuth: [] }],
         parameters: [
           {
-            name: 'id',
-            in: 'path',
+            name: "id",
+            in: "path",
             required: true,
-            schema: { type: 'string' }
-          }
+            schema: { type: "string" },
+          },
         ],
         responses: {
-          '200': {
-            description: 'Détails de l\'annonce',
+          "200": {
+            description: "Détails de l'annonce",
             content: {
-              'application/json': {
+              "application/json": {
                 schema: {
-                  type: 'object',
+                  type: "object",
                   properties: {
-                    success: { type: 'boolean' },
-                    data: { $ref: '#/components/schemas/Announcement' }
-                  }
-                }
-              }
-            }
+                    success: { type: "boolean" },
+                    data: { $ref: "#/components/schemas/Announcement" },
+                  },
+                },
+              },
+            },
           },
-          '404': { $ref: '#/components/responses/NotFoundError' }
-        }
+          "404": { $ref: "#/components/responses/NotFoundError" },
+        },
       },
       put: {
-        tags: ['Announcements'],
-        summary: 'Modifier une annonce',
+        tags: ["Announcements"],
+        summary: "Modifier une annonce",
         security: [{ BearerAuth: [] }],
         parameters: [
           {
-            name: 'id',
-            in: 'path',
+            name: "id",
+            in: "path",
             required: true,
-            schema: { type: 'string' }
-          }
+            schema: { type: "string" },
+          },
         ],
         requestBody: {
           required: true,
           content: {
-            'application/json': {
-              schema: { $ref: '#/components/schemas/CreateAnnouncementRequest' }
-            }
-          }
+            "application/json": {
+              schema: {
+                $ref: "#/components/schemas/CreateAnnouncementRequest",
+              },
+            },
+          },
         },
         responses: {
-          '200': {
-            description: 'Annonce modifiée',
+          "200": {
+            description: "Annonce modifiée",
             content: {
-              'application/json': {
-                schema: { $ref: '#/components/schemas/ApiResponse' }
-              }
-            }
+              "application/json": {
+                schema: { $ref: "#/components/schemas/ApiResponse" },
+              },
+            },
           },
-          '403': { $ref: '#/components/responses/ForbiddenError' },
-          '404': { $ref: '#/components/responses/NotFoundError' }
-        }
+          "403": { $ref: "#/components/responses/ForbiddenError" },
+          "404": { $ref: "#/components/responses/NotFoundError" },
+        },
       },
       delete: {
-        tags: ['Announcements'],
-        summary: 'Supprimer une annonce',
+        tags: ["Announcements"],
+        summary: "Supprimer une annonce",
         security: [{ BearerAuth: [] }],
         parameters: [
           {
-            name: 'id',
-            in: 'path',
+            name: "id",
+            in: "path",
             required: true,
-            schema: { type: 'string' }
-          }
+            schema: { type: "string" },
+          },
         ],
         responses: {
-          '200': {
-            description: 'Annonce supprimée',
+          "200": {
+            description: "Annonce supprimée",
             content: {
-              'application/json': {
-                schema: { $ref: '#/components/schemas/ApiResponse' }
-              }
-            }
+              "application/json": {
+                schema: { $ref: "#/components/schemas/ApiResponse" },
+              },
+            },
           },
-          '403': { $ref: '#/components/responses/ForbiddenError' },
-          '404': { $ref: '#/components/responses/NotFoundError' }
-        }
-      }
+          "403": { $ref: "#/components/responses/ForbiddenError" },
+          "404": { $ref: "#/components/responses/NotFoundError" },
+        },
+      },
     },
 
     // Livraisons
-    '/api/deliveries': {
+    "/api/deliveries": {
       get: {
-        tags: ['Deliveries'],
-        summary: 'Lister les livraisons',
+        tags: ["Deliveries"],
+        summary: "Lister les livraisons",
         security: [{ BearerAuth: [] }],
         parameters: [
           {
-            name: 'status',
-            in: 'query',
+            name: "status",
+            in: "query",
             schema: {
-              type: 'string',
-              enum: ['PENDING', 'ACCEPTED', 'IN_PROGRESS', 'DELIVERED', 'CANCELLED']
-            }
+              type: "string",
+              enum: [
+                "PENDING",
+                "ACCEPTED",
+                "IN_PROGRESS",
+                "DELIVERED",
+                "CANCELLED",
+              ],
+            },
           },
           {
-            name: 'page',
-            in: 'query',
-            schema: { type: 'integer', minimum: 1, default: 1 }
-          }
+            name: "page",
+            in: "query",
+            schema: { type: "integer", minimum: 1, default: 1 },
+          },
         ],
         responses: {
-          '200': {
-            description: 'Liste des livraisons',
+          "200": {
+            description: "Liste des livraisons",
             content: {
-              'application/json': {
+              "application/json": {
                 schema: {
-                  type: 'object',
+                  type: "object",
                   properties: {
-                    success: { type: 'boolean' },
+                    success: { type: "boolean" },
                     data: {
-                      type: 'array',
-                      items: { $ref: '#/components/schemas/Delivery' }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
+                      type: "array",
+                      items: { $ref: "#/components/schemas/Delivery" },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
     },
 
-    '/api/deliveries/{id}/accept': {
+    "/api/deliveries/{id}/accept": {
       post: {
-        tags: ['Deliveries'],
-        summary: 'Accepter une livraison',
-        description: 'Permet à un livreur d\'accepter une annonce de livraison',
+        tags: ["Deliveries"],
+        summary: "Accepter une livraison",
+        description: "Permet à un livreur d'accepter une annonce de livraison",
         security: [{ BearerAuth: [] }],
         parameters: [
           {
-            name: 'id',
-            in: 'path',
+            name: "id",
+            in: "path",
             required: true,
-            schema: { type: 'string' }
-          }
+            schema: { type: "string" },
+          },
         ],
         responses: {
-          '200': {
-            description: 'Livraison acceptée',
+          "200": {
+            description: "Livraison acceptée",
             content: {
-              'application/json': {
-                schema: { $ref: '#/components/schemas/ApiResponse' }
-              }
-            }
+              "application/json": {
+                schema: { $ref: "#/components/schemas/ApiResponse" },
+              },
+            },
           },
-          '403': { $ref: '#/components/responses/ForbiddenError' },
-          '404': { $ref: '#/components/responses/NotFoundError' }
-        }
-      }
+          "403": { $ref: "#/components/responses/ForbiddenError" },
+          "404": { $ref: "#/components/responses/NotFoundError" },
+        },
+      },
     },
 
-    '/api/deliveries/{id}/validate': {
+    "/api/deliveries/{id}/validate": {
       post: {
-        tags: ['Deliveries'],
-        summary: 'Valider une livraison',
-        description: 'Valide une livraison avec le code à 6 chiffres',
+        tags: ["Deliveries"],
+        summary: "Valider une livraison",
+        description: "Valide une livraison avec le code à 6 chiffres",
         security: [{ BearerAuth: [] }],
         parameters: [
           {
-            name: 'id',
-            in: 'path',
+            name: "id",
+            in: "path",
             required: true,
-            schema: { type: 'string' }
-          }
+            schema: { type: "string" },
+          },
         ],
         requestBody: {
           required: true,
           content: {
-            'application/json': {
+            "application/json": {
               schema: {
-                type: 'object',
+                type: "object",
                 properties: {
-                  validationCode: { 
-                    type: 'string', 
-                    minLength: 6, 
+                  validationCode: {
+                    type: "string",
+                    minLength: 6,
                     maxLength: 6,
-                    pattern: '^[0-9]{6}$'
-                  }
+                    pattern: "^[0-9]{6}$",
+                  },
                 },
-                required: ['validationCode']
-              }
-            }
-          }
+                required: ["validationCode"],
+              },
+            },
+          },
         },
         responses: {
-          '200': {
-            description: 'Livraison validée',
+          "200": {
+            description: "Livraison validée",
             content: {
-              'application/json': {
-                schema: { $ref: '#/components/schemas/ApiResponse' }
-              }
-            }
+              "application/json": {
+                schema: { $ref: "#/components/schemas/ApiResponse" },
+              },
+            },
           },
-          '400': {
-            description: 'Code de validation invalide',
+          "400": {
+            description: "Code de validation invalide",
             content: {
-              'application/json': {
-                schema: { $ref: '#/components/schemas/ErrorResponse' }
-              }
-            }
-          }
-        }
-      }
+              "application/json": {
+                schema: { $ref: "#/components/schemas/ErrorResponse" },
+              },
+            },
+          },
+        },
+      },
     },
 
     // Paiements
-    '/api/payments/create-intent': {
+    "/api/payments/create-intent": {
       post: {
-        tags: ['Payments'],
-        summary: 'Créer un PaymentIntent Stripe',
+        tags: ["Payments"],
+        summary: "Créer un PaymentIntent Stripe",
         security: [{ BearerAuth: [] }],
         requestBody: {
           required: true,
           content: {
-            'application/json': {
-              schema: { $ref: '#/components/schemas/CreatePaymentIntentRequest' }
-            }
-          }
+            "application/json": {
+              schema: {
+                $ref: "#/components/schemas/CreatePaymentIntentRequest",
+              },
+            },
+          },
         },
         responses: {
-          '200': {
-            description: 'PaymentIntent créé',
+          "200": {
+            description: "PaymentIntent créé",
             content: {
-              'application/json': {
+              "application/json": {
                 schema: {
-                  type: 'object',
+                  type: "object",
                   properties: {
-                    success: { type: 'boolean' },
-                    data: { $ref: '#/components/schemas/PaymentIntent' }
-                  }
-                }
-              }
-            }
+                    success: { type: "boolean" },
+                    data: { $ref: "#/components/schemas/PaymentIntent" },
+                  },
+                },
+              },
+            },
           },
-          '422': { $ref: '#/components/responses/ValidationError' }
-        }
-      }
+          "422": { $ref: "#/components/responses/ValidationError" },
+        },
+      },
     },
 
-    '/api/payments/webhook': {
+    "/api/payments/webhook": {
       post: {
-        tags: ['Payments'],
-        summary: 'Webhook Stripe',
-        description: 'Endpoint pour recevoir les événements Stripe',
+        tags: ["Payments"],
+        summary: "Webhook Stripe",
+        description: "Endpoint pour recevoir les événements Stripe",
         requestBody: {
           required: true,
           content: {
-            'application/json': {
-              schema: { type: 'object' }
-            }
-          }
+            "application/json": {
+              schema: { type: "object" },
+            },
+          },
         },
         responses: {
-          '200': {
-            description: 'Webhook traité',
+          "200": {
+            description: "Webhook traité",
             content: {
-              'application/json': {
-                schema: { $ref: '#/components/schemas/ApiResponse' }
-              }
-            }
-          }
-        }
-      }
+              "application/json": {
+                schema: { $ref: "#/components/schemas/ApiResponse" },
+              },
+            },
+          },
+        },
+      },
     },
 
     // Notifications
-    '/api/notifications': {
+    "/api/notifications": {
       get: {
-        tags: ['Notifications'],
-        summary: 'Lister les notifications',
+        tags: ["Notifications"],
+        summary: "Lister les notifications",
         security: [{ BearerAuth: [] }],
         parameters: [
           {
-            name: 'unread',
-            in: 'query',
-            schema: { type: 'boolean' }
+            name: "unread",
+            in: "query",
+            schema: { type: "boolean" },
           },
           {
-            name: 'page',
-            in: 'query',
-            schema: { type: 'integer', minimum: 1, default: 1 }
-          }
+            name: "page",
+            in: "query",
+            schema: { type: "integer", minimum: 1, default: 1 },
+          },
         ],
         responses: {
-          '200': {
-            description: 'Liste des notifications',
+          "200": {
+            description: "Liste des notifications",
             content: {
-              'application/json': {
+              "application/json": {
                 schema: {
-                  type: 'object',
+                  type: "object",
                   properties: {
-                    success: { type: 'boolean' },
+                    success: { type: "boolean" },
                     data: {
-                      type: 'array',
-                      items: { $ref: '#/components/schemas/Notification' }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
+                      type: "array",
+                      items: { $ref: "#/components/schemas/Notification" },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
     },
 
-    '/api/notifications/{id}/read': {
+    "/api/notifications/{id}/read": {
       patch: {
-        tags: ['Notifications'],
-        summary: 'Marquer comme lue',
+        tags: ["Notifications"],
+        summary: "Marquer comme lue",
         security: [{ BearerAuth: [] }],
         parameters: [
           {
-            name: 'id',
-            in: 'path',
+            name: "id",
+            in: "path",
             required: true,
-            schema: { type: 'string' }
-          }
+            schema: { type: "string" },
+          },
         ],
         responses: {
-          '200': {
-            description: 'Notification marquée comme lue',
+          "200": {
+            description: "Notification marquée comme lue",
             content: {
-              'application/json': {
-                schema: { $ref: '#/components/schemas/ApiResponse' }
-              }
-            }
-          }
-        }
-      }
+              "application/json": {
+                schema: { $ref: "#/components/schemas/ApiResponse" },
+              },
+            },
+          },
+        },
+      },
     },
 
     // Administration
-    '/api/admin/users': {
+    "/api/admin/users": {
       get: {
-        tags: ['Admin'],
-        summary: 'Lister tous les utilisateurs',
-        description: 'Accès admin uniquement',
+        tags: ["Admin"],
+        summary: "Lister tous les utilisateurs",
+        description: "Accès admin uniquement",
         security: [{ BearerAuth: [] }],
         parameters: [
           {
-            name: 'role',
-            in: 'query',
+            name: "role",
+            in: "query",
             schema: {
-              type: 'string',
-              enum: ['CLIENT', 'DELIVERER', 'MERCHANT', 'PROVIDER', 'ADMIN']
-            }
+              type: "string",
+              enum: ["CLIENT", "DELIVERER", "MERCHANT", "PROVIDER", "ADMIN"],
+            },
           },
           {
-            name: 'status',
-            in: 'query',
-            schema: { type: 'string' }
+            name: "status",
+            in: "query",
+            schema: { type: "string" },
           },
           {
-            name: 'page',
-            in: 'query',
-            schema: { type: 'integer', minimum: 1, default: 1 }
-          }
+            name: "page",
+            in: "query",
+            schema: { type: "integer", minimum: 1, default: 1 },
+          },
         ],
         responses: {
-          '200': {
-            description: 'Liste des utilisateurs',
+          "200": {
+            description: "Liste des utilisateurs",
             content: {
-              'application/json': {
+              "application/json": {
                 schema: {
-                  type: 'object',
+                  type: "object",
                   properties: {
-                    success: { type: 'boolean' },
+                    success: { type: "boolean" },
                     data: {
-                      type: 'array',
-                      items: { $ref: '#/components/schemas/User' }
-                    }
-                  }
-                }
-              }
-            }
+                      type: "array",
+                      items: { $ref: "#/components/schemas/User" },
+                    },
+                  },
+                },
+              },
+            },
           },
-          '403': { $ref: '#/components/responses/ForbiddenError' }
-        }
-      }
+          "403": { $ref: "#/components/responses/ForbiddenError" },
+        },
+      },
     },
 
-    '/api/admin/documents/{userId}/validate': {
+    "/api/admin/documents/{userId}/validate": {
       post: {
-        tags: ['Admin'],
-        summary: 'Valider les documents d\'un utilisateur',
+        tags: ["Admin"],
+        summary: "Valider les documents d'un utilisateur",
         security: [{ BearerAuth: [] }],
         parameters: [
           {
-            name: 'userId',
-            in: 'path',
+            name: "userId",
+            in: "path",
             required: true,
-            schema: { type: 'string' }
-          }
+            schema: { type: "string" },
+          },
         ],
         requestBody: {
           required: true,
           content: {
-            'application/json': {
+            "application/json": {
               schema: {
-                type: 'object',
+                type: "object",
                 properties: {
-                  documentType: { type: 'string' },
-                  status: { 
-                    type: 'string',
-                    enum: ['APPROVED', 'REJECTED']
+                  documentType: { type: "string" },
+                  status: {
+                    type: "string",
+                    enum: ["APPROVED", "REJECTED"],
                   },
-                  comment: { type: 'string' }
+                  comment: { type: "string" },
                 },
-                required: ['documentType', 'status']
-              }
-            }
-          }
+                required: ["documentType", "status"],
+              },
+            },
+          },
         },
         responses: {
-          '200': {
-            description: 'Document validé',
+          "200": {
+            description: "Document validé",
             content: {
-              'application/json': {
-                schema: { $ref: '#/components/schemas/ApiResponse' }
-              }
-            }
+              "application/json": {
+                schema: { $ref: "#/components/schemas/ApiResponse" },
+              },
+            },
           },
-          '403': { $ref: '#/components/responses/ForbiddenError' }
-        }
-      }
+          "403": { $ref: "#/components/responses/ForbiddenError" },
+        },
+      },
     },
 
     // Analytics
-    '/api/analytics/dashboard': {
+    "/api/analytics/dashboard": {
       get: {
-        tags: ['Analytics'],
-        summary: 'Statistiques du dashboard',
+        tags: ["Analytics"],
+        summary: "Statistiques du dashboard",
         security: [{ BearerAuth: [] }],
         parameters: [
           {
-            name: 'period',
-            in: 'query',
+            name: "period",
+            in: "query",
             schema: {
-              type: 'string',
-              enum: ['7d', '30d', '90d', '1y'],
-              default: '30d'
-            }
-          }
+              type: "string",
+              enum: ["7d", "30d", "90d", "1y"],
+              default: "30d",
+            },
+          },
         ],
         responses: {
-          '200': {
-            description: 'Statistiques',
+          "200": {
+            description: "Statistiques",
             content: {
-              'application/json': {
+              "application/json": {
                 schema: {
-                  type: 'object',
+                  type: "object",
                   properties: {
-                    success: { type: 'boolean' },
+                    success: { type: "boolean" },
                     data: {
-                      type: 'object',
+                      type: "object",
                       properties: {
-                        totalUsers: { type: 'integer' },
-                        totalDeliveries: { type: 'integer' },
-                        totalRevenue: { type: 'number' },
-                        avgDeliveryTime: { type: 'number' }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
+                        totalUsers: { type: "integer" },
+                        totalDeliveries: { type: "integer" },
+                        totalRevenue: { type: "number" },
+                        avgDeliveryTime: { type: "number" },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
   },
   security: [
     {
-      BearerAuth: []
-    }
-  ]
-}
+      BearerAuth: [],
+    },
+  ],
+};

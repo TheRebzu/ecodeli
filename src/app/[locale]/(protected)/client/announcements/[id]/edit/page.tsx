@@ -1,150 +1,187 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from 'react'
-import { useParams, useRouter } from 'next/navigation'
-import { useAuth } from '@/hooks/use-auth'
-import { useTranslations } from 'next-intl'
-import { PageHeader } from '@/components/layout/page-header'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
-import { Checkbox } from '@/components/ui/checkbox'
-import { useToast } from '@/components/ui/use-toast'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { updateAnnouncementSchema, type UpdateAnnouncementInput, AnnouncementType, AnnouncementStatus } from '@/features/announcements/schemas/announcement.schema'
-import { Announcement } from '@/features/announcements/types/announcement.types'
-import { Package, Users, Plane, ShoppingCart, Globe, Home, Heart, ShoppingCartIcon, ArrowLeft, Save, Edit, MapPin, Calendar, Clock, DollarSign, AlertCircle } from 'lucide-react'
-import Link from 'next/link'
-import { Switch } from '@/components/ui/switch'
-import { Separator } from '@/components/ui/separator'
+import { useState, useEffect } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { useAuth } from "@/hooks/use-auth";
+import { useTranslations } from "next-intl";
+import { PageHeader } from "@/components/layout/page-header";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Checkbox } from "@/components/ui/checkbox";
+import { useToast } from "@/components/ui/use-toast";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  updateAnnouncementSchema,
+  type UpdateAnnouncementInput,
+  AnnouncementType,
+  AnnouncementStatus,
+} from "@/features/announcements/schemas/announcement.schema";
+import { Announcement } from "@/features/announcements/types/announcement.types";
+import {
+  Package,
+  Users,
+  Plane,
+  ShoppingCart,
+  Globe,
+  Home,
+  Heart,
+  ShoppingCartIcon,
+  ArrowLeft,
+  Save,
+  Edit,
+  MapPin,
+  Calendar,
+  Clock,
+  DollarSign,
+  AlertCircle,
+} from "lucide-react";
+import Link from "next/link";
+import { Switch } from "@/components/ui/switch";
+import { Separator } from "@/components/ui/separator";
 
 const announcementTypes = [
   {
-    value: 'PACKAGE_DELIVERY',
-    label: 'Transport de colis',
-    description: 'Livraison de colis (intégral ou partiel)',
+    value: "PACKAGE_DELIVERY",
+    label: "Transport de colis",
+    description: "Livraison de colis (intégral ou partiel)",
     icon: Package,
-    color: 'bg-blue-500'
+    color: "bg-blue-500",
   },
   {
-    value: 'PERSON_TRANSPORT',
-    label: 'Transport de personnes',
-    description: 'Transport quotidien de personnes',
+    value: "PERSON_TRANSPORT",
+    label: "Transport de personnes",
+    description: "Transport quotidien de personnes",
     icon: Users,
-    color: 'bg-green-500'
+    color: "bg-green-500",
   },
   {
-    value: 'AIRPORT_TRANSFER',
-    label: 'Transfert aéroport',
-    description: 'Transport vers/depuis l\'aéroport',
+    value: "AIRPORT_TRANSFER",
+    label: "Transfert aéroport",
+    description: "Transport vers/depuis l'aéroport",
     icon: Plane,
-    color: 'bg-purple-500'
+    color: "bg-purple-500",
   },
   {
-    value: 'SHOPPING',
-    label: 'Courses',
-    description: 'Courses avec liste fournie au livreur',
+    value: "SHOPPING",
+    label: "Courses",
+    description: "Courses avec liste fournie au livreur",
     icon: ShoppingCart,
-    color: 'bg-orange-500'
+    color: "bg-orange-500",
   },
   {
-    value: 'INTERNATIONAL_PURCHASE',
-    label: 'Achats internationaux',
-    description: 'Achats depuis l\'étranger',
+    value: "INTERNATIONAL_PURCHASE",
+    label: "Achats internationaux",
+    description: "Achats depuis l'étranger",
     icon: Globe,
-    color: 'bg-red-500'
+    color: "bg-red-500",
   },
   {
-    value: 'HOME_SERVICE',
-    label: 'Services à domicile',
-    description: 'Ménage, jardinage, bricolage...',
+    value: "HOME_SERVICE",
+    label: "Services à domicile",
+    description: "Ménage, jardinage, bricolage...",
     icon: Home,
-    color: 'bg-yellow-500'
+    color: "bg-yellow-500",
   },
   {
-    value: 'PET_SITTING',
-    label: 'Garde d\'animaux',
-    description: 'Garde d\'animaux à domicile',
+    value: "PET_SITTING",
+    label: "Garde d'animaux",
+    description: "Garde d'animaux à domicile",
     icon: Heart,
-    color: 'bg-pink-500'
+    color: "bg-pink-500",
   },
   {
-    value: 'CART_DROP',
-    label: 'Lâcher de chariot',
-    description: 'Livraison à domicile depuis magasin',
+    value: "CART_DROP",
+    label: "Lâcher de chariot",
+    description: "Livraison à domicile depuis magasin",
     icon: ShoppingCartIcon,
-    color: 'bg-indigo-500'
-  }
-]
+    color: "bg-indigo-500",
+  },
+];
 
 export default function EditAnnouncementPage() {
-  const { id } = useParams()
-  const { user } = useAuth()
-  const router = useRouter()
-  const t = useTranslations('client.announcements')
-  const { toast } = useToast()
-  
-  const [announcement, setAnnouncement] = useState<Announcement | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [saving, setSaving] = useState(false)
-  const [selectedType, setSelectedType] = useState<string>('')
+  const { id } = useParams();
+  const { user } = useAuth();
+  const router = useRouter();
+  const t = useTranslations("client.announcements");
+  const { toast } = useToast();
+
+  const [announcement, setAnnouncement] = useState<Announcement | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [selectedType, setSelectedType] = useState<string>("");
 
   const form = useForm<UpdateAnnouncementInput>({
     resolver: zodResolver(updateAnnouncementSchema),
     defaultValues: {
       id: id as string,
-      title: '',
-      description: '',
-      type: 'PACKAGE_DELIVERY',
+      title: "",
+      description: "",
+      type: "PACKAGE_DELIVERY",
       price: 0,
-      currency: 'EUR',
+      currency: "EUR",
       urgent: false,
       flexibleDates: false,
-      specialInstructions: '',
+      specialInstructions: "",
       startLocation: {
-        address: '',
-        city: '',
-        postalCode: '',
-        country: 'FR'
+        address: "",
+        city: "",
+        postalCode: "",
+        country: "FR",
       },
       endLocation: {
-        address: '',
-        city: '',
-        postalCode: '',
-        country: 'FR'
-      }
-    }
-  })
+        address: "",
+        city: "",
+        postalCode: "",
+        country: "FR",
+      },
+    },
+  });
 
   useEffect(() => {
     if (id && user) {
-      fetchAnnouncement()
+      fetchAnnouncement();
     }
-  }, [id, user])
+  }, [id, user]);
 
   const fetchAnnouncement = async () => {
     try {
-      setLoading(true)
+      setLoading(true);
       const response = await fetch(`/api/client/announcements/${id}`, {
-        method: 'GET',
-        credentials: 'include',
+        method: "GET",
+        credentials: "include",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
-      })
+      });
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}))
-        throw new Error(errorData.error || 'Erreur lors de la récupération de l\'annonce')
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          errorData.error || "Erreur lors de la récupération de l'annonce",
+        );
       }
 
-      const data = await response.json()
-      setAnnouncement(data)
-      setSelectedType(data.type)
+      const data = await response.json();
+      setAnnouncement(data);
+      setSelectedType(data.type);
 
       // Remplir le formulaire avec les données existantes
       form.reset({
@@ -156,71 +193,73 @@ export default function EditAnnouncementPage() {
         currency: data.currency,
         urgent: data.urgent,
         flexibleDates: data.flexibleDates,
-        specialInstructions: data.specialInstructions || '',
-        desiredDate: data.desiredDate ? new Date(data.desiredDate).toISOString().slice(0, 16) : undefined,
+        specialInstructions: data.specialInstructions || "",
+        desiredDate: data.desiredDate
+          ? new Date(data.desiredDate).toISOString().slice(0, 16)
+          : undefined,
         startLocation: data.startLocation,
         endLocation: data.endLocation,
-        packageDetails: data.packageDetails
-      })
+        packageDetails: data.packageDetails,
+      });
     } catch (error) {
-      console.error('Erreur:', error)
+      console.error("Erreur:", error);
       toast({
         title: "Erreur",
         description: "Impossible de charger l'annonce",
         variant: "destructive",
-      })
+      });
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const onSubmit = async (data: any) => {
     try {
-      setSaving(true)
+      setSaving(true);
       const response = await fetch(`/api/client/announcements/${id}`, {
-        method: 'PUT',
-        credentials: 'include',
+        method: "PUT",
+        credentials: "include",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(data),
-      })
+      });
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}))
-        throw new Error(errorData.error || 'Erreur lors de la mise à jour')
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || "Erreur lors de la mise à jour");
       }
 
-      const result = await response.json()
-      
+      const result = await response.json();
+
       toast({
         title: "Succès",
         description: "Annonce mise à jour avec succès",
-      })
+      });
 
-      router.push(`/client/announcements/${id}`)
+      router.push(`/client/announcements/${id}`);
     } catch (error) {
-      console.error('Erreur:', error)
+      console.error("Erreur:", error);
       toast({
         title: "Erreur",
         description: "Impossible de mettre à jour l'annonce",
         variant: "destructive",
-      })
+      });
     } finally {
-      setSaving(false)
+      setSaving(false);
     }
-  }
+  };
 
   const getTypeOptions = () => [
-    { value: 'PACKAGE_DELIVERY', label: 'Livraison de colis' },
-    { value: 'PERSON_TRANSPORT', label: 'Transport de personne' },
-    { value: 'AIRPORT_TRANSFER', label: 'Transfert aéroport' },
-    { value: 'SHOPPING', label: 'Courses' },
-    { value: 'INTERNATIONAL_PURCHASE', label: 'Achat international' },
-    { value: 'PET_SITTING', label: 'Garde d\'animaux' },
-    { value: 'HOME_SERVICE', label: 'Service à domicile' },
-    { value: 'CART_DROP', label: 'Lâcher de chariot' },
-  ]
+    { value: "PACKAGE_DELIVERY", label: "Livraison de colis" },
+    { value: "PERSON_TRANSPORT", label: "Transport de personne" },
+    { value: "AIRPORT_TRANSFER", label: "Transfert aéroport" },
+    { value: "SHOPPING", label: "Courses" },
+    { value: "INTERNATIONAL_PURCHASE", label: "Achat international" },
+    { value: "PET_SITTING", label: "Garde d'animaux" },
+    { value: "HOME_SERVICE", label: "Service à domicile" },
+    { value: "CART_DROP", label: "Lâcher de chariot" },
+  ];
 
   if (loading) {
     return (
@@ -230,7 +269,7 @@ export default function EditAnnouncementPage() {
           <p className="mt-4 text-gray-600">Chargement de l'annonce...</p>
         </div>
       </div>
-    )
+    );
   }
 
   if (!announcement) {
@@ -244,12 +283,12 @@ export default function EditAnnouncementPage() {
           <p className="text-gray-600 mb-4">
             Cette annonce n'existe pas ou a été supprimée
           </p>
-          <Button onClick={() => router.push('/client/announcements')}>
+          <Button onClick={() => router.push("/client/announcements")}>
             Retour aux annonces
           </Button>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -290,7 +329,10 @@ export default function EditAnnouncementPage() {
                       <FormItem>
                         <FormLabel>Titre de l'annonce</FormLabel>
                         <FormControl>
-                          <Input placeholder="Titre descriptif de votre annonce" {...field} />
+                          <Input
+                            placeholder="Titre descriptif de votre annonce"
+                            {...field}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -304,10 +346,10 @@ export default function EditAnnouncementPage() {
                       <FormItem>
                         <FormLabel>Description</FormLabel>
                         <FormControl>
-                          <Textarea 
+                          <Textarea
                             placeholder="Décrivez votre demande en détail..."
                             className="min-h-[100px]"
-                            {...field} 
+                            {...field}
                           />
                         </FormControl>
                         <FormMessage />
@@ -321,7 +363,10 @@ export default function EditAnnouncementPage() {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Type de service</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <Select
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                        >
                           <FormControl>
                             <SelectTrigger>
                               <SelectValue placeholder="Sélectionnez le type de service" />
@@ -329,7 +374,10 @@ export default function EditAnnouncementPage() {
                           </FormControl>
                           <SelectContent>
                             {getTypeOptions().map((option) => (
-                              <SelectItem key={option.value} value={option.value}>
+                              <SelectItem
+                                key={option.value}
+                                value={option.value}
+                              >
                                 {option.label}
                               </SelectItem>
                             ))}
@@ -345,12 +393,14 @@ export default function EditAnnouncementPage() {
                     name="specialInstructions"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Instructions spéciales (optionnel)</FormLabel>
+                        <FormLabel>
+                          Instructions spéciales (optionnel)
+                        </FormLabel>
                         <FormControl>
-                          <Textarea 
+                          <Textarea
                             placeholder="Ajoutez des instructions particulières..."
                             className="min-h-[80px]"
-                            {...field} 
+                            {...field}
                           />
                         </FormControl>
                         <FormMessage />
@@ -376,7 +426,10 @@ export default function EditAnnouncementPage() {
                       <FormItem>
                         <FormLabel>Adresse de départ</FormLabel>
                         <FormControl>
-                          <Input placeholder="Adresse complète de départ" {...field} />
+                          <Input
+                            placeholder="Adresse complète de départ"
+                            {...field}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -422,7 +475,10 @@ export default function EditAnnouncementPage() {
                       <FormItem>
                         <FormLabel>Adresse d'arrivée</FormLabel>
                         <FormControl>
-                          <Input placeholder="Adresse complète d'arrivée" {...field} />
+                          <Input
+                            placeholder="Adresse complète d'arrivée"
+                            {...field}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -462,7 +518,7 @@ export default function EditAnnouncementPage() {
               </Card>
 
               {/* Détails du colis (si applicable) */}
-              {form.watch('type') === 'PACKAGE_DELIVERY' && (
+              {form.watch("type") === "PACKAGE_DELIVERY" && (
                 <Card>
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
@@ -479,12 +535,14 @@ export default function EditAnnouncementPage() {
                           <FormItem>
                             <FormLabel>Poids (kg)</FormLabel>
                             <FormControl>
-                              <Input 
-                                type="number" 
+                              <Input
+                                type="number"
                                 step="0.1"
                                 placeholder="0.0"
                                 {...field}
-                                onChange={(e) => field.onChange(parseFloat(e.target.value))}
+                                onChange={(e) =>
+                                  field.onChange(parseFloat(e.target.value))
+                                }
                               />
                             </FormControl>
                             <FormMessage />
@@ -498,7 +556,9 @@ export default function EditAnnouncementPage() {
                         render={({ field }) => (
                           <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
                             <div className="space-y-0.5">
-                              <FormLabel className="text-base">Fragile</FormLabel>
+                              <FormLabel className="text-base">
+                                Fragile
+                              </FormLabel>
                               <p className="text-sm text-muted-foreground">
                                 Le colis nécessite une manipulation délicate
                               </p>
@@ -522,11 +582,13 @@ export default function EditAnnouncementPage() {
                           <FormItem>
                             <FormLabel>Longueur (cm)</FormLabel>
                             <FormControl>
-                              <Input 
-                                type="number" 
+                              <Input
+                                type="number"
                                 placeholder="0"
                                 {...field}
-                                onChange={(e) => field.onChange(parseInt(e.target.value))}
+                                onChange={(e) =>
+                                  field.onChange(parseInt(e.target.value))
+                                }
                               />
                             </FormControl>
                             <FormMessage />
@@ -541,11 +603,13 @@ export default function EditAnnouncementPage() {
                           <FormItem>
                             <FormLabel>Largeur (cm)</FormLabel>
                             <FormControl>
-                              <Input 
-                                type="number" 
+                              <Input
+                                type="number"
                                 placeholder="0"
                                 {...field}
-                                onChange={(e) => field.onChange(parseInt(e.target.value))}
+                                onChange={(e) =>
+                                  field.onChange(parseInt(e.target.value))
+                                }
                               />
                             </FormControl>
                             <FormMessage />
@@ -560,11 +624,13 @@ export default function EditAnnouncementPage() {
                           <FormItem>
                             <FormLabel>Hauteur (cm)</FormLabel>
                             <FormControl>
-                              <Input 
-                                type="number" 
+                              <Input
+                                type="number"
                                 placeholder="0"
                                 {...field}
-                                onChange={(e) => field.onChange(parseInt(e.target.value))}
+                                onChange={(e) =>
+                                  field.onChange(parseInt(e.target.value))
+                                }
                               />
                             </FormControl>
                             <FormMessage />
@@ -580,10 +646,10 @@ export default function EditAnnouncementPage() {
                         <FormItem>
                           <FormLabel>Contenu du colis</FormLabel>
                           <FormControl>
-                            <Textarea 
+                            <Textarea
                               placeholder="Décrivez le contenu du colis..."
                               className="min-h-[80px]"
-                              {...field} 
+                              {...field}
                             />
                           </FormControl>
                           <FormMessage />
@@ -613,10 +679,7 @@ export default function EditAnnouncementPage() {
                       <FormItem>
                         <FormLabel>Date souhaitée</FormLabel>
                         <FormControl>
-                          <Input 
-                            type="datetime-local" 
-                            {...field}
-                          />
+                          <Input type="datetime-local" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -629,7 +692,9 @@ export default function EditAnnouncementPage() {
                     render={({ field }) => (
                       <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
                         <div className="space-y-0.5">
-                          <FormLabel className="text-base">Dates flexibles</FormLabel>
+                          <FormLabel className="text-base">
+                            Dates flexibles
+                          </FormLabel>
                           <p className="text-sm text-muted-foreground">
                             Accepter des dates proches
                           </p>
@@ -662,12 +727,14 @@ export default function EditAnnouncementPage() {
                       <FormItem>
                         <FormLabel>Prix (€)</FormLabel>
                         <FormControl>
-                          <Input 
-                            type="number" 
+                          <Input
+                            type="number"
                             step="0.01"
                             placeholder="0.00"
                             {...field}
-                            onChange={(e) => field.onChange(parseFloat(e.target.value))}
+                            onChange={(e) =>
+                              field.onChange(parseFloat(e.target.value))
+                            }
                           />
                         </FormControl>
                         <FormMessage />
@@ -704,15 +771,13 @@ export default function EditAnnouncementPage() {
                   <CardTitle>Actions</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  <Button 
-                    type="submit" 
-                    className="w-full"
-                    disabled={saving}
-                  >
+                  <Button type="submit" className="w-full" disabled={saving}>
                     <Save className="h-4 w-4 mr-2" />
-                    {saving ? 'Enregistrement...' : 'Enregistrer les modifications'}
+                    {saving
+                      ? "Enregistrement..."
+                      : "Enregistrer les modifications"}
                   </Button>
-                  
+
                   <Link href={`/client/announcements/${id}`}>
                     <Button variant="outline" className="w-full">
                       Annuler
@@ -725,5 +790,5 @@ export default function EditAnnouncementPage() {
         </form>
       </Form>
     </div>
-  )
+  );
 }

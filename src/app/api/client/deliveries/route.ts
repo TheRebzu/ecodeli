@@ -1,41 +1,44 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getUserFromSession } from '@/lib/auth/utils'
-import { db } from '@/lib/db'
+import { NextRequest, NextResponse } from "next/server";
+import { getUserFromSession } from "@/lib/auth/utils";
+import { db } from "@/lib/db";
 
 export async function GET(request: NextRequest) {
   try {
-    console.log('👤 [GET /api/client/deliveries] Début de la requête')
-    
-    const user = await getUserFromSession(request)
+    console.log("👤 [GET /api/client/deliveries] Début de la requête");
+
+    const user = await getUserFromSession(request);
     if (!user) {
-      console.log('❌ Utilisateur non authentifié')
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      console.log("❌ Utilisateur non authentifié");
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    if (user.role !== 'CLIENT') {
-      console.log('❌ Rôle incorrect:', user.role)
-      return NextResponse.json({ error: 'Forbidden - CLIENT role required' }, { status: 403 })
+    if (user.role !== "CLIENT") {
+      console.log("❌ Rôle incorrect:", user.role);
+      return NextResponse.json(
+        { error: "Forbidden - CLIENT role required" },
+        { status: 403 },
+      );
     }
 
-    console.log('✅ Utilisateur client authentifié:', user.id)
+    console.log("✅ Utilisateur client authentifié:", user.id);
 
     // Récupérer les paramètres de requête
-    const { searchParams } = new URL(request.url)
-    const page = parseInt(searchParams.get('page') || '1')
-    const limit = parseInt(searchParams.get('limit') || '20')
-    const status = searchParams.get('status')
+    const { searchParams } = new URL(request.url);
+    const page = parseInt(searchParams.get("page") || "1");
+    const limit = parseInt(searchParams.get("limit") || "20");
+    const status = searchParams.get("status");
 
-    console.log('📋 Paramètres de requête:', { page, limit, status })
+    console.log("📋 Paramètres de requête:", { page, limit, status });
 
     // Construire les conditions de filtrage
     const whereConditions: any = {
       announcement: {
-        authorId: user.id
-      }
-    }
+        authorId: user.id,
+      },
+    };
 
     if (status) {
-      whereConditions.status = status
+      whereConditions.status = status;
     }
 
     // Récupérer les livraisons avec optimisation
@@ -49,8 +52,8 @@ export async function GET(request: NextRequest) {
               title: true,
               pickupAddress: true,
               deliveryAddress: true,
-              basePrice: true
-            }
+              basePrice: true,
+            },
           },
           deliverer: {
             include: {
@@ -59,14 +62,14 @@ export async function GET(request: NextRequest) {
                   firstName: true,
                   lastName: true,
                   phone: true,
-                  avatar: true
-                }
-              }
-            }
+                  avatar: true,
+                },
+              },
+            },
           },
           tracking: {
-            orderBy: { timestamp: 'desc' },
-            take: 1
+            orderBy: { timestamp: "desc" },
+            take: 1,
           },
           ProofOfDelivery: {
             select: {
@@ -76,28 +79,28 @@ export async function GET(request: NextRequest) {
               recipientName: true,
               validatedWithCode: true,
               validatedWithNFC: true,
-              createdAt: true
-            }
-          }
+              createdAt: true,
+            },
+          },
         },
-        orderBy: { createdAt: 'desc' },
+        orderBy: { createdAt: "desc" },
         skip: (page - 1) * limit,
-        take: limit
+        take: limit,
       }),
       db.delivery.count({
-        where: whereConditions
-      })
-    ])
+        where: whereConditions,
+      }),
+    ]);
 
     // Transformer les données pour le frontend
-    const transformedDeliveries = deliveries.map(delivery => ({
+    const transformedDeliveries = deliveries.map((delivery) => ({
       id: delivery.id,
       announcementId: delivery.announcement.id,
       announcementTitle: delivery.announcement.title,
       status: delivery.status,
-      delivererName: delivery.deliverer ? 
-        `${delivery.deliverer.profile?.firstName || ''} ${delivery.deliverer.profile?.lastName || ''}`.trim() : 
-        null,
+      delivererName: delivery.deliverer
+        ? `${delivery.deliverer.profile?.firstName || ""} ${delivery.deliverer.profile?.lastName || ""}`.trim()
+        : null,
       delivererPhone: delivery.deliverer?.profile?.phone,
       delivererAvatar: delivery.deliverer?.profile?.avatar,
       pickupAddress: delivery.announcement.pickupAddress,
@@ -110,19 +113,23 @@ export async function GET(request: NextRequest) {
       estimatedDelivery: delivery.deliveryDate?.toISOString(),
       actualDelivery: delivery.actualDeliveryDate?.toISOString(),
       lastTracking: delivery.tracking?.[0] || null,
-      proofOfDelivery: delivery.ProofOfDelivery ? {
-        id: delivery.ProofOfDelivery.id,
-        photos: delivery.ProofOfDelivery.photos || [],
-        notes: delivery.ProofOfDelivery.notes,
-        recipientName: delivery.ProofOfDelivery.recipientName,
-        validatedWithCode: delivery.ProofOfDelivery.validatedWithCode,
-        validatedWithNFC: delivery.ProofOfDelivery.validatedWithNFC,
-        uploadedAt: delivery.ProofOfDelivery.createdAt?.toISOString()
-      } : null,
-      createdAt: delivery.createdAt.toISOString()
-    }))
+      proofOfDelivery: delivery.ProofOfDelivery
+        ? {
+            id: delivery.ProofOfDelivery.id,
+            photos: delivery.ProofOfDelivery.photos || [],
+            notes: delivery.ProofOfDelivery.notes,
+            recipientName: delivery.ProofOfDelivery.recipientName,
+            validatedWithCode: delivery.ProofOfDelivery.validatedWithCode,
+            validatedWithNFC: delivery.ProofOfDelivery.validatedWithNFC,
+            uploadedAt: delivery.ProofOfDelivery.createdAt?.toISOString(),
+          }
+        : null,
+      createdAt: delivery.createdAt.toISOString(),
+    }));
 
-    console.log(`✅ ${transformedDeliveries.length} livraisons récupérées sur ${total} total`)
+    console.log(
+      `✅ ${transformedDeliveries.length} livraisons récupérées sur ${total} total`,
+    );
 
     return NextResponse.json({
       deliveries: transformedDeliveries,
@@ -130,15 +137,14 @@ export async function GET(request: NextRequest) {
         page,
         limit,
         total,
-        pages: Math.ceil(total / limit)
-      }
-    })
-
+        pages: Math.ceil(total / limit),
+      },
+    });
   } catch (error) {
-    console.error('❌ Erreur récupération livraisons client:', error)
+    console.error("❌ Erreur récupération livraisons client:", error);
     return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    )
+      { error: "Internal server error" },
+      { status: 500 },
+    );
   }
 }

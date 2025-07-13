@@ -7,10 +7,18 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: {
     default: "EcoDeli - Plateforme de Crowdshipping",
-    template: "%s | EcoDeli"
+    template: "%s | EcoDeli",
   },
-  description: "EcoDeli connecte les particuliers ayant des besoins de livraison avec des livreurs occasionnels. Services de transport de colis, personnes, courses et bien plus.",
-  keywords: ["livraison", "crowdshipping", "transport", "colis", "écologique", "économique"],
+  description:
+    "EcoDeli connecte les particuliers ayant des besoins de livraison avec des livreurs occasionnels. Services de transport de colis, personnes, courses et bien plus.",
+  keywords: [
+    "livraison",
+    "crowdshipping",
+    "transport",
+    "colis",
+    "écologique",
+    "économique",
+  ],
   authors: [{ name: "EcoDeli Team" }],
   creator: "EcoDeli",
   publisher: "EcoDeli",
@@ -19,10 +27,13 @@ export const metadata: Metadata = {
     address: false,
     telephone: false,
   },
-  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'),
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
+  ),
   openGraph: {
     title: "EcoDeli - Plateforme de Crowdshipping",
-    description: "Connectez-vous avec des livreurs occasionnels pour vos besoins de transport",
+    description:
+      "Connectez-vous avec des livreurs occasionnels pour vos besoins de transport",
     url: "/",
     siteName: "EcoDeli",
     locale: "fr_FR",
@@ -31,7 +42,8 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "EcoDeli - Plateforme de Crowdshipping",
-    description: "Connectez-vous avec des livreurs occasionnels pour vos besoins de transport",
+    description:
+      "Connectez-vous avec des livreurs occasionnels pour vos besoins de transport",
     creator: "@ecodeli",
   },
   robots: {
@@ -40,9 +52,9 @@ export const metadata: Metadata = {
     googleBot: {
       index: true,
       follow: true,
-      'max-video-preview': -1,
-      'max-image-preview': 'large',
-      'max-snippet': -1,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
     },
   },
   verification: {
@@ -56,7 +68,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html className={`${GeistSans.variable} ${GeistMono.variable}`} suppressHydrationWarning>
+    <html
+      className={`${GeistSans.variable} ${GeistMono.variable}`}
+      suppressHydrationWarning
+    >
       <body className="font-sans antialiased bg-background text-foreground">
         <SessionProvider>
           <ThemeProvider

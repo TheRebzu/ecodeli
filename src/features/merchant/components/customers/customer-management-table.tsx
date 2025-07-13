@@ -1,11 +1,17 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { 
+import {
   Table,
   TableBody,
   TableCell,
@@ -13,7 +19,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { 
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -21,12 +27,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { 
-  Search, 
-  Filter, 
-  Download, 
-  Mail, 
-  Phone, 
+import {
+  Search,
+  Filter,
+  Download,
+  Mail,
+  Phone,
   Calendar,
   ShoppingCart,
   DollarSign,
@@ -36,7 +42,7 @@ import {
   MessageSquare,
   UserPlus,
   Loader2,
-  Users
+  Users,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
@@ -90,50 +96,75 @@ export function CustomerManagementTable() {
     fetchCustomers();
   }, []);
 
-  const filteredCustomers = customers.filter(customer => {
-    const matchesSearch = 
+  const filteredCustomers = customers.filter((customer) => {
+    const matchesSearch =
       customer.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      customer.profile.firstName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      customer.profile.lastName?.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesStatus = filterStatus === "all" || customer.status === filterStatus;
-    const matchesTier = filterTier === "all" || customer.loyaltyTier === filterTier;
-    
+      customer.profile.firstName
+        ?.toLowerCase()
+        .includes(searchTerm.toLowerCase()) ||
+      customer.profile.lastName
+        ?.toLowerCase()
+        .includes(searchTerm.toLowerCase());
+
+    const matchesStatus =
+      filterStatus === "all" || customer.status === filterStatus;
+    const matchesTier =
+      filterTier === "all" || customer.loyaltyTier === filterTier;
+
     return matchesSearch && matchesStatus && matchesTier;
   });
 
   const getLoyaltyTierColor = (tier: string) => {
     switch (tier) {
-      case "PLATINUM": return "bg-purple-100 text-purple-800";
-      case "GOLD": return "bg-yellow-100 text-yellow-800";
-      case "SILVER": return "bg-gray-100 text-gray-800";
-      case "BRONZE": return "bg-orange-100 text-orange-800";
-      default: return "bg-gray-100 text-gray-800";
+      case "PLATINUM":
+        return "bg-purple-100 text-purple-800";
+      case "GOLD":
+        return "bg-yellow-100 text-yellow-800";
+      case "SILVER":
+        return "bg-gray-100 text-gray-800";
+      case "BRONZE":
+        return "bg-orange-100 text-orange-800";
+      default:
+        return "bg-gray-100 text-gray-800";
     }
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "VIP": return "bg-green-100 text-green-800";
-      case "ACTIVE": return "bg-blue-100 text-blue-800";
-      case "INACTIVE": return "bg-gray-100 text-gray-800";
-      default: return "bg-gray-100 text-gray-800";
+      case "VIP":
+        return "bg-green-100 text-green-800";
+      case "ACTIVE":
+        return "bg-blue-100 text-blue-800";
+      case "INACTIVE":
+        return "bg-gray-100 text-gray-800";
+      default:
+        return "bg-gray-100 text-gray-800";
     }
   };
 
   const exportCustomers = () => {
     const csvContent = [
-      ["Name", "Email", "Phone", "Total Orders", "Total Spent", "Loyalty Tier", "Status"],
-      ...filteredCustomers.map(customer => [
+      [
+        "Name",
+        "Email",
+        "Phone",
+        "Total Orders",
+        "Total Spent",
+        "Loyalty Tier",
+        "Status",
+      ],
+      ...filteredCustomers.map((customer) => [
         `${customer.profile.firstName || ""} ${customer.profile.lastName || ""}`.trim(),
         customer.email,
         customer.profile.phone || "",
         customer.totalOrders.toString(),
         customer.totalSpent.toFixed(2),
         customer.loyaltyTier,
-        customer.status
-      ])
-    ].map(row => row.join(",")).join("\n");
+        customer.status,
+      ]),
+    ]
+      .map((row) => row.join(","))
+      .join("\n");
 
     const blob = new Blob([csvContent], { type: "text/csv" });
     const url = window.URL.createObjectURL(blob);
@@ -176,7 +207,7 @@ export function CustomerManagementTable() {
                   className="pl-10 w-full md:w-64"
                 />
               </div>
-              
+
               <select
                 value={filterStatus}
                 onChange={(e) => setFilterStatus(e.target.value)}
@@ -187,7 +218,7 @@ export function CustomerManagementTable() {
                 <option value="INACTIVE">Inactive</option>
                 <option value="VIP">VIP</option>
               </select>
-              
+
               <select
                 value={filterTier}
                 onChange={(e) => setFilterTier(e.target.value)}
@@ -200,7 +231,7 @@ export function CustomerManagementTable() {
                 <option value="PLATINUM">Platinum</option>
               </select>
             </div>
-            
+
             <div className="flex gap-2">
               <Button variant="outline" onClick={exportCustomers}>
                 <Download className="h-4 w-4 mr-2" />
@@ -219,13 +250,15 @@ export function CustomerManagementTable() {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Customers</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Total Customers
+            </CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{customers.length}</div>
             <p className="text-xs text-muted-foreground">
-              {customers.filter(c => c.status === "ACTIVE").length} active
+              {customers.filter((c) => c.status === "ACTIVE").length} active
             </p>
           </CardContent>
         </Card>
@@ -237,10 +270,15 @@ export function CustomerManagementTable() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {customers.filter(c => c.status === "VIP").length}
+              {customers.filter((c) => c.status === "VIP").length}
             </div>
             <p className="text-xs text-muted-foreground">
-              {((customers.filter(c => c.status === "VIP").length / customers.length) * 100).toFixed(1)}% of total
+              {(
+                (customers.filter((c) => c.status === "VIP").length /
+                  customers.length) *
+                100
+              ).toFixed(1)}
+              % of total
             </p>
           </CardContent>
         </Card>
@@ -255,7 +293,12 @@ export function CustomerManagementTable() {
               {customers.reduce((sum, c) => sum + c.totalSpent, 0).toFixed(2)}€
             </div>
             <p className="text-xs text-muted-foreground">
-              Avg: {(customers.reduce((sum, c) => sum + c.totalSpent, 0) / customers.length).toFixed(2)}€
+              Avg:{" "}
+              {(
+                customers.reduce((sum, c) => sum + c.totalSpent, 0) /
+                customers.length
+              ).toFixed(2)}
+              €
             </p>
           </CardContent>
         </Card>
@@ -270,7 +313,12 @@ export function CustomerManagementTable() {
               {customers.reduce((sum, c) => sum + c.totalOrders, 0)}
             </div>
             <p className="text-xs text-muted-foreground">
-              Avg: {(customers.reduce((sum, c) => sum + c.totalOrders, 0) / customers.length).toFixed(1)} per customer
+              Avg:{" "}
+              {(
+                customers.reduce((sum, c) => sum + c.totalOrders, 0) /
+                customers.length
+              ).toFixed(1)}{" "}
+              per customer
             </p>
           </CardContent>
         </Card>
@@ -281,7 +329,8 @@ export function CustomerManagementTable() {
         <CardHeader>
           <CardTitle>Customer List</CardTitle>
           <CardDescription>
-            Detailed view of all customers with their order history and preferences
+            Detailed view of all customers with their order history and
+            preferences
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -309,7 +358,8 @@ export function CustomerManagementTable() {
                           : "N/A"}
                       </div>
                       <div className="text-sm text-muted-foreground">
-                        Customer since {new Date(customer.customerSince).toLocaleDateString()}
+                        Customer since{" "}
+                        {new Date(customer.customerSince).toLocaleDateString()}
                       </div>
                     </div>
                   </TableCell>
@@ -336,10 +386,14 @@ export function CustomerManagementTable() {
                     </div>
                   </TableCell>
                   <TableCell>
-                    <div className="font-medium">{customer.totalSpent.toFixed(2)}€</div>
+                    <div className="font-medium">
+                      {customer.totalSpent.toFixed(2)}€
+                    </div>
                   </TableCell>
                   <TableCell>
-                    <Badge className={getLoyaltyTierColor(customer.loyaltyTier)}>
+                    <Badge
+                      className={getLoyaltyTierColor(customer.loyaltyTier)}
+                    >
                       {customer.loyaltyTier}
                     </Badge>
                   </TableCell>
@@ -350,10 +404,9 @@ export function CustomerManagementTable() {
                   </TableCell>
                   <TableCell>
                     <div className="text-sm">
-                      {customer.lastOrderDate 
+                      {customer.lastOrderDate
                         ? new Date(customer.lastOrderDate).toLocaleDateString()
-                        : "No orders"
-                      }
+                        : "No orders"}
                     </div>
                   </TableCell>
                   <TableCell className="text-right">
@@ -389,14 +442,16 @@ export function CustomerManagementTable() {
               ))}
             </TableBody>
           </Table>
-          
+
           {filteredCustomers.length === 0 && (
             <div className="text-center py-8">
-              <p className="text-muted-foreground">No customers found matching your criteria</p>
+              <p className="text-muted-foreground">
+                No customers found matching your criteria
+              </p>
             </div>
           )}
         </CardContent>
       </Card>
     </div>
   );
-} 
+}

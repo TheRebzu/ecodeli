@@ -1,84 +1,84 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { Bell, BellRing, Check, X, ExternalLink } from 'lucide-react'
-import Link from 'next/link'
-import { cn } from '@/lib/utils'
-import { useNotifications } from '@/components/layout/providers/layout-provider'
+import { useState } from "react";
+import { Bell, BellRing, Check, X, ExternalLink } from "lucide-react";
+import Link from "next/link";
+import { cn } from "@/lib/utils";
+import { useNotifications } from "@/components/layout/providers/layout-provider";
 
 export interface Notification {
-  id: string
-  type: 'info' | 'success' | 'warning' | 'error'
-  title: string
-  message: string
-  timestamp: Date
-  read: boolean
-  actionUrl?: string
-  actionLabel?: string
+  id: string;
+  type: "info" | "success" | "warning" | "error";
+  title: string;
+  message: string;
+  timestamp: Date;
+  read: boolean;
+  actionUrl?: string;
+  actionLabel?: string;
 }
 
 export interface NotificationBellProps {
-  notifications: Notification[]
-  onNotificationClick: (notification: Notification) => void
-  onMarkAllRead: () => void
-  className?: string
+  notifications: Notification[];
+  onNotificationClick: (notification: Notification) => void;
+  onMarkAllRead: () => void;
+  className?: string;
 }
 
 export function NotificationBell({
   notifications,
   onNotificationClick,
   onMarkAllRead,
-  className
+  className,
 }: NotificationBellProps) {
-  const [isOpen, setIsOpen] = useState(false)
-  const unreadCount = notifications.filter(n => !n.read).length
+  const [isOpen, setIsOpen] = useState(false);
+  const unreadCount = notifications.filter((n) => !n.read).length;
 
   const handleNotificationClick = (notification: Notification) => {
-    onNotificationClick(notification)
+    onNotificationClick(notification);
     if (notification.actionUrl) {
-      setIsOpen(false)
+      setIsOpen(false);
     }
-  }
+  };
 
   const formatTimestamp = (timestamp: Date) => {
-    const now = new Date()
-    const diff = now.getTime() - timestamp.getTime()
-    const minutes = Math.floor(diff / 60000)
-    const hours = Math.floor(diff / 3600000)
-    const days = Math.floor(diff / 86400000)
+    const now = new Date();
+    const diff = now.getTime() - timestamp.getTime();
+    const minutes = Math.floor(diff / 60000);
+    const hours = Math.floor(diff / 3600000);
+    const days = Math.floor(diff / 86400000);
 
-    if (minutes < 1) return "À l'instant"
-    if (minutes < 60) return `Il y a ${minutes}min`
-    if (hours < 24) return `Il y a ${hours}h`
-    if (days < 7) return `Il y a ${days}j`
-    return timestamp.toLocaleDateString('fr-FR')
-  }
+    if (minutes < 1) return "À l'instant";
+    if (minutes < 60) return `Il y a ${minutes}min`;
+    if (hours < 24) return `Il y a ${hours}h`;
+    if (days < 7) return `Il y a ${days}j`;
+    return timestamp.toLocaleDateString("fr-FR");
+  };
 
-  const getNotificationIcon = (type: Notification['type']) => {
+  const getNotificationIcon = (type: Notification["type"]) => {
     switch (type) {
-      case 'success':
-        return '✅'
-      case 'warning':
-        return '⚠️'
-      case 'error':
-        return '❌'
+      case "success":
+        return "✅";
+      case "warning":
+        return "⚠️";
+      case "error":
+        return "❌";
       default:
-        return 'ℹ️'
+        return "ℹ️";
     }
-  }
+  };
 
-  const getNotificationColor = (type: Notification['type']) => {
+  const getNotificationColor = (type: Notification["type"]) => {
     switch (type) {
-      case 'success':
-        return 'border-l-green-500 bg-green-50 dark:bg-green-950'
-      case 'warning':
-        return 'border-l-yellow-500 bg-yellow-50 dark:bg-yellow-950'
-      case 'error':
-        return 'border-l-red-500 bg-red-50 dark:bg-red-950'
+      case "success":
+        return "border-l-green-500 bg-green-50 dark:bg-green-950";
+      case "warning":
+        return "border-l-yellow-500 bg-yellow-50 dark:bg-yellow-950";
+      case "error":
+        return "border-l-red-500 bg-red-50 dark:bg-red-950";
       default:
-        return 'border-l-blue-500 bg-blue-50 dark:bg-blue-950'
+        return "border-l-blue-500 bg-blue-50 dark:bg-blue-950";
     }
-  }
+  };
 
   return (
     <div className={cn("relative", className)}>
@@ -87,7 +87,7 @@ export function NotificationBell({
         className={cn(
           "relative p-2 rounded-lg transition-colors",
           "hover:bg-muted focus:outline-none focus:ring-2 focus:ring-primary/20 focus:bg-muted",
-          unreadCount > 0 ? "text-primary" : "text-muted-foreground"
+          unreadCount > 0 ? "text-primary" : "text-muted-foreground",
         )}
         aria-label={`${unreadCount} notifications non lues`}
       >
@@ -96,18 +96,18 @@ export function NotificationBell({
         ) : (
           <Bell className="h-5 w-5" />
         )}
-        
+
         {unreadCount > 0 && (
           <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium min-w-[20px]">
-            {unreadCount > 99 ? '99+' : unreadCount}
+            {unreadCount > 99 ? "99+" : unreadCount}
           </span>
         )}
       </button>
 
       {isOpen && (
         <>
-          <div 
-            className="fixed inset-0 z-40" 
+          <div
+            className="fixed inset-0 z-40"
             onClick={() => setIsOpen(false)}
           />
           <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-background border border-border rounded-lg shadow-lg z-50 max-h-[32rem] overflow-hidden">
@@ -121,13 +121,13 @@ export function NotificationBell({
                   </span>
                 )}
               </h3>
-              
+
               <div className="flex items-center space-x-2">
                 {unreadCount > 0 && (
                   <button
                     onClick={() => {
-                      onMarkAllRead()
-                      setIsOpen(false)
+                      onMarkAllRead();
+                      setIsOpen(false);
                     }}
                     className="text-xs text-primary hover:text-primary/80 transition-colors flex items-center space-x-1"
                   >
@@ -135,7 +135,7 @@ export function NotificationBell({
                     <span>Tout marquer comme lu</span>
                   </button>
                 )}
-                
+
                 <button
                   onClick={() => setIsOpen(false)}
                   className="p-1 rounded-md hover:bg-muted transition-colors"
@@ -162,7 +162,7 @@ export function NotificationBell({
                         "p-4 border-l-4 transition-colors cursor-pointer",
                         getNotificationColor(notification.type),
                         !notification.read && "bg-opacity-100",
-                        notification.read && "bg-opacity-50 opacity-75"
+                        notification.read && "bg-opacity-50 opacity-75",
                       )}
                       onClick={() => handleNotificationClick(notification)}
                     >
@@ -170,38 +170,44 @@ export function NotificationBell({
                         <div className="flex-shrink-0 text-lg">
                           {getNotificationIcon(notification.type)}
                         </div>
-                        
+
                         <div className="flex-1 min-w-0">
                           <div className="flex items-start justify-between">
                             <div className="flex-1">
-                              <p className={cn(
-                                "text-sm font-medium",
-                                !notification.read ? "text-foreground" : "text-muted-foreground"
-                              )}>
+                              <p
+                                className={cn(
+                                  "text-sm font-medium",
+                                  !notification.read
+                                    ? "text-foreground"
+                                    : "text-muted-foreground",
+                                )}
+                              >
                                 {notification.title}
                               </p>
                               <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
                                 {notification.message}
                               </p>
                             </div>
-                            
+
                             {!notification.read && (
                               <div className="w-2 h-2 bg-primary rounded-full flex-shrink-0 ml-2 mt-1" />
                             )}
                           </div>
-                          
+
                           <div className="flex items-center justify-between mt-2">
                             <span className="text-xs text-muted-foreground">
                               {formatTimestamp(notification.timestamp)}
                             </span>
-                            
+
                             {notification.actionUrl && (
                               <Link
                                 href={notification.actionUrl}
                                 className="text-xs text-primary hover:text-primary/80 transition-colors flex items-center space-x-1"
                                 onClick={(e) => e.stopPropagation()}
                               >
-                                <span>{notification.actionLabel || 'Voir'}</span>
+                                <span>
+                                  {notification.actionLabel || "Voir"}
+                                </span>
                                 <ExternalLink className="h-3 w-3" />
                               </Link>
                             )}
@@ -231,7 +237,7 @@ export function NotificationBell({
         </>
       )}
     </div>
-  )
+  );
 }
 
 /**
@@ -240,9 +246,9 @@ export function NotificationBell({
 export function MobileNotificationBell({
   notifications,
   onNotificationClick,
-  className
-}: Omit<NotificationBellProps, 'onMarkAllRead'>) {
-  const unreadCount = notifications.filter(n => !n.read).length
+  className,
+}: Omit<NotificationBellProps, "onMarkAllRead">) {
+  const unreadCount = notifications.filter((n) => !n.read).length;
 
   return (
     <Link
@@ -250,7 +256,7 @@ export function MobileNotificationBell({
       className={cn(
         "relative inline-flex items-center space-x-3 w-full px-4 py-3 text-left",
         "hover:bg-muted transition-colors rounded-lg",
-        className
+        className,
       )}
     >
       <div className="relative">
@@ -259,42 +265,42 @@ export function MobileNotificationBell({
         ) : (
           <Bell className="h-5 w-5 text-muted-foreground" />
         )}
-        
+
         {unreadCount > 0 && (
           <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center font-medium">
-            {unreadCount > 9 ? '9+' : unreadCount}
+            {unreadCount > 9 ? "9+" : unreadCount}
           </span>
         )}
       </div>
-      
+
       <div className="flex-1">
         <span className="font-medium text-foreground">Notifications</span>
         {unreadCount > 0 && (
           <span className="text-sm text-muted-foreground block">
-            {unreadCount} nouvelle{unreadCount > 1 ? 's' : ''}
+            {unreadCount} nouvelle{unreadCount > 1 ? "s" : ""}
           </span>
         )}
       </div>
     </Link>
-  )
+  );
 }
 
 /**
  * Hook pour utiliser les notifications depuis le contexte
  */
 export function useNotificationBell() {
-  const { notifications, markAsRead, markAllAsRead } = useNotifications()
-  
+  const { notifications, markAsRead, markAllAsRead } = useNotifications();
+
   const handleNotificationClick = (notification: Notification) => {
     if (!notification.read) {
-      markAsRead(notification.id)
+      markAsRead(notification.id);
     }
-  }
+  };
 
   return {
     notifications,
-    unreadCount: notifications.filter(n => !n.read).length,
+    unreadCount: notifications.filter((n) => !n.read).length,
     onNotificationClick: handleNotificationClick,
-    onMarkAllRead: markAllAsRead
-  }
+    onMarkAllRead: markAllAsRead,
+  };
 }

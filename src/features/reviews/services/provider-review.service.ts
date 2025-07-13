@@ -1,26 +1,26 @@
-import { prisma } from '@/lib/db'
+import { prisma } from "@/lib/db";
 
 export interface ReviewData {
-  bookingId: string
-  clientId: string
-  providerId: string
-  rating: number
-  comment?: string
-  punctuality: number
-  quality: number
-  communication: number
-  wouldRecommend: boolean
+  bookingId: string;
+  clientId: string;
+  providerId: string;
+  rating: number;
+  comment?: string;
+  punctuality: number;
+  quality: number;
+  communication: number;
+  wouldRecommend: boolean;
 }
 
 export interface ProviderStats {
-  totalReviews: number
-  averageRating: number
-  averagePunctuality: number
-  averageQuality: number
-  averageCommunication: number
-  recommendationRate: number
-  ratingDistribution: Record<number, number>
-  recentReviews: any[]
+  totalReviews: number;
+  averageRating: number;
+  averagePunctuality: number;
+  averageQuality: number;
+  averageCommunication: number;
+  recommendationRate: number;
+  ratingDistribution: Record<number, number>;
+  recentReviews: any[];
 }
 
 export class ProviderReviewService {
@@ -35,19 +35,19 @@ export class ProviderReviewService {
           id: reviewData.bookingId,
           clientId: reviewData.clientId,
           providerId: reviewData.providerId,
-          status: 'COMPLETED'
+          status: "COMPLETED",
         },
         include: {
-          review: true
-        }
-      })
+          review: true,
+        },
+      });
 
       if (!booking) {
-        throw new Error('Réservation non trouvée ou non terminée')
+        throw new Error("Réservation non trouvée ou non terminée");
       }
 
       if (booking.review) {
-        throw new Error('Cette prestation a déjà été évaluée')
+        throw new Error("Cette prestation a déjà été évaluée");
       }
 
       // Créer l'évaluation
@@ -63,55 +63,56 @@ export class ProviderReviewService {
             punctuality: reviewData.punctuality,
             quality: reviewData.quality,
             communication: reviewData.communication,
-            wouldRecommend: reviewData.wouldRecommend
+            wouldRecommend: reviewData.wouldRecommend,
           },
           include: {
             client: {
               include: {
                 user: {
                   include: {
-                    profile: true
-                  }
-                }
-              }
+                    profile: true,
+                  },
+                },
+              },
             },
             booking: {
               include: {
-                service: true
-              }
-            }
-          }
-        })
+                service: true,
+              },
+            },
+          },
+        });
 
         // 2. Mettre à jour les statistiques du prestataire
-        await this.updateProviderStats(tx, reviewData.providerId)
+        await this.updateProviderStats(tx, reviewData.providerId);
 
-        return newReview
-      })
+        return newReview;
+      });
 
       // 3. Notifier le prestataire
       await prisma.notification.create({
         data: {
-          userId: (await prisma.provider.findUnique({
-            where: { id: reviewData.providerId },
-            select: { userId: true }
-          }))?.userId!,
-          type: 'NEW_REVIEW',
-          title: 'Nouvelle évaluation reçue',
+          userId: (
+            await prisma.provider.findUnique({
+              where: { id: reviewData.providerId },
+              select: { userId: true },
+            })
+          )?.userId!,
+          type: "NEW_REVIEW",
+          title: "Nouvelle évaluation reçue",
           message: `Vous avez reçu une évaluation ${reviewData.rating}/5 étoiles`,
           data: {
             reviewId: review.id,
             rating: reviewData.rating,
-            serviceName: review.booking.service.name
-          }
-        }
-      })
+            serviceName: review.booking.service.name,
+          },
+        },
+      });
 
-      return review
-
+      return review;
     } catch (error) {
-      console.error('Error creating review:', error)
-      throw error
+      console.error("Error creating review:", error);
+      throw error;
     }
   }
 
@@ -126,23 +127,22 @@ export class ProviderReviewService {
         rating: true,
         punctuality: true,
         quality: true,
-        communication: true
+        communication: true,
       },
       _count: {
-        id: true
-      }
-    })
+        id: true,
+      },
+    });
 
     const recommendationCount = await tx.review.count({
       where: {
         providerId,
-        wouldRecommend: true
-      }
-    })
+        wouldRecommend: true,
+      },
+    });
 
-    const recommendationRate = stats._count.id > 0 
-      ? (recommendationCount / stats._count.id) * 100 
-      : 0
+    const recommendationRate =
+      stats._count.id > 0 ? (recommendationCount / stats._count.id) * 100 : 0;
 
     // Mettre à jour le prestataire
     await tx.provider.update({
@@ -150,9 +150,9 @@ export class ProviderReviewService {
       data: {
         averageRating: stats._avg.rating || 0,
         totalBookings: { increment: 1 }, // Incrémenter le total des réservations
-        lastActiveAt: new Date()
-      }
-    })
+        lastActiveAt: new Date(),
+      },
+    });
   }
 
   /**
@@ -165,7 +165,7 @@ export class ProviderReviewService {
         recommendationCount,
         totalReviews,
         ratingDistribution,
-        recentReviews
+        recentReviews,
       ] = await Promise.all([
         // Moyennes
         prisma.review.aggregate({
@@ -174,28 +174,28 @@ export class ProviderReviewService {
             rating: true,
             punctuality: true,
             quality: true,
-            communication: true
-          }
+            communication: true,
+          },
         }),
 
         // Taux de recommandation
         prisma.review.count({
           where: {
             providerId,
-            wouldRecommend: true
-          }
+            wouldRecommend: true,
+          },
         }),
 
         // Total des avis
         prisma.review.count({
-          where: { providerId }
+          where: { providerId },
         }),
 
         // Distribution des notes
         prisma.review.groupBy({
-          by: ['rating'],
+          by: ["rating"],
           where: { providerId },
-          _count: { rating: true }
+          _count: { rating: true },
         }),
 
         // Avis récents
@@ -210,38 +210,43 @@ export class ProviderReviewService {
                       select: {
                         firstName: true,
                         lastName: true,
-                        avatar: true
-                      }
-                    }
-                  }
-                }
-              }
+                        avatar: true,
+                      },
+                    },
+                  },
+                },
+              },
             },
             booking: {
               include: {
                 service: {
                   select: {
                     name: true,
-                    type: true
-                  }
-                }
-              }
-            }
+                    type: true,
+                  },
+                },
+              },
+            },
           },
-          orderBy: { createdAt: 'desc' },
-          take: 10
-        })
-      ])
+          orderBy: { createdAt: "desc" },
+          take: 10,
+        }),
+      ]);
 
       // Construire la distribution des notes
-      const distribution: Record<number, number> = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 }
-      ratingDistribution.forEach(item => {
-        distribution[item.rating] = item._count.rating
-      })
+      const distribution: Record<number, number> = {
+        1: 0,
+        2: 0,
+        3: 0,
+        4: 0,
+        5: 0,
+      };
+      ratingDistribution.forEach((item) => {
+        distribution[item.rating] = item._count.rating;
+      });
 
-      const recommendationRate = totalReviews > 0 
-        ? (recommendationCount / totalReviews) * 100 
-        : 0
+      const recommendationRate =
+        totalReviews > 0 ? (recommendationCount / totalReviews) * 100 : 0;
 
       return {
         totalReviews,
@@ -251,7 +256,7 @@ export class ProviderReviewService {
         averageCommunication: aggregateStats._avg.communication || 0,
         recommendationRate,
         ratingDistribution: distribution,
-        recentReviews: recentReviews.map(review => ({
+        recentReviews: recentReviews.map((review) => ({
           id: review.id,
           rating: review.rating,
           comment: review.comment,
@@ -262,18 +267,17 @@ export class ProviderReviewService {
           createdAt: review.createdAt,
           client: {
             name: `${review.client.user.profile?.firstName} ${review.client.user.profile?.lastName}`,
-            avatar: review.client.user.profile?.avatar
+            avatar: review.client.user.profile?.avatar,
           },
           service: {
             name: review.booking.service.name,
-            type: review.booking.service.type
-          }
-        }))
-      }
-
+            type: review.booking.service.type,
+          },
+        })),
+      };
     } catch (error) {
-      console.error('Error fetching provider stats:', error)
-      throw error
+      console.error("Error fetching provider stats:", error);
+      throw error;
     }
   }
 
@@ -283,27 +287,26 @@ export class ProviderReviewService {
   static async getProviderReviews(
     providerId: string,
     options: {
-      page?: number
-      limit?: number
-      rating?: number
-      sortBy?: 'date' | 'rating'
-      sortOrder?: 'asc' | 'desc'
-    } = {}
+      page?: number;
+      limit?: number;
+      rating?: number;
+      sortBy?: "date" | "rating";
+      sortOrder?: "asc" | "desc";
+    } = {},
   ) {
     const {
       page = 1,
       limit = 10,
       rating,
-      sortBy = 'date',
-      sortOrder = 'desc'
-    } = options
+      sortBy = "date",
+      sortOrder = "desc",
+    } = options;
 
-    const where: any = { providerId }
-    if (rating) where.rating = rating
+    const where: any = { providerId };
+    if (rating) where.rating = rating;
 
-    const orderBy = sortBy === 'date' 
-      ? { createdAt: sortOrder }
-      : { rating: sortOrder }
+    const orderBy =
+      sortBy === "date" ? { createdAt: sortOrder } : { rating: sortOrder };
 
     const [reviews, total] = await Promise.all([
       prisma.review.findMany({
@@ -317,33 +320,33 @@ export class ProviderReviewService {
                     select: {
                       firstName: true,
                       lastName: true,
-                      avatar: true
-                    }
-                  }
-                }
-              }
-            }
+                      avatar: true,
+                    },
+                  },
+                },
+              },
+            },
           },
           booking: {
             include: {
               service: {
                 select: {
                   name: true,
-                  type: true
-                }
-              }
-            }
-          }
+                  type: true,
+                },
+              },
+            },
+          },
         },
         orderBy,
         skip: (page - 1) * limit,
-        take: limit
+        take: limit,
       }),
-      prisma.review.count({ where })
-    ])
+      prisma.review.count({ where }),
+    ]);
 
     return {
-      reviews: reviews.map(review => ({
+      reviews: reviews.map((review) => ({
         id: review.id,
         rating: review.rating,
         comment: review.comment,
@@ -354,20 +357,20 @@ export class ProviderReviewService {
         createdAt: review.createdAt,
         client: {
           name: `${review.client.user.profile?.firstName} ${review.client.user.profile?.lastName}`,
-          avatar: review.client.user.profile?.avatar
+          avatar: review.client.user.profile?.avatar,
         },
         service: {
           name: review.booking.service.name,
-          type: review.booking.service.type
-        }
+          type: review.booking.service.type,
+        },
       })),
       pagination: {
         page,
         limit,
         total,
-        pages: Math.ceil(total / limit)
-      }
-    }
+        pages: Math.ceil(total / limit),
+      },
+    };
   }
 
   /**
@@ -376,23 +379,23 @@ export class ProviderReviewService {
   static async respondToReview(
     reviewId: string,
     providerId: string,
-    response: string
+    response: string,
   ) {
     try {
       // Vérifier que l'avis appartient au prestataire
       const review = await prisma.review.findFirst({
         where: {
           id: reviewId,
-          providerId
-        }
-      })
+          providerId,
+        },
+      });
 
       if (!review) {
-        throw new Error('Avis non trouvé')
+        throw new Error("Avis non trouvé");
       }
 
       if (review.providerResponse) {
-        throw new Error('Vous avez déjà répondu à cet avis')
+        throw new Error("Vous avez déjà répondu à cet avis");
       }
 
       // Ajouter la réponse
@@ -400,40 +403,39 @@ export class ProviderReviewService {
         where: { id: reviewId },
         data: {
           providerResponse: response,
-          providerResponseAt: new Date()
+          providerResponseAt: new Date(),
         },
         include: {
           client: {
             include: {
               user: {
                 include: {
-                  profile: true
-                }
-              }
-            }
-          }
-        }
-      })
+                  profile: true,
+                },
+              },
+            },
+          },
+        },
+      });
 
       // Notifier le client
       await prisma.notification.create({
         data: {
           userId: updatedReview.client.userId,
-          type: 'REVIEW_RESPONSE',
-          title: 'Réponse à votre évaluation',
-          message: 'Le prestataire a répondu à votre évaluation',
+          type: "REVIEW_RESPONSE",
+          title: "Réponse à votre évaluation",
+          message: "Le prestataire a répondu à votre évaluation",
           data: {
             reviewId,
-            response
-          }
-        }
-      })
+            response,
+          },
+        },
+      });
 
-      return updatedReview
-
+      return updatedReview;
     } catch (error) {
-      console.error('Error responding to review:', error)
-      throw error
+      console.error("Error responding to review:", error);
+      throw error;
     }
   }
 
@@ -443,15 +445,15 @@ export class ProviderReviewService {
   static async reportReview(
     reviewId: string,
     reporterId: string,
-    reason: string
+    reason: string,
   ) {
     try {
       const review = await prisma.review.findUnique({
-        where: { id: reviewId }
-      })
+        where: { id: reviewId },
+      });
 
       if (!review) {
-        throw new Error('Avis non trouvé')
+        throw new Error("Avis non trouvé");
       }
 
       // Créer le signalement
@@ -460,29 +462,28 @@ export class ProviderReviewService {
           reviewId,
           reporterId,
           reason,
-          status: 'PENDING'
-        }
-      })
+          status: "PENDING",
+        },
+      });
 
       // Notifier les administrateurs
       await prisma.notification.create({
         data: {
-          userId: 'admin', // À adapter selon votre système d'admin
-          type: 'REVIEW_REPORTED',
-          title: 'Avis signalé',
+          userId: "admin", // À adapter selon votre système d'admin
+          type: "REVIEW_REPORTED",
+          title: "Avis signalé",
           message: `Un avis a été signalé pour: ${reason}`,
           data: {
             reviewId,
-            reason
-          }
-        }
-      })
+            reason,
+          },
+        },
+      });
 
-      return { success: true, message: 'Avis signalé avec succès' }
-
+      return { success: true, message: "Avis signalé avec succès" };
     } catch (error) {
-      console.error('Error reporting review:', error)
-      throw error
+      console.error("Error reporting review:", error);
+      throw error;
     }
   }
 
@@ -494,8 +495,8 @@ export class ProviderReviewService {
       const providers = await prisma.provider.findMany({
         where: {
           isActive: true,
-          validationStatus: 'APPROVED',
-          averageRating: { gt: 0 }
+          validationStatus: "APPROVED",
+          averageRating: { gt: 0 },
         },
         include: {
           user: {
@@ -504,33 +505,30 @@ export class ProviderReviewService {
                 select: {
                   firstName: true,
                   lastName: true,
-                  avatar: true
-                }
-              }
-            }
+                  avatar: true,
+                },
+              },
+            },
           },
           services: {
             where: { isActive: true },
             select: {
               name: true,
               type: true,
-              basePrice: true
-            }
+              basePrice: true,
+            },
           },
           _count: {
             select: {
-              reviews: true
-            }
-          }
+              reviews: true,
+            },
+          },
         },
-        orderBy: [
-          { averageRating: 'desc' },
-          { totalBookings: 'desc' }
-        ],
-        take: limit
-      })
+        orderBy: [{ averageRating: "desc" }, { totalBookings: "desc" }],
+        take: limit,
+      });
 
-      return providers.map(provider => ({
+      return providers.map((provider) => ({
         id: provider.id,
         name: `${provider.user.profile?.firstName} ${provider.user.profile?.lastName}`,
         avatar: provider.user.profile?.avatar,
@@ -540,12 +538,11 @@ export class ProviderReviewService {
         totalBookings: provider.totalBookings,
         totalReviews: provider._count.reviews,
         services: provider.services,
-        zone: provider.zone
-      }))
-
+        zone: provider.zone,
+      }));
     } catch (error) {
-      console.error('Error fetching top providers:', error)
-      throw error
+      console.error("Error fetching top providers:", error);
+      throw error;
     }
   }
 }

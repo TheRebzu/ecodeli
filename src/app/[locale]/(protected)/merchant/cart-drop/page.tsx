@@ -1,71 +1,93 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import { useAuth } from '@/hooks/use-auth'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Switch } from '@/components/ui/switch'
-import { Badge } from '@/components/ui/badge'
-import { Separator } from '@/components/ui/separator'
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
-} from '@/components/ui/select'
-import { 
-  ShoppingCartIcon, 
-  PlusIcon, 
-  TrashIcon, 
+import { useState, useEffect } from "react";
+import { useAuth } from "@/hooks/use-auth";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  ShoppingCartIcon,
+  PlusIcon,
+  TrashIcon,
   MapPinIcon,
   ClockIcon,
   EuroIcon,
-  InfoIcon
-} from 'lucide-react'
-import { z } from 'zod'
-import { useForm, useFieldArray } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
+  InfoIcon,
+} from "lucide-react";
+import { z } from "zod";
+import { useForm, useFieldArray } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 
 const DAYS_OF_WEEK = [
-  { value: 'MONDAY', label: 'Lundi' },
-  { value: 'TUESDAY', label: 'Mardi' },
-  { value: 'WEDNESDAY', label: 'Mercredi' },
-  { value: 'THURSDAY', label: 'Jeudi' },
-  { value: 'FRIDAY', label: 'Vendredi' },
-  { value: 'SATURDAY', label: 'Samedi' },
-  { value: 'SUNDAY', label: 'Dimanche' }
-]
+  { value: "MONDAY", label: "Lundi" },
+  { value: "TUESDAY", label: "Mardi" },
+  { value: "WEDNESDAY", label: "Mercredi" },
+  { value: "THURSDAY", label: "Jeudi" },
+  { value: "FRIDAY", label: "Vendredi" },
+  { value: "SATURDAY", label: "Samedi" },
+  { value: "SUNDAY", label: "Dimanche" },
+];
 
 const configSchema = z.object({
   isActive: z.boolean(),
-  maxOrdersPerSlot: z.number().min(1, 'Au moins 1 commande par créneau'),
-  deliveryZones: z.array(z.object({
-    postalCode: z.string().length(5, 'Code postal invalide'),
-    deliveryFee: z.number().min(0, 'Frais de livraison invalides'),
-    estimatedTime: z.number().min(15, 'Temps minimum 15 minutes'),
-    isActive: z.boolean()
-  })),
-  timeSlots: z.array(z.object({
-    day: z.enum(['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY', 'SUNDAY']),
-    startTime: z.string().regex(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Format heure invalide'),
-    endTime: z.string().regex(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Format heure invalide'),
-    isActive: z.boolean(),
-    maxOrders: z.number().min(1, 'Au moins 1 commande par créneau')
-  }))
-})
+  maxOrdersPerSlot: z.number().min(1, "Au moins 1 commande par créneau"),
+  deliveryZones: z.array(
+    z.object({
+      postalCode: z.string().length(5, "Code postal invalide"),
+      deliveryFee: z.number().min(0, "Frais de livraison invalides"),
+      estimatedTime: z.number().min(15, "Temps minimum 15 minutes"),
+      isActive: z.boolean(),
+    }),
+  ),
+  timeSlots: z.array(
+    z.object({
+      day: z.enum([
+        "MONDAY",
+        "TUESDAY",
+        "WEDNESDAY",
+        "THURSDAY",
+        "FRIDAY",
+        "SATURDAY",
+        "SUNDAY",
+      ]),
+      startTime: z
+        .string()
+        .regex(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/, "Format heure invalide"),
+      endTime: z
+        .string()
+        .regex(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/, "Format heure invalide"),
+      isActive: z.boolean(),
+      maxOrders: z.number().min(1, "Au moins 1 commande par créneau"),
+    }),
+  ),
+});
 
-type ConfigFormData = z.infer<typeof configSchema>
+type ConfigFormData = z.infer<typeof configSchema>;
 
 export default function CartDropConfigPage() {
-  const { user } = useAuth()
-  const [loading, setLoading] = useState(true)
-  const [saving, setSaving] = useState(false)
-  const [stats, setStats] = useState<any>(null)
+  const { user } = useAuth();
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [stats, setStats] = useState<any>(null);
 
   const form = useForm<ConfigFormData>({
     resolver: zodResolver(configSchema),
@@ -73,111 +95,154 @@ export default function CartDropConfigPage() {
       isActive: false,
       maxOrdersPerSlot: 10,
       deliveryZones: [],
-      timeSlots: []
-    }
-  })
+      timeSlots: [],
+    },
+  });
 
-  const { fields: zoneFields, append: appendZone, remove: removeZone } = useFieldArray({
+  const {
+    fields: zoneFields,
+    append: appendZone,
+    remove: removeZone,
+  } = useFieldArray({
     control: form.control,
-    name: 'deliveryZones'
-  })
+    name: "deliveryZones",
+  });
 
-  const { fields: slotFields, append: appendSlot, remove: removeSlot } = useFieldArray({
+  const {
+    fields: slotFields,
+    append: appendSlot,
+    remove: removeSlot,
+  } = useFieldArray({
     control: form.control,
-    name: 'timeSlots'
-  })
+    name: "timeSlots",
+  });
 
   useEffect(() => {
-    fetchConfiguration()
-    fetchStats()
-  }, [])
+    fetchConfiguration();
+    fetchStats();
+  }, []);
 
   const fetchConfiguration = async () => {
     try {
-      const response = await fetch('/api/merchant/cart-drop/config')
-      if (!response.ok) throw new Error('Erreur lors du chargement')
-      
-      const config = await response.json()
+      const response = await fetch("/api/merchant/cart-drop/config");
+      if (!response.ok) throw new Error("Erreur lors du chargement");
+
+      const config = await response.json();
       if (config) {
-        form.reset(config)
+        form.reset(config);
       } else {
         // Configuration par défaut
         form.reset({
           isActive: false,
           maxOrdersPerSlot: 10,
           deliveryZones: [],
-          timeSlots: getDefaultTimeSlots()
-        })
+          timeSlots: getDefaultTimeSlots(),
+        });
       }
     } catch (error) {
-      console.error('Erreur chargement configuration:', error)
+      console.error("Erreur chargement configuration:", error);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const fetchStats = async () => {
     try {
-      const response = await fetch('/api/merchant/cart-drop/stats')
+      const response = await fetch("/api/merchant/cart-drop/stats");
       if (response.ok) {
-        const data = await response.json()
-        setStats(data)
+        const data = await response.json();
+        setStats(data);
       }
     } catch (error) {
-      console.error('Erreur chargement stats:', error)
+      console.error("Erreur chargement stats:", error);
     }
-  }
+  };
 
   const getDefaultTimeSlots = () => [
-    { day: 'MONDAY', startTime: '09:00', endTime: '18:00', isActive: true, maxOrders: 10 },
-    { day: 'TUESDAY', startTime: '09:00', endTime: '18:00', isActive: true, maxOrders: 10 },
-    { day: 'WEDNESDAY', startTime: '09:00', endTime: '18:00', isActive: true, maxOrders: 10 },
-    { day: 'THURSDAY', startTime: '09:00', endTime: '18:00', isActive: true, maxOrders: 10 },
-    { day: 'FRIDAY', startTime: '09:00', endTime: '18:00', isActive: true, maxOrders: 10 },
-    { day: 'SATURDAY', startTime: '10:00', endTime: '17:00', isActive: true, maxOrders: 8 }
-  ]
+    {
+      day: "MONDAY",
+      startTime: "09:00",
+      endTime: "18:00",
+      isActive: true,
+      maxOrders: 10,
+    },
+    {
+      day: "TUESDAY",
+      startTime: "09:00",
+      endTime: "18:00",
+      isActive: true,
+      maxOrders: 10,
+    },
+    {
+      day: "WEDNESDAY",
+      startTime: "09:00",
+      endTime: "18:00",
+      isActive: true,
+      maxOrders: 10,
+    },
+    {
+      day: "THURSDAY",
+      startTime: "09:00",
+      endTime: "18:00",
+      isActive: true,
+      maxOrders: 10,
+    },
+    {
+      day: "FRIDAY",
+      startTime: "09:00",
+      endTime: "18:00",
+      isActive: true,
+      maxOrders: 10,
+    },
+    {
+      day: "SATURDAY",
+      startTime: "10:00",
+      endTime: "17:00",
+      isActive: true,
+      maxOrders: 8,
+    },
+  ];
 
   const onSubmit = async (data: ConfigFormData) => {
     try {
-      setSaving(true)
-      
-      const response = await fetch('/api/merchant/cart-drop/config', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-      })
+      setSaving(true);
 
-      if (!response.ok) throw new Error('Erreur lors de la sauvegarde')
-      
-      alert('Configuration sauvegardée avec succès!')
-      fetchStats() // Recharger les stats
-      
+      const response = await fetch("/api/merchant/cart-drop/config", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) throw new Error("Erreur lors de la sauvegarde");
+
+      alert("Configuration sauvegardée avec succès!");
+      fetchStats(); // Recharger les stats
     } catch (error) {
-      console.error('Erreur sauvegarde:', error)
-      alert('Erreur lors de la sauvegarde')
+      console.error("Erreur sauvegarde:", error);
+      alert("Erreur lors de la sauvegarde");
     } finally {
-      setSaving(false)
+      setSaving(false);
     }
-  }
+  };
 
   const addZone = () => {
     appendZone({
-      postalCode: '',
-      deliveryFee: 5.00,
+      postalCode: "",
+      deliveryFee: 5.0,
       estimatedTime: 60,
-      isActive: true
-    })
-  }
+      isActive: true,
+    });
+  };
 
   const addTimeSlot = () => {
     appendSlot({
-      day: 'MONDAY',
-      startTime: '09:00',
-      endTime: '18:00',
+      day: "MONDAY",
+      startTime: "09:00",
+      endTime: "18:00",
       isActive: true,
-      maxOrders: 10
-    })
-  }
+      maxOrders: 10,
+    });
+  };
 
   if (loading) {
     return (
@@ -186,7 +251,9 @@ export default function CartDropConfigPage() {
           <ShoppingCartIcon className="h-8 w-8" />
           <div>
             <h1 className="text-3xl font-bold">Lâcher de chariot</h1>
-            <p className="text-muted-foreground">Chargement de la configuration...</p>
+            <p className="text-muted-foreground">
+              Chargement de la configuration...
+            </p>
           </div>
         </div>
         <div className="animate-pulse space-y-4">
@@ -200,7 +267,7 @@ export default function CartDropConfigPage() {
           ))}
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -220,8 +287,9 @@ export default function CartDropConfigPage() {
       <Alert>
         <InfoIcon className="h-4 w-4" />
         <AlertDescription>
-          Le service "lâcher de chariot" permet à vos clients de faire leurs achats en magasin 
-          et de demander une livraison à domicile directement en caisse.
+          Le service "lâcher de chariot" permet à vos clients de faire leurs
+          achats en magasin et de demander une livraison à domicile directement
+          en caisse.
         </AlertDescription>
       </Alert>
 
@@ -233,10 +301,12 @@ export default function CartDropConfigPage() {
               <div className="text-2xl font-bold text-blue-600">
                 {stats.totalOrders}
               </div>
-              <div className="text-sm text-muted-foreground">Commandes total</div>
+              <div className="text-sm text-muted-foreground">
+                Commandes total
+              </div>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardContent className="p-4 text-center">
               <div className="text-2xl font-bold text-green-600">
@@ -245,20 +315,22 @@ export default function CartDropConfigPage() {
               <div className="text-sm text-muted-foreground">En cours</div>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardContent className="p-4 text-center">
               <div className="text-2xl font-bold text-purple-600">
-                €{stats.totalRevenue?.toFixed(2) || '0.00'}
+                €{stats.totalRevenue?.toFixed(2) || "0.00"}
               </div>
-              <div className="text-sm text-muted-foreground">Chiffre d'affaires</div>
+              <div className="text-sm text-muted-foreground">
+                Chiffre d'affaires
+              </div>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardContent className="p-4 text-center">
               <div className="text-2xl font-bold text-orange-600">
-                €{stats.averageOrderValue?.toFixed(2) || '0.00'}
+                €{stats.averageOrderValue?.toFixed(2) || "0.00"}
               </div>
               <div className="text-sm text-muted-foreground">Panier moyen</div>
             </CardContent>
@@ -296,8 +368,10 @@ export default function CartDropConfigPage() {
                     </div>
                   </div>
                   <Switch
-                    checked={form.watch('isActive')}
-                    onCheckedChange={(checked) => form.setValue('isActive', checked)}
+                    checked={form.watch("isActive")}
+                    onCheckedChange={(checked) =>
+                      form.setValue("isActive", checked)
+                    }
                   />
                 </div>
 
@@ -311,7 +385,9 @@ export default function CartDropConfigPage() {
                     id="maxOrdersPerSlot"
                     type="number"
                     min="1"
-                    {...form.register('maxOrdersPerSlot', { valueAsNumber: true })}
+                    {...form.register("maxOrdersPerSlot", {
+                      valueAsNumber: true,
+                    })}
                   />
                   <div className="text-sm text-muted-foreground">
                     Limite le nombre de commandes acceptées simultanément
@@ -356,11 +432,17 @@ export default function CartDropConfigPage() {
                           <Input
                             placeholder="75001"
                             maxLength={5}
-                            {...form.register(`deliveryZones.${index}.postalCode`)}
+                            {...form.register(
+                              `deliveryZones.${index}.postalCode`,
+                            )}
                           />
-                          {form.formState.errors.deliveryZones?.[index]?.postalCode && (
+                          {form.formState.errors.deliveryZones?.[index]
+                            ?.postalCode && (
                             <p className="text-sm text-red-500">
-                              {form.formState.errors.deliveryZones[index]?.postalCode?.message}
+                              {
+                                form.formState.errors.deliveryZones[index]
+                                  ?.postalCode?.message
+                              }
                             </p>
                           )}
                         </div>
@@ -371,9 +453,12 @@ export default function CartDropConfigPage() {
                             type="number"
                             step="0.01"
                             min="0"
-                            {...form.register(`deliveryZones.${index}.deliveryFee`, { 
-                              valueAsNumber: true 
-                            })}
+                            {...form.register(
+                              `deliveryZones.${index}.deliveryFee`,
+                              {
+                                valueAsNumber: true,
+                              },
+                            )}
                           />
                         </div>
 
@@ -382,18 +467,26 @@ export default function CartDropConfigPage() {
                           <Input
                             type="number"
                             min="15"
-                            {...form.register(`deliveryZones.${index}.estimatedTime`, { 
-                              valueAsNumber: true 
-                            })}
+                            {...form.register(
+                              `deliveryZones.${index}.estimatedTime`,
+                              {
+                                valueAsNumber: true,
+                              },
+                            )}
                           />
                         </div>
 
                         <div className="flex items-center gap-2">
                           <div className="flex items-center space-x-2">
                             <Switch
-                              checked={form.watch(`deliveryZones.${index}.isActive`)}
-                              onCheckedChange={(checked) => 
-                                form.setValue(`deliveryZones.${index}.isActive`, checked)
+                              checked={form.watch(
+                                `deliveryZones.${index}.isActive`,
+                              )}
+                              onCheckedChange={(checked) =>
+                                form.setValue(
+                                  `deliveryZones.${index}.isActive`,
+                                  checked,
+                                )
                               }
                             />
                             <Label className="text-sm">Active</Label>
@@ -452,15 +545,18 @@ export default function CartDropConfigPage() {
                           <Label>Jour</Label>
                           <Select
                             value={form.watch(`timeSlots.${index}.day`)}
-                            onValueChange={(value) => 
-                              form.setValue(`timeSlots.${index}.day`, value as any)
+                            onValueChange={(value) =>
+                              form.setValue(
+                                `timeSlots.${index}.day`,
+                                value as any,
+                              )
                             }
                           >
                             <SelectTrigger>
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
-                              {DAYS_OF_WEEK.map(day => (
+                              {DAYS_OF_WEEK.map((day) => (
                                 <SelectItem key={day.value} value={day.value}>
                                   {day.label}
                                 </SelectItem>
@@ -490,8 +586,8 @@ export default function CartDropConfigPage() {
                           <Input
                             type="number"
                             min="1"
-                            {...form.register(`timeSlots.${index}.maxOrders`, { 
-                              valueAsNumber: true 
+                            {...form.register(`timeSlots.${index}.maxOrders`, {
+                              valueAsNumber: true,
                             })}
                           />
                         </div>
@@ -499,9 +595,14 @@ export default function CartDropConfigPage() {
                         <div className="flex items-center gap-2">
                           <div className="flex items-center space-x-2">
                             <Switch
-                              checked={form.watch(`timeSlots.${index}.isActive`)}
-                              onCheckedChange={(checked) => 
-                                form.setValue(`timeSlots.${index}.isActive`, checked)
+                              checked={form.watch(
+                                `timeSlots.${index}.isActive`,
+                              )}
+                              onCheckedChange={(checked) =>
+                                form.setValue(
+                                  `timeSlots.${index}.isActive`,
+                                  checked,
+                                )
                               }
                             />
                             <Label className="text-sm">Actif</Label>
@@ -535,10 +636,10 @@ export default function CartDropConfigPage() {
         {/* Actions */}
         <div className="flex justify-end gap-4">
           <Button type="submit" disabled={saving}>
-            {saving ? 'Sauvegarde...' : 'Sauvegarder la configuration'}
+            {saving ? "Sauvegarde..." : "Sauvegarder la configuration"}
           </Button>
         </div>
       </form>
     </div>
-  )
-} 
+  );
+}

@@ -1,54 +1,54 @@
-"use client"
+"use client";
 
-import Link from "next/link"
-import { formatDistanceToNow } from "date-fns"
-import { fr } from "date-fns/locale"
-import { AnnouncementStatus } from "./announcement-status"
-import type { Announcement } from "@/features/announcements/types/announcement.types"
+import Link from "next/link";
+import { formatDistanceToNow } from "date-fns";
+import { fr } from "date-fns/locale";
+import { AnnouncementStatus } from "./announcement-status";
+import type { Announcement } from "@/features/announcements/types/announcement.types";
 
 interface AnnouncementCardProps {
-  announcement: Announcement
-  viewerRole: 'CLIENT' | 'DELIVERER' | 'MERCHANT' | 'ADMIN'
-  showActions?: boolean
-  onStatusChange?: (id: string, status: string) => void
+  announcement: Announcement;
+  viewerRole: "CLIENT" | "DELIVERER" | "MERCHANT" | "ADMIN";
+  showActions?: boolean;
+  onStatusChange?: (id: string, status: string) => void;
 }
 
-export function AnnouncementCard({ 
-  announcement, 
-  viewerRole, 
+export function AnnouncementCard({
+  announcement,
+  viewerRole,
   showActions = true,
-  onStatusChange 
+  onStatusChange,
 }: AnnouncementCardProps) {
   const getTypeIcon = (type: string) => {
     const icons = {
-      'PACKAGE': '📦',
-      'SERVICE': '🛠️',
-      'CART_DROP': '🛒'
-    }
-    return icons[type as keyof typeof icons] || '📦'
-  }
+      PACKAGE: "📦",
+      SERVICE: "🛠️",
+      CART_DROP: "🛒",
+    };
+    return icons[type as keyof typeof icons] || "📦";
+  };
 
   const getUrgencyColor = (urgency: string) => {
     const colors = {
-      'LOW': 'text-green-600',
-      'MEDIUM': 'text-yellow-600',
-      'HIGH': 'text-orange-600',
-      'URGENT': 'text-red-600'
-    }
-    return colors[urgency as keyof typeof colors] || 'text-gray-600'
-  }
+      LOW: "text-green-600",
+      MEDIUM: "text-yellow-600",
+      HIGH: "text-orange-600",
+      URGENT: "text-red-600",
+    };
+    return colors[urgency as keyof typeof colors] || "text-gray-600";
+  };
 
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('fr-FR', {
-      style: 'currency',
-      currency: 'EUR'
-    }).format(price)
-  }
+    return new Intl.NumberFormat("fr-FR", {
+      style: "currency",
+      currency: "EUR",
+    }).format(price);
+  };
 
   const getActionButtons = () => {
     switch (viewerRole) {
-      case 'CLIENT':
-      case 'MERCHANT':
+      case "CLIENT":
+      case "MERCHANT":
         return (
           <div className="flex items-center space-x-2">
             <Link
@@ -57,7 +57,7 @@ export function AnnouncementCard({
             >
               Détails
             </Link>
-            {announcement.status === 'ACTIVE' && (
+            {announcement.status === "ACTIVE" && (
               <Link
                 href={`/${viewerRole.toLowerCase()}/announcements/${announcement.id}/edit`}
                 className="bg-gray-600 text-white px-3 py-1.5 rounded-lg hover:bg-gray-700 text-sm"
@@ -66,17 +66,17 @@ export function AnnouncementCard({
               </Link>
             )}
           </div>
-        )
-      case 'DELIVERER':
-        return announcement.status === 'ACTIVE' ? (
+        );
+      case "DELIVERER":
+        return announcement.status === "ACTIVE" ? (
           <Link
             href={`/deliverer/opportunities/${announcement.id}`}
             className="bg-green-600 text-white px-3 py-1.5 rounded-lg hover:bg-green-700 text-sm"
           >
             Voir opportunité
           </Link>
-        ) : null
-      case 'ADMIN':
+        ) : null;
+      case "ADMIN":
         return (
           <div className="flex items-center space-x-2">
             <Link
@@ -91,11 +91,11 @@ export function AnnouncementCard({
               </span>
             )}
           </div>
-        )
+        );
       default:
-        return null
+        return null;
     }
-  }
+  };
 
   return (
     <div className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow">
@@ -108,8 +108,10 @@ export function AnnouncementCard({
             </h3>
             <div className="flex items-center space-x-3">
               <AnnouncementStatus status={announcement.status} />
-              <span className={`text-sm font-medium ${getUrgencyColor(announcement.urgency)}`}>
-                {announcement.urgency === 'URGENT' && '🚨 '}
+              <span
+                className={`text-sm font-medium ${getUrgencyColor(announcement.urgency)}`}
+              >
+                {announcement.urgency === "URGENT" && "🚨 "}
                 {announcement.urgency}
               </span>
             </div>
@@ -120,9 +122,9 @@ export function AnnouncementCard({
             {formatPrice(announcement.price)}
           </div>
           <div className="text-sm text-gray-500">
-            {formatDistanceToNow(new Date(announcement.createdAt), { 
-              addSuffix: true, 
-              locale: fr 
+            {formatDistanceToNow(new Date(announcement.createdAt), {
+              addSuffix: true,
+              locale: fr,
             })}
           </div>
         </div>
@@ -144,10 +146,10 @@ export function AnnouncementCard({
         <div className="flex items-center space-x-2">
           <span>📅</span>
           <span>
-            {new Date(announcement.pickupDate).toLocaleDateString('fr-FR')}
+            {new Date(announcement.pickupDate).toLocaleDateString("fr-FR")}
           </span>
         </div>
-        {announcement.type === 'PACKAGE' && announcement.packageDetails && (
+        {announcement.type === "PACKAGE" && announcement.packageDetails && (
           <div className="flex items-center space-x-2">
             <span>⚖️</span>
             <span>{announcement.packageDetails.weight}kg</span>
@@ -185,5 +187,5 @@ export function AnnouncementCard({
         </div>
       )}
     </div>
-  )
+  );
 }

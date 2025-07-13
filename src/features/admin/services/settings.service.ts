@@ -1,28 +1,28 @@
-import { prisma } from '@/lib/db'
+import { prisma } from "@/lib/db";
 
 export interface SystemSetting {
-  id: string
-  key: string
-  value: any
-  description?: string
-  isActive: boolean
-  updatedBy?: string
-  createdAt: Date
-  updatedAt: Date
+  id: string;
+  key: string;
+  value: any;
+  description?: string;
+  isActive: boolean;
+  updatedBy?: string;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export interface CreateSettingData {
-  key: string
-  value: any
-  description?: string
-  updatedBy?: string
+  key: string;
+  value: any;
+  description?: string;
+  updatedBy?: string;
 }
 
 export interface UpdateSettingData {
-  value?: any
-  description?: string
-  isActive?: boolean
-  updatedBy?: string
+  value?: any;
+  description?: string;
+  isActive?: boolean;
+  updatedBy?: string;
 }
 
 /**
@@ -36,16 +36,16 @@ export class SettingsService {
     try {
       const settings = await prisma.settings.findMany({
         where: { isActive: true },
-        orderBy: { key: 'asc' }
-      })
-      
-      return settings.map(setting => ({
+        orderBy: { key: "asc" },
+      });
+
+      return settings.map((setting) => ({
         ...setting,
-        value: setting.value as any
-      }))
+        value: setting.value as any,
+      }));
     } catch (error) {
-      console.error('Error fetching settings:', error)
-      throw new Error('Erreur lors de la récupération des paramètres')
+      console.error("Error fetching settings:", error);
+      throw new Error("Erreur lors de la récupération des paramètres");
     }
   }
 
@@ -55,18 +55,18 @@ export class SettingsService {
   static async getSettingByKey(key: string): Promise<SystemSetting | null> {
     try {
       const setting = await prisma.settings.findUnique({
-        where: { key }
-      })
-      
-      if (!setting) return null
-      
+        where: { key },
+      });
+
+      if (!setting) return null;
+
       return {
         ...setting,
-        value: setting.value as any
-      }
+        value: setting.value as any,
+      };
     } catch (error) {
-      console.error('Error fetching setting:', error)
-      throw new Error('Erreur lors de la récupération du paramètre')
+      console.error("Error fetching setting:", error);
+      throw new Error("Erreur lors de la récupération du paramètre");
     }
   }
 
@@ -80,24 +80,27 @@ export class SettingsService {
           key: data.key,
           value: data.value,
           description: data.description,
-          updatedBy: data.updatedBy
-        }
-      })
-      
+          updatedBy: data.updatedBy,
+        },
+      });
+
       return {
         ...setting,
-        value: setting.value as any
-      }
+        value: setting.value as any,
+      };
     } catch (error) {
-      console.error('Error creating setting:', error)
-      throw new Error('Erreur lors de la création du paramètre')
+      console.error("Error creating setting:", error);
+      throw new Error("Erreur lors de la création du paramètre");
     }
   }
 
   /**
    * Mettre à jour un paramètre
    */
-  static async updateSetting(key: string, data: UpdateSettingData): Promise<SystemSetting> {
+  static async updateSetting(
+    key: string,
+    data: UpdateSettingData,
+  ): Promise<SystemSetting> {
     try {
       const setting = await prisma.settings.update({
         where: { key },
@@ -105,17 +108,17 @@ export class SettingsService {
           value: data.value,
           description: data.description,
           isActive: data.isActive,
-          updatedBy: data.updatedBy
-        }
-      })
-      
+          updatedBy: data.updatedBy,
+        },
+      });
+
       return {
         ...setting,
-        value: setting.value as any
-      }
+        value: setting.value as any,
+      };
     } catch (error) {
-      console.error('Error updating setting:', error)
-      throw new Error('Erreur lors de la mise à jour du paramètre')
+      console.error("Error updating setting:", error);
+      throw new Error("Erreur lors de la mise à jour du paramètre");
     }
   }
 
@@ -128,59 +131,65 @@ export class SettingsService {
         where: { key },
         data: {
           isActive: false,
-          updatedBy
-        }
-      })
+          updatedBy,
+        },
+      });
     } catch (error) {
-      console.error('Error deleting setting:', error)
-      throw new Error('Erreur lors de la suppression du paramètre')
+      console.error("Error deleting setting:", error);
+      throw new Error("Erreur lors de la suppression du paramètre");
     }
   }
 
   /**
    * Récupérer les paramètres par catégorie
    */
-  static async getSettingsByCategory(category: string): Promise<SystemSetting[]> {
+  static async getSettingsByCategory(
+    category: string,
+  ): Promise<SystemSetting[]> {
     try {
       const settings = await prisma.settings.findMany({
         where: {
           isActive: true,
           key: {
-            startsWith: `${category}.`
-          }
+            startsWith: `${category}.`,
+          },
         },
-        orderBy: { key: 'asc' }
-      })
-      
-      return settings.map(setting => ({
+        orderBy: { key: "asc" },
+      });
+
+      return settings.map((setting) => ({
         ...setting,
-        value: setting.value as any
-      }))
+        value: setting.value as any,
+      }));
     } catch (error) {
-      console.error('Error fetching settings by category:', error)
-      throw new Error('Erreur lors de la récupération des paramètres par catégorie')
+      console.error("Error fetching settings by category:", error);
+      throw new Error(
+        "Erreur lors de la récupération des paramètres par catégorie",
+      );
     }
   }
 
   /**
    * Sauvegarder plusieurs paramètres en lot
    */
-  static async batchUpdateSettings(updates: Array<{ key: string; value: any; updatedBy?: string }>): Promise<void> {
+  static async batchUpdateSettings(
+    updates: Array<{ key: string; value: any; updatedBy?: string }>,
+  ): Promise<void> {
     try {
       await prisma.$transaction(
-        updates.map(update =>
+        updates.map((update) =>
           prisma.settings.update({
             where: { key: update.key },
             data: {
               value: update.value,
-              updatedBy: update.updatedBy
-            }
-          })
-        )
-      )
+              updatedBy: update.updatedBy,
+            },
+          }),
+        ),
+      );
     } catch (error) {
-      console.error('Error batch updating settings:', error)
-      throw new Error('Erreur lors de la mise à jour en lot des paramètres')
+      console.error("Error batch updating settings:", error);
+      throw new Error("Erreur lors de la mise à jour en lot des paramètres");
     }
   }
 
@@ -190,97 +199,97 @@ export class SettingsService {
   static async initializeDefaultSettings(): Promise<void> {
     const defaultSettings = [
       {
-        key: 'app.name',
-        value: 'EcoDeli',
-        description: 'Nom de l\'application'
+        key: "app.name",
+        value: "EcoDeli",
+        description: "Nom de l'application",
       },
       {
-        key: 'app.description',
-        value: 'Plateforme de crowdshipping écologique',
-        description: 'Description de l\'application'
+        key: "app.description",
+        value: "Plateforme de crowdshipping écologique",
+        description: "Description de l'application",
       },
       {
-        key: 'app.company',
-        value: 'EcoDeli SAS',
-        description: 'Nom de l\'entreprise'
+        key: "app.company",
+        value: "EcoDeli SAS",
+        description: "Nom de l'entreprise",
       },
       {
-        key: 'app.address',
-        value: '110 rue de Flandre, 75019 Paris',
-        description: 'Adresse de l\'entreprise'
+        key: "app.address",
+        value: "110 rue de Flandre, 75019 Paris",
+        description: "Adresse de l'entreprise",
       },
       {
-        key: 'app.email',
-        value: 'contact@ecodeli.fr',
-        description: 'Email de contact'
+        key: "app.email",
+        value: "contact@ecodeli.fr",
+        description: "Email de contact",
       },
       {
-        key: 'app.phone',
-        value: '+33 1 42 00 00 00',
-        description: 'Téléphone de contact'
+        key: "app.phone",
+        value: "+33 1 42 00 00 00",
+        description: "Téléphone de contact",
       },
       {
-        key: 'security.sessionTimeout',
+        key: "security.sessionTimeout",
         value: 24,
-        description: 'Timeout de session en heures'
+        description: "Timeout de session en heures",
       },
       {
-        key: 'security.maxLoginAttempts',
+        key: "security.maxLoginAttempts",
         value: 5,
-        description: 'Nombre maximum de tentatives de connexion'
+        description: "Nombre maximum de tentatives de connexion",
       },
       {
-        key: 'security.requireEmailVerification',
+        key: "security.requireEmailVerification",
         value: true,
-        description: 'Vérification email obligatoire'
+        description: "Vérification email obligatoire",
       },
       {
-        key: 'payments.stripe.enabled',
+        key: "payments.stripe.enabled",
         value: true,
-        description: 'Activer Stripe'
+        description: "Activer Stripe",
       },
       {
-        key: 'payments.commission.delivery',
+        key: "payments.commission.delivery",
         value: 15,
-        description: 'Commission sur les livraisons (%)'
+        description: "Commission sur les livraisons (%)",
       },
       {
-        key: 'payments.commission.service',
+        key: "payments.commission.service",
         value: 20,
-        description: 'Commission sur les services (%)'
+        description: "Commission sur les services (%)",
       },
       {
-        key: 'notifications.onesignal.enabled',
+        key: "notifications.onesignal.enabled",
         value: true,
-        description: 'Activer OneSignal'
+        description: "Activer OneSignal",
       },
       {
-        key: 'notifications.email.enabled',
+        key: "notifications.email.enabled",
         value: true,
-        description: 'Activer les notifications email'
+        description: "Activer les notifications email",
       },
       {
-        key: 'system.maintenance.enabled',
+        key: "system.maintenance.enabled",
         value: false,
-        description: 'Mode maintenance'
+        description: "Mode maintenance",
       },
       {
-        key: 'system.cache.enabled',
+        key: "system.cache.enabled",
         value: true,
-        description: 'Activer le cache'
+        description: "Activer le cache",
       },
       {
-        key: 'system.backup.enabled',
+        key: "system.backup.enabled",
         value: true,
-        description: 'Activer les sauvegardes automatiques'
-      }
-    ]
+        description: "Activer les sauvegardes automatiques",
+      },
+    ];
 
     try {
       for (const setting of defaultSettings) {
         const existing = await prisma.settings.findUnique({
-          where: { key: setting.key }
-        })
+          where: { key: setting.key },
+        });
 
         if (!existing) {
           await prisma.settings.create({
@@ -288,14 +297,16 @@ export class SettingsService {
               key: setting.key,
               value: setting.value,
               description: setting.description,
-              updatedBy: 'system'
-            }
-          })
+              updatedBy: "system",
+            },
+          });
         }
       }
     } catch (error) {
-      console.error('Error initializing default settings:', error)
-      throw new Error('Erreur lors de l\'initialisation des paramètres par défaut')
+      console.error("Error initializing default settings:", error);
+      throw new Error(
+        "Erreur lors de l'initialisation des paramètres par défaut",
+      );
     }
   }
 
@@ -304,35 +315,38 @@ export class SettingsService {
    */
   static async exportSettings(): Promise<Record<string, any>> {
     try {
-      const settings = await this.getAllSettings()
-      const exportData: Record<string, any> = {}
-      
-      settings.forEach(setting => {
-        exportData[setting.key] = setting.value
-      })
-      
-      return exportData
+      const settings = await this.getAllSettings();
+      const exportData: Record<string, any> = {};
+
+      settings.forEach((setting) => {
+        exportData[setting.key] = setting.value;
+      });
+
+      return exportData;
     } catch (error) {
-      console.error('Error exporting settings:', error)
-      throw new Error('Erreur lors de l\'export des paramètres')
+      console.error("Error exporting settings:", error);
+      throw new Error("Erreur lors de l'export des paramètres");
     }
   }
 
   /**
    * Importer des paramètres
    */
-  static async importSettings(data: Record<string, any>, updatedBy?: string): Promise<void> {
+  static async importSettings(
+    data: Record<string, any>,
+    updatedBy?: string,
+  ): Promise<void> {
     try {
       const updates = Object.entries(data).map(([key, value]) => ({
         key,
         value,
-        updatedBy
-      }))
-      
-      await this.batchUpdateSettings(updates)
+        updatedBy,
+      }));
+
+      await this.batchUpdateSettings(updates);
     } catch (error) {
-      console.error('Error importing settings:', error)
-      throw new Error('Erreur lors de l\'import des paramètres')
+      console.error("Error importing settings:", error);
+      throw new Error("Erreur lors de l'import des paramètres");
     }
   }
-} 
+}

@@ -1,44 +1,52 @@
 // Page de sélection du type d'inscription
-import { useTranslations } from "next-intl"
-import Link from "next/link"
+import { useTranslations } from "next-intl";
+import Link from "next/link";
 
 export default function RegisterPage() {
-  const t = useTranslations()
+  const t = useTranslations();
 
   const userTypes = [
     {
-      id: 'client',
-      title: 'Client',
-      description: 'J\'envoie des colis et réserve des services',
-      icon: '👤',
-      href: '/register/client',
-      features: ['Envoi de colis', 'Réservation de services', 'Suivi en temps réel']
+      id: "client",
+      title: "Client",
+      description: "J'envoie des colis et réserve des services",
+      icon: "👤",
+      href: "/register/client",
+      features: [
+        "Envoi de colis",
+        "Réservation de services",
+        "Suivi en temps réel",
+      ],
     },
     {
-      id: 'deliverer',
-      title: 'Livreur',
-      description: 'Je livre des colis sur mes trajets',
-      icon: '🚚',
-      href: '/register/deliverer',
-      features: ['Revenus complémentaires', 'Trajets flexibles', 'Portefeuille intégré']
+      id: "deliverer",
+      title: "Livreur",
+      description: "Je livre des colis sur mes trajets",
+      icon: "🚚",
+      href: "/register/deliverer",
+      features: [
+        "Revenus complémentaires",
+        "Trajets flexibles",
+        "Portefeuille intégré",
+      ],
     },
     {
-      id: 'merchant',
-      title: 'Commerçant',
-      description: 'Je vends mes produits en ligne',
-      icon: '🏪',
-      href: '/register/merchant',
-      features: ['Catalogue produits', 'Lâcher de chariot', 'Analytics']
+      id: "merchant",
+      title: "Commerçant",
+      description: "Je vends mes produits en ligne",
+      icon: "🏪",
+      href: "/register/merchant",
+      features: ["Catalogue produits", "Lâcher de chariot", "Analytics"],
     },
     {
-      id: 'provider',
-      title: 'Prestataire',
-      description: 'Je propose des services à la personne',
-      icon: '🔧',
-      href: '/register/provider',
-      features: ['Services à domicile', 'Calendrier', 'Facturation auto']
-    }
-  ]
+      id: "provider",
+      title: "Prestataire",
+      description: "Je propose des services à la personne",
+      icon: "🔧",
+      href: "/register/provider",
+      features: ["Services à domicile", "Calendrier", "Facturation auto"],
+    },
+  ];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 py-12 px-4">
@@ -50,10 +58,11 @@ export default function RegisterPage() {
             <span className="text-xl font-bold text-gray-900">EcoDeli</span>
           </Link>
           <h1 className="text-3xl font-bold text-gray-900 mb-4">
-            {t('auth.register.chooseType')}
+            {t("auth.register.chooseType")}
           </h1>
           <p className="text-gray-600 max-w-2xl mx-auto">
-            Choisissez le type de compte qui correspond à votre utilisation d'EcoDeli
+            Choisissez le type de compte qui correspond à votre utilisation
+            d'EcoDeli
           </p>
         </div>
 
@@ -71,12 +80,13 @@ export default function RegisterPage() {
                   <h3 className="text-xl font-semibold text-gray-900 mb-2 group-hover:text-green-600">
                     {type.title}
                   </h3>
-                  <p className="text-gray-600 mb-4">
-                    {type.description}
-                  </p>
+                  <p className="text-gray-600 mb-4">{type.description}</p>
                   <ul className="space-y-1">
                     {type.features.map((feature, index) => (
-                      <li key={index} className="text-sm text-gray-500 flex items-center">
+                      <li
+                        key={index}
+                        className="text-sm text-gray-500 flex items-center"
+                      >
                         <div className="h-1.5 w-1.5 rounded-full bg-green-500 mr-2"></div>
                         {feature}
                       </li>
@@ -94,9 +104,9 @@ export default function RegisterPage() {
         {/* Lien de connexion */}
         <div className="text-center">
           <p className="text-gray-600">
-            Vous avez déjà un compte ?{' '}
-            <Link 
-              href="/login" 
+            Vous avez déjà un compte ?{" "}
+            <Link
+              href="/login"
               className="text-green-600 hover:text-green-700 font-medium"
             >
               Se connecter
@@ -105,5 +115,5 @@ export default function RegisterPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }

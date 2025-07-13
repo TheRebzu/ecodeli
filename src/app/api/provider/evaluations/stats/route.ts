@@ -7,10 +7,7 @@ export async function GET(request: NextRequest) {
   try {
     const session = await auth();
     if (!session) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const { searchParams } = new URL(request.url);
@@ -19,7 +16,7 @@ export async function GET(request: NextRequest) {
     if (!providerId) {
       return NextResponse.json(
         { error: "Provider ID is required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -38,7 +35,7 @@ export async function GET(request: NextRequest) {
     if (!provider) {
       return NextResponse.json(
         { error: "Provider not found" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -62,9 +59,11 @@ export async function GET(request: NextRequest) {
 
     // Calculer les statistiques globales
     const totalEvaluations = allReviews.length;
-    const averageRating = totalEvaluations > 0 
-      ? allReviews.reduce((sum, review) => sum + review.rating, 0) / totalEvaluations 
-      : 0;
+    const averageRating =
+      totalEvaluations > 0
+        ? allReviews.reduce((sum, review) => sum + review.rating, 0) /
+          totalEvaluations
+        : 0;
 
     // Distribution des notes
     const ratingDistribution: Record<number, number> = {
@@ -75,7 +74,7 @@ export async function GET(request: NextRequest) {
       5: 0,
     };
 
-    allReviews.forEach(review => {
+    allReviews.forEach((review) => {
       if (review.rating >= 1 && review.rating <= 5) {
         ratingDistribution[review.rating]++;
       }
@@ -83,19 +82,27 @@ export async function GET(request: NextRequest) {
 
     // Évaluations du mois en cours
     const currentMonthReviews = allReviews.filter(
-      review => review.createdAt >= currentMonthStart && review.createdAt <= currentMonthEnd
+      (review) =>
+        review.createdAt >= currentMonthStart &&
+        review.createdAt <= currentMonthEnd,
     );
-    const monthlyAverage = currentMonthReviews.length > 0
-      ? currentMonthReviews.reduce((sum, review) => sum + review.rating, 0) / currentMonthReviews.length
-      : 0;
+    const monthlyAverage =
+      currentMonthReviews.length > 0
+        ? currentMonthReviews.reduce((sum, review) => sum + review.rating, 0) /
+          currentMonthReviews.length
+        : 0;
 
     // Évaluations du mois précédent
     const previousMonthReviews = allReviews.filter(
-      review => review.createdAt >= previousMonthStart && review.createdAt <= previousMonthEnd
+      (review) =>
+        review.createdAt >= previousMonthStart &&
+        review.createdAt <= previousMonthEnd,
     );
-    const previousMonthAverage = previousMonthReviews.length > 0
-      ? previousMonthReviews.reduce((sum, review) => sum + review.rating, 0) / previousMonthReviews.length
-      : 0;
+    const previousMonthAverage =
+      previousMonthReviews.length > 0
+        ? previousMonthReviews.reduce((sum, review) => sum + review.rating, 0) /
+          previousMonthReviews.length
+        : 0;
 
     // Déterminer la tendance
     let trend: "up" | "down" | "stable" = "stable";
@@ -142,14 +149,16 @@ export async function GET(request: NextRequest) {
       take: 5,
     });
 
-    const formattedRecentEvaluations = recentEvaluations.map(review => ({
+    const formattedRecentEvaluations = recentEvaluations.map((review) => ({
       id: review.id,
       serviceId: review.booking?.serviceId || null,
       serviceName: review.booking?.service?.name || "Service non spécifié",
       clientId: review.clientId,
-      clientName: review.client?.user?.profile?.firstName && review.client?.user?.profile?.lastName
-        ? `${review.client.user.profile.firstName} ${review.client.user.profile.lastName}`
-        : "Client anonyme",
+      clientName:
+        review.client?.user?.profile?.firstName &&
+        review.client?.user?.profile?.lastName
+          ? `${review.client.user.profile.firstName} ${review.client.user.profile.lastName}`
+          : "Client anonyme",
       clientAvatar: review.client?.user?.profile?.avatar || null,
       rating: review.rating,
       comment: review.comment,
@@ -172,7 +181,7 @@ export async function GET(request: NextRequest) {
     console.error("Error fetching evaluation stats:", error);
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
-} 
+}

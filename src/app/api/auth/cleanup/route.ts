@@ -1,46 +1,46 @@
-import { NextResponse } from 'next/server'
-import { db } from '@/lib/db'
+import { NextResponse } from "next/server";
+import { db } from "@/lib/db";
 
 export async function GET() {
   try {
     // Nettoyer toutes les sessions
-    const deletedSessions = await db.session.deleteMany()
-    
+    const deletedSessions = await db.session.deleteMany();
+
     // Nettoyer les tokens de vérification expirés
     const deletedTokens = await db.verificationToken.deleteMany({
       where: {
         expires: {
-          lt: new Date()
-        }
-      }
-    })
+          lt: new Date(),
+        },
+      },
+    });
 
     // Récupérer quelques utilisateurs clients pour info
     const clients = await db.user.findMany({
-      where: { role: 'CLIENT' },
+      where: { role: "CLIENT" },
       select: {
         id: true,
         email: true,
         name: true,
-        isActive: true
+        isActive: true,
       },
-      take: 3
-    })
+      take: 3,
+    });
 
     return NextResponse.json({
       success: true,
-      message: 'Sessions nettoyées',
+      message: "Sessions nettoyées",
       deleted: {
         sessions: deletedSessions.count,
-        tokens: deletedTokens.count
+        tokens: deletedTokens.count,
       },
-      sampleClients: clients
-    })
+      sampleClients: clients,
+    });
   } catch (error) {
-    console.error('Erreur cleanup:', error)
+    console.error("Erreur cleanup:", error);
     return NextResponse.json(
-      { error: 'Erreur lors du nettoyage' },
-      { status: 500 }
-    )
+      { error: "Erreur lors du nettoyage" },
+      { status: 500 },
+    );
   }
 }

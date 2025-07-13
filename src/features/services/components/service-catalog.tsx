@@ -4,7 +4,13 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { useTranslations } from "next-intl";
 import { Search, Filter, Star, Clock, MapPin, User } from "lucide-react";
@@ -60,15 +66,17 @@ export function ServiceCatalog({ onServiceSelect }: ServiceCatalogProps) {
   const fetchServices = async () => {
     try {
       setIsLoading(true);
-      const response = await fetch(`/api/services?page=${currentPage}&limit=${itemsPerPage}`);
-      
+      const response = await fetch(
+        `/api/services?page=${currentPage}&limit=${itemsPerPage}`,
+      );
+
       if (response.ok) {
         const data = await response.json();
         setServices(data.services || []);
         setTotalPages(Math.ceil((data.total || 0) / itemsPerPage));
       }
     } catch (error) {
-      console.error('Error fetching services:', error);
+      console.error("Error fetching services:", error);
     } finally {
       setIsLoading(false);
     }
@@ -79,16 +87,23 @@ export function ServiceCatalog({ onServiceSelect }: ServiceCatalogProps) {
 
     // Filter by search term
     if (searchTerm) {
-      filtered = filtered.filter(service =>
-        service.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        service.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        `${service.provider.profile.firstName} ${service.provider.profile.lastName}`.toLowerCase().includes(searchTerm.toLowerCase())
+      filtered = filtered.filter(
+        (service) =>
+          service.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          service.description
+            .toLowerCase()
+            .includes(searchTerm.toLowerCase()) ||
+          `${service.provider.profile.firstName} ${service.provider.profile.lastName}`
+            .toLowerCase()
+            .includes(searchTerm.toLowerCase()),
       );
     }
 
     // Filter by category
     if (selectedCategory) {
-      filtered = filtered.filter(service => service.category === selectedCategory);
+      filtered = filtered.filter(
+        (service) => service.category === selectedCategory,
+      );
     }
 
     // Sort services
@@ -119,7 +134,7 @@ export function ServiceCatalog({ onServiceSelect }: ServiceCatalogProps) {
       TUTORING: t("categories.tutoring"),
       HEALTHCARE: t("categories.healthcare"),
       BEAUTY: t("categories.beauty"),
-      OTHER: t("categories.other")
+      OTHER: t("categories.other"),
     };
     return categoryLabels[category] || category;
   };
@@ -132,7 +147,7 @@ export function ServiceCatalog({ onServiceSelect }: ServiceCatalogProps) {
       TUTORING: "bg-purple-100 text-purple-800",
       HEALTHCARE: "bg-red-100 text-red-800",
       BEAUTY: "bg-pink-100 text-pink-800",
-      OTHER: "bg-gray-100 text-gray-800"
+      OTHER: "bg-gray-100 text-gray-800",
     };
     return colors[category] || "bg-gray-100 text-gray-800";
   };
@@ -176,7 +191,7 @@ export function ServiceCatalog({ onServiceSelect }: ServiceCatalogProps) {
             />
           </div>
         </div>
-        
+
         <Select value={selectedCategory} onValueChange={setSelectedCategory}>
           <SelectTrigger className="w-full md:w-48">
             <SelectValue placeholder={t("filters.category")} />
@@ -198,9 +213,13 @@ export function ServiceCatalog({ onServiceSelect }: ServiceCatalogProps) {
           <SelectContent>
             <SelectItem value="name">{t("filters.sort.name")}</SelectItem>
             <SelectItem value="price">{t("filters.sort.price_low")}</SelectItem>
-            <SelectItem value="price-desc">{t("filters.sort.price_high")}</SelectItem>
+            <SelectItem value="price-desc">
+              {t("filters.sort.price_high")}
+            </SelectItem>
             <SelectItem value="rating">{t("filters.sort.rating")}</SelectItem>
-            <SelectItem value="duration">{t("filters.sort.duration")}</SelectItem>
+            <SelectItem value="duration">
+              {t("filters.sort.duration")}
+            </SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -211,7 +230,9 @@ export function ServiceCatalog({ onServiceSelect }: ServiceCatalogProps) {
           <CardContent className="p-12 text-center">
             <div className="text-gray-500">
               <Search className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-              <h3 className="text-lg font-medium mb-2">{t("no_results.title")}</h3>
+              <h3 className="text-lg font-medium mb-2">
+                {t("no_results.title")}
+              </h3>
               <p className="text-sm">{t("no_results.description")}</p>
             </div>
           </CardContent>
@@ -219,7 +240,10 @@ export function ServiceCatalog({ onServiceSelect }: ServiceCatalogProps) {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredServices.map((service) => (
-            <Card key={service.id} className="hover:shadow-lg transition-shadow cursor-pointer">
+            <Card
+              key={service.id}
+              className="hover:shadow-lg transition-shadow cursor-pointer"
+            >
               <CardHeader>
                 <div className="flex justify-between items-start">
                   <CardTitle className="text-lg">{service.name}</CardTitle>
@@ -232,12 +256,13 @@ export function ServiceCatalog({ onServiceSelect }: ServiceCatalogProps) {
                 <p className="text-gray-600 text-sm line-clamp-3">
                   {service.description}
                 </p>
-                
+
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-2">
                     <User className="h-4 w-4 text-gray-400" />
                     <span className="text-sm text-gray-600">
-                      {service.provider.profile.firstName} {service.provider.profile.lastName}
+                      {service.provider.profile.firstName}{" "}
+                      {service.provider.profile.lastName}
                     </span>
                   </div>
                   <div className="flex items-center space-x-2">
@@ -270,7 +295,7 @@ export function ServiceCatalog({ onServiceSelect }: ServiceCatalogProps) {
                   <span className="text-2xl font-bold text-primary">
                     {service.price}€
                   </span>
-                  <Button 
+                  <Button
                     onClick={() => handleServiceSelect(service)}
                     className="bg-primary hover:bg-primary/90"
                   >
@@ -293,14 +318,17 @@ export function ServiceCatalog({ onServiceSelect }: ServiceCatalogProps) {
           >
             {t("pagination.previous")}
           </Button>
-          
+
           <span className="flex items-center px-4">
-            {t("pagination.page")} {currentPage} {t("pagination.of")} {totalPages}
+            {t("pagination.page")} {currentPage} {t("pagination.of")}{" "}
+            {totalPages}
           </span>
-          
+
           <Button
             variant="outline"
-            onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+            onClick={() =>
+              setCurrentPage(Math.min(totalPages, currentPage + 1))
+            }
             disabled={currentPage === totalPages}
           >
             {t("pagination.next")}
@@ -309,4 +337,4 @@ export function ServiceCatalog({ onServiceSelect }: ServiceCatalogProps) {
       )}
     </div>
   );
-} 
+}

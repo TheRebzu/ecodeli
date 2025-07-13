@@ -1,20 +1,34 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import { useAuth } from '@/hooks/use-auth'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Badge } from '@/components/ui/badge'
-import { Separator } from '@/components/ui/separator'
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
-import { Textarea } from '@/components/ui/textarea'
-import { 
-  FileTextIcon, 
-  CheckCircleIcon, 
+import { useState, useEffect } from "react";
+import { useAuth } from "@/hooks/use-auth";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  FileTextIcon,
+  CheckCircleIcon,
   AlertCircleIcon,
   ClockIcon,
   PenToolIcon,
@@ -22,243 +36,252 @@ import {
   RefreshCwIcon,
   InfoIcon,
   CalendarIcon,
-  EuroIcon
-} from 'lucide-react'
-import { format } from 'date-fns'
-import { fr } from 'date-fns/locale'
+  EuroIcon,
+} from "lucide-react";
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
 
 interface ContractSummary {
-  id: string
-  type: string
-  status: string
-  version: string
-  title: string
-  description?: string
-  commissionRate: number
-  minCommissionAmount?: number
-  setupFee: number
-  monthlyFee: number
-  validFrom: Date
-  validUntil?: Date
-  autoRenewal: boolean
-  renewalPeriod: number
-  maxOrdersPerMonth?: number
-  maxOrderValue?: number
-  merchantSignedAt?: Date
-  adminSignedAt?: Date
-  isFullySigned: boolean
-  daysUntilExpiry?: number
-  createdAt: Date
+  id: string;
+  type: string;
+  status: string;
+  version: string;
+  title: string;
+  description?: string;
+  commissionRate: number;
+  minCommissionAmount?: number;
+  setupFee: number;
+  monthlyFee: number;
+  validFrom: Date;
+  validUntil?: Date;
+  autoRenewal: boolean;
+  renewalPeriod: number;
+  maxOrdersPerMonth?: number;
+  maxOrderValue?: number;
+  merchantSignedAt?: Date;
+  adminSignedAt?: Date;
+  isFullySigned: boolean;
+  daysUntilExpiry?: number;
+  createdAt: Date;
 }
 
 interface ContractAmendment {
-  id: string
-  version: string
-  title: string
-  description: string
-  effectiveDate: Date
-  merchantSignedAt?: Date
-  adminSignedAt?: Date
-  createdAt: Date
+  id: string;
+  version: string;
+  title: string;
+  description: string;
+  effectiveDate: Date;
+  merchantSignedAt?: Date;
+  adminSignedAt?: Date;
+  createdAt: Date;
 }
 
 interface BillingCycle {
-  id: string
-  periodStart: Date
-  periodEnd: Date
-  status: string
-  totalOrders: number
-  totalRevenue: number
-  commissionAmount: number
-  monthlyFee: number
-  totalAmount: number
-  dueDate?: Date
-  paidAt?: Date
+  id: string;
+  periodStart: Date;
+  periodEnd: Date;
+  status: string;
+  totalOrders: number;
+  totalRevenue: number;
+  commissionAmount: number;
+  monthlyFee: number;
+  totalAmount: number;
+  dueDate?: Date;
+  paidAt?: Date;
 }
 
 export default function MerchantContractsPage() {
-  const { user } = useAuth()
-  const [contract, setContract] = useState<ContractSummary | null>(null)
-  const [amendments, setAmendments] = useState<ContractAmendment[]>([])
-  const [billingCycles, setBillingCycles] = useState<BillingCycle[]>([])
-  const [loading, setLoading] = useState(true)
-  const [signing, setSigning] = useState(false)
-  const [signatureDialogOpen, setSignatureDialogOpen] = useState(false)
-  const [renewalDialogOpen, setRenewalDialogOpen] = useState(false)
-  const [signature, setSignature] = useState('')
-  const [renewalNotes, setRenewalNotes] = useState('')
+  const { user } = useAuth();
+  const [contract, setContract] = useState<ContractSummary | null>(null);
+  const [amendments, setAmendments] = useState<ContractAmendment[]>([]);
+  const [billingCycles, setBillingCycles] = useState<BillingCycle[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [signing, setSigning] = useState(false);
+  const [signatureDialogOpen, setSignatureDialogOpen] = useState(false);
+  const [renewalDialogOpen, setRenewalDialogOpen] = useState(false);
+  const [signature, setSignature] = useState("");
+  const [renewalNotes, setRenewalNotes] = useState("");
 
   useEffect(() => {
-    fetchContractData()
-  }, [])
+    fetchContractData();
+  }, []);
 
   const fetchContractData = async () => {
     try {
-      setLoading(true)
-      
+      setLoading(true);
+
       const [contractRes, amendmentsRes, billingRes] = await Promise.all([
-        fetch('/api/merchant/contracts/current'),
-        fetch('/api/merchant/contracts/amendments'),
-        fetch('/api/merchant/contracts/billing')
-      ])
+        fetch("/api/merchant/contracts/current"),
+        fetch("/api/merchant/contracts/amendments"),
+        fetch("/api/merchant/contracts/billing"),
+      ]);
 
       if (contractRes.ok) {
-        const contractData = await contractRes.json()
-        console.log('📄 Données contrat reçues:', contractData)
+        const contractData = await contractRes.json();
+        console.log("📄 Données contrat reçues:", contractData);
         if (contractData.success && contractData.contract) {
-          console.log('✅ Contrat ID:', contractData.contract.id)
-          setContract(contractData.contract)
+          console.log("✅ Contrat ID:", contractData.contract.id);
+          setContract(contractData.contract);
         }
       }
 
       if (amendmentsRes.ok) {
-        const amendmentsData = await amendmentsRes.json()
+        const amendmentsData = await amendmentsRes.json();
         if (amendmentsData.success && amendmentsData.amendments) {
-          setAmendments(amendmentsData.amendments)
+          setAmendments(amendmentsData.amendments);
         }
       }
 
       if (billingRes.ok) {
-        const billingData = await billingRes.json()
+        const billingData = await billingRes.json();
         if (billingData.success && billingData.billing) {
           // Convertir l'objet billing en format cycle de facturation
           const cycle = {
             id: `billing-${billingData.billing.period}`,
             periodStart: new Date(),
             periodEnd: new Date(),
-            status: 'PENDING',
+            status: "PENDING",
             totalOrders: billingData.billing.totalOrders,
             totalRevenue: billingData.billing.totalRevenue,
             commissionAmount: billingData.billing.commission,
             monthlyFee: 0,
             totalAmount: billingData.billing.commission,
             dueDate: undefined,
-            paidAt: undefined
-          }
-          setBillingCycles([cycle])
+            paidAt: undefined,
+          };
+          setBillingCycles([cycle]);
         }
       }
-
     } catch (error) {
-      console.error('Erreur chargement contrat:', error)
+      console.error("Erreur chargement contrat:", error);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const handleSignContract = async () => {
-    if (!contract || !signature.trim()) return
+    if (!contract || !signature.trim()) return;
 
     try {
-      setSigning(true)
-      
-      console.log('🔐 Tentative de signature contrat ID:', contract.id)
-      
-      const response = await fetch(`/api/merchant/contracts/${contract.id}/sign`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ signature: signature.trim() })
-      })
+      setSigning(true);
 
-      const data = await response.json()
-      
+      console.log("🔐 Tentative de signature contrat ID:", contract.id);
+
+      const response = await fetch(
+        `/api/merchant/contracts/${contract.id}/sign`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ signature: signature.trim() }),
+        },
+      );
+
+      const data = await response.json();
+
       if (!response.ok) {
-        throw new Error(data.error || 'Erreur lors de la signature')
+        throw new Error(data.error || "Erreur lors de la signature");
       }
-      
-      alert('Contrat signé avec succès!')
-      setSignatureDialogOpen(false)
-      setSignature('')
-      fetchContractData()
-      
+
+      alert("Contrat signé avec succès!");
+      setSignatureDialogOpen(false);
+      setSignature("");
+      fetchContractData();
     } catch (error) {
-      console.error('❌ Erreur signature:', error)
-      alert(error instanceof Error ? error.message : 'Erreur lors de la signature du contrat')
+      console.error("❌ Erreur signature:", error);
+      alert(
+        error instanceof Error
+          ? error.message
+          : "Erreur lors de la signature du contrat",
+      );
     } finally {
-      setSigning(false)
+      setSigning(false);
     }
-  }
+  };
 
   const handleRequestRenewal = async () => {
     try {
-      const response = await fetch('/api/merchant/contracts/renewal', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ notes: renewalNotes })
-      })
+      const response = await fetch("/api/merchant/contracts/renewal", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ notes: renewalNotes }),
+      });
 
-      if (!response.ok) throw new Error('Erreur lors de la demande')
-      
-      alert('Demande de renouvellement envoyée!')
-      setRenewalDialogOpen(false)
-      setRenewalNotes('')
-      fetchContractData()
-      
+      if (!response.ok) throw new Error("Erreur lors de la demande");
+
+      alert("Demande de renouvellement envoyée!");
+      setRenewalDialogOpen(false);
+      setRenewalNotes("");
+      fetchContractData();
     } catch (error) {
-      console.error('Erreur demande renouvellement:', error)
-      alert('Erreur lors de la demande de renouvellement')
+      console.error("Erreur demande renouvellement:", error);
+      alert("Erreur lors de la demande de renouvellement");
     }
-  }
+  };
 
   const downloadContractPDF = async () => {
-    if (!contract) return
+    if (!contract) return;
 
     try {
-      const response = await fetch(`/api/merchant/contracts/${contract.id}/pdf`)
-      if (!response.ok) throw new Error('Erreur génération PDF')
-      
-      const blob = await response.blob()
-      const url = window.URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url
-      a.download = `contrat-${contract.version}.pdf`
-      document.body.appendChild(a)
-      a.click()
-      window.URL.revokeObjectURL(url)
-      document.body.removeChild(a)
-      
+      const response = await fetch(
+        `/api/merchant/contracts/${contract.id}/pdf`,
+      );
+      if (!response.ok) throw new Error("Erreur génération PDF");
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `contrat-${contract.version}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
     } catch (error) {
-      console.error('Erreur téléchargement PDF:', error)
-      alert('Erreur lors du téléchargement')
+      console.error("Erreur téléchargement PDF:", error);
+      alert("Erreur lors du téléchargement");
     }
-  }
+  };
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case 'ACTIVE':
-        return <Badge className="bg-green-100 text-green-800">Actif</Badge>
-      case 'PENDING':
-        return <Badge className="bg-yellow-100 text-yellow-800">En attente</Badge>
-      case 'DRAFT':
-        return <Badge className="bg-gray-100 text-gray-800">Brouillon</Badge>
-      case 'SUSPENDED':
-        return <Badge variant="destructive">Suspendu</Badge>
-      case 'TERMINATED':
-        return <Badge variant="destructive">Résilié</Badge>
+      case "ACTIVE":
+        return <Badge className="bg-green-100 text-green-800">Actif</Badge>;
+      case "PENDING":
+        return (
+          <Badge className="bg-yellow-100 text-yellow-800">En attente</Badge>
+        );
+      case "DRAFT":
+        return <Badge className="bg-gray-100 text-gray-800">Brouillon</Badge>;
+      case "SUSPENDED":
+        return <Badge variant="destructive">Suspendu</Badge>;
+      case "TERMINATED":
+        return <Badge variant="destructive">Résilié</Badge>;
       default:
-        return <Badge variant="secondary">{status}</Badge>
+        return <Badge variant="secondary">{status}</Badge>;
     }
-  }
+  };
 
   const getBillingStatusBadge = (status: string) => {
     switch (status) {
-      case 'PAID':
-        return <Badge className="bg-green-100 text-green-800">Payé</Badge>
-      case 'PENDING':
-        return <Badge className="bg-yellow-100 text-yellow-800">En attente</Badge>
-      case 'OVERDUE':
-        return <Badge variant="destructive">En retard</Badge>
+      case "PAID":
+        return <Badge className="bg-green-100 text-green-800">Payé</Badge>;
+      case "PENDING":
+        return (
+          <Badge className="bg-yellow-100 text-yellow-800">En attente</Badge>
+        );
+      case "OVERDUE":
+        return <Badge variant="destructive">En retard</Badge>;
       default:
-        return <Badge variant="secondary">{status}</Badge>
+        return <Badge variant="secondary">{status}</Badge>;
     }
-  }
+  };
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('fr-FR', {
-      style: 'currency',
-      currency: 'EUR'
-    }).format(amount)
-  }
+    return new Intl.NumberFormat("fr-FR", {
+      style: "currency",
+      currency: "EUR",
+    }).format(amount);
+  };
 
   if (loading) {
     return (
@@ -281,7 +304,7 @@ export default function MerchantContractsPage() {
           ))}
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -336,19 +359,22 @@ export default function MerchantContractsPage() {
                     <Alert>
                       <PenToolIcon className="h-4 w-4" />
                       <AlertDescription>
-                        Ce contrat nécessite votre signature électronique pour être activé.
+                        Ce contrat nécessite votre signature électronique pour
+                        être activé.
                       </AlertDescription>
                     </Alert>
                   )}
 
-                  {contract.daysUntilExpiry !== undefined && contract.daysUntilExpiry <= 30 && (
-                    <Alert>
-                      <ClockIcon className="h-4 w-4" />
-                      <AlertDescription>
-                        Ce contrat expire dans {contract.daysUntilExpiry} jours.
-                      </AlertDescription>
-                    </Alert>
-                  )}
+                  {contract.daysUntilExpiry !== undefined &&
+                    contract.daysUntilExpiry <= 30 && (
+                      <Alert>
+                        <ClockIcon className="h-4 w-4" />
+                        <AlertDescription>
+                          Ce contrat expire dans {contract.daysUntilExpiry}{" "}
+                          jours.
+                        </AlertDescription>
+                      </Alert>
+                    )}
 
                   {/* Détails financiers */}
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -390,9 +416,20 @@ export default function MerchantContractsPage() {
                           Période de validité
                         </Label>
                         <div className="text-sm">
-                          Du {contract.validFrom ? format(new Date(contract.validFrom), 'PP', { locale: fr }) : 'N/A'}
+                          Du{" "}
+                          {contract.validFrom
+                            ? format(new Date(contract.validFrom), "PP", {
+                                locale: fr,
+                              })
+                            : "N/A"}
                           {contract.validUntil && (
-                            <> au {format(new Date(contract.validUntil), 'PP', { locale: fr })}</>
+                            <>
+                              {" "}
+                              au{" "}
+                              {format(new Date(contract.validUntil), "PP", {
+                                locale: fr,
+                              })}
+                            </>
                           )}
                         </div>
                       </div>
@@ -403,7 +440,8 @@ export default function MerchantContractsPage() {
                             Limite mensuelle
                           </Label>
                           <div className="text-sm">
-                            {contract.maxOrdersPerMonth.toLocaleString('fr-FR')} commandes/mois
+                            {contract.maxOrdersPerMonth.toLocaleString("fr-FR")}{" "}
+                            commandes/mois
                           </div>
                         </div>
                       )}
@@ -415,7 +453,7 @@ export default function MerchantContractsPage() {
                           Renouvellement automatique
                         </Label>
                         <div className="text-sm">
-                          {contract.autoRenewal ? 'Activé' : 'Désactivé'}
+                          {contract.autoRenewal ? "Activé" : "Désactivé"}
                           {contract.autoRenewal && (
                             <> • {contract.renewalPeriod} mois</>
                           )}
@@ -447,15 +485,25 @@ export default function MerchantContractsPage() {
                         <div className="flex items-center gap-2">
                           <CheckCircleIcon className="h-4 w-4 text-green-500" />
                           <span className="text-sm">
-                            Signé le {contract.merchantSignedAt && !isNaN(new Date(contract.merchantSignedAt).getTime()) 
-                              ? format(new Date(contract.merchantSignedAt), 'PPpp', { locale: fr }) 
-                              : 'Date invalide'}
+                            Signé le{" "}
+                            {contract.merchantSignedAt &&
+                            !isNaN(
+                              new Date(contract.merchantSignedAt).getTime(),
+                            )
+                              ? format(
+                                  new Date(contract.merchantSignedAt),
+                                  "PPpp",
+                                  { locale: fr },
+                                )
+                              : "Date invalide"}
                           </span>
                         </div>
                       ) : (
                         <div className="flex items-center gap-2">
                           <ClockIcon className="h-4 w-4 text-yellow-500" />
-                          <span className="text-sm">En attente de signature</span>
+                          <span className="text-sm">
+                            En attente de signature
+                          </span>
                         </div>
                       )}
                     </div>
@@ -468,15 +516,23 @@ export default function MerchantContractsPage() {
                         <div className="flex items-center gap-2">
                           <CheckCircleIcon className="h-4 w-4 text-green-500" />
                           <span className="text-sm">
-                            Signé le {contract.adminSignedAt && !isNaN(new Date(contract.adminSignedAt).getTime()) 
-                              ? format(new Date(contract.adminSignedAt), 'PPpp', { locale: fr }) 
-                              : 'Date invalide'}
+                            Signé le{" "}
+                            {contract.adminSignedAt &&
+                            !isNaN(new Date(contract.adminSignedAt).getTime())
+                              ? format(
+                                  new Date(contract.adminSignedAt),
+                                  "PPpp",
+                                  { locale: fr },
+                                )
+                              : "Date invalide"}
                           </span>
                         </div>
                       ) : (
                         <div className="flex items-center gap-2">
                           <ClockIcon className="h-4 w-4 text-yellow-500" />
-                          <span className="text-sm">En attente de signature</span>
+                          <span className="text-sm">
+                            En attente de signature
+                          </span>
                         </div>
                       )}
                     </div>
@@ -485,7 +541,10 @@ export default function MerchantContractsPage() {
                   {/* Actions */}
                   <div className="flex gap-4 pt-4">
                     {!contract.merchantSignedAt && (
-                      <Dialog open={signatureDialogOpen} onOpenChange={setSignatureDialogOpen}>
+                      <Dialog
+                        open={signatureDialogOpen}
+                        onOpenChange={setSignatureDialogOpen}
+                      >
                         <DialogTrigger asChild>
                           <Button>
                             <PenToolIcon className="h-4 w-4 mr-2" />
@@ -496,12 +555,15 @@ export default function MerchantContractsPage() {
                           <DialogHeader>
                             <DialogTitle>Signature électronique</DialogTitle>
                             <DialogDescription>
-                              Veuillez saisir votre nom complet pour signer électroniquement ce contrat.
+                              Veuillez saisir votre nom complet pour signer
+                              électroniquement ce contrat.
                             </DialogDescription>
                           </DialogHeader>
                           <div className="space-y-4">
                             <div>
-                              <Label htmlFor="signature">Signature électronique</Label>
+                              <Label htmlFor="signature">
+                                Signature électronique
+                              </Label>
                               <Input
                                 id="signature"
                                 placeholder="Votre nom complet"
@@ -511,14 +573,17 @@ export default function MerchantContractsPage() {
                             </div>
                           </div>
                           <DialogFooter>
-                            <Button variant="outline" onClick={() => setSignatureDialogOpen(false)}>
+                            <Button
+                              variant="outline"
+                              onClick={() => setSignatureDialogOpen(false)}
+                            >
                               Annuler
                             </Button>
-                            <Button 
-                              onClick={handleSignContract} 
+                            <Button
+                              onClick={handleSignContract}
                               disabled={signing || !signature.trim()}
                             >
-                              {signing ? 'Signature...' : 'Signer le contrat'}
+                              {signing ? "Signature..." : "Signer le contrat"}
                             </Button>
                           </DialogFooter>
                         </DialogContent>
@@ -531,7 +596,10 @@ export default function MerchantContractsPage() {
                     </Button>
 
                     {contract.isFullySigned && (
-                      <Dialog open={renewalDialogOpen} onOpenChange={setRenewalDialogOpen}>
+                      <Dialog
+                        open={renewalDialogOpen}
+                        onOpenChange={setRenewalDialogOpen}
+                      >
                         <DialogTrigger asChild>
                           <Button variant="outline">
                             <RefreshCwIcon className="h-4 w-4 mr-2" />
@@ -542,22 +610,30 @@ export default function MerchantContractsPage() {
                           <DialogHeader>
                             <DialogTitle>Demande de renouvellement</DialogTitle>
                             <DialogDescription>
-                              Demandez le renouvellement de votre contrat avec d'éventuelles modifications.
+                              Demandez le renouvellement de votre contrat avec
+                              d'éventuelles modifications.
                             </DialogDescription>
                           </DialogHeader>
                           <div className="space-y-4">
                             <div>
-                              <Label htmlFor="renewalNotes">Notes et demandes spéciales</Label>
+                              <Label htmlFor="renewalNotes">
+                                Notes et demandes spéciales
+                              </Label>
                               <Textarea
                                 id="renewalNotes"
                                 placeholder="Décrivez vos demandes de modification..."
                                 value={renewalNotes}
-                                onChange={(e) => setRenewalNotes(e.target.value)}
+                                onChange={(e) =>
+                                  setRenewalNotes(e.target.value)
+                                }
                               />
                             </div>
                           </div>
                           <DialogFooter>
-                            <Button variant="outline" onClick={() => setRenewalDialogOpen(false)}>
+                            <Button
+                              variant="outline"
+                              onClick={() => setRenewalDialogOpen(false)}
+                            >
                               Annuler
                             </Button>
                             <Button onClick={handleRequestRenewal}>
@@ -595,29 +671,50 @@ export default function MerchantContractsPage() {
                             <div className="space-y-2">
                               <div className="flex items-center gap-2">
                                 <span className="font-medium">
-                                  {cycle.periodStart && !isNaN(new Date(cycle.periodStart).getTime()) 
-                                    ? format(new Date(cycle.periodStart), 'MMM yyyy', { locale: fr })
-                                    : 'Date invalide'}
+                                  {cycle.periodStart &&
+                                  !isNaN(new Date(cycle.periodStart).getTime())
+                                    ? format(
+                                        new Date(cycle.periodStart),
+                                        "MMM yyyy",
+                                        { locale: fr },
+                                      )
+                                    : "Date invalide"}
                                 </span>
                                 {getBillingStatusBadge(cycle.status)}
                               </div>
-                              
+
                               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                                 <div>
-                                  <div className="text-muted-foreground">Commandes</div>
-                                  <div className="font-medium">{cycle.totalOrders}</div>
+                                  <div className="text-muted-foreground">
+                                    Commandes
+                                  </div>
+                                  <div className="font-medium">
+                                    {cycle.totalOrders}
+                                  </div>
                                 </div>
                                 <div>
-                                  <div className="text-muted-foreground">CA</div>
-                                  <div className="font-medium">{formatCurrency(cycle.totalRevenue)}</div>
+                                  <div className="text-muted-foreground">
+                                    CA
+                                  </div>
+                                  <div className="font-medium">
+                                    {formatCurrency(cycle.totalRevenue)}
+                                  </div>
                                 </div>
                                 <div>
-                                  <div className="text-muted-foreground">Commission</div>
-                                  <div className="font-medium">{formatCurrency(cycle.commissionAmount)}</div>
+                                  <div className="text-muted-foreground">
+                                    Commission
+                                  </div>
+                                  <div className="font-medium">
+                                    {formatCurrency(cycle.commissionAmount)}
+                                  </div>
                                 </div>
                                 <div>
-                                  <div className="text-muted-foreground">Total facturé</div>
-                                  <div className="font-medium">{formatCurrency(cycle.totalAmount)}</div>
+                                  <div className="text-muted-foreground">
+                                    Total facturé
+                                  </div>
+                                  <div className="font-medium">
+                                    {formatCurrency(cycle.totalAmount)}
+                                  </div>
                                 </div>
                               </div>
                             </div>
@@ -625,15 +722,23 @@ export default function MerchantContractsPage() {
                             <div className="text-right text-sm">
                               {cycle.paidAt ? (
                                 <div className="text-green-600">
-                                  Payé le {cycle.paidAt && !isNaN(new Date(cycle.paidAt).getTime()) 
-                                    ? format(new Date(cycle.paidAt), 'PP', { locale: fr })
-                                    : 'Date invalide'}
+                                  Payé le{" "}
+                                  {cycle.paidAt &&
+                                  !isNaN(new Date(cycle.paidAt).getTime())
+                                    ? format(new Date(cycle.paidAt), "PP", {
+                                        locale: fr,
+                                      })
+                                    : "Date invalide"}
                                 </div>
                               ) : cycle.dueDate ? (
                                 <div className="text-yellow-600">
-                                  Échéance: {cycle.dueDate && !isNaN(new Date(cycle.dueDate).getTime()) 
-                                    ? format(new Date(cycle.dueDate), 'PP', { locale: fr })
-                                    : 'Date invalide'}
+                                  Échéance:{" "}
+                                  {cycle.dueDate &&
+                                  !isNaN(new Date(cycle.dueDate).getTime())
+                                    ? format(new Date(cycle.dueDate), "PP", {
+                                        locale: fr,
+                                      })
+                                    : "Date invalide"}
                                 </div>
                               ) : null}
                             </div>
@@ -672,20 +777,27 @@ export default function MerchantContractsPage() {
                           <div className="space-y-2">
                             <div className="flex justify-between items-start">
                               <div>
-                                <div className="font-medium">{amendment.title}</div>
+                                <div className="font-medium">
+                                  {amendment.title}
+                                </div>
                                 <div className="text-sm text-muted-foreground">
                                   Version {amendment.version}
                                 </div>
                               </div>
                               <div className="text-sm text-muted-foreground">
-                                {amendment.createdAt && !isNaN(new Date(amendment.createdAt).getTime()) 
-                                  ? format(new Date(amendment.createdAt), 'PPpp', { locale: fr })
-                                  : 'Date invalide'}
+                                {amendment.createdAt &&
+                                !isNaN(new Date(amendment.createdAt).getTime())
+                                  ? format(
+                                      new Date(amendment.createdAt),
+                                      "PPpp",
+                                      { locale: fr },
+                                    )
+                                  : "Date invalide"}
                               </div>
                             </div>
-                            
+
                             <p className="text-sm">{amendment.description}</p>
-                            
+
                             <div className="flex gap-4 text-sm">
                               {amendment.merchantSignedAt && (
                                 <div className="flex items-center gap-1 text-green-600">
@@ -731,5 +843,5 @@ export default function MerchantContractsPage() {
         </Card>
       )}
     </div>
-  )
+  );
 }

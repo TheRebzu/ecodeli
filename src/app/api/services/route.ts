@@ -1,26 +1,36 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getCurrentUser } from '@/lib/auth/utils';
-import { prisma } from '@/lib/db';
-import { z } from 'zod';
+import { NextRequest, NextResponse } from "next/server";
+import { getCurrentUser } from "@/lib/auth/utils";
+import { prisma } from "@/lib/db";
+import { z } from "zod";
 
 const serviceSchema = z.object({
-  name: z.string().min(3, 'Le nom du service doit faire au moins 3 caractères'),
-  description: z.string().min(10, 'La description doit faire au moins 10 caractères'),
-  category: z.enum(['CLEANING', 'GARDENING', 'HANDYMAN', 'TUTORING', 'HEALTHCARE', 'BEAUTY', 'OTHER']),
-  price: z.number().positive('Le prix doit être positif'),
-  duration: z.number().positive('La durée doit être positive'),
+  name: z.string().min(3, "Le nom du service doit faire au moins 3 caractères"),
+  description: z
+    .string()
+    .min(10, "La description doit faire au moins 10 caractères"),
+  category: z.enum([
+    "CLEANING",
+    "GARDENING",
+    "HANDYMAN",
+    "TUTORING",
+    "HEALTHCARE",
+    "BEAUTY",
+    "OTHER",
+  ]),
+  price: z.number().positive("Le prix doit être positif"),
+  duration: z.number().positive("La durée doit être positive"),
 });
 
 // GET - Liste des services
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const page = parseInt(searchParams.get('page') || '1');
-    const limit = parseInt(searchParams.get('limit') || '12');
-    const category = searchParams.get('category');
-    const search = searchParams.get('search');
-    const sortBy = searchParams.get('sortBy') || 'name';
-    const sortOrder = searchParams.get('sortOrder') || 'asc';
+    const page = parseInt(searchParams.get("page") || "1");
+    const limit = parseInt(searchParams.get("limit") || "12");
+    const category = searchParams.get("category");
+    const search = searchParams.get("search");
+    const sortBy = searchParams.get("sortBy") || "name";
+    const sortOrder = searchParams.get("sortOrder") || "asc";
 
     // Calculer le skip pour la pagination
     const skip = (page - 1) * limit;
@@ -36,30 +46,36 @@ export async function GET(request: NextRequest) {
 
     if (search) {
       whereConditions.OR = [
-        { name: { contains: search, mode: 'insensitive' } },
-        { description: { contains: search, mode: 'insensitive' } },
-        { provider: { profile: { OR: [
-          { firstName: { contains: search, mode: 'insensitive' } },
-          { lastName: { contains: search, mode: 'insensitive' } }
-        ]}}}
+        { name: { contains: search, mode: "insensitive" } },
+        { description: { contains: search, mode: "insensitive" } },
+        {
+          provider: {
+            profile: {
+              OR: [
+                { firstName: { contains: search, mode: "insensitive" } },
+                { lastName: { contains: search, mode: "insensitive" } },
+              ],
+            },
+          },
+        },
       ];
     }
 
     // Construire l'ordre de tri
     let orderBy: any = {};
     switch (sortBy) {
-      case 'price':
-        orderBy.price = sortOrder === 'desc' ? 'desc' : 'asc';
+      case "price":
+        orderBy.price = sortOrder === "desc" ? "desc" : "asc";
         break;
-      case 'rating':
-        orderBy.averageRating = sortOrder === 'desc' ? 'desc' : 'asc';
+      case "rating":
+        orderBy.averageRating = sortOrder === "desc" ? "desc" : "asc";
         break;
-      case 'duration':
-        orderBy.duration = sortOrder === 'desc' ? 'desc' : 'asc';
+      case "duration":
+        orderBy.duration = sortOrder === "desc" ? "desc" : "asc";
         break;
-      case 'name':
+      case "name":
       default:
-        orderBy.name = sortOrder === 'desc' ? 'desc' : 'asc';
+        orderBy.name = sortOrder === "desc" ? "desc" : "asc";
         break;
     }
 
@@ -75,15 +91,15 @@ export async function GET(request: NextRequest) {
                   firstName: true,
                   lastName: true,
                   city: true,
-                }
-              }
-            }
+                },
+              },
+            },
           },
           reviews: {
             select: {
               rating: true,
-            }
-          }
+            },
+          },
         },
         orderBy,
         skip,
@@ -91,15 +107,17 @@ export async function GET(request: NextRequest) {
       }),
       prisma.service.count({
         where: whereConditions,
-      })
+      }),
     ]);
 
     // Calculer les moyennes et totaux des avis
-    const servicesWithStats = services.map(service => {
+    const servicesWithStats = services.map((service) => {
       const totalReviews = service.reviews.length;
-      const averageRating = totalReviews > 0 
-        ? service.reviews.reduce((sum, review) => sum + review.rating, 0) / totalReviews
-        : 0;
+      const averageRating =
+        totalReviews > 0
+          ? service.reviews.reduce((sum, review) => sum + review.rating, 0) /
+            totalReviews
+          : 0;
 
       return {
         id: service.id,
@@ -111,7 +129,7 @@ export async function GET(request: NextRequest) {
         isActive: service.isActive,
         provider: {
           id: service.provider.id,
-          profile: service.provider.profile
+          profile: service.provider.profile,
         },
         averageRating,
         totalReviews,
@@ -127,12 +145,11 @@ export async function GET(request: NextRequest) {
       limit,
       totalPages: Math.ceil(total / limit),
     });
-
   } catch (error) {
-    console.error('Error fetching services:', error);
+    console.error("Error fetching services:", error);
     return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
+      { error: "Internal server error" },
+      { status: 500 },
     );
   }
 }
@@ -141,19 +158,16 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const user = await getCurrentUser();
-    
+
     if (!user) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     // Vérifier que l'utilisateur est un prestataire
-    if (user.role !== 'PROVIDER') {
+    if (user.role !== "PROVIDER") {
       return NextResponse.json(
-        { error: 'Only providers can create services' },
-        { status: 403 }
+        { error: "Only providers can create services" },
+        { status: 403 },
       );
     }
 
@@ -174,27 +188,26 @@ export async function POST(request: NextRequest) {
                 firstName: true,
                 lastName: true,
                 city: true,
-              }
-            }
-          }
-        }
-      }
+              },
+            },
+          },
+        },
+      },
     });
 
     return NextResponse.json(service, { status: 201 });
-
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: 'Validation error', details: error.errors },
-        { status: 400 }
+        { error: "Validation error", details: error.errors },
+        { status: 400 },
       );
     }
 
-    console.error('Error creating service:', error);
+    console.error("Error creating service:", error);
     return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
+      { error: "Internal server error" },
+      { status: 500 },
     );
   }
-} 
+}

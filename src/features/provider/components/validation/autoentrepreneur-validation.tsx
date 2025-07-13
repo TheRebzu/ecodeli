@@ -1,112 +1,142 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Badge } from '@/components/ui/badge'
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { CheckCircle, AlertCircle, Building, Shield, FileText } from 'lucide-react'
-import { useAuth } from '@/hooks/use-auth'
-import { useApi } from '@/hooks/use-api'
-import { providerAutoentrepreneurSchema, type ProviderAutoentrepreneurData } from '@/features/provider/schemas/provider-validation.schema'
-import { toast } from 'sonner'
+import { useState, useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  CheckCircle,
+  AlertCircle,
+  Building,
+  Shield,
+  FileText,
+} from "lucide-react";
+import { useAuth } from "@/hooks/use-auth";
+import { useApi } from "@/hooks/use-api";
+import {
+  providerAutoentrepreneurSchema,
+  type ProviderAutoentrepreneurData,
+} from "@/features/provider/schemas/provider-validation.schema";
+import { toast } from "sonner";
 
 interface AutoentrepreneurValidationProps {
-  providerId: string
+  providerId: string;
 }
 
-export function AutoentrepreneurValidation({ providerId }: AutoentrepreneurValidationProps) {
-  const { user } = useAuth()
-  const { execute } = useApi()
-  const [loading, setLoading] = useState(false)
-  const [data, setData] = useState<ProviderAutoentrepreneurData | null>(null)
+export function AutoentrepreneurValidation({
+  providerId,
+}: AutoentrepreneurValidationProps) {
+  const { user } = useAuth();
+  const { execute } = useApi();
+  const [loading, setLoading] = useState(false);
+  const [data, setData] = useState<ProviderAutoentrepreneurData | null>(null);
 
   const {
     register,
     handleSubmit,
     setValue,
-    formState: { errors, isValid }
+    formState: { errors, isValid },
   } = useForm<ProviderAutoentrepreneurData>({
     resolver: zodResolver(providerAutoentrepreneurSchema),
     defaultValues: {
-      legalStatus: 'AUTOENTREPRENEUR',
-      vatNumber: '',
-      insuranceProvider: '',
-      insurancePolicy: '',
-      insuranceExpiry: '',
-      insuranceDocument: ''
-    }
-  })
+      legalStatus: "AUTOENTREPRENEUR",
+      vatNumber: "",
+      insuranceProvider: "",
+      insurancePolicy: "",
+      insuranceExpiry: "",
+      insuranceDocument: "",
+    },
+  });
 
   const fetchData = async () => {
-    if (!user?.id) return
+    if (!user?.id) return;
 
     try {
-      const response = await execute(`/api/provider/validation/autoentrepreneur`)
+      const response = await execute(
+        `/api/provider/validation/autoentrepreneur`,
+      );
       if (response) {
-        setData(response)
+        setData(response);
         // Populate form with existing data
         Object.entries(response).forEach(([key, value]) => {
           if (value !== null && value !== undefined) {
-            setValue(key as keyof ProviderAutoentrepreneurData, value)
+            setValue(key as keyof ProviderAutoentrepreneurData, value);
           }
-        })
+        });
       }
     } catch (error) {
-      console.error('Error fetching autoentrepreneur data:', error)
+      console.error("Error fetching autoentrepreneur data:", error);
     }
-  }
+  };
 
   const onSubmit = async (formData: ProviderAutoentrepreneurData) => {
-    if (!user?.id) return
+    if (!user?.id) return;
 
     try {
-      setLoading(true)
-      const response = await execute('/api/provider/validation/autoentrepreneur', {
-        method: 'POST',
-        body: JSON.stringify(formData),
-        headers: { 'Content-Type': 'application/json' }
-      })
+      setLoading(true);
+      const response = await execute(
+        "/api/provider/validation/autoentrepreneur",
+        {
+          method: "POST",
+          body: JSON.stringify(formData),
+          headers: { "Content-Type": "application/json" },
+        },
+      );
 
       if (response) {
-        setData(response)
-        toast.success('Statut autoentrepreneur mis à jour avec succès')
+        setData(response);
+        toast.success("Statut autoentrepreneur mis à jour avec succès");
       }
     } catch (error) {
-      console.error('Error updating autoentrepreneur data:', error)
-      toast.error('Erreur lors de la mise à jour')
+      console.error("Error updating autoentrepreneur data:", error);
+      toast.error("Erreur lors de la mise à jour");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   useEffect(() => {
     if (user?.id) {
-      fetchData()
+      fetchData();
     }
-  }, [user?.id])
+  }, [user?.id]);
 
   const getStatusBadge = () => {
-    if (!data) return null
+    if (!data) return null;
 
-    const hasInsurance = data.insuranceProvider && data.insurancePolicy && data.insuranceDocument
-    const isExpired = data.insuranceExpiry && new Date(data.insuranceExpiry) < new Date()
+    const hasInsurance =
+      data.insuranceProvider && data.insurancePolicy && data.insuranceDocument;
+    const isExpired =
+      data.insuranceExpiry && new Date(data.insuranceExpiry) < new Date();
 
     if (!hasInsurance) {
-      return <Badge variant="destructive">Assurance manquante</Badge>
+      return <Badge variant="destructive">Assurance manquante</Badge>;
     }
 
     if (isExpired) {
-      return <Badge variant="destructive">Assurance expirée</Badge>
+      return <Badge variant="destructive">Assurance expirée</Badge>;
     }
 
-    return <Badge variant="default">Complète</Badge>
-  }
+    return <Badge variant="default">Complète</Badge>;
+  };
 
   return (
     <div className="space-y-6">
@@ -116,7 +146,8 @@ export function AutoentrepreneurValidation({ providerId }: AutoentrepreneurValid
           Statut Autoentrepreneur
         </h3>
         <p className="text-gray-600">
-          Configuration obligatoire de votre statut juridique et assurance professionnelle
+          Configuration obligatoire de votre statut juridique et assurance
+          professionnelle
         </p>
       </div>
 
@@ -137,13 +168,15 @@ export function AutoentrepreneurValidation({ providerId }: AutoentrepreneurValid
               <Label htmlFor="legalStatus">Statut juridique *</Label>
               <Select
                 defaultValue="AUTOENTREPRENEUR"
-                onValueChange={(value) => setValue('legalStatus', value as any)}
+                onValueChange={(value) => setValue("legalStatus", value as any)}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Sélectionnez votre statut" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="AUTOENTREPRENEUR">Auto-entrepreneur</SelectItem>
+                  <SelectItem value="AUTOENTREPRENEUR">
+                    Auto-entrepreneur
+                  </SelectItem>
                   <SelectItem value="SASU">SASU</SelectItem>
                   <SelectItem value="EURL">EURL</SelectItem>
                   <SelectItem value="SAS">SAS</SelectItem>
@@ -151,7 +184,9 @@ export function AutoentrepreneurValidation({ providerId }: AutoentrepreneurValid
                 </SelectContent>
               </Select>
               {errors.legalStatus && (
-                <p className="text-sm text-red-600">{errors.legalStatus.message}</p>
+                <p className="text-sm text-red-600">
+                  {errors.legalStatus.message}
+                </p>
               )}
             </div>
 
@@ -161,10 +196,12 @@ export function AutoentrepreneurValidation({ providerId }: AutoentrepreneurValid
               <Input
                 id="vatNumber"
                 placeholder="FR12345678901"
-                {...register('vatNumber')}
+                {...register("vatNumber")}
               />
               {errors.vatNumber && (
-                <p className="text-sm text-red-600">{errors.vatNumber.message}</p>
+                <p className="text-sm text-red-600">
+                  {errors.vatNumber.message}
+                </p>
               )}
             </div>
 
@@ -182,10 +219,12 @@ export function AutoentrepreneurValidation({ providerId }: AutoentrepreneurValid
                   <Input
                     id="insuranceProvider"
                     placeholder="Nom de votre assureur"
-                    {...register('insuranceProvider')}
+                    {...register("insuranceProvider")}
                   />
                   {errors.insuranceProvider && (
-                    <p className="text-sm text-red-600">{errors.insuranceProvider.message}</p>
+                    <p className="text-sm text-red-600">
+                      {errors.insuranceProvider.message}
+                    </p>
                   )}
                 </div>
 
@@ -194,10 +233,12 @@ export function AutoentrepreneurValidation({ providerId }: AutoentrepreneurValid
                   <Input
                     id="insurancePolicy"
                     placeholder="Numéro de votre police d'assurance"
-                    {...register('insurancePolicy')}
+                    {...register("insurancePolicy")}
                   />
                   {errors.insurancePolicy && (
-                    <p className="text-sm text-red-600">{errors.insurancePolicy.message}</p>
+                    <p className="text-sm text-red-600">
+                      {errors.insurancePolicy.message}
+                    </p>
                   )}
                 </div>
               </div>
@@ -208,22 +249,28 @@ export function AutoentrepreneurValidation({ providerId }: AutoentrepreneurValid
                   <Input
                     id="insuranceExpiry"
                     type="date"
-                    {...register('insuranceExpiry')}
+                    {...register("insuranceExpiry")}
                   />
                   {errors.insuranceExpiry && (
-                    <p className="text-sm text-red-600">{errors.insuranceExpiry.message}</p>
+                    <p className="text-sm text-red-600">
+                      {errors.insuranceExpiry.message}
+                    </p>
                   )}
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="insuranceDocument">Document d'assurance *</Label>
+                  <Label htmlFor="insuranceDocument">
+                    Document d'assurance *
+                  </Label>
                   <Input
                     id="insuranceDocument"
                     placeholder="URL du document d'assurance"
-                    {...register('insuranceDocument')}
+                    {...register("insuranceDocument")}
                   />
                   {errors.insuranceDocument && (
-                    <p className="text-sm text-red-600">{errors.insuranceDocument.message}</p>
+                    <p className="text-sm text-red-600">
+                      {errors.insuranceDocument.message}
+                    </p>
                   )}
                 </div>
               </div>
@@ -232,19 +279,20 @@ export function AutoentrepreneurValidation({ providerId }: AutoentrepreneurValid
             <Alert>
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>
-                L'assurance professionnelle est obligatoire pour tous les prestataires EcoDeli.
-                Elle doit couvrir votre activité et être valide à tout moment.
+                L'assurance professionnelle est obligatoire pour tous les
+                prestataires EcoDeli. Elle doit couvrir votre activité et être
+                valide à tout moment.
               </AlertDescription>
             </Alert>
 
             <div className="flex justify-end">
               <Button type="submit" disabled={loading || !isValid}>
-                {loading ? 'Enregistrement...' : 'Enregistrer'}
+                {loading ? "Enregistrement..." : "Enregistrer"}
               </Button>
             </div>
           </form>
         </CardContent>
       </Card>
     </div>
-  )
-} 
+  );
+}

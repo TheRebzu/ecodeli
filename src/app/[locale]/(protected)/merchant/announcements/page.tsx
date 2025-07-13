@@ -1,19 +1,31 @@
 "use client";
 
-import { useState } from 'react';
-import Link from 'next/link';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { 
-  Plus, 
-  Search, 
-  Eye, 
-  Edit, 
-  Trash2, 
+import { useState } from "react";
+import Link from "next/link";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  Plus,
+  Search,
+  Eye,
+  Edit,
+  Trash2,
   Package,
   Upload,
   Filter,
@@ -21,11 +33,11 @@ import {
   AlertCircle,
   CheckCircle,
   Clock,
-  Loader2
-} from 'lucide-react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useMerchantAnnouncements } from '@/features/merchant/hooks/use-merchant-announcements';
-import { useTranslations } from 'next-intl';
+  Loader2,
+} from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useMerchantAnnouncements } from "@/features/merchant/hooks/use-merchant-announcements";
+import { useTranslations } from "next-intl";
 
 interface MerchantAnnouncement {
   id: string;
@@ -33,7 +45,7 @@ interface MerchantAnnouncement {
   description: string;
   price: number;
   type: string;
-  status: 'ACTIVE' | 'INACTIVE' | 'ARCHIVED';
+  status: "ACTIVE" | "INACTIVE" | "ARCHIVED";
   views: number;
   orders: number;
   createdAt: string;
@@ -41,40 +53,42 @@ interface MerchantAnnouncement {
 }
 
 const STATUS_COLORS = {
-  ACTIVE: 'bg-green-100 text-green-800',
-  INACTIVE: 'bg-yellow-100 text-yellow-800',
-  ARCHIVED: 'bg-gray-100 text-gray-800'
+  ACTIVE: "bg-green-100 text-green-800",
+  INACTIVE: "bg-yellow-100 text-yellow-800",
+  ARCHIVED: "bg-gray-100 text-gray-800",
 };
 
 const STATUS_LABELS = {
-  ACTIVE: 'Active',
-  INACTIVE: 'Inactive',
-  ARCHIVED: 'Archivée'
+  ACTIVE: "Active",
+  INACTIVE: "Inactive",
+  ARCHIVED: "Archivée",
 };
 
 const TYPE_LABELS = {
-  PACKAGE_DELIVERY: 'Livraison de colis',
-  PERSON_TRANSPORT: 'Transport de personne',
-  AIRPORT_TRANSFER: 'Transfert aéroport',
-  SHOPPING: 'Course',
-  INTERNATIONAL_PURCHASE: 'Achat international',
-  CART_DROP: 'Lâcher de chariot'
+  PACKAGE_DELIVERY: "Livraison de colis",
+  PERSON_TRANSPORT: "Transport de personne",
+  AIRPORT_TRANSFER: "Transfert aéroport",
+  SHOPPING: "Course",
+  INTERNATIONAL_PURCHASE: "Achat international",
+  CART_DROP: "Lâcher de chariot",
 };
 
 export default function MerchantAnnouncementsPage() {
-  const t = useTranslations('merchant.announcements');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [typeFilter, setTypeFilter] = useState<string>('all');
+  const t = useTranslations("merchant.announcements");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [typeFilter, setTypeFilter] = useState<string>("all");
   const [currentPage, setCurrentPage] = useState(1);
 
-  const { data, stats, loading, error, refreshData } = useMerchantAnnouncements({
-    page: currentPage,
-    limit: 10,
-    status: statusFilter !== 'all' ? statusFilter : undefined,
-    type: typeFilter !== 'all' ? typeFilter : undefined,
-    search: searchQuery || undefined
-  });
+  const { data, stats, loading, error, refreshData } = useMerchantAnnouncements(
+    {
+      page: currentPage,
+      limit: 10,
+      status: statusFilter !== "all" ? statusFilter : undefined,
+      type: typeFilter !== "all" ? typeFilter : undefined,
+      search: searchQuery || undefined,
+    },
+  );
 
   if (loading) {
     return (
@@ -95,7 +109,7 @@ export default function MerchantAnnouncementsPage() {
         </Button>
       </div>
     );
-    }
+  }
 
   if (!data || !stats) {
     return (
@@ -109,30 +123,38 @@ export default function MerchantAnnouncementsPage() {
 
   const { announcements, totalPages } = data;
 
-
-
   const getStatusBadge = (status: string) => {
     const variants = {
-      ACTIVE: { variant: 'default' as const, text: 'Active', icon: CheckCircle },
-      INACTIVE: { variant: 'secondary' as const, text: 'Inactive', icon: Clock },
-      ARCHIVED: { variant: 'outline' as const, text: 'Archivée', icon: AlertCircle }
-    }
+      ACTIVE: {
+        variant: "default" as const,
+        text: "Active",
+        icon: CheckCircle,
+      },
+      INACTIVE: {
+        variant: "secondary" as const,
+        text: "Inactive",
+        icon: Clock,
+      },
+      ARCHIVED: {
+        variant: "outline" as const,
+        text: "Archivée",
+        icon: AlertCircle,
+      },
+    };
     return variants[status as keyof typeof variants] || variants.INACTIVE;
-  }
+  };
 
   const getTypeLabel = (type: string) => {
     const labels = {
-      PACKAGE_DELIVERY: 'Livraison colis',
-      PERSON_TRANSPORT: 'Transport de personne',
-      AIRPORT_TRANSFER: 'Transfert aéroport',
-      SHOPPING: 'Course',
-      INTERNATIONAL_PURCHASE: 'Achat international',
-      CART_DROP: 'Lâcher de chariot'
-    }
+      PACKAGE_DELIVERY: "Livraison colis",
+      PERSON_TRANSPORT: "Transport de personne",
+      AIRPORT_TRANSFER: "Transfert aéroport",
+      SHOPPING: "Course",
+      INTERNATIONAL_PURCHASE: "Achat international",
+      CART_DROP: "Lâcher de chariot",
+    };
     return labels[type as keyof typeof labels] || type;
-  }
-
-
+  };
 
   return (
     <div className="space-y-6">
@@ -152,11 +174,11 @@ export default function MerchantAnnouncementsPage() {
             </Link>
           </Button>
           <Button asChild>
-          <Link href="/merchant/announcements/create">
+            <Link href="/merchant/announcements/create">
               <Plus className="h-4 w-4 mr-2" />
               Nouvelle annonce
             </Link>
-            </Button>
+          </Button>
         </div>
       </div>
 
@@ -164,7 +186,9 @@ export default function MerchantAnnouncementsPage() {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Annonces actives</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Annonces actives
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.active || 0}</div>
@@ -178,7 +202,9 @@ export default function MerchantAnnouncementsPage() {
             <CardTitle className="text-sm font-medium">Vues totales</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{(stats.totalViews || 0).toLocaleString()}</div>
+            <div className="text-2xl font-bold">
+              {(stats.totalViews || 0).toLocaleString()}
+            </div>
             <p className="text-xs text-muted-foreground">
               <TrendingUp className="h-3 w-3 inline mr-1" />
               +12% ce mois
@@ -190,7 +216,9 @@ export default function MerchantAnnouncementsPage() {
             <CardTitle className="text-sm font-medium">Prix moyen</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{(stats.averagePrice || 0).toFixed(2)}€</div>
+            <div className="text-2xl font-bold">
+              {(stats.averagePrice || 0).toFixed(2)}€
+            </div>
             <p className="text-xs text-muted-foreground">
               Prix moyen des annonces
             </p>
@@ -198,13 +226,13 @@ export default function MerchantAnnouncementsPage() {
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Annonces terminées</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Annonces terminées
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.completed || 0}</div>
-            <p className="text-xs text-muted-foreground">
-              Succès → Livraisons
-            </p>
+            <p className="text-xs text-muted-foreground">Succès → Livraisons</p>
           </CardContent>
         </Card>
       </div>
@@ -217,7 +245,7 @@ export default function MerchantAnnouncementsPage() {
         </TabsList>
 
         <TabsContent value="list" className="space-y-6">
-      {/* Filtres et recherche */}
+          {/* Filtres et recherche */}
           <div className="flex items-center gap-4">
             <div className="relative flex-1 max-w-md">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -254,66 +282,83 @@ export default function MerchantAnnouncementsPage() {
                 ))}
               </SelectContent>
             </Select>
-            <Button 
+            <Button
               variant="outline"
               onClick={() => {
-                setSearchQuery('');
-                setStatusFilter('all');
-                setTypeFilter('all');
+                setSearchQuery("");
+                setStatusFilter("all");
+                setTypeFilter("all");
               }}
             >
               Réinitialiser
             </Button>
           </div>
 
-      {/* Liste des annonces */}
-            <div className="space-y-4">
+          {/* Liste des annonces */}
+          <div className="space-y-4">
             {announcements.map((announcement: any) => (
-              <Card key={announcement.id} className="hover:shadow-md transition-shadow">
+              <Card
+                key={announcement.id}
+                className="hover:shadow-md transition-shadow"
+              >
                 <CardContent className="p-6">
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-2">
-                        <h3 className="font-semibold text-lg">{announcement.title}</h3>
-                        <Badge variant="outline">{getTypeLabel(announcement.type)}</Badge>
-                        <Badge variant={getStatusBadge(announcement.status).variant}>
+                        <h3 className="font-semibold text-lg">
+                          {announcement.title}
+                        </h3>
+                        <Badge variant="outline">
+                          {getTypeLabel(announcement.type)}
+                        </Badge>
+                        <Badge
+                          variant={getStatusBadge(announcement.status).variant}
+                        >
                           {getStatusBadge(announcement.status).text}
-                          </Badge>
+                        </Badge>
                       </div>
-                      <p className="text-muted-foreground mb-4">{announcement.description}</p>
-                      
+                      <p className="text-muted-foreground mb-4">
+                        {announcement.description}
+                      </p>
+
                       <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-sm">
                         <div>
                           <p className="text-muted-foreground">Prix</p>
-                          <p className="font-medium">{(announcement.price || 0).toFixed(2)}€</p>
+                          <p className="font-medium">
+                            {(announcement.price || 0).toFixed(2)}€
+                          </p>
                         </div>
                         <div>
                           <p className="text-muted-foreground">Vues</p>
-                          <p className="font-medium">{announcement.views || 0}</p>
+                          <p className="font-medium">
+                            {announcement.views || 0}
+                          </p>
                         </div>
                         <div>
                           <p className="text-muted-foreground">Commandes</p>
-                          <p className="font-medium">{announcement.orders || 0}</p>
+                          <p className="font-medium">
+                            {announcement.orders || 0}
+                          </p>
                         </div>
                       </div>
                     </div>
-                    
-                      <div className="flex items-center gap-2">
-                          <Button variant="outline" size="sm">
+
+                    <div className="flex items-center gap-2">
+                      <Button variant="outline" size="sm">
                         <Eye className="h-4 w-4" />
-                          </Button>
-                            <Button variant="outline" size="sm">
+                      </Button>
+                      <Button variant="outline" size="sm">
                         <Edit className="h-4 w-4" />
-                            </Button>
+                      </Button>
                       <Button
                         variant="outline"
                         size="sm"
                         onClick={() => refreshData()}
                       >
                         <Trash2 className="h-4 w-4" />
-                            </Button>
+                      </Button>
                     </div>
-                      </div>
+                  </div>
                 </CardContent>
               </Card>
             ))}
@@ -354,8 +399,8 @@ export default function MerchantAnnouncementsPage() {
                     <div className="bg-primary h-2 rounded-full w-[45%]"></div>
                   </div>
                 </div>
-        </CardContent>
-      </Card>
+              </CardContent>
+            </Card>
 
             <Card>
               <CardHeader>
@@ -372,32 +417,42 @@ export default function MerchantAnnouncementsPage() {
 
         <TabsContent value="categories" className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {['Artisanat', 'Alimentation', 'Mobilier'].map((category) => (
+            {["Artisanat", "Alimentation", "Mobilier"].map((category) => (
               <Card key={category}>
                 <CardHeader>
                   <CardTitle className="text-lg">{category}</CardTitle>
                 </CardHeader>
                 <CardContent>
-                                  <div className="space-y-2">
-                  <div className="flex justify-between">
-                    <span className="text-sm text-muted-foreground">Annonces</span>
-                    <span className="font-medium">
-                      {announcements.filter((a: any) => a.type === category).length}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm text-muted-foreground">Commandes</span>
-                    <span className="font-medium">
-                      {announcements
-                        .filter((a: any) => a.type === category)
-                        .reduce((sum: any, a: any) => sum + (a.orders || 0), 0)}
-                    </span>
-                  </div>
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-sm text-muted-foreground">
+                        Annonces
+                      </span>
+                      <span className="font-medium">
+                        {
+                          announcements.filter((a: any) => a.type === category)
+                            .length
+                        }
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm text-muted-foreground">
+                        Commandes
+                      </span>
+                      <span className="font-medium">
+                        {announcements
+                          .filter((a: any) => a.type === category)
+                          .reduce(
+                            (sum: any, a: any) => sum + (a.orders || 0),
+                            0,
+                          )}
+                      </span>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
             ))}
-        </div>
+          </div>
         </TabsContent>
       </Tabs>
     </div>

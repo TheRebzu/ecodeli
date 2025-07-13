@@ -6,10 +6,7 @@ export async function GET(request: NextRequest) {
   try {
     const session = await auth();
     if (!session) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const { searchParams } = new URL(request.url);
@@ -20,7 +17,7 @@ export async function GET(request: NextRequest) {
     if (!providerId) {
       return NextResponse.json(
         { error: "Provider ID is required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -32,7 +29,7 @@ export async function GET(request: NextRequest) {
     if (!provider) {
       return NextResponse.json(
         { error: "Provider not found" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -75,14 +72,16 @@ export async function GET(request: NextRequest) {
     });
 
     // Transformer les données pour le frontend
-    const formattedEvaluations = evaluations.map(review => ({
+    const formattedEvaluations = evaluations.map((review) => ({
       id: review.id,
       serviceId: review.booking?.serviceId || null,
       serviceName: review.booking?.service?.name || "Service non spécifié",
       clientId: review.clientId,
-      clientName: review.client?.user?.profile?.firstName && review.client?.user?.profile?.lastName
-        ? `${review.client.user.profile.firstName} ${review.client.user.profile.lastName}`
-        : "Client anonyme",
+      clientName:
+        review.client?.user?.profile?.firstName &&
+        review.client?.user?.profile?.lastName
+          ? `${review.client.user.profile.firstName} ${review.client.user.profile.lastName}`
+          : "Client anonyme",
       clientAvatar: review.client?.user?.profile?.avatar || null,
       rating: review.rating,
       comment: review.comment,
@@ -112,7 +111,7 @@ export async function GET(request: NextRequest) {
     console.error("Error fetching evaluations:", error);
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
-} 
+}

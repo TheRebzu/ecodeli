@@ -1,156 +1,158 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Loader2, User, Truck, Store, Wrench, Settings } from "lucide-react"
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Loader2, User, Truck, Store, Wrench, Settings } from "lucide-react";
 
 const TEST_ACCOUNTS = [
   {
-    role: 'CLIENT',
-    email: 'client-complete@test.com',
-    password: 'Test123!',
+    role: "CLIENT",
+    email: "client-complete@test.com",
+    password: "Test123!",
     icon: User,
-    color: 'bg-blue-500',
-    description: 'Accès client avec tutoriel'
+    color: "bg-blue-500",
+    description: "Accès client avec tutoriel",
   },
   {
-    role: 'DELIVERER',
-    email: 'deliverer-complete@test.com',
-    password: 'Test123!',
+    role: "DELIVERER",
+    email: "deliverer-complete@test.com",
+    password: "Test123!",
     icon: Truck,
-    color: 'bg-green-500',
-    description: 'Livreur (documents à valider)'
+    color: "bg-green-500",
+    description: "Livreur (documents à valider)",
   },
   {
-    role: 'MERCHANT',
-    email: 'merchant-complete@test.com',
-    password: 'Test123!',
+    role: "MERCHANT",
+    email: "merchant-complete@test.com",
+    password: "Test123!",
     icon: Store,
-    color: 'bg-purple-500',
-    description: 'Commerçant (contrat à signer)'
+    color: "bg-purple-500",
+    description: "Commerçant (contrat à signer)",
   },
   {
-    role: 'PROVIDER',
-    email: 'provider-complete@test.com',
-    password: 'Test123!',
+    role: "PROVIDER",
+    email: "provider-complete@test.com",
+    password: "Test123!",
     icon: Wrench,
-    color: 'bg-orange-500',
-    description: 'Prestataire (profil à valider)'
+    color: "bg-orange-500",
+    description: "Prestataire (profil à valider)",
   },
   {
-    role: 'ADMIN',
-    email: 'admin-complete@test.com',
-    password: 'Test123!',
+    role: "ADMIN",
+    email: "admin-complete@test.com",
+    password: "Test123!",
     icon: Settings,
-    color: 'bg-red-500',
-    description: 'Administrateur (toutes permissions)'
-  }
-]
+    color: "bg-red-500",
+    description: "Administrateur (toutes permissions)",
+  },
+];
 
 interface TestAccountsProps {
-  onAccountSelect?: (email: string, password: string) => void
+  onAccountSelect?: (email: string, password: string) => void;
 }
 
 export function TestAccounts({ onAccountSelect }: TestAccountsProps) {
-  const [loadingAccount, setLoadingAccount] = useState<string | null>(null)
+  const [loadingAccount, setLoadingAccount] = useState<string | null>(null);
 
   // Ne pas afficher en production
-  if (process.env.NODE_ENV !== 'development') {
-    return null
+  if (process.env.NODE_ENV !== "development") {
+    return null;
   }
 
-  const handleQuickLogin = async (account: typeof TEST_ACCOUNTS[0]) => {
-    setLoadingAccount(account.role)
-    
+  const handleQuickLogin = async (account: (typeof TEST_ACCOUNTS)[0]) => {
+    setLoadingAccount(account.role);
+
     try {
-      console.log('🔐 Connexion rapide:', account.email)
-      
-      const response = await fetch('/api/auth/sign-in/email', {
-        method: 'POST',
+      console.log("🔐 Connexion rapide:", account.email);
+
+      const response = await fetch("/api/auth/sign-in/email", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json'
+          "Content-Type": "application/json",
         },
-        credentials: 'include',
+        credentials: "include",
         body: JSON.stringify({
           email: account.email,
-          password: account.password
-        })
-      })
+          password: account.password,
+        }),
+      });
 
       if (response.ok) {
-        const result = await response.json()
-        console.log('✅ Connexion réussie:', result)
-        
+        const result = await response.json();
+        console.log("✅ Connexion réussie:", result);
+
         // Redirection selon le rôle avec locale
-        const locale = window.location.pathname.split('/')[1] || 'fr'
+        const locale = window.location.pathname.split("/")[1] || "fr";
         const roleRoutes = {
-          'CLIENT': `/${locale}/client`,
-          'DELIVERER': `/${locale}/deliverer`,
-          'MERCHANT': `/${locale}/merchant`,
-          'PROVIDER': `/${locale}/provider`,
-          'ADMIN': `/${locale}/admin`
-        }
-        
-        window.location.href = roleRoutes[account.role as keyof typeof roleRoutes] || `/${locale}/client`
+          CLIENT: `/${locale}/client`,
+          DELIVERER: `/${locale}/deliverer`,
+          MERCHANT: `/${locale}/merchant`,
+          PROVIDER: `/${locale}/provider`,
+          ADMIN: `/${locale}/admin`,
+        };
+
+        window.location.href =
+          roleRoutes[account.role as keyof typeof roleRoutes] ||
+          `/${locale}/client`;
       } else {
-        const errorData = await response.json()
-        console.error('❌ Erreur de connexion:', errorData)
-        
+        const errorData = await response.json();
+        console.error("❌ Erreur de connexion:", errorData);
+
         // Si l'utilisateur n'existe pas, essayer de le créer
         if (response.status === 401) {
-          console.log('🌱 Utilisateur introuvable, création en cours...')
-          await createTestUser(account)
+          console.log("🌱 Utilisateur introuvable, création en cours...");
+          await createTestUser(account);
         }
       }
     } catch (error) {
-      console.error('❌ Erreur:', error)
+      console.error("❌ Erreur:", error);
     } finally {
-      setLoadingAccount(null)
+      setLoadingAccount(null);
     }
-  }
+  };
 
-  const createTestUser = async (account: typeof TEST_ACCOUNTS[0]) => {
+  const createTestUser = async (account: (typeof TEST_ACCOUNTS)[0]) => {
     try {
-      console.log('🌱 Création utilisateur:', account.email)
-      
-      const response = await fetch('/api/auth/sign-up/email', {
-        method: 'POST',
+      console.log("🌱 Création utilisateur:", account.email);
+
+      const response = await fetch("/api/auth/sign-up/email", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json'
+          "Content-Type": "application/json",
         },
-        credentials: 'include',
+        credentials: "include",
         body: JSON.stringify({
           email: account.email,
           password: account.password,
           name: `${account.role} Test`,
           role: account.role,
           isActive: true,
-          validationStatus: 'VALIDATED'
-        })
-      })
+          validationStatus: "VALIDATED",
+        }),
+      });
 
       if (response.ok) {
-        console.log('✅ Utilisateur créé, connexion automatique...')
+        console.log("✅ Utilisateur créé, connexion automatique...");
         // Essayer de se connecter après création
-        await handleQuickLogin(account)
+        await handleQuickLogin(account);
       } else {
-        const errorData = await response.json()
-        console.error('❌ Erreur création utilisateur:', errorData)
+        const errorData = await response.json();
+        console.error("❌ Erreur création utilisateur:", errorData);
       }
     } catch (error) {
-      console.error('❌ Erreur création:', error)
+      console.error("❌ Erreur création:", error);
     }
-  }
+  };
 
-  const handleAccountSelect = (account: typeof TEST_ACCOUNTS[0]) => {
+  const handleAccountSelect = (account: (typeof TEST_ACCOUNTS)[0]) => {
     if (onAccountSelect) {
-      onAccountSelect(account.email, account.password)
+      onAccountSelect(account.email, account.password);
     } else {
-      handleQuickLogin(account)
+      handleQuickLogin(account);
     }
-  }
+  };
 
   return (
     <Card className="mt-6 border-dashed border-2 border-blue-200 bg-blue-50/50">
@@ -161,9 +163,9 @@ export function TestAccounts({ onAccountSelect }: TestAccountsProps) {
       </CardHeader>
       <CardContent className="space-y-3">
         {TEST_ACCOUNTS.map((account) => {
-          const Icon = account.icon
-          const isLoading = loadingAccount === account.role
-          
+          const Icon = account.icon;
+          const isLoading = loadingAccount === account.role;
+
           return (
             <div
               key={account.role}
@@ -187,7 +189,7 @@ export function TestAccounts({ onAccountSelect }: TestAccountsProps) {
                   </p>
                 </div>
               </div>
-              
+
               <Button
                 size="sm"
                 variant="outline"
@@ -196,17 +198,18 @@ export function TestAccounts({ onAccountSelect }: TestAccountsProps) {
                 className="text-xs"
               >
                 {isLoading && <Loader2 className="mr-1 h-3 w-3 animate-spin" />}
-                {isLoading ? 'Connexion...' : 'Se connecter'}
+                {isLoading ? "Connexion..." : "Se connecter"}
               </Button>
             </div>
-          )
+          );
         })}
-        
+
         <div className="text-xs text-blue-600 bg-blue-100 p-2 rounded">
-          💡 <strong>Astuce :</strong> Cliquez sur "Se connecter" pour une connexion rapide, 
-          ou copiez les identifiants dans le formulaire principal.
+          💡 <strong>Astuce :</strong> Cliquez sur "Se connecter" pour une
+          connexion rapide, ou copiez les identifiants dans le formulaire
+          principal.
         </div>
       </CardContent>
     </Card>
-  )
-} 
+  );
+}

@@ -1,12 +1,12 @@
-"use client"
+"use client";
 
-import { useState } from 'react'
-import { useTranslations } from 'next-intl'
-import { Link } from '@/i18n/navigation'
-import { cn } from '@/lib/utils'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { useState } from "react";
+import { useTranslations } from "next-intl";
+import { Link } from "@/i18n/navigation";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,9 +14,9 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import { ThemeToggle } from '@/components/ui/theme-toggle'
-import { LanguageSwitcher } from '@/components/common/language-switcher'
+} from "@/components/ui/dropdown-menu";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { LanguageSwitcher } from "@/components/common/language-switcher";
 import {
   Menu,
   Bell,
@@ -31,65 +31,71 @@ import {
   Database,
   Activity,
   CheckCircle,
-  HelpCircle
-} from 'lucide-react'
+  HelpCircle,
+} from "lucide-react";
 
 interface AdminHeaderProps {
   user: {
-    id: string
-    name?: string
-    email: string
-    role: string
-    avatar?: string
-    adminLevel?: 'SUPER_ADMIN' | 'ADMIN' | 'MODERATOR'
-  }
-  onSidebarToggle?: () => void
+    id: string;
+    name?: string;
+    email: string;
+    role: string;
+    avatar?: string;
+    adminLevel?: "SUPER_ADMIN" | "ADMIN" | "MODERATOR";
+  };
+  onSidebarToggle?: () => void;
   notifications?: Array<{
-    id: string
-    title: string
-    message: string
-    type: 'info' | 'success' | 'warning' | 'error'
-    read: boolean
-    createdAt: Date
-    priority?: 'low' | 'medium' | 'high' | 'critical'
-  }>
+    id: string;
+    title: string;
+    message: string;
+    type: "info" | "success" | "warning" | "error";
+    read: boolean;
+    createdAt: Date;
+    priority?: "low" | "medium" | "high" | "critical";
+  }>;
   systemStatus?: {
-    status: 'healthy' | 'warning' | 'error'
-    message?: string
-  }
+    status: "healthy" | "warning" | "error";
+    message?: string;
+  };
 }
 
-export function AdminHeader({ 
-  user, 
-  onSidebarToggle, 
+export function AdminHeader({
+  user,
+  onSidebarToggle,
   notifications = [],
-  systemStatus = { status: 'healthy' }
+  systemStatus = { status: "healthy" },
 }: AdminHeaderProps) {
-  const [showSearch, setShowSearch] = useState(false)
-  const unreadCount = notifications.filter(n => !n.read).length
-  const criticalCount = notifications.filter(n => !n.read && n.priority === 'critical').length
+  const [showSearch, setShowSearch] = useState(false);
+  const unreadCount = notifications.filter((n) => !n.read).length;
+  const criticalCount = notifications.filter(
+    (n) => !n.read && n.priority === "critical",
+  ).length;
 
   const getAdminLevelBadge = () => {
     switch (user.adminLevel) {
-      case 'SUPER_ADMIN':
-        return <Badge variant="destructive">Super Admin</Badge>
-      case 'ADMIN':
-        return <Badge variant="default" className="bg-red-500 hover:bg-red-600">Admin</Badge>
+      case "SUPER_ADMIN":
+        return <Badge variant="destructive">Super Admin</Badge>;
+      case "ADMIN":
+        return (
+          <Badge variant="default" className="bg-red-500 hover:bg-red-600">
+            Admin
+          </Badge>
+        );
       default:
-        return <Badge variant="outline">Modérateur</Badge>
+        return <Badge variant="outline">Modérateur</Badge>;
     }
-  }
+  };
 
   const getSystemStatusIcon = () => {
     switch (systemStatus.status) {
-      case 'error':
-        return <AlertTriangle className="h-4 w-4 text-red-500" />
-      case 'warning':
-        return <AlertTriangle className="h-4 w-4 text-yellow-500" />
+      case "error":
+        return <AlertTriangle className="h-4 w-4 text-red-500" />;
+      case "warning":
+        return <AlertTriangle className="h-4 w-4 text-yellow-500" />;
       default:
-        return <CheckCircle className="h-4 w-4 text-green-500" />
+        return <CheckCircle className="h-4 w-4 text-green-500" />;
     }
-  }
+  };
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 dark:bg-background/95">
@@ -106,7 +112,10 @@ export function AdminHeader({
         </Button>
 
         {/* Logo (visible sur mobile uniquement) */}
-        <Link href="/admin" className="flex items-center space-x-2 md:hidden ml-2">
+        <Link
+          href="/admin"
+          className="flex items-center space-x-2 md:hidden ml-2"
+        >
           <Shield className="h-6 w-6 text-red-600 dark:text-red-400" />
           <span className="font-bold text-xl">EcoDeli Admin</span>
         </Link>
@@ -115,7 +124,7 @@ export function AdminHeader({
         <div className="hidden md:flex items-center space-x-2 ml-4">
           {getSystemStatusIcon()}
           <span className="text-sm text-muted-foreground">
-            {systemStatus.message || 'Système opérationnel'}
+            {systemStatus.message || "Système opérationnel"}
           </span>
         </div>
 
@@ -150,14 +159,24 @@ export function AdminHeader({
         {/* Actions à droite */}
         <div className="flex items-center space-x-2">
           {/* Boutons d'action rapide */}
-          <Button size="sm" variant="outline" asChild className="hidden sm:flex">
+          <Button
+            size="sm"
+            variant="outline"
+            asChild
+            className="hidden sm:flex"
+          >
             <Link href="/admin/validations">
               <CheckCircle className="h-4 w-4 mr-2" />
               Validations
             </Link>
           </Button>
 
-          <Button size="sm" variant="outline" asChild className="hidden lg:flex">
+          <Button
+            size="sm"
+            variant="outline"
+            asChild
+            className="hidden lg:flex"
+          >
             <Link href="/admin/analytics">
               <BarChart3 className="h-4 w-4 mr-2" />
               Analytics
@@ -185,7 +204,7 @@ export function AdminHeader({
                     variant={criticalCount > 0 ? "destructive" : "secondary"}
                     className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs"
                   >
-                    {unreadCount > 9 ? '9+' : unreadCount}
+                    {unreadCount > 9 ? "9+" : unreadCount}
                   </Badge>
                 )}
                 <span className="sr-only">Notifications</span>
@@ -197,7 +216,9 @@ export function AdminHeader({
                 {unreadCount > 0 && (
                   <div className="flex space-x-1">
                     {criticalCount > 0 && (
-                      <Badge variant="destructive">{criticalCount} critiques</Badge>
+                      <Badge variant="destructive">
+                        {criticalCount} critiques
+                      </Badge>
                     )}
                     <Badge variant="secondary">{unreadCount} nouvelles</Badge>
                   </div>
@@ -211,12 +232,19 @@ export function AdminHeader({
               ) : (
                 <div className="max-h-80 overflow-y-auto">
                   {notifications.slice(0, 5).map((notification) => (
-                    <DropdownMenuItem key={notification.id} className="flex flex-col items-start space-y-1 p-3">
+                    <DropdownMenuItem
+                      key={notification.id}
+                      className="flex flex-col items-start space-y-1 p-3"
+                    >
                       <div className="flex items-center justify-between w-full">
-                        <span className="font-medium text-sm">{notification.title}</span>
+                        <span className="font-medium text-sm">
+                          {notification.title}
+                        </span>
                         <div className="flex items-center space-x-1">
-                          {notification.priority === 'critical' && (
-                            <Badge variant="destructive" className="text-xs">Critique</Badge>
+                          {notification.priority === "critical" && (
+                            <Badge variant="destructive" className="text-xs">
+                              Critique
+                            </Badge>
                           )}
                           {!notification.read && (
                             <div className="w-2 h-2 bg-red-500 rounded-full" />
@@ -233,7 +261,10 @@ export function AdminHeader({
                   ))}
                   {notifications.length > 5 && (
                     <DropdownMenuItem asChild>
-                      <Link href="/admin/notifications" className="text-center py-2">
+                      <Link
+                        href="/admin/notifications"
+                        className="text-center py-2"
+                      >
                         Voir toutes les notifications
                       </Link>
                     </DropdownMenuItem>
@@ -254,9 +285,14 @@ export function AdminHeader({
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="relative h-8 w-8 rounded-full">
                 <Avatar className="h-8 w-8">
-                  <AvatarImage src={user.avatar} alt={user.name || user.email} />
+                  <AvatarImage
+                    src={user.avatar}
+                    alt={user.name || user.email}
+                  />
                   <AvatarFallback>
-                    {user.name ? user.name.substring(0, 2).toUpperCase() : user.email.substring(0, 2).toUpperCase()}
+                    {user.name
+                      ? user.name.substring(0, 2).toUpperCase()
+                      : user.email.substring(0, 2).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
               </Button>
@@ -265,7 +301,7 @@ export function AdminHeader({
               <DropdownMenuLabel className="font-normal">
                 <div className="flex flex-col space-y-1">
                   <p className="text-sm font-medium leading-none">
-                    {user.name || 'Administrateur'}
+                    {user.name || "Administrateur"}
                   </p>
                   <p className="text-xs leading-none text-muted-foreground">
                     {user.email}
@@ -323,5 +359,5 @@ export function AdminHeader({
         </div>
       </div>
     </header>
-  )
-} 
+  );
+}

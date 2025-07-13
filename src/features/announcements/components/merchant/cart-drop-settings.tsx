@@ -1,81 +1,97 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { z } from "zod"
+import { useState, useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 
 const cartDropConfigSchema = z.object({
   enabled: z.boolean().default(true),
   storeAddress: z.string().min(5, "L'adresse du magasin est requise"),
-  maxDistance: z.number().min(1, "Distance minimum: 1km").max(50, "Distance maximum: 50km"),
-  maxOrders: z.number().min(1, "Minimum 1 commande").max(100, "Maximum 100 commandes"),
-  deliveryFee: z.number().min(0, "Les frais de livraison doivent être positifs"),
-  freeDeliveryThreshold: z.number().min(0, "Le seuil doit être positif").optional(),
+  maxDistance: z
+    .number()
+    .min(1, "Distance minimum: 1km")
+    .max(50, "Distance maximum: 50km"),
+  maxOrders: z
+    .number()
+    .min(1, "Minimum 1 commande")
+    .max(100, "Maximum 100 commandes"),
+  deliveryFee: z
+    .number()
+    .min(0, "Les frais de livraison doivent être positifs"),
+  freeDeliveryThreshold: z
+    .number()
+    .min(0, "Le seuil doit être positif")
+    .optional(),
   operatingHours: z.object({
     monday: z.object({
       enabled: z.boolean(),
       start: z.string(),
-      end: z.string()
+      end: z.string(),
     }),
     tuesday: z.object({
       enabled: z.boolean(),
       start: z.string(),
-      end: z.string()
+      end: z.string(),
     }),
     wednesday: z.object({
       enabled: z.boolean(),
       start: z.string(),
-      end: z.string()
+      end: z.string(),
     }),
     thursday: z.object({
       enabled: z.boolean(),
       start: z.string(),
-      end: z.string()
+      end: z.string(),
     }),
     friday: z.object({
       enabled: z.boolean(),
       start: z.string(),
-      end: z.string()
+      end: z.string(),
     }),
     saturday: z.object({
       enabled: z.boolean(),
       start: z.string(),
-      end: z.string()
+      end: z.string(),
     }),
     sunday: z.object({
       enabled: z.boolean(),
       start: z.string(),
-      end: z.string()
-    })
+      end: z.string(),
+    }),
   }),
-  deliverySlots: z.array(z.object({
-    id: z.string(),
-    name: z.string(),
-    startTime: z.string(),
-    endTime: z.string(),
-    maxOrders: z.number(),
-    enabled: z.boolean()
-  })),
+  deliverySlots: z.array(
+    z.object({
+      id: z.string(),
+      name: z.string(),
+      startTime: z.string(),
+      endTime: z.string(),
+      maxOrders: z.number(),
+      enabled: z.boolean(),
+    }),
+  ),
   specialInstructions: z.string().optional(),
   restrictedProducts: z.array(z.string()).optional(),
   requiresSignature: z.boolean().default(false),
   allowWeekendDelivery: z.boolean().default(true),
-  emergencyContact: z.string().min(10, "Numéro de téléphone requis")
-})
+  emergencyContact: z.string().min(10, "Numéro de téléphone requis"),
+});
 
-type CartDropConfigData = z.infer<typeof cartDropConfigSchema>
+type CartDropConfigData = z.infer<typeof cartDropConfigSchema>;
 
 interface CartDropSettingsProps {
-  merchantId?: string
-  onConfigUpdate?: (config: CartDropConfigData) => void
+  merchantId?: string;
+  onConfigUpdate?: (config: CartDropConfigData) => void;
 }
 
-export function CartDropSettings({ merchantId, onConfigUpdate }: CartDropSettingsProps) {
-  const [isLoading, setIsLoading] = useState(false)
-  const [saving, setSaving] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [success, setSuccess] = useState(false)
+export function CartDropSettings({
+  merchantId,
+  onConfigUpdate,
+}: CartDropSettingsProps) {
+  const [isLoading, setIsLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
 
   const {
     register,
@@ -83,118 +99,142 @@ export function CartDropSettings({ merchantId, onConfigUpdate }: CartDropSetting
     formState: { errors },
     watch,
     setValue,
-    getValues
+    getValues,
   } = useForm<CartDropConfigData>({
     resolver: zodResolver(cartDropConfigSchema),
     defaultValues: {
       enabled: true,
       maxDistance: 10,
       maxOrders: 20,
-      deliveryFee: 3.50,
+      deliveryFee: 3.5,
       freeDeliveryThreshold: 30,
       operatingHours: {
-        monday: { enabled: true, start: '09:00', end: '18:00' },
-        tuesday: { enabled: true, start: '09:00', end: '18:00' },
-        wednesday: { enabled: true, start: '09:00', end: '18:00' },
-        thursday: { enabled: true, start: '09:00', end: '18:00' },
-        friday: { enabled: true, start: '09:00', end: '18:00' },
-        saturday: { enabled: true, start: '09:00', end: '17:00' },
-        sunday: { enabled: false, start: '10:00', end: '16:00' }
+        monday: { enabled: true, start: "09:00", end: "18:00" },
+        tuesday: { enabled: true, start: "09:00", end: "18:00" },
+        wednesday: { enabled: true, start: "09:00", end: "18:00" },
+        thursday: { enabled: true, start: "09:00", end: "18:00" },
+        friday: { enabled: true, start: "09:00", end: "18:00" },
+        saturday: { enabled: true, start: "09:00", end: "17:00" },
+        sunday: { enabled: false, start: "10:00", end: "16:00" },
       },
       deliverySlots: [
-        { id: '1', name: 'Matin', startTime: '09:00', endTime: '12:00', maxOrders: 10, enabled: true },
-        { id: '2', name: 'Après-midi', startTime: '14:00', endTime: '17:00', maxOrders: 10, enabled: true },
-        { id: '3', name: 'Soir', startTime: '17:00', endTime: '20:00', maxOrders: 5, enabled: false }
+        {
+          id: "1",
+          name: "Matin",
+          startTime: "09:00",
+          endTime: "12:00",
+          maxOrders: 10,
+          enabled: true,
+        },
+        {
+          id: "2",
+          name: "Après-midi",
+          startTime: "14:00",
+          endTime: "17:00",
+          maxOrders: 10,
+          enabled: true,
+        },
+        {
+          id: "3",
+          name: "Soir",
+          startTime: "17:00",
+          endTime: "20:00",
+          maxOrders: 5,
+          enabled: false,
+        },
       ],
       requiresSignature: false,
-      allowWeekendDelivery: true
-    }
-  })
+      allowWeekendDelivery: true,
+    },
+  });
 
-  const isEnabled = watch('enabled')
-  const deliverySlots = watch('deliverySlots')
+  const isEnabled = watch("enabled");
+  const deliverySlots = watch("deliverySlots");
 
   useEffect(() => {
-    loadConfiguration()
-  }, [merchantId])
+    loadConfiguration();
+  }, [merchantId]);
 
   const loadConfiguration = async () => {
-    if (!merchantId) return
+    if (!merchantId) return;
 
-    setIsLoading(true)
+    setIsLoading(true);
     try {
-      const response = await fetch(`/api/merchant/cart-drop/settings`)
+      const response = await fetch(`/api/merchant/cart-drop/settings`);
       if (response.ok) {
-        const config = await response.json()
+        const config = await response.json();
         // Set form values with loaded config
         Object.entries(config).forEach(([key, value]) => {
-          setValue(key as keyof CartDropConfigData, value as any)
-        })
+          setValue(key as keyof CartDropConfigData, value as any);
+        });
       }
     } catch (err) {
-      console.error('Error loading configuration:', err)
+      console.error("Error loading configuration:", err);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const onSubmit = async (data: CartDropConfigData) => {
-    setSaving(true)
-    setError(null)
-    setSuccess(false)
+    setSaving(true);
+    setError(null);
+    setSuccess(false);
 
     try {
-      const response = await fetch('/api/merchant/cart-drop/settings', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-      })
+      const response = await fetch("/api/merchant/cart-drop/settings", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
 
-      const result = await response.json()
+      const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(result.error || 'Erreur lors de la sauvegarde')
+        throw new Error(result.error || "Erreur lors de la sauvegarde");
       }
 
-      setSuccess(true)
+      setSuccess(true);
       if (onConfigUpdate) {
-        onConfigUpdate(data)
+        onConfigUpdate(data);
       }
 
       // Clear success message after 3 seconds
-      setTimeout(() => setSuccess(false), 3000)
+      setTimeout(() => setSuccess(false), 3000);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erreur inconnue')
+      setError(err instanceof Error ? err.message : "Erreur inconnue");
     } finally {
-      setSaving(false)
+      setSaving(false);
     }
-  }
+  };
 
   const addDeliverySlot = () => {
     const newSlot = {
       id: Date.now().toString(),
-      name: 'Nouveau créneau',
-      startTime: '09:00',
-      endTime: '12:00',
+      name: "Nouveau créneau",
+      startTime: "09:00",
+      endTime: "12:00",
       maxOrders: 5,
-      enabled: true
-    }
-    setValue('deliverySlots', [...deliverySlots, newSlot])
-  }
+      enabled: true,
+    };
+    setValue("deliverySlots", [...deliverySlots, newSlot]);
+  };
 
   const removeDeliverySlot = (slotId: string) => {
-    setValue('deliverySlots', deliverySlots.filter(slot => slot.id !== slotId))
-  }
+    setValue(
+      "deliverySlots",
+      deliverySlots.filter((slot) => slot.id !== slotId),
+    );
+  };
 
   const daysOfWeek = [
-    { key: 'monday', label: 'Lundi' },
-    { key: 'tuesday', label: 'Mardi' },
-    { key: 'wednesday', label: 'Mercredi' },
-    { key: 'thursday', label: 'Jeudi' },
-    { key: 'friday', label: 'Vendredi' },
-    { key: 'saturday', label: 'Samedi' },
-    { key: 'sunday', label: 'Dimanche' }
-  ]
+    { key: "monday", label: "Lundi" },
+    { key: "tuesday", label: "Mardi" },
+    { key: "wednesday", label: "Mercredi" },
+    { key: "thursday", label: "Jeudi" },
+    { key: "friday", label: "Vendredi" },
+    { key: "saturday", label: "Samedi" },
+    { key: "sunday", label: "Dimanche" },
+  ];
 
   if (isLoading) {
     return (
@@ -205,7 +245,7 @@ export function CartDropSettings({ merchantId, onConfigUpdate }: CartDropSetting
           <div className="h-4 bg-gray-200 rounded w-1/2"></div>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -227,7 +267,9 @@ export function CartDropSettings({ merchantId, onConfigUpdate }: CartDropSetting
 
       {success && (
         <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
-          <p className="text-sm text-green-600">✅ Configuration sauvegardée avec succès !</p>
+          <p className="text-sm text-green-600">
+            ✅ Configuration sauvegardée avec succès !
+          </p>
         </div>
       )}
 
@@ -240,7 +282,10 @@ export function CartDropSettings({ merchantId, onConfigUpdate }: CartDropSetting
             id="enabled"
             className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
           />
-          <label htmlFor="enabled" className="ml-2 text-sm font-medium text-gray-700">
+          <label
+            htmlFor="enabled"
+            className="ml-2 text-sm font-medium text-gray-700"
+          >
             Activer le service de lâcher de chariot
           </label>
         </div>
@@ -250,7 +295,10 @@ export function CartDropSettings({ merchantId, onConfigUpdate }: CartDropSetting
             {/* Informations de base */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label htmlFor="storeAddress" className="block text-sm font-medium text-gray-700 mb-1">
+                <label
+                  htmlFor="storeAddress"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
                   Adresse du magasin *
                 </label>
                 <textarea
@@ -261,12 +309,17 @@ export function CartDropSettings({ merchantId, onConfigUpdate }: CartDropSetting
                   placeholder="Adresse complète du magasin"
                 />
                 {errors.storeAddress && (
-                  <p className="mt-1 text-sm text-red-600">{errors.storeAddress.message}</p>
+                  <p className="mt-1 text-sm text-red-600">
+                    {errors.storeAddress.message}
+                  </p>
                 )}
               </div>
 
               <div>
-                <label htmlFor="emergencyContact" className="block text-sm font-medium text-gray-700 mb-1">
+                <label
+                  htmlFor="emergencyContact"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
                   Contact d'urgence *
                 </label>
                 <input
@@ -277,7 +330,9 @@ export function CartDropSettings({ merchantId, onConfigUpdate }: CartDropSetting
                   placeholder="Numéro de téléphone"
                 />
                 {errors.emergencyContact && (
-                  <p className="mt-1 text-sm text-red-600">{errors.emergencyContact.message}</p>
+                  <p className="mt-1 text-sm text-red-600">
+                    {errors.emergencyContact.message}
+                  </p>
                 )}
               </div>
             </div>
@@ -285,7 +340,10 @@ export function CartDropSettings({ merchantId, onConfigUpdate }: CartDropSetting
             {/* Limites de service */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div>
-                <label htmlFor="maxDistance" className="block text-sm font-medium text-gray-700 mb-1">
+                <label
+                  htmlFor="maxDistance"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
                   Distance max (km) *
                 </label>
                 <input
@@ -297,12 +355,17 @@ export function CartDropSettings({ merchantId, onConfigUpdate }: CartDropSetting
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                 />
                 {errors.maxDistance && (
-                  <p className="mt-1 text-sm text-red-600">{errors.maxDistance.message}</p>
+                  <p className="mt-1 text-sm text-red-600">
+                    {errors.maxDistance.message}
+                  </p>
                 )}
               </div>
 
               <div>
-                <label htmlFor="maxOrders" className="block text-sm font-medium text-gray-700 mb-1">
+                <label
+                  htmlFor="maxOrders"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
                   Commandes max/jour *
                 </label>
                 <input
@@ -314,12 +377,17 @@ export function CartDropSettings({ merchantId, onConfigUpdate }: CartDropSetting
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                 />
                 {errors.maxOrders && (
-                  <p className="mt-1 text-sm text-red-600">{errors.maxOrders.message}</p>
+                  <p className="mt-1 text-sm text-red-600">
+                    {errors.maxOrders.message}
+                  </p>
                 )}
               </div>
 
               <div>
-                <label htmlFor="deliveryFee" className="block text-sm font-medium text-gray-700 mb-1">
+                <label
+                  htmlFor="deliveryFee"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
                   Frais de livraison (€) *
                 </label>
                 <input
@@ -331,13 +399,18 @@ export function CartDropSettings({ merchantId, onConfigUpdate }: CartDropSetting
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                 />
                 {errors.deliveryFee && (
-                  <p className="mt-1 text-sm text-red-600">{errors.deliveryFee.message}</p>
+                  <p className="mt-1 text-sm text-red-600">
+                    {errors.deliveryFee.message}
+                  </p>
                 )}
               </div>
             </div>
 
             <div>
-              <label htmlFor="freeDeliveryThreshold" className="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="freeDeliveryThreshold"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
                 Seuil livraison gratuite (€)
               </label>
               <input
@@ -350,19 +423,24 @@ export function CartDropSettings({ merchantId, onConfigUpdate }: CartDropSetting
                 placeholder="Montant minimum pour livraison gratuite"
               />
               {errors.freeDeliveryThreshold && (
-                <p className="mt-1 text-sm text-red-600">{errors.freeDeliveryThreshold.message}</p>
+                <p className="mt-1 text-sm text-red-600">
+                  {errors.freeDeliveryThreshold.message}
+                </p>
               )}
             </div>
 
             {/* Horaires d'ouverture */}
             <div>
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Horaires d'ouverture</h3>
+              <h3 className="text-lg font-medium text-gray-900 mb-4">
+                Horaires d'ouverture
+              </h3>
               <div className="space-y-3">
                 {daysOfWeek.map((day) => {
-                  const enabledField = `operatingHours.${day.key}.enabled` as const
-                  const startField = `operatingHours.${day.key}.start` as const
-                  const endField = `operatingHours.${day.key}.end` as const
-                  
+                  const enabledField =
+                    `operatingHours.${day.key}.enabled` as const;
+                  const startField = `operatingHours.${day.key}.start` as const;
+                  const endField = `operatingHours.${day.key}.end` as const;
+
                   return (
                     <div key={day.key} className="flex items-center space-x-4">
                       <div className="w-20">
@@ -372,7 +450,10 @@ export function CartDropSettings({ merchantId, onConfigUpdate }: CartDropSetting
                           id={`${day.key}-enabled`}
                           className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
                         />
-                        <label htmlFor={`${day.key}-enabled`} className="ml-2 text-sm text-gray-700">
+                        <label
+                          htmlFor={`${day.key}-enabled`}
+                          className="ml-2 text-sm text-gray-700"
+                        >
                           {day.label}
                         </label>
                       </div>
@@ -390,7 +471,7 @@ export function CartDropSettings({ merchantId, onConfigUpdate }: CartDropSetting
                         />
                       </div>
                     </div>
-                  )
+                  );
                 })}
               </div>
             </div>
@@ -398,7 +479,9 @@ export function CartDropSettings({ merchantId, onConfigUpdate }: CartDropSetting
             {/* Créneaux de livraison */}
             <div>
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-medium text-gray-900">Créneaux de livraison</h3>
+                <h3 className="text-lg font-medium text-gray-900">
+                  Créneaux de livraison
+                </h3>
                 <button
                   type="button"
                   onClick={addDeliverySlot}
@@ -407,10 +490,13 @@ export function CartDropSettings({ merchantId, onConfigUpdate }: CartDropSetting
                   + Ajouter un créneau
                 </button>
               </div>
-              
+
               <div className="space-y-4">
                 {deliverySlots.map((slot, index) => (
-                  <div key={slot.id} className="border border-gray-200 rounded-lg p-4">
+                  <div
+                    key={slot.id}
+                    className="border border-gray-200 rounded-lg p-4"
+                  >
                     <div className="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -447,7 +533,9 @@ export function CartDropSettings({ merchantId, onConfigUpdate }: CartDropSetting
                           Max commandes
                         </label>
                         <input
-                          {...register(`deliverySlots.${index}.maxOrders`, { valueAsNumber: true })}
+                          {...register(`deliverySlots.${index}.maxOrders`, {
+                            valueAsNumber: true,
+                          })}
                           type="number"
                           min="1"
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
@@ -476,8 +564,10 @@ export function CartDropSettings({ merchantId, onConfigUpdate }: CartDropSetting
 
             {/* Options avancées */}
             <div className="space-y-4">
-              <h3 className="text-lg font-medium text-gray-900">Options avancées</h3>
-              
+              <h3 className="text-lg font-medium text-gray-900">
+                Options avancées
+              </h3>
+
               <div className="flex items-center space-x-6">
                 <label className="flex items-center">
                   <input
@@ -485,23 +575,30 @@ export function CartDropSettings({ merchantId, onConfigUpdate }: CartDropSetting
                     type="checkbox"
                     className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
                   />
-                  <span className="ml-2 text-sm text-gray-700">Signature requise</span>
+                  <span className="ml-2 text-sm text-gray-700">
+                    Signature requise
+                  </span>
                 </label>
-                
+
                 <label className="flex items-center">
                   <input
                     {...register("allowWeekendDelivery")}
                     type="checkbox"
                     className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
                   />
-                  <span className="ml-2 text-sm text-gray-700">Livraison weekend</span>
+                  <span className="ml-2 text-sm text-gray-700">
+                    Livraison weekend
+                  </span>
                 </label>
               </div>
             </div>
 
             {/* Instructions spéciales */}
             <div>
-              <label htmlFor="specialInstructions" className="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="specialInstructions"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
                 Instructions spéciales
               </label>
               <textarea
@@ -522,10 +619,10 @@ export function CartDropSettings({ merchantId, onConfigUpdate }: CartDropSetting
             disabled={saving}
             className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
-            {saving ? 'Sauvegarde...' : 'Sauvegarder la configuration'}
+            {saving ? "Sauvegarde..." : "Sauvegarder la configuration"}
           </button>
         </div>
       </form>
     </div>
-  )
+  );
 }

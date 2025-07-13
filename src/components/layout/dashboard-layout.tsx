@@ -1,15 +1,15 @@
-'use client';
+"use client";
 
-import { ReactNode } from 'react';
-import { cn } from '@/lib/utils';
-import { DashboardLayoutProps } from './types';
-import { AdminHeader } from './admin-header';
-import { ClientHeader } from './client-header';
-import { DelivererHeader } from './deliverer-header';
-import { MerchantHeader } from './merchant-header';
-import { ProviderHeader } from './provider-header';
-import { Footer } from './footer';
-import { Sidebar } from '@/components/ui/sidebar';
+import { ReactNode } from "react";
+import { cn } from "@/lib/utils";
+import { DashboardLayoutProps } from "./types";
+import { AdminHeader } from "./admin-header";
+import { ClientHeader } from "./client-header";
+import { DelivererHeader } from "./deliverer-header";
+import { MerchantHeader } from "./merchant-header";
+import { ProviderHeader } from "./provider-header";
+import { Footer } from "./footer";
+import { Sidebar } from "@/components/ui/sidebar";
 
 /**
  * Layout principal pour les espaces utilisateur (dashboard)
@@ -19,16 +19,16 @@ export function DashboardLayout({
   user,
   header,
   sidebar,
-  className
+  className,
 }: DashboardLayoutProps) {
   // Fonction de déconnexion NextAuth
   const handleLogout = async () => {
     try {
-      await fetch('/api/auth/logout', { method: 'POST' });
-      window.location.href = '/fr/login';
+      await fetch("/api/auth/logout", { method: "POST" });
+      window.location.href = "/fr/login";
     } catch (error) {
-      console.error('Erreur lors de la déconnexion:', error);
-      window.location.href = '/fr/login';
+      console.error("Erreur lors de la déconnexion:", error);
+      window.location.href = "/fr/login";
     }
   };
 
@@ -38,19 +38,19 @@ export function DashboardLayout({
 
     const baseProps = {
       user,
-      onLogout: handleLogout
+      onLogout: handleLogout,
     };
 
     switch (user.role) {
-      case 'ADMIN':
+      case "ADMIN":
         return <AdminHeader {...baseProps} />;
-      case 'CLIENT':
+      case "CLIENT":
         return <ClientHeader {...baseProps} />;
-      case 'DELIVERER':
+      case "DELIVERER":
         return <DelivererHeader {...baseProps} />;
-      case 'MERCHANT':
+      case "MERCHANT":
         return <MerchantHeader {...baseProps} user={user as any} />;
-      case 'PROVIDER':
+      case "PROVIDER":
         return <ProviderHeader {...baseProps} user={user as any} />;
       default:
         return null;
@@ -72,9 +72,7 @@ export function DashboardLayout({
 
         {/* Main Content */}
         <main className="flex-1 overflow-y-auto">
-          <div className="container mx-auto p-6">
-            {children}
-          </div>
+          <div className="container mx-auto p-6">{children}</div>
         </main>
       </div>
 
@@ -82,4 +80,4 @@ export function DashboardLayout({
       <Footer variant="dashboard" />
     </div>
   );
-} 
+}

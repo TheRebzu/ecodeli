@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { cn } from '@/lib/utils';
-import { PublicLayoutProps } from './types';
-import { PublicHeader } from './public-header';
-import { Footer } from './footer';
+import { cn } from "@/lib/utils";
+import { PublicLayoutProps } from "./types";
+import { PublicHeader } from "./public-header";
+import { Footer } from "./footer";
 
 /**
  * Layout pour les pages publiques (non authentifiées)
@@ -14,7 +14,7 @@ export function PublicLayout({
   showFooter = true,
   headerProps,
   footerProps,
-  className
+  className,
 }: PublicLayoutProps) {
   return (
     <div className={cn("min-h-screen bg-background flex flex-col", className)}>
@@ -22,12 +22,10 @@ export function PublicLayout({
       {showHeader && <PublicHeader {...headerProps} />}
 
       {/* Main Content */}
-      <main className="flex-1">
-        {children}
-      </main>
+      <main className="flex-1">{children}</main>
 
       {/* Footer */}
       {showFooter && <Footer variant="public" {...footerProps} />}
     </div>
   );
-} 
+}

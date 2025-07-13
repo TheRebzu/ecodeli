@@ -1,35 +1,37 @@
-import fs from 'fs/promises'
-import path from 'path'
+import fs from "fs/promises";
+import path from "path";
 
 /**
  * Génère un PDF à partir de contenu HTML
  * Pour l'instant, on sauvegarde le HTML dans un fichier
  * En production, on utiliserait puppeteer ou jsPDF
  */
-export async function generatePDF(htmlContent: string, fileName: string): Promise<string> {
+export async function generatePDF(
+  htmlContent: string,
+  fileName: string,
+): Promise<string> {
   try {
     // Créer le dossier de stockage des PDFs s'il n'existe pas
-    const pdfDir = path.join(process.cwd(), 'public', 'generated-pdfs')
-    
+    const pdfDir = path.join(process.cwd(), "public", "generated-pdfs");
+
     try {
-      await fs.access(pdfDir)
+      await fs.access(pdfDir);
     } catch {
-      await fs.mkdir(pdfDir, { recursive: true })
+      await fs.mkdir(pdfDir, { recursive: true });
     }
 
     // Pour l'instant, on sauvegarde le HTML avec extension .html
     // En production, on génèrerait un vrai PDF
-    const htmlFileName = fileName.replace('.pdf', '.html')
-    const filePath = path.join(pdfDir, htmlFileName)
-    
-    await fs.writeFile(filePath, htmlContent, 'utf-8')
-    
-    // Retourner l'URL publique
-    return `/generated-pdfs/${htmlFileName}`
+    const htmlFileName = fileName.replace(".pdf", ".html");
+    const filePath = path.join(pdfDir, htmlFileName);
 
+    await fs.writeFile(filePath, htmlContent, "utf-8");
+
+    // Retourner l'URL publique
+    return `/generated-pdfs/${htmlFileName}`;
   } catch (error) {
-    console.error('Erreur génération PDF:', error)
-    throw new Error('Impossible de générer le PDF')
+    console.error("Erreur génération PDF:", error);
+    throw new Error("Impossible de générer le PDF");
   }
 }
 
@@ -37,33 +39,33 @@ export async function generatePDF(htmlContent: string, fileName: string): Promis
  * Génère un numéro de facture unique
  */
 export function generateInvoiceNumber(): string {
-  const year = new Date().getFullYear()
-  const month = String(new Date().getMonth() + 1).padStart(2, '0')
-  const timestamp = Date.now().toString().slice(-6)
-  
-  return `INV-${year}${month}-${timestamp}`
+  const year = new Date().getFullYear();
+  const month = String(new Date().getMonth() + 1).padStart(2, "0");
+  const timestamp = Date.now().toString().slice(-6);
+
+  return `INV-${year}${month}-${timestamp}`;
 }
 
 /**
  * Formate un montant en euros
  */
-export function formatCurrency(amount: number, currency = 'EUR'): string {
-  return new Intl.NumberFormat('fr-FR', {
-    style: 'currency',
-    currency
-  }).format(amount)
+export function formatCurrency(amount: number, currency = "EUR"): string {
+  return new Intl.NumberFormat("fr-FR", {
+    style: "currency",
+    currency,
+  }).format(amount);
 }
 
 /**
  * Formate une date en français
  */
 export function formatDate(date: Date | string): string {
-  const d = typeof date === 'string' ? new Date(date) : date
-  return d.toLocaleDateString('fr-FR', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric'
-  })
+  const d = typeof date === "string" ? new Date(date) : date;
+  return d.toLocaleDateString("fr-FR", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
 }
 
 /**
@@ -203,5 +205,5 @@ export function createDocumentTemplate(title: string, content: string): string {
         </div>
       </body>
     </html>
-  `
+  `;
 }

@@ -1,34 +1,37 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useRouter } from "next/navigation"
-import { useTranslations } from "next-intl"
-import { clientRegisterSchema, type ClientRegisterData } from "@/features/auth/schemas/auth.schema"
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
+import {
+  clientRegisterSchema,
+  type ClientRegisterData,
+} from "@/features/auth/schemas/auth.schema";
 
 export function ClientRegisterForm() {
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const router = useRouter()
-  const t = useTranslations()
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
+  const t = useTranslations();
 
   const {
     register,
     handleSubmit,
-    formState: { errors }
+    formState: { errors },
   } = useForm<ClientRegisterData>({
     resolver: zodResolver(clientRegisterSchema),
     defaultValues: {
-      subscriptionPlan: 'FREE' as const,
+      subscriptionPlan: "FREE" as const,
       acceptsMarketing: false,
-      termsAccepted: false
-    }
-  })
+      termsAccepted: false,
+    },
+  });
 
   const onSubmit = async (data: ClientRegisterData) => {
-    setIsLoading(true)
-    setError(null)
+    setIsLoading(true);
+    setError(null);
 
     try {
       // Préparer les données pour l'API backend
@@ -37,21 +40,21 @@ export function ClientRegisterForm() {
         password: data.password,
         firstName: data.firstName,
         lastName: data.lastName,
-        phone: data.phone || '',
+        phone: data.phone || "",
         address: data.address,
         city: data.city,
         postalCode: data.postalCode,
-        country: 'FR',
-        language: 'fr',
+        country: "FR",
+        language: "fr",
         termsAccepted: data.termsAccepted,
-        role: 'CLIENT' as const
-      }
+        role: "CLIENT" as const,
+      };
 
-      console.log('📤 Envoi des données:', apiData)
+      console.log("📤 Envoi des données:", apiData);
 
-      const response = await fetch('/api/auth/sign-up/email', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/auth/sign-up/email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           email: apiData.email,
           password: apiData.password,
@@ -59,27 +62,29 @@ export function ClientRegisterForm() {
           role: apiData.role,
           // Propriétés additionnelles pour NextAuth
           isActive: true,
-          validationStatus: 'APPROVED'
-        })
-      })
+          validationStatus: "APPROVED",
+        }),
+      });
 
-      const result = await response.json()
-      console.log('📥 Réponse API:', result)
+      const result = await response.json();
+      console.log("📥 Réponse API:", result);
 
       if (!response.ok) {
-        setError(result.error || 'Une erreur est survenue')
-        return
+        setError(result.error || "Une erreur est survenue");
+        return;
       }
 
       // Redirection vers la page de connexion avec message de succès
-      router.push('/fr/login?message=Compte créé avec succès. Vous pouvez maintenant vous connecter.')
+      router.push(
+        "/fr/login?message=Compte créé avec succès. Vous pouvez maintenant vous connecter.",
+      );
     } catch (err) {
-      console.error('❌ Erreur catch:', err)
-      setError('Une erreur est survenue lors de l\'inscription')
+      console.error("❌ Erreur catch:", err);
+      setError("Une erreur est survenue lors de l'inscription");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -91,7 +96,10 @@ export function ClientRegisterForm() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-1">
+          <label
+            htmlFor="firstName"
+            className="block text-sm font-medium text-gray-700 mb-1"
+          >
             Prénom *
           </label>
           <input
@@ -102,12 +110,17 @@ export function ClientRegisterForm() {
             placeholder="Votre prénom"
           />
           {errors.firstName && (
-            <p className="mt-1 text-sm text-red-600">{errors.firstName.message}</p>
+            <p className="mt-1 text-sm text-red-600">
+              {errors.firstName.message}
+            </p>
           )}
         </div>
 
         <div>
-          <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 mb-1">
+          <label
+            htmlFor="lastName"
+            className="block text-sm font-medium text-gray-700 mb-1"
+          >
             Nom *
           </label>
           <input
@@ -118,13 +131,18 @@ export function ClientRegisterForm() {
             placeholder="Votre nom"
           />
           {errors.lastName && (
-            <p className="mt-1 text-sm text-red-600">{errors.lastName.message}</p>
+            <p className="mt-1 text-sm text-red-600">
+              {errors.lastName.message}
+            </p>
           )}
         </div>
       </div>
 
       <div>
-        <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+        <label
+          htmlFor="email"
+          className="block text-sm font-medium text-gray-700 mb-1"
+        >
           Email *
         </label>
         <input
@@ -140,7 +158,10 @@ export function ClientRegisterForm() {
       </div>
 
       <div>
-        <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">
+        <label
+          htmlFor="phone"
+          className="block text-sm font-medium text-gray-700 mb-1"
+        >
           Téléphone
         </label>
         <input
@@ -156,7 +177,10 @@ export function ClientRegisterForm() {
       </div>
 
       <div>
-        <label htmlFor="address" className="block text-sm font-medium text-gray-700 mb-1">
+        <label
+          htmlFor="address"
+          className="block text-sm font-medium text-gray-700 mb-1"
+        >
           Adresse complète *
         </label>
         <input
@@ -173,7 +197,10 @@ export function ClientRegisterForm() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label htmlFor="city" className="block text-sm font-medium text-gray-700 mb-1">
+          <label
+            htmlFor="city"
+            className="block text-sm font-medium text-gray-700 mb-1"
+          >
             Ville *
           </label>
           <input
@@ -189,7 +216,10 @@ export function ClientRegisterForm() {
         </div>
 
         <div>
-          <label htmlFor="postalCode" className="block text-sm font-medium text-gray-700 mb-1">
+          <label
+            htmlFor="postalCode"
+            className="block text-sm font-medium text-gray-700 mb-1"
+          >
             Code postal *
           </label>
           <input
@@ -200,13 +230,18 @@ export function ClientRegisterForm() {
             placeholder="75001"
           />
           {errors.postalCode && (
-            <p className="mt-1 text-sm text-red-600">{errors.postalCode.message}</p>
+            <p className="mt-1 text-sm text-red-600">
+              {errors.postalCode.message}
+            </p>
           )}
         </div>
       </div>
 
       <div>
-        <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+        <label
+          htmlFor="password"
+          className="block text-sm font-medium text-gray-700 mb-1"
+        >
           Mot de passe *
         </label>
         <input
@@ -222,7 +257,10 @@ export function ClientRegisterForm() {
       </div>
 
       <div>
-        <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1">
+        <label
+          htmlFor="confirmPassword"
+          className="block text-sm font-medium text-gray-700 mb-1"
+        >
           Confirmer le mot de passe *
         </label>
         <input
@@ -233,12 +271,17 @@ export function ClientRegisterForm() {
           placeholder="Confirmer le mot de passe"
         />
         {errors.confirmPassword && (
-          <p className="mt-1 text-sm text-red-600">{errors.confirmPassword.message}</p>
+          <p className="mt-1 text-sm text-red-600">
+            {errors.confirmPassword.message}
+          </p>
         )}
       </div>
 
       <div>
-        <label htmlFor="subscriptionPlan" className="block text-sm font-medium text-gray-700 mb-1">
+        <label
+          htmlFor="subscriptionPlan"
+          className="block text-sm font-medium text-gray-700 mb-1"
+        >
           Plan d'abonnement
         </label>
         <select
@@ -251,7 +294,9 @@ export function ClientRegisterForm() {
           <option value="PREMIUM">Premium - 19,99€/mois - Illimité</option>
         </select>
         {errors.subscriptionPlan && (
-          <p className="mt-1 text-sm text-red-600">{errors.subscriptionPlan.message}</p>
+          <p className="mt-1 text-sm text-red-600">
+            {errors.subscriptionPlan.message}
+          </p>
         )}
       </div>
 
@@ -264,14 +309,22 @@ export function ClientRegisterForm() {
             className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded mt-1"
           />
           <label htmlFor="termsAccepted" className="ml-2 text-sm text-gray-700">
-            J'accepte les{' '}
-            <a href="/fr/terms" target="_blank" className="text-green-600 hover:underline">
+            J'accepte les{" "}
+            <a
+              href="/fr/terms"
+              target="_blank"
+              className="text-green-600 hover:underline"
+            >
               Conditions d'utilisation
-            </a>{' '}
-            et la{' '}
-            <a href="/fr/privacy" target="_blank" className="text-green-600 hover:underline">
+            </a>{" "}
+            et la{" "}
+            <a
+              href="/fr/privacy"
+              target="_blank"
+              className="text-green-600 hover:underline"
+            >
               Politique de confidentialité
-            </a>{' '}
+            </a>{" "}
             d'EcoDeli *
           </label>
         </div>
@@ -286,7 +339,10 @@ export function ClientRegisterForm() {
             id="acceptsMarketing"
             className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
           />
-          <label htmlFor="acceptsMarketing" className="ml-2 text-sm text-gray-700">
+          <label
+            htmlFor="acceptsMarketing"
+            className="ml-2 text-sm text-gray-700"
+          >
             J'accepte de recevoir les actualités et offres d'EcoDeli par email
           </label>
         </div>
@@ -297,8 +353,8 @@ export function ClientRegisterForm() {
         disabled={isLoading}
         className="w-full bg-green-600 text-white py-3 px-4 rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
       >
-        {isLoading ? 'Création en cours...' : 'Créer mon compte client'}
+        {isLoading ? "Création en cours..." : "Créer mon compte client"}
       </button>
     </form>
-  )
+  );
 }

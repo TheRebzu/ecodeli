@@ -4,13 +4,32 @@ import { useAuth } from "@/hooks/use-auth";
 import { PageHeader } from "@/components/layout/page-header";
 import { useTranslations } from "next-intl";
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { 
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
   Search,
   Filter,
   Download,
@@ -22,15 +41,15 @@ import {
   Clock,
   CheckCircle,
   XCircle,
-  AlertCircle
+  AlertCircle,
 } from "lucide-react";
 
 interface Transaction {
   id: string;
-  type: 'BOOKING_PAYMENT' | 'WITHDRAWAL' | 'REFUND' | 'BONUS' | 'PENALTY';
+  type: "BOOKING_PAYMENT" | "WITHDRAWAL" | "REFUND" | "BONUS" | "PENALTY";
   amount: number;
   currency: string;
-  status: 'COMPLETED' | 'PENDING' | 'FAILED' | 'PROCESSING';
+  status: "COMPLETED" | "PENDING" | "FAILED" | "PROCESSING";
   date: string;
   description: string;
   relatedBookingId?: string;
@@ -56,18 +75,20 @@ export default function ProviderTransactionsPage() {
   useEffect(() => {
     const fetchTransactions = async () => {
       if (!user?.id) return;
-      
+
       const params = new URLSearchParams({
         userId: user.id,
         page: currentPage.toString(),
         search: searchTerm,
         status: statusFilter,
         type: typeFilter,
-        dateRange: dateFilter
+        dateRange: dateFilter,
       });
 
       try {
-        const response = await fetch(`/api/provider/earnings/transactions?${params}`);
+        const response = await fetch(
+          `/api/provider/earnings/transactions?${params}`,
+        );
         if (response.ok) {
           const data = await response.json();
           setTransactions(data.transactions || []);
@@ -85,15 +106,15 @@ export default function ProviderTransactionsPage() {
 
   const getTransactionIcon = (type: string) => {
     switch (type) {
-      case 'BOOKING_PAYMENT':
+      case "BOOKING_PAYMENT":
         return <ArrowUpRight className="h-4 w-4 text-green-600" />;
-      case 'WITHDRAWAL':
+      case "WITHDRAWAL":
         return <ArrowDownLeft className="h-4 w-4 text-blue-600" />;
-      case 'REFUND':
+      case "REFUND":
         return <ArrowDownLeft className="h-4 w-4 text-red-600" />;
-      case 'BONUS':
+      case "BONUS":
         return <ArrowUpRight className="h-4 w-4 text-green-600" />;
-      case 'PENALTY':
+      case "PENALTY":
         return <ArrowDownLeft className="h-4 w-4 text-red-600" />;
       default:
         return <DollarSign className="h-4 w-4 text-gray-600" />;
@@ -102,12 +123,12 @@ export default function ProviderTransactionsPage() {
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'COMPLETED':
+      case "COMPLETED":
         return <CheckCircle className="h-4 w-4 text-green-600" />;
-      case 'FAILED':
+      case "FAILED":
         return <XCircle className="h-4 w-4 text-red-600" />;
-      case 'PENDING':
-      case 'PROCESSING':
+      case "PENDING":
+      case "PROCESSING":
         return <Clock className="h-4 w-4 text-yellow-600" />;
       default:
         return <AlertCircle className="h-4 w-4 text-gray-600" />;
@@ -116,13 +137,15 @@ export default function ProviderTransactionsPage() {
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case 'COMPLETED':
+      case "COMPLETED":
         return <Badge className="bg-green-100 text-green-800">Terminé</Badge>;
-      case 'FAILED':
+      case "FAILED":
         return <Badge variant="destructive">Échoué</Badge>;
-      case 'PENDING':
-        return <Badge className="bg-yellow-100 text-yellow-800">En attente</Badge>;
-      case 'PROCESSING':
+      case "PENDING":
+        return (
+          <Badge className="bg-yellow-100 text-yellow-800">En attente</Badge>
+        );
+      case "PROCESSING":
         return <Badge className="bg-blue-100 text-blue-800">En cours</Badge>;
       default:
         return <Badge variant="secondary">{status}</Badge>;
@@ -131,49 +154,61 @@ export default function ProviderTransactionsPage() {
 
   const getTypeBadge = (type: string) => {
     switch (type) {
-      case 'BOOKING_PAYMENT':
+      case "BOOKING_PAYMENT":
         return <Badge variant="outline">Paiement</Badge>;
-      case 'WITHDRAWAL':
+      case "WITHDRAWAL":
         return <Badge variant="outline">Retrait</Badge>;
-      case 'REFUND':
+      case "REFUND":
         return <Badge variant="outline">Remboursement</Badge>;
-      case 'BONUS':
-        return <Badge variant="outline" className="border-green-200 text-green-800">Bonus</Badge>;
-      case 'PENALTY':
-        return <Badge variant="outline" className="border-red-200 text-red-800">Pénalité</Badge>;
+      case "BONUS":
+        return (
+          <Badge variant="outline" className="border-green-200 text-green-800">
+            Bonus
+          </Badge>
+        );
+      case "PENALTY":
+        return (
+          <Badge variant="outline" className="border-red-200 text-red-800">
+            Pénalité
+          </Badge>
+        );
       default:
         return <Badge variant="secondary">{type}</Badge>;
     }
   };
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('fr-FR', {
-      style: 'currency',
-      currency: 'EUR'
+    return new Intl.NumberFormat("fr-FR", {
+      style: "currency",
+      currency: "EUR",
     }).format(amount);
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('fr-FR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+    return new Date(dateString).toLocaleDateString("fr-FR", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
   const calculateSummary = () => {
     const totalIncome = transactions
-      .filter(t => ['BOOKING_PAYMENT', 'BONUS'].includes(t.type) && t.status === 'COMPLETED')
+      .filter(
+        (t) =>
+          ["BOOKING_PAYMENT", "BONUS"].includes(t.type) &&
+          t.status === "COMPLETED",
+      )
       .reduce((sum, t) => sum + t.netAmount, 0);
-    
+
     const totalWithdrawals = transactions
-      .filter(t => t.type === 'WITHDRAWAL' && t.status === 'COMPLETED')
+      .filter((t) => t.type === "WITHDRAWAL" && t.status === "COMPLETED")
       .reduce((sum, t) => sum + t.amount, 0);
-    
+
     const totalFees = transactions
-      .filter(t => t.status === 'COMPLETED')
+      .filter((t) => t.status === "COMPLETED")
       .reduce((sum, t) => sum + t.feeAmount, 0);
 
     return { totalIncome, totalWithdrawals, totalFees };
@@ -211,11 +246,15 @@ export default function ProviderTransactionsPage() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Revenus Totaux</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Revenus Totaux
+            </CardTitle>
             <ArrowUpRight className="h-4 w-4 text-green-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">{formatCurrency(summary.totalIncome)}</div>
+            <div className="text-2xl font-bold text-green-600">
+              {formatCurrency(summary.totalIncome)}
+            </div>
             <p className="text-xs text-muted-foreground">nets reçus</p>
           </CardContent>
         </Card>
@@ -226,19 +265,27 @@ export default function ProviderTransactionsPage() {
             <ArrowDownLeft className="h-4 w-4 text-blue-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-blue-600">{formatCurrency(summary.totalWithdrawals)}</div>
+            <div className="text-2xl font-bold text-blue-600">
+              {formatCurrency(summary.totalWithdrawals)}
+            </div>
             <p className="text-xs text-muted-foreground">vers votre compte</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Frais de Service</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Frais de Service
+            </CardTitle>
             <DollarSign className="h-4 w-4 text-orange-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-orange-600">{formatCurrency(summary.totalFees)}</div>
-            <p className="text-xs text-muted-foreground">commissions plateforme</p>
+            <div className="text-2xl font-bold text-orange-600">
+              {formatCurrency(summary.totalFees)}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              commissions plateforme
+            </p>
           </CardContent>
         </Card>
       </div>
@@ -370,7 +417,9 @@ export default function ProviderTransactionsPage() {
                       </TableCell>
                       <TableCell>
                         <div>
-                          <p className="font-medium">{transaction.description}</p>
+                          <p className="font-medium">
+                            {transaction.description}
+                          </p>
                           {transaction.clientName && (
                             <p className="text-sm text-muted-foreground">
                               Client: {transaction.clientName}
@@ -389,12 +438,20 @@ export default function ProviderTransactionsPage() {
                         </div>
                       </TableCell>
                       <TableCell>
-                        <span className={`font-medium ${
-                          ['BOOKING_PAYMENT', 'BONUS'].includes(transaction.type) 
-                            ? 'text-green-600' 
-                            : 'text-red-600'
-                        }`}>
-                          {['BOOKING_PAYMENT', 'BONUS'].includes(transaction.type) ? '+' : '-'}
+                        <span
+                          className={`font-medium ${
+                            ["BOOKING_PAYMENT", "BONUS"].includes(
+                              transaction.type,
+                            )
+                              ? "text-green-600"
+                              : "text-red-600"
+                          }`}
+                        >
+                          {["BOOKING_PAYMENT", "BONUS"].includes(
+                            transaction.type,
+                          )
+                            ? "+"
+                            : "-"}
                           {formatCurrency(transaction.amount)}
                         </span>
                       </TableCell>
@@ -436,7 +493,9 @@ export default function ProviderTransactionsPage() {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                  onClick={() =>
+                    setCurrentPage((prev) => Math.max(1, prev - 1))
+                  }
                   disabled={currentPage === 1}
                 >
                   Précédent
@@ -444,7 +503,9 @@ export default function ProviderTransactionsPage() {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                  onClick={() =>
+                    setCurrentPage((prev) => Math.min(totalPages, prev + 1))
+                  }
                   disabled={currentPage === totalPages}
                 >
                   Suivant
@@ -456,4 +517,4 @@ export default function ProviderTransactionsPage() {
       </Card>
     </div>
   );
-} 
+}

@@ -9,11 +9,19 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { 
-  TrendingUp, 
-  Euro, 
-  Download, 
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  TrendingUp,
+  Euro,
+  Download,
   Plus,
   Clock,
   CheckCircle,
@@ -21,15 +29,21 @@ import {
   XCircle,
   CreditCard,
   Banknote,
-  Calendar
+  Calendar,
 } from "lucide-react";
 import { toast } from "sonner";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface Withdrawal {
   id: string;
   amount: number;
-  status: 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'FAILED';
+  status: "PENDING" | "PROCESSING" | "COMPLETED" | "FAILED";
   requestedAt: string;
   processedAt?: string;
   bankAccount: {
@@ -66,33 +80,41 @@ export default function DelivererWithdrawalsPage() {
   const fetchData = async () => {
     try {
       setLoading(true);
-      
+
       // Récupérer le solde disponible
-      const balanceResponse = await fetch('/api/deliverer/wallet/balance');
+      const balanceResponse = await fetch("/api/deliverer/wallet/balance");
       if (balanceResponse.ok) {
         const balanceData = await balanceResponse.json();
         setAvailableBalance(balanceData.availableBalance);
       }
 
       // Récupérer l'historique des retraits
-      const withdrawalsResponse = await fetch('/api/deliverer/wallet/withdrawals');
+      const withdrawalsResponse = await fetch(
+        "/api/deliverer/wallet/withdrawals",
+      );
       if (withdrawalsResponse.ok) {
         const withdrawalsData = await withdrawalsResponse.json();
         setWithdrawals(withdrawalsData.withdrawals);
       }
 
       // Récupérer les comptes bancaires
-      const accountsResponse = await fetch('/api/deliverer/wallet/bank-accounts');
+      const accountsResponse = await fetch(
+        "/api/deliverer/wallet/bank-accounts",
+      );
       if (accountsResponse.ok) {
         const accountsData = await accountsResponse.json();
         setBankAccounts(accountsData.accounts);
         if (accountsData.accounts.length > 0) {
-          const defaultAccount = accountsData.accounts.find((acc: BankAccount) => acc.isDefault);
-          setSelectedBankAccount(defaultAccount?.id || accountsData.accounts[0].id);
+          const defaultAccount = accountsData.accounts.find(
+            (acc: BankAccount) => acc.isDefault,
+          );
+          setSelectedBankAccount(
+            defaultAccount?.id || accountsData.accounts[0].id,
+          );
         }
       }
     } catch (error) {
-      console.error('Error fetching data:', error);
+      console.error("Error fetching data:", error);
       toast.error("Erreur lors du chargement des données");
     } finally {
       setLoading(false);
@@ -117,13 +139,13 @@ export default function DelivererWithdrawalsPage() {
     }
 
     try {
-      const response = await fetch('/api/deliverer/wallet/withdrawals', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/deliverer/wallet/withdrawals", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           amount,
-          bankAccountId: selectedBankAccount
-        })
+          bankAccountId: selectedBankAccount,
+        }),
       });
 
       if (response.ok) {
@@ -132,47 +154,64 @@ export default function DelivererWithdrawalsPage() {
         setWithdrawAmount("");
         await fetchData(); // Recharger les données
       } else {
-        throw new Error('Failed to create withdrawal');
+        throw new Error("Failed to create withdrawal");
       }
     } catch (error) {
-      console.error('Error creating withdrawal:', error);
+      console.error("Error creating withdrawal:", error);
       toast.error("Erreur lors de la création du retrait");
     }
   };
 
   const exportWithdrawals = async () => {
     try {
-      const response = await fetch('/api/deliverer/wallet/withdrawals/export');
+      const response = await fetch("/api/deliverer/wallet/withdrawals/export");
       if (response.ok) {
         const blob = await response.blob();
         const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
+        const a = document.createElement("a");
         a.href = url;
-        a.download = `retraits-${new Date().toISOString().split('T')[0]}.csv`;
+        a.download = `retraits-${new Date().toISOString().split("T")[0]}.csv`;
         document.body.appendChild(a);
         a.click();
         window.URL.revokeObjectURL(url);
         document.body.removeChild(a);
-        
+
         toast.success("Export réussi");
       }
     } catch (error) {
-      console.error('Error exporting withdrawals:', error);
+      console.error("Error exporting withdrawals:", error);
       toast.error("Erreur lors de l'export");
     }
   };
 
   const getStatusBadge = (status: string) => {
     const statusConfig = {
-      PENDING: { color: "bg-yellow-100 text-yellow-800", label: "En attente", icon: Clock },
-      PROCESSING: { color: "bg-blue-100 text-blue-800", label: "En cours", icon: AlertCircle },
-      COMPLETED: { color: "bg-green-100 text-green-800", label: "Terminé", icon: CheckCircle },
-      FAILED: { color: "bg-red-100 text-red-800", label: "Échoué", icon: XCircle },
+      PENDING: {
+        color: "bg-yellow-100 text-yellow-800",
+        label: "En attente",
+        icon: Clock,
+      },
+      PROCESSING: {
+        color: "bg-blue-100 text-blue-800",
+        label: "En cours",
+        icon: AlertCircle,
+      },
+      COMPLETED: {
+        color: "bg-green-100 text-green-800",
+        label: "Terminé",
+        icon: CheckCircle,
+      },
+      FAILED: {
+        color: "bg-red-100 text-red-800",
+        label: "Échoué",
+        icon: XCircle,
+      },
     };
-    
-    const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.PENDING;
+
+    const config =
+      statusConfig[status as keyof typeof statusConfig] || statusConfig.PENDING;
     const Icon = config.icon;
-    
+
     return (
       <Badge className={config.color}>
         <Icon className="w-3 h-3 mr-1" />
@@ -182,17 +221,20 @@ export default function DelivererWithdrawalsPage() {
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('fr-FR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+    return new Date(dateString).toLocaleDateString("fr-FR", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
   const maskIBAN = (iban: string) => {
-    return iban.replace(/(.{4})/g, '$1 ').trim().replace(/\s(?=\w{4})/g, '****');
+    return iban
+      .replace(/(.{4})/g, "$1 ")
+      .trim()
+      .replace(/\s(?=\w{4})/g, "****");
   };
 
   if (!user) {
@@ -232,7 +274,10 @@ export default function DelivererWithdrawalsPage() {
             <Download className="h-4 w-4 mr-2" />
             Exporter
           </Button>
-          <Dialog open={showWithdrawDialog} onOpenChange={setShowWithdrawDialog}>
+          <Dialog
+            open={showWithdrawDialog}
+            onOpenChange={setShowWithdrawDialog}
+          >
             <DialogTrigger asChild>
               <Button>
                 <Plus className="h-4 w-4 mr-2" />
@@ -246,7 +291,7 @@ export default function DelivererWithdrawalsPage() {
                   Retirez vos gains vers votre compte bancaire
                 </DialogDescription>
               </DialogHeader>
-              
+
               <div className="space-y-4">
                 <div>
                   <Label htmlFor="amount">Montant (€)</Label>
@@ -297,12 +342,13 @@ export default function DelivererWithdrawalsPage() {
               </div>
 
               <DialogFooter>
-                <Button variant="outline" onClick={() => setShowWithdrawDialog(false)}>
+                <Button
+                  variant="outline"
+                  onClick={() => setShowWithdrawDialog(false)}
+                >
                   Annuler
                 </Button>
-                <Button onClick={handleWithdraw}>
-                  Confirmer le retrait
-                </Button>
+                <Button onClick={handleWithdraw}>Confirmer le retrait</Button>
               </DialogFooter>
             </DialogContent>
           </Dialog>
@@ -316,7 +362,9 @@ export default function DelivererWithdrawalsPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Solde disponible</p>
-                <p className="text-2xl font-bold">{availableBalance.toFixed(2)}€</p>
+                <p className="text-2xl font-bold">
+                  {availableBalance.toFixed(2)}€
+                </p>
               </div>
               <Banknote className="h-8 w-8 text-green-600" />
             </div>
@@ -329,9 +377,13 @@ export default function DelivererWithdrawalsPage() {
               <div>
                 <p className="text-sm text-gray-600">Retraits ce mois</p>
                 <p className="text-2xl font-bold">
-                  {withdrawals.filter(w => 
-                    new Date(w.requestedAt).getMonth() === new Date().getMonth()
-                  ).length}
+                  {
+                    withdrawals.filter(
+                      (w) =>
+                        new Date(w.requestedAt).getMonth() ===
+                        new Date().getMonth(),
+                    ).length
+                  }
                 </p>
               </div>
               <TrendingUp className="h-8 w-8 text-blue-600" />
@@ -346,9 +398,10 @@ export default function DelivererWithdrawalsPage() {
                 <p className="text-sm text-gray-600">Total retiré</p>
                 <p className="text-2xl font-bold">
                   {withdrawals
-                    .filter(w => w.status === 'COMPLETED')
+                    .filter((w) => w.status === "COMPLETED")
                     .reduce((sum, w) => sum + w.amount, 0)
-                    .toFixed(2)}€
+                    .toFixed(2)}
+                  €
                 </p>
               </div>
               <CreditCard className="h-8 w-8 text-purple-600" />
@@ -371,10 +424,15 @@ export default function DelivererWithdrawalsPage() {
           ) : (
             <div className="space-y-4">
               {withdrawals.map((withdrawal) => (
-                <div key={withdrawal.id} className="flex items-center justify-between p-4 border rounded-lg">
+                <div
+                  key={withdrawal.id}
+                  className="flex items-center justify-between p-4 border rounded-lg"
+                >
                   <div className="flex items-center gap-4">
                     <div>
-                      <p className="font-semibold">{withdrawal.amount.toFixed(2)}€</p>
+                      <p className="font-semibold">
+                        {withdrawal.amount.toFixed(2)}€
+                      </p>
                       <p className="text-sm text-gray-600">
                         Référence: {withdrawal.reference}
                       </p>
@@ -383,7 +441,7 @@ export default function DelivererWithdrawalsPage() {
                       </p>
                     </div>
                   </div>
-                  
+
                   <div className="flex items-center gap-4">
                     <div className="text-right">
                       <p className="text-sm text-gray-600">
@@ -403,4 +461,4 @@ export default function DelivererWithdrawalsPage() {
       </Card>
     </div>
   );
-} 
+}

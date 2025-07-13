@@ -1,25 +1,31 @@
-import { Metadata } from 'next'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { 
-  Shield, 
-  AlertTriangle, 
-  TrendingUp, 
-  FileText, 
-  Users, 
+import { Metadata } from "next";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Shield,
+  AlertTriangle,
+  TrendingUp,
+  FileText,
+  Users,
   DollarSign,
   Clock,
   CheckCircle,
   XCircle,
-  Eye
-} from 'lucide-react'
+  Eye,
+} from "lucide-react";
 
 export const metadata: Metadata = {
-  title: 'Gestion des Assurances - EcoDeli',
-  description: 'Gestion des polices d\'assurance, sinistres et garanties'
-}
+  title: "Gestion des Assurances - EcoDeli",
+  description: "Gestion des polices d'assurance, sinistres et garanties",
+};
 
 // Données fictives pour la démonstration
 const insuranceStats = {
@@ -30,115 +36,118 @@ const insuranceStats = {
   totalCoverage: 2500000,
   claimsThisMonth: 8,
   avgClaimAmount: 1250,
-  claimRatio: 0.03
-}
+  claimRatio: 0.03,
+};
 
 const recentClaims = [
   {
-    id: '1',
-    claimNumber: 'SIN202412001',
-    claimantName: 'Marie Dubois',
-    type: 'DAMAGE',
+    id: "1",
+    claimNumber: "SIN202412001",
+    claimantName: "Marie Dubois",
+    type: "DAMAGE",
     amount: 850,
-    status: 'UNDER_INVESTIGATION',
-    createdAt: '2024-12-20',
-    policyName: 'Transport de marchandises'
+    status: "UNDER_INVESTIGATION",
+    createdAt: "2024-12-20",
+    policyName: "Transport de marchandises",
   },
   {
-    id: '2',
-    claimNumber: 'SIN202412002',
-    claimantName: 'Pierre Martin',
-    type: 'THEFT',
+    id: "2",
+    claimNumber: "SIN202412002",
+    claimantName: "Pierre Martin",
+    type: "THEFT",
     amount: 1200,
-    status: 'APPROVED',
-    createdAt: '2024-12-18',
-    policyName: 'Responsabilité civile'
+    status: "APPROVED",
+    createdAt: "2024-12-18",
+    policyName: "Responsabilité civile",
   },
   {
-    id: '3',
-    claimNumber: 'SIN202412003',
-    claimantName: 'Sophie Laurent',
-    type: 'LOSS',
+    id: "3",
+    claimNumber: "SIN202412003",
+    claimantName: "Sophie Laurent",
+    type: "LOSS",
     amount: 650,
-    status: 'BEING_ASSESSED',
-    createdAt: '2024-12-15',
-    policyName: 'Couverture stockage'
-  }
-]
+    status: "BEING_ASSESSED",
+    createdAt: "2024-12-15",
+    policyName: "Couverture stockage",
+  },
+];
 
 const activePolicies = [
   {
-    id: '1',
-    name: 'Responsabilité civile professionnelle',
-    provider: 'Assurances Générales SA',
+    id: "1",
+    name: "Responsabilité civile professionnelle",
+    provider: "Assurances Générales SA",
     coverageAmount: 1000000,
     premiumAmount: 12000,
-    startDate: '2024-01-01',
-    endDate: '2024-12-31',
+    startDate: "2024-01-01",
+    endDate: "2024-12-31",
     claimsCount: 15,
-    category: 'PROFESSIONAL_LIABILITY'
+    category: "PROFESSIONAL_LIABILITY",
   },
   {
-    id: '2',
-    name: 'Transport de marchandises',
-    provider: 'Transport Assurance',
+    id: "2",
+    name: "Transport de marchandises",
+    provider: "Transport Assurance",
     coverageAmount: 500000,
     premiumAmount: 8500,
-    startDate: '2024-01-01',
-    endDate: '2024-12-31',
+    startDate: "2024-01-01",
+    endDate: "2024-12-31",
     claimsCount: 8,
-    category: 'GOODS_TRANSPORT'
+    category: "GOODS_TRANSPORT",
   },
   {
-    id: '3',
-    name: 'Couverture stockage',
-    provider: 'Stock & Secure',
+    id: "3",
+    name: "Couverture stockage",
+    provider: "Stock & Secure",
     coverageAmount: 250000,
     premiumAmount: 4200,
-    startDate: '2024-01-01',
-    endDate: '2024-12-31',
+    startDate: "2024-01-01",
+    endDate: "2024-12-31",
     claimsCount: 3,
-    category: 'STORAGE_COVERAGE'
-  }
-]
+    category: "STORAGE_COVERAGE",
+  },
+];
 
 const getStatusBadge = (status: string) => {
-  const variants: Record<string, 'default' | 'secondary' | 'destructive' | 'outline'> = {
-    REPORTED: 'outline',
-    UNDER_INVESTIGATION: 'secondary',
-    BEING_ASSESSED: 'default',
-    APPROVED: 'default',
-    REJECTED: 'destructive',
-    SETTLED: 'default'
-  }
+  const variants: Record<
+    string,
+    "default" | "secondary" | "destructive" | "outline"
+  > = {
+    REPORTED: "outline",
+    UNDER_INVESTIGATION: "secondary",
+    BEING_ASSESSED: "default",
+    APPROVED: "default",
+    REJECTED: "destructive",
+    SETTLED: "default",
+  };
 
   const labels: Record<string, string> = {
-    REPORTED: 'Déclaré',
-    UNDER_INVESTIGATION: 'Enquête',
-    BEING_ASSESSED: 'Évaluation',
-    APPROVED: 'Approuvé',
-    REJECTED: 'Rejeté',
-    SETTLED: 'Réglé'
-  }
+    REPORTED: "Déclaré",
+    UNDER_INVESTIGATION: "Enquête",
+    BEING_ASSESSED: "Évaluation",
+    APPROVED: "Approuvé",
+    REJECTED: "Rejeté",
+    SETTLED: "Réglé",
+  };
 
   return (
-    <Badge variant={variants[status] || 'outline'}>
+    <Badge variant={variants[status] || "outline"}>
       {labels[status] || status}
     </Badge>
-  )
-}
+  );
+};
 
 const getClaimTypeLabel = (type: string) => {
   const labels: Record<string, string> = {
-    DAMAGE: 'Dommage',
-    THEFT: 'Vol',
-    LOSS: 'Perte',
-    DELAY: 'Retard',
-    PERSONAL_INJURY: 'Dommage corporel',
-    LIABILITY: 'Responsabilité'
-  }
-  return labels[type] || type
-}
+    DAMAGE: "Dommage",
+    THEFT: "Vol",
+    LOSS: "Perte",
+    DELAY: "Retard",
+    PERSONAL_INJURY: "Dommage corporel",
+    LIABILITY: "Responsabilité",
+  };
+  return labels[type] || type;
+};
 
 export default function AdminInsurancePage() {
   return (
@@ -166,24 +175,33 @@ export default function AdminInsurancePage() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Polices Actives</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Polices Actives
+            </CardTitle>
             <Shield className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{insuranceStats.totalPolicies}</div>
+            <div className="text-2xl font-bold">
+              {insuranceStats.totalPolicies}
+            </div>
             <p className="text-xs text-muted-foreground">
-              Couverture totale: {(insuranceStats.totalCoverage / 1000000).toFixed(1)}M€
+              Couverture totale:{" "}
+              {(insuranceStats.totalCoverage / 1000000).toFixed(1)}M€
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Sinistres Actifs</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Sinistres Actifs
+            </CardTitle>
             <AlertTriangle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{insuranceStats.activeClaims}</div>
+            <div className="text-2xl font-bold">
+              {insuranceStats.activeClaims}
+            </div>
             <p className="text-xs text-muted-foreground">
               {insuranceStats.pendingClaims} en attente
             </p>
@@ -196,7 +214,9 @@ export default function AdminInsurancePage() {
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{insuranceStats.avgClaimAmount}€</div>
+            <div className="text-2xl font-bold">
+              {insuranceStats.avgClaimAmount}€
+            </div>
             <p className="text-xs text-muted-foreground">
               Par sinistre ce mois
             </p>
@@ -205,14 +225,16 @@ export default function AdminInsurancePage() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Taux de Sinistralité</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Taux de Sinistralité
+            </CardTitle>
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{(insuranceStats.claimRatio * 100).toFixed(1)}%</div>
-            <p className="text-xs text-green-600">
-              -0.5% vs mois dernier
-            </p>
+            <div className="text-2xl font-bold">
+              {(insuranceStats.claimRatio * 100).toFixed(1)}%
+            </div>
+            <p className="text-xs text-green-600">-0.5% vs mois dernier</p>
           </CardContent>
         </Card>
       </div>
@@ -236,7 +258,10 @@ export default function AdminInsurancePage() {
             <CardContent>
               <div className="space-y-4">
                 {recentClaims.map((claim) => (
-                  <div key={claim.id} className="flex items-center justify-between p-4 border rounded-lg">
+                  <div
+                    key={claim.id}
+                    className="flex items-center justify-between p-4 border rounded-lg"
+                  >
                     <div className="space-y-1">
                       <div className="flex items-center gap-2">
                         <span className="font-medium">{claim.claimNumber}</span>
@@ -246,7 +271,8 @@ export default function AdminInsurancePage() {
                         {claim.claimantName} • {getClaimTypeLabel(claim.type)}
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        {claim.policyName} • {new Date(claim.createdAt).toLocaleDateString('fr-FR')}
+                        {claim.policyName} •{" "}
+                        {new Date(claim.createdAt).toLocaleDateString("fr-FR")}
                       </p>
                     </div>
                     <div className="text-right">
@@ -255,7 +281,7 @@ export default function AdminInsurancePage() {
                         <Button size="sm" variant="outline">
                           <Eye className="h-3 w-3" />
                         </Button>
-                        {claim.status === 'UNDER_INVESTIGATION' && (
+                        {claim.status === "UNDER_INVESTIGATION" && (
                           <>
                             <Button size="sm" variant="outline">
                               <CheckCircle className="h-3 w-3" />
@@ -285,24 +311,33 @@ export default function AdminInsurancePage() {
             <CardContent>
               <div className="space-y-4">
                 {activePolicies.map((policy) => (
-                  <div key={policy.id} className="flex items-center justify-between p-4 border rounded-lg">
+                  <div
+                    key={policy.id}
+                    className="flex items-center justify-between p-4 border rounded-lg"
+                  >
                     <div className="space-y-1">
                       <h3 className="font-medium">{policy.name}</h3>
                       <p className="text-sm text-muted-foreground">
                         {policy.provider}
                       </p>
                       <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                        <span>Couverture: {(policy.coverageAmount / 1000).toFixed(0)}k€</span>
+                        <span>
+                          Couverture:{" "}
+                          {(policy.coverageAmount / 1000).toFixed(0)}k€
+                        </span>
                         <span>Prime: {policy.premiumAmount}€/an</span>
                         <span>{policy.claimsCount} sinistres</span>
                       </div>
                     </div>
                     <div className="text-right">
                       <Badge variant="outline" className="mb-2">
-                        {policy.endDate > new Date().toISOString().split('T')[0] ? 'Active' : 'Expirée'}
+                        {policy.endDate > new Date().toISOString().split("T")[0]
+                          ? "Active"
+                          : "Expirée"}
                       </Badge>
                       <p className="text-xs text-muted-foreground">
-                        Expire le {new Date(policy.endDate).toLocaleDateString('fr-FR')}
+                        Expire le{" "}
+                        {new Date(policy.endDate).toLocaleDateString("fr-FR")}
                       </p>
                       <Button size="sm" variant="outline" className="mt-2">
                         <Eye className="h-3 w-3 mr-1" />
@@ -328,7 +363,9 @@ export default function AdminInsurancePage() {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 <Card>
                   <CardHeader className="pb-3">
-                    <CardTitle className="text-lg">Garantie Livraison</CardTitle>
+                    <CardTitle className="text-lg">
+                      Garantie Livraison
+                    </CardTitle>
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-2">
@@ -372,7 +409,9 @@ export default function AdminInsurancePage() {
 
                 <Card>
                   <CardHeader className="pb-3">
-                    <CardTitle className="text-lg">Garantie Satisfaction</CardTitle>
+                    <CardTitle className="text-lg">
+                      Garantie Satisfaction
+                    </CardTitle>
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-2">
@@ -401,9 +440,7 @@ export default function AdminInsurancePage() {
             <Card>
               <CardHeader>
                 <CardTitle>Évolution des Sinistres</CardTitle>
-                <CardDescription>
-                  Nombre de sinistres par mois
-                </CardDescription>
+                <CardDescription>Nombre de sinistres par mois</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="h-64 flex items-center justify-center text-muted-foreground">
@@ -429,5 +466,5 @@ export default function AdminInsurancePage() {
         </TabsContent>
       </Tabs>
     </div>
-  )
+  );
 }

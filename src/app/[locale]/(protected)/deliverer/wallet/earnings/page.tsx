@@ -10,17 +10,17 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { 
-  TrendingUp, 
-  Calendar, 
-  Euro, 
-  Download, 
+import {
+  TrendingUp,
+  Calendar,
+  Euro,
+  Download,
   Filter,
   BarChart3,
   PieChart,
   Clock,
   CheckCircle,
-  AlertCircle
+  AlertCircle,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -70,9 +70,9 @@ export default function DelivererEarningsPage() {
     const now = new Date();
     const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
     const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-    
-    setStartDate(firstDay.toISOString().split('T')[0]);
-    setEndDate(lastDay.toISOString().split('T')[0]);
+
+    setStartDate(firstDay.toISOString().split("T")[0]);
+    setEndDate(lastDay.toISOString().split("T")[0]);
   }, []);
 
   useEffect(() => {
@@ -88,7 +88,7 @@ export default function DelivererEarningsPage() {
       const params = new URLSearchParams({
         startDate,
         endDate,
-        ...(filterStatus !== "all" && { status: filterStatus })
+        ...(filterStatus !== "all" && { status: filterStatus }),
       });
 
       const response = await fetch(`/api/deliverer/wallet/earnings?${params}`);
@@ -122,21 +122,23 @@ export default function DelivererEarningsPage() {
       const params = new URLSearchParams({
         startDate,
         endDate,
-        format: "csv"
+        format: "csv",
       });
 
-      const response = await fetch(`/api/deliverer/wallet/earnings/export?${params}`);
+      const response = await fetch(
+        `/api/deliverer/wallet/earnings/export?${params}`,
+      );
       if (response.ok) {
         const blob = await response.blob();
         const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
+        const a = document.createElement("a");
         a.href = url;
         a.download = `gains-${startDate}-${endDate}.csv`;
         document.body.appendChild(a);
         a.click();
         window.URL.revokeObjectURL(url);
         document.body.removeChild(a);
-        
+
         toast.success(t("export.success"));
       }
     } catch (error) {
@@ -147,14 +149,27 @@ export default function DelivererEarningsPage() {
 
   const getStatusBadge = (status: string) => {
     const statusConfig = {
-      completed: { color: "bg-green-100 text-green-800", label: "Terminé", icon: CheckCircle },
-      pending: { color: "bg-yellow-100 text-yellow-800", label: "En attente", icon: Clock },
-      processing: { color: "bg-blue-100 text-blue-800", label: "En cours", icon: AlertCircle },
+      completed: {
+        color: "bg-green-100 text-green-800",
+        label: "Terminé",
+        icon: CheckCircle,
+      },
+      pending: {
+        color: "bg-yellow-100 text-yellow-800",
+        label: "En attente",
+        icon: Clock,
+      },
+      processing: {
+        color: "bg-blue-100 text-blue-800",
+        label: "En cours",
+        icon: AlertCircle,
+      },
     };
-    
-    const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.pending;
+
+    const config =
+      statusConfig[status as keyof typeof statusConfig] || statusConfig.pending;
     const Icon = config.icon;
-    
+
     return (
       <Badge className={config.color}>
         <Icon className="w-3 h-3 mr-1" />
@@ -180,10 +195,7 @@ export default function DelivererEarningsPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader
-        title={t("page.title")}
-        description={t("page.description")}
-      >
+      <PageHeader title={t("page.title")} description={t("page.description")}>
         <div></div>
       </PageHeader>
 
@@ -244,7 +256,9 @@ export default function DelivererEarningsPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">{t("stats.total_earnings")}</CardTitle>
+              <CardTitle className="text-sm font-medium">
+                {t("stats.total_earnings")}
+              </CardTitle>
               <TrendingUp className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -259,7 +273,9 @@ export default function DelivererEarningsPage() {
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">{t("stats.net_earnings")}</CardTitle>
+              <CardTitle className="text-sm font-medium">
+                {t("stats.net_earnings")}
+              </CardTitle>
               <Euro className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -274,7 +290,9 @@ export default function DelivererEarningsPage() {
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">{t("stats.average_per_delivery")}</CardTitle>
+              <CardTitle className="text-sm font-medium">
+                {t("stats.average_per_delivery")}
+              </CardTitle>
               <BarChart3 className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -289,7 +307,9 @@ export default function DelivererEarningsPage() {
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">{t("stats.commission")}</CardTitle>
+              <CardTitle className="text-sm font-medium">
+                {t("stats.commission")}
+              </CardTitle>
               <PieChart className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -327,18 +347,27 @@ export default function DelivererEarningsPage() {
               ) : earnings.length > 0 ? (
                 <div className="space-y-4">
                   {earnings.map((earning) => (
-                    <div key={earning.id} className="flex items-center justify-between p-4 border rounded-lg">
+                    <div
+                      key={earning.id}
+                      className="flex items-center justify-between p-4 border rounded-lg"
+                    >
                       <div className="flex-1">
                         <div className="flex items-center gap-3 mb-2">
-                          <h3 className="font-medium">{earning.announcementTitle}</h3>
+                          <h3 className="font-medium">
+                            {earning.announcementTitle}
+                          </h3>
                           {getStatusBadge(earning.status)}
                         </div>
                         <p className="text-sm text-muted-foreground">
-                          {t("earnings.client")}: {earning.clientName} • {new Date(earning.date).toLocaleDateString('fr-FR')}
+                          {t("earnings.client")}: {earning.clientName} •{" "}
+                          {new Date(earning.date).toLocaleDateString("fr-FR")}
                         </p>
                         {earning.paidAt && (
                           <p className="text-xs text-green-600">
-                            {t("earnings.paid_on")} {new Date(earning.paidAt).toLocaleDateString('fr-FR')}
+                            {t("earnings.paid_on")}{" "}
+                            {new Date(earning.paidAt).toLocaleDateString(
+                              "fr-FR",
+                            )}
                           </p>
                         )}
                       </div>
@@ -347,7 +376,8 @@ export default function DelivererEarningsPage() {
                           +{earning.netAmount.toFixed(2)}€
                         </div>
                         <div className="text-sm text-muted-foreground">
-                          {t("earnings.commission")}: {earning.commission.toFixed(2)}€
+                          {t("earnings.commission")}:{" "}
+                          {earning.commission.toFixed(2)}€
                         </div>
                       </div>
                     </div>
@@ -373,35 +403,48 @@ export default function DelivererEarningsPage() {
                 <div className="space-y-6">
                   {/* Earnings by Status */}
                   <div>
-                    <h3 className="font-medium mb-3">{t("analytics.status_breakdown")}</h3>
+                    <h3 className="font-medium mb-3">
+                      {t("analytics.status_breakdown")}
+                    </h3>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <div className="p-4 border rounded-lg">
                         <div className="text-2xl font-bold text-green-600">
                           {report.earningsByStatus.completed.toFixed(2)}€
                         </div>
-                        <p className="text-sm text-muted-foreground">{t("analytics.completed")}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {t("analytics.completed")}
+                        </p>
                       </div>
                       <div className="p-4 border rounded-lg">
                         <div className="text-2xl font-bold text-yellow-600">
                           {report.earningsByStatus.pending.toFixed(2)}€
                         </div>
-                        <p className="text-sm text-muted-foreground">{t("analytics.pending")}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {t("analytics.pending")}
+                        </p>
                       </div>
                       <div className="p-4 border rounded-lg">
                         <div className="text-2xl font-bold text-blue-600">
                           {report.earningsByStatus.processing.toFixed(2)}€
                         </div>
-                        <p className="text-sm text-muted-foreground">{t("analytics.processing")}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {t("analytics.processing")}
+                        </p>
                       </div>
                     </div>
                   </div>
 
                   {/* Monthly Breakdown */}
                   <div>
-                    <h3 className="font-medium mb-3">{t("analytics.monthly_evolution")}</h3>
+                    <h3 className="font-medium mb-3">
+                      {t("analytics.monthly_evolution")}
+                    </h3>
                     <div className="space-y-2">
                       {report.earningsByMonth.map((month) => (
-                        <div key={month.month} className="flex items-center justify-between p-3 border rounded-lg">
+                        <div
+                          key={month.month}
+                          className="flex items-center justify-between p-3 border rounded-lg"
+                        >
                           <div>
                             <p className="font-medium">{month.month}</p>
                             <p className="text-sm text-muted-foreground">
@@ -409,7 +452,9 @@ export default function DelivererEarningsPage() {
                             </p>
                           </div>
                           <div className="text-right">
-                            <p className="font-bold">{month.earnings.toFixed(2)}€</p>
+                            <p className="font-bold">
+                              {month.earnings.toFixed(2)}€
+                            </p>
                           </div>
                         </div>
                       ))}
@@ -428,4 +473,4 @@ export default function DelivererEarningsPage() {
       </Tabs>
     </div>
   );
-} 
+}

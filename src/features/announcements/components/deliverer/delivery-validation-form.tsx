@@ -1,15 +1,15 @@
-"use client"
+"use client";
 
-import { useState, useRef, useEffect } from "react"
-import { useRouter } from "next/navigation"
+import { useState, useRef, useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 interface DeliveryValidationFormProps {
-  announcementId: string
-  deliveryId: string
-  recipientName?: string
-  deliveryAddress: string
-  onValidationSuccess: (validationData: any) => void
-  onValidationError: (error: string) => void
+  announcementId: string;
+  deliveryId: string;
+  recipientName?: string;
+  deliveryAddress: string;
+  onValidationSuccess: (validationData: any) => void;
+  onValidationError: (error: string) => void;
 }
 
 export function DeliveryValidationForm({
@@ -18,174 +18,192 @@ export function DeliveryValidationForm({
   recipientName,
   deliveryAddress,
   onValidationSuccess,
-  onValidationError
+  onValidationError,
 }: DeliveryValidationFormProps) {
-  const router = useRouter()
-  const [validationCode, setValidationCode] = useState(['', '', '', '', '', ''])
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [showPhotoUpload, setShowPhotoUpload] = useState(false)
-  const [deliveryPhoto, setDeliveryPhoto] = useState<File | null>(null)
-  const [photoPreview, setPhotoPreview] = useState<string | null>(null)
-  const [signature, setSignature] = useState<string | null>(null)
-  const [notes, setNotes] = useState('')
-  
-  const inputRefs = useRef<(HTMLInputElement | null)[]>([])
+  const router = useRouter();
+  const [validationCode, setValidationCode] = useState([
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+  ]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [showPhotoUpload, setShowPhotoUpload] = useState(false);
+  const [deliveryPhoto, setDeliveryPhoto] = useState<File | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [signature, setSignature] = useState<string | null>(null);
+  const [notes, setNotes] = useState("");
+
+  const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   useEffect(() => {
     // Focus first input on mount
     if (inputRefs.current[0]) {
-      inputRefs.current[0].focus()
+      inputRefs.current[0].focus();
     }
-  }, [])
+  }, []);
 
   const handleCodeChange = (index: number, value: string) => {
-    if (value.length > 1) return // Prevent pasting multiple characters
+    if (value.length > 1) return; // Prevent pasting multiple characters
 
-    const newCode = [...validationCode]
-    newCode[index] = value.toUpperCase()
-    setValidationCode(newCode)
+    const newCode = [...validationCode];
+    newCode[index] = value.toUpperCase();
+    setValidationCode(newCode);
 
     // Auto-focus next input
     if (value && index < 5 && inputRefs.current[index + 1]) {
-      inputRefs.current[index + 1]?.focus()
+      inputRefs.current[index + 1]?.focus();
     }
 
     // Auto-submit when all 6 digits are entered
-    if (index === 5 && value && newCode.every(digit => digit)) {
-      handleValidation(newCode.join(''))
+    if (index === 5 && value && newCode.every((digit) => digit)) {
+      handleValidation(newCode.join(""));
     }
-  }
+  };
 
   const handleKeyDown = (index: number, e: React.KeyboardEvent) => {
-    if (e.key === 'Backspace' && !validationCode[index] && index > 0) {
+    if (e.key === "Backspace" && !validationCode[index] && index > 0) {
       // Focus previous input on backspace
-      inputRefs.current[index - 1]?.focus()
+      inputRefs.current[index - 1]?.focus();
     }
-  }
+  };
 
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
+    const file = e.target.files?.[0];
     if (file) {
-      if (file.size > 5 * 1024 * 1024) { // 5MB limit
-        setError('La photo ne doit pas dépasser 5MB')
-        return
+      if (file.size > 5 * 1024 * 1024) {
+        // 5MB limit
+        setError("La photo ne doit pas dépasser 5MB");
+        return;
       }
 
-      setDeliveryPhoto(file)
-      const reader = new FileReader()
+      setDeliveryPhoto(file);
+      const reader = new FileReader();
       reader.onload = (e) => {
-        setPhotoPreview(e.target?.result as string)
-      }
-      reader.readAsDataURL(file)
+        setPhotoPreview(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
     }
-  }
+  };
 
   const generateValidationCode = async () => {
     try {
-      const response = await fetch(`/api/deliverer/deliveries/${deliveryId}/generate-code`, {
-        method: 'POST'
-      })
+      const response = await fetch(
+        `/api/deliverer/deliveries/${deliveryId}/generate-code`,
+        {
+          method: "POST",
+        },
+      );
 
-      const data = await response.json()
+      const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Erreur lors de la génération du code')
+        throw new Error(data.error || "Erreur lors de la génération du code");
       }
 
       // Show success message
-      alert('Code de validation envoyé au client par SMS et email')
+      alert("Code de validation envoyé au client par SMS et email");
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Erreur inconnue'
-      setError(errorMessage)
+      const errorMessage =
+        err instanceof Error ? err.message : "Erreur inconnue";
+      setError(errorMessage);
     }
-  }
+  };
 
   const handleValidation = async (code: string) => {
-    setLoading(true)
-    setError(null)
+    setLoading(true);
+    setError(null);
 
     try {
       // Upload photo if present
-      let photoUrl = null
+      let photoUrl = null;
       if (deliveryPhoto) {
-        const formData = new FormData()
-        formData.append('file', deliveryPhoto)
-        formData.append('type', 'delivery_proof')
-        formData.append('deliveryId', deliveryId)
+        const formData = new FormData();
+        formData.append("file", deliveryPhoto);
+        formData.append("type", "delivery_proof");
+        formData.append("deliveryId", deliveryId);
 
-        const uploadResponse = await fetch('/api/upload', {
-          method: 'POST',
-          body: formData
-        })
+        const uploadResponse = await fetch("/api/upload", {
+          method: "POST",
+          body: formData,
+        });
 
         if (uploadResponse.ok) {
-          const uploadData = await uploadResponse.json()
-          photoUrl = uploadData.url
+          const uploadData = await uploadResponse.json();
+          photoUrl = uploadData.url;
         }
       }
 
       // Validate delivery
-      const response = await fetch(`/api/deliverer/deliveries/${deliveryId}/validate`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
+      const response = await fetch(
+        `/api/deliverer/deliveries/${deliveryId}/validate`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            validationCode: code,
+            photoUrl,
+            signature,
+            notes: notes.trim() || undefined,
+            location: await getCurrentLocation(),
+          }),
         },
-        body: JSON.stringify({
-          validationCode: code,
-          photoUrl,
-          signature,
-          notes: notes.trim() || undefined,
-          location: await getCurrentLocation()
-        })
-      })
+      );
 
-      const data = await response.json()
+      const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Code de validation incorrect')
+        throw new Error(data.error || "Code de validation incorrect");
       }
 
-      onValidationSuccess(data)
-      
+      onValidationSuccess(data);
+
       // Show success and redirect
-      alert('✅ Livraison validée avec succès ! Le paiement va être libéré.')
-      router.push('/deliverer/dashboard')
-      
+      alert("✅ Livraison validée avec succès ! Le paiement va être libéré.");
+      router.push("/deliverer/dashboard");
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Erreur de validation'
-      setError(errorMessage)
-      onValidationError(errorMessage)
-      
+      const errorMessage =
+        err instanceof Error ? err.message : "Erreur de validation";
+      setError(errorMessage);
+      onValidationError(errorMessage);
+
       // Clear the code on error
-      setValidationCode(['', '', '', '', '', ''])
+      setValidationCode(["", "", "", "", "", ""]);
       if (inputRefs.current[0]) {
-        inputRefs.current[0].focus()
+        inputRefs.current[0].focus();
       }
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
-  const getCurrentLocation = (): Promise<{latitude: number, longitude: number} | null> => {
+  const getCurrentLocation = (): Promise<{
+    latitude: number;
+    longitude: number;
+  } | null> => {
     return new Promise((resolve) => {
       if (!navigator.geolocation) {
-        resolve(null)
-        return
+        resolve(null);
+        return;
       }
 
       navigator.geolocation.getCurrentPosition(
         (position) => {
           resolve({
             latitude: position.coords.latitude,
-            longitude: position.coords.longitude
-          })
+            longitude: position.coords.longitude,
+          });
         },
         () => resolve(null),
-        { timeout: 5000 }
-      )
-    })
-  }
+        { timeout: 5000 },
+      );
+    });
+  };
 
   return (
     <div className="bg-white rounded-lg shadow-sm border p-6 space-y-6">
@@ -202,12 +220,18 @@ export function DeliveryValidationForm({
 
       {/* Delivery Info */}
       <div className="bg-gray-50 rounded-lg p-4">
-        <h3 className="font-medium text-gray-900 mb-2">Informations de livraison</h3>
+        <h3 className="font-medium text-gray-900 mb-2">
+          Informations de livraison
+        </h3>
         <div className="space-y-1 text-sm text-gray-600">
           {recipientName && (
-            <p><span className="font-medium">Destinataire:</span> {recipientName}</p>
+            <p>
+              <span className="font-medium">Destinataire:</span> {recipientName}
+            </p>
           )}
-          <p><span className="font-medium">Adresse:</span> {deliveryAddress}</p>
+          <p>
+            <span className="font-medium">Adresse:</span> {deliveryAddress}
+          </p>
         </div>
       </div>
 
@@ -244,7 +268,7 @@ export function DeliveryValidationForm({
             />
           ))}
         </div>
-        
+
         {error && (
           <div className="bg-red-50 border border-red-200 rounded-lg p-3">
             <p className="text-red-600 text-sm text-center">{error}</p>
@@ -262,10 +286,10 @@ export function DeliveryValidationForm({
             onClick={() => setShowPhotoUpload(!showPhotoUpload)}
             className="text-blue-600 hover:text-blue-700 text-sm"
           >
-            {showPhotoUpload ? 'Masquer' : 'Ajouter une photo'}
+            {showPhotoUpload ? "Masquer" : "Ajouter une photo"}
           </button>
         </div>
-        
+
         {showPhotoUpload && (
           <div className="space-y-3">
             <input
@@ -275,7 +299,7 @@ export function DeliveryValidationForm({
               onChange={handlePhotoUpload}
               className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-green-50 file:text-green-700 hover:file:bg-green-100"
             />
-            
+
             {photoPreview && (
               <div className="mt-3">
                 <img
@@ -306,14 +330,14 @@ export function DeliveryValidationForm({
       {/* Manual Validation Button */}
       <button
         onClick={() => {
-          const code = validationCode.join('')
+          const code = validationCode.join("");
           if (code.length === 6) {
-            handleValidation(code)
+            handleValidation(code);
           } else {
-            setError('Veuillez saisir les 6 chiffres du code de validation')
+            setError("Veuillez saisir les 6 chiffres du code de validation");
           }
         }}
-        disabled={loading || validationCode.join('').length !== 6}
+        disabled={loading || validationCode.join("").length !== 6}
         className="w-full bg-green-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
       >
         {loading ? (
@@ -334,5 +358,5 @@ export function DeliveryValidationForm({
         </ul>
       </div>
     </div>
-  )
+  );
 }

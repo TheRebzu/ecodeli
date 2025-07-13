@@ -1,67 +1,70 @@
-'use client'
+"use client";
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef } from "react";
 
 declare global {
   interface Window {
-    SwaggerUIBundle: any
+    SwaggerUIBundle: any;
   }
 }
 
 export default function ApiDocsPage() {
-  const wrapperRef = useRef<HTMLDivElement>(null)
+  const wrapperRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const loadSwaggerUI = async () => {
       // Load Swagger UI CSS
-      const cssLink = document.createElement('link')
-      cssLink.rel = 'stylesheet'
-      cssLink.href = 'https://unpkg.com/swagger-ui-dist@5.9.0/swagger-ui.css'
-      document.head.appendChild(cssLink)
+      const cssLink = document.createElement("link");
+      cssLink.rel = "stylesheet";
+      cssLink.href = "https://unpkg.com/swagger-ui-dist@5.9.0/swagger-ui.css";
+      document.head.appendChild(cssLink);
 
       // Load Swagger UI JS
-      const script = document.createElement('script')
-      script.src = 'https://unpkg.com/swagger-ui-dist@5.9.0/swagger-ui-bundle.js'
+      const script = document.createElement("script");
+      script.src =
+        "https://unpkg.com/swagger-ui-dist@5.9.0/swagger-ui-bundle.js";
       script.onload = () => {
         if (wrapperRef.current && window.SwaggerUIBundle) {
           window.SwaggerUIBundle({
-            url: '/api/openapi',
-            dom_id: '#swagger-ui',
+            url: "/api/openapi",
+            dom_id: "#swagger-ui",
             deepLinking: true,
             presets: [
               window.SwaggerUIBundle.presets.apis,
-              window.SwaggerUIBundle.presets.standalone
+              window.SwaggerUIBundle.presets.standalone,
             ],
-            plugins: [
-              window.SwaggerUIBundle.plugins.DownloadUrl
-            ],
-            layout: 'StandaloneLayout',
+            plugins: [window.SwaggerUIBundle.plugins.DownloadUrl],
+            layout: "StandaloneLayout",
             tryItOutEnabled: true,
             requestInterceptor: (request: any) => {
               // Add any custom headers or modifications here
-              return request
+              return request;
             },
             responseInterceptor: (response: any) => {
               // Handle responses here
-              return response
-            }
-          })
+              return response;
+            },
+          });
         }
-      }
-      document.head.appendChild(script)
-    }
+      };
+      document.head.appendChild(script);
+    };
 
-    loadSwaggerUI()
+    loadSwaggerUI();
 
     // Cleanup
     return () => {
-      const existingLinks = document.querySelectorAll('link[href*="swagger-ui"]')
-      const existingScripts = document.querySelectorAll('script[src*="swagger-ui"]')
-      
-      existingLinks.forEach(link => link.remove())
-      existingScripts.forEach(script => script.remove())
-    }
-  }, [])
+      const existingLinks = document.querySelectorAll(
+        'link[href*="swagger-ui"]',
+      );
+      const existingScripts = document.querySelectorAll(
+        'script[src*="swagger-ui"]',
+      );
+
+      existingLinks.forEach((link) => link.remove());
+      existingScripts.forEach((script) => script.remove());
+    };
+  }, []);
 
   return (
     <div className="min-h-screen">
@@ -71,7 +74,7 @@ export default function ApiDocsPage() {
             📚 API EcoDeli - Documentation
           </h1>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Documentation complète de l'API EcoDeli pour les développeurs. 
+            Documentation complète de l'API EcoDeli pour les développeurs.
             Testez les endpoints directement depuis cette interface.
           </p>
           <div className="mt-4 flex justify-center gap-4">
@@ -86,9 +89,13 @@ export default function ApiDocsPage() {
             </span>
           </div>
         </div>
-        
-        <div ref={wrapperRef} id="swagger-ui" className="swagger-ui-container" />
+
+        <div
+          ref={wrapperRef}
+          id="swagger-ui"
+          className="swagger-ui-container"
+        />
       </div>
     </div>
-  )
+  );
 }

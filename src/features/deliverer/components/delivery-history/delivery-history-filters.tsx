@@ -1,39 +1,45 @@
-import { Card, CardContent } from '@/components/ui/card'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Input } from '@/components/ui/input'
-import { Button } from '@/components/ui/button'
-import { Search, Filter, RotateCcw } from 'lucide-react'
+import { Card, CardContent } from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Search, Filter, RotateCcw } from "lucide-react";
 
 interface DeliveryHistoryFiltersProps {
-  searchTerm: string
-  onSearchChange: (value: string) => void
-  statusFilter: string
-  onStatusChange: (value: string) => void
-  typeFilter?: string
-  onTypeChange?: (value: string) => void
-  onReset: () => void
+  searchTerm: string;
+  onSearchChange: (value: string) => void;
+  statusFilter: string;
+  onStatusChange: (value: string) => void;
+  typeFilter?: string;
+  onTypeChange?: (value: string) => void;
+  onReset: () => void;
 }
 
 const statusOptions = [
-  { value: 'all', label: 'Tous les statuts' },
-  { value: 'PENDING', label: 'En attente' },
-  { value: 'ACCEPTED', label: 'Acceptée' },
-  { value: 'IN_TRANSIT', label: 'En cours' },
-  { value: 'DELIVERED', label: 'Livrée' },
-  { value: 'CANCELLED', label: 'Annulée' }
-]
+  { value: "all", label: "Tous les statuts" },
+  { value: "PENDING", label: "En attente" },
+  { value: "ACCEPTED", label: "Acceptée" },
+  { value: "IN_TRANSIT", label: "En cours" },
+  { value: "DELIVERED", label: "Livrée" },
+  { value: "CANCELLED", label: "Annulée" },
+];
 
 const typeOptions = [
-  { value: 'all', label: 'Tous les types' },
-  { value: 'PACKAGE_DELIVERY', label: 'Livraison de colis' },
-  { value: 'PERSON_TRANSPORT', label: 'Transport de personne' },
-  { value: 'AIRPORT_TRANSFER', label: 'Transfert aéroport' },
-  { value: 'SHOPPING', label: 'Courses' },
-  { value: 'INTERNATIONAL_PURCHASE', label: 'Achat international' },
-  { value: 'PET_SITTING', label: 'Garde d\'animal' },
-  { value: 'HOME_SERVICE', label: 'Service à domicile' },
-  { value: 'CART_DROP', label: 'Lâcher de chariot' }
-]
+  { value: "all", label: "Tous les types" },
+  { value: "PACKAGE_DELIVERY", label: "Livraison de colis" },
+  { value: "PERSON_TRANSPORT", label: "Transport de personne" },
+  { value: "AIRPORT_TRANSFER", label: "Transfert aéroport" },
+  { value: "SHOPPING", label: "Courses" },
+  { value: "INTERNATIONAL_PURCHASE", label: "Achat international" },
+  { value: "PET_SITTING", label: "Garde d'animal" },
+  { value: "HOME_SERVICE", label: "Service à domicile" },
+  { value: "CART_DROP", label: "Lâcher de chariot" },
+];
 
 export function DeliveryHistoryFilters({
   searchTerm,
@@ -42,9 +48,12 @@ export function DeliveryHistoryFilters({
   onStatusChange,
   typeFilter,
   onTypeChange,
-  onReset
+  onReset,
 }: DeliveryHistoryFiltersProps) {
-  const hasActiveFilters = searchTerm || statusFilter !== 'all' || (typeFilter && typeFilter !== 'all')
+  const hasActiveFilters =
+    searchTerm ||
+    statusFilter !== "all" ||
+    (typeFilter && typeFilter !== "all");
 
   return (
     <Card>
@@ -103,7 +112,10 @@ export function DeliveryHistoryFilters({
             {/* Filtre par type (optionnel) */}
             {onTypeChange && (
               <div>
-                <Select value={typeFilter || 'all'} onValueChange={onTypeChange}>
+                <Select
+                  value={typeFilter || "all"}
+                  onValueChange={onTypeChange}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Type" />
                   </SelectTrigger>
@@ -123,13 +135,13 @@ export function DeliveryHistoryFilters({
           {hasActiveFilters && (
             <div className="flex flex-wrap items-center gap-2 pt-2 border-t">
               <span className="text-sm text-gray-500">Filtres actifs:</span>
-              
+
               {searchTerm && (
                 <div className="flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs">
                   <Search className="h-3 w-3" />
                   <span>"{searchTerm}"</span>
                   <button
-                    onClick={() => onSearchChange('')}
+                    onClick={() => onSearchChange("")}
                     className="ml-1 hover:text-blue-900"
                   >
                     ×
@@ -137,11 +149,14 @@ export function DeliveryHistoryFilters({
                 </div>
               )}
 
-              {statusFilter !== 'all' && (
+              {statusFilter !== "all" && (
                 <div className="flex items-center gap-1 px-2 py-1 bg-green-100 text-green-800 rounded text-xs">
-                  <span>Statut: {statusOptions.find(s => s.value === statusFilter)?.label}</span>
+                  <span>
+                    Statut:{" "}
+                    {statusOptions.find((s) => s.value === statusFilter)?.label}
+                  </span>
                   <button
-                    onClick={() => onStatusChange('all')}
+                    onClick={() => onStatusChange("all")}
                     className="ml-1 hover:text-green-900"
                   >
                     ×
@@ -149,11 +164,14 @@ export function DeliveryHistoryFilters({
                 </div>
               )}
 
-              {typeFilter && typeFilter !== 'all' && onTypeChange && (
+              {typeFilter && typeFilter !== "all" && onTypeChange && (
                 <div className="flex items-center gap-1 px-2 py-1 bg-purple-100 text-purple-800 rounded text-xs">
-                  <span>Type: {typeOptions.find(t => t.value === typeFilter)?.label}</span>
+                  <span>
+                    Type:{" "}
+                    {typeOptions.find((t) => t.value === typeFilter)?.label}
+                  </span>
                   <button
-                    onClick={() => onTypeChange('all')}
+                    onClick={() => onTypeChange("all")}
                     className="ml-1 hover:text-purple-900"
                   >
                     ×
@@ -165,5 +183,5 @@ export function DeliveryHistoryFilters({
         </div>
       </CardContent>
     </Card>
-  )
-} 
+  );
+}

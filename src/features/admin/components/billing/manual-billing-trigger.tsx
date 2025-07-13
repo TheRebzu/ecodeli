@@ -1,7 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useTranslations } from "next-intl";
@@ -11,7 +17,7 @@ import {
   AlertTriangle,
   CheckCircle,
   Clock,
-  RefreshCw
+  RefreshCw,
 } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
 
@@ -23,8 +29,8 @@ export default function ManualBillingTrigger() {
   const triggerBilling = async () => {
     setIsExecuting(true);
     try {
-      const response = await fetch('/api/admin/billing/trigger-monthly', {
-        method: 'POST'
+      const response = await fetch("/api/admin/billing/trigger-monthly", {
+        method: "POST",
       });
 
       const data = await response.json();
@@ -32,17 +38,20 @@ export default function ManualBillingTrigger() {
       if (response.ok) {
         toast({
           title: "✅ Facturation déclenchée",
-          description: "La facturation mensuelle a été exécutée avec succès"
+          description: "La facturation mensuelle a été exécutée avec succès",
         });
         setLastExecution(new Date().toISOString());
       } else {
-        throw new Error(data.error || 'Erreur lors du déclenchement');
+        throw new Error(data.error || "Erreur lors du déclenchement");
       }
     } catch (error) {
       toast({
         title: "❌ Erreur",
-        description: error instanceof Error ? error.message : "Erreur lors du déclenchement",
-        variant: "destructive"
+        description:
+          error instanceof Error
+            ? error.message
+            : "Erreur lors du déclenchement",
+        variant: "destructive",
       });
     } finally {
       setIsExecuting(false);
@@ -50,12 +59,12 @@ export default function ManualBillingTrigger() {
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleString('fr-FR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+    return new Date(dateString).toLocaleString("fr-FR", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
@@ -67,15 +76,17 @@ export default function ManualBillingTrigger() {
           Facturation mensuelle des prestataires
         </CardTitle>
         <CardDescription>
-          Déclencher manuellement le processus de facturation mensuelle pour tous les prestataires actifs
+          Déclencher manuellement le processus de facturation mensuelle pour
+          tous les prestataires actifs
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <Alert>
           <AlertTriangle className="h-4 w-4" />
           <AlertDescription>
-            Cette action va générer les factures mensuelles pour tous les prestataires ayant des interventions complétées ce mois-ci.
-            Les virements seront simulés et les notifications envoyées.
+            Cette action va générer les factures mensuelles pour tous les
+            prestataires ayant des interventions complétées ce mois-ci. Les
+            virements seront simulés et les notifications envoyées.
           </AlertDescription>
         </Alert>
 
@@ -95,7 +106,9 @@ export default function ManualBillingTrigger() {
             <div className="flex items-center justify-between p-3 border rounded-lg bg-green-50">
               <div>
                 <p className="font-medium">Dernière exécution manuelle</p>
-                <p className="text-sm text-gray-600">{formatDate(lastExecution)}</p>
+                <p className="text-sm text-gray-600">
+                  {formatDate(lastExecution)}
+                </p>
               </div>
               <CheckCircle className="h-5 w-5 text-green-600" />
             </div>

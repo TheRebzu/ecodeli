@@ -1,53 +1,59 @@
-'use client'
+"use client";
 
-import { useTranslations } from 'next-intl'
-import { useRouter } from 'next/navigation'
-import { useState, useEffect } from 'react'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
-import { Label } from '@/components/ui/label'
-import { Switch } from '@/components/ui/switch'
-import { Badge } from '@/components/ui/badge'
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { ArrowLeft, Save, Upload, X, Package } from 'lucide-react'
-import Link from 'next/link'
-import { useProducts } from '@/features/merchant/hooks/use-products'
+import { useTranslations } from "next-intl";
+import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { ArrowLeft, Save, Upload, X, Package } from "lucide-react";
+import Link from "next/link";
+import { useProducts } from "@/features/merchant/hooks/use-products";
 
 const productSchema = z.object({
-  name: z.string().min(1, 'Name is required'),
+  name: z.string().min(1, "Name is required"),
   description: z.string().optional(),
-  price: z.number().min(0, 'Price must be positive'),
+  price: z.number().min(0, "Price must be positive"),
   originalPrice: z.number().min(0).optional(),
   sku: z.string().optional(),
   category: z.string().optional(),
   brand: z.string().optional(),
   weight: z.number().min(0).optional(),
-  stockQuantity: z.number().min(0, 'Stock quantity must be positive'),
-  minStockAlert: z.number().min(0, 'Minimum stock alert must be positive'),
+  stockQuantity: z.number().min(0, "Stock quantity must be positive"),
+  minStockAlert: z.number().min(0, "Minimum stock alert must be positive"),
   isActive: z.boolean().default(true),
   tags: z.array(z.string()).default([]),
-})
+});
 
-type ProductFormData = z.infer<typeof productSchema>
+type ProductFormData = z.infer<typeof productSchema>;
 
 interface ProductEditFormProps {
-  productId: string
+  productId: string;
 }
 
 export function ProductEditForm({ productId }: ProductEditFormProps) {
-  const t = useTranslations('merchant.products')
-  const router = useRouter()
-  const { updateProduct } = useProducts()
-  const [isLoading, setIsLoading] = useState(true)
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [images, setImages] = useState<string[]>([])
-  const [newTag, setNewTag] = useState('')
+  const t = useTranslations("merchant.products");
+  const router = useRouter();
+  const { updateProduct } = useProducts();
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [images, setImages] = useState<string[]>([]);
+  const [newTag, setNewTag] = useState("");
 
   const {
     register,
@@ -58,96 +64,101 @@ export function ProductEditForm({ productId }: ProductEditFormProps) {
     reset,
   } = useForm<ProductFormData>({
     resolver: zodResolver(productSchema),
-  })
+  });
 
-  const watchedTags = watch('tags', [])
+  const watchedTags = watch("tags", []);
 
   useEffect(() => {
     const fetchProduct = async () => {
       try {
-        setIsLoading(true)
-        const response = await fetch(`/api/merchant/products/${productId}`)
-        
+        setIsLoading(true);
+        const response = await fetch(`/api/merchant/products/${productId}`);
+
         if (!response.ok) {
-          throw new Error('Failed to fetch product')
+          throw new Error("Failed to fetch product");
         }
 
-        const product = await response.json()
-        
+        const product = await response.json();
+
         // Set form values
         reset({
           name: product.name,
-          description: product.description || '',
+          description: product.description || "",
           price: product.price,
           originalPrice: product.originalPrice || undefined,
-          sku: product.sku || '',
-          category: product.category || '',
-          brand: product.brand || '',
+          sku: product.sku || "",
+          category: product.category || "",
+          brand: product.brand || "",
           weight: product.weight || undefined,
           stockQuantity: product.stockQuantity,
           minStockAlert: product.minStockAlert,
           isActive: product.isActive,
           tags: product.tags || [],
-        })
+        });
 
-        setImages(product.images || [])
+        setImages(product.images || []);
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'An error occurred')
+        setError(err instanceof Error ? err.message : "An error occurred");
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
-    }
+    };
 
-    fetchProduct()
-  }, [productId, reset])
+    fetchProduct();
+  }, [productId, reset]);
 
   const onSubmit = async (data: ProductFormData) => {
     try {
-      setIsSubmitting(true)
+      setIsSubmitting(true);
       await updateProduct(productId, {
         ...data,
         images,
         dimensions: null, // TODO: Add dimensions form
         metadata: null, // TODO: Add metadata form
-      })
-      router.push(`/merchant/products/${productId}`)
+      });
+      router.push(`/merchant/products/${productId}`);
     } catch (error) {
-      console.error('Error updating product:', error)
+      console.error("Error updating product:", error);
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
+  };
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = event.target.files
+    const files = event.target.files;
     if (files) {
       // TODO: Implement actual image upload to server
-      const newImages = Array.from(files).map(file => URL.createObjectURL(file))
-      setImages(prev => [...prev, ...newImages])
+      const newImages = Array.from(files).map((file) =>
+        URL.createObjectURL(file),
+      );
+      setImages((prev) => [...prev, ...newImages]);
     }
-  }
+  };
 
   const removeImage = (index: number) => {
-    setImages(prev => prev.filter((_, i) => i !== index))
-  }
+    setImages((prev) => prev.filter((_, i) => i !== index));
+  };
 
   const addTag = () => {
     if (newTag.trim() && !watchedTags.includes(newTag.trim())) {
-      setValue('tags', [...watchedTags, newTag.trim()])
-      setNewTag('')
+      setValue("tags", [...watchedTags, newTag.trim()]);
+      setNewTag("");
     }
-  }
+  };
 
   const removeTag = (tagToRemove: string) => {
-    setValue('tags', watchedTags.filter(tag => tag !== tagToRemove))
-  }
+    setValue(
+      "tags",
+      watchedTags.filter((tag) => tag !== tagToRemove),
+    );
+  };
 
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-8">
         <div className="text-muted-foreground">Loading...</div>
       </div>
-    )
+    );
   }
 
   if (error) {
@@ -165,7 +176,7 @@ export function ProductEditForm({ productId }: ProductEditFormProps) {
           </Button>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -176,12 +187,14 @@ export function ProductEditForm({ productId }: ProductEditFormProps) {
           <Button variant="ghost" asChild>
             <Link href={`/merchant/products/${productId}`}>
               <ArrowLeft className="mr-2 h-4 w-4" />
-              {t('edit.back')}
+              {t("edit.back")}
             </Link>
           </Button>
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">{t('edit.title')}</h1>
-            <p className="text-muted-foreground">{t('edit.description')}</p>
+            <h1 className="text-3xl font-bold tracking-tight">
+              {t("edit.title")}
+            </h1>
+            <p className="text-muted-foreground">{t("edit.description")}</p>
           </div>
         </div>
       </div>
@@ -191,16 +204,18 @@ export function ProductEditForm({ productId }: ProductEditFormProps) {
           {/* Basic Information */}
           <Card>
             <CardHeader>
-              <CardTitle>{t('edit.basicInfo')}</CardTitle>
-              <CardDescription>{t('edit.basicInfoDescription')}</CardDescription>
+              <CardTitle>{t("edit.basicInfo")}</CardTitle>
+              <CardDescription>
+                {t("edit.basicInfoDescription")}
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="name">{t('edit.name')} *</Label>
+                <Label htmlFor="name">{t("edit.name")} *</Label>
                 <Input
                   id="name"
-                  {...register('name')}
-                  placeholder={t('edit.namePlaceholder')}
+                  {...register("name")}
+                  placeholder={t("edit.namePlaceholder")}
                 />
                 {errors.name && (
                   <p className="text-sm text-red-600">{errors.name.message}</p>
@@ -208,37 +223,41 @@ export function ProductEditForm({ productId }: ProductEditFormProps) {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="description">{t('edit.description')}</Label>
+                <Label htmlFor="description">{t("edit.description")}</Label>
                 <Textarea
                   id="description"
-                  {...register('description')}
-                  placeholder={t('edit.descriptionPlaceholder')}
+                  {...register("description")}
+                  placeholder={t("edit.descriptionPlaceholder")}
                   rows={3}
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="price">{t('edit.price')} *</Label>
+                  <Label htmlFor="price">{t("edit.price")} *</Label>
                   <Input
                     id="price"
                     type="number"
                     step="0.01"
-                    {...register('price', { valueAsNumber: true })}
+                    {...register("price", { valueAsNumber: true })}
                     placeholder="0.00"
                   />
                   {errors.price && (
-                    <p className="text-sm text-red-600">{errors.price.message}</p>
+                    <p className="text-sm text-red-600">
+                      {errors.price.message}
+                    </p>
                   )}
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="originalPrice">{t('edit.originalPrice')}</Label>
+                  <Label htmlFor="originalPrice">
+                    {t("edit.originalPrice")}
+                  </Label>
                   <Input
                     id="originalPrice"
                     type="number"
                     step="0.01"
-                    {...register('originalPrice', { valueAsNumber: true })}
+                    {...register("originalPrice", { valueAsNumber: true })}
                     placeholder="0.00"
                   />
                 </div>
@@ -246,30 +265,30 @@ export function ProductEditForm({ productId }: ProductEditFormProps) {
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="sku">{t('edit.sku')}</Label>
+                  <Label htmlFor="sku">{t("edit.sku")}</Label>
                   <Input
                     id="sku"
-                    {...register('sku')}
-                    placeholder={t('edit.skuPlaceholder')}
+                    {...register("sku")}
+                    placeholder={t("edit.skuPlaceholder")}
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="brand">{t('edit.brand')}</Label>
+                  <Label htmlFor="brand">{t("edit.brand")}</Label>
                   <Input
                     id="brand"
-                    {...register('brand')}
-                    placeholder={t('edit.brandPlaceholder')}
+                    {...register("brand")}
+                    placeholder={t("edit.brandPlaceholder")}
                   />
                 </div>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="category">{t('edit.category')}</Label>
+                <Label htmlFor="category">{t("edit.category")}</Label>
                 <Input
                   id="category"
-                  {...register('category')}
-                  placeholder={t('edit.categoryPlaceholder')}
+                  {...register("category")}
+                  placeholder={t("edit.categoryPlaceholder")}
                 />
               </div>
             </CardContent>
@@ -278,45 +297,55 @@ export function ProductEditForm({ productId }: ProductEditFormProps) {
           {/* Inventory & Status */}
           <Card>
             <CardHeader>
-              <CardTitle>{t('edit.inventory')}</CardTitle>
-              <CardDescription>{t('edit.inventoryDescription')}</CardDescription>
+              <CardTitle>{t("edit.inventory")}</CardTitle>
+              <CardDescription>
+                {t("edit.inventoryDescription")}
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="stockQuantity">{t('edit.stockQuantity')} *</Label>
+                  <Label htmlFor="stockQuantity">
+                    {t("edit.stockQuantity")} *
+                  </Label>
                   <Input
                     id="stockQuantity"
                     type="number"
-                    {...register('stockQuantity', { valueAsNumber: true })}
+                    {...register("stockQuantity", { valueAsNumber: true })}
                     placeholder="0"
                   />
                   {errors.stockQuantity && (
-                    <p className="text-sm text-red-600">{errors.stockQuantity.message}</p>
+                    <p className="text-sm text-red-600">
+                      {errors.stockQuantity.message}
+                    </p>
                   )}
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="minStockAlert">{t('edit.minStockAlert')} *</Label>
+                  <Label htmlFor="minStockAlert">
+                    {t("edit.minStockAlert")} *
+                  </Label>
                   <Input
                     id="minStockAlert"
                     type="number"
-                    {...register('minStockAlert', { valueAsNumber: true })}
+                    {...register("minStockAlert", { valueAsNumber: true })}
                     placeholder="5"
                   />
                   {errors.minStockAlert && (
-                    <p className="text-sm text-red-600">{errors.minStockAlert.message}</p>
+                    <p className="text-sm text-red-600">
+                      {errors.minStockAlert.message}
+                    </p>
                   )}
                 </div>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="weight">{t('edit.weight')} (kg)</Label>
+                <Label htmlFor="weight">{t("edit.weight")} (kg)</Label>
                 <Input
                   id="weight"
                   type="number"
                   step="0.01"
-                  {...register('weight', { valueAsNumber: true })}
+                  {...register("weight", { valueAsNumber: true })}
                   placeholder="0.00"
                 />
               </div>
@@ -324,10 +353,10 @@ export function ProductEditForm({ productId }: ProductEditFormProps) {
               <div className="flex items-center space-x-2">
                 <Switch
                   id="isActive"
-                  checked={watch('isActive')}
-                  onCheckedChange={(checked) => setValue('isActive', checked)}
+                  checked={watch("isActive")}
+                  onCheckedChange={(checked) => setValue("isActive", checked)}
                 />
-                <Label htmlFor="isActive">{t('edit.isActive')}</Label>
+                <Label htmlFor="isActive">{t("edit.isActive")}</Label>
               </div>
             </CardContent>
           </Card>
@@ -336,8 +365,8 @@ export function ProductEditForm({ productId }: ProductEditFormProps) {
         {/* Images */}
         <Card>
           <CardHeader>
-            <CardTitle>{t('edit.images')}</CardTitle>
-            <CardDescription>{t('edit.imagesDescription')}</CardDescription>
+            <CardTitle>{t("edit.images")}</CardTitle>
+            <CardDescription>{t("edit.imagesDescription")}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid gap-4 md:grid-cols-4">
@@ -362,7 +391,9 @@ export function ProductEditForm({ productId }: ProductEditFormProps) {
               <div className="border-2 border-dashed border-muted-foreground rounded-lg p-4 flex items-center justify-center">
                 <div className="text-center">
                   <Upload className="mx-auto h-8 w-8 text-muted-foreground" />
-                  <p className="text-sm text-muted-foreground mt-2">{t('edit.uploadImage')}</p>
+                  <p className="text-sm text-muted-foreground mt-2">
+                    {t("edit.uploadImage")}
+                  </p>
                   <Input
                     type="file"
                     accept="image/*"
@@ -379,19 +410,21 @@ export function ProductEditForm({ productId }: ProductEditFormProps) {
         {/* Tags */}
         <Card>
           <CardHeader>
-            <CardTitle>{t('edit.tags')}</CardTitle>
-            <CardDescription>{t('edit.tagsDescription')}</CardDescription>
+            <CardTitle>{t("edit.tags")}</CardTitle>
+            <CardDescription>{t("edit.tagsDescription")}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex space-x-2">
               <Input
                 value={newTag}
                 onChange={(e) => setNewTag(e.target.value)}
-                placeholder={t('edit.tagPlaceholder')}
-                onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addTag())}
+                placeholder={t("edit.tagPlaceholder")}
+                onKeyPress={(e) =>
+                  e.key === "Enter" && (e.preventDefault(), addTag())
+                }
               />
               <Button type="button" onClick={addTag}>
-                {t('edit.addTag')}
+                {t("edit.addTag")}
               </Button>
             </div>
             <div className="flex flex-wrap gap-2">
@@ -415,15 +448,15 @@ export function ProductEditForm({ productId }: ProductEditFormProps) {
         <div className="flex justify-end space-x-4">
           <Button type="button" variant="outline" asChild>
             <Link href={`/merchant/products/${productId}`}>
-              {t('edit.cancel')}
+              {t("edit.cancel")}
             </Link>
           </Button>
           <Button type="submit" disabled={isSubmitting}>
             <Save className="mr-2 h-4 w-4" />
-            {isSubmitting ? t('edit.saving') : t('edit.save')}
+            {isSubmitting ? t("edit.saving") : t("edit.save")}
           </Button>
         </div>
       </form>
     </div>
-  )
-} 
+  );
+}

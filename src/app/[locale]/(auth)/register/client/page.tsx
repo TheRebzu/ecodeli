@@ -1,10 +1,10 @@
 // Page d'inscription client
-import { useTranslations } from "next-intl"
-import Link from "next/link"
-import { ClientRegisterForm } from "@/features/auth/components/client-register-form"
+import { useTranslations } from "next-intl";
+import Link from "next/link";
+import { ClientRegisterForm } from "@/features/auth/components/client-register-form";
 
 export default function ClientRegisterPage() {
-  const t = useTranslations()
+  const t = useTranslations();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 py-8 px-4">
@@ -31,17 +31,17 @@ export default function ClientRegisterPage() {
 
         {/* Liens */}
         <div className="mt-6 text-center space-y-4">
-          <Link 
-            href="/register" 
+          <Link
+            href="/register"
             className="text-sm text-gray-600 hover:text-green-600"
           >
             ← Choisir un autre type de compte
           </Link>
-          
+
           <div className="text-sm text-gray-600">
-            Vous avez déjà un compte ?{' '}
-            <Link 
-              href="/login" 
+            Vous avez déjà un compte ?{" "}
+            <Link
+              href="/login"
               className="text-green-600 hover:text-green-700 font-medium"
             >
               Se connecter
@@ -50,5 +50,5 @@ export default function ClientRegisterPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }

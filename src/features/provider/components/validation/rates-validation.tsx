@@ -8,16 +8,16 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { 
-  DollarSign, 
-  Edit, 
+import {
+  DollarSign,
+  Edit,
   CheckCircle,
   Clock,
   AlertCircle,
   TrendingUp,
   TrendingDown,
   MessageSquare,
-  Handshake
+  Handshake,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useApi } from "@/hooks/use-api";
@@ -29,7 +29,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-  DialogFooter
+  DialogFooter,
 } from "@/components/ui/dialog";
 import {
   Select,
@@ -47,7 +47,7 @@ interface ProviderRate {
   negotiatedRate?: number;
   unitType: string;
   minimumCharge?: number;
-  status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'NEGOTIATION';
+  status: "PENDING" | "APPROVED" | "REJECTED" | "NEGOTIATION";
   adminNotes?: string;
   providerNotes?: string;
   lastModified: string;
@@ -69,75 +69,75 @@ interface ServiceTypeRate {
 
 const SERVICE_RATES: ServiceTypeRate[] = [
   {
-    type: 'CLEANING',
-    name: 'Ménage et nettoyage',
+    type: "CLEANING",
+    name: "Ménage et nettoyage",
     suggestedRate: 15,
     minRate: 12,
     maxRate: 25,
-    unit: 'HOUR',
-    description: 'Taux horaire pour les services de ménage à domicile',
-    commission: 0.15
+    unit: "HOUR",
+    description: "Taux horaire pour les services de ménage à domicile",
+    commission: 0.15,
   },
   {
-    type: 'GARDENING',
-    name: 'Jardinage',
+    type: "GARDENING",
+    name: "Jardinage",
     suggestedRate: 18,
     minRate: 15,
     maxRate: 30,
-    unit: 'HOUR',
-    description: 'Taux horaire pour les services de jardinage',
-    commission: 0.15
+    unit: "HOUR",
+    description: "Taux horaire pour les services de jardinage",
+    commission: 0.15,
   },
   {
-    type: 'BABYSITTING',
-    name: 'Garde d\'enfants',
+    type: "BABYSITTING",
+    name: "Garde d'enfants",
     suggestedRate: 12,
     minRate: 10,
     maxRate: 20,
-    unit: 'HOUR',
-    description: 'Taux horaire pour la garde d\'enfants',
-    commission: 0.10
+    unit: "HOUR",
+    description: "Taux horaire pour la garde d'enfants",
+    commission: 0.1,
   },
   {
-    type: 'PET_SITTING',
-    name: 'Garde d\'animaux',
+    type: "PET_SITTING",
+    name: "Garde d'animaux",
     suggestedRate: 10,
     minRate: 8,
     maxRate: 18,
-    unit: 'HOUR',
-    description: 'Taux horaire pour la garde d\'animaux',
-    commission: 0.10
+    unit: "HOUR",
+    description: "Taux horaire pour la garde d'animaux",
+    commission: 0.1,
   },
   {
-    type: 'TRANSPORT',
-    name: 'Transport de personnes',
+    type: "TRANSPORT",
+    name: "Transport de personnes",
     suggestedRate: 1.2,
     minRate: 0.8,
     maxRate: 2.0,
-    unit: 'KM',
-    description: 'Tarif au kilomètre pour le transport',
-    commission: 0.20
+    unit: "KM",
+    description: "Tarif au kilomètre pour le transport",
+    commission: 0.2,
   },
   {
-    type: 'TUTORING',
-    name: 'Cours particuliers',
+    type: "TUTORING",
+    name: "Cours particuliers",
     suggestedRate: 25,
     minRate: 15,
     maxRate: 50,
-    unit: 'HOUR',
-    description: 'Taux horaire pour les cours particuliers',
-    commission: 0.15
+    unit: "HOUR",
+    description: "Taux horaire pour les cours particuliers",
+    commission: 0.15,
   },
   {
-    type: 'HOME_REPAIR',
-    name: 'Petits travaux',
+    type: "HOME_REPAIR",
+    name: "Petits travaux",
     suggestedRate: 20,
     minRate: 15,
     maxRate: 40,
-    unit: 'HOUR',
-    description: 'Taux horaire pour les petits travaux',
-    commission: 0.20
-  }
+    unit: "HOUR",
+    description: "Taux horaire pour les petits travaux",
+    commission: 0.2,
+  },
 ];
 
 export function ProviderRatesValidation() {
@@ -152,28 +152,28 @@ export function ProviderRatesValidation() {
 
   // Créer les méthodes GET, POST et PUT basées sur execute
   const get = async (url: string) => {
-    return await execute(url, { method: 'GET' });
+    return await execute(url, { method: "GET" });
   };
 
   const post = async (url: string, options: { body: string }) => {
-    return await execute(url, { 
-      method: 'POST',
+    return await execute(url, {
+      method: "POST",
       body: options.body,
-      headers: { 'Content-Type': 'application/json' }
+      headers: { "Content-Type": "application/json" },
     });
   };
 
   const put = async (url: string, options: { body: string }) => {
-    return await execute(url, { 
-      method: 'PUT',
+    return await execute(url, {
+      method: "PUT",
       body: options.body,
-      headers: { 'Content-Type': 'application/json' }
+      headers: { "Content-Type": "application/json" },
     });
   };
 
   const fetchRates = async () => {
     if (!user?.id) return;
-    
+
     try {
       setLoading(true);
       const response = await get(`/api/provider/rates?providerId=${user.id}`);
@@ -188,9 +188,14 @@ export function ProviderRatesValidation() {
     }
   };
 
-  const proposeRate = async (serviceType: string, proposedRate: number, minimumCharge?: number, notes?: string) => {
+  const proposeRate = async (
+    serviceType: string,
+    proposedRate: number,
+    minimumCharge?: number,
+    notes?: string,
+  ) => {
     if (!user?.id) return;
-    
+
     try {
       const response = await post("/api/provider/rates", {
         body: JSON.stringify({
@@ -198,8 +203,8 @@ export function ProviderRatesValidation() {
           serviceType,
           proposedRate,
           minimumCharge,
-          providerNotes: notes
-        })
+          providerNotes: notes,
+        }),
       });
 
       if (response) {
@@ -214,13 +219,13 @@ export function ProviderRatesValidation() {
 
   const requestNegotiation = async (rateId: string, message: string) => {
     if (!user?.id) return;
-    
+
     try {
       const response = await post(`/api/provider/rates/${rateId}/negotiate`, {
         body: JSON.stringify({
           providerId: user.id,
-          message
-        })
+          message,
+        }),
       });
 
       if (response) {
@@ -237,10 +242,10 @@ export function ProviderRatesValidation() {
 
   const acceptRate = async (rateId: string) => {
     if (!user?.id) return;
-    
+
     try {
       const response = await post(`/api/provider/rates/${rateId}/accept`, {
-        body: JSON.stringify({ providerId: user.id })
+        body: JSON.stringify({ providerId: user.id }),
       });
 
       if (response) {
@@ -255,13 +260,30 @@ export function ProviderRatesValidation() {
 
   const getStatusBadge = (status: string) => {
     const config = {
-      PENDING: { color: "bg-yellow-100 text-yellow-800", icon: Clock, label: "En attente" },
-      APPROVED: { color: "bg-green-100 text-green-800", icon: CheckCircle, label: "Approuvé" },
-      REJECTED: { color: "bg-red-100 text-red-800", icon: AlertCircle, label: "Rejeté" },
-      NEGOTIATION: { color: "bg-blue-100 text-blue-800", icon: MessageSquare, label: "En négociation" }
+      PENDING: {
+        color: "bg-yellow-100 text-yellow-800",
+        icon: Clock,
+        label: "En attente",
+      },
+      APPROVED: {
+        color: "bg-green-100 text-green-800",
+        icon: CheckCircle,
+        label: "Approuvé",
+      },
+      REJECTED: {
+        color: "bg-red-100 text-red-800",
+        icon: AlertCircle,
+        label: "Rejeté",
+      },
+      NEGOTIATION: {
+        color: "bg-blue-100 text-blue-800",
+        icon: MessageSquare,
+        label: "En négociation",
+      },
     };
 
-    const statusConfig = config[status as keyof typeof config] || config.PENDING;
+    const statusConfig =
+      config[status as keyof typeof config] || config.PENDING;
     const Icon = statusConfig.icon;
 
     return (
@@ -273,7 +295,7 @@ export function ProviderRatesValidation() {
   };
 
   const getRateComparison = (serviceType: string, proposedRate: number) => {
-    const serviceRate = SERVICE_RATES.find(sr => sr.type === serviceType);
+    const serviceRate = SERVICE_RATES.find((sr) => sr.type === serviceType);
     if (!serviceRate) return null;
 
     const difference = proposedRate - serviceRate.suggestedRate;
@@ -284,7 +306,9 @@ export function ProviderRatesValidation() {
       difference,
       percentDiff,
       isHigher: difference > 0,
-      isInRange: proposedRate >= serviceRate.minRate && proposedRate <= serviceRate.maxRate
+      isInRange:
+        proposedRate >= serviceRate.minRate &&
+        proposedRate <= serviceRate.maxRate,
     };
   };
 
@@ -322,7 +346,8 @@ export function ProviderRatesValidation() {
       <div>
         <h3 className="text-lg font-semibold">Tarifs négociés</h3>
         <p className="text-gray-600">
-          Fixation et négociation de vos tarifs avec EcoDeli selon votre expertise
+          Fixation et négociation de vos tarifs avec EcoDeli selon votre
+          expertise
         </p>
       </div>
 
@@ -337,31 +362,40 @@ export function ProviderRatesValidation() {
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {SERVICE_RATES.map((serviceRate) => {
-              const existingRate = rates.find(r => r.serviceType === serviceRate.type);
-              
+              const existingRate = rates.find(
+                (r) => r.serviceType === serviceRate.type,
+              );
+
               return (
                 <div key={serviceRate.type} className="border rounded-lg p-4">
                   <div className="flex items-center justify-between mb-2">
                     <h4 className="font-medium">{serviceRate.name}</h4>
                     {existingRate && getStatusBadge(existingRate.status)}
                   </div>
-                  
-                  <p className="text-sm text-gray-600 mb-3">{serviceRate.description}</p>
-                  
+
+                  <p className="text-sm text-gray-600 mb-3">
+                    {serviceRate.description}
+                  </p>
+
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
                       <span className="text-gray-600">Tarif suggéré:</span>
                       <span className="font-medium">
-                        {serviceRate.suggestedRate}€{serviceRate.unit === 'HOUR' ? '/h' : '/km'}
+                        {serviceRate.suggestedRate}€
+                        {serviceRate.unit === "HOUR" ? "/h" : "/km"}
                       </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600">Fourchette:</span>
-                      <span>{serviceRate.minRate}€ - {serviceRate.maxRate}€</span>
+                      <span>
+                        {serviceRate.minRate}€ - {serviceRate.maxRate}€
+                      </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600">Commission EcoDeli:</span>
-                      <span className="text-red-600">{(serviceRate.commission * 100).toFixed(0)}%</span>
+                      <span className="text-red-600">
+                        {(serviceRate.commission * 100).toFixed(0)}%
+                      </span>
                     </div>
                   </div>
 
@@ -370,12 +404,16 @@ export function ProviderRatesValidation() {
                       <div className="flex justify-between text-sm">
                         <span className="text-gray-600">Votre tarif:</span>
                         <span className="font-medium text-green-600">
-                          {existingRate.negotiatedRate || existingRate.proposedRate}€
+                          {existingRate.negotiatedRate ||
+                            existingRate.proposedRate}
+                          €
                         </span>
                       </div>
-                      {existingRate.status === 'APPROVED' && (
+                      {existingRate.status === "APPROVED" && (
                         <div className="flex justify-between text-sm">
-                          <span className="text-gray-600">Net (après commission):</span>
+                          <span className="text-gray-600">
+                            Net (après commission):
+                          </span>
                           <span className="font-medium">
                             {existingRate.netRate.toFixed(2)}€
                           </span>
@@ -383,10 +421,12 @@ export function ProviderRatesValidation() {
                       )}
                     </div>
                   ) : (
-                    <Button 
-                      size="sm" 
+                    <Button
+                      size="sm"
                       className="mt-3 w-full"
-                      onClick={() => proposeRate(serviceRate.type, serviceRate.suggestedRate)}
+                      onClick={() =>
+                        proposeRate(serviceRate.type, serviceRate.suggestedRate)
+                      }
                     >
                       Proposer ce service
                     </Button>
@@ -414,15 +454,21 @@ export function ProviderRatesValidation() {
                 Aucun tarif configuré
               </h3>
               <p className="text-gray-600">
-                Commencez par proposer vos tarifs pour les services que vous souhaitez fournir
+                Commencez par proposer vos tarifs pour les services que vous
+                souhaitez fournir
               </p>
             </div>
           ) : (
             <div className="space-y-4">
               {rates.map((rate) => {
-                const serviceRate = SERVICE_RATES.find(sr => sr.type === rate.serviceType);
-                const comparison = getRateComparison(rate.serviceType, rate.proposedRate);
-                
+                const serviceRate = SERVICE_RATES.find(
+                  (sr) => sr.type === rate.serviceType,
+                );
+                const comparison = getRateComparison(
+                  rate.serviceType,
+                  rate.proposedRate,
+                );
+
                 return (
                   <div key={rate.id} className="border rounded-lg p-4">
                     <div className="flex items-start justify-between">
@@ -434,22 +480,32 @@ export function ProviderRatesValidation() {
 
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                           <div>
-                            <span className="text-gray-600">Tarif proposé:</span>
+                            <span className="text-gray-600">
+                              Tarif proposé:
+                            </span>
                             <p className="font-medium">{rate.proposedRate}€</p>
                           </div>
                           {rate.negotiatedRate && (
                             <div>
-                              <span className="text-gray-600">Tarif négocié:</span>
-                              <p className="font-medium text-blue-600">{rate.negotiatedRate}€</p>
+                              <span className="text-gray-600">
+                                Tarif négocié:
+                              </span>
+                              <p className="font-medium text-blue-600">
+                                {rate.negotiatedRate}€
+                              </p>
                             </div>
                           )}
                           <div>
                             <span className="text-gray-600">Commission:</span>
-                            <p className="font-medium text-red-600">{(rate.commission * 100).toFixed(0)}%</p>
+                            <p className="font-medium text-red-600">
+                              {(rate.commission * 100).toFixed(0)}%
+                            </p>
                           </div>
                           <div>
                             <span className="text-gray-600">Net:</span>
-                            <p className="font-medium text-green-600">{rate.netRate.toFixed(2)}€</p>
+                            <p className="font-medium text-green-600">
+                              {rate.netRate.toFixed(2)}€
+                            </p>
                           </div>
                         </div>
 
@@ -461,18 +517,31 @@ export function ProviderRatesValidation() {
                               ) : (
                                 <TrendingDown className="w-4 h-4 text-red-600" />
                               )}
-                              <span className={comparison.isHigher ? "text-green-600" : "text-red-600"}>
-                                {comparison.isHigher ? "+" : ""}{comparison.difference.toFixed(2)}€ 
-                                ({comparison.percentDiff.toFixed(1)}%)
+                              <span
+                                className={
+                                  comparison.isHigher
+                                    ? "text-green-600"
+                                    : "text-red-600"
+                                }
+                              >
+                                {comparison.isHigher ? "+" : ""}
+                                {comparison.difference.toFixed(2)}€ (
+                                {comparison.percentDiff.toFixed(1)}%)
                               </span>
                             </div>
-                            <Badge variant={comparison.isInRange ? "default" : "destructive"}>
-                              {comparison.isInRange ? "Dans la fourchette" : "Hors fourchette"}
+                            <Badge
+                              variant={
+                                comparison.isInRange ? "default" : "destructive"
+                              }
+                            >
+                              {comparison.isInRange
+                                ? "Dans la fourchette"
+                                : "Hors fourchette"}
                             </Badge>
                           </div>
                         )}
 
-                        {rate.status === 'REJECTED' && rate.adminNotes && (
+                        {rate.status === "REJECTED" && rate.adminNotes && (
                           <div className="mt-3 bg-red-50 border border-red-200 rounded p-3">
                             <p className="text-sm text-red-800">
                               <strong>Motif de rejet:</strong> {rate.adminNotes}
@@ -480,17 +549,18 @@ export function ProviderRatesValidation() {
                           </div>
                         )}
 
-                        {rate.status === 'NEGOTIATION' && rate.adminNotes && (
+                        {rate.status === "NEGOTIATION" && rate.adminNotes && (
                           <div className="mt-3 bg-blue-50 border border-blue-200 rounded p-3">
                             <p className="text-sm text-blue-800">
-                              <strong>Proposition EcoDeli:</strong> {rate.adminNotes}
+                              <strong>Proposition EcoDeli:</strong>{" "}
+                              {rate.adminNotes}
                             </p>
                           </div>
                         )}
                       </div>
 
                       <div className="flex space-x-2">
-                        {rate.status === 'PENDING' && (
+                        {rate.status === "PENDING" && (
                           <Button
                             size="sm"
                             variant="outline"
@@ -501,7 +571,7 @@ export function ProviderRatesValidation() {
                           </Button>
                         )}
 
-                        {rate.status === 'NEGOTIATION' && (
+                        {rate.status === "NEGOTIATION" && (
                           <>
                             <Button
                               size="sm"
@@ -521,7 +591,7 @@ export function ProviderRatesValidation() {
                           </>
                         )}
 
-                        {rate.status === 'REJECTED' && (
+                        {rate.status === "REJECTED" && (
                           <Button
                             size="sm"
                             variant="outline"
@@ -542,15 +612,19 @@ export function ProviderRatesValidation() {
       </Card>
 
       {/* Negotiation Dialog */}
-      <Dialog open={showNegotiationDialog} onOpenChange={setShowNegotiationDialog}>
+      <Dialog
+        open={showNegotiationDialog}
+        onOpenChange={setShowNegotiationDialog}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Négociation de tarif</DialogTitle>
             <DialogDescription>
-              {selectedRate && `Service: ${SERVICE_RATES.find(sr => sr.type === selectedRate.serviceType)?.name}`}
+              {selectedRate &&
+                `Service: ${SERVICE_RATES.find((sr) => sr.type === selectedRate.serviceType)?.name}`}
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="space-y-4">
             <div>
               <Label htmlFor="negotiationMessage">Message de négociation</Label>
@@ -565,11 +639,17 @@ export function ProviderRatesValidation() {
           </div>
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowNegotiationDialog(false)}>
+            <Button
+              variant="outline"
+              onClick={() => setShowNegotiationDialog(false)}
+            >
               Annuler
             </Button>
-            <Button 
-              onClick={() => selectedRate && requestNegotiation(selectedRate.id, negotiationMessage)}
+            <Button
+              onClick={() =>
+                selectedRate &&
+                requestNegotiation(selectedRate.id, negotiationMessage)
+              }
               disabled={!negotiationMessage.trim()}
             >
               Envoyer la demande

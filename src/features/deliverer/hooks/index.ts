@@ -9,5 +9,5 @@ export {
   useNFCCard,
   useDelivererPlanning,
   useDelivererEarnings,
-  useDelivererDashboard
-} from './useDelivererData' 
+  useDelivererDashboard,
+} from "./useDelivererData";

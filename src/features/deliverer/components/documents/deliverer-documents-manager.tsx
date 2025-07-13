@@ -1,14 +1,43 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { FileText, Upload, Check, X, Clock, AlertTriangle, Download, Eye } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  FileText,
+  Upload,
+  Check,
+  X,
+  Clock,
+  AlertTriangle,
+  Download,
+  Eye,
+} from "lucide-react";
 import { useTranslations } from "next-intl";
 
 interface DelivererDocumentsManagerProps {
@@ -34,14 +63,22 @@ const REQUIRED_DOCUMENTS = [
   { type: "DRIVING_LICENSE", name: "Permis de conduire", required: true },
   { type: "INSURANCE", name: "Attestation d'assurance", required: true },
   { type: "VEHICLE_REGISTRATION", name: "Carte grise", required: false },
-  { type: "CERTIFICATION", name: "Certifications professionnelles", required: false }
+  {
+    type: "CERTIFICATION",
+    name: "Certifications professionnelles",
+    required: false,
+  },
 ];
 
-export default function DelivererDocumentsManager({ delivererId }: DelivererDocumentsManagerProps) {
+export default function DelivererDocumentsManager({
+  delivererId,
+}: DelivererDocumentsManagerProps) {
   const t = useTranslations("deliverer.documents");
   const [documents, setDocuments] = useState<Document[]>([]);
   const [loading, setLoading] = useState(true);
-  const [uploadingDocument, setUploadingDocument] = useState<string | null>(null);
+  const [uploadingDocument, setUploadingDocument] = useState<string | null>(
+    null,
+  );
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [selectedDocumentType, setSelectedDocumentType] = useState<string>("");
 
@@ -51,12 +88,16 @@ export default function DelivererDocumentsManager({ delivererId }: DelivererDocu
       const result = t(key);
       // Si la traduction retourne la clé elle-même, c'est qu'elle n'existe pas
       if (result === key) {
-        console.warn(`Translation missing for key: ${key}, using fallback: ${fallback}`);
+        console.warn(
+          `Translation missing for key: ${key}, using fallback: ${fallback}`,
+        );
         return fallback || key;
       }
       return result;
     } catch (error) {
-      console.warn(`Translation error for key: ${key}, using fallback: ${fallback}`);
+      console.warn(
+        `Translation error for key: ${key}, using fallback: ${fallback}`,
+      );
       return fallback || key;
     }
   };
@@ -67,7 +108,9 @@ export default function DelivererDocumentsManager({ delivererId }: DelivererDocu
 
   const fetchDocuments = async () => {
     try {
-      const response = await fetch(`/api/deliverer/documents?delivererId=${delivererId}`);
+      const response = await fetch(
+        `/api/deliverer/documents?delivererId=${delivererId}`,
+      );
       if (response.ok) {
         const data = await response.json();
         setDocuments(data.documents || []);
@@ -83,7 +126,7 @@ export default function DelivererDocumentsManager({ delivererId }: DelivererDocu
     if (!selectedFile) return;
 
     setUploadingDocument(documentType);
-    
+
     try {
       const formData = new FormData();
       formData.append("file", selectedFile);
@@ -92,7 +135,7 @@ export default function DelivererDocumentsManager({ delivererId }: DelivererDocu
 
       const response = await fetch("/api/deliverer/documents", {
         method: "POST",
-        body: formData
+        body: formData,
       });
 
       if (response.ok) {
@@ -110,7 +153,7 @@ export default function DelivererDocumentsManager({ delivererId }: DelivererDocu
   const handleDocumentDelete = async (documentId: string) => {
     try {
       const response = await fetch(`/api/deliverer/documents/${documentId}`, {
-        method: "DELETE"
+        method: "DELETE",
       });
 
       if (response.ok) {
@@ -123,34 +166,56 @@ export default function DelivererDocumentsManager({ delivererId }: DelivererDocu
 
   const getDocumentStatus = (doc: Document) => {
     if (doc.expiresAt && new Date(doc.expiresAt) < new Date()) {
-      return { status: "expired", color: "bg-orange-100 text-orange-800", icon: Clock };
+      return {
+        status: "expired",
+        color: "bg-orange-100 text-orange-800",
+        icon: Clock,
+      };
     }
 
     const statusConfig = {
-      pending: { status: "pending", color: "bg-yellow-100 text-yellow-800", icon: Clock },
-      approved: { status: "approved", color: "bg-green-100 text-green-800", icon: Check },
-      rejected: { status: "rejected", color: "bg-red-100 text-red-800", icon: X },
-      expired: { status: "expired", color: "bg-orange-100 text-orange-800", icon: AlertTriangle }
+      pending: {
+        status: "pending",
+        color: "bg-yellow-100 text-yellow-800",
+        icon: Clock,
+      },
+      approved: {
+        status: "approved",
+        color: "bg-green-100 text-green-800",
+        icon: Check,
+      },
+      rejected: {
+        status: "rejected",
+        color: "bg-red-100 text-red-800",
+        icon: X,
+      },
+      expired: {
+        status: "expired",
+        color: "bg-orange-100 text-orange-800",
+        icon: AlertTriangle,
+      },
     };
 
     const result = statusConfig[doc.status as keyof typeof statusConfig];
-    
+
     // Si le statut n'est pas reconnu, retourner pending par défaut
     if (!result) {
-      console.warn(`Unknown document status: ${doc.status}, defaulting to pending`);
+      console.warn(
+        `Unknown document status: ${doc.status}, defaulting to pending`,
+      );
       return statusConfig.pending;
     }
-    
+
     return result;
   };
 
   const getDocumentByType = (type: string) => {
-    return documents.find(doc => doc.type === type);
+    return documents.find((doc) => doc.type === type);
   };
 
   const getCompletionPercentage = () => {
-    const requiredDocs = REQUIRED_DOCUMENTS.filter(doc => doc.required);
-    const approvedDocs = requiredDocs.filter(reqDoc => {
+    const requiredDocs = REQUIRED_DOCUMENTS.filter((doc) => doc.required);
+    const approvedDocs = requiredDocs.filter((reqDoc) => {
       const doc = getDocumentByType(reqDoc.type);
       return doc && doc.status === "approved";
     });
@@ -181,11 +246,15 @@ export default function DelivererDocumentsManager({ delivererId }: DelivererDocu
         </CardHeader>
         <CardContent>
           <div className="flex items-center justify-between mb-4">
-            <span className="text-sm font-medium">{t("validation_status.progress")}</span>
-            <span className="text-sm text-gray-600">{getCompletionPercentage()}%</span>
+            <span className="text-sm font-medium">
+              {t("validation_status.progress")}
+            </span>
+            <span className="text-sm text-gray-600">
+              {getCompletionPercentage()}%
+            </span>
           </div>
           <div className="w-full bg-gray-200 rounded-full h-2 mb-4">
-            <div 
+            <div
               className="bg-blue-600 h-2 rounded-full transition-all duration-300"
               style={{ width: `${getCompletionPercentage()}%` }}
             />
@@ -193,12 +262,16 @@ export default function DelivererDocumentsManager({ delivererId }: DelivererDocu
           {isValidationComplete() ? (
             <div className="flex items-center gap-2 text-green-600">
               <Check className="h-4 w-4" />
-              <span className="text-sm font-medium">{t("validation_status.complete")}</span>
+              <span className="text-sm font-medium">
+                {t("validation_status.complete")}
+              </span>
             </div>
           ) : (
             <div className="flex items-center gap-2 text-orange-600">
               <Clock className="h-4 w-4" />
-              <span className="text-sm font-medium">{t("validation_status.incomplete")}</span>
+              <span className="text-sm font-medium">
+                {t("validation_status.incomplete")}
+              </span>
             </div>
           )}
         </CardContent>
@@ -213,7 +286,10 @@ export default function DelivererDocumentsManager({ delivererId }: DelivererDocu
           return (
             <Card key={docType.type} className="relative">
               {docType.required && (
-                <Badge variant="destructive" className="absolute top-2 right-2 text-xs">
+                <Badge
+                  variant="destructive"
+                  className="absolute top-2 right-2 text-xs"
+                >
                   {t("required")}
                 </Badge>
               )}
@@ -229,34 +305,51 @@ export default function DelivererDocumentsManager({ delivererId }: DelivererDocu
                     <div className="flex items-center gap-2">
                       <StatusIcon className="h-4 w-4" />
                       <Badge className={statusInfo?.color}>
-                        {statusInfo?.status ? 
-                          translate(`status.${statusInfo.status}`, 
-                            statusInfo.status === 'approved' ? 'Approuvé' :
-                            statusInfo.status === 'pending' ? 'En attente' :
-                            statusInfo.status === 'rejected' ? 'Rejeté' :
-                            statusInfo.status === 'expired' ? 'Expiré' : 'Inconnu'
-                          ) : 
-                          translate("status.pending", "En attente")
-                        }
+                        {statusInfo?.status
+                          ? translate(
+                              `status.${statusInfo.status}`,
+                              statusInfo.status === "approved"
+                                ? "Approuvé"
+                                : statusInfo.status === "pending"
+                                  ? "En attente"
+                                  : statusInfo.status === "rejected"
+                                    ? "Rejeté"
+                                    : statusInfo.status === "expired"
+                                      ? "Expiré"
+                                      : "Inconnu",
+                            )
+                          : translate("status.pending", "En attente")}
                       </Badge>
                     </div>
-                    
+
                     <div className="text-sm text-gray-600">
-                      <p>{t("uploaded_at")}: {new Date(document.uploadedAt).toLocaleDateString()}</p>
+                      <p>
+                        {t("uploaded_at")}:{" "}
+                        {new Date(document.uploadedAt).toLocaleDateString()}
+                      </p>
                       {document.expiresAt && (
-                        <p>{t("expires_at")}: {new Date(document.expiresAt).toLocaleDateString()}</p>
+                        <p>
+                          {t("expires_at")}:{" "}
+                          {new Date(document.expiresAt).toLocaleDateString()}
+                        </p>
                       )}
                     </div>
 
                     {document.rejectedReason && (
                       <div className="p-3 bg-red-50 border border-red-200 rounded">
-                        <p className="text-sm text-red-800">{t("rejected_reason")}: {document.rejectedReason}</p>
+                        <p className="text-sm text-red-800">
+                          {t("rejected_reason")}: {document.rejectedReason}
+                        </p>
                       </div>
                     )}
 
                     <div className="flex gap-2">
                       <Button variant="outline" size="sm" asChild>
-                        <a href={document.url} target="_blank" rel="noopener noreferrer">
+                        <a
+                          href={document.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
                           <Eye className="h-3 w-3 mr-1" />
                           {t("actions.view")}
                         </a>
@@ -268,8 +361,8 @@ export default function DelivererDocumentsManager({ delivererId }: DelivererDocu
                         </a>
                       </Button>
                       {document.status !== "approved" && (
-                        <Button 
-                          variant="destructive" 
+                        <Button
+                          variant="destructive"
                           size="sm"
                           onClick={() => handleDocumentDelete(document.id)}
                         >
@@ -279,7 +372,8 @@ export default function DelivererDocumentsManager({ delivererId }: DelivererDocu
                       )}
                     </div>
 
-                    {(document.status === "rejected" || document.status === "expired") && (
+                    {(document.status === "rejected" ||
+                      document.status === "expired") && (
                       <Dialog>
                         <DialogTrigger asChild>
                           <Button size="sm" className="w-full">
@@ -289,28 +383,41 @@ export default function DelivererDocumentsManager({ delivererId }: DelivererDocu
                         </DialogTrigger>
                         <DialogContent>
                           <DialogHeader>
-                            <DialogTitle>{t("upload_dialog.title")}</DialogTitle>
+                            <DialogTitle>
+                              {t("upload_dialog.title")}
+                            </DialogTitle>
                             <DialogDescription>
-                              {t("upload_dialog.description", { document: docType.name })}
+                              {t("upload_dialog.description", {
+                                document: docType.name,
+                              })}
                             </DialogDescription>
                           </DialogHeader>
                           <div className="space-y-4">
                             <div>
-                              <Label htmlFor="file">{t("upload_dialog.select_file")}</Label>
+                              <Label htmlFor="file">
+                                {t("upload_dialog.select_file")}
+                              </Label>
                               <Input
                                 id="file"
                                 type="file"
                                 accept=".pdf,.jpg,.jpeg,.png"
-                                onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
+                                onChange={(e) =>
+                                  setSelectedFile(e.target.files?.[0] || null)
+                                }
                               />
                             </div>
                           </div>
                           <DialogFooter>
-                            <Button 
+                            <Button
                               onClick={() => handleFileUpload(docType.type)}
-                              disabled={!selectedFile || uploadingDocument === docType.type}
+                              disabled={
+                                !selectedFile ||
+                                uploadingDocument === docType.type
+                              }
                             >
-                              {uploadingDocument === docType.type ? t("uploading") : t("upload")}
+                              {uploadingDocument === docType.type
+                                ? t("uploading")
+                                : t("upload")}
                             </Button>
                           </DialogFooter>
                         </DialogContent>
@@ -329,26 +436,36 @@ export default function DelivererDocumentsManager({ delivererId }: DelivererDocu
                       <DialogHeader>
                         <DialogTitle>{t("upload_dialog.title")}</DialogTitle>
                         <DialogDescription>
-                          {t("upload_dialog.description", { document: docType.name })}
+                          {t("upload_dialog.description", {
+                            document: docType.name,
+                          })}
                         </DialogDescription>
                       </DialogHeader>
                       <div className="space-y-4">
                         <div>
-                          <Label htmlFor="file">{t("upload_dialog.select_file")}</Label>
+                          <Label htmlFor="file">
+                            {t("upload_dialog.select_file")}
+                          </Label>
                           <Input
                             id="file"
                             type="file"
                             accept=".pdf,.jpg,.jpeg,.png"
-                            onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
+                            onChange={(e) =>
+                              setSelectedFile(e.target.files?.[0] || null)
+                            }
                           />
                         </div>
                       </div>
                       <DialogFooter>
-                        <Button 
+                        <Button
                           onClick={() => handleFileUpload(docType.type)}
-                          disabled={!selectedFile || uploadingDocument === docType.type}
+                          disabled={
+                            !selectedFile || uploadingDocument === docType.type
+                          }
                         >
-                          {uploadingDocument === docType.type ? t("uploading") : t("upload")}
+                          {uploadingDocument === docType.type
+                            ? t("uploading")
+                            : t("upload")}
                         </Button>
                       </DialogFooter>
                     </DialogContent>
@@ -366,8 +483,12 @@ export default function DelivererDocumentsManager({ delivererId }: DelivererDocu
             <div className="flex items-center gap-3">
               <AlertTriangle className="h-5 w-5 text-orange-600" />
               <div>
-                <h3 className="font-semibold text-orange-800">{t("incomplete_warning.title")}</h3>
-                <p className="text-sm text-orange-700">{t("incomplete_warning.description")}</p>
+                <h3 className="font-semibold text-orange-800">
+                  {t("incomplete_warning.title")}
+                </h3>
+                <p className="text-sm text-orange-700">
+                  {t("incomplete_warning.description")}
+                </p>
               </div>
             </div>
           </CardContent>

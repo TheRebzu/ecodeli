@@ -4,14 +4,20 @@ import { useAuth } from "@/hooks/use-auth";
 import { PageHeader } from "@/components/layout/page-header";
 import { useTranslations } from "next-intl";
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Link } from "@/i18n/navigation";
-import { 
-  User, 
-  FileText, 
+import {
+  User,
+  FileText,
   Award,
   Settings,
   CheckCircle,
@@ -19,7 +25,7 @@ import {
   Clock,
   Edit,
   Upload,
-  Plus
+  Plus,
 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
@@ -33,7 +39,7 @@ interface ProfileOverview {
     rejected: number;
   };
   certificationsCount: number;
-  profileStrength: 'WEAK' | 'MEDIUM' | 'STRONG';
+  profileStrength: "WEAK" | "MEDIUM" | "STRONG";
   missingElements: string[];
 }
 
@@ -46,9 +52,11 @@ export default function ProviderProfilePage() {
   useEffect(() => {
     const fetchProfileOverview = async () => {
       if (!user?.id) return;
-      
+
       try {
-        const response = await fetch(`/api/provider/profile/overview?userId=${user.id}`);
+        const response = await fetch(
+          `/api/provider/profile/overview?userId=${user.id}`,
+        );
         if (response.ok) {
           const data = await response.json();
           setOverview(data);
@@ -65,24 +73,24 @@ export default function ProviderProfilePage() {
 
   const getStrengthColor = (strength: string) => {
     switch (strength) {
-      case 'STRONG':
-        return 'text-green-600';
-      case 'MEDIUM':
-        return 'text-yellow-600';
-      case 'WEAK':
-        return 'text-red-600';
+      case "STRONG":
+        return "text-green-600";
+      case "MEDIUM":
+        return "text-yellow-600";
+      case "WEAK":
+        return "text-red-600";
       default:
-        return 'text-gray-600';
+        return "text-gray-600";
     }
   };
 
   const getStrengthBadge = (strength: string) => {
     switch (strength) {
-      case 'STRONG':
+      case "STRONG":
         return <Badge className="bg-green-100 text-green-800">Fort</Badge>;
-      case 'MEDIUM':
+      case "MEDIUM":
         return <Badge className="bg-yellow-100 text-yellow-800">Moyen</Badge>;
-      case 'WEAK':
+      case "WEAK":
         return <Badge variant="destructive">Faible</Badge>;
       default:
         return <Badge variant="secondary">Non défini</Badge>;
@@ -116,11 +124,26 @@ export default function ProviderProfilePage() {
       />
 
       {/* Profile Strength Alert */}
-      {overview.profileStrength !== 'STRONG' && (
-        <Alert className={overview.profileStrength === 'WEAK' ? 'border-red-200 bg-red-50' : 'border-yellow-200 bg-yellow-50'}>
-          <AlertCircle className={`h-4 w-4 ${overview.profileStrength === 'WEAK' ? 'text-red-600' : 'text-yellow-600'}`} />
-          <AlertDescription className={overview.profileStrength === 'WEAK' ? 'text-red-800' : 'text-yellow-800'}>
-            Votre profil n'est pas encore optimisé. Complétez les sections manquantes pour améliorer votre visibilité.
+      {overview.profileStrength !== "STRONG" && (
+        <Alert
+          className={
+            overview.profileStrength === "WEAK"
+              ? "border-red-200 bg-red-50"
+              : "border-yellow-200 bg-yellow-50"
+          }
+        >
+          <AlertCircle
+            className={`h-4 w-4 ${overview.profileStrength === "WEAK" ? "text-red-600" : "text-yellow-600"}`}
+          />
+          <AlertDescription
+            className={
+              overview.profileStrength === "WEAK"
+                ? "text-red-800"
+                : "text-yellow-800"
+            }
+          >
+            Votre profil n'est pas encore optimisé. Complétez les sections
+            manquantes pour améliorer votre visibilité.
           </AlertDescription>
         </Alert>
       )}
@@ -142,10 +165,12 @@ export default function ProviderProfilePage() {
         <CardContent className="space-y-4">
           <div className="flex items-center justify-between">
             <span className="text-sm font-medium">Progression globale</span>
-            <span className="text-sm text-muted-foreground">{overview.completionRate}%</span>
+            <span className="text-sm text-muted-foreground">
+              {overview.completionRate}%
+            </span>
           </div>
           <Progress value={overview.completionRate} className="w-full" />
-          
+
           {overview.missingElements.length > 0 && (
             <div className="space-y-2">
               <p className="text-sm font-medium">Éléments manquants:</p>
@@ -200,16 +225,15 @@ export default function ProviderProfilePage() {
               <FileText className="h-5 w-5" />
               Documents
             </CardTitle>
-            <CardDescription>
-              Gérez vos documents de validation
-            </CardDescription>
+            <CardDescription>Gérez vos documents de validation</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <div className="flex items-center justify-between text-sm">
                 <span>Approuvés</span>
                 <Badge variant="outline" className="text-green-600">
-                  {overview.documentsStatus.approved}/{overview.documentsStatus.total}
+                  {overview.documentsStatus.approved}/
+                  {overview.documentsStatus.total}
                 </Badge>
               </div>
               {overview.documentsStatus.pending > 0 && (
@@ -229,10 +253,18 @@ export default function ProviderProfilePage() {
                 </div>
               )}
             </div>
-            <Button asChild className="w-full" variant={overview.documentsStatus.pending > 0 ? "default" : "outline"}>
+            <Button
+              asChild
+              className="w-full"
+              variant={
+                overview.documentsStatus.pending > 0 ? "default" : "outline"
+              }
+            >
               <Link href="/provider/profile/documents">
                 <Upload className="h-4 w-4 mr-2" />
-                {overview.documentsStatus.pending > 0 ? 'Documents en attente' : 'Gérer les documents'}
+                {overview.documentsStatus.pending > 0
+                  ? "Documents en attente"
+                  : "Gérer les documents"}
               </Link>
             </Button>
           </CardContent>
@@ -252,9 +284,7 @@ export default function ProviderProfilePage() {
           <CardContent className="space-y-4">
             <div className="flex items-center justify-between">
               <span className="text-sm">Certifications</span>
-              <Badge variant="outline">
-                {overview.certificationsCount}
-              </Badge>
+              <Badge variant="outline">{overview.certificationsCount}</Badge>
             </div>
             <Button asChild className="w-full" variant="outline">
               <Link href="/provider/profile/certifications">
@@ -309,28 +339,20 @@ export default function ProviderProfilePage() {
         <CardContent>
           <div className="flex flex-wrap gap-2">
             <Button variant="outline" size="sm" asChild>
-              <Link href="/provider/profile/info">
-                Modifier le profil
-              </Link>
+              <Link href="/provider/profile/info">Modifier le profil</Link>
             </Button>
             <Button variant="outline" size="sm" asChild>
-              <Link href="/provider/calendar">
-                Disponibilités
-              </Link>
+              <Link href="/provider/calendar">Disponibilités</Link>
             </Button>
             <Button variant="outline" size="sm" asChild>
-              <Link href="/provider/services">
-                Mes services
-              </Link>
+              <Link href="/provider/services">Mes services</Link>
             </Button>
             <Button variant="outline" size="sm" asChild>
-              <Link href="/provider/earnings">
-                Mes gains
-              </Link>
+              <Link href="/provider/earnings">Mes gains</Link>
             </Button>
           </div>
         </CardContent>
       </Card>
     </div>
   );
-} 
+}

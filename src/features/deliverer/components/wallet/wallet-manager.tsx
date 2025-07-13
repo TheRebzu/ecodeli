@@ -6,16 +6,16 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { 
-  Wallet, 
-  TrendingUp, 
-  TrendingDown, 
-  Calendar, 
+import {
+  Wallet,
+  TrendingUp,
+  TrendingDown,
+  Calendar,
   Euro,
   CreditCard,
   ArrowUpRight,
   ArrowDownLeft,
-  Clock
+  Clock,
 } from "lucide-react";
 import { toast } from "sonner";
 import WithdrawalRequestDialog from "./withdrawal-request-dialog";
@@ -130,14 +130,27 @@ export default function WalletManager({ delivererId }: WalletManagerProps) {
 
   const getStatusBadge = (status: string) => {
     const statusConfig = {
-      completed: { color: "bg-green-100 text-green-800", label: t("status.completed") },
-      pending: { color: "bg-yellow-100 text-yellow-800", label: t("status.pending") },
-      processing: { color: "bg-blue-100 text-blue-800", label: t("status.processing") },
-      cancelled: { color: "bg-red-100 text-red-800", label: t("status.cancelled") },
+      completed: {
+        color: "bg-green-100 text-green-800",
+        label: t("status.completed"),
+      },
+      pending: {
+        color: "bg-yellow-100 text-yellow-800",
+        label: t("status.pending"),
+      },
+      processing: {
+        color: "bg-blue-100 text-blue-800",
+        label: t("status.processing"),
+      },
+      cancelled: {
+        color: "bg-red-100 text-red-800",
+        label: t("status.cancelled"),
+      },
       failed: { color: "bg-red-100 text-red-800", label: t("status.failed") },
     };
-    
-    const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.pending;
+
+    const config =
+      statusConfig[status as keyof typeof statusConfig] || statusConfig.pending;
     return <Badge className={config.color}>{config.label}</Badge>;
   };
 
@@ -251,23 +264,31 @@ export default function WalletManager({ delivererId }: WalletManagerProps) {
           <CardContent>
             <div className="space-y-4">
               <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-600">{t("withdrawal.available")}</span>
+                <span className="text-sm text-gray-600">
+                  {t("withdrawal.available")}
+                </span>
                 <span className="text-lg font-semibold text-green-600">
                   {walletData.availableForWithdrawal.toFixed(2)}€
                 </span>
               </div>
-              
+
               {walletData.lastWithdrawal && (
                 <div className="p-3 bg-gray-50 rounded-lg">
-                  <h4 className="text-sm font-medium mb-2">{t("withdrawal.last")}</h4>
+                  <h4 className="text-sm font-medium mb-2">
+                    {t("withdrawal.last")}
+                  </h4>
                   <div className="flex justify-between items-center text-sm">
                     <span>{walletData.lastWithdrawal.amount.toFixed(2)}€</span>
-                    <span>{new Date(walletData.lastWithdrawal.date).toLocaleDateString()}</span>
+                    <span>
+                      {new Date(
+                        walletData.lastWithdrawal.date,
+                      ).toLocaleDateString()}
+                    </span>
                     {getStatusBadge(walletData.lastWithdrawal.status)}
                   </div>
                 </div>
               )}
-              
+
               {walletData.availableForWithdrawal < 10 && (
                 <p className="text-sm text-yellow-600">
                   {t("withdrawal.minimum_amount")}
@@ -296,7 +317,9 @@ export default function WalletManager({ delivererId }: WalletManagerProps) {
                   <h3 className="text-lg font-semibold text-gray-900 mb-2">
                     {t("empty.no_operations")}
                   </h3>
-                  <p className="text-gray-600">{t("empty.operations_description")}</p>
+                  <p className="text-gray-600">
+                    {t("empty.operations_description")}
+                  </p>
                 </CardContent>
               </Card>
             ) : (
@@ -319,10 +342,15 @@ export default function WalletManager({ delivererId }: WalletManagerProps) {
                         </div>
                       </div>
                       <div className="text-right">
-                        <p className={`font-semibold ${
-                          operation.type === "earning" ? "text-green-600" : "text-red-600"
-                        }`}>
-                          {operation.type === "earning" ? "+" : "-"}{operation.amount.toFixed(2)}€
+                        <p
+                          className={`font-semibold ${
+                            operation.type === "earning"
+                              ? "text-green-600"
+                              : "text-red-600"
+                          }`}
+                        >
+                          {operation.type === "earning" ? "+" : "-"}
+                          {operation.amount.toFixed(2)}€
                         </p>
                         {getStatusBadge(operation.status)}
                       </div>
@@ -341,7 +369,9 @@ export default function WalletManager({ delivererId }: WalletManagerProps) {
                   <h3 className="text-lg font-semibold text-gray-900 mb-2">
                     {t("empty.no_earnings")}
                   </h3>
-                  <p className="text-gray-600">{t("empty.earnings_description")}</p>
+                  <p className="text-gray-600">
+                    {t("empty.earnings_description")}
+                  </p>
                 </CardContent>
               </Card>
             ) : (
@@ -350,20 +380,32 @@ export default function WalletManager({ delivererId }: WalletManagerProps) {
                   <CardContent className="p-4">
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
-                        <h4 className="font-medium">{earning.announcementTitle}</h4>
-                        <p className="text-sm text-gray-600">{earning.clientName}</p>
+                        <h4 className="font-medium">
+                          {earning.announcementTitle}
+                        </h4>
+                        <p className="text-sm text-gray-600">
+                          {earning.clientName}
+                        </p>
                         <p className="text-xs text-gray-500">
                           {new Date(earning.date).toLocaleDateString()}
                         </p>
                       </div>
                       <div className="text-right space-y-1">
                         <div className="text-sm">
-                          <span className="text-gray-500">{t("earning.gross")}:</span>
-                          <span className="ml-1">{earning.amount.toFixed(2)}€</span>
+                          <span className="text-gray-500">
+                            {t("earning.gross")}:
+                          </span>
+                          <span className="ml-1">
+                            {earning.amount.toFixed(2)}€
+                          </span>
                         </div>
                         <div className="text-sm">
-                          <span className="text-gray-500">{t("earning.commission")}:</span>
-                          <span className="ml-1 text-red-600">-{earning.commission.toFixed(2)}€</span>
+                          <span className="text-gray-500">
+                            {t("earning.commission")}:
+                          </span>
+                          <span className="ml-1 text-red-600">
+                            -{earning.commission.toFixed(2)}€
+                          </span>
                         </div>
                         <div className="text-lg font-semibold text-green-600">
                           {earning.netAmount.toFixed(2)}€
@@ -391,4 +433,4 @@ export default function WalletManager({ delivererId }: WalletManagerProps) {
       />
     </>
   );
-} 
+}

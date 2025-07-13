@@ -5,8 +5,8 @@ interface ProviderRatesValidationPageProps {
   params: Promise<{ locale: string }>;
 }
 
-export default async function ProviderRatesValidationPage({ 
-  params 
+export default async function ProviderRatesValidationPage({
+  params,
 }: ProviderRatesValidationPageProps) {
   const { locale } = await params;
   await setRequestLocale(locale);

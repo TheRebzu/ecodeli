@@ -5,17 +5,17 @@ import { useTranslations } from "next-intl";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { 
-  FileText, 
-  Upload, 
-  Eye, 
-  Download, 
-  CheckCircle, 
-  Clock, 
+import {
+  FileText,
+  Upload,
+  Eye,
+  Download,
+  CheckCircle,
+  Clock,
   XCircle,
   AlertCircle,
   Plus,
-  Trash2
+  Trash2,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -52,7 +52,7 @@ export default function DocumentManager({ delivererId }: DocumentManagerProps) {
   const [documentTypes, setDocumentTypes] = useState<DocumentType[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState<string | null>(null);
-  const fileInputRefs = useRef<{[key: string]: HTMLInputElement | null}>({});
+  const fileInputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({});
 
   const fetchDocuments = async () => {
     try {
@@ -93,7 +93,12 @@ export default function DocumentManager({ delivererId }: DocumentManagerProps) {
         fetchDocuments();
       } else {
         const errorData = await response.text();
-        console.error("Upload failed with status:", response.status, "error:", errorData);
+        console.error(
+          "Upload failed with status:",
+          response.status,
+          "error:",
+          errorData,
+        );
         toast.error(t("error.upload_failed"));
       }
     } catch (error) {
@@ -129,15 +134,32 @@ export default function DocumentManager({ delivererId }: DocumentManagerProps) {
 
   const getStatusBadge = (status: string) => {
     const statusConfig = {
-      approved: { color: "bg-green-100 text-green-800", icon: CheckCircle, label: t("status.validated") },
-      pending: { color: "bg-yellow-100 text-yellow-800", icon: Clock, label: t("status.pending") },
-      rejected: { color: "bg-red-100 text-red-800", icon: XCircle, label: t("status.rejected") },
-      expired: { color: "bg-gray-100 text-gray-800", icon: AlertCircle, label: t("status.expired") },
+      approved: {
+        color: "bg-green-100 text-green-800",
+        icon: CheckCircle,
+        label: t("status.validated"),
+      },
+      pending: {
+        color: "bg-yellow-100 text-yellow-800",
+        icon: Clock,
+        label: t("status.pending"),
+      },
+      rejected: {
+        color: "bg-red-100 text-red-800",
+        icon: XCircle,
+        label: t("status.rejected"),
+      },
+      expired: {
+        color: "bg-gray-100 text-gray-800",
+        icon: AlertCircle,
+        label: t("status.expired"),
+      },
     };
-    
-    const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.pending;
+
+    const config =
+      statusConfig[status as keyof typeof statusConfig] || statusConfig.pending;
     const IconComponent = config.icon;
-    
+
     return (
       <Badge className={config.color}>
         <IconComponent className="w-3 h-3 mr-1" />
@@ -155,7 +177,7 @@ export default function DocumentManager({ delivererId }: DocumentManagerProps) {
   };
 
   const getDocumentForType = (typeId: string) => {
-    return documents.find(doc => doc.type === typeId);
+    return documents.find((doc) => doc.type === typeId);
   };
 
   const isDocumentExpired = (document: Document) => {
@@ -194,7 +216,7 @@ export default function DocumentManager({ delivererId }: DocumentManagerProps) {
               <div>
                 <p className="text-sm text-gray-600">{t("stats.validated")}</p>
                 <p className="text-xl font-bold">
-                  {documents.filter(d => d.status === 'approved').length}
+                  {documents.filter((d) => d.status === "approved").length}
                 </p>
               </div>
             </div>
@@ -208,7 +230,7 @@ export default function DocumentManager({ delivererId }: DocumentManagerProps) {
               <div>
                 <p className="text-sm text-gray-600">{t("stats.pending")}</p>
                 <p className="text-xl font-bold">
-                  {documents.filter(d => d.status === 'pending').length}
+                  {documents.filter((d) => d.status === "pending").length}
                 </p>
               </div>
             </div>
@@ -222,7 +244,7 @@ export default function DocumentManager({ delivererId }: DocumentManagerProps) {
               <div>
                 <p className="text-sm text-gray-600">{t("stats.rejected")}</p>
                 <p className="text-xl font-bold">
-                  {documents.filter(d => d.status === 'rejected').length}
+                  {documents.filter((d) => d.status === "rejected").length}
                 </p>
               </div>
             </div>
@@ -236,7 +258,7 @@ export default function DocumentManager({ delivererId }: DocumentManagerProps) {
               <div>
                 <p className="text-sm text-gray-600">{t("stats.expired")}</p>
                 <p className="text-xl font-bold">
-                  {documents.filter(d => d.status === 'expired').length}
+                  {documents.filter((d) => d.status === "expired").length}
                 </p>
               </div>
             </div>
@@ -249,9 +271,12 @@ export default function DocumentManager({ delivererId }: DocumentManagerProps) {
         {documentTypes.map((type) => {
           const document = getDocumentForType(type.id);
           const expired = document && isDocumentExpired(document);
-          
+
           return (
-            <Card key={type.id} className={type.required ? 'border-blue-200' : ''}>
+            <Card
+              key={type.id}
+              className={type.required ? "border-blue-200" : ""}
+            >
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
                   <div className="flex items-center space-x-2">
@@ -263,15 +288,20 @@ export default function DocumentManager({ delivererId }: DocumentManagerProps) {
                       </Badge>
                     )}
                   </div>
-                  {document && getStatusBadge(expired ? 'expired' : document.status)}
+                  {document &&
+                    getStatusBadge(expired ? "expired" : document.status)}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <p className="text-sm text-gray-600">{type.description}</p>
-                
+
                 <div className="text-xs text-gray-500">
-                  <p>{t("allowed_formats")}: {type.allowedFormats.join(", ")}</p>
-                  <p>{t("max_size")}: {formatFileSize(type.maxSize)}</p>
+                  <p>
+                    {t("allowed_formats")}: {type.allowedFormats.join(", ")}
+                  </p>
+                  <p>
+                    {t("max_size")}: {formatFileSize(type.maxSize)}
+                  </p>
                 </div>
 
                 {document ? (
@@ -281,10 +311,15 @@ export default function DocumentManager({ delivererId }: DocumentManagerProps) {
                         <p className="font-medium text-sm">{document.name}</p>
                         <div className="flex items-center space-x-4 text-xs text-gray-500 mt-1">
                           <span>{formatFileSize(document.size)}</span>
-                          <span>{new Date(document.uploadedAt).toLocaleDateString()}</span>
+                          <span>
+                            {new Date(document.uploadedAt).toLocaleDateString()}
+                          </span>
                           {document.expiresAt && (
-                            <span className={expired ? 'text-red-600' : ''}>
-                              {t("expires")}: {new Date(document.expiresAt).toLocaleDateString()}
+                            <span className={expired ? "text-red-600" : ""}>
+                              {t("expires")}:{" "}
+                              {new Date(
+                                document.expiresAt,
+                              ).toLocaleDateString()}
                             </span>
                           )}
                         </div>
@@ -293,14 +328,19 @@ export default function DocumentManager({ delivererId }: DocumentManagerProps) {
                         <Button
                           size="sm"
                           variant="ghost"
-                          onClick={() => window.open(document.url, '_blank')}
+                          onClick={() => window.open(document.url, "_blank")}
                         >
                           <Eye className="w-4 h-4" />
                         </Button>
                         <Button
                           size="sm"
                           variant="ghost"
-                          onClick={() => window.open(document.url + '?download=true', '_blank')}
+                          onClick={() =>
+                            window.open(
+                              document.url + "?download=true",
+                              "_blank",
+                            )
+                          }
                         >
                           <Download className="w-4 h-4" />
                         </Button>
@@ -314,33 +354,55 @@ export default function DocumentManager({ delivererId }: DocumentManagerProps) {
                       </div>
                     </div>
 
-                    {document.status === 'rejected' && document.rejectedReason && (
-                      <div className="p-3 bg-red-50 border border-red-200 rounded">
-                        <p className="text-sm text-red-800">
-                          <strong>{t("rejection_reason")}:</strong> {document.rejectedReason}
-                        </p>
-                      </div>
-                    )}
+                    {document.status === "rejected" &&
+                      document.rejectedReason && (
+                        <div className="p-3 bg-red-50 border border-red-200 rounded">
+                          <p className="text-sm text-red-800">
+                            <strong>{t("rejection_reason")}:</strong>{" "}
+                            {document.rejectedReason}
+                          </p>
+                        </div>
+                      )}
 
-                    {(expired || document.status === 'rejected') && (
+                    {(expired || document.status === "rejected") && (
                       <div className="flex justify-center">
                         <div>
                           <input
-                            ref={(el) => { fileInputRefs.current[`replace-${type.id}`] = el; }}
+                            ref={(el) => {
+                              fileInputRefs.current[`replace-${type.id}`] = el;
+                            }}
                             type="file"
                             className="hidden"
-                            accept={type.allowedFormats.map(f => `.${f}`).join(",")}
+                            accept={type.allowedFormats
+                              .map((f) => `.${f}`)
+                              .join(",")}
                             onChange={(e) => {
-                              console.log("Replace file input onChange triggered", e.target.files);
+                              console.log(
+                                "Replace file input onChange triggered",
+                                e.target.files,
+                              );
                               const file = e.target.files?.[0];
                               if (file) {
-                                console.log("Replace file selected:", file.name, file.size);
+                                console.log(
+                                  "Replace file selected:",
+                                  file.name,
+                                  file.size,
+                                );
                                 if (file.size > type.maxSize) {
-                                  console.log("Replace file too large:", file.size, "max:", type.maxSize);
+                                  console.log(
+                                    "Replace file too large:",
+                                    file.size,
+                                    "max:",
+                                    type.maxSize,
+                                  );
                                   toast.error(t("error.file_too_large"));
                                   return;
                                 }
-                                console.log("Calling uploadDocument for replace with:", file.name, type.id);
+                                console.log(
+                                  "Calling uploadDocument for replace with:",
+                                  file.name,
+                                  type.id,
+                                );
                                 uploadDocument(file, type.id);
                               }
                             }}
@@ -351,9 +413,16 @@ export default function DocumentManager({ delivererId }: DocumentManagerProps) {
                             disabled={uploading === type.id}
                             className="w-full"
                             onClick={() => {
-                              console.log("Replace button clicked for type:", type.id);
-                              const fileInput = fileInputRefs.current[`replace-${type.id}`];
-                              console.log("Replace file input element:", fileInput);
+                              console.log(
+                                "Replace button clicked for type:",
+                                type.id,
+                              );
+                              const fileInput =
+                                fileInputRefs.current[`replace-${type.id}`];
+                              console.log(
+                                "Replace file input element:",
+                                fileInput,
+                              );
                               fileInput?.click();
                               console.log("Replace file input click triggered");
                             }}
@@ -373,21 +442,37 @@ export default function DocumentManager({ delivererId }: DocumentManagerProps) {
                   <div className="flex justify-center">
                     <div>
                       <input
-                        ref={(el) => { fileInputRefs.current[type.id] = el; }}
+                        ref={(el) => {
+                          fileInputRefs.current[type.id] = el;
+                        }}
                         type="file"
                         className="hidden"
-                        accept={type.allowedFormats.map(f => `.${f}`).join(",")}
+                        accept={type.allowedFormats
+                          .map((f) => `.${f}`)
+                          .join(",")}
                         onChange={(e) => {
-                          console.log("File input onChange triggered", e.target.files);
+                          console.log(
+                            "File input onChange triggered",
+                            e.target.files,
+                          );
                           const file = e.target.files?.[0];
                           if (file) {
                             console.log("File selected:", file.name, file.size);
                             if (file.size > type.maxSize) {
-                              console.log("File too large:", file.size, "max:", type.maxSize);
+                              console.log(
+                                "File too large:",
+                                file.size,
+                                "max:",
+                                type.maxSize,
+                              );
                               toast.error(t("error.file_too_large"));
                               return;
                             }
-                            console.log("Calling uploadDocument with:", file.name, type.id);
+                            console.log(
+                              "Calling uploadDocument with:",
+                              file.name,
+                              type.id,
+                            );
                             uploadDocument(file, type.id);
                           }
                         }}
@@ -398,7 +483,10 @@ export default function DocumentManager({ delivererId }: DocumentManagerProps) {
                         disabled={uploading === type.id}
                         className="w-full"
                         onClick={() => {
-                          console.log("Upload button clicked for type:", type.id);
+                          console.log(
+                            "Upload button clicked for type:",
+                            type.id,
+                          );
                           const fileInput = fileInputRefs.current[type.id];
                           console.log("File input element:", fileInput);
                           fileInput?.click();
@@ -422,4 +510,4 @@ export default function DocumentManager({ delivererId }: DocumentManagerProps) {
       </div>
     </div>
   );
-} 
+}

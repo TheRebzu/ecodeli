@@ -5,8 +5,8 @@ interface ProviderDashboardPageProps {
   params: Promise<{ locale: string }>;
 }
 
-export default async function ProviderDashboardPage({ 
-  params 
+export default async function ProviderDashboardPage({
+  params,
 }: ProviderDashboardPageProps) {
   const { locale } = await params;
   await setRequestLocale(locale);
@@ -16,4 +16,4 @@ export default async function ProviderDashboardPage({
       <ProviderDashboardComplete />
     </div>
   );
-} 
+}

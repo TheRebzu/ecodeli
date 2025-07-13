@@ -1,18 +1,18 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '@/lib/auth'
-import { db } from '@/lib/db'
+import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@/lib/auth";
+import { db } from "@/lib/db";
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const session = await auth()
+    const session = await auth();
     if (!session?.user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { amount } = await request.json()
+    const { amount } = await request.json();
 
     // Vérifier que l'annonce appartient à l'utilisateur
     const { id } = await params;
@@ -20,21 +20,27 @@ export async function POST(
       where: {
         id: id,
         authorId: session.user.id,
-        status: 'ACTIVE'
-      }
-    })
+        status: "ACTIVE",
+      },
+    });
 
     if (!announcement) {
-      return NextResponse.json({ error: 'Announcement not found' }, { status: 404 })
+      return NextResponse.json(
+        { error: "Announcement not found" },
+        { status: 404 },
+      );
     }
 
     // Récupérer le portefeuille de l'utilisateur
     const wallet = await db.wallet.findUnique({
-      where: { userId: session.user.id }
-    })
+      where: { userId: session.user.id },
+    });
 
     if (!wallet || wallet.balance < amount) {
-      return NextResponse.json({ error: 'Insufficient balance' }, { status: 400 })
+      return NextResponse.json(
+        { error: "Insufficient balance" },
+        { status: 400 },
+      );
     }
 
     // Transaction pour débiter le portefeuille et créer le paiement
@@ -44,22 +50,22 @@ export async function POST(
         where: { userId: session.user.id },
         data: {
           balance: {
-            decrement: amount
-          }
-        }
-      })
+            decrement: amount,
+          },
+        },
+      });
 
       // Créer l'opération de portefeuille
       await tx.walletOperation.create({
         data: {
           walletId: wallet.id,
-          type: 'DEBIT',
+          type: "DEBIT",
           amount,
           description: `Paiement annonce: ${announcement.title}`,
           reference: `announcement_${announcement.id}`,
-          status: 'COMPLETED'
-        }
-      })
+          status: "COMPLETED",
+        },
+      });
 
       // Créer l'enregistrement de paiement
       await tx.payment.create({
@@ -67,29 +73,29 @@ export async function POST(
           announcementId: announcement.id,
           userId: session.user.id,
           amount,
-          currency: 'EUR',
-          status: 'COMPLETED',
-          method: 'WALLET',
-          completedAt: new Date()
-        }
-      })
+          currency: "EUR",
+          status: "COMPLETED",
+          method: "WALLET",
+          completedAt: new Date(),
+        },
+      });
 
       // Mettre à jour le statut de l'annonce
       await tx.announcement.update({
         where: { id: announcement.id },
         data: {
-          status: 'MATCHED', // L'annonce devient payée et prête pour le matching
-          updatedAt: new Date()
-        }
-      })
-    })
+          status: "MATCHED", // L'annonce devient payée et prête pour le matching
+          updatedAt: new Date(),
+        },
+      });
+    });
 
-    return NextResponse.json({ success: true, message: 'Payment completed' })
+    return NextResponse.json({ success: true, message: "Payment completed" });
   } catch (error) {
-    console.error('Error processing wallet payment:', error)
+    console.error("Error processing wallet payment:", error);
     return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    )
+      { error: "Internal server error" },
+      { status: 500 },
+    );
   }
 }

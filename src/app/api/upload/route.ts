@@ -1,110 +1,128 @@
 // API Upload de fichiers sécurisé EcoDeli
-import { NextRequest, NextResponse } from 'next/server'
-import { getUserFromSession } from '@/lib/auth/utils'
-import { prisma } from '@/lib/db'
-import { writeFile, mkdir } from 'fs/promises'
-import { join } from 'path'
-import { existsSync } from 'fs'
-import { z } from 'zod'
+import { NextRequest, NextResponse } from "next/server";
+import { getUserFromSession } from "@/lib/auth/utils";
+import { prisma } from "@/lib/db";
+import { writeFile, mkdir } from "fs/promises";
+import { join } from "path";
+import { existsSync } from "fs";
+import { z } from "zod";
 
 const uploadSchema = z.object({
-  type: z.enum(['IDENTITY', 'DRIVING_LICENSE', 'INSURANCE', 'CERTIFICATION', 'CONTRACT', 'OTHER']),
-  category: z.enum(['document', 'avatar', 'proof', 'invoice']).optional()
-})
+  type: z.enum([
+    "IDENTITY",
+    "DRIVING_LICENSE",
+    "INSURANCE",
+    "CERTIFICATION",
+    "CONTRACT",
+    "OTHER",
+  ]),
+  category: z.enum(["document", "avatar", "proof", "invoice"]).optional(),
+});
 
 const ALLOWED_MIME_TYPES = {
-  document: ['application/pdf', 'image/jpeg', 'image/png', 'image/webp'],
-  avatar: ['image/jpeg', 'image/png', 'image/webp'],
-  proof: ['image/jpeg', 'image/png', 'image/webp'],
-  invoice: ['application/pdf']
-}
+  document: ["application/pdf", "image/jpeg", "image/png", "image/webp"],
+  avatar: ["image/jpeg", "image/png", "image/webp"],
+  proof: ["image/jpeg", "image/png", "image/webp"],
+  invoice: ["application/pdf"],
+};
 
 const MAX_FILE_SIZES = {
   document: 10 * 1024 * 1024, // 10MB
-  avatar: 2 * 1024 * 1024,    // 2MB
-  proof: 5 * 1024 * 1024,     // 5MB
-  invoice: 10 * 1024 * 1024   // 10MB
-}
+  avatar: 2 * 1024 * 1024, // 2MB
+  proof: 5 * 1024 * 1024, // 5MB
+  invoice: 10 * 1024 * 1024, // 10MB
+};
 
 export async function POST(request: NextRequest) {
   try {
-    const user = await getUserFromSession(request)
+    const user = await getUserFromSession(request);
     if (!user) {
-      return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
+      return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
     }
 
-    const formData = await request.formData()
-    const file = formData.get('file') as File
-    const type = formData.get('type') as string
-    const category = (formData.get('category') as string) || 'document'
-    const certificationId = formData.get('certificationId') as string
-    const documentId = formData.get('documentId') as string
+    const formData = await request.formData();
+    const file = formData.get("file") as File;
+    const type = formData.get("type") as string;
+    const category = (formData.get("category") as string) || "document";
+    const certificationId = formData.get("certificationId") as string;
+    const documentId = formData.get("documentId") as string;
 
     if (!file) {
-      return NextResponse.json({ error: 'Aucun fichier fourni' }, { status: 400 })
+      return NextResponse.json(
+        { error: "Aucun fichier fourni" },
+        { status: 400 },
+      );
     }
 
     // Validation du schéma
-    const validation = uploadSchema.safeParse({ type, category })
+    const validation = uploadSchema.safeParse({ type, category });
     if (!validation.success) {
       return NextResponse.json(
-        { error: 'Paramètres invalides', details: validation.error.errors },
-        { status: 400 }
-      )
+        { error: "Paramètres invalides", details: validation.error.errors },
+        { status: 400 },
+      );
     }
 
     // Vérification du type MIME
-    const allowedTypes = ALLOWED_MIME_TYPES[category as keyof typeof ALLOWED_MIME_TYPES]
+    const allowedTypes =
+      ALLOWED_MIME_TYPES[category as keyof typeof ALLOWED_MIME_TYPES];
     if (!allowedTypes.includes(file.type)) {
       return NextResponse.json(
-        { error: `Type de fichier non autorisé. Types acceptés: ${allowedTypes.join(', ')}` },
-        { status: 400 }
-      )
+        {
+          error: `Type de fichier non autorisé. Types acceptés: ${allowedTypes.join(", ")}`,
+        },
+        { status: 400 },
+      );
     }
 
     // Vérification de la taille
-    const maxSize = MAX_FILE_SIZES[category as keyof typeof MAX_FILE_SIZES]
+    const maxSize = MAX_FILE_SIZES[category as keyof typeof MAX_FILE_SIZES];
     if (file.size > maxSize) {
       return NextResponse.json(
-        { error: `Fichier trop volumineux. Taille maximale: ${maxSize / 1024 / 1024}MB` },
-        { status: 400 }
-      )
+        {
+          error: `Fichier trop volumineux. Taille maximale: ${maxSize / 1024 / 1024}MB`,
+        },
+        { status: 400 },
+      );
     }
 
     // Génération du nom de fichier unique
-    const timestamp = Date.now()
-    const randomId = Math.random().toString(36).substring(2, 15)
-    const extension = file.name.split('.').pop()
-    const filename = `${user.id}_${timestamp}_${randomId}.${extension}`
+    const timestamp = Date.now();
+    const randomId = Math.random().toString(36).substring(2, 15);
+    const extension = file.name.split(".").pop();
+    const filename = `${user.id}_${timestamp}_${randomId}.${extension}`;
 
     // Correction : upload dans public/uploads
-    const uploadDir = join(process.cwd(), 'public', 'uploads', category, user.role.toLowerCase())
+    const uploadDir = join(
+      process.cwd(),
+      "public",
+      "uploads",
+      category,
+      user.role.toLowerCase(),
+    );
     if (!existsSync(uploadDir)) {
-      await mkdir(uploadDir, { recursive: true })
+      await mkdir(uploadDir, { recursive: true });
     }
 
     // Sauvegarde du fichier
-    const filepath = join(uploadDir, filename)
-    const bytes = await file.arrayBuffer()
-    const buffer = Buffer.from(bytes)
-    await writeFile(filepath, buffer)
+    const filepath = join(uploadDir, filename);
+    const bytes = await file.arrayBuffer();
+    const buffer = Buffer.from(bytes);
+    await writeFile(filepath, buffer);
 
     // URL relative pour servir le fichier
-    const url = `/uploads/${category}/${user.role.toLowerCase()}/${filename}`
+    const url = `/uploads/${category}/${user.role.toLowerCase()}/${filename}`;
 
     // Enregistrement ou mise à jour en base de données
     let document;
-    
+
     if (documentId || certificationId) {
       // Mettre à jour un document existant
       const existingDoc = await prisma.document.findFirst({
         where: {
-          OR: [
-            { id: documentId },
-            { id: certificationId }
-          ],
-          userId: user.id // Sécurité : s'assurer que le document appartient à l'utilisateur
-        }
+          OR: [{ id: documentId }, { id: certificationId }],
+          userId: user.id, // Sécurité : s'assurer que le document appartient à l'utilisateur
+        },
       });
 
       if (existingDoc) {
@@ -116,9 +134,9 @@ export async function POST(request: NextRequest) {
             mimeType: file.type,
             size: file.size,
             url,
-            validationStatus: 'PENDING',
-            updatedAt: new Date()
-          }
+            validationStatus: "PENDING",
+            updatedAt: new Date(),
+          },
         });
       } else {
         // Créer un nouveau document si pas trouvé
@@ -131,8 +149,8 @@ export async function POST(request: NextRequest) {
             mimeType: file.type,
             size: file.size,
             url,
-            validationStatus: 'PENDING'
-          }
+            validationStatus: "PENDING",
+          },
         });
       }
     } else {
@@ -146,12 +164,12 @@ export async function POST(request: NextRequest) {
           mimeType: file.type,
           size: file.size,
           url,
-          validationStatus: 'PENDING'
-        }
+          validationStatus: "PENDING",
+        },
       });
     }
 
-    console.log(`✅ Document uploadé avec succès: ${document.id}`)
+    console.log(`✅ Document uploadé avec succès: ${document.id}`);
 
     // TODO: Ajouter notifications et logs d'activité quand les tables seront créées
     // Note: activityLog et notification tables non implémentées pour l'instant
@@ -166,44 +184,43 @@ export async function POST(request: NextRequest) {
         type: document.type,
         size: document.size,
         validationStatus: document.validationStatus,
-        createdAt: document.createdAt
-      }
-    })
-
+        createdAt: document.createdAt,
+      },
+    });
   } catch (error) {
-    console.error('❌ Erreur upload:', error)
+    console.error("❌ Erreur upload:", error);
     return NextResponse.json(
-      { error: 'Erreur lors du téléchargement' },
-      { status: 500 }
-    )
+      { error: "Erreur lors du téléchargement" },
+      { status: 500 },
+    );
   }
 }
 
 export async function GET(request: NextRequest) {
   try {
-    const user = await getUserFromSession(request)
+    const user = await getUserFromSession(request);
     if (!user) {
-      return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
+      return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
     }
 
-    const { searchParams } = new URL(request.url)
-    const type = searchParams.get('type')
-    const status = searchParams.get('status')
+    const { searchParams } = new URL(request.url);
+    const type = searchParams.get("type");
+    const status = searchParams.get("status");
 
     // Récupérer les documents de l'utilisateur
-    const where: any = { userId: user.id }
-    
+    const where: any = { userId: user.id };
+
     if (type) {
-      where.type = type
+      where.type = type;
     }
-    
+
     if (status) {
-      where.validationStatus = status
+      where.validationStatus = status;
     }
 
     const documents = await prisma.document.findMany({
       where,
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" },
       select: {
         id: true,
         type: true,
@@ -213,78 +230,82 @@ export async function GET(request: NextRequest) {
         size: true,
         validationStatus: true,
         createdAt: true,
-        updatedAt: true
-      }
-    })
+        updatedAt: true,
+      },
+    });
 
     return NextResponse.json({
       success: true,
-      documents
-    })
-
+      documents,
+    });
   } catch (error) {
-    console.error('❌ Erreur récupération documents:', error)
+    console.error("❌ Erreur récupération documents:", error);
     return NextResponse.json(
-      { error: 'Erreur lors de la récupération des documents' },
-      { status: 500 }
-    )
+      { error: "Erreur lors de la récupération des documents" },
+      { status: 500 },
+    );
   }
 }
 
 export async function DELETE(request: NextRequest) {
   try {
-    const user = await getUserFromSession(request)
+    const user = await getUserFromSession(request);
     if (!user) {
-      return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
+      return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
     }
 
-    const { searchParams } = new URL(request.url)
-    const documentId = searchParams.get('id')
+    const { searchParams } = new URL(request.url);
+    const documentId = searchParams.get("id");
 
     if (!documentId) {
-      return NextResponse.json({ error: 'ID du document requis' }, { status: 400 })
+      return NextResponse.json(
+        { error: "ID du document requis" },
+        { status: 400 },
+      );
     }
 
     // Vérifier que le document appartient à l'utilisateur
     const document = await prisma.document.findFirst({
       where: {
         id: documentId,
-        userId: user.id
-      }
-    })
+        userId: user.id,
+      },
+    });
 
     if (!document) {
-      return NextResponse.json({ error: 'Document introuvable' }, { status: 404 })
+      return NextResponse.json(
+        { error: "Document introuvable" },
+        { status: 404 },
+      );
     }
 
     // Ne pas permettre la suppression de documents validés (sauf admin)
-    if (document.validationStatus === 'APPROVED' && user.role !== 'ADMIN') {
+    if (document.validationStatus === "APPROVED" && user.role !== "ADMIN") {
       return NextResponse.json(
-        { error: 'Impossible de supprimer un document validé' },
-        { status: 403 }
-      )
+        { error: "Impossible de supprimer un document validé" },
+        { status: 403 },
+      );
     }
 
     // Supprimer le document de la base
     await prisma.document.delete({
-      where: { id: documentId }
-    })
+      where: { id: documentId },
+    });
 
     // TODO: Supprimer aussi le fichier physique
     // unlink(join(process.cwd(), document.url))
 
-    console.log(`✅ Document supprimé: ${documentId}`)
+    console.log(`✅ Document supprimé: ${documentId}`);
 
     return NextResponse.json({
       success: true,
-      message: 'Document supprimé avec succès'
-    })
-
+      message: "Document supprimé avec succès",
+    });
   } catch (error) {
-    console.error('❌ Erreur suppression document:', error)
+    console.error("❌ Erreur suppression document:", error);
     return NextResponse.json(
-      { error: 'Erreur lors de la suppression' },
-      { status: 500 }
-    )
+      { error: "Erreur lors de la suppression" },
+      { status: 500 },
+    );
   }
 }

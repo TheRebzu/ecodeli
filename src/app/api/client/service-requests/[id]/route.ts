@@ -1,30 +1,32 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getUserFromSession } from '@/lib/auth/utils'
-import { db } from '@/lib/db'
+import { NextRequest, NextResponse } from "next/server";
+import { getUserFromSession } from "@/lib/auth/utils";
+import { db } from "@/lib/db";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    console.log('🔍 [GET /api/client/service-requests/[id]] Récupération détails demande de service')
-    
-    const user = await getUserFromSession(request)
+    console.log(
+      "🔍 [GET /api/client/service-requests/[id]] Récupération détails demande de service",
+    );
+
+    const user = await getUserFromSession(request);
     if (!user) {
-      console.log('❌ Utilisateur non authentifié')
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      console.log("❌ Utilisateur non authentifié");
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { id } = await params
-    console.log('✅ Utilisateur authentifié:', user.id, user.role)
-    console.log('📝 Service Request ID:', id)
+    const { id } = await params;
+    console.log("✅ Utilisateur authentifié:", user.id, user.role);
+    console.log("📝 Service Request ID:", id);
 
     // Récupérer la demande de service avec tous les détails
     const serviceRequest = await db.announcement.findFirst({
       where: {
         id: id,
         authorId: user.id,
-        type: 'HOME_SERVICE'
+        type: "HOME_SERVICE",
       },
       include: {
         author: {
@@ -35,10 +37,10 @@ export async function GET(
                 lastName: true,
                 avatar: true,
                 phone: true,
-                email: true
-              }
-            }
-          }
+                email: true,
+              },
+            },
+          },
         },
         applications: {
           include: {
@@ -51,17 +53,17 @@ export async function GET(
                         firstName: true,
                         lastName: true,
                         avatar: true,
-                        phone: true
-                      }
-                    }
-                  }
-                }
-              }
-            }
+                        phone: true,
+                      },
+                    },
+                  },
+                },
+              },
+            },
           },
           orderBy: {
-            createdAt: 'desc'
-          }
+            createdAt: "desc",
+          },
         },
         bookings: {
           include: {
@@ -74,34 +76,37 @@ export async function GET(
                         firstName: true,
                         lastName: true,
                         avatar: true,
-                        phone: true
-                      }
-                    }
-                  }
-                }
-              }
-            }
+                        phone: true,
+                      },
+                    },
+                  },
+                },
+              },
+            },
           },
           orderBy: {
-            createdAt: 'desc'
-          }
+            createdAt: "desc",
+          },
         },
         _count: {
           select: {
             applications: true,
             bookings: true,
-            reviews: true
-          }
-        }
-      }
-    })
+            reviews: true,
+          },
+        },
+      },
+    });
 
     if (!serviceRequest) {
-      console.log('❌ Demande de service non trouvée')
-      return NextResponse.json({ error: 'Service request not found' }, { status: 404 })
+      console.log("❌ Demande de service non trouvée");
+      return NextResponse.json(
+        { error: "Service request not found" },
+        { status: 404 },
+      );
     }
 
-    console.log('✅ Demande de service trouvée:', serviceRequest.id)
+    console.log("✅ Demande de service trouvée:", serviceRequest.id);
 
     // Transformer les données pour le frontend
     const serviceRequestDetails = {
@@ -114,113 +119,129 @@ export async function GET(
       isUrgent: serviceRequest.isUrgent,
       createdAt: serviceRequest.createdAt.toISOString(),
       updatedAt: serviceRequest.updatedAt.toISOString(),
-      
+
       // Détails du service
-      serviceDetails: serviceRequest.serviceDetails ? {
-        serviceType: serviceRequest.serviceDetails.serviceType || 'HOME_SERVICE',
-        numberOfPeople: serviceRequest.serviceDetails.numberOfPeople,
-        duration: serviceRequest.serviceDetails.estimatedDuration,
-        recurringService: serviceRequest.serviceDetails.isRecurring || false,
-        recurringPattern: serviceRequest.serviceDetails.frequency,
-        specialRequirements: serviceRequest.serviceDetails.requirements?.join(', ') || serviceRequest.serviceDetails.specialRequirements
-      } : null,
+      serviceDetails: serviceRequest.serviceDetails
+        ? {
+            serviceType:
+              serviceRequest.serviceDetails.serviceType || "HOME_SERVICE",
+            numberOfPeople: serviceRequest.serviceDetails.numberOfPeople,
+            duration: serviceRequest.serviceDetails.estimatedDuration,
+            recurringService:
+              serviceRequest.serviceDetails.isRecurring || false,
+            recurringPattern: serviceRequest.serviceDetails.frequency,
+            specialRequirements:
+              serviceRequest.serviceDetails.requirements?.join(", ") ||
+              serviceRequest.serviceDetails.specialRequirements,
+          }
+        : null,
 
       // Localisation
       location: {
         address: serviceRequest.pickupAddress,
-        city: serviceRequest.pickupAddress?.split(',').pop()?.trim() || '',
-        scheduledAt: serviceRequest.pickupDate?.toISOString() || null
+        city: serviceRequest.pickupAddress?.split(",").pop()?.trim() || "",
+        scheduledAt: serviceRequest.pickupDate?.toISOString() || null,
       },
 
       // Auteur (client)
       author: {
         id: serviceRequest.author.id,
-        profile: serviceRequest.author.profile
+        profile: serviceRequest.author.profile,
       },
 
       // Candidatures reçues
-      applications: serviceRequest.applications.map(app => ({
+      applications: serviceRequest.applications.map((app) => ({
         id: app.id,
         provider: {
           id: app.provider.id,
-          name: `${app.provider.user.profile?.firstName || ''} ${app.provider.user.profile?.lastName || ''}`.trim(),
+          name: `${app.provider.user.profile?.firstName || ""} ${app.provider.user.profile?.lastName || ""}`.trim(),
           avatar: app.provider.user.profile?.avatar,
           phone: app.provider.user.profile?.phone,
-          rating: app.provider.averageRating || 0
+          rating: app.provider.averageRating || 0,
         },
         price: app.price,
         estimatedDuration: app.estimatedDuration,
         message: app.message,
         status: app.status,
-        createdAt: app.createdAt.toISOString()
+        createdAt: app.createdAt.toISOString(),
       })),
 
       // Réservations
-      bookings: serviceRequest.bookings.map(booking => ({
+      bookings: serviceRequest.bookings.map((booking) => ({
         id: booking.id,
         provider: {
           id: booking.provider.id,
-          name: `${booking.provider.user.profile?.firstName || ''} ${booking.provider.user.profile?.lastName || ''}`.trim(),
+          name: `${booking.provider.user.profile?.firstName || ""} ${booking.provider.user.profile?.lastName || ""}`.trim(),
           avatar: booking.provider.user.profile?.avatar,
-          phone: booking.provider.user.profile?.phone
+          phone: booking.provider.user.profile?.phone,
         },
         status: booking.status,
         scheduledDate: booking.scheduledDate?.toISOString(),
         totalPrice: booking.totalPrice,
         notes: booking.notes,
-        createdAt: booking.createdAt.toISOString()
+        createdAt: booking.createdAt.toISOString(),
       })),
 
       // Statistiques
       stats: {
         applicationsCount: serviceRequest._count.applications,
         bookingsCount: serviceRequest._count.bookings,
-        reviewsCount: serviceRequest._count.reviews
-      }
-    }
+        reviewsCount: serviceRequest._count.reviews,
+      },
+    };
 
-    return NextResponse.json(serviceRequestDetails)
-
+    return NextResponse.json(serviceRequestDetails);
   } catch (error) {
-    console.error('❌ Erreur récupération détails demande de service:', error)
+    console.error("❌ Erreur récupération détails demande de service:", error);
     return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    )
+      { error: "Internal server error" },
+      { status: 500 },
+    );
   }
 }
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    console.log('🔍 [PUT /api/client/service-requests/[id]] Mise à jour demande de service')
-    
-    const user = await getUserFromSession(request)
+    console.log(
+      "🔍 [PUT /api/client/service-requests/[id]] Mise à jour demande de service",
+    );
+
+    const user = await getUserFromSession(request);
     if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { id } = await params
-    const body = await request.json()
+    const { id } = await params;
+    const body = await request.json();
 
     // Vérifier que la demande de service appartient à l'utilisateur
     const existingServiceRequest = await db.announcement.findFirst({
       where: {
         id: id,
         authorId: user.id,
-        type: 'HOME_SERVICE'
-      }
-    })
+        type: "HOME_SERVICE",
+      },
+    });
 
     if (!existingServiceRequest) {
-      return NextResponse.json({ error: 'Service request not found' }, { status: 404 })
+      return NextResponse.json(
+        { error: "Service request not found" },
+        { status: 404 },
+      );
     }
 
     // Vérifier que la demande peut être modifiée
-    if (existingServiceRequest.status !== 'DRAFT' && existingServiceRequest.status !== 'ACTIVE') {
-      return NextResponse.json({ error: 'Service request cannot be modified' }, { status: 400 })
+    if (
+      existingServiceRequest.status !== "DRAFT" &&
+      existingServiceRequest.status !== "ACTIVE"
+    ) {
+      return NextResponse.json(
+        { error: "Service request cannot be modified" },
+        { status: 400 },
+      );
     }
 
     // Mettre à jour la demande de service
@@ -233,65 +254,74 @@ export async function PUT(
         isUrgent: body.isUrgent,
         pickupDate: body.scheduledAt ? new Date(body.scheduledAt) : undefined,
         deliveryDate: body.scheduledAt ? new Date(body.scheduledAt) : undefined,
-        updatedAt: new Date()
-      }
-    })
+        updatedAt: new Date(),
+      },
+    });
 
-    return NextResponse.json(updatedServiceRequest)
-
+    return NextResponse.json(updatedServiceRequest);
   } catch (error) {
-    console.error('Error updating service request:', error)
+    console.error("Error updating service request:", error);
     return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    )
+      { error: "Internal server error" },
+      { status: 500 },
+    );
   }
 }
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    console.log('🔍 [DELETE /api/client/service-requests/[id]] Suppression demande de service')
-    
-    const user = await getUserFromSession(request)
+    console.log(
+      "🔍 [DELETE /api/client/service-requests/[id]] Suppression demande de service",
+    );
+
+    const user = await getUserFromSession(request);
     if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { id } = await params
+    const { id } = await params;
 
     // Vérifier que la demande de service appartient à l'utilisateur
     const existingServiceRequest = await db.announcement.findFirst({
       where: {
         id: id,
         authorId: user.id,
-        type: 'HOME_SERVICE'
-      }
-    })
+        type: "HOME_SERVICE",
+      },
+    });
 
     if (!existingServiceRequest) {
-      return NextResponse.json({ error: 'Service request not found' }, { status: 404 })
+      return NextResponse.json(
+        { error: "Service request not found" },
+        { status: 404 },
+      );
     }
 
     // Vérifier que la demande peut être supprimée
-    if (existingServiceRequest.status !== 'DRAFT' && existingServiceRequest.status !== 'ACTIVE') {
-      return NextResponse.json({ error: 'Service request cannot be deleted' }, { status: 400 })
+    if (
+      existingServiceRequest.status !== "DRAFT" &&
+      existingServiceRequest.status !== "ACTIVE"
+    ) {
+      return NextResponse.json(
+        { error: "Service request cannot be deleted" },
+        { status: 400 },
+      );
     }
 
     // Supprimer la demande de service
     await db.announcement.delete({
-      where: { id: id }
-    })
+      where: { id: id },
+    });
 
-    return NextResponse.json({ success: true })
-
+    return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Error deleting service request:', error)
+    console.error("Error deleting service request:", error);
     return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    )
+      { error: "Internal server error" },
+      { status: 500 },
+    );
   }
-} 
+}

@@ -1,51 +1,51 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { z } from 'zod'
-import { getCurrentUser } from '@/lib/auth/utils'
-import { db } from '@/lib/db'
+import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
+import { getCurrentUser } from "@/lib/auth/utils";
+import { db } from "@/lib/db";
 
 const moderationSchema = z.object({
   announcementId: z.string(),
-  action: z.enum(['APPROVE', 'REJECT', 'FLAG', 'SUSPEND']),
+  action: z.enum(["APPROVE", "REJECT", "FLAG", "SUSPEND"]),
   reason: z.string().optional(),
-  notes: z.string().optional()
-})
+  notes: z.string().optional(),
+});
 
 export async function GET(request: NextRequest) {
   try {
-    const user = await getCurrentUser(request)
+    const user = await getCurrentUser(request);
     if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    if (user.role !== 'ADMIN') {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    if (user.role !== "ADMIN") {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    const { searchParams } = new URL(request.url)
-    const page = parseInt(searchParams.get('page') || '1')
-    const limit = parseInt(searchParams.get('limit') || '20')
-    const status = searchParams.get('status')
-    const type = searchParams.get('type')
-    const flagged = searchParams.get('flagged')
-    const authorId = searchParams.get('authorId')
-    const search = searchParams.get('search')
+    const { searchParams } = new URL(request.url);
+    const page = parseInt(searchParams.get("page") || "1");
+    const limit = parseInt(searchParams.get("limit") || "20");
+    const status = searchParams.get("status");
+    const type = searchParams.get("type");
+    const flagged = searchParams.get("flagged");
+    const authorId = searchParams.get("authorId");
+    const search = searchParams.get("search");
 
     // Construction des filtres
-    const where: any = {}
-    
-    if (status && status !== 'ALL') where.status = status
-    if (type && type !== 'ALL') where.type = type
-    if (authorId) where.authorId = authorId
-    if (flagged === 'true') where.flagged = true
+    const where: any = {};
+
+    if (status && status !== "ALL") where.status = status;
+    if (type && type !== "ALL") where.type = type;
+    if (authorId) where.authorId = authorId;
+    if (flagged === "true") where.flagged = true;
     if (search) {
       where.OR = [
-        { title: { contains: search, mode: 'insensitive' } },
-        { description: { contains: search, mode: 'insensitive' } }
-      ]
+        { title: { contains: search, mode: "insensitive" } },
+        { description: { contains: search, mode: "insensitive" } },
+      ];
     }
 
     // Calcul de la pagination
-    const skip = (page - 1) * limit
+    const skip = (page - 1) * limit;
 
     // Requête principale
     const [announcements, total] = await Promise.all([
@@ -53,7 +53,7 @@ export async function GET(request: NextRequest) {
         where,
         skip,
         take: limit,
-        orderBy: { createdAt: 'desc' },
+        orderBy: { createdAt: "desc" },
         include: {
           author: {
             select: {
@@ -64,10 +64,10 @@ export async function GET(request: NextRequest) {
               profile: {
                 select: {
                   firstName: true,
-                  lastName: true
-                }
-              }
-            }
+                  lastName: true,
+                },
+              },
+            },
           },
           deliverer: {
             select: {
@@ -78,10 +78,10 @@ export async function GET(request: NextRequest) {
               profile: {
                 select: {
                   firstName: true,
-                  lastName: true
-                }
-              }
-            }
+                  lastName: true,
+                },
+              },
+            },
           },
           attachments: {
             select: {
@@ -89,15 +89,15 @@ export async function GET(request: NextRequest) {
               url: true,
               filename: true,
               mimeType: true,
-              size: true
-            }
-          }
-        }
+              size: true,
+            },
+          },
+        },
       }),
-      db.announcement.count({ where })
-    ])
+      db.announcement.count({ where }),
+    ]);
 
-    const totalPages = Math.ceil(total / limit)
+    const totalPages = Math.ceil(total / limit);
 
     return NextResponse.json({
       announcements,
@@ -105,70 +105,71 @@ export async function GET(request: NextRequest) {
         page,
         limit,
         total,
-        totalPages
-      }
-    })
+        totalPages,
+      },
+    });
   } catch (error) {
-    console.error('Error fetching admin announcements:', error)
+    console.error("Error fetching admin announcements:", error);
     return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    )
+      { error: "Internal server error" },
+      { status: 500 },
+    );
   }
 }
 
 export async function POST(request: NextRequest) {
   try {
-    const user = await getCurrentUser(request)
+    const user = await getCurrentUser(request);
     if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    if (user.role !== 'ADMIN') {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    if (user.role !== "ADMIN") {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    const body = await request.json()
-    
+    const body = await request.json();
+
     // Si c'est une action de modération
     if (body.announcementId && body.action) {
-      const { announcementId, action, reason, notes } = moderationSchema.parse(body)
+      const { announcementId, action, reason, notes } =
+        moderationSchema.parse(body);
 
       const announcement = await db.announcement.findUnique({
         where: { id: announcementId },
-        include: { author: true }
-      })
+        include: { author: true },
+      });
 
       if (!announcement) {
         return NextResponse.json(
-          { error: 'Announcement not found' },
-          { status: 404 }
-        )
+          { error: "Announcement not found" },
+          { status: 404 },
+        );
       }
 
       let updateData: any = {
         moderatedAt: new Date(),
         moderatedBy: user.id,
-        moderationNotes: notes
-      }
+        moderationNotes: notes,
+      };
 
       switch (action) {
-        case 'APPROVE':
-          updateData.status = 'ACTIVE'
-          updateData.flagged = false
-          break
-        case 'REJECT':
-          updateData.status = 'CANCELLED'
-          updateData.rejectionReason = reason
-          break
-        case 'FLAG':
-          updateData.flagged = true
-          updateData.flagReason = reason
-          break
-        case 'SUSPEND':
-          updateData.status = 'SUSPENDED'
-          updateData.suspensionReason = reason
-          break
+        case "APPROVE":
+          updateData.status = "ACTIVE";
+          updateData.flagged = false;
+          break;
+        case "REJECT":
+          updateData.status = "CANCELLED";
+          updateData.rejectionReason = reason;
+          break;
+        case "FLAG":
+          updateData.flagged = true;
+          updateData.flagReason = reason;
+          break;
+        case "SUSPEND":
+          updateData.status = "SUSPENDED";
+          updateData.suspensionReason = reason;
+          break;
       }
 
       const updatedAnnouncement = await db.announcement.update({
@@ -184,10 +185,10 @@ export async function POST(request: NextRequest) {
               profile: {
                 select: {
                   firstName: true,
-                  lastName: true
-                }
-              }
-            }
+                  lastName: true,
+                },
+              },
+            },
           },
           attachments: {
             select: {
@@ -195,18 +196,18 @@ export async function POST(request: NextRequest) {
               url: true,
               filename: true,
               mimeType: true,
-              size: true
-            }
-          }
-        }
-      })
+              size: true,
+            },
+          },
+        },
+      });
 
       return NextResponse.json({
         message: `Announcement ${action.toLowerCase()}ed successfully`,
-        announcement: updatedAnnouncement
-      })
+        announcement: updatedAnnouncement,
+      });
     }
-    
+
     // Sinon, c'est une création d'annonce
     const {
       title,
@@ -221,8 +222,8 @@ export async function POST(request: NextRequest) {
       isFlexibleDate,
       preferredTimeSlot,
       specialInstructions,
-      internalNotes
-    } = body
+      internalNotes,
+    } = body;
 
     const announcement = await db.announcement.create({
       data: {
@@ -239,9 +240,9 @@ export async function POST(request: NextRequest) {
         preferredTimeSlot,
         specialInstructions,
         internalNotes,
-        status: 'ACTIVE', // Annonces admin créées directement actives
+        status: "ACTIVE", // Annonces admin créées directement actives
         authorId: user.id, // L'admin devient l'auteur
-        publishedAt: new Date()
+        publishedAt: new Date(),
       },
       include: {
         author: {
@@ -253,10 +254,10 @@ export async function POST(request: NextRequest) {
             profile: {
               select: {
                 firstName: true,
-                lastName: true
-              }
-            }
-          }
+                lastName: true,
+              },
+            },
+          },
         },
         attachments: {
           select: {
@@ -264,27 +265,30 @@ export async function POST(request: NextRequest) {
             url: true,
             filename: true,
             mimeType: true,
-            size: true
-          }
-        }
-      }
-    })
+            size: true,
+          },
+        },
+      },
+    });
 
-    return NextResponse.json({
-      message: 'Announcement created successfully',
-      announcement
-    }, { status: 201 })
+    return NextResponse.json(
+      {
+        message: "Announcement created successfully",
+        announcement,
+      },
+      { status: 201 },
+    );
   } catch (error) {
-    console.error('Error creating/moderating announcement:', error)
+    console.error("Error creating/moderating announcement:", error);
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: 'Invalid data', details: error.errors },
-        { status: 400 }
-      )
+        { error: "Invalid data", details: error.errors },
+        { status: 400 },
+      );
     }
     return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    )
+      { error: "Internal server error" },
+      { status: 500 },
+    );
   }
 }

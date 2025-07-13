@@ -1,75 +1,90 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Package, MapPin, QrCode, Calendar, Plus, AlertCircle } from 'lucide-react'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import {
+  Package,
+  MapPin,
+  QrCode,
+  Calendar,
+  Plus,
+  AlertCircle,
+} from "lucide-react";
+import { useRouter } from "next/navigation";
 
 interface StorageRental {
-  id: string
-  startDate: Date
-  endDate?: Date
-  isActive: boolean
+  id: string;
+  startDate: Date;
+  endDate?: Date;
+  isActive: boolean;
   storageBox: {
-    boxNumber: string
-    size: string
-    pricePerDay: number
+    boxNumber: string;
+    size: string;
+    pricePerDay: number;
     location: {
-      name: string
-      city: string
-    }
-  }
+      name: string;
+      city: string;
+    };
+  };
 }
 
 export function StorageStatusWidget() {
-  const [rentals, setRentals] = useState<StorageRental[]>([])
-  const [loading, setLoading] = useState(true)
-  const router = useRouter()
+  const [rentals, setRentals] = useState<StorageRental[]>([]);
+  const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
   useEffect(() => {
-    fetchRentals()
-  }, [])
+    fetchRentals();
+  }, []);
 
   const fetchRentals = async () => {
     try {
-      const response = await fetch('/api/client/storage-boxes/rentals')
-      
+      const response = await fetch("/api/client/storage-boxes/rentals");
+
       if (response.ok) {
-        const data = await response.json()
-        setRentals(data.rentals || [])
+        const data = await response.json();
+        setRentals(data.rentals || []);
       }
     } catch (error) {
-      console.error('Error fetching storage rentals:', error)
+      console.error("Error fetching storage rentals:", error);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
-  const activeRentals = rentals.filter(rental => rental.isActive)
-  const expiringRentals = rentals.filter(rental => 
-    rental.isActive && rental.endDate && 
-    new Date(rental.endDate).getTime() - Date.now() < 7 * 24 * 60 * 60 * 1000 // 7 jours
-  )
+  const activeRentals = rentals.filter((rental) => rental.isActive);
+  const expiringRentals = rentals.filter(
+    (rental) =>
+      rental.isActive &&
+      rental.endDate &&
+      new Date(rental.endDate).getTime() - Date.now() < 7 * 24 * 60 * 60 * 1000, // 7 jours
+  );
 
   const getSizeLabel = (size: string) => {
     const labels = {
-      'SMALL': 'Petit',
-      'MEDIUM': 'Moyen', 
-      'LARGE': 'Grand'
-    }
-    return labels[size as keyof typeof labels] || size
-  }
+      SMALL: "Petit",
+      MEDIUM: "Moyen",
+      LARGE: "Grand",
+    };
+    return labels[size as keyof typeof labels] || size;
+  };
 
   const getSizeBadgeColor = (size: string) => {
     const colors = {
-      'SMALL': 'bg-green-100 text-green-800',
-      'MEDIUM': 'bg-blue-100 text-blue-800',
-      'LARGE': 'bg-purple-100 text-purple-800'
-    }
-    return colors[size as keyof typeof colors] || 'bg-gray-100 text-gray-800'
-  }
+      SMALL: "bg-green-100 text-green-800",
+      MEDIUM: "bg-blue-100 text-blue-800",
+      LARGE: "bg-purple-100 text-purple-800",
+    };
+    return colors[size as keyof typeof colors] || "bg-gray-100 text-gray-800";
+  };
 
   if (loading) {
     return (
@@ -87,7 +102,7 @@ export function StorageStatusWidget() {
           </div>
         </CardContent>
       </Card>
-    )
+    );
   }
 
   if (activeRentals.length === 0) {
@@ -98,13 +113,11 @@ export function StorageStatusWidget() {
             <Package className="w-5 h-5" />
             Box de Stockage
           </CardTitle>
-          <CardDescription>
-            Aucun box loué actuellement
-          </CardDescription>
+          <CardDescription>Aucun box loué actuellement</CardDescription>
         </CardHeader>
         <CardContent>
-          <Button 
-            onClick={() => router.push('/client/storage')}
+          <Button
+            onClick={() => router.push("/client/storage")}
             className="w-full"
             variant="outline"
           >
@@ -113,7 +126,7 @@ export function StorageStatusWidget() {
           </Button>
         </CardContent>
       </Card>
-    )
+    );
   }
 
   return (
@@ -144,7 +157,9 @@ export function StorageStatusWidget() {
             <div key={rental.id} className="border rounded-lg p-3 bg-gray-50">
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">
-                  <span className="font-medium">Box {rental.storageBox.boxNumber}</span>
+                  <span className="font-medium">
+                    Box {rental.storageBox.boxNumber}
+                  </span>
                   <Badge className={getSizeBadgeColor(rental.storageBox.size)}>
                     {getSizeLabel(rental.storageBox.size)}
                   </Badge>
@@ -153,17 +168,21 @@ export function StorageStatusWidget() {
                   {rental.storageBox.pricePerDay}€/jour
                 </span>
               </div>
-              
+
               <div className="flex items-center gap-2 text-sm text-gray-600">
                 <MapPin className="w-3 h-3" />
-                <span>{rental.storageBox.location.name}, {rental.storageBox.location.city}</span>
+                <span>
+                  {rental.storageBox.location.name},{" "}
+                  {rental.storageBox.location.city}
+                </span>
               </div>
 
               {rental.endDate && (
                 <div className="flex items-center gap-2 text-sm text-gray-600 mt-1">
                   <Calendar className="w-3 h-3" />
                   <span>
-                    Expire le {new Date(rental.endDate).toLocaleDateString('fr-FR')}
+                    Expire le{" "}
+                    {new Date(rental.endDate).toLocaleDateString("fr-FR")}
                   </span>
                 </div>
               )}
@@ -173,8 +192,8 @@ export function StorageStatusWidget() {
 
         {/* Actions */}
         <div className="flex gap-2 pt-2">
-          <Button 
-            onClick={() => router.push('/client/storage')}
+          <Button
+            onClick={() => router.push("/client/storage")}
             variant="outline"
             size="sm"
             className="flex-1"
@@ -183,8 +202,8 @@ export function StorageStatusWidget() {
             Gérer mes box
           </Button>
           {activeRentals.length < 3 && (
-            <Button 
-              onClick={() => router.push('/client/storage')}
+            <Button
+              onClick={() => router.push("/client/storage")}
               size="sm"
               className="flex-1"
             >
@@ -201,5 +220,5 @@ export function StorageStatusWidget() {
         )}
       </CardContent>
     </Card>
-  )
+  );
 }

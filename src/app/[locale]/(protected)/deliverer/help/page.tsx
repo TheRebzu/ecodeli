@@ -8,22 +8,33 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { 
-  HelpCircle, 
-  Search, 
-  MessageCircle, 
-  Phone, 
-  Mail, 
-  FileText, 
-  Video, 
+import {
+  HelpCircle,
+  Search,
+  MessageCircle,
+  Phone,
+  Mail,
+  FileText,
+  Video,
   BookOpen,
   Play,
   Clock,
-  Download
+  Download,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -36,24 +47,28 @@ interface FAQItem {
 const faqData: FAQItem[] = [
   {
     question: "Comment fonctionne le système de matching des livraisons ?",
-    answer: "Le système analyse vos trajets déclarés et les annonces disponibles. Quand une correspondance est trouvée, vous recevez une notification.",
-    category: "Livraisons"
+    answer:
+      "Le système analyse vos trajets déclarés et les annonces disponibles. Quand une correspondance est trouvée, vous recevez une notification.",
+    category: "Livraisons",
   },
   {
     question: "Comment valider une livraison avec le code à 6 chiffres ?",
-    answer: "Lors de la livraison, le client vous remet un code à 6 chiffres. Saisissez ce code dans l'application pour confirmer la livraison.",
-    category: "Livraisons"
+    answer:
+      "Lors de la livraison, le client vous remet un code à 6 chiffres. Saisissez ce code dans l'application pour confirmer la livraison.",
+    category: "Livraisons",
   },
   {
     question: "Comment configurer mes trajets réguliers ?",
-    answer: "Allez dans 'Trajets' > 'Mes trajets' et cliquez sur 'Ajouter un trajet'. Définissez votre point de départ, destination et horaires.",
-    category: "Trajets"
+    answer:
+      "Allez dans 'Trajets' > 'Mes trajets' et cliquez sur 'Ajouter un trajet'. Définissez votre point de départ, destination et horaires.",
+    category: "Trajets",
   },
   {
     question: "Comment retirer mes gains ?",
-    answer: "Dans 'Portefeuille' > 'Retraits', vous pouvez demander un virement vers votre compte bancaire. Le minimum de retrait est de 50€.",
-    category: "Paiements"
-  }
+    answer:
+      "Dans 'Portefeuille' > 'Retraits', vous pouvez demander un virement vers votre compte bancaire. Le minimum de retrait est de 50€.",
+    category: "Paiements",
+  },
 ];
 
 export default function DelivererHelpPage() {
@@ -64,30 +79,33 @@ export default function DelivererHelpPage() {
     subject: "",
     message: "",
     priority: "medium",
-    category: "general"
+    category: "general",
   });
 
   const categories = ["all", "Livraisons", "Trajets", "Paiements", "Documents"];
 
-  const filteredFAQ = faqData.filter(item => {
-    const matchesSearch = item.question.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = selectedCategory === "all" || item.category === selectedCategory;
+  const filteredFAQ = faqData.filter((item) => {
+    const matchesSearch = item.question
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase());
+    const matchesCategory =
+      selectedCategory === "all" || item.category === selectedCategory;
     return matchesSearch && matchesCategory;
   });
 
   const handleSupportSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!supportTicket.subject || !supportTicket.message) {
       toast.error("Veuillez remplir tous les champs obligatoires");
       return;
     }
 
     try {
-      const response = await fetch('/api/deliverer/support', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(supportTicket)
+      const response = await fetch("/api/deliverer/support", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(supportTicket),
       });
 
       if (response.ok) {
@@ -96,7 +114,7 @@ export default function DelivererHelpPage() {
           subject: "",
           message: "",
           priority: "medium",
-          category: "general"
+          category: "general",
         });
       }
     } catch (error) {
@@ -154,7 +172,9 @@ export default function DelivererHelpPage() {
                 {categories.map((category) => (
                   <Button
                     key={category}
-                    variant={selectedCategory === category ? "default" : "outline"}
+                    variant={
+                      selectedCategory === category ? "default" : "outline"
+                    }
                     size="sm"
                     onClick={() => setSelectedCategory(category)}
                   >
@@ -167,7 +187,11 @@ export default function DelivererHelpPage() {
 
               <Accordion type="single" collapsible className="space-y-2">
                 {filteredFAQ.map((item, index) => (
-                  <AccordionItem key={index} value={`item-${index}`} className="border rounded-lg px-4">
+                  <AccordionItem
+                    key={index}
+                    value={`item-${index}`}
+                    className="border rounded-lg px-4"
+                  >
                     <AccordionTrigger className="text-left">
                       <div className="flex items-center gap-2">
                         <span className="text-sm font-medium text-blue-600 bg-blue-50 px-2 py-1 rounded">
@@ -198,11 +222,17 @@ export default function DelivererHelpPage() {
                     <Play className="h-12 w-12 text-gray-400" />
                   </div>
                   <div className="p-4">
-                    <h3 className="font-semibold mb-2">Premiers pas avec EcoDeli</h3>
-                    <p className="text-sm text-gray-600 mb-3">Guide complet pour commencer à livrer</p>
+                    <h3 className="font-semibold mb-2">
+                      Premiers pas avec EcoDeli
+                    </h3>
+                    <p className="text-sm text-gray-600 mb-3">
+                      Guide complet pour commencer à livrer
+                    </p>
                     <div className="flex items-center justify-between">
                       <span className="text-sm text-gray-500">5:32</span>
-                      <Button size="sm" variant="outline">Regarder</Button>
+                      <Button size="sm" variant="outline">
+                        Regarder
+                      </Button>
                     </div>
                   </div>
                 </div>
@@ -222,8 +252,12 @@ export default function DelivererHelpPage() {
                   <div className="flex items-center gap-4">
                     <FileText className="h-8 w-8 text-blue-600" />
                     <div>
-                      <h3 className="font-semibold">Guide du livreur EcoDeli</h3>
-                      <p className="text-sm text-gray-600">Manuel complet pour les livreurs</p>
+                      <h3 className="font-semibold">
+                        Guide du livreur EcoDeli
+                      </h3>
+                      <p className="text-sm text-gray-600">
+                        Manuel complet pour les livreurs
+                      </p>
                     </div>
                   </div>
                   <Button variant="outline" size="sm">
@@ -272,7 +306,12 @@ export default function DelivererHelpPage() {
                     <Input
                       id="subject"
                       value={supportTicket.subject}
-                      onChange={(e) => setSupportTicket({...supportTicket, subject: e.target.value})}
+                      onChange={(e) =>
+                        setSupportTicket({
+                          ...supportTicket,
+                          subject: e.target.value,
+                        })
+                      }
                       placeholder="Décrivez brièvement votre problème"
                       required
                     />
@@ -283,7 +322,12 @@ export default function DelivererHelpPage() {
                     <Textarea
                       id="message"
                       value={supportTicket.message}
-                      onChange={(e) => setSupportTicket({...supportTicket, message: e.target.value})}
+                      onChange={(e) =>
+                        setSupportTicket({
+                          ...supportTicket,
+                          message: e.target.value,
+                        })
+                      }
                       placeholder="Décrivez votre problème en détail..."
                       rows={4}
                       required
@@ -301,4 +345,4 @@ export default function DelivererHelpPage() {
       </Tabs>
     </div>
   );
-} 
+}

@@ -1,46 +1,53 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState } from "react";
 
 interface MapComponentProps {
-  pickup: string
-  delivery: string
+  pickup: string;
+  delivery: string;
   currentLocation?: {
-    lat: number
-    lng: number
-  }
-  delivererName: string
+    lat: number;
+    lng: number;
+  };
+  delivererName: string;
 }
 
-export default function MapComponent({ pickup, delivery, currentLocation, delivererName }: MapComponentProps) {
-  const [mapError, setMapError] = useState(false)
+export default function MapComponent({
+  pickup,
+  delivery,
+  currentLocation,
+  delivererName,
+}: MapComponentProps) {
+  const [mapError, setMapError] = useState(false);
 
   useEffect(() => {
     // Simuler le chargement d'une carte
     // Dans un vrai projet, vous intégreriez Google Maps, Mapbox, ou Leaflet
     const timer = setTimeout(() => {
-      setMapError(false)
-    }, 1000)
+      setMapError(false);
+    }, 1000);
 
-    return () => clearTimeout(timer)
-  }, [])
+    return () => clearTimeout(timer);
+  }, []);
 
   if (mapError) {
     return (
       <div className="h-64 bg-gray-100 rounded-lg flex items-center justify-center">
         <div className="text-center">
           <div className="text-gray-400 text-lg mb-2">🗺️</div>
-          <p className="text-gray-600 text-sm">Carte temporairement indisponible</p>
+          <p className="text-gray-600 text-sm">
+            Carte temporairement indisponible
+          </p>
         </div>
       </div>
-    )
+    );
   }
 
   return (
     <div className="h-64 bg-gradient-to-br from-green-50 to-blue-50 rounded-lg relative overflow-hidden">
       {/* Simulation d'une carte */}
       <div className="absolute inset-0 bg-gray-100 opacity-50"></div>
-      
+
       {/* Points de repère */}
       <div className="absolute top-4 left-4 bg-white rounded-lg p-3 shadow-sm max-w-xs">
         <div className="flex items-center space-x-2 mb-2">
@@ -96,5 +103,5 @@ export default function MapComponent({ pickup, delivery, currentLocation, delive
         <span className="text-xs text-gray-600">Live</span>
       </div>
     </div>
-  )
+  );
 }

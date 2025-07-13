@@ -2,7 +2,13 @@
 
 import { useState, useEffect } from "react";
 import { useTranslations } from "next-intl";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Calendar } from "@/components/ui/calendar";
@@ -25,7 +31,14 @@ import {
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Calendar as CalendarIcon, Clock, Plus, Edit, Trash2, Info } from "lucide-react";
+import {
+  Calendar as CalendarIcon,
+  Clock,
+  Plus,
+  Edit,
+  Trash2,
+  Info,
+} from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { format, addDays, startOfWeek, endOfWeek } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -55,8 +68,9 @@ export function ProviderCalendar() {
   const [availabilities, setAvailabilities] = useState<Availability[]>([]);
   const [loading, setLoading] = useState(true);
   const [showDialog, setShowDialog] = useState(false);
-  const [editingAvailability, setEditingAvailability] = useState<Availability | null>(null);
-  
+  const [editingAvailability, setEditingAvailability] =
+    useState<Availability | null>(null);
+
   const [formData, setFormData] = useState({
     date: new Date(),
     startTime: "09:00",
@@ -133,9 +147,9 @@ export function ProviderCalendar() {
     try {
       // En production, faire un appel API pour sauvegarder
       toast.success(
-        editingAvailability 
-          ? "Disponibilité mise à jour" 
-          : "Disponibilité créée"
+        editingAvailability
+          ? "Disponibilité mise à jour"
+          : "Disponibilité créée",
       );
       setShowDialog(false);
       resetForm();
@@ -169,11 +183,15 @@ export function ProviderCalendar() {
   };
 
   const getAvailabilitiesForDate = (date: Date) => {
-    return availabilities.filter(availability => {
+    return availabilities.filter((availability) => {
       if (availability.isRecurring && availability.recurringDays) {
         return availability.recurringDays.includes(date.getDay());
       }
-      return format(availability.date) || "yyyy-MM-dd" === format(date) || "yyyy-MM-dd";
+      return (
+        format(availability.date) ||
+        "yyyy-MM-dd" === format(date) ||
+        "yyyy-MM-dd"
+      );
     });
   };
 
@@ -182,7 +200,7 @@ export function ProviderCalendar() {
       <div className="space-y-4">
         <h1 className="text-3xl font-bold">{t("title")}</h1>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {[1, 2].map(i => (
+          {[1, 2].map((i) => (
             <Card key={i}>
               <CardContent className="p-6">
                 <div className="animate-pulse space-y-4">
@@ -214,7 +232,9 @@ export function ProviderCalendar() {
           <DialogContent className="max-w-2xl">
             <DialogHeader>
               <DialogTitle>
-                {editingAvailability ? "Modifier la disponibilité" : "Nouvelle disponibilité"}
+                {editingAvailability
+                  ? "Modifier la disponibilité"
+                  : "Nouvelle disponibilité"}
               </DialogTitle>
               <DialogDescription>
                 Définissez vos créneaux de disponibilité pour vos prestations
@@ -225,15 +245,17 @@ export function ProviderCalendar() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="startTime">Heure de début</Label>
-                  <Select 
-                    value={formData.startTime} 
-                    onValueChange={(value) => setFormData({...formData, startTime: value})}
+                  <Select
+                    value={formData.startTime}
+                    onValueChange={(value) =>
+                      setFormData({ ...formData, startTime: value })
+                    }
                   >
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      {timeSlots.map(slot => (
+                      {timeSlots.map((slot) => (
                         <SelectItem key={slot.time} value={slot.time}>
                           {slot.time}
                         </SelectItem>
@@ -243,15 +265,17 @@ export function ProviderCalendar() {
                 </div>
                 <div>
                   <Label htmlFor="endTime">Heure de fin</Label>
-                  <Select 
-                    value={formData.endTime} 
-                    onValueChange={(value) => setFormData({...formData, endTime: value})}
+                  <Select
+                    value={formData.endTime}
+                    onValueChange={(value) =>
+                      setFormData({ ...formData, endTime: value })
+                    }
                   >
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      {timeSlots.map(slot => (
+                      {timeSlots.map((slot) => (
                         <SelectItem key={slot.time} value={slot.time}>
                           {slot.time}
                         </SelectItem>
@@ -264,7 +288,9 @@ export function ProviderCalendar() {
               <div className="flex items-center space-x-2">
                 <Switch
                   checked={formData.isRecurring}
-                  onCheckedChange={(checked) => setFormData({...formData, isRecurring: checked})}
+                  onCheckedChange={(checked) =>
+                    setFormData({ ...formData, isRecurring: checked })
+                  }
                 />
                 <Label>Disponibilité récurrente</Label>
               </div>
@@ -273,21 +299,29 @@ export function ProviderCalendar() {
                 <div>
                   <Label>Jours de la semaine</Label>
                   <div className="grid grid-cols-4 gap-2 mt-2">
-                    {daysOfWeek.map(day => (
-                      <label key={day.value} className="flex items-center space-x-2">
+                    {daysOfWeek.map((day) => (
+                      <label
+                        key={day.value}
+                        className="flex items-center space-x-2"
+                      >
                         <input
                           type="checkbox"
                           checked={formData.recurringDays.includes(day.value)}
                           onChange={(e) => {
                             if (e.target.checked) {
                               setFormData({
-                                ...formData, 
-                                recurringDays: [...formData.recurringDays, day.value]
+                                ...formData,
+                                recurringDays: [
+                                  ...formData.recurringDays,
+                                  day.value,
+                                ],
                               });
                             } else {
                               setFormData({
                                 ...formData,
-                                recurringDays: formData.recurringDays.filter(d => d !== day.value)
+                                recurringDays: formData.recurringDays.filter(
+                                  (d) => d !== day.value,
+                                ),
                               });
                             }
                           }}
@@ -301,15 +335,17 @@ export function ProviderCalendar() {
 
               <div>
                 <Label htmlFor="maxBookings">Nombre max de réservations</Label>
-                <Select 
-                  value={formData.maxBookings.toString()} 
-                  onValueChange={(value) => setFormData({...formData, maxBookings: parseInt(value)})}
+                <Select
+                  value={formData.maxBookings.toString()}
+                  onValueChange={(value) =>
+                    setFormData({ ...formData, maxBookings: parseInt(value) })
+                  }
                 >
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {[1, 2, 3, 4, 5].map(num => (
+                    {[1, 2, 3, 4, 5].map((num) => (
                       <SelectItem key={num} value={num.toString()}>
                         {num} {num === 1 ? "réservation" : "réservations"}
                       </SelectItem>
@@ -363,9 +399,7 @@ export function ProviderCalendar() {
             <CardTitle>
               {format(selectedDate, "EEEE d MMMM", { locale: fr })}
             </CardTitle>
-            <CardDescription>
-              Disponibilités pour cette journée
-            </CardDescription>
+            <CardDescription>Disponibilités pour cette journée</CardDescription>
           </CardHeader>
           <CardContent>
             {getAvailabilitiesForDate(selectedDate).length === 0 ? (
@@ -374,12 +408,12 @@ export function ProviderCalendar() {
                 <p className="text-muted-foreground">
                   Aucune disponibilité pour cette date
                 </p>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
+                <Button
+                  variant="outline"
+                  size="sm"
                   className="mt-4"
                   onClick={() => {
-                    setFormData({...formData, date: selectedDate});
+                    setFormData({ ...formData, date: selectedDate });
                     setShowDialog(true);
                   }}
                 >
@@ -389,7 +423,7 @@ export function ProviderCalendar() {
               </div>
             ) : (
               <div className="space-y-3">
-                {getAvailabilitiesForDate(selectedDate).map(availability => (
+                {getAvailabilitiesForDate(selectedDate).map((availability) => (
                   <div key={availability.id} className="border rounded-lg p-3">
                     <div className="flex justify-between items-start">
                       <div>
@@ -397,7 +431,8 @@ export function ProviderCalendar() {
                           {availability.startTime} - {availability.endTime}
                         </p>
                         <p className="text-sm text-muted-foreground">
-                          {availability.currentBookings}/{availability.maxBookings} réservations
+                          {availability.currentBookings}/
+                          {availability.maxBookings} réservations
                         </p>
                         {availability.isRecurring && (
                           <Badge variant="secondary" className="mt-1">
@@ -446,10 +481,11 @@ export function ProviderCalendar() {
       <Alert>
         <Info className="h-4 w-4" />
         <AlertDescription>
-          Les disponibilités récurrentes s'appliquent automatiquement chaque semaine. 
-          Les clients pourront réserver des créneaux uniquement sur vos disponibilités définies.
+          Les disponibilités récurrentes s'appliquent automatiquement chaque
+          semaine. Les clients pourront réserver des créneaux uniquement sur vos
+          disponibilités définies.
         </AlertDescription>
       </Alert>
     </div>
   );
-} 
+}

@@ -16,9 +16,7 @@ export default function MerchantZonesPage() {
           <h2 className="text-2xl font-semibold text-gray-900 mb-2">
             {t("auth.required_title")}
           </h2>
-          <p className="text-gray-600">
-            {t("auth.required_description")}
-          </p>
+          <p className="text-gray-600">{t("auth.required_description")}</p>
         </div>
       </div>
     );
@@ -26,11 +24,8 @@ export default function MerchantZonesPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader
-        title={t("page.title")}
-        description={t("page.description")}
-      />
-      
+      <PageHeader title={t("page.title")} description={t("page.description")} />
+
       <ZoneManager merchantId={user.id} />
     </div>
   );

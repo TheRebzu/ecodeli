@@ -1,19 +1,62 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Switch } from "@/components/ui/switch";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Plus, Edit, Trash2, MoreHorizontal, Eye, EyeOff, Clock, Euro, MapPin, Star } from "lucide-react";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Plus,
+  Edit,
+  Trash2,
+  MoreHorizontal,
+  Eye,
+  EyeOff,
+  Clock,
+  Euro,
+  MapPin,
+  Star,
+} from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useAuth } from "@/hooks/use-auth";
 
@@ -53,21 +96,27 @@ const serviceCategories = [
   { value: "PERSON_TRANSPORT", label: "Transport de personnes", icon: "🚗" },
   { value: "AIRPORT_TRANSFER", label: "Transfert aéroport", icon: "✈️" },
   { value: "SHOPPING", label: "Courses", icon: "🛒" },
-  { value: "INTERNATIONAL_PURCHASE", label: "Achats internationaux", icon: "🌍" },
+  {
+    value: "INTERNATIONAL_PURCHASE",
+    label: "Achats internationaux",
+    icon: "🌍",
+  },
   { value: "PET_CARE", label: "Garde d'animaux", icon: "🐕" },
   { value: "HOME_SERVICE", label: "Services à domicile", icon: "🏠" },
   { value: "CART_DROP", label: "Lâcher de chariot", icon: "🛒" },
-  { value: "OTHER", label: "Autre", icon: "⚡" }
+  { value: "OTHER", label: "Autre", icon: "⚡" },
 ];
 
 const priceUnits = [
   { value: "HOUR", label: "Par heure" },
   { value: "FLAT", label: "Forfait" },
   { value: "DAY", label: "Par jour" },
-  { value: "KM", label: "Par kilomètre" }
+  { value: "KM", label: "Par kilomètre" },
 ];
 
-export default function ProviderServicesManager({ providerId }: ProviderServicesManagerProps) {
+export default function ProviderServicesManager({
+  providerId,
+}: ProviderServicesManagerProps) {
   const t = useTranslations("provider.services");
   const { user } = useAuth();
   const [services, setServices] = useState<Service[]>([]);
@@ -75,7 +124,7 @@ export default function ProviderServicesManager({ providerId }: ProviderServices
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [editingService, setEditingService] = useState<Service | null>(null);
-  
+
   const [serviceForm, setServiceForm] = useState<ServiceForm>({
     name: "",
     description: "",
@@ -86,7 +135,7 @@ export default function ProviderServicesManager({ providerId }: ProviderServices
     isActive: true,
     requirements: [],
     minAdvanceBooking: 24,
-    maxAdvanceBooking: 720
+    maxAdvanceBooking: 720,
   });
 
   useEffect(() => {
@@ -95,7 +144,9 @@ export default function ProviderServicesManager({ providerId }: ProviderServices
 
   const fetchServices = async () => {
     try {
-      const response = await fetch(`/api/provider/services?providerId=${providerId}`);
+      const response = await fetch(
+        `/api/provider/services?providerId=${providerId}`,
+      );
       if (response.ok) {
         const data = await response.json();
         setServices(data.services || []);
@@ -114,8 +165,8 @@ export default function ProviderServicesManager({ providerId }: ProviderServices
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           providerId,
-          ...serviceForm
-        })
+          ...serviceForm,
+        }),
       });
 
       if (response.ok) {
@@ -132,13 +183,16 @@ export default function ProviderServicesManager({ providerId }: ProviderServices
     if (!editingService) return;
 
     try {
-      const response = await fetch(`/api/provider/services/${editingService.id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...serviceForm
-        })
-      });
+      const response = await fetch(
+        `/api/provider/services/${editingService.id}`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            ...serviceForm,
+          }),
+        },
+      );
 
       if (response.ok) {
         await fetchServices();
@@ -156,7 +210,7 @@ export default function ProviderServicesManager({ providerId }: ProviderServices
 
     try {
       const response = await fetch(`/api/provider/services/${serviceId}`, {
-        method: "DELETE"
+        method: "DELETE",
       });
 
       if (response.ok) {
@@ -172,7 +226,7 @@ export default function ProviderServicesManager({ providerId }: ProviderServices
       const response = await fetch(`/api/provider/services/${serviceId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ isActive })
+        body: JSON.stringify({ isActive }),
       });
 
       if (response.ok) {
@@ -194,7 +248,7 @@ export default function ProviderServicesManager({ providerId }: ProviderServices
       isActive: true,
       requirements: [],
       minAdvanceBooking: 24,
-      maxAdvanceBooking: 720
+      maxAdvanceBooking: 720,
     });
   };
 
@@ -210,18 +264,24 @@ export default function ProviderServicesManager({ providerId }: ProviderServices
       isActive: service.isActive,
       requirements: service.requirements,
       minAdvanceBooking: service.minAdvanceBooking,
-      maxAdvanceBooking: service.maxAdvanceBooking
+      maxAdvanceBooking: service.maxAdvanceBooking,
     });
     setShowEditDialog(true);
   };
 
   const getCategoryInfo = (category: string) => {
-    return serviceCategories.find(cat => cat.value === category) || 
-           { value: category, label: category, icon: "⚡" };
+    return (
+      serviceCategories.find((cat) => cat.value === category) || {
+        value: category,
+        label: category,
+        icon: "⚡",
+      }
+    );
   };
 
   const formatPrice = (price: number, unit: string = "HOUR") => {
-    const unitLabel = priceUnits.find(u => u.value === unit)?.label || "Par heure";
+    const unitLabel =
+      priceUnits.find((u) => u.value === unit)?.label || "Par heure";
     return `${price}€ ${unitLabel}`;
   };
 
@@ -264,7 +324,9 @@ export default function ProviderServicesManager({ providerId }: ProviderServices
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Services actifs</p>
-                <p className="text-2xl font-bold">{services.filter(s => s.isActive).length}</p>
+                <p className="text-2xl font-bold">
+                  {services.filter((s) => s.isActive).length}
+                </p>
               </div>
             </div>
           </CardContent>
@@ -279,10 +341,9 @@ export default function ProviderServicesManager({ providerId }: ProviderServices
               <div>
                 <p className="text-sm text-muted-foreground">Prix moyen</p>
                 <p className="text-2xl font-bold">
-                  {services.length > 0 
+                  {services.length > 0
                     ? `${Math.round(services.reduce((acc, s) => acc + s.price, 0) / services.length)}€`
-                    : "0€"
-                  }
+                    : "0€"}
                 </p>
               </div>
             </div>
@@ -298,10 +359,9 @@ export default function ProviderServicesManager({ providerId }: ProviderServices
               <div>
                 <p className="text-sm text-muted-foreground">Durée moyenne</p>
                 <p className="text-2xl font-bold">
-                  {services.filter(s => s.duration).length > 0
-                    ? `${Math.round(services.filter(s => s.duration).reduce((acc, s) => acc + (s.duration || 0), 0) / services.filter(s => s.duration).length)}min`
-                    : "N/A"
-                  }
+                  {services.filter((s) => s.duration).length > 0
+                    ? `${Math.round(services.filter((s) => s.duration).reduce((acc, s) => acc + (s.duration || 0), 0) / services.filter((s) => s.duration).length)}min`
+                    : "N/A"}
                 </p>
               </div>
             </div>
@@ -326,7 +386,7 @@ export default function ProviderServicesManager({ providerId }: ProviderServices
                 Définissez les détails de votre nouveau service
               </DialogDescription>
             </DialogHeader>
-            
+
             <div className="grid gap-4 py-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
@@ -334,21 +394,25 @@ export default function ProviderServicesManager({ providerId }: ProviderServices
                   <Input
                     id="name"
                     value={serviceForm.name}
-                    onChange={(e) => setServiceForm({...serviceForm, name: e.target.value})}
+                    onChange={(e) =>
+                      setServiceForm({ ...serviceForm, name: e.target.value })
+                    }
                     placeholder="Ex: Ménage à domicile"
                   />
                 </div>
                 <div>
                   <Label htmlFor="category">Catégorie</Label>
-                  <Select 
-                    value={serviceForm.type} 
-                    onValueChange={(value) => setServiceForm({...serviceForm, type: value})}
+                  <Select
+                    value={serviceForm.type}
+                    onValueChange={(value) =>
+                      setServiceForm({ ...serviceForm, type: value })
+                    }
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Sélectionner une catégorie" />
                     </SelectTrigger>
                     <SelectContent>
-                      {serviceCategories.map(cat => (
+                      {serviceCategories.map((cat) => (
                         <SelectItem key={cat.value} value={cat.value}>
                           {cat.icon} {cat.label}
                         </SelectItem>
@@ -363,7 +427,12 @@ export default function ProviderServicesManager({ providerId }: ProviderServices
                 <Textarea
                   id="description"
                   value={serviceForm.description}
-                  onChange={(e) => setServiceForm({...serviceForm, description: e.target.value})}
+                  onChange={(e) =>
+                    setServiceForm({
+                      ...serviceForm,
+                      description: e.target.value,
+                    })
+                  }
                   placeholder="Décrivez votre service en détail"
                   rows={3}
                 />
@@ -376,21 +445,28 @@ export default function ProviderServicesManager({ providerId }: ProviderServices
                     id="price"
                     type="number"
                     value={serviceForm.basePrice}
-                    onChange={(e) => setServiceForm({...serviceForm, basePrice: parseFloat(e.target.value) || 0})}
+                    onChange={(e) =>
+                      setServiceForm({
+                        ...serviceForm,
+                        basePrice: parseFloat(e.target.value) || 0,
+                      })
+                    }
                     placeholder="0"
                   />
                 </div>
                 <div>
                   <Label htmlFor="priceUnit">Unité</Label>
-                  <Select 
-                    value={serviceForm.priceUnit} 
-                    onValueChange={(value) => setServiceForm({...serviceForm, priceUnit: value})}
+                  <Select
+                    value={serviceForm.priceUnit}
+                    onValueChange={(value) =>
+                      setServiceForm({ ...serviceForm, priceUnit: value })
+                    }
                   >
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      {priceUnits.map(unit => (
+                      {priceUnits.map((unit) => (
                         <SelectItem key={unit.value} value={unit.value}>
                           {unit.label}
                         </SelectItem>
@@ -404,7 +480,12 @@ export default function ProviderServicesManager({ providerId }: ProviderServices
                     id="duration"
                     type="number"
                     value={serviceForm.duration}
-                    onChange={(e) => setServiceForm({...serviceForm, duration: parseInt(e.target.value) || 60})}
+                    onChange={(e) =>
+                      setServiceForm({
+                        ...serviceForm,
+                        duration: parseInt(e.target.value) || 60,
+                      })
+                    }
                     placeholder="60"
                   />
                 </div>
@@ -417,7 +498,12 @@ export default function ProviderServicesManager({ providerId }: ProviderServices
                     id="minAdvance"
                     type="number"
                     value={serviceForm.minAdvanceBooking}
-                    onChange={(e) => setServiceForm({...serviceForm, minAdvanceBooking: parseInt(e.target.value) || 24})}
+                    onChange={(e) =>
+                      setServiceForm({
+                        ...serviceForm,
+                        minAdvanceBooking: parseInt(e.target.value) || 24,
+                      })
+                    }
                     placeholder="24"
                   />
                 </div>
@@ -427,7 +513,12 @@ export default function ProviderServicesManager({ providerId }: ProviderServices
                     id="maxAdvance"
                     type="number"
                     value={serviceForm.maxAdvanceBooking}
-                    onChange={(e) => setServiceForm({...serviceForm, maxAdvanceBooking: parseInt(e.target.value) || 720})}
+                    onChange={(e) =>
+                      setServiceForm({
+                        ...serviceForm,
+                        maxAdvanceBooking: parseInt(e.target.value) || 720,
+                      })
+                    }
                     placeholder="720"
                   />
                 </div>
@@ -437,19 +528,22 @@ export default function ProviderServicesManager({ providerId }: ProviderServices
                 <Switch
                   id="isActive"
                   checked={serviceForm.isActive}
-                  onCheckedChange={(checked) => setServiceForm({...serviceForm, isActive: checked})}
+                  onCheckedChange={(checked) =>
+                    setServiceForm({ ...serviceForm, isActive: checked })
+                  }
                 />
                 <Label htmlFor="isActive">Service actif</Label>
               </div>
             </div>
 
             <DialogFooter>
-              <Button variant="outline" onClick={() => setShowCreateDialog(false)}>
+              <Button
+                variant="outline"
+                onClick={() => setShowCreateDialog(false)}
+              >
                 Annuler
               </Button>
-              <Button onClick={handleCreateService}>
-                Créer le service
-              </Button>
+              <Button onClick={handleCreateService}>Créer le service</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
@@ -497,10 +591,9 @@ export default function ProviderServicesManager({ providerId }: ProviderServices
                         <div>
                           <p className="font-medium">{service.name}</p>
                           <p className="text-sm text-muted-foreground">
-                            {service.description.length > 50 
-                              ? `${service.description.substring(0, 50)}...` 
-                              : service.description
-                            }
+                            {service.description.length > 50
+                              ? `${service.description.substring(0, 50)}...`
+                              : service.description}
                           </p>
                         </div>
                       </TableCell>
@@ -510,19 +603,27 @@ export default function ProviderServicesManager({ providerId }: ProviderServices
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        <span className="font-medium">{formatPrice(service.price)}</span>
+                        <span className="font-medium">
+                          {formatPrice(service.price)}
+                        </span>
                       </TableCell>
                       <TableCell>
-                        {service.duration ? `${service.duration} min` : "Variable"}
+                        {service.duration
+                          ? `${service.duration} min`
+                          : "Variable"}
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center space-x-2">
-                          <Badge variant={service.isActive ? "default" : "secondary"}>
+                          <Badge
+                            variant={service.isActive ? "default" : "secondary"}
+                          >
                             {service.isActive ? "Actif" : "Inactif"}
                           </Badge>
                           <Switch
                             checked={service.isActive}
-                            onCheckedChange={(checked) => handleToggleActive(service.id, checked)}
+                            onCheckedChange={(checked) =>
+                              handleToggleActive(service.id, checked)
+                            }
                             size="sm"
                           />
                         </div>
@@ -535,11 +636,13 @@ export default function ProviderServicesManager({ providerId }: ProviderServices
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => openEditDialog(service)}>
+                            <DropdownMenuItem
+                              onClick={() => openEditDialog(service)}
+                            >
                               <Edit className="h-4 w-4 mr-2" />
                               Modifier
                             </DropdownMenuItem>
-                            <DropdownMenuItem 
+                            <DropdownMenuItem
                               onClick={() => handleDeleteService(service.id)}
                               className="text-red-600"
                             >
@@ -567,7 +670,7 @@ export default function ProviderServicesManager({ providerId }: ProviderServices
               Modifiez les détails de votre service
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="grid gap-4 py-4">
             {/* Même formulaire que pour la création */}
             <div className="grid grid-cols-2 gap-4">
@@ -576,21 +679,25 @@ export default function ProviderServicesManager({ providerId }: ProviderServices
                 <Input
                   id="edit-name"
                   value={serviceForm.name}
-                  onChange={(e) => setServiceForm({...serviceForm, name: e.target.value})}
+                  onChange={(e) =>
+                    setServiceForm({ ...serviceForm, name: e.target.value })
+                  }
                   placeholder="Ex: Ménage à domicile"
                 />
               </div>
               <div>
                 <Label htmlFor="edit-category">Catégorie</Label>
-                <Select 
-                  value={serviceForm.type} 
-                  onValueChange={(value) => setServiceForm({...serviceForm, type: value})}
+                <Select
+                  value={serviceForm.type}
+                  onValueChange={(value) =>
+                    setServiceForm({ ...serviceForm, type: value })
+                  }
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Sélectionner une catégorie" />
                   </SelectTrigger>
                   <SelectContent>
-                    {serviceCategories.map(cat => (
+                    {serviceCategories.map((cat) => (
                       <SelectItem key={cat.value} value={cat.value}>
                         {cat.icon} {cat.label}
                       </SelectItem>
@@ -605,7 +712,12 @@ export default function ProviderServicesManager({ providerId }: ProviderServices
               <Textarea
                 id="edit-description"
                 value={serviceForm.description}
-                onChange={(e) => setServiceForm({...serviceForm, description: e.target.value})}
+                onChange={(e) =>
+                  setServiceForm({
+                    ...serviceForm,
+                    description: e.target.value,
+                  })
+                }
                 placeholder="Décrivez votre service en détail"
                 rows={3}
               />
@@ -618,21 +730,28 @@ export default function ProviderServicesManager({ providerId }: ProviderServices
                   id="edit-price"
                   type="number"
                   value={serviceForm.basePrice}
-                  onChange={(e) => setServiceForm({...serviceForm, basePrice: parseFloat(e.target.value) || 0})}
+                  onChange={(e) =>
+                    setServiceForm({
+                      ...serviceForm,
+                      basePrice: parseFloat(e.target.value) || 0,
+                    })
+                  }
                   placeholder="0"
                 />
               </div>
               <div>
                 <Label htmlFor="edit-priceUnit">Unité</Label>
-                <Select 
-                  value={serviceForm.priceUnit} 
-                  onValueChange={(value) => setServiceForm({...serviceForm, priceUnit: value})}
+                <Select
+                  value={serviceForm.priceUnit}
+                  onValueChange={(value) =>
+                    setServiceForm({ ...serviceForm, priceUnit: value })
+                  }
                 >
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {priceUnits.map(unit => (
+                    {priceUnits.map((unit) => (
                       <SelectItem key={unit.value} value={unit.value}>
                         {unit.label}
                       </SelectItem>
@@ -646,7 +765,12 @@ export default function ProviderServicesManager({ providerId }: ProviderServices
                   id="edit-duration"
                   type="number"
                   value={serviceForm.duration}
-                  onChange={(e) => setServiceForm({...serviceForm, duration: parseInt(e.target.value) || 60})}
+                  onChange={(e) =>
+                    setServiceForm({
+                      ...serviceForm,
+                      duration: parseInt(e.target.value) || 60,
+                    })
+                  }
                   placeholder="60"
                 />
               </div>
@@ -656,7 +780,9 @@ export default function ProviderServicesManager({ providerId }: ProviderServices
               <Switch
                 id="edit-isActive"
                 checked={serviceForm.isActive}
-                onCheckedChange={(checked) => setServiceForm({...serviceForm, isActive: checked})}
+                onCheckedChange={(checked) =>
+                  setServiceForm({ ...serviceForm, isActive: checked })
+                }
               />
               <Label htmlFor="edit-isActive">Service actif</Label>
             </div>
@@ -666,12 +792,10 @@ export default function ProviderServicesManager({ providerId }: ProviderServices
             <Button variant="outline" onClick={() => setShowEditDialog(false)}>
               Annuler
             </Button>
-            <Button onClick={handleEditService}>
-              Sauvegarder
-            </Button>
+            <Button onClick={handleEditService}>Sauvegarder</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
   );
-} 
+}

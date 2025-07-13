@@ -1,17 +1,29 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { 
-  TrendingUp, 
-  TrendingDown, 
-  DollarSign, 
-  ShoppingCart, 
-  Users, 
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  TrendingUp,
+  TrendingDown,
+  DollarSign,
+  ShoppingCart,
+  Users,
   Package,
   Calendar,
   BarChart3,
@@ -19,7 +31,7 @@ import {
   Activity,
   Target,
   Award,
-  Loader2
+  Loader2,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
@@ -76,7 +88,9 @@ export function MerchantAnalyticsDashboard() {
   const fetchAnalyticsData = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`/api/merchant/analytics?timeRange=${timeRange}`);
+      const response = await fetch(
+        `/api/merchant/analytics?timeRange=${timeRange}`,
+      );
       if (response.ok) {
         const analyticsData = await response.json();
         setData(analyticsData);
@@ -144,11 +158,15 @@ export function MerchantAnalyticsDashboard() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
+                <CardTitle className="text-sm font-medium">
+                  Total Revenue
+                </CardTitle>
                 <DollarSign className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{data.sales.totalRevenue.toFixed(2)}€</div>
+                <div className="text-2xl font-bold">
+                  {data.sales.totalRevenue.toFixed(2)}€
+                </div>
                 <div className="flex items-center text-xs text-muted-foreground">
                   {data.sales.revenueGrowth > 0 ? (
                     <TrendingUp className="h-3 w-3 text-green-600 mr-1" />
@@ -166,7 +184,9 @@ export function MerchantAnalyticsDashboard() {
                 <ShoppingCart className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{data.deliveries.totalDeliveries}</div>
+                <div className="text-2xl font-bold">
+                  {data.deliveries.totalDeliveries}
+                </div>
                 <p className="text-xs text-muted-foreground">
                   {data.deliveries.completedDeliveries} completed
                 </p>
@@ -179,7 +199,9 @@ export function MerchantAnalyticsDashboard() {
                 <Users className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{data.customers.totalCustomers}</div>
+                <div className="text-2xl font-bold">
+                  {data.customers.totalCustomers}
+                </div>
                 <p className="text-xs text-muted-foreground">
                   {data.customers.newCustomers} new this period
                 </p>
@@ -188,11 +210,15 @@ export function MerchantAnalyticsDashboard() {
 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Conversion Rate</CardTitle>
+                <CardTitle className="text-sm font-medium">
+                  Conversion Rate
+                </CardTitle>
                 <Target className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{data.sales.conversionRate.toFixed(1)}%</div>
+                <div className="text-2xl font-bold">
+                  {data.sales.conversionRate.toFixed(1)}%
+                </div>
                 <p className="text-xs text-muted-foreground">
                   Avg order: {data.sales.averageOrderValue.toFixed(2)}€
                 </p>
@@ -210,13 +236,20 @@ export function MerchantAnalyticsDashboard() {
               <CardContent>
                 <div className="space-y-3">
                   {data.sales.topProducts.slice(0, 5).map((product, index) => (
-                    <div key={index} className="flex justify-between items-center">
-                      <span className="text-sm font-medium">{product.name}</span>
+                    <div
+                      key={index}
+                      className="flex justify-between items-center"
+                    >
+                      <span className="text-sm font-medium">
+                        {product.name}
+                      </span>
                       <div className="flex items-center space-x-2">
                         <span className="text-sm text-muted-foreground">
                           {product.orders} orders
                         </span>
-                        <Badge variant="secondary">{product.revenue.toFixed(2)}€</Badge>
+                        <Badge variant="secondary">
+                          {product.revenue.toFixed(2)}€
+                        </Badge>
                       </div>
                     </div>
                   ))}
@@ -231,17 +264,26 @@ export function MerchantAnalyticsDashboard() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  {data.customers.topCustomers.slice(0, 5).map((customer, index) => (
-                    <div key={index} className="flex justify-between items-center">
-                      <span className="text-sm font-medium">{customer.name}</span>
-                      <div className="flex items-center space-x-2">
-                        <span className="text-sm text-muted-foreground">
-                          {customer.orders} orders
+                  {data.customers.topCustomers
+                    .slice(0, 5)
+                    .map((customer, index) => (
+                      <div
+                        key={index}
+                        className="flex justify-between items-center"
+                      >
+                        <span className="text-sm font-medium">
+                          {customer.name}
                         </span>
-                        <Badge variant="secondary">{customer.totalSpent.toFixed(2)}€</Badge>
+                        <div className="flex items-center space-x-2">
+                          <span className="text-sm text-muted-foreground">
+                            {customer.orders} orders
+                          </span>
+                          <Badge variant="secondary">
+                            {customer.totalSpent.toFixed(2)}€
+                          </Badge>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    ))}
                 </div>
               </CardContent>
             </Card>
@@ -259,21 +301,30 @@ export function MerchantAnalyticsDashboard() {
               <CardContent className="space-y-4">
                 <div className="flex justify-between">
                   <span>Total Revenue</span>
-                  <span className="font-semibold">{data.sales.totalRevenue.toFixed(2)}€</span>
+                  <span className="font-semibold">
+                    {data.sales.totalRevenue.toFixed(2)}€
+                  </span>
                 </div>
                 <div className="flex justify-between">
                   <span>Monthly Revenue</span>
-                  <span className="font-semibold">{data.sales.monthlyRevenue.toFixed(2)}€</span>
+                  <span className="font-semibold">
+                    {data.sales.monthlyRevenue.toFixed(2)}€
+                  </span>
                 </div>
                 <div className="flex justify-between">
                   <span>Revenue Growth</span>
-                  <span className={`font-semibold ${data.sales.revenueGrowth > 0 ? 'text-green-600' : 'text-red-600'}`}>
-                    {data.sales.revenueGrowth > 0 ? '+' : ''}{data.sales.revenueGrowth}%
+                  <span
+                    className={`font-semibold ${data.sales.revenueGrowth > 0 ? "text-green-600" : "text-red-600"}`}
+                  >
+                    {data.sales.revenueGrowth > 0 ? "+" : ""}
+                    {data.sales.revenueGrowth}%
                   </span>
                 </div>
                 <div className="flex justify-between">
                   <span>Avg Order Value</span>
-                  <span className="font-semibold">{data.sales.averageOrderValue.toFixed(2)}€</span>
+                  <span className="font-semibold">
+                    {data.sales.averageOrderValue.toFixed(2)}€
+                  </span>
                 </div>
               </CardContent>
             </Card>
@@ -286,11 +337,15 @@ export function MerchantAnalyticsDashboard() {
               <CardContent className="space-y-4">
                 <div className="flex justify-between">
                   <span>Conversion Rate</span>
-                  <span className="font-semibold">{data.sales.conversionRate.toFixed(1)}%</span>
+                  <span className="font-semibold">
+                    {data.sales.conversionRate.toFixed(1)}%
+                  </span>
                 </div>
                 <div className="flex justify-between">
                   <span>Customer LTV</span>
-                  <span className="font-semibold">{data.customers.customerLifetimeValue.toFixed(2)}€</span>
+                  <span className="font-semibold">
+                    {data.customers.customerLifetimeValue.toFixed(2)}€
+                  </span>
                 </div>
               </CardContent>
             </Card>
@@ -303,9 +358,14 @@ export function MerchantAnalyticsDashboard() {
               <CardContent>
                 <div className="space-y-3">
                   {data.sales.topProducts.map((product, index) => (
-                    <div key={index} className="flex justify-between items-center">
+                    <div
+                      key={index}
+                      className="flex justify-between items-center"
+                    >
                       <span className="text-sm">{product.name}</span>
-                      <Badge variant="outline">{product.revenue.toFixed(2)}€</Badge>
+                      <Badge variant="outline">
+                        {product.revenue.toFixed(2)}€
+                      </Badge>
                     </div>
                   ))}
                 </div>
@@ -325,19 +385,27 @@ export function MerchantAnalyticsDashboard() {
               <CardContent className="space-y-4">
                 <div className="flex justify-between">
                   <span>Total Customers</span>
-                  <span className="font-semibold">{data.customers.totalCustomers}</span>
+                  <span className="font-semibold">
+                    {data.customers.totalCustomers}
+                  </span>
                 </div>
                 <div className="flex justify-between">
                   <span>New Customers</span>
-                  <span className="font-semibold text-green-600">+{data.customers.newCustomers}</span>
+                  <span className="font-semibold text-green-600">
+                    +{data.customers.newCustomers}
+                  </span>
                 </div>
                 <div className="flex justify-between">
                   <span>Repeat Customers</span>
-                  <span className="font-semibold">{data.customers.repeatCustomers}</span>
+                  <span className="font-semibold">
+                    {data.customers.repeatCustomers}
+                  </span>
                 </div>
                 <div className="flex justify-between">
                   <span>Customer LTV</span>
-                  <span className="font-semibold">{data.customers.customerLifetimeValue.toFixed(2)}€</span>
+                  <span className="font-semibold">
+                    {data.customers.customerLifetimeValue.toFixed(2)}€
+                  </span>
                 </div>
               </CardContent>
             </Card>
@@ -350,12 +418,19 @@ export function MerchantAnalyticsDashboard() {
               <CardContent>
                 <div className="space-y-3">
                   {data.customers.topCustomers.map((customer, index) => (
-                    <div key={index} className="flex justify-between items-center">
+                    <div
+                      key={index}
+                      className="flex justify-between items-center"
+                    >
                       <div>
                         <div className="font-medium">{customer.name}</div>
-                        <div className="text-xs text-muted-foreground">{customer.orders} orders</div>
+                        <div className="text-xs text-muted-foreground">
+                          {customer.orders} orders
+                        </div>
                       </div>
-                      <Badge variant="secondary">{customer.totalSpent.toFixed(2)}€</Badge>
+                      <Badge variant="secondary">
+                        {customer.totalSpent.toFixed(2)}€
+                      </Badge>
                     </div>
                   ))}
                 </div>
@@ -370,9 +445,16 @@ export function MerchantAnalyticsDashboard() {
               <CardContent className="space-y-4">
                 <div className="text-center">
                   <div className="text-2xl font-bold text-green-600">
-                    {((data.customers.repeatCustomers / data.customers.totalCustomers) * 100).toFixed(1)}%
+                    {(
+                      (data.customers.repeatCustomers /
+                        data.customers.totalCustomers) *
+                      100
+                    ).toFixed(1)}
+                    %
                   </div>
-                  <div className="text-sm text-muted-foreground">Retention Rate</div>
+                  <div className="text-sm text-muted-foreground">
+                    Retention Rate
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -385,24 +467,34 @@ export function MerchantAnalyticsDashboard() {
             <Card>
               <CardHeader>
                 <CardTitle>Delivery Performance</CardTitle>
-                <CardDescription>Delivery metrics and success rates</CardDescription>
+                <CardDescription>
+                  Delivery metrics and success rates
+                </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex justify-between">
                   <span>Total Deliveries</span>
-                  <span className="font-semibold">{data.deliveries.totalDeliveries}</span>
+                  <span className="font-semibold">
+                    {data.deliveries.totalDeliveries}
+                  </span>
                 </div>
                 <div className="flex justify-between">
                   <span>Completed</span>
-                  <span className="font-semibold text-green-600">{data.deliveries.completedDeliveries}</span>
+                  <span className="font-semibold text-green-600">
+                    {data.deliveries.completedDeliveries}
+                  </span>
                 </div>
                 <div className="flex justify-between">
                   <span>Success Rate</span>
-                  <span className="font-semibold">{data.deliveries.deliverySuccessRate.toFixed(1)}%</span>
+                  <span className="font-semibold">
+                    {data.deliveries.deliverySuccessRate.toFixed(1)}%
+                  </span>
                 </div>
                 <div className="flex justify-between">
                   <span>Avg Delivery Time</span>
-                  <span className="font-semibold">{data.deliveries.averageDeliveryTime.toFixed(1)}h</span>
+                  <span className="font-semibold">
+                    {data.deliveries.averageDeliveryTime.toFixed(1)}h
+                  </span>
                 </div>
               </CardContent>
             </Card>
@@ -415,11 +507,18 @@ export function MerchantAnalyticsDashboard() {
               <CardContent>
                 <div className="space-y-3">
                   {data.deliveries.deliveryZones.map((zone, index) => (
-                    <div key={index} className="flex justify-between items-center">
+                    <div
+                      key={index}
+                      className="flex justify-between items-center"
+                    >
                       <span className="text-sm">{zone.zone}</span>
                       <div className="flex items-center space-x-2">
-                        <span className="text-xs text-muted-foreground">{zone.deliveries} deliveries</span>
-                        <Badge variant="outline">{zone.revenue.toFixed(2)}€</Badge>
+                        <span className="text-xs text-muted-foreground">
+                          {zone.deliveries} deliveries
+                        </span>
+                        <Badge variant="outline">
+                          {zone.revenue.toFixed(2)}€
+                        </Badge>
                       </div>
                     </div>
                   ))}
@@ -437,13 +536,17 @@ export function MerchantAnalyticsDashboard() {
                   <div className="text-2xl font-bold text-blue-600">
                     {data.deliveries.deliverySuccessRate.toFixed(1)}%
                   </div>
-                  <div className="text-sm text-muted-foreground">Success Rate</div>
+                  <div className="text-sm text-muted-foreground">
+                    Success Rate
+                  </div>
                 </div>
                 <div className="text-center">
                   <div className="text-2xl font-bold text-green-600">
                     {data.deliveries.averageDeliveryTime.toFixed(1)}h
                   </div>
-                  <div className="text-sm text-muted-foreground">Avg Delivery Time</div>
+                  <div className="text-sm text-muted-foreground">
+                    Avg Delivery Time
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -459,7 +562,9 @@ export function MerchantAnalyticsDashboard() {
                 <CardDescription>Average orders per day</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{data.performance.ordersPerDay}</div>
+                <div className="text-2xl font-bold">
+                  {data.performance.ordersPerDay}
+                </div>
                 <p className="text-xs text-muted-foreground">orders/day</p>
               </CardContent>
             </Card>
@@ -470,7 +575,9 @@ export function MerchantAnalyticsDashboard() {
                 <CardDescription>Average revenue per day</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{data.performance.revenuePerDay.toFixed(2)}€</div>
+                <div className="text-2xl font-bold">
+                  {data.performance.revenuePerDay.toFixed(2)}€
+                </div>
                 <p className="text-xs text-muted-foreground">revenue/day</p>
               </CardContent>
             </Card>
@@ -481,7 +588,9 @@ export function MerchantAnalyticsDashboard() {
                 <CardDescription>Average rating</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{data.performance.customerSatisfaction.toFixed(1)}/5</div>
+                <div className="text-2xl font-bold">
+                  {data.performance.customerSatisfaction.toFixed(1)}/5
+                </div>
                 <p className="text-xs text-muted-foreground">stars</p>
               </CardContent>
             </Card>
@@ -492,7 +601,9 @@ export function MerchantAnalyticsDashboard() {
                 <CardDescription>Product return percentage</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{data.performance.returnRate.toFixed(1)}%</div>
+                <div className="text-2xl font-bold">
+                  {data.performance.returnRate.toFixed(1)}%
+                </div>
                 <p className="text-xs text-muted-foreground">returns</p>
               </CardContent>
             </Card>
@@ -501,4 +612,4 @@ export function MerchantAnalyticsDashboard() {
       </Tabs>
     </div>
   );
-} 
+}

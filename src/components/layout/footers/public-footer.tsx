@@ -3,10 +3,10 @@
  * Version complète pour les pages publiques avec toutes les informations
  */
 
-import { useState } from 'react'
-import { useTranslations } from 'next-intl'
-import { Link } from '@/i18n/navigation'
-import { 
+import { useState } from "react";
+import { useTranslations } from "next-intl";
+import { Link } from "@/i18n/navigation";
+import {
   Package,
   Mail,
   Phone,
@@ -22,68 +22,71 @@ import {
   Warehouse,
   Users,
   Truck,
-  Star
-} from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Separator } from '@/components/ui/separator'
-import { LanguageSwitcher } from '@/components/ui/language-switcher'
-import { ThemeToggle } from '@/components/ui/theme-toggle'
-import { cn } from '@/lib/utils'
-import { type PublicFooterProps } from '../types/layout.types'
+  Star,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Separator } from "@/components/ui/separator";
+import { LanguageSwitcher } from "@/components/ui/language-switcher";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { cn } from "@/lib/utils";
+import { type PublicFooterProps } from "../types/layout.types";
 
 // Informations sur les 6 entrepôts EcoDeli
 const warehouses = [
-  { city: 'Paris', region: 'Île-de-France', status: 'Opérationnel' },
-  { city: 'Lyon', region: 'Auvergne-Rhône-Alpes', status: 'Opérationnel' },
-  { city: 'Marseille', region: 'Provence-Alpes-Côte d\'Azur', status: 'Opérationnel' },
-  { city: 'Toulouse', region: 'Occitanie', status: 'Opérationnel' },
-  { city: 'Nantes', region: 'Pays de la Loire', status: 'En construction' },
-  { city: 'Lille', region: 'Hauts-de-France', status: 'Prévu 2025' }
-]
+  { city: "Paris", region: "Île-de-France", status: "Opérationnel" },
+  { city: "Lyon", region: "Auvergne-Rhône-Alpes", status: "Opérationnel" },
+  {
+    city: "Marseille",
+    region: "Provence-Alpes-Côte d'Azur",
+    status: "Opérationnel",
+  },
+  { city: "Toulouse", region: "Occitanie", status: "Opérationnel" },
+  { city: "Nantes", region: "Pays de la Loire", status: "En construction" },
+  { city: "Lille", region: "Hauts-de-France", status: "Prévu 2025" },
+];
 
 // Statistiques EcoDeli
 const stats = [
-  { icon: Users, label: 'Utilisateurs actifs', value: '10,000+' },
-  { icon: Truck, label: 'Livraisons réalisées', value: '50,000+' },
-  { icon: Warehouse, label: 'Entrepôts', value: '6' },
-  { icon: Star, label: 'Note moyenne', value: '4.8/5' }
-]
+  { icon: Users, label: "Utilisateurs actifs", value: "10,000+" },
+  { icon: Truck, label: "Livraisons réalisées", value: "50,000+" },
+  { icon: Warehouse, label: "Entrepôts", value: "6" },
+  { icon: Star, label: "Note moyenne", value: "4.8/5" },
+];
 
 export function PublicFooter({
-  variant = 'full',
+  variant = "full",
   showSocial = true,
   showWarehouseInfo = true,
-  className
+  className,
 }: PublicFooterProps) {
-  const [email, setEmail] = useState('')
-  const [subscribed, setSubscribed] = useState(false)
-  const t = useTranslations('navigation')
-  const common = useTranslations('common')
-  const footer = useTranslations('footer')
+  const [email, setEmail] = useState("");
+  const [subscribed, setSubscribed] = useState(false);
+  const t = useTranslations("navigation");
+  const common = useTranslations("common");
+  const footer = useTranslations("footer");
 
   const handleNewsletterSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!email) return
+    e.preventDefault();
+    if (!email) return;
 
     // TODO: Intégrer avec l'API newsletter
     try {
       // Simulation d'appel API
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      setSubscribed(true)
-      setEmail('')
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      setSubscribed(true);
+      setEmail("");
     } catch (error) {
-      console.error('Erreur lors de l\'inscription à la newsletter:', error)
+      console.error("Erreur lors de l'inscription à la newsletter:", error);
     }
-  }
+  };
 
   // Version minimale pour les dashboards
-  if (variant === 'minimal') {
+  if (variant === "minimal") {
     return (
-      <footer className={cn(
-        "border-t border-border bg-muted/30 py-4",
-        className
-      )}>
+      <footer
+        className={cn("border-t border-border bg-muted/30 py-4", className)}
+      >
         <div className="container mx-auto px-4">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-sm">
             <div className="flex items-center space-x-2">
@@ -93,18 +96,18 @@ export function PublicFooter({
                 © 2024 - Tous droits réservés
               </span>
             </div>
-            
+
             <div className="flex items-center space-x-4">
               <ThemeToggle variant="icon-only" size="sm" />
               <LanguageSwitcher variant="minimal" />
-              <Link 
-                href="/legal/privacy" 
+              <Link
+                href="/legal/privacy"
                 className="text-muted-foreground hover:text-foreground transition-colors"
               >
                 Confidentialité
               </Link>
-              <Link 
-                href="/support" 
+              <Link
+                href="/support"
                 className="text-muted-foreground hover:text-foreground transition-colors"
               >
                 Support
@@ -113,7 +116,7 @@ export function PublicFooter({
           </div>
         </div>
       </footer>
-    )
+    );
   }
 
   // Version complète pour les pages publiques
@@ -142,13 +145,16 @@ export function PublicFooter({
               Restez informé
             </h3>
             <p className="text-gray-400 mb-6">
-              Recevez nos dernières actualités et offres exclusives directement dans votre boîte mail.
+              Recevez nos dernières actualités et offres exclusives directement
+              dans votre boîte mail.
             </p>
-            
+
             {subscribed ? (
               <div className="flex items-center space-x-2 text-green-400">
                 <CheckCircle2 className="h-5 w-5" />
-                <span>Merci ! Vous êtes maintenant abonné à notre newsletter.</span>
+                <span>
+                  Merci ! Vous êtes maintenant abonné à notre newsletter.
+                </span>
               </div>
             ) : (
               <form onSubmit={handleNewsletterSubmit} className="space-y-4">
@@ -161,7 +167,7 @@ export function PublicFooter({
                     className="bg-gray-700 border-gray-600 text-white placeholder-gray-400 flex-1"
                     required
                   />
-                  <Button 
+                  <Button
                     type="submit"
                     className="bg-green-600 hover:bg-green-700 text-white"
                   >
@@ -170,7 +176,8 @@ export function PublicFooter({
                   </Button>
                 </div>
                 <p className="text-xs text-gray-500">
-                  En vous abonnant, vous acceptez notre politique de confidentialité.
+                  En vous abonnant, vous acceptez notre politique de
+                  confidentialité.
                 </p>
               </form>
             )}
@@ -187,15 +194,24 @@ export function PublicFooter({
               {warehouses.map((warehouse, index) => (
                 <div key={index} className="bg-gray-800 rounded-lg p-4">
                   <div className="flex items-center justify-between mb-2">
-                    <h4 className="font-semibold text-white">{warehouse.city}</h4>
-                    <div className={cn(
-                      "w-2 h-2 rounded-full",
-                      warehouse.status === 'Opérationnel' ? "bg-green-500" :
-                      warehouse.status === 'En construction' ? "bg-yellow-500" : "bg-gray-500"
-                    )} />
+                    <h4 className="font-semibold text-white">
+                      {warehouse.city}
+                    </h4>
+                    <div
+                      className={cn(
+                        "w-2 h-2 rounded-full",
+                        warehouse.status === "Opérationnel"
+                          ? "bg-green-500"
+                          : warehouse.status === "En construction"
+                            ? "bg-yellow-500"
+                            : "bg-gray-500",
+                      )}
+                    />
                   </div>
                   <p className="text-sm text-gray-400">{warehouse.region}</p>
-                  <p className="text-xs text-gray-500 mt-1">{warehouse.status}</p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    {warehouse.status}
+                  </p>
                 </div>
               ))}
             </div>
@@ -211,12 +227,16 @@ export function PublicFooter({
               <span className="text-2xl font-bold text-white">EcoDeli</span>
             </div>
             <p className="text-gray-400 mb-4">
-              La plateforme de crowdshipping éco-responsable qui révolutionne la livraison collaborative.
+              La plateforme de crowdshipping éco-responsable qui révolutionne la
+              livraison collaborative.
             </p>
             <div className="space-y-2">
               <div className="flex items-center space-x-2">
                 <Mail className="h-4 w-4 text-green-600" />
-                <a href="mailto:contact@ecodeli.com" className="text-sm hover:text-white transition-colors">
+                <a
+                  href="mailto:contact@ecodeli.com"
+                  className="text-sm hover:text-white transition-colors"
+                >
                   contact@ecodeli.com
                 </a>
               </div>
@@ -236,27 +256,42 @@ export function PublicFooter({
             <h4 className="text-white font-semibold mb-4">Services</h4>
             <ul className="space-y-2">
               <li>
-                <Link href="/services/delivery" className="text-gray-400 hover:text-white transition-colors text-sm">
+                <Link
+                  href="/services/delivery"
+                  className="text-gray-400 hover:text-white transition-colors text-sm"
+                >
                   Livraisons écologiques
                 </Link>
               </li>
               <li>
-                <Link href="/services/personal" className="text-gray-400 hover:text-white transition-colors text-sm">
+                <Link
+                  href="/services/personal"
+                  className="text-gray-400 hover:text-white transition-colors text-sm"
+                >
                   Services à la personne
                 </Link>
               </li>
               <li>
-                <Link href="/services/storage" className="text-gray-400 hover:text-white transition-colors text-sm">
+                <Link
+                  href="/services/storage"
+                  className="text-gray-400 hover:text-white transition-colors text-sm"
+                >
                   Stockage intelligent
                 </Link>
               </li>
               <li>
-                <Link href="/partners/merchants" className="text-gray-400 hover:text-white transition-colors text-sm">
+                <Link
+                  href="/partners/merchants"
+                  className="text-gray-400 hover:text-white transition-colors text-sm"
+                >
                   Partenaires commerçants
                 </Link>
               </li>
               <li>
-                <Link href="/pricing" className="text-gray-400 hover:text-white transition-colors text-sm">
+                <Link
+                  href="/pricing"
+                  className="text-gray-400 hover:text-white transition-colors text-sm"
+                >
                   Tarifs
                 </Link>
               </li>
@@ -268,27 +303,42 @@ export function PublicFooter({
             <h4 className="text-white font-semibold mb-4">Entreprise</h4>
             <ul className="space-y-2">
               <li>
-                <Link href="/about" className="text-gray-400 hover:text-white transition-colors text-sm">
+                <Link
+                  href="/about"
+                  className="text-gray-400 hover:text-white transition-colors text-sm"
+                >
                   À propos
                 </Link>
               </li>
               <li>
-                <Link href="/careers" className="text-gray-400 hover:text-white transition-colors text-sm">
+                <Link
+                  href="/careers"
+                  className="text-gray-400 hover:text-white transition-colors text-sm"
+                >
                   Carrières
                 </Link>
               </li>
               <li>
-                <Link href="/press" className="text-gray-400 hover:text-white transition-colors text-sm">
+                <Link
+                  href="/press"
+                  className="text-gray-400 hover:text-white transition-colors text-sm"
+                >
                   Presse
                 </Link>
               </li>
               <li>
-                <Link href="/blog" className="text-gray-400 hover:text-white transition-colors text-sm">
+                <Link
+                  href="/blog"
+                  className="text-gray-400 hover:text-white transition-colors text-sm"
+                >
                   Blog
                 </Link>
               </li>
               <li>
-                <Link href="/sustainability" className="text-gray-400 hover:text-white transition-colors text-sm">
+                <Link
+                  href="/sustainability"
+                  className="text-gray-400 hover:text-white transition-colors text-sm"
+                >
                   Développement durable
                 </Link>
               </li>
@@ -300,27 +350,42 @@ export function PublicFooter({
             <h4 className="text-white font-semibold mb-4">Support</h4>
             <ul className="space-y-2">
               <li>
-                <Link href="/help" className="text-gray-400 hover:text-white transition-colors text-sm">
+                <Link
+                  href="/help"
+                  className="text-gray-400 hover:text-white transition-colors text-sm"
+                >
                   Centre d'aide
                 </Link>
               </li>
               <li>
-                <Link href="/contact" className="text-gray-400 hover:text-white transition-colors text-sm">
+                <Link
+                  href="/contact"
+                  className="text-gray-400 hover:text-white transition-colors text-sm"
+                >
                   Nous contacter
                 </Link>
               </li>
               <li>
-                <Link href="/faq" className="text-gray-400 hover:text-white transition-colors text-sm">
+                <Link
+                  href="/faq"
+                  className="text-gray-400 hover:text-white transition-colors text-sm"
+                >
                   FAQ
                 </Link>
               </li>
               <li>
-                <Link href="/legal/terms" className="text-gray-400 hover:text-white transition-colors text-sm">
+                <Link
+                  href="/legal/terms"
+                  className="text-gray-400 hover:text-white transition-colors text-sm"
+                >
                   CGU
                 </Link>
               </li>
               <li>
-                <Link href="/legal/privacy" className="text-gray-400 hover:text-white transition-colors text-sm">
+                <Link
+                  href="/legal/privacy"
+                  className="text-gray-400 hover:text-white transition-colors text-sm"
+                >
                   Confidentialité
                 </Link>
               </li>
@@ -346,19 +411,39 @@ export function PublicFooter({
           {showSocial && (
             <div className="flex items-center space-x-1">
               <span className="text-gray-400 text-sm mr-3">Suivez-nous :</span>
-              <Button variant="ghost" size="icon" className="text-gray-400 hover:text-white h-8 w-8">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="text-gray-400 hover:text-white h-8 w-8"
+              >
                 <Facebook className="h-4 w-4" />
               </Button>
-              <Button variant="ghost" size="icon" className="text-gray-400 hover:text-white h-8 w-8">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="text-gray-400 hover:text-white h-8 w-8"
+              >
                 <Twitter className="h-4 w-4" />
               </Button>
-              <Button variant="ghost" size="icon" className="text-gray-400 hover:text-white h-8 w-8">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="text-gray-400 hover:text-white h-8 w-8"
+              >
                 <Instagram className="h-4 w-4" />
               </Button>
-              <Button variant="ghost" size="icon" className="text-gray-400 hover:text-white h-8 w-8">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="text-gray-400 hover:text-white h-8 w-8"
+              >
                 <Linkedin className="h-4 w-4" />
               </Button>
-              <Button variant="ghost" size="icon" className="text-gray-400 hover:text-white h-8 w-8">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="text-gray-400 hover:text-white h-8 w-8"
+              >
                 <Youtube className="h-4 w-4" />
               </Button>
             </div>
@@ -375,5 +460,5 @@ export function PublicFooter({
         </div>
       </div>
     </footer>
-  )
+  );
 }

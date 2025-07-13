@@ -3,14 +3,14 @@
  * Design moderne et responsive pour login, register, forgot-password, etc.
  */
 
-import { type ReactNode } from 'react'
-import Link from 'next/link'
-import Image from 'next/image'
-import { cn } from '@/lib/utils'
-import { BaseLayout } from './base-layout'
-import { LanguageSwitcher } from '@/components/ui/language-switcher'
-import { ThemeToggle } from '@/components/ui/theme-toggle'
-import { type AuthLayoutProps } from '../types/layout.types'
+import { type ReactNode } from "react";
+import Link from "next/link";
+import Image from "next/image";
+import { cn } from "@/lib/utils";
+import { BaseLayout } from "./base-layout";
+import { LanguageSwitcher } from "@/components/ui/language-switcher";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { type AuthLayoutProps } from "../types/layout.types";
 
 export function AuthLayout({
   children,
@@ -20,12 +20,12 @@ export function AuthLayout({
   title = "EcoDeli",
   subtitle = "Plateforme de crowdshipping éco-responsable",
   showLanguageSwitcher = true,
-  showThemeToggle = true
+  showThemeToggle = true,
 }: AuthLayoutProps) {
   return (
-    <BaseLayout 
-      user={user} 
-      loading={loading} 
+    <BaseLayout
+      user={user}
+      loading={loading}
       error={error}
       className="bg-gradient-to-br from-green-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900"
     >
@@ -37,7 +37,7 @@ export function AuthLayout({
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.1),transparent_50%)]" />
             <div className="absolute top-0 left-0 w-full h-full bg-[linear-gradient(45deg,transparent_25%,rgba(255,255,255,0.05)_25%,rgba(255,255,255,0.05)_50%,transparent_50%,transparent_75%,rgba(255,255,255,0.05)_75%)] bg-[length:20px_20px]" />
           </div>
-          
+
           <div className="relative z-10 flex flex-col justify-center items-center p-12 text-white">
             {/* Logo principal */}
             <div className="mb-8">
@@ -45,7 +45,7 @@ export function AuthLayout({
                 <span className="text-3xl font-bold text-white">E</span>
               </div>
             </div>
-            
+
             {/* Titre et description */}
             <div className="text-center space-y-4 max-w-md">
               <h1 className="text-4xl font-bold">{title}</h1>
@@ -53,12 +53,14 @@ export function AuthLayout({
                 {subtitle}
               </p>
             </div>
-            
+
             {/* Features highlights */}
             <div className="mt-12 space-y-4 max-w-sm">
               <div className="flex items-center space-x-3">
                 <div className="w-2 h-2 bg-white rounded-full" />
-                <span className="text-white/90">Livraisons éco-responsables</span>
+                <span className="text-white/90">
+                  Livraisons éco-responsables
+                </span>
               </div>
               <div className="flex items-center space-x-3">
                 <div className="w-2 h-2 bg-white rounded-full" />
@@ -69,7 +71,7 @@ export function AuthLayout({
                 <span className="text-white/90">Stockage intelligent</span>
               </div>
             </div>
-            
+
             {/* Stats */}
             <div className="mt-16 grid grid-cols-3 gap-8 text-center">
               <div>
@@ -87,7 +89,7 @@ export function AuthLayout({
             </div>
           </div>
         </div>
-        
+
         {/* Section droite - Formulaire */}
         <div className="w-full lg:w-1/2 flex flex-col">
           {/* Header avec actions */}
@@ -98,17 +100,17 @@ export function AuthLayout({
                 <span className="text-xl font-bold text-white">E</span>
               </div>
             </Link>
-            
+
             {/* Spacer pour desktop */}
             <div className="hidden lg:block" />
-            
+
             {/* Actions */}
             <div className="flex items-center space-x-3">
               {showThemeToggle && <ThemeToggle />}
               {showLanguageSwitcher && <LanguageSwitcher />}
             </div>
           </div>
-          
+
           {/* Contenu principal */}
           <div className="flex-1 flex items-center justify-center p-6 lg:p-8">
             <div className="w-full max-w-md space-y-8">
@@ -117,28 +119,37 @@ export function AuthLayout({
                 <h1 className="text-2xl font-bold text-foreground">{title}</h1>
                 <p className="text-muted-foreground">{subtitle}</p>
               </div>
-              
+
               {/* Contenu du formulaire */}
               <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 p-8">
                 {children}
               </div>
-              
+
               {/* Footer */}
               <div className="text-center space-y-4">
                 <div className="flex items-center justify-center space-x-4 text-sm text-muted-foreground">
-                  <Link href="/privacy" className="hover:text-foreground transition-colors">
+                  <Link
+                    href="/privacy"
+                    className="hover:text-foreground transition-colors"
+                  >
                     Confidentialité
                   </Link>
                   <div className="w-1 h-1 bg-muted-foreground rounded-full" />
-                  <Link href="/terms" className="hover:text-foreground transition-colors">
+                  <Link
+                    href="/terms"
+                    className="hover:text-foreground transition-colors"
+                  >
                     CGU
                   </Link>
                   <div className="w-1 h-1 bg-muted-foreground rounded-full" />
-                  <Link href="/support" className="hover:text-foreground transition-colors">
+                  <Link
+                    href="/support"
+                    className="hover:text-foreground transition-colors"
+                  >
                     Support
                   </Link>
                 </div>
-                
+
                 <p className="text-xs text-muted-foreground">
                   © 2024 EcoDeli. Tous droits réservés.
                 </p>
@@ -148,7 +159,7 @@ export function AuthLayout({
         </div>
       </div>
     </BaseLayout>
-  )
+  );
 }
 
 /**
@@ -158,12 +169,12 @@ export function SimpleAuthLayout({
   children,
   title,
   showBackButton = true,
-  backHref = "/login"
+  backHref = "/login",
 }: {
-  children: ReactNode
-  title?: string
-  showBackButton?: boolean
-  backHref?: string
+  children: ReactNode;
+  title?: string;
+  showBackButton?: boolean;
+  backHref?: string;
 }) {
   return (
     <BaseLayout className="bg-gray-50 dark:bg-gray-900">
@@ -176,21 +187,21 @@ export function SimpleAuthLayout({
                 <span className="text-2xl font-bold text-white">E</span>
               </div>
             </Link>
-            
+
             {title && (
               <h1 className="text-2xl font-bold text-foreground">{title}</h1>
             )}
           </div>
-          
+
           {/* Contenu */}
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-6">
             {children}
           </div>
-          
+
           {/* Navigation */}
           {showBackButton && (
             <div className="text-center">
-              <Link 
+              <Link
                 href={backHref}
                 className="text-sm text-muted-foreground hover:text-foreground transition-colors inline-flex items-center space-x-1"
               >
@@ -202,5 +213,5 @@ export function SimpleAuthLayout({
         </div>
       </div>
     </BaseLayout>
-  )
+  );
 }

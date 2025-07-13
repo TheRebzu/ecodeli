@@ -1,12 +1,12 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getCurrentUser } from '@/lib/auth/utils';
-import { prisma } from '@/lib/db';
-import { z } from 'zod';
+import { NextRequest, NextResponse } from "next/server";
+import { getCurrentUser } from "@/lib/auth/utils";
+import { prisma } from "@/lib/db";
+import { z } from "zod";
 
 const bookingSchema = z.object({
-  serviceId: z.string().min(1, 'Service ID is required'),
-  scheduledAt: z.string().datetime('Invalid date format'),
-  address: z.string().min(10, 'Address must be at least 10 characters'),
+  serviceId: z.string().min(1, "Service ID is required"),
+  scheduledAt: z.string().datetime("Invalid date format"),
+  address: z.string().min(10, "Address must be at least 10 characters"),
   notes: z.string().optional(),
 });
 
@@ -14,18 +14,15 @@ const bookingSchema = z.object({
 export async function GET(request: NextRequest) {
   try {
     const user = await getCurrentUser();
-    
+
     if (!user) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const { searchParams } = new URL(request.url);
-    const page = parseInt(searchParams.get('page') || '1');
-    const limit = parseInt(searchParams.get('limit') || '10');
-    const status = searchParams.get('status');
+    const page = parseInt(searchParams.get("page") || "1");
+    const limit = parseInt(searchParams.get("limit") || "10");
+    const status = searchParams.get("status");
     const skip = (page - 1) * limit;
 
     // Construire les conditions de filtrage
@@ -51,11 +48,11 @@ export async function GET(request: NextRequest) {
                       firstName: true,
                       lastName: true,
                       city: true,
-                    }
-                  }
-                }
-              }
-            }
+                    },
+                  },
+                },
+              },
+            },
           },
           payment: {
             select: {
@@ -63,18 +60,18 @@ export async function GET(request: NextRequest) {
               amount: true,
               status: true,
               createdAt: true,
-            }
-          }
+            },
+          },
         },
         orderBy: {
-          scheduledAt: 'desc'
+          scheduledAt: "desc",
         },
         skip,
         take: limit,
       }),
       prisma.booking.count({
         where: whereConditions,
-      })
+      }),
     ]);
 
     return NextResponse.json({
@@ -84,12 +81,11 @@ export async function GET(request: NextRequest) {
       limit,
       totalPages: Math.ceil(total / limit),
     });
-
   } catch (error) {
-    console.error('Error fetching bookings:', error);
+    console.error("Error fetching bookings:", error);
     return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
+      { error: "Internal server error" },
+      { status: 500 },
     );
   }
 }
@@ -98,19 +94,16 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const user = await getCurrentUser();
-    
+
     if (!user) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     // Vérifier que l'utilisateur est un client
-    if (user.role !== 'CLIENT') {
+    if (user.role !== "CLIENT") {
       return NextResponse.json(
-        { error: 'Only clients can create bookings' },
-        { status: 403 }
+        { error: "Only clients can create bookings" },
+        { status: 403 },
       );
     }
 
@@ -126,27 +119,27 @@ export async function POST(request: NextRequest) {
       include: {
         provider: {
           include: {
-            profile: true
-          }
-        }
-      }
+            profile: true,
+          },
+        },
+      },
     });
 
     if (!service) {
       return NextResponse.json(
-        { error: 'Service not found or inactive' },
-        { status: 404 }
+        { error: "Service not found or inactive" },
+        { status: 404 },
       );
     }
 
     // Vérifier que la date est dans le futur
     const scheduledDate = new Date(validatedData.scheduledAt);
     const now = new Date();
-    
+
     if (scheduledDate <= now) {
       return NextResponse.json(
-        { error: 'Scheduled date must be in the future' },
-        { status: 400 }
+        { error: "Scheduled date must be in the future" },
+        { status: 400 },
       );
     }
 
@@ -155,19 +148,19 @@ export async function POST(request: NextRequest) {
       where: {
         serviceId: validatedData.serviceId,
         status: {
-          in: ['PENDING', 'CONFIRMED', 'IN_PROGRESS']
+          in: ["PENDING", "CONFIRMED", "IN_PROGRESS"],
         },
         scheduledAt: {
           gte: new Date(scheduledDate.getTime() - service.duration * 60 * 1000),
           lte: new Date(scheduledDate.getTime() + service.duration * 60 * 1000),
-        }
-      }
+        },
+      },
     });
 
     if (conflictingBookings) {
       return NextResponse.json(
-        { error: 'Service provider is not available at this time' },
-        { status: 409 }
+        { error: "Service provider is not available at this time" },
+        { status: 409 },
       );
     }
 
@@ -178,20 +171,20 @@ export async function POST(request: NextRequest) {
         clientId: user.id,
         scheduledAt: scheduledDate,
         address: validatedData.address,
-        notes: validatedData.notes || '',
-        status: 'PENDING',
+        notes: validatedData.notes || "",
+        status: "PENDING",
       },
       include: {
         service: {
           include: {
             provider: {
               include: {
-                profile: true
-              }
-            }
-          }
-        }
-      }
+                profile: true,
+              },
+            },
+          },
+        },
+      },
     });
 
     // Créer le paiement associé
@@ -199,39 +192,41 @@ export async function POST(request: NextRequest) {
       data: {
         userId: user.id,
         amount: service.price,
-        currency: 'EUR',
-        status: 'PENDING',
-        type: 'SERVICE',
+        currency: "EUR",
+        status: "PENDING",
+        type: "SERVICE",
         stripePaymentId: null, // Sera mis à jour lors du paiement Stripe
-      }
+      },
     });
 
     // Associer le paiement à la réservation
     await prisma.booking.update({
       where: { id: booking.id },
-      data: { paymentId: payment.id }
+      data: { paymentId: payment.id },
     });
 
     // Envoyer une notification au prestataire (optionnel)
     // await sendNotificationToProvider(service.provider.id, booking);
 
-    return NextResponse.json({
-      ...booking,
-      payment,
-    }, { status: 201 });
-
+    return NextResponse.json(
+      {
+        ...booking,
+        payment,
+      },
+      { status: 201 },
+    );
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: 'Validation error', details: error.errors },
-        { status: 400 }
+        { error: "Validation error", details: error.errors },
+        { status: 400 },
       );
     }
 
-    console.error('Error creating booking:', error);
+    console.error("Error creating booking:", error);
     return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
+      { error: "Internal server error" },
+      { status: 500 },
     );
   }
-} 
+}

@@ -1,19 +1,19 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getCurrentUser } from '@/lib/auth/utils';
-import { prisma } from '@/lib/db';
+import { NextRequest, NextResponse } from "next/server";
+import { getCurrentUser } from "@/lib/auth/utils";
+import { prisma } from "@/lib/db";
 
 export async function GET(request: NextRequest) {
   try {
     const currentUser = await getCurrentUser();
     if (!currentUser) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const { searchParams } = new URL(request.url);
-    const userId = searchParams.get('userId');
+    const userId = searchParams.get("userId");
 
     if (!userId || userId !== currentUser.id) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
     // For now, return services as rates since we don't have a separate rates table
@@ -26,30 +26,30 @@ export async function GET(request: NextRequest) {
         duration: true,
         isActive: true,
         category: true,
-        description: true
-      }
+        description: true,
+      },
     });
 
     // Transform services to match rates interface
-    const rates = services.map(service => ({
+    const rates = services.map((service) => ({
       id: service.id,
       serviceName: service.name,
       basePrice: service.price,
-      hourlyRate: service.duration > 0 ? (service.price / (service.duration / 60)) : 0,
+      hourlyRate:
+        service.duration > 0 ? service.price / (service.duration / 60) : 0,
       currency: "EUR",
       minimumDuration: service.duration || 30,
       maximumDuration: service.duration ? service.duration * 2 : 480,
       isActive: service.isActive,
-      specialRates: []
+      specialRates: [],
     }));
 
     return NextResponse.json({ rates });
-
   } catch (error) {
-    console.error('Error fetching rates:', error);
+    console.error("Error fetching rates:", error);
     return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
+      { error: "Internal server error" },
+      { status: 500 },
     );
   }
 }
@@ -58,18 +58,22 @@ export async function POST(request: NextRequest) {
   try {
     const currentUser = await getCurrentUser();
     if (!currentUser) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const body = await request.json();
-    const { userId, serviceName, basePrice, hourlyRate, minimumDuration } = body;
+    const { userId, serviceName, basePrice, hourlyRate, minimumDuration } =
+      body;
 
     if (!userId || userId !== currentUser.id) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
     if (!serviceName || !basePrice) {
-      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+      return NextResponse.json(
+        { error: "Missing required fields" },
+        { status: 400 },
+      );
     }
 
     // Create a new service that represents this rate
@@ -78,11 +82,11 @@ export async function POST(request: NextRequest) {
         providerId: userId,
         name: serviceName,
         description: `Service tarifé à ${basePrice}€`,
-        category: 'OTHER',
+        category: "OTHER",
         price: basePrice,
         duration: minimumDuration || 30,
-        isActive: true
-      }
+        isActive: true,
+      },
     });
 
     // Transform back to rate format
@@ -95,16 +99,15 @@ export async function POST(request: NextRequest) {
       minimumDuration: newService.duration,
       maximumDuration: newService.duration * 2,
       isActive: newService.isActive,
-      specialRates: []
+      specialRates: [],
     };
 
     return NextResponse.json(newRate, { status: 201 });
-
   } catch (error) {
-    console.error('Error creating rate:', error);
+    console.error("Error creating rate:", error);
     return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
+      { error: "Internal server error" },
+      { status: 500 },
     );
   }
 }

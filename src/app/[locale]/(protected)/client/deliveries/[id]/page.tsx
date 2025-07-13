@@ -7,10 +7,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { 
+import {
   ArrowLeft,
-  Package, 
-  MapPin, 
+  Package,
+  MapPin,
   User,
   Clock,
   Phone,
@@ -20,7 +20,7 @@ import {
   CheckCircle,
   XCircle,
   Truck,
-  Navigation
+  Navigation,
 } from "lucide-react";
 import { toast } from "sonner";
 import Link from "next/link";
@@ -84,7 +84,7 @@ export default function DeliveryDetailsPage() {
     try {
       setLoading(true);
       const response = await fetch(`/api/client/deliveries/${params.id}`);
-      
+
       if (response.ok) {
         const data = await response.json();
         setDelivery(data);
@@ -104,16 +104,37 @@ export default function DeliveryDetailsPage() {
 
   const getStatusBadge = (status: string) => {
     const statusConfig = {
-      PENDING: { color: "bg-gray-100 text-gray-800", label: "En attente", icon: Clock },
-      ACCEPTED: { color: "bg-blue-100 text-blue-800", label: "Acceptée", icon: CheckCircle },
-      IN_TRANSIT: { color: "bg-yellow-100 text-yellow-800", label: "En cours", icon: Truck },
-      DELIVERED: { color: "bg-green-100 text-green-800", label: "Livrée", icon: CheckCircle },
-      CANCELLED: { color: "bg-red-100 text-red-800", label: "Annulée", icon: XCircle },
+      PENDING: {
+        color: "bg-gray-100 text-gray-800",
+        label: "En attente",
+        icon: Clock,
+      },
+      ACCEPTED: {
+        color: "bg-blue-100 text-blue-800",
+        label: "Acceptée",
+        icon: CheckCircle,
+      },
+      IN_TRANSIT: {
+        color: "bg-yellow-100 text-yellow-800",
+        label: "En cours",
+        icon: Truck,
+      },
+      DELIVERED: {
+        color: "bg-green-100 text-green-800",
+        label: "Livrée",
+        icon: CheckCircle,
+      },
+      CANCELLED: {
+        color: "bg-red-100 text-red-800",
+        label: "Annulée",
+        icon: XCircle,
+      },
     };
-    
-    const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.PENDING;
+
+    const config =
+      statusConfig[status as keyof typeof statusConfig] || statusConfig.PENDING;
     const Icon = config.icon;
-    
+
     return (
       <Badge className={`${config.color} flex items-center gap-1`}>
         <Icon className="w-3 h-3" />
@@ -139,8 +160,12 @@ export default function DeliveryDetailsPage() {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">Livraison non trouvée</h1>
-          <p className="text-gray-600 mb-6">Cette livraison n'existe pas ou a été supprimée.</p>
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">
+            Livraison non trouvée
+          </h1>
+          <p className="text-gray-600 mb-6">
+            Cette livraison n'existe pas ou a été supprimée.
+          </p>
           <Link href="/fr/client/deliveries">
             <Button>
               <ArrowLeft className="w-4 h-4 mr-2" />
@@ -156,8 +181,8 @@ export default function DeliveryDetailsPage() {
     <div className="container mx-auto px-4 py-8">
       {/* En-tête */}
       <div className="flex items-center gap-4 mb-6">
-        <Button 
-          variant="outline" 
+        <Button
+          variant="outline"
           onClick={() => router.push("/fr/client/deliveries")}
           className="flex items-center gap-2"
         >
@@ -168,9 +193,7 @@ export default function DeliveryDetailsPage() {
           <h1 className="text-2xl font-bold text-gray-900">
             {delivery.announcementTitle}
           </h1>
-          <p className="text-gray-600">
-            Livraison #{delivery.id.slice(-8)}
-          </p>
+          <p className="text-gray-600">Livraison #{delivery.id.slice(-8)}</p>
         </div>
         {getStatusBadge(delivery.status)}
       </div>
@@ -190,25 +213,35 @@ export default function DeliveryDetailsPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-3">
                   <div>
-                    <p className="text-sm font-medium text-gray-700 mb-1">Point de collecte</p>
+                    <p className="text-sm font-medium text-gray-700 mb-1">
+                      Point de collecte
+                    </p>
                     <div className="flex items-start gap-2">
                       <MapPin className="w-4 h-4 text-gray-400 mt-0.5" />
-                      <p className="text-sm text-gray-600">{delivery.pickupAddress}</p>
+                      <p className="text-sm text-gray-600">
+                        {delivery.pickupAddress}
+                      </p>
                     </div>
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-gray-700 mb-1">Point de livraison</p>
+                    <p className="text-sm font-medium text-gray-700 mb-1">
+                      Point de livraison
+                    </p>
                     <div className="flex items-start gap-2">
                       <MapPin className="w-4 h-4 text-gray-400 mt-0.5" />
-                      <p className="text-sm text-gray-600">{delivery.deliveryAddress}</p>
+                      <p className="text-sm text-gray-600">
+                        {delivery.deliveryAddress}
+                      </p>
                     </div>
                   </div>
                 </div>
-                
+
                 <div className="space-y-3">
                   {delivery.scheduledDate && (
                     <div>
-                      <p className="text-sm font-medium text-gray-700 mb-1">Date programmée</p>
+                      <p className="text-sm font-medium text-gray-700 mb-1">
+                        Date programmée
+                      </p>
                       <div className="flex items-center gap-2">
                         <Clock className="w-4 h-4 text-gray-400" />
                         <p className="text-sm text-gray-600">
@@ -217,10 +250,14 @@ export default function DeliveryDetailsPage() {
                       </div>
                     </div>
                   )}
-                  
+
                   <div>
-                    <p className="text-sm font-medium text-gray-700 mb-1">Prix</p>
-                    <p className="text-lg font-bold text-green-600">{delivery.price}€</p>
+                    <p className="text-sm font-medium text-gray-700 mb-1">
+                      Prix
+                    </p>
+                    <p className="text-lg font-bold text-green-600">
+                      {delivery.price}€
+                    </p>
                   </div>
                 </div>
               </div>
@@ -229,7 +266,9 @@ export default function DeliveryDetailsPage() {
                 <>
                   <Separator />
                   <div>
-                    <p className="text-sm font-medium text-gray-700 mb-2">Instructions spéciales</p>
+                    <p className="text-sm font-medium text-gray-700 mb-2">
+                      Instructions spéciales
+                    </p>
                     <p className="text-sm text-gray-600 bg-gray-50 p-3 rounded-lg">
                       {delivery.instructions}
                     </p>
@@ -250,30 +289,44 @@ export default function DeliveryDetailsPage() {
               </CardHeader>
               <CardContent className="space-y-3">
                 <div>
-                  <p className="text-sm font-medium text-gray-700 mb-1">Description</p>
-                  <p className="text-sm text-gray-600">{delivery.packageDetails.description}</p>
+                  <p className="text-sm font-medium text-gray-700 mb-1">
+                    Description
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    {delivery.packageDetails.description}
+                  </p>
                 </div>
-                
+
                 <div className="grid grid-cols-2 gap-4">
                   {delivery.packageDetails.weight && (
                     <div>
-                      <p className="text-sm font-medium text-gray-700 mb-1">Poids</p>
-                      <p className="text-sm text-gray-600">{delivery.packageDetails.weight} kg</p>
+                      <p className="text-sm font-medium text-gray-700 mb-1">
+                        Poids
+                      </p>
+                      <p className="text-sm text-gray-600">
+                        {delivery.packageDetails.weight} kg
+                      </p>
                     </div>
                   )}
-                  
+
                   {delivery.packageDetails.dimensions && (
                     <div>
-                      <p className="text-sm font-medium text-gray-700 mb-1">Dimensions</p>
-                      <p className="text-sm text-gray-600">{delivery.packageDetails.dimensions}</p>
+                      <p className="text-sm font-medium text-gray-700 mb-1">
+                        Dimensions
+                      </p>
+                      <p className="text-sm text-gray-600">
+                        {delivery.packageDetails.dimensions}
+                      </p>
                     </div>
                   )}
                 </div>
-                
+
                 {delivery.packageDetails.fragile && (
                   <div className="flex items-center gap-2 bg-yellow-50 p-3 rounded-lg">
                     <AlertCircle className="w-4 h-4 text-yellow-600" />
-                    <span className="text-sm font-medium text-yellow-800">Colis fragile</span>
+                    <span className="text-sm font-medium text-yellow-800">
+                      Colis fragile
+                    </span>
                   </div>
                 )}
               </CardContent>
@@ -290,35 +343,44 @@ export default function DeliveryDetailsPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                {delivery.proofOfDelivery.photos && delivery.proofOfDelivery.photos.length > 0 && (
-                  <div>
-                    <p className="text-sm font-medium text-gray-700 mb-2">Photos</p>
-                    <div className="grid grid-cols-2 gap-2">
-                      {delivery.proofOfDelivery.photos.map((photo, index) => (
-                        <img 
-                          key={index}
-                          src={photo} 
-                          alt={`Preuve de livraison ${index + 1}`}
-                          className="w-full h-32 object-cover rounded-lg border"
-                        />
-                      ))}
+                {delivery.proofOfDelivery.photos &&
+                  delivery.proofOfDelivery.photos.length > 0 && (
+                    <div>
+                      <p className="text-sm font-medium text-gray-700 mb-2">
+                        Photos
+                      </p>
+                      <div className="grid grid-cols-2 gap-2">
+                        {delivery.proofOfDelivery.photos.map((photo, index) => (
+                          <img
+                            key={index}
+                            src={photo}
+                            alt={`Preuve de livraison ${index + 1}`}
+                            className="w-full h-32 object-cover rounded-lg border"
+                          />
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                )}
-                
+                  )}
+
                 {delivery.proofOfDelivery.notes && (
                   <div>
-                    <p className="text-sm font-medium text-gray-700 mb-1">Notes du livreur</p>
+                    <p className="text-sm font-medium text-gray-700 mb-1">
+                      Notes du livreur
+                    </p>
                     <p className="text-sm text-gray-600 bg-gray-50 p-3 rounded-lg">
                       {delivery.proofOfDelivery.notes}
                     </p>
                   </div>
                 )}
-                
+
                 {delivery.proofOfDelivery.recipientName && (
                   <div>
-                    <p className="text-sm font-medium text-gray-700 mb-1">Remis à</p>
-                    <p className="text-sm text-gray-600">{delivery.proofOfDelivery.recipientName}</p>
+                    <p className="text-sm font-medium text-gray-700 mb-1">
+                      Remis à
+                    </p>
+                    <p className="text-sm text-gray-600">
+                      {delivery.proofOfDelivery.recipientName}
+                    </p>
                   </div>
                 )}
               </CardContent>
@@ -335,24 +397,30 @@ export default function DeliveryDetailsPage() {
             </CardHeader>
             <CardContent className="space-y-3">
               {["ACCEPTED", "IN_TRANSIT"].includes(delivery.status) && (
-                <Link href={`/fr/client/deliveries/${delivery.id}/tracking`} className="block">
+                <Link
+                  href={`/fr/client/deliveries/${delivery.id}/tracking`}
+                  className="block"
+                >
                   <Button className="w-full flex items-center gap-2">
                     <Navigation className="w-4 h-4" />
                     Suivre en temps réel
                   </Button>
                 </Link>
               )}
-              
-              {delivery.delivererPhone && ["ACCEPTED", "IN_TRANSIT"].includes(delivery.status) && (
-                <Button 
-                  variant="outline" 
-                  className="w-full flex items-center gap-2"
-                  onClick={() => window.open(`tel:${delivery.delivererPhone}`, '_self')}
-                >
-                  <Phone className="w-4 h-4" />
-                  Appeler le livreur
-                </Button>
-              )}
+
+              {delivery.delivererPhone &&
+                ["ACCEPTED", "IN_TRANSIT"].includes(delivery.status) && (
+                  <Button
+                    variant="outline"
+                    className="w-full flex items-center gap-2"
+                    onClick={() =>
+                      window.open(`tel:${delivery.delivererPhone}`, "_self")
+                    }
+                  >
+                    <Phone className="w-4 h-4" />
+                    Appeler le livreur
+                  </Button>
+                )}
             </CardContent>
           </Card>
 
@@ -368,8 +436,8 @@ export default function DeliveryDetailsPage() {
               <CardContent className="space-y-3">
                 <div className="flex items-center gap-3">
                   {delivery.delivererAvatar ? (
-                    <img 
-                      src={delivery.delivererAvatar} 
+                    <img
+                      src={delivery.delivererAvatar}
                       alt={delivery.delivererName}
                       className="w-12 h-12 rounded-full object-cover"
                     />
@@ -379,10 +447,14 @@ export default function DeliveryDetailsPage() {
                     </div>
                   )}
                   <div>
-                    <p className="font-medium text-gray-900">{delivery.delivererName}</p>
+                    <p className="font-medium text-gray-900">
+                      {delivery.delivererName}
+                    </p>
                     <div className="flex items-center gap-1">
                       <Star className="w-3 h-3 text-yellow-400 fill-current" />
-                      <span className="text-xs text-gray-600">4.8 (127 avis)</span>
+                      <span className="text-xs text-gray-600">
+                        4.8 (127 avis)
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -420,15 +492,22 @@ export default function DeliveryDetailsPage() {
             <CardContent>
               <div className="space-y-3">
                 {delivery.history.map((event, index) => (
-                  <div key={index} className="flex gap-3 pb-3 last:pb-0 border-b last:border-0">
+                  <div
+                    key={index}
+                    className="flex gap-3 pb-3 last:pb-0 border-b last:border-0"
+                  >
                     <div className="w-2 h-2 bg-blue-600 rounded-full mt-2 flex-shrink-0"></div>
                     <div className="flex-1">
-                      <p className="text-sm font-medium text-gray-900">{event.message}</p>
+                      <p className="text-sm font-medium text-gray-900">
+                        {event.message}
+                      </p>
                       <p className="text-xs text-gray-500">
                         {new Date(event.timestamp).toLocaleString()}
                       </p>
                       {event.location && (
-                        <p className="text-xs text-gray-400">{event.location}</p>
+                        <p className="text-xs text-gray-400">
+                          {event.location}
+                        </p>
                       )}
                     </div>
                   </div>
@@ -440,4 +519,4 @@ export default function DeliveryDetailsPage() {
       </div>
     </div>
   );
-} 
+}

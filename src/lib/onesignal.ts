@@ -1,46 +1,46 @@
 interface OneSignalConfig {
-  appId: string
-  restApiKey: string
-  userAuthKey?: string
+  appId: string;
+  restApiKey: string;
+  userAuthKey?: string;
 }
 
 interface NotificationData {
-  headings: { [key: string]: string }
-  contents: { [key: string]: string }
-  data?: Record<string, any>
-  url?: string
-  include_external_user_ids?: string[]
-  included_segments?: string[]
-  filters?: any[]
-  large_icon?: string
-  small_icon?: string
-  big_picture?: string
+  headings: { [key: string]: string };
+  contents: { [key: string]: string };
+  data?: Record<string, any>;
+  url?: string;
+  include_external_user_ids?: string[];
+  included_segments?: string[];
+  filters?: any[];
+  large_icon?: string;
+  small_icon?: string;
+  big_picture?: string;
   buttons?: Array<{
-    id: string
-    text: string
-    icon?: string
-    url?: string
-  }>
-  send_after?: string
-  delayed_option?: string
-  delivery_time_of_day?: string
+    id: string;
+    text: string;
+    icon?: string;
+    url?: string;
+  }>;
+  send_after?: string;
+  delayed_option?: string;
+  delivery_time_of_day?: string;
 }
 
 interface OneSignalResponse {
-  id?: string
-  recipients?: number
-  external_id?: string
-  errors?: any
+  id?: string;
+  recipients?: number;
+  external_id?: string;
+  errors?: any;
 }
 
 export class OneSignalService {
   private static config: OneSignalConfig = {
-    appId: process.env.NEXT_PUBLIC_ONESIGNAL_APP_ID || 'your-onesignal-app-id',
-    restApiKey: process.env.ONESIGNAL_API_KEY || 'your-onesignal-api-key',
-    userAuthKey: process.env.ONESIGNAL_USER_AUTH_KEY
-  }
+    appId: process.env.NEXT_PUBLIC_ONESIGNAL_APP_ID || "your-onesignal-app-id",
+    restApiKey: process.env.ONESIGNAL_API_KEY || "your-onesignal-api-key",
+    userAuthKey: process.env.ONESIGNAL_USER_AUTH_KEY,
+  };
 
-  private static baseUrl = 'https://onesignal.com/api/v1'
+  private static baseUrl = "https://onesignal.com/api/v1";
 
   /**
    * Envoyer une notification push à un utilisateur spécifique
@@ -50,13 +50,18 @@ export class OneSignalService {
     title: string,
     message: string,
     data?: Record<string, any>,
-    options?: Partial<NotificationData>
+    options?: Partial<NotificationData>,
   ): Promise<OneSignalResponse> {
     try {
       // Vérifier si OneSignal est configuré
-      if (!this.config.appId || this.config.appId === 'your-onesignal-app-id' || !this.config.restApiKey || this.config.restApiKey === 'your-onesignal-api-key') {
-        console.warn('OneSignal not configured, skipping notification')
-        return { id: 'skipped', recipients: 0 }
+      if (
+        !this.config.appId ||
+        this.config.appId === "your-onesignal-app-id" ||
+        !this.config.restApiKey ||
+        this.config.restApiKey === "your-onesignal-api-key"
+      ) {
+        console.warn("OneSignal not configured, skipping notification");
+        return { id: "skipped", recipients: 0 };
       }
 
       const notification: NotificationData = {
@@ -64,23 +69,31 @@ export class OneSignalService {
         contents: { fr: message, en: message },
         include_external_user_ids: [userId],
         data: {
-          type: 'user_notification',
+          type: "user_notification",
           userId,
           timestamp: new Date().toISOString(),
-          ...data
+          ...data,
         },
-        large_icon: options?.large_icon || '/icons/ecodeli-logo.png',
-        small_icon: options?.small_icon || '/icons/notification-icon.png',
-        ...options
-      }
+        large_icon: options?.large_icon || "/icons/ecodeli-logo.png",
+        small_icon: options?.small_icon || "/icons/notification-icon.png",
+        ...options,
+      };
 
-      const response = await this.makeRequest('/notifications', 'POST', notification)
-      return response
+      const response = await this.makeRequest(
+        "/notifications",
+        "POST",
+        notification,
+      );
+      return response;
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
-      console.warn('OneSignal notification skipped due to error:', errorMessage)
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error";
+      console.warn(
+        "OneSignal notification skipped due to error:",
+        errorMessage,
+      );
       // Retourner une réponse par défaut au lieu de throw
-      return { id: 'error', recipients: 0, errors: [errorMessage] }
+      return { id: "error", recipients: 0, errors: [errorMessage] };
     }
   }
 
@@ -92,13 +105,18 @@ export class OneSignalService {
     title: string,
     message: string,
     data?: Record<string, any>,
-    options?: Partial<NotificationData>
+    options?: Partial<NotificationData>,
   ): Promise<OneSignalResponse> {
     try {
       // Vérifier si OneSignal est configuré
-      if (!this.config.appId || this.config.appId === 'your-onesignal-app-id' || !this.config.restApiKey || this.config.restApiKey === 'your-onesignal-api-key') {
-        console.warn('OneSignal not configured, skipping segment notification')
-        return { id: 'skipped', recipients: 0 }
+      if (
+        !this.config.appId ||
+        this.config.appId === "your-onesignal-app-id" ||
+        !this.config.restApiKey ||
+        this.config.restApiKey === "your-onesignal-api-key"
+      ) {
+        console.warn("OneSignal not configured, skipping segment notification");
+        return { id: "skipped", recipients: 0 };
       }
 
       const notification: NotificationData = {
@@ -106,22 +124,30 @@ export class OneSignalService {
         contents: { fr: message, en: message },
         included_segments: segments,
         data: {
-          type: 'segment_notification',
+          type: "segment_notification",
           segments,
           timestamp: new Date().toISOString(),
-          ...data
+          ...data,
         },
-        large_icon: options?.large_icon || '/icons/ecodeli-logo.png',
-        small_icon: options?.small_icon || '/icons/notification-icon.png',
-        ...options
-      }
+        large_icon: options?.large_icon || "/icons/ecodeli-logo.png",
+        small_icon: options?.small_icon || "/icons/notification-icon.png",
+        ...options,
+      };
 
-      const response = await this.makeRequest('/notifications', 'POST', notification)
-      return response
+      const response = await this.makeRequest(
+        "/notifications",
+        "POST",
+        notification,
+      );
+      return response;
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
-      console.warn('OneSignal segment notification skipped due to error:', errorMessage)
-      return { id: 'error', recipients: 0, errors: [errorMessage] }
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error";
+      console.warn(
+        "OneSignal segment notification skipped due to error:",
+        errorMessage,
+      );
+      return { id: "error", recipients: 0, errors: [errorMessage] };
     }
   }
 
@@ -133,13 +159,20 @@ export class OneSignalService {
     title: string,
     message: string,
     data?: Record<string, any>,
-    options?: Partial<NotificationData>
+    options?: Partial<NotificationData>,
   ): Promise<OneSignalResponse> {
     try {
       // Vérifier si OneSignal est configuré
-      if (!this.config.appId || this.config.appId === 'your-onesignal-app-id' || !this.config.restApiKey || this.config.restApiKey === 'your-onesignal-api-key') {
-        console.warn('OneSignal not configured, skipping filtered notification')
-        return { id: 'skipped', recipients: 0 }
+      if (
+        !this.config.appId ||
+        this.config.appId === "your-onesignal-app-id" ||
+        !this.config.restApiKey ||
+        this.config.restApiKey === "your-onesignal-api-key"
+      ) {
+        console.warn(
+          "OneSignal not configured, skipping filtered notification",
+        );
+        return { id: "skipped", recipients: 0 };
       }
 
       const notification: NotificationData = {
@@ -147,21 +180,29 @@ export class OneSignalService {
         contents: { fr: message, en: message },
         filters,
         data: {
-          type: 'filtered_notification',
+          type: "filtered_notification",
           timestamp: new Date().toISOString(),
-          ...data
+          ...data,
         },
-        large_icon: options?.large_icon || '/icons/ecodeli-logo.png',
-        small_icon: options?.small_icon || '/icons/notification-icon.png',
-        ...options
-      }
+        large_icon: options?.large_icon || "/icons/ecodeli-logo.png",
+        small_icon: options?.small_icon || "/icons/notification-icon.png",
+        ...options,
+      };
 
-      const response = await this.makeRequest('/notifications', 'POST', notification)
-      return response
+      const response = await this.makeRequest(
+        "/notifications",
+        "POST",
+        notification,
+      );
+      return response;
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
-      console.warn('OneSignal filtered notification skipped due to error:', errorMessage)
-      return { id: 'error', recipients: 0, errors: [errorMessage] }
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error";
+      console.warn(
+        "OneSignal filtered notification skipped due to error:",
+        errorMessage,
+      );
+      return { id: "error", recipients: 0, errors: [errorMessage] };
     }
   }
 
@@ -176,35 +217,35 @@ export class OneSignalService {
     title: string,
     pickupLocation: string,
     deliveryLocation: string,
-    price: number
+    price: number,
   ): Promise<OneSignalResponse> {
     return this.sendToUser(
       delivererId,
-      '🚚 Nouvelle opportunité de livraison',
+      "🚚 Nouvelle opportunité de livraison",
       `${title} • ${pickupLocation} → ${deliveryLocation} • ${price}€`,
       {
-        type: 'delivery_opportunity',
+        type: "delivery_opportunity",
         announcementId,
         price,
         pickupLocation,
-        deliveryLocation
+        deliveryLocation,
       },
       {
         url: `/deliverer/announcements/${announcementId}`,
         buttons: [
           {
-            id: 'view',
-            text: 'Voir les détails',
-            url: `/deliverer/announcements/${announcementId}`
+            id: "view",
+            text: "Voir les détails",
+            url: `/deliverer/announcements/${announcementId}`,
           },
           {
-            id: 'accept',
-            text: 'Accepter',
-            url: `/deliverer/announcements/${announcementId}/accept`
-          }
-        ]
-      }
-    )
+            id: "accept",
+            text: "Accepter",
+            url: `/deliverer/announcements/${announcementId}/accept`,
+          },
+        ],
+      },
+    );
   }
 
   // Notification de mise à jour de livraison pour client
@@ -212,36 +253,36 @@ export class OneSignalService {
     clientId: string,
     deliveryId: string,
     status: string,
-    message: string
+    message: string,
   ): Promise<OneSignalResponse> {
     const statusLabels: Record<string, string> = {
-      'ACCEPTED': 'ACCEPTÉ',
-      'PICKED_UP': 'RÉCUPÉRÉ',
-      'IN_TRANSIT': 'EN TRANSIT',
-      'DELIVERED': 'LIVRÉ',
-      'CANCELLED': 'ANNULÉ'
-    }
+      ACCEPTED: "ACCEPTÉ",
+      PICKED_UP: "RÉCUPÉRÉ",
+      IN_TRANSIT: "EN TRANSIT",
+      DELIVERED: "LIVRÉ",
+      CANCELLED: "ANNULÉ",
+    };
 
     return this.sendToUser(
       clientId,
-              `${statusLabels[status] || 'STATUT'} - Mise à jour de livraison`,
+      `${statusLabels[status] || "STATUT"} - Mise à jour de livraison`,
       message,
       {
-        type: 'delivery_update',
+        type: "delivery_update",
         deliveryId,
-        status
+        status,
       },
       {
         url: `/client/deliveries/${deliveryId}`,
         buttons: [
           {
-            id: 'track',
-            text: 'Suivre',
-            url: `/client/deliveries/${deliveryId}/tracking`
-          }
-        ]
-      }
-    )
+            id: "track",
+            text: "Suivre",
+            url: `/client/deliveries/${deliveryId}/tracking`,
+          },
+        ],
+      },
+    );
   }
 
   // Notification de nouveau booking pour prestataire
@@ -251,36 +292,36 @@ export class OneSignalService {
     serviceName: string,
     clientName: string,
     scheduledDate: string,
-    price: number
+    price: number,
   ): Promise<OneSignalResponse> {
     return this.sendToUser(
       providerId,
-      '📅 Nouvelle réservation',
+      "📅 Nouvelle réservation",
       `${serviceName} avec ${clientName} le ${scheduledDate} • ${price}€`,
       {
-        type: 'new_booking',
+        type: "new_booking",
         bookingId,
         serviceName,
         clientName,
         scheduledDate,
-        price
+        price,
       },
       {
         url: `/provider/bookings/${bookingId}`,
         buttons: [
           {
-            id: 'accept',
-            text: 'Accepter',
-            url: `/provider/bookings/${bookingId}/accept`
+            id: "accept",
+            text: "Accepter",
+            url: `/provider/bookings/${bookingId}/accept`,
           },
           {
-            id: 'reschedule',
-            text: 'Reporter',
-            url: `/provider/bookings/${bookingId}/reschedule`
-          }
-        ]
-      }
-    )
+            id: "reschedule",
+            text: "Reporter",
+            url: `/provider/bookings/${bookingId}/reschedule`,
+          },
+        ],
+      },
+    );
   }
 
   // Notification de paiement reçu
@@ -288,98 +329,98 @@ export class OneSignalService {
     userId: string,
     amount: number,
     description: string,
-    type: 'delivery' | 'booking' | 'subscription'
+    type: "delivery" | "booking" | "subscription",
   ): Promise<OneSignalResponse> {
     const typeEmojis = {
-      delivery: '🚚',
-      booking: '📅',
-      subscription: '⭐'
-    }
+      delivery: "🚚",
+      booking: "📅",
+      subscription: "⭐",
+    };
 
     return this.sendToUser(
       userId,
       `💰 Paiement reçu`,
       `Vous avez reçu ${amount}€ pour ${description}`,
       {
-        type: 'payment_received',
+        type: "payment_received",
         amount,
         description,
-        paymentType: type
+        paymentType: type,
       },
       {
-        url: '/wallet',
+        url: "/wallet",
         buttons: [
           {
-            id: 'view_wallet',
-            text: 'Voir le portefeuille',
-            url: '/wallet'
-          }
-        ]
-      }
-    )
+            id: "view_wallet",
+            text: "Voir le portefeuille",
+            url: "/wallet",
+          },
+        ],
+      },
+    );
   }
 
   // Notification de validation de document
   static async notifyDocumentValidation(
     userId: string,
     documentName: string,
-    status: 'APPROVED' | 'REJECTED',
-    notes?: string
+    status: "APPROVED" | "REJECTED",
+    notes?: string,
   ): Promise<OneSignalResponse> {
-    const isApproved = status === 'APPROVED'
-    
+    const isApproved = status === "APPROVED";
+
     return this.sendToUser(
       userId,
-              `Document ${isApproved ? 'approuvé' : 'rejeté'}`,
-      `Votre document "${documentName}" a été ${isApproved ? 'approuvé' : 'rejeté'}${notes ? '. ' + notes : '.'}`,
+      `Document ${isApproved ? "approuvé" : "rejeté"}`,
+      `Votre document "${documentName}" a été ${isApproved ? "approuvé" : "rejeté"}${notes ? ". " + notes : "."}`,
       {
-        type: 'document_validation',
+        type: "document_validation",
         documentName,
         status,
-        notes
+        notes,
       },
       {
-        url: '/documents',
+        url: "/documents",
         buttons: [
           {
-            id: 'view_documents',
-            text: 'Voir mes documents',
-            url: '/documents'
-          }
-        ]
-      }
-    )
+            id: "view_documents",
+            text: "Voir mes documents",
+            url: "/documents",
+          },
+        ],
+      },
+    );
   }
 
   // Notification d'activation de compte
   static async notifyAccountActivated(
     userId: string,
-    accountType: 'deliverer' | 'provider'
+    accountType: "deliverer" | "provider",
   ): Promise<OneSignalResponse> {
     const typeLabels = {
-      deliverer: 'livreur',
-      provider: 'prestataire'
-    }
+      deliverer: "livreur",
+      provider: "prestataire",
+    };
 
     return this.sendToUser(
       userId,
-      '🎉 Compte activé !',
+      "🎉 Compte activé !",
       `Félicitations ! Votre compte ${typeLabels[accountType]} a été activé. Vous pouvez maintenant commencer à travailler.`,
       {
-        type: 'account_activated',
-        accountType
+        type: "account_activated",
+        accountType,
       },
       {
         url: `/${accountType}`,
         buttons: [
           {
-            id: 'start',
-            text: 'Commencer',
-            url: `/${accountType}/dashboard`
-          }
-        ]
-      }
-    )
+            id: "start",
+            text: "Commencer",
+            url: `/${accountType}/dashboard`,
+          },
+        ],
+      },
+    );
   }
 
   /**
@@ -387,40 +428,49 @@ export class OneSignalService {
    */
 
   // Créer ou mettre à jour un utilisateur
-  static async upsertUser(userId: string, userData: {
-    tags?: Record<string, string>
-    language?: string
-    timezone?: string
-    email?: string
-  }): Promise<any> {
+  static async upsertUser(
+    userId: string,
+    userData: {
+      tags?: Record<string, string>;
+      language?: string;
+      timezone?: string;
+      email?: string;
+    },
+  ): Promise<any> {
     try {
       // Vérifier si OneSignal est configuré
-      if (!this.config.appId || this.config.appId === 'your-onesignal-app-id' || !this.config.restApiKey || this.config.restApiKey === 'your-onesignal-api-key') {
-        console.warn('OneSignal not configured, skipping user upsert')
-        return { success: false, reason: 'not_configured' }
+      if (
+        !this.config.appId ||
+        this.config.appId === "your-onesignal-app-id" ||
+        !this.config.restApiKey ||
+        this.config.restApiKey === "your-onesignal-api-key"
+      ) {
+        console.warn("OneSignal not configured, skipping user upsert");
+        return { success: false, reason: "not_configured" };
       }
 
-      const response = await this.makeRequest(`/players/${userId}`, 'PUT', {
+      const response = await this.makeRequest(`/players/${userId}`, "PUT", {
         app_id: this.config.appId,
         external_user_id: userId,
-        ...userData
-      })
-      return response
+        ...userData,
+      });
+      return response;
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
-      console.warn('OneSignal user upsert skipped due to error:', errorMessage)
-      return { success: false, reason: 'error', error: errorMessage }
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error";
+      console.warn("OneSignal user upsert skipped due to error:", errorMessage);
+      return { success: false, reason: "error", error: errorMessage };
     }
   }
 
   // Supprimer un utilisateur
   static async deleteUser(playerId: string): Promise<any> {
     try {
-      const response = await this.makeRequest(`/players/${playerId}`, 'DELETE')
-      return response
+      const response = await this.makeRequest(`/players/${playerId}`, "DELETE");
+      return response;
     } catch (error) {
-      console.error('Erreur suppression utilisateur OneSignal:', error)
-      throw error
+      console.error("Erreur suppression utilisateur OneSignal:", error);
+      throw error;
     }
   }
 
@@ -430,34 +480,51 @@ export class OneSignalService {
   static async getNotificationStats(notificationId: string): Promise<any> {
     try {
       // Vérifier si OneSignal est configuré
-      if (!this.config.appId || this.config.appId === 'your-onesignal-app-id' || !this.config.restApiKey || this.config.restApiKey === 'your-onesignal-api-key') {
-        console.warn('OneSignal not configured, skipping notification stats')
-        return { success: false, reason: 'not_configured' }
+      if (
+        !this.config.appId ||
+        this.config.appId === "your-onesignal-app-id" ||
+        !this.config.restApiKey ||
+        this.config.restApiKey === "your-onesignal-api-key"
+      ) {
+        console.warn("OneSignal not configured, skipping notification stats");
+        return { success: false, reason: "not_configured" };
       }
 
-      const response = await this.makeRequest(`/notifications/${notificationId}`)
-      return response
+      const response = await this.makeRequest(
+        `/notifications/${notificationId}`,
+      );
+      return response;
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
-      console.warn('OneSignal notification stats skipped due to error:', errorMessage)
-      return { success: false, reason: 'error', error: errorMessage }
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error";
+      console.warn(
+        "OneSignal notification stats skipped due to error:",
+        errorMessage,
+      );
+      return { success: false, reason: "error", error: errorMessage };
     }
   }
 
   static async getAppStats(): Promise<any> {
     try {
       // Vérifier si OneSignal est configuré
-      if (!this.config.appId || this.config.appId === 'your-onesignal-app-id' || !this.config.restApiKey || this.config.restApiKey === 'your-onesignal-api-key') {
-        console.warn('OneSignal not configured, skipping app stats')
-        return { success: false, reason: 'not_configured' }
+      if (
+        !this.config.appId ||
+        this.config.appId === "your-onesignal-app-id" ||
+        !this.config.restApiKey ||
+        this.config.restApiKey === "your-onesignal-api-key"
+      ) {
+        console.warn("OneSignal not configured, skipping app stats");
+        return { success: false, reason: "not_configured" };
       }
 
-      const response = await this.makeRequest(`/apps/${this.config.appId}`)
-      return response
+      const response = await this.makeRequest(`/apps/${this.config.appId}`);
+      return response;
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
-      console.warn('OneSignal app stats skipped due to error:', errorMessage)
-      return { success: false, reason: 'error', error: errorMessage }
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error";
+      console.warn("OneSignal app stats skipped due to error:", errorMessage);
+      return { success: false, reason: "error", error: errorMessage };
     }
   }
 
@@ -466,41 +533,43 @@ export class OneSignalService {
    */
   private static async makeRequest(
     endpoint: string,
-    method: 'GET' | 'POST' | 'PUT' | 'DELETE' = 'GET',
-    data?: any
+    method: "GET" | "POST" | "PUT" | "DELETE" = "GET",
+    data?: any,
   ): Promise<any> {
-    const url = `${this.baseUrl}${endpoint}`
-    
+    const url = `${this.baseUrl}${endpoint}`;
+
     const headers: Record<string, string> = {
-      'Content-Type': 'application/json',
-      'Authorization': `Basic ${this.config.restApiKey}`
-    }
+      "Content-Type": "application/json",
+      Authorization: `Basic ${this.config.restApiKey}`,
+    };
 
     if (this.config.userAuthKey) {
-      headers['Authorization'] = `Basic ${this.config.userAuthKey}`
+      headers["Authorization"] = `Basic ${this.config.userAuthKey}`;
     }
 
     const config: RequestInit = {
       method,
-      headers
-    }
+      headers,
+    };
 
-    if (data && (method === 'POST' || method === 'PUT')) {
+    if (data && (method === "POST" || method === "PUT")) {
       // Ajouter app_id à toutes les requêtes POST/PUT
       const bodyData = {
         app_id: this.config.appId,
-        ...data
-      }
-      config.body = JSON.stringify(bodyData)
+        ...data,
+      };
+      config.body = JSON.stringify(bodyData);
     }
 
-    const response = await fetch(url, config)
-    
+    const response = await fetch(url, config);
+
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}))
-      throw new Error(`OneSignal API Error: ${response.status} - ${JSON.stringify(errorData)}`)
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(
+        `OneSignal API Error: ${response.status} - ${JSON.stringify(errorData)}`,
+      );
     }
 
-    return response.json()
+    return response.json();
   }
 }

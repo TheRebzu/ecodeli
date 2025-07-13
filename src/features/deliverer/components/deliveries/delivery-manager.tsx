@@ -7,12 +7,12 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
-import { 
-  Package, 
-  MapPin, 
-  Calendar, 
-  Clock, 
-  User, 
+import {
+  Package,
+  MapPin,
+  Calendar,
+  Clock,
+  User,
   Phone,
   CheckCircle,
   Truck,
@@ -24,7 +24,7 @@ import {
   Pause,
   X,
   Camera,
-  RefreshCw
+  RefreshCw,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -64,7 +64,7 @@ interface Delivery {
   insuranceFee: number;
   createdAt: string;
   updatedAt: string;
-  
+
   announcement: {
     id: string;
     title: string;
@@ -76,21 +76,21 @@ interface Delivery {
     isUrgent: boolean;
     pickupAddress: string;
     deliveryAddress: string;
-    
+
     client: {
       id: string;
       name: string;
       avatar?: string;
       phone?: string;
-    }
+    };
   };
-  
+
   payment?: {
     amount: number;
     status: string;
     paidAt?: string;
   };
-  
+
   proofOfDelivery?: any;
   tracking?: any[];
 }
@@ -99,7 +99,9 @@ export default function DeliveryManager({ delivererId }: DeliveryManagerProps) {
   const t = useTranslations("deliverer.deliveries");
   const [deliveries, setDeliveries] = useState<Delivery[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedDelivery, setSelectedDelivery] = useState<Delivery | null>(null);
+  const [selectedDelivery, setSelectedDelivery] = useState<Delivery | null>(
+    null,
+  );
   const [showValidationDialog, setShowValidationDialog] = useState(false);
   const [showContactDialog, setShowContactDialog] = useState(false);
   const [showCancelDialog, setShowCancelDialog] = useState(false);
@@ -112,28 +114,31 @@ export default function DeliveryManager({ delivererId }: DeliveryManagerProps) {
   const fetchDeliveries = async () => {
     try {
       setLoading(true);
-      console.log('🔄 Fetching deliveries...');
-      
+      console.log("🔄 Fetching deliveries...");
+
       const response = await fetch("/api/deliverer/deliveries");
-      console.log('📡 Fetch response status:', response.status);
-      
+      console.log("📡 Fetch response status:", response.status);
+
       if (response.ok) {
         const data = await response.json();
-        console.log('📦 Fetched deliveries data:', data);
-        console.log('📋 Number of deliveries:', data.deliveries?.length || 0);
-        
+        console.log("📦 Fetched deliveries data:", data);
+        console.log("📋 Number of deliveries:", data.deliveries?.length || 0);
+
         if (data.deliveries && data.deliveries.length > 0) {
-          console.log('📊 Delivery statuses:', data.deliveries.map((d: any) => ({
-            id: d.id,
-            status: d.status
-          })));
+          console.log(
+            "📊 Delivery statuses:",
+            data.deliveries.map((d: any) => ({
+              id: d.id,
+              status: d.status,
+            })),
+          );
         }
-        
+
         setDeliveries(data.deliveries || []);
       } else {
-        console.error('❌ Failed to fetch deliveries:', response.status);
+        console.error("❌ Failed to fetch deliveries:", response.status);
         const errorData = await response.json();
-        console.error('❌ Error data:', errorData);
+        console.error("❌ Error data:", errorData);
       }
     } catch (error) {
       console.error("Error fetching deliveries:", error);
@@ -147,11 +152,11 @@ export default function DeliveryManager({ delivererId }: DeliveryManagerProps) {
     try {
       setActionLoading(deliveryId);
       console.log(`🔄 Updating delivery ${deliveryId} to status: ${status}`);
-      
+
       // Utiliser l'API existante pour mettre à jour le statut
       let endpoint = "";
       let method = "PUT";
-      
+
       switch (status) {
         case "picked_up":
           endpoint = `/api/deliverer/deliveries/${deliveryId}/pickup`;
@@ -180,7 +185,7 @@ export default function DeliveryManager({ delivererId }: DeliveryManagerProps) {
         const responseData = await response.json();
         console.log(`✅ Status update successful:`, responseData);
         toast.success(t(`success.status_updated_${status}`));
-        
+
         // Force refresh the deliveries data
         console.log(`🔄 Refreshing deliveries data...`);
         await fetchDeliveries();
@@ -201,16 +206,19 @@ export default function DeliveryManager({ delivererId }: DeliveryManagerProps) {
   const validateDelivery = async (deliveryId: string, code: string) => {
     try {
       setActionLoading(deliveryId);
-      const response = await fetch(`/api/deliverer/deliveries/${deliveryId}/validate`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
-          validationCode: code,
-          deliveryProof: {
-            notes: "Livraison validée par le livreur"
-          }
-        }),
-      });
+      const response = await fetch(
+        `/api/deliverer/deliveries/${deliveryId}/validate`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            validationCode: code,
+            deliveryProof: {
+              notes: "Livraison validée par le livreur",
+            },
+          }),
+        },
+      );
 
       if (response.ok) {
         toast.success(t("success.delivery_validated"));
@@ -233,10 +241,13 @@ export default function DeliveryManager({ delivererId }: DeliveryManagerProps) {
   const cancelDelivery = async (deliveryId: string) => {
     try {
       setActionLoading(deliveryId);
-      const response = await fetch(`/api/deliverer/deliveries/${deliveryId}/cancel`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-      });
+      const response = await fetch(
+        `/api/deliverer/deliveries/${deliveryId}/cancel`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+        },
+      );
 
       if (response.ok) {
         toast.success(t("success.delivery_cancelled"));
@@ -266,25 +277,53 @@ export default function DeliveryManager({ delivererId }: DeliveryManagerProps) {
 
   const getStatusBadge = (status: string) => {
     const statusConfig = {
-      accepted: { color: "bg-blue-100 text-blue-800", label: t("status.accepted") },
-      picked_up: { color: "bg-yellow-100 text-yellow-800", label: t("status.picked_up") },
-      in_transit: { color: "bg-purple-100 text-purple-800", label: t("status.in_transit") },
-      delivered: { color: "bg-green-100 text-green-800", label: t("status.delivered") },
-      cancelled: { color: "bg-red-100 text-red-800", label: t("status.cancelled") },
+      accepted: {
+        color: "bg-blue-100 text-blue-800",
+        label: t("status.accepted"),
+      },
+      picked_up: {
+        color: "bg-yellow-100 text-yellow-800",
+        label: t("status.picked_up"),
+      },
+      in_transit: {
+        color: "bg-purple-100 text-purple-800",
+        label: t("status.in_transit"),
+      },
+      delivered: {
+        color: "bg-green-100 text-green-800",
+        label: t("status.delivered"),
+      },
+      cancelled: {
+        color: "bg-red-100 text-red-800",
+        label: t("status.cancelled"),
+      },
     };
-    
-    const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.accepted;
+
+    const config =
+      statusConfig[status as keyof typeof statusConfig] ||
+      statusConfig.accepted;
     return <Badge className={config.color}>{config.label}</Badge>;
   };
 
-  const filteredDeliveries = deliveries.filter(delivery =>
-    (delivery.announcement.title || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (delivery.announcement.client.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (delivery.announcement.pickupAddress || '').toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredDeliveries = deliveries.filter(
+    (delivery) =>
+      (delivery.announcement.title || "")
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase()) ||
+      (delivery.announcement.client.name || "")
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase()) ||
+      (delivery.announcement.pickupAddress || "")
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase()),
   );
 
-  const activeDeliveries = filteredDeliveries.filter(d => !["DELIVERED", "CANCELLED"].includes(d.status));
-  const completedDeliveries = filteredDeliveries.filter(d => ["DELIVERED", "CANCELLED"].includes(d.status));
+  const activeDeliveries = filteredDeliveries.filter(
+    (d) => !["DELIVERED", "CANCELLED"].includes(d.status),
+  );
+  const completedDeliveries = filteredDeliveries.filter((d) =>
+    ["DELIVERED", "CANCELLED"].includes(d.status),
+  );
 
   if (loading) {
     return (
@@ -322,7 +361,9 @@ export default function DeliveryManager({ delivererId }: DeliveryManagerProps) {
                 disabled={loading}
                 className="flex items-center gap-2"
               >
-                <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+                <RefreshCw
+                  className={`w-4 h-4 ${loading ? "animate-spin" : ""}`}
+                />
                 Actualiser
               </Button>
             </CardTitle>
@@ -360,17 +401,24 @@ export default function DeliveryManager({ delivererId }: DeliveryManagerProps) {
                   <h3 className="text-lg font-semibold text-gray-900 mb-2">
                     {t("empty.no_active_deliveries")}
                   </h3>
-                  <p className="text-gray-600">{t("empty.active_description")}</p>
+                  <p className="text-gray-600">
+                    {t("empty.active_description")}
+                  </p>
                 </CardContent>
               </Card>
             ) : (
               activeDeliveries.map((delivery) => (
-                <Card key={delivery.id} className="border-l-4 border-l-blue-500">
+                <Card
+                  key={delivery.id}
+                  className="border-l-4 border-l-blue-500"
+                >
                   <CardContent className="p-6">
                     <div className="flex items-start justify-between">
                       <div className="flex-1 space-y-3">
                         <div className="flex items-center justify-between">
-                          <h3 className="font-semibold text-lg">{delivery.announcement.title}</h3>
+                          <h3 className="font-semibold text-lg">
+                            {delivery.announcement.title}
+                          </h3>
                           {getStatusBadge(delivery.status)}
                         </div>
 
@@ -378,13 +426,18 @@ export default function DeliveryManager({ delivererId }: DeliveryManagerProps) {
                           <div className="space-y-2">
                             <div className="flex items-center space-x-2">
                               <User className="w-4 h-4 text-gray-400" />
-                              <span className="text-gray-600">{t("client")}:</span>
+                              <span className="text-gray-600">
+                                {t("client")}:
+                              </span>
                               <span>{delivery.announcement.client.name}</span>
                             </div>
                             {delivery.announcement.client.phone && (
                               <div className="flex items-center space-x-2">
                                 <Phone className="w-4 h-4 text-gray-400" />
-                                <a href={`tel:${delivery.announcement.client.phone}`} className="text-blue-600 hover:underline">
+                                <a
+                                  href={`tel:${delivery.announcement.client.phone}`}
+                                  className="text-blue-600 hover:underline"
+                                >
                                   {delivery.announcement.client.phone}
                                 </a>
                               </div>
@@ -395,8 +448,14 @@ export default function DeliveryManager({ delivererId }: DeliveryManagerProps) {
                             {delivery.pickupDate && (
                               <div className="flex items-center space-x-2">
                                 <Calendar className="w-4 h-4 text-gray-400" />
-                                <span className="text-gray-600">{t("scheduled")}:</span>
-                                <span>{new Date(delivery.pickupDate).toLocaleDateString()}</span>
+                                <span className="text-gray-600">
+                                  {t("scheduled")}:
+                                </span>
+                                <span>
+                                  {new Date(
+                                    delivery.pickupDate,
+                                  ).toLocaleDateString()}
+                                </span>
                               </div>
                             )}
                           </div>
@@ -407,10 +466,16 @@ export default function DeliveryManager({ delivererId }: DeliveryManagerProps) {
                             <MapPin className="w-4 h-4 text-gray-400 mt-0.5" />
                             <div>
                               <p className="text-sm">
-                                <span className="font-medium">{t("pickup")}:</span> {delivery.announcement.pickupAddress}
+                                <span className="font-medium">
+                                  {t("pickup")}:
+                                </span>{" "}
+                                {delivery.announcement.pickupAddress}
                               </p>
                               <p className="text-sm">
-                                <span className="font-medium">{t("delivery")}:</span> {delivery.announcement.deliveryAddress}
+                                <span className="font-medium">
+                                  {t("delivery")}:
+                                </span>{" "}
+                                {delivery.announcement.deliveryAddress}
                               </p>
                             </div>
                           </div>
@@ -428,10 +493,10 @@ export default function DeliveryManager({ delivererId }: DeliveryManagerProps) {
                         <div className="text-xs text-gray-500 mb-2">
                           Debug: Status = {delivery.status}
                         </div>
-                        
+
                         {/* Contact Client Button */}
-                        <Button 
-                          size="sm" 
+                        <Button
+                          size="sm"
                           variant="outline"
                           onClick={() => contactClient(delivery)}
                           disabled={actionLoading === delivery.id}
@@ -441,11 +506,16 @@ export default function DeliveryManager({ delivererId }: DeliveryManagerProps) {
                         </Button>
 
                         {/* Test Button - Always visible */}
-                        <Button 
-                          size="sm" 
+                        <Button
+                          size="sm"
                           variant="outline"
                           onClick={() => {
-                            console.log("Test button clicked for delivery:", delivery.id, "Status:", delivery.status);
+                            console.log(
+                              "Test button clicked for delivery:",
+                              delivery.id,
+                              "Status:",
+                              delivery.status,
+                            );
                             toast.info(`Status: ${delivery.status}`);
                           }}
                         >
@@ -454,7 +524,8 @@ export default function DeliveryManager({ delivererId }: DeliveryManagerProps) {
 
                         {/* Status-specific actions */}
                         {/* Debug: Status = {delivery.status} */}
-                        {(delivery.status === "accepted" || delivery.status === "ACCEPTED") && (
+                        {(delivery.status === "accepted" ||
+                          delivery.status === "ACCEPTED") && (
                           <>
                             <div className="bg-blue-50 p-3 rounded-lg border border-blue-200 mb-3">
                               <div className="flex items-center space-x-2 mb-2">
@@ -464,23 +535,29 @@ export default function DeliveryManager({ delivererId }: DeliveryManagerProps) {
                                 </span>
                               </div>
                               <p className="text-xs text-blue-700">
-                                Rendez-vous à l'adresse de collecte pour récupérer le colis
+                                Rendez-vous à l'adresse de collecte pour
+                                récupérer le colis
                               </p>
                             </div>
-                            
-                            <Button 
-                              size="sm" 
+
+                            <Button
+                              size="sm"
                               className="bg-yellow-600 hover:bg-yellow-700 w-full"
-                              onClick={() => updateDeliveryStatus(delivery.id, "picked_up")}
+                              onClick={() =>
+                                updateDeliveryStatus(delivery.id, "picked_up")
+                              }
                               disabled={actionLoading === delivery.id}
                             >
                               <Play className="w-4 h-4 mr-2" />
-                              {actionLoading === delivery.id ? "Mise à jour..." : "Colis récupéré"}
+                              {actionLoading === delivery.id
+                                ? "Mise à jour..."
+                                : "Colis récupéré"}
                             </Button>
                           </>
                         )}
-                        
-                        {(delivery.status === "picked_up" || delivery.status === "PICKED_UP") && (
+
+                        {(delivery.status === "picked_up" ||
+                          delivery.status === "PICKED_UP") && (
                           <>
                             <div className="bg-purple-50 p-3 rounded-lg border border-purple-200 mb-3">
                               <div className="flex items-center space-x-2 mb-2">
@@ -490,23 +567,30 @@ export default function DeliveryManager({ delivererId }: DeliveryManagerProps) {
                                 </span>
                               </div>
                               <p className="text-xs text-purple-700">
-                                Démarrez la livraison vers l'adresse de destination
+                                Démarrez la livraison vers l'adresse de
+                                destination
                               </p>
                             </div>
-                            
-                            <Button 
-                              size="sm" 
+
+                            <Button
+                              size="sm"
                               className="bg-purple-600 hover:bg-purple-700 w-full"
-                              onClick={() => updateDeliveryStatus(delivery.id, "in_transit")}
+                              onClick={() =>
+                                updateDeliveryStatus(delivery.id, "in_transit")
+                              }
                               disabled={actionLoading === delivery.id}
                             >
                               <Truck className="w-4 h-4 mr-2" />
-                              {actionLoading === delivery.id ? "Démarrage..." : "Démarrer la livraison"}
+                              {actionLoading === delivery.id
+                                ? "Démarrage..."
+                                : "Démarrer la livraison"}
                             </Button>
                           </>
                         )}
-                        
-                        {(delivery.status === "in_transit" || delivery.status === "IN_TRANSIT" || delivery.status === "IN_PROGRESS") && (
+
+                        {(delivery.status === "in_transit" ||
+                          delivery.status === "IN_TRANSIT" ||
+                          delivery.status === "IN_PROGRESS") && (
                           <>
                             <div className="bg-yellow-50 p-3 rounded-lg border border-yellow-200 mb-3">
                               <div className="flex items-center space-x-2 mb-2">
@@ -516,10 +600,11 @@ export default function DeliveryManager({ delivererId }: DeliveryManagerProps) {
                                 </span>
                               </div>
                               <p className="text-xs text-yellow-700">
-                                Demandez le code de validation au client pour confirmer la livraison
+                                Demandez le code de validation au client pour
+                                confirmer la livraison
                               </p>
                             </div>
-                            
+
                             <Button
                               size="sm"
                               className="bg-green-600 hover:bg-green-700 w-full mb-2"
@@ -532,7 +617,7 @@ export default function DeliveryManager({ delivererId }: DeliveryManagerProps) {
                               <CheckCircle className="w-4 h-4 mr-2" />
                               Valider avec code client
                             </Button>
-                            
+
                             <div className="flex space-x-2">
                               <Button
                                 size="sm"
@@ -547,7 +632,7 @@ export default function DeliveryManager({ delivererId }: DeliveryManagerProps) {
                                 <Camera className="w-4 h-4 mr-1" />
                                 Photo
                               </Button>
-                              
+
                               <Button
                                 size="sm"
                                 variant="outline"
@@ -566,9 +651,17 @@ export default function DeliveryManager({ delivererId }: DeliveryManagerProps) {
                         )}
 
                         {/* Cancel Button for active deliveries */}
-                        {["accepted", "ACCEPTED", "picked_up", "PICKED_UP", "in_transit", "IN_TRANSIT", "IN_PROGRESS"].includes(delivery.status) && (
-                          <Button 
-                            size="sm" 
+                        {[
+                          "accepted",
+                          "ACCEPTED",
+                          "picked_up",
+                          "PICKED_UP",
+                          "in_transit",
+                          "IN_TRANSIT",
+                          "IN_PROGRESS",
+                        ].includes(delivery.status) && (
+                          <Button
+                            size="sm"
                             variant="destructive"
                             onClick={() => {
                               setCancelDeliveryId(delivery.id);
@@ -596,29 +689,50 @@ export default function DeliveryManager({ delivererId }: DeliveryManagerProps) {
                   <h3 className="text-lg font-semibold text-gray-900 mb-2">
                     {t("empty.no_completed_deliveries")}
                   </h3>
-                  <p className="text-gray-600">{t("empty.completed_description")}</p>
+                  <p className="text-gray-600">
+                    {t("empty.completed_description")}
+                  </p>
                 </CardContent>
               </Card>
             ) : (
               completedDeliveries.map((delivery) => (
-                <Card key={delivery.id} className="border-l-4 border-l-green-500">
+                <Card
+                  key={delivery.id}
+                  className="border-l-4 border-l-green-500"
+                >
                   <CardContent className="p-6">
                     <div className="flex items-start justify-between">
                       <div className="flex-1 space-y-3">
                         <div className="flex items-center justify-between">
-                          <h3 className="font-semibold text-lg">{delivery.announcement.title}</h3>
+                          <h3 className="font-semibold text-lg">
+                            {delivery.announcement.title}
+                          </h3>
                           {getStatusBadge(delivery.status)}
                         </div>
 
                         <div className="text-sm text-gray-600">
-                          <p><span className="font-medium">{t("client")}:</span> {delivery.announcement.client.name}</p>
-                          <p><span className="font-medium">{t("pickup")}:</span> {delivery.announcement.pickupAddress}</p>
-                          <p><span className="font-medium">{t("delivery")}:</span> {delivery.announcement.deliveryAddress}</p>
+                          <p>
+                            <span className="font-medium">{t("client")}:</span>{" "}
+                            {delivery.announcement.client.name}
+                          </p>
+                          <p>
+                            <span className="font-medium">{t("pickup")}:</span>{" "}
+                            {delivery.announcement.pickupAddress}
+                          </p>
+                          <p>
+                            <span className="font-medium">
+                              {t("delivery")}:
+                            </span>{" "}
+                            {delivery.announcement.deliveryAddress}
+                          </p>
                         </div>
 
                         {delivery.actualDeliveryDate && (
                           <p className="text-sm text-green-600">
-                            {t("completed_at")}: {new Date(delivery.actualDeliveryDate).toLocaleString()}
+                            {t("completed_at")}:{" "}
+                            {new Date(
+                              delivery.actualDeliveryDate,
+                            ).toLocaleString()}
                           </p>
                         )}
 
@@ -637,22 +751,29 @@ export default function DeliveryManager({ delivererId }: DeliveryManagerProps) {
                         <div className="text-xs text-gray-500 mb-2">
                           Debug: Status = {delivery.status}
                         </div>
-                        
+
                         {/* Test Button - Always visible */}
-                        <Button 
-                          size="sm" 
+                        <Button
+                          size="sm"
                           variant="outline"
                           onClick={() => {
-                            console.log("Test button clicked for completed delivery:", delivery.id, "Status:", delivery.status);
-                            toast.info(`Livraison terminée - Status: ${delivery.status}`);
+                            console.log(
+                              "Test button clicked for completed delivery:",
+                              delivery.id,
+                              "Status:",
+                              delivery.status,
+                            );
+                            toast.info(
+                              `Livraison terminée - Status: ${delivery.status}`,
+                            );
                           }}
                         >
                           Test Action
                         </Button>
 
                         {/* Contact Client Button */}
-                        <Button 
-                          size="sm" 
+                        <Button
+                          size="sm"
                           variant="outline"
                           onClick={() => contactClient(delivery)}
                           disabled={actionLoading === delivery.id}
@@ -671,7 +792,10 @@ export default function DeliveryManager({ delivererId }: DeliveryManagerProps) {
       </div>
 
       {/* Validation Dialog */}
-      <Dialog open={showValidationDialog} onOpenChange={setShowValidationDialog}>
+      <Dialog
+        open={showValidationDialog}
+        onOpenChange={setShowValidationDialog}
+      >
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center text-green-600">
@@ -679,10 +803,11 @@ export default function DeliveryManager({ delivererId }: DeliveryManagerProps) {
               Validation de livraison
             </DialogTitle>
             <DialogDescription>
-              Demandez le code de validation à 6 chiffres au client et saisissez-le ci-dessous pour confirmer la livraison
+              Demandez le code de validation à 6 chiffres au client et
+              saisissez-le ci-dessous pour confirmer la livraison
             </DialogDescription>
           </DialogHeader>
-          
+
           {selectedDelivery && (
             <div className="space-y-4">
               <div className="bg-blue-50 p-3 rounded-lg">
@@ -690,10 +815,14 @@ export default function DeliveryManager({ delivererId }: DeliveryManagerProps) {
                   <User className="w-4 h-4 text-blue-600" />
                   <span className="font-medium text-blue-900">Client</span>
                 </div>
-                <p className="text-sm">{selectedDelivery.announcement.client.name}</p>
-                <p className="text-xs text-blue-700">{selectedDelivery.announcement.deliveryAddress}</p>
+                <p className="text-sm">
+                  {selectedDelivery.announcement.client.name}
+                </p>
+                <p className="text-xs text-blue-700">
+                  {selectedDelivery.announcement.deliveryAddress}
+                </p>
               </div>
-              
+
               <div className="space-y-2">
                 <label className="text-sm font-medium text-gray-700">
                   Code de validation du client (6 chiffres)
@@ -701,30 +830,40 @@ export default function DeliveryManager({ delivererId }: DeliveryManagerProps) {
                 <Input
                   placeholder="000000"
                   value={validationCode}
-                  onChange={(e) => setValidationCode(e.target.value.replace(/\D/g, ''))}
+                  onChange={(e) =>
+                    setValidationCode(e.target.value.replace(/\D/g, ""))
+                  }
                   className="text-center font-mono text-2xl tracking-widest"
                   maxLength={6}
                 />
                 <p className="text-xs text-gray-500">
-                  Le client doit vous donner ce code pour confirmer qu'il a bien reçu sa livraison
+                  Le client doit vous donner ce code pour confirmer qu'il a bien
+                  reçu sa livraison
                 </p>
               </div>
             </div>
           )}
-          
+
           <DialogFooter>
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               onClick={() => {
-                setShowValidationDialog(false)
-                setValidationCode('')
+                setShowValidationDialog(false);
+                setValidationCode("");
               }}
             >
               Annuler
             </Button>
             <Button
-              onClick={() => selectedDelivery && validateDelivery(selectedDelivery.id, validationCode)}
-              disabled={!validationCode.trim() || validationCode.length !== 6 || actionLoading === selectedDelivery?.id}
+              onClick={() =>
+                selectedDelivery &&
+                validateDelivery(selectedDelivery.id, validationCode)
+              }
+              disabled={
+                !validationCode.trim() ||
+                validationCode.length !== 6 ||
+                actionLoading === selectedDelivery?.id
+              }
               className="bg-green-600 hover:bg-green-700"
             >
               {actionLoading === selectedDelivery?.id ? (
@@ -757,12 +896,17 @@ export default function DeliveryManager({ delivererId }: DeliveryManagerProps) {
               <div className="space-y-3">
                 <div className="flex items-center space-x-2">
                   <User className="w-4 h-4 text-gray-400" />
-                  <span className="font-medium">{selectedDelivery.announcement.client.name}</span>
+                  <span className="font-medium">
+                    {selectedDelivery.announcement.client.name}
+                  </span>
                 </div>
                 {selectedDelivery.announcement.client.phone && (
                   <div className="flex items-center space-x-2">
                     <Phone className="w-4 h-4 text-gray-400" />
-                    <a href={`tel:${selectedDelivery.announcement.client.phone}`} className="text-blue-600 hover:underline">
+                    <a
+                      href={`tel:${selectedDelivery.announcement.client.phone}`}
+                      className="text-blue-600 hover:underline"
+                    >
                       {selectedDelivery.announcement.client.phone}
                     </a>
                   </div>
@@ -771,7 +915,10 @@ export default function DeliveryManager({ delivererId }: DeliveryManagerProps) {
             )}
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowContactDialog(false)}>
+            <Button
+              variant="outline"
+              onClick={() => setShowContactDialog(false)}
+            >
               {t("contact.dialog.close")}
             </Button>
           </DialogFooter>
@@ -782,7 +929,7 @@ export default function DeliveryManager({ delivererId }: DeliveryManagerProps) {
       <DeliveryCancelDialog
         open={showCancelDialog}
         onOpenChange={setShowCancelDialog}
-        deliveryId={cancelDeliveryId || ''}
+        deliveryId={cancelDeliveryId || ""}
         onCancelComplete={() => {
           setShowCancelDialog(false);
           setCancelDeliveryId(null);
@@ -791,7 +938,10 @@ export default function DeliveryManager({ delivererId }: DeliveryManagerProps) {
       />
 
       {/* Proof Upload Dialog */}
-      <Dialog open={showProofUploadDialog} onOpenChange={setShowProofUploadDialog}>
+      <Dialog
+        open={showProofUploadDialog}
+        onOpenChange={setShowProofUploadDialog}
+      >
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>Upload de preuve de livraison</DialogTitle>
@@ -815,4 +965,4 @@ export default function DeliveryManager({ delivererId }: DeliveryManagerProps) {
       </Dialog>
     </>
   );
-} 
+}

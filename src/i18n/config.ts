@@ -3,39 +3,39 @@
  */
 
 // Liste des locales supportées
-export const locales = ['fr', 'en'] as const
+export const locales = ["fr", "en"] as const;
 
 // Type pour les locales
-export type Locale = (typeof locales)[number]
+export type Locale = (typeof locales)[number];
 
 // Noms des langues dans leur langue native
 export const localeNames: Record<Locale, string> = {
-  fr: 'Français',
-  en: 'English'
-}
+  fr: "Français",
+  en: "English",
+};
 
 // Drapeaux des pays/langues
 export const localeFlags: Record<Locale, string> = {
-  fr: '🇫🇷',
-  en: '🇬🇧'
-}
+  fr: "🇫🇷",
+  en: "🇬🇧",
+};
 
 // Locale par défaut
-export const defaultLocale: Locale = 'fr'
+export const defaultLocale: Locale = "fr";
 
 // Configuration complète des locales
 export const localeConfig = {
   locales,
   defaultLocale,
   localeNames,
-  localeFlags
-} as const
+  localeFlags,
+} as const;
 
 /**
  * Vérifier si une locale est valide
  */
 export function isValidLocale(locale: string): locale is Locale {
-  return locales.includes(locale as Locale)
+  return locales.includes(locale as Locale);
 }
 
 /**
@@ -43,7 +43,7 @@ export function isValidLocale(locale: string): locale is Locale {
  */
 export function getValidLocale(locale?: string): Locale {
   if (locale && isValidLocale(locale)) {
-    return locale
+    return locale;
   }
-  return defaultLocale
-} 
+  return defaultLocale;
+}

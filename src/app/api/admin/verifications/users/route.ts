@@ -1,55 +1,63 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { requireRole } from '@/lib/auth/utils'
-import { prisma } from '@/lib/db'
+import { NextRequest, NextResponse } from "next/server";
+import { requireRole } from "@/lib/auth/utils";
+import { prisma } from "@/lib/db";
 
 /**
  * GET - Récupérer les utilisateurs avec leurs statuts de vérification
  */
 export async function GET(request: NextRequest) {
   try {
-    console.log('🔍 Vérification authentification admin (verifications/users)...')
-    
+    console.log(
+      "🔍 Vérification authentification admin (verifications/users)...",
+    );
+
     // Vérifier que l'utilisateur est admin
-    const user = await requireRole(request, ['ADMIN'])
-    console.log('✅ Utilisateur admin authentifié (verifications/users):', user.email)
+    const user = await requireRole(request, ["ADMIN"]);
+    console.log(
+      "✅ Utilisateur admin authentifié (verifications/users):",
+      user.email,
+    );
   } catch (error) {
-    console.error('❌ Erreur authentification admin (verifications/users):', error)
+    console.error(
+      "❌ Erreur authentification admin (verifications/users):",
+      error,
+    );
     return NextResponse.json(
-      { error: 'Accès refusé - rôle admin requis', success: false },
-      { status: 403 }
-    )
+      { error: "Accès refusé - rôle admin requis", success: false },
+      { status: 403 },
+    );
   }
 
   try {
-    const { searchParams } = new URL(request.url)
-    const search = searchParams.get('search') || ''
-    const role = searchParams.get('role') || 'all'
-    const status = searchParams.get('status') || 'all'
+    const { searchParams } = new URL(request.url);
+    const search = searchParams.get("search") || "";
+    const role = searchParams.get("role") || "all";
+    const status = searchParams.get("status") || "all";
 
-    console.log('🔍 Filtres vérifications:', { role, status })
+    console.log("🔍 Filtres vérifications:", { role, status });
 
     // Construction de la requête avec filtres
     const whereConditions: any = {
       role: {
-        in: ['DELIVERER', 'PROVIDER', 'MERCHANT'] // Seulement les rôles nécessitant vérification
+        in: ["DELIVERER", "PROVIDER", "MERCHANT"], // Seulement les rôles nécessitant vérification
       },
       documents: {
-        some: {} // Doit avoir au moins un document
-      }
-    }
+        some: {}, // Doit avoir au moins un document
+      },
+    };
 
     // Filtre par recherche (email, nom, prénom)
     if (search) {
       whereConditions.OR = [
-        { email: { contains: search, mode: 'insensitive' } },
-        { profile: { firstName: { contains: search, mode: 'insensitive' } } },
-        { profile: { lastName: { contains: search, mode: 'insensitive' } } }
-      ]
+        { email: { contains: search, mode: "insensitive" } },
+        { profile: { firstName: { contains: search, mode: "insensitive" } } },
+        { profile: { lastName: { contains: search, mode: "insensitive" } } },
+      ];
     }
 
     // Filtre par rôle
-    if (role !== 'all') {
-      whereConditions.role = role
+    if (role !== "all") {
+      whereConditions.role = role;
     }
 
     // Récupérer les utilisateurs avec leurs documents
@@ -59,55 +67,70 @@ export async function GET(request: NextRequest) {
         profile: {
           select: {
             firstName: true,
-            lastName: true
-          }
+            lastName: true,
+          },
         },
         documents: {
           select: {
             id: true,
             type: true,
             validationStatus: true,
-            createdAt: true
-          }
-        }
+            createdAt: true,
+          },
+        },
       },
       orderBy: {
-        createdAt: 'desc'
-      }
-    })
+        createdAt: "desc",
+      },
+    });
 
-    console.log(`✅ ${users.length} utilisateurs avec documents trouvés`)
+    console.log(`✅ ${users.length} utilisateurs avec documents trouvés`);
 
     // Traitement des données pour le frontend
-    const processedUsers = users.map(user => {
-      const documents = user.documents
-      const documentsCount = documents.length
-      const pendingDocuments = documents.filter(doc => doc.validationStatus === 'PENDING').length
-      const approvedDocuments = documents.filter(doc => doc.validationStatus === 'APPROVED').length
-      const rejectedDocuments = documents.filter(doc => doc.validationStatus === 'REJECTED').length
+    const processedUsers = users.map((user) => {
+      const documents = user.documents;
+      const documentsCount = documents.length;
+      const pendingDocuments = documents.filter(
+        (doc) => doc.validationStatus === "PENDING",
+      ).length;
+      const approvedDocuments = documents.filter(
+        (doc) => doc.validationStatus === "APPROVED",
+      ).length;
+      const rejectedDocuments = documents.filter(
+        (doc) => doc.validationStatus === "REJECTED",
+      ).length;
 
       // Déterminer le statut de vérification global
-      let verificationStatus: 'PENDING' | 'APPROVED' | 'REJECTED' | 'INCOMPLETE' = 'INCOMPLETE'
-      
+      let verificationStatus:
+        | "PENDING"
+        | "APPROVED"
+        | "REJECTED"
+        | "INCOMPLETE" = "INCOMPLETE";
+
       if (documentsCount === 0) {
-        verificationStatus = 'INCOMPLETE'
+        verificationStatus = "INCOMPLETE";
       } else if (rejectedDocuments > 0) {
-        verificationStatus = 'REJECTED'
+        verificationStatus = "REJECTED";
       } else if (pendingDocuments > 0) {
-        verificationStatus = 'PENDING'
+        verificationStatus = "PENDING";
       } else if (approvedDocuments === documentsCount) {
         // Vérifier si tous les documents requis sont présents
-        const requiredDocs = getRequiredDocuments(user.role)
-        const submittedTypes = documents.map(doc => doc.type)
-        const hasAllRequired = requiredDocs.every(type => submittedTypes.includes(type))
-        
-        verificationStatus = hasAllRequired ? 'APPROVED' : 'INCOMPLETE'
+        const requiredDocs = getRequiredDocuments(user.role);
+        const submittedTypes = documents.map((doc) => doc.type);
+        const hasAllRequired = requiredDocs.every((type) =>
+          submittedTypes.includes(type),
+        );
+
+        verificationStatus = hasAllRequired ? "APPROVED" : "INCOMPLETE";
       }
 
       // Dernière soumission de document
-      const lastDocumentSubmitted = documents.length > 0 
-        ? Math.max(...documents.map(doc => new Date(doc.createdAt).getTime()))
-        : null
+      const lastDocumentSubmitted =
+        documents.length > 0
+          ? Math.max(
+              ...documents.map((doc) => new Date(doc.createdAt).getTime()),
+            )
+          : null;
 
       return {
         id: user.id,
@@ -120,29 +143,34 @@ export async function GET(request: NextRequest) {
         pendingDocuments,
         approvedDocuments,
         rejectedDocuments,
-        lastDocumentSubmitted: lastDocumentSubmitted ? new Date(lastDocumentSubmitted).toISOString() : null,
+        lastDocumentSubmitted: lastDocumentSubmitted
+          ? new Date(lastDocumentSubmitted).toISOString()
+          : null,
         verificationStatus,
-        createdAt: user.createdAt.toISOString()
-      }
-    })
+        createdAt: user.createdAt.toISOString(),
+      };
+    });
 
     // Filtrage par statut si spécifié
-    const filteredUsers = status !== 'all' 
-      ? processedUsers.filter(user => user.verificationStatus === status)
-      : processedUsers
+    const filteredUsers =
+      status !== "all"
+        ? processedUsers.filter((user) => user.verificationStatus === status)
+        : processedUsers;
 
     return NextResponse.json({
       success: true,
       users: filteredUsers,
-      total: filteredUsers.length
-    })
-
+      total: filteredUsers.length,
+    });
   } catch (error) {
-    console.error('Error fetching verification users:', error)
+    console.error("Error fetching verification users:", error);
     return NextResponse.json(
-      { error: 'Erreur lors de la récupération des utilisateurs', success: false },
-      { status: 500 }
-    )
+      {
+        error: "Erreur lors de la récupération des utilisateurs",
+        success: false,
+      },
+      { status: 500 },
+    );
   }
 }
 
@@ -151,13 +179,13 @@ export async function GET(request: NextRequest) {
  */
 function getRequiredDocuments(role: string): string[] {
   switch (role) {
-    case 'DELIVERER':
-      return ['IDENTITY', 'DRIVING_LICENSE', 'INSURANCE']
-    case 'PROVIDER':
-      return ['IDENTITY', 'CERTIFICATION']
-    case 'MERCHANT':
-      return ['IDENTITY', 'CONTRACT']
+    case "DELIVERER":
+      return ["IDENTITY", "DRIVING_LICENSE", "INSURANCE"];
+    case "PROVIDER":
+      return ["IDENTITY", "CERTIFICATION"];
+    case "MERCHANT":
+      return ["IDENTITY", "CONTRACT"];
     default:
-      return []
+      return [];
   }
-} 
+}

@@ -1,97 +1,99 @@
-'use client'
+"use client";
 
-import { useTranslations } from 'next-intl'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { 
-  Cloud, 
-  CheckCircle, 
-  XCircle, 
+import { useTranslations } from "next-intl";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import {
+  Cloud,
+  CheckCircle,
+  XCircle,
   AlertTriangle,
-  Activity
-} from 'lucide-react'
+  Activity,
+} from "lucide-react";
 
 interface SystemConfig {
   oneSignal: {
-    enabled: boolean
-    status: string
-  }
+    enabled: boolean;
+    status: string;
+  };
   stripe: {
-    enabled: boolean
-    status: string
-  }
+    enabled: boolean;
+    status: string;
+  };
   email: {
-    enabled: boolean
-    status: string
-  }
+    enabled: boolean;
+    status: string;
+  };
   storage: {
-    enabled: boolean
-    status: string
-  }
+    enabled: boolean;
+    status: string;
+  };
 }
 
 interface SystemConfigDashboardProps {
-  config: SystemConfig
+  config: SystemConfig;
 }
 
 export function SystemConfigDashboard({ config }: SystemConfigDashboardProps) {
-  const t = useTranslations('admin.systemConfig')
+  const t = useTranslations("admin.systemConfig");
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'connected':
-        return <CheckCircle className="h-4 w-4 text-green-600" />
-      case 'disconnected':
-        return <XCircle className="h-4 w-4 text-red-600" />
-      case 'warning':
-        return <AlertTriangle className="h-4 w-4 text-yellow-600" />
+      case "connected":
+        return <CheckCircle className="h-4 w-4 text-green-600" />;
+      case "disconnected":
+        return <XCircle className="h-4 w-4 text-red-600" />;
+      case "warning":
+        return <AlertTriangle className="h-4 w-4 text-yellow-600" />;
       default:
-        return <Activity className="h-4 w-4 text-gray-600" />
+        return <Activity className="h-4 w-4 text-gray-600" />;
     }
-  }
+  };
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case 'connected':
-        return <Badge className="bg-green-100 text-green-800">Connected</Badge>
-      case 'disconnected':
-        return <Badge className="bg-red-100 text-red-800">Disconnected</Badge>
-      case 'warning':
-        return <Badge className="bg-yellow-100 text-yellow-800">Warning</Badge>
+      case "connected":
+        return <Badge className="bg-green-100 text-green-800">Connected</Badge>;
+      case "disconnected":
+        return <Badge className="bg-red-100 text-red-800">Disconnected</Badge>;
+      case "warning":
+        return <Badge className="bg-yellow-100 text-yellow-800">Warning</Badge>;
       default:
-        return <Badge variant="outline">Unknown</Badge>
+        return <Badge variant="outline">Unknown</Badge>;
     }
-  }
+  };
 
   const services = [
     {
-      name: 'OneSignal',
-      description: t('oneSignal.description'),
+      name: "OneSignal",
+      description: t("oneSignal.description"),
       status: config.oneSignal.status,
-      enabled: config.oneSignal.enabled
+      enabled: config.oneSignal.enabled,
     },
     {
-      name: 'Stripe',
-      description: t('stripe.description'),
+      name: "Stripe",
+      description: t("stripe.description"),
       status: config.stripe.status,
-      enabled: config.stripe.enabled
+      enabled: config.stripe.enabled,
     },
     {
-      name: 'Email Service',
-      description: t('email.description'),
+      name: "Email Service",
+      description: t("email.description"),
       status: config.email.status,
-      enabled: config.email.enabled
+      enabled: config.email.enabled,
     },
     {
-      name: 'Storage',
-      description: t('storage.description'),
+      name: "Storage",
+      description: t("storage.description"),
       status: config.storage.status,
-      enabled: config.storage.enabled
-    }
-  ]
+      enabled: config.storage.enabled,
+    },
+  ];
 
-  const connectedServices = services.filter(service => service.status === 'connected').length
-  const totalServices = services.length
+  const connectedServices = services.filter(
+    (service) => service.status === "connected",
+  ).length;
+  const totalServices = services.length;
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
@@ -100,7 +102,7 @@ export function SystemConfigDashboard({ config }: SystemConfigDashboardProps) {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-muted-foreground">
-                {t('stats.totalServices')}
+                {t("stats.totalServices")}
               </p>
               <p className="text-2xl font-bold">{totalServices}</p>
             </div>
@@ -114,7 +116,7 @@ export function SystemConfigDashboard({ config }: SystemConfigDashboardProps) {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-muted-foreground">
-                {t('stats.connectedServices')}
+                {t("stats.connectedServices")}
               </p>
               <p className="text-2xl font-bold">{connectedServices}</p>
             </div>
@@ -128,10 +130,13 @@ export function SystemConfigDashboard({ config }: SystemConfigDashboardProps) {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-muted-foreground">
-                {t('stats.connectionRate')}
+                {t("stats.connectionRate")}
               </p>
               <p className="text-2xl font-bold">
-                {totalServices > 0 ? Math.round((connectedServices / totalServices) * 100) : 0}%
+                {totalServices > 0
+                  ? Math.round((connectedServices / totalServices) * 100)
+                  : 0}
+                %
               </p>
             </div>
             <Activity className="w-8 h-8 text-purple-600" />
@@ -144,9 +149,11 @@ export function SystemConfigDashboard({ config }: SystemConfigDashboardProps) {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-muted-foreground">
-                {t('stats.disconnectedServices')}
+                {t("stats.disconnectedServices")}
               </p>
-              <p className="text-2xl font-bold">{totalServices - connectedServices}</p>
+              <p className="text-2xl font-bold">
+                {totalServices - connectedServices}
+              </p>
             </div>
             <XCircle className="w-8 h-8 text-red-600" />
           </div>
@@ -157,23 +164,30 @@ export function SystemConfigDashboard({ config }: SystemConfigDashboardProps) {
       <div className="col-span-full">
         <Card>
           <CardHeader>
-            <CardTitle>{t('overview.serviceStatus')}</CardTitle>
+            <CardTitle>{t("overview.serviceStatus")}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               {services.map((service) => (
-                <div key={service.name} className="flex items-center justify-between p-4 border rounded-lg">
+                <div
+                  key={service.name}
+                  className="flex items-center justify-between p-4 border rounded-lg"
+                >
                   <div className="flex items-center gap-3">
                     {getStatusIcon(service.status)}
                     <div>
                       <h4 className="font-medium">{service.name}</h4>
-                      <p className="text-sm text-muted-foreground">{service.description}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {service.description}
+                      </p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
                     {getStatusBadge(service.status)}
                     {!service.enabled && (
-                      <Badge variant="outline" className="text-xs">Disabled</Badge>
+                      <Badge variant="outline" className="text-xs">
+                        Disabled
+                      </Badge>
                     )}
                   </div>
                 </div>
@@ -183,5 +197,5 @@ export function SystemConfigDashboard({ config }: SystemConfigDashboardProps) {
         </Card>
       </div>
     </div>
-  )
-} 
+  );
+}

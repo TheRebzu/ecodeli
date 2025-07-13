@@ -1,156 +1,166 @@
-"use client"
+"use client";
 
-import { useState } from 'react'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
-import { Badge } from '@/components/ui/badge'
-import { MapPin, Package, CheckCircle, AlertCircle } from 'lucide-react'
-import { useToast } from '@/components/ui/use-toast'
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Badge } from "@/components/ui/badge";
+import { MapPin, Package, CheckCircle, AlertCircle } from "lucide-react";
+import { useToast } from "@/components/ui/use-toast";
 
 const validationSchema = z.object({
   validationCode: z
     .string()
-    .length(6, 'Le code doit contenir exactement 6 chiffres')
-    .regex(/^\d{6}$/, 'Le code doit être composé uniquement de chiffres'),
+    .length(6, "Le code doit contenir exactement 6 chiffres")
+    .regex(/^\d{6}$/, "Le code doit être composé uniquement de chiffres"),
   notes: z.string().optional(),
-  useLocation: z.boolean().default(false)
-})
+  useLocation: z.boolean().default(false),
+});
 
-type ValidationFormData = z.infer<typeof validationSchema>
+type ValidationFormData = z.infer<typeof validationSchema>;
 
 interface DeliveryValidationFormProps {
-  deliveryId: string
+  deliveryId: string;
   deliveryInfo?: {
-    id: string
-    trackingNumber: string
-    client: { firstName?: string; lastName?: string }
-    announcement: { title: string; deliveryAddress: string }
-  }
-  onValidationSuccess?: () => void
+    id: string;
+    trackingNumber: string;
+    client: { firstName?: string; lastName?: string };
+    announcement: { title: string; deliveryAddress: string };
+  };
+  onValidationSuccess?: () => void;
 }
 
-export function DeliveryValidationForm({ 
-  deliveryId, 
+export function DeliveryValidationForm({
+  deliveryId,
   deliveryInfo,
-  onValidationSuccess 
+  onValidationSuccess,
 }: DeliveryValidationFormProps) {
-  const [isValidating, setIsValidating] = useState(false)
+  const [isValidating, setIsValidating] = useState(false);
   const [validationResult, setValidationResult] = useState<{
-    success: boolean
-    message: string
-  } | null>(null)
-  const { toast } = useToast()
+    success: boolean;
+    message: string;
+  } | null>(null);
+  const { toast } = useToast();
 
   const form = useForm<ValidationFormData>({
     resolver: zodResolver(validationSchema),
     defaultValues: {
-      validationCode: '',
-      notes: '',
-      useLocation: false
-    }
-  })
+      validationCode: "",
+      notes: "",
+      useLocation: false,
+    },
+  });
 
-  const getCurrentLocation = (): Promise<{latitude: number, longitude: number}> => {
+  const getCurrentLocation = (): Promise<{
+    latitude: number;
+    longitude: number;
+  }> => {
     return new Promise((resolve, reject) => {
       if (!navigator.geolocation) {
-        reject(new Error('Géolocalisation non supportée'))
-        return
+        reject(new Error("Géolocalisation non supportée"));
+        return;
       }
 
       navigator.geolocation.getCurrentPosition(
         (position) => {
           resolve({
             latitude: position.coords.latitude,
-            longitude: position.coords.longitude
-          })
+            longitude: position.coords.longitude,
+          });
         },
         (error) => {
-          reject(new Error('Impossible d\'obtenir la position'))
+          reject(new Error("Impossible d'obtenir la position"));
         },
-        { enableHighAccuracy: true, timeout: 10000 }
-      )
-    })
-  }
+        { enableHighAccuracy: true, timeout: 10000 },
+      );
+    });
+  };
 
   const onSubmit = async (data: ValidationFormData) => {
-    setIsValidating(true)
-    setValidationResult(null)
+    setIsValidating(true);
+    setValidationResult(null);
 
     try {
-      let locationData = {}
-      
+      let locationData = {};
+
       if (data.useLocation) {
         try {
-          const position = await getCurrentLocation()
+          const position = await getCurrentLocation();
           locationData = {
             latitude: position.latitude,
-            longitude: position.longitude
-          }
+            longitude: position.longitude,
+          };
         } catch (error) {
-          console.warn('Impossible d\'obtenir la localisation:', error)
+          console.warn("Impossible d'obtenir la localisation:", error);
         }
       }
 
       const response = await fetch(`/api/deliveries/${deliveryId}/validate`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           validationCode: data.validationCode,
           notes: data.notes,
-          ...locationData
-        })
-      })
+          ...locationData,
+        }),
+      });
 
-      const result = await response.json()
+      const result = await response.json();
 
       if (result.success) {
         setValidationResult({
           success: true,
-          message: result.message
-        })
-        
+          message: result.message,
+        });
+
         toast({
           title: "Livraison validée !",
           description: "La livraison a été confirmée avec succès",
-        })
+        });
 
         if (onValidationSuccess) {
-          onValidationSuccess()
+          onValidationSuccess();
         }
       } else {
         setValidationResult({
           success: false,
-          message: result.error || 'Erreur de validation'
-        })
-        
+          message: result.error || "Erreur de validation",
+        });
+
         toast({
           title: "Erreur de validation",
-          description: result.error || 'Code incorrect ou livraison invalide',
-          variant: "destructive"
-        })
+          description: result.error || "Code incorrect ou livraison invalide",
+          variant: "destructive",
+        });
       }
     } catch (error) {
-      const errorMessage = 'Erreur de connexion. Vérifiez votre réseau.'
+      const errorMessage = "Erreur de connexion. Vérifiez votre réseau.";
       setValidationResult({
         success: false,
-        message: errorMessage
-      })
-      
+        message: errorMessage,
+      });
+
       toast({
         title: "Erreur de connexion",
         description: errorMessage,
-        variant: "destructive"
-      })
+        variant: "destructive",
+      });
     } finally {
-      setIsValidating(false)
+      setIsValidating(false);
     }
-  }
+  };
 
   // Si la validation a réussi, afficher le message de succès
   if (validationResult?.success) {
@@ -163,9 +173,7 @@ export function DeliveryValidationForm({
               <h3 className="text-xl font-semibold text-green-700">
                 Livraison Validée !
               </h3>
-              <p className="text-gray-600 mt-2">
-                {validationResult.message}
-              </p>
+              <p className="text-gray-600 mt-2">{validationResult.message}</p>
             </div>
             <Badge variant="default" className="bg-green-100 text-green-800">
               Livraison terminée
@@ -173,7 +181,7 @@ export function DeliveryValidationForm({
           </div>
         </CardContent>
       </Card>
-    )
+    );
   }
 
   return (
@@ -185,8 +193,13 @@ export function DeliveryValidationForm({
         </CardTitle>
         {deliveryInfo && (
           <div className="text-sm text-gray-600 space-y-1">
-            <p><strong>Client:</strong> {deliveryInfo.client.firstName} {deliveryInfo.client.lastName}</p>
-            <p><strong>Suivi:</strong> {deliveryInfo.trackingNumber}</p>
+            <p>
+              <strong>Client:</strong> {deliveryInfo.client.firstName}{" "}
+              {deliveryInfo.client.lastName}
+            </p>
+            <p>
+              <strong>Suivi:</strong> {deliveryInfo.trackingNumber}
+            </p>
             <p className="flex items-start gap-1">
               <MapPin className="w-3 h-3 mt-1 flex-shrink-0" />
               {deliveryInfo.announcement.deliveryAddress}
@@ -194,7 +207,7 @@ export function DeliveryValidationForm({
           </div>
         )}
       </CardHeader>
-      
+
       <CardContent>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -213,8 +226,10 @@ export function DeliveryValidationForm({
                       className="text-center text-2xl font-mono tracking-wider"
                       onChange={(e) => {
                         // Ne permettre que les chiffres
-                        const value = e.target.value.replace(/\D/g, '').slice(0, 6)
-                        field.onChange(value)
+                        const value = e.target.value
+                          .replace(/\D/g, "")
+                          .slice(0, 6);
+                        field.onChange(value);
                       }}
                     />
                   </FormControl>
@@ -276,7 +291,7 @@ export function DeliveryValidationForm({
             {/* Bouton de validation */}
             <Button
               type="submit"
-              disabled={isValidating || !form.watch('validationCode')}
+              disabled={isValidating || !form.watch("validationCode")}
               className="w-full"
             >
               {isValidating ? (
@@ -305,5 +320,5 @@ export function DeliveryValidationForm({
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }

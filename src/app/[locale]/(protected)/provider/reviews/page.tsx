@@ -11,14 +11,9 @@ export default function ProviderReviewsPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader
-        title={t("page.title")}
-        description={t("page.description")}
-      />
-      
-      {user && (
-        <ProviderReviewDashboard providerId={user.id} />
-      )}
+      <PageHeader title={t("page.title")} description={t("page.description")} />
+
+      {user && <ProviderReviewDashboard providerId={user.id} />}
     </div>
   );
 }

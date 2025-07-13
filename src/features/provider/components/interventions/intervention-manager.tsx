@@ -4,26 +4,45 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { 
-  Calendar, 
-  Clock, 
-  MapPin, 
-  User, 
-  FileText, 
-  CheckCircle, 
-  XCircle, 
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Calendar,
+  Clock,
+  MapPin,
+  User,
+  FileText,
+  CheckCircle,
+  XCircle,
   AlertCircle,
   Eye,
   Edit,
   Download,
   Plus,
-  Loader2
+  Loader2,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
 
@@ -65,12 +84,12 @@ function formatDate(dateString: string) {
   if (!dateString) return "-";
   const date = new Date(dateString);
   if (isNaN(date.getTime())) return "-";
-  return date.toLocaleDateString('fr-FR', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
+  return date.toLocaleDateString("fr-FR", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
   });
 }
 
@@ -78,7 +97,8 @@ export function InterventionManager({ providerId }: InterventionManagerProps) {
   const t = useTranslations("provider.interventions");
   const [interventions, setInterventions] = useState<Intervention[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedIntervention, setSelectedIntervention] = useState<Intervention | null>(null);
+  const [selectedIntervention, setSelectedIntervention] =
+    useState<Intervention | null>(null);
   const [showCompletionDialog, setShowCompletionDialog] = useState(false);
   const [completionReport, setCompletionReport] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("all");
@@ -90,7 +110,9 @@ export function InterventionManager({ providerId }: InterventionManagerProps) {
   const fetchInterventions = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`/api/provider/interventions?providerId=${providerId}`);
+      const response = await fetch(
+        `/api/provider/interventions?providerId=${providerId}`,
+      );
       if (response.ok) {
         const data = await response.json();
         setInterventions(data.interventions || []);
@@ -102,16 +124,23 @@ export function InterventionManager({ providerId }: InterventionManagerProps) {
     }
   };
 
-  const updateInterventionStatus = async (interventionId: string, status: string, report?: string) => {
+  const updateInterventionStatus = async (
+    interventionId: string,
+    status: string,
+    report?: string,
+  ) => {
     try {
-      const response = await fetch(`/api/provider/interventions/${interventionId}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
-          status,
-          completionReport: report
-        })
-      });
+      const response = await fetch(
+        `/api/provider/interventions/${interventionId}`,
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            status,
+            completionReport: report,
+          }),
+        },
+      );
 
       if (response.ok) {
         await fetchInterventions();
@@ -127,9 +156,12 @@ export function InterventionManager({ providerId }: InterventionManagerProps) {
   const getStatusBadge = (status: string) => {
     const statusConfig = {
       scheduled: { color: "bg-blue-100 text-blue-800", label: "Planifiée" },
-      in_progress: { color: "bg-yellow-100 text-yellow-800", label: "En cours" },
+      in_progress: {
+        color: "bg-yellow-100 text-yellow-800",
+        label: "En cours",
+      },
       completed: { color: "bg-green-100 text-green-800", label: "Terminée" },
-      cancelled: { color: "bg-red-100 text-red-800", label: "Annulée" }
+      cancelled: { color: "bg-red-100 text-red-800", label: "Annulée" },
     };
 
     const config = statusConfig[status as keyof typeof statusConfig];
@@ -138,19 +170,27 @@ export function InterventionManager({ providerId }: InterventionManagerProps) {
 
   const getInterventionStats = () => {
     const total = interventions.length;
-    const scheduled = interventions.filter(i => i.status === "scheduled").length;
-    const inProgress = interventions.filter(i => i.status === "in_progress").length;
-    const completed = interventions.filter(i => i.status === "completed").length;
-    const cancelled = interventions.filter(i => i.status === "cancelled").length;
-    
+    const scheduled = interventions.filter(
+      (i) => i.status === "scheduled",
+    ).length;
+    const inProgress = interventions.filter(
+      (i) => i.status === "in_progress",
+    ).length;
+    const completed = interventions.filter(
+      (i) => i.status === "completed",
+    ).length;
+    const cancelled = interventions.filter(
+      (i) => i.status === "cancelled",
+    ).length;
+
     const totalRevenue = interventions
-      .filter(i => i.status === "completed")
+      .filter((i) => i.status === "completed")
       .reduce((sum, i) => sum + i.price, 0);
 
     return { total, scheduled, inProgress, completed, cancelled, totalRevenue };
   };
 
-  const filteredInterventions = interventions.filter(intervention => {
+  const filteredInterventions = interventions.filter((intervention) => {
     if (filterStatus === "all") return true;
     return intervention.status === filterStatus;
   });
@@ -261,19 +301,27 @@ export function InterventionManager({ providerId }: InterventionManagerProps) {
               <CardTitle>Interventions actives</CardTitle>
             </CardHeader>
             <CardContent>
-              {interventions.filter(i => ["scheduled", "in_progress"].includes(i.status)).length === 0 ? (
+              {interventions.filter((i) =>
+                ["scheduled", "in_progress"].includes(i.status),
+              ).length === 0 ? (
                 <div className="text-center py-8">
                   <Calendar className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">Aucune intervention active</h3>
-                  <p className="text-gray-600">Vos prochaines interventions apparaîtront ici.</p>
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">
+                    Aucune intervention active
+                  </h3>
+                  <p className="text-gray-600">
+                    Vos prochaines interventions apparaîtront ici.
+                  </p>
                 </div>
               ) : (
                 <div className="space-y-4">
                   {interventions
-                    .filter(i => ["scheduled", "in_progress"].includes(i.status))
+                    .filter((i) =>
+                      ["scheduled", "in_progress"].includes(i.status),
+                    )
                     .map((intervention) => (
-                      <InterventionCard 
-                        key={intervention.id} 
+                      <InterventionCard
+                        key={intervention.id}
                         intervention={intervention}
                         onStatusUpdate={updateInterventionStatus}
                         onViewDetails={setSelectedIntervention}
@@ -290,8 +338,10 @@ export function InterventionManager({ providerId }: InterventionManagerProps) {
         </TabsContent>
 
         <TabsContent value="scheduled">
-          <InterventionList 
-            interventions={interventions.filter(i => i.status === "scheduled")}
+          <InterventionList
+            interventions={interventions.filter(
+              (i) => i.status === "scheduled",
+            )}
             onStatusUpdate={updateInterventionStatus}
             onViewDetails={setSelectedIntervention}
             onCompleteIntervention={(intervention) => {
@@ -302,8 +352,10 @@ export function InterventionManager({ providerId }: InterventionManagerProps) {
         </TabsContent>
 
         <TabsContent value="completed">
-          <InterventionList 
-            interventions={interventions.filter(i => i.status === "completed")}
+          <InterventionList
+            interventions={interventions.filter(
+              (i) => i.status === "completed",
+            )}
             onStatusUpdate={updateInterventionStatus}
             onViewDetails={setSelectedIntervention}
             showCompletionReport
@@ -311,7 +363,7 @@ export function InterventionManager({ providerId }: InterventionManagerProps) {
         </TabsContent>
 
         <TabsContent value="all">
-          <InterventionList 
+          <InterventionList
             interventions={filteredInterventions}
             onStatusUpdate={updateInterventionStatus}
             onViewDetails={setSelectedIntervention}
@@ -324,7 +376,10 @@ export function InterventionManager({ providerId }: InterventionManagerProps) {
       </Tabs>
 
       {/* Dialog de finalisation d'intervention */}
-      <Dialog open={showCompletionDialog} onOpenChange={setShowCompletionDialog}>
+      <Dialog
+        open={showCompletionDialog}
+        onOpenChange={setShowCompletionDialog}
+      >
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>Finaliser l'intervention</DialogTitle>
@@ -342,15 +397,21 @@ export function InterventionManager({ providerId }: InterventionManagerProps) {
               />
             </div>
             <div className="flex justify-between">
-              <Button variant="outline" onClick={() => setShowCompletionDialog(false)}>
+              <Button
+                variant="outline"
+                onClick={() => setShowCompletionDialog(false)}
+              >
                 Annuler
               </Button>
-              <Button 
-                onClick={() => selectedIntervention && updateInterventionStatus(
-                  selectedIntervention.id, 
-                  "completed", 
-                  completionReport
-                )}
+              <Button
+                onClick={() =>
+                  selectedIntervention &&
+                  updateInterventionStatus(
+                    selectedIntervention.id,
+                    "completed",
+                    completionReport,
+                  )
+                }
                 disabled={!completionReport.trim()}
               >
                 Finaliser
@@ -362,7 +423,10 @@ export function InterventionManager({ providerId }: InterventionManagerProps) {
 
       {/* Dialog de détails d'intervention */}
       {selectedIntervention && !showCompletionDialog && (
-        <Dialog open={!!selectedIntervention} onOpenChange={() => setSelectedIntervention(null)}>
+        <Dialog
+          open={!!selectedIntervention}
+          onOpenChange={() => setSelectedIntervention(null)}
+        >
           <DialogContent className="max-w-2xl">
             <DialogHeader>
               <DialogTitle>{selectedIntervention.title}</DialogTitle>
@@ -382,7 +446,12 @@ interface InterventionCardProps {
   onCompleteIntervention?: (intervention: Intervention) => void;
 }
 
-function InterventionCard({ intervention, onStatusUpdate, onViewDetails, onCompleteIntervention }: InterventionCardProps) {
+function InterventionCard({
+  intervention,
+  onStatusUpdate,
+  onViewDetails,
+  onCompleteIntervention,
+}: InterventionCardProps) {
   return (
     <Card>
       <CardContent className="p-4">
@@ -417,31 +486,38 @@ function InterventionCard({ intervention, onStatusUpdate, onViewDetails, onCompl
           <div className="flex items-center gap-2">
             <User className="h-4 w-4 text-gray-500" />
             <span className="text-sm">{intervention.client.name}</span>
-            <span className="text-lg font-semibold text-green-600">{intervention.price}€</span>
+            <span className="text-lg font-semibold text-green-600">
+              {intervention.price}€
+            </span>
           </div>
-          
+
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={() => onViewDetails(intervention)}>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => onViewDetails(intervention)}
+            >
               <Eye className="h-4 w-4" />
             </Button>
-            
-            {['scheduled', 'confirmed'].includes(intervention.status) && (
-              <Button 
-                size="sm" 
+
+            {["scheduled", "confirmed"].includes(intervention.status) && (
+              <Button
+                size="sm"
                 onClick={() => onStatusUpdate(intervention.id, "in_progress")}
               >
                 Commencer
               </Button>
             )}
-            
-            {intervention.status === "in_progress" && onCompleteIntervention && (
-              <Button 
-                size="sm" 
-                onClick={() => onCompleteIntervention(intervention)}
-              >
-                Terminer
-              </Button>
-            )}
+
+            {intervention.status === "in_progress" &&
+              onCompleteIntervention && (
+                <Button
+                  size="sm"
+                  onClick={() => onCompleteIntervention(intervention)}
+                >
+                  Terminer
+                </Button>
+              )}
           </div>
         </div>
       </CardContent>
@@ -457,20 +533,24 @@ interface InterventionListProps {
   showCompletionReport?: boolean;
 }
 
-function InterventionList({ 
-  interventions, 
-  onStatusUpdate, 
-  onViewDetails, 
+function InterventionList({
+  interventions,
+  onStatusUpdate,
+  onViewDetails,
   onCompleteIntervention,
-  showCompletionReport = false 
+  showCompletionReport = false,
 }: InterventionListProps) {
   if (interventions.length === 0) {
     return (
       <Card>
         <CardContent className="text-center py-8">
           <Calendar className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">Aucune intervention</h3>
-          <p className="text-gray-600">Aucune intervention trouvée pour cette catégorie.</p>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">
+            Aucune intervention
+          </h3>
+          <p className="text-gray-600">
+            Aucune intervention trouvée pour cette catégorie.
+          </p>
         </CardContent>
       </Card>
     );
@@ -497,19 +577,21 @@ function InterventionList({
                 <TableCell>
                   <div>
                     <div className="font-medium">{intervention.title}</div>
-                    <div className="text-sm text-gray-500">{intervention.type}</div>
+                    <div className="text-sm text-gray-500">
+                      {intervention.type}
+                    </div>
                   </div>
                 </TableCell>
                 <TableCell>{intervention.client.name}</TableCell>
-                <TableCell>
-                  {formatDate(intervention.scheduledDate)}
-                </TableCell>
+                <TableCell>{formatDate(intervention.scheduledDate)}</TableCell>
                 <TableCell>{getStatusBadge(intervention.status)}</TableCell>
                 <TableCell>{intervention.price}€</TableCell>
                 {showCompletionReport && (
                   <TableCell>
                     {intervention.completionReport ? (
-                      <span className="text-green-600">✓ Rapport disponible</span>
+                      <span className="text-green-600">
+                        ✓ Rapport disponible
+                      </span>
                     ) : (
                       <span className="text-gray-400">Aucun rapport</span>
                     )}
@@ -517,26 +599,33 @@ function InterventionList({
                 )}
                 <TableCell>
                   <div className="flex items-center gap-2">
-                    <Button variant="ghost" size="sm" onClick={() => onViewDetails(intervention)}>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => onViewDetails(intervention)}
+                    >
                       <Eye className="h-4 w-4" />
                     </Button>
                     {intervention.status === "scheduled" && (
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        onClick={() => onStatusUpdate(intervention.id, "in_progress")}
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() =>
+                          onStatusUpdate(intervention.id, "in_progress")
+                        }
                       >
                         Commencer
                       </Button>
                     )}
-                    {intervention.status === "in_progress" && onCompleteIntervention && (
-                      <Button 
-                        size="sm" 
-                        onClick={() => onCompleteIntervention(intervention)}
-                      >
-                        Terminer
-                      </Button>
-                    )}
+                    {intervention.status === "in_progress" &&
+                      onCompleteIntervention && (
+                        <Button
+                          size="sm"
+                          onClick={() => onCompleteIntervention(intervention)}
+                        >
+                          Terminer
+                        </Button>
+                      )}
                   </div>
                 </TableCell>
               </TableRow>
@@ -581,7 +670,8 @@ function InterventionDetails({ intervention }: { intervention: Intervention }) {
       <div>
         <Label>Adresse d'intervention</Label>
         <p className="mt-1">
-          {intervention.location.address}<br />
+          {intervention.location.address}
+          <br />
           {intervention.location.zipCode} {intervention.location.city}
         </p>
       </div>
@@ -596,7 +686,9 @@ function InterventionDetails({ intervention }: { intervention: Intervention }) {
       {intervention.completionReport && (
         <div>
           <Label>Rapport de fin d'intervention</Label>
-          <p className="mt-1 p-3 bg-gray-50 rounded">{intervention.completionReport}</p>
+          <p className="mt-1 p-3 bg-gray-50 rounded">
+            {intervention.completionReport}
+          </p>
         </div>
       )}
 
@@ -604,8 +696,13 @@ function InterventionDetails({ intervention }: { intervention: Intervention }) {
         <div>
           <Label>Évaluation client</Label>
           <div className="flex items-center gap-2 mt-1">
-            <span className="text-lg">{"★".repeat(intervention.rating)}{"☆".repeat(5-intervention.rating)}</span>
-            <span className="text-sm text-gray-600">({intervention.rating}/5)</span>
+            <span className="text-lg">
+              {"★".repeat(intervention.rating)}
+              {"☆".repeat(5 - intervention.rating)}
+            </span>
+            <span className="text-sm text-gray-600">
+              ({intervention.rating}/5)
+            </span>
           </div>
         </div>
       )}
@@ -618,7 +715,7 @@ function getStatusBadge(status: string) {
     scheduled: { color: "bg-blue-100 text-blue-800", label: "Planifiée" },
     in_progress: { color: "bg-yellow-100 text-yellow-800", label: "En cours" },
     completed: { color: "bg-green-100 text-green-800", label: "Terminée" },
-    cancelled: { color: "bg-red-100 text-red-800", label: "Annulée" }
+    cancelled: { color: "bg-red-100 text-red-800", label: "Annulée" },
   };
 
   const config = statusConfig[status as keyof typeof statusConfig];

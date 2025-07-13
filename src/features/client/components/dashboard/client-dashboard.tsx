@@ -19,7 +19,7 @@ interface DashboardStats {
 
 interface RecentActivity {
   id: string;
-  type: 'ANNOUNCEMENT' | 'DELIVERY' | 'BOOKING' | 'PAYMENT';
+  type: "ANNOUNCEMENT" | "DELIVERY" | "BOOKING" | "PAYMENT";
   title: string;
   status: string;
   date: string;
@@ -34,7 +34,9 @@ export function ClientDashboard({ clientId }: ClientDashboardProps) {
   const t = useTranslations("client.dashboard");
   const { user } = useAuth();
   const [stats, setStats] = useState<DashboardStats | null>(null);
-  const [recentActivities, setRecentActivities] = useState<RecentActivity[]>([]);
+  const [recentActivities, setRecentActivities] = useState<RecentActivity[]>(
+    [],
+  );
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -44,15 +46,17 @@ export function ClientDashboard({ clientId }: ClientDashboardProps) {
   const fetchDashboardData = async () => {
     try {
       setIsLoading(true);
-      const response = await fetch(`/api/client/dashboard?clientId=${clientId}`);
-      
+      const response = await fetch(
+        `/api/client/dashboard?clientId=${clientId}`,
+      );
+
       if (response.ok) {
         const data = await response.json();
         setStats(data.stats);
         setRecentActivities(data.recentActivities || []);
       }
     } catch (error) {
-      console.error('Error fetching dashboard data:', error);
+      console.error("Error fetching dashboard data:", error);
     } finally {
       setIsLoading(false);
     }
@@ -60,21 +64,33 @@ export function ClientDashboard({ clientId }: ClientDashboardProps) {
 
   const getActivityIcon = (type: string) => {
     switch (type) {
-      case 'ANNOUNCEMENT': return <Package className="h-4 w-4" />;
-      case 'DELIVERY': return <Truck className="h-4 w-4" />;
-      case 'BOOKING': return <Calendar className="h-4 w-4" />;
-      case 'PAYMENT': return <DollarSign className="h-4 w-4" />;
-      default: return <Eye className="h-4 w-4" />;
+      case "ANNOUNCEMENT":
+        return <Package className="h-4 w-4" />;
+      case "DELIVERY":
+        return <Truck className="h-4 w-4" />;
+      case "BOOKING":
+        return <Calendar className="h-4 w-4" />;
+      case "PAYMENT":
+        return <DollarSign className="h-4 w-4" />;
+      default:
+        return <Eye className="h-4 w-4" />;
     }
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'PENDING': return 'bg-yellow-100 text-yellow-800';
-      case 'CONFIRMED': case 'ACTIVE': return 'bg-blue-100 text-blue-800';
-      case 'COMPLETED': case 'DELIVERED': return 'bg-green-100 text-green-800';
-      case 'CANCELLED': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case "PENDING":
+        return "bg-yellow-100 text-yellow-800";
+      case "CONFIRMED":
+      case "ACTIVE":
+        return "bg-blue-100 text-blue-800";
+      case "COMPLETED":
+      case "DELIVERED":
+        return "bg-green-100 text-green-800";
+      case "CANCELLED":
+        return "bg-red-100 text-red-800";
+      default:
+        return "bg-gray-100 text-gray-800";
     }
   };
 
@@ -102,28 +118,44 @@ export function ClientDashboard({ clientId }: ClientDashboardProps) {
           <Button className="w-full h-20 text-left justify-start bg-blue-600 hover:bg-blue-700">
             <Plus className="h-6 w-6 mr-3" />
             <div>
-              <div className="font-semibold">{t("actions.create_announcement")}</div>
-              <div className="text-sm opacity-90">{t("actions.create_announcement_desc")}</div>
+              <div className="font-semibold">
+                {t("actions.create_announcement")}
+              </div>
+              <div className="text-sm opacity-90">
+                {t("actions.create_announcement_desc")}
+              </div>
             </div>
           </Button>
         </Link>
-        
+
         <Link href="/client/services">
-          <Button variant="outline" className="w-full h-20 text-left justify-start">
+          <Button
+            variant="outline"
+            className="w-full h-20 text-left justify-start"
+          >
             <Calendar className="h-6 w-6 mr-3" />
             <div>
               <div className="font-semibold">{t("actions.book_service")}</div>
-              <div className="text-sm text-gray-600">{t("actions.book_service_desc")}</div>
+              <div className="text-sm text-gray-600">
+                {t("actions.book_service_desc")}
+              </div>
             </div>
           </Button>
         </Link>
-        
+
         <Link href="/client/deliveries">
-          <Button variant="outline" className="w-full h-20 text-left justify-start">
+          <Button
+            variant="outline"
+            className="w-full h-20 text-left justify-start"
+          >
             <Truck className="h-6 w-6 mr-3" />
             <div>
-              <div className="font-semibold">{t("actions.track_deliveries")}</div>
-              <div className="text-sm text-gray-600">{t("actions.track_deliveries_desc")}</div>
+              <div className="font-semibold">
+                {t("actions.track_deliveries")}
+              </div>
+              <div className="text-sm text-gray-600">
+                {t("actions.track_deliveries_desc")}
+              </div>
             </div>
           </Button>
         </Link>
@@ -137,8 +169,12 @@ export function ClientDashboard({ clientId }: ClientDashboardProps) {
               <div className="flex items-center">
                 <Package className="h-8 w-8 text-blue-600" />
                 <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-500">{t("stats.announcements")}</p>
-                  <p className="text-2xl font-bold">{stats.totalAnnouncements}</p>
+                  <p className="text-sm font-medium text-gray-500">
+                    {t("stats.announcements")}
+                  </p>
+                  <p className="text-2xl font-bold">
+                    {stats.totalAnnouncements}
+                  </p>
                 </div>
               </div>
             </CardContent>
@@ -149,7 +185,9 @@ export function ClientDashboard({ clientId }: ClientDashboardProps) {
               <div className="flex items-center">
                 <Truck className="h-8 w-8 text-green-600" />
                 <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-500">{t("stats.deliveries")}</p>
+                  <p className="text-sm font-medium text-gray-500">
+                    {t("stats.deliveries")}
+                  </p>
                   <p className="text-2xl font-bold">{stats.activeDeliveries}</p>
                 </div>
               </div>
@@ -161,7 +199,9 @@ export function ClientDashboard({ clientId }: ClientDashboardProps) {
               <div className="flex items-center">
                 <Calendar className="h-8 w-8 text-purple-600" />
                 <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-500">{t("stats.bookings")}</p>
+                  <p className="text-sm font-medium text-gray-500">
+                    {t("stats.bookings")}
+                  </p>
                   <p className="text-2xl font-bold">{stats.pendingBookings}</p>
                 </div>
               </div>
@@ -173,7 +213,9 @@ export function ClientDashboard({ clientId }: ClientDashboardProps) {
               <div className="flex items-center">
                 <DollarSign className="h-8 w-8 text-orange-600" />
                 <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-500">{t("stats.spent")}</p>
+                  <p className="text-sm font-medium text-gray-500">
+                    {t("stats.spent")}
+                  </p>
                   <p className="text-2xl font-bold">{stats.totalSpent}€</p>
                 </div>
               </div>
@@ -195,7 +237,10 @@ export function ClientDashboard({ clientId }: ClientDashboardProps) {
           ) : (
             <div className="space-y-4">
               {recentActivities.map((activity) => (
-                <div key={activity.id} className="flex items-center justify-between p-4 border rounded-lg">
+                <div
+                  key={activity.id}
+                  className="flex items-center justify-between p-4 border rounded-lg"
+                >
                   <div className="flex items-center space-x-3">
                     {getActivityIcon(activity.type)}
                     <div>
@@ -220,10 +265,10 @@ export function ClientDashboard({ clientId }: ClientDashboardProps) {
 
       {/* Tutoriel pour nouveaux clients uniquement */}
       {user && (
-        <ClientTutorialSystem 
+        <ClientTutorialSystem
           userId={user.id}
           onComplete={() => {
-            console.log('Tutorial completed');
+            console.log("Tutorial completed");
           }}
         />
       )}

@@ -1,103 +1,115 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import { useTranslations } from 'next-intl'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { 
-  QrCode, 
-  Copy, 
-  CheckCircle, 
-  Clock, 
-  MapPin, 
+import { useState, useEffect } from "react";
+import { useTranslations } from "next-intl";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  QrCode,
+  Copy,
+  CheckCircle,
+  Clock,
+  MapPin,
   User,
   RefreshCw,
-  Shield
-} from 'lucide-react'
-import { toast } from 'sonner'
+  Shield,
+} from "lucide-react";
+import { toast } from "sonner";
 
 interface ValidationCodeData {
-  code: string
-  deliveryId: string
-  status: string
-  expiresAt: string
+  code: string;
+  deliveryId: string;
+  status: string;
+  expiresAt: string;
   deliverer: {
-    firstName: string
-    lastName: string
-    phone: string
-  }
+    firstName: string;
+    lastName: string;
+    phone: string;
+  };
   announcement: {
-    title: string
-    deliveryAddress: string
-  }
+    title: string;
+    deliveryAddress: string;
+  };
 }
 
-export default function ValidationCodePage({ params }: { params: Promise<{ id: string }> }) {
-  const t = useTranslations('client.delivery')
-  const [validationData, setValidationData] = useState<ValidationCodeData | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [copied, setCopied] = useState(false)
+export default function ValidationCodePage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const t = useTranslations("client.delivery");
+  const [validationData, setValidationData] =
+    useState<ValidationCodeData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     const fetchValidationCode = async () => {
       try {
-        const { id } = await params
-        const response = await fetch(`/api/client/announcements/${id}/validation-code`)
-        
+        const { id } = await params;
+        const response = await fetch(
+          `/api/client/announcements/${id}/validation-code`,
+        );
+
         if (response.ok) {
-          const data = await response.json()
-          setValidationData(data)
+          const data = await response.json();
+          setValidationData(data);
         } else {
-          const errorData = await response.json()
-          setError(errorData.error || 'Erreur lors du chargement du code')
+          const errorData = await response.json();
+          setError(errorData.error || "Erreur lors du chargement du code");
         }
       } catch (err) {
-        setError('Erreur lors du chargement du code de validation')
+        setError("Erreur lors du chargement du code de validation");
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
+    };
 
-    fetchValidationCode()
-  }, [params])
+    fetchValidationCode();
+  }, [params]);
 
   const copyToClipboard = async () => {
-    if (!validationData?.code) return
-    
+    if (!validationData?.code) return;
+
     try {
-      await navigator.clipboard.writeText(validationData.code)
-      setCopied(true)
-      toast.success('Code copié dans le presse-papiers')
-      setTimeout(() => setCopied(false), 2000)
+      await navigator.clipboard.writeText(validationData.code);
+      setCopied(true);
+      toast.success("Code copié dans le presse-papiers");
+      setTimeout(() => setCopied(false), 2000);
     } catch (err) {
-      toast.error('Impossible de copier le code')
+      toast.error("Impossible de copier le code");
     }
-  }
+  };
 
   const regenerateCode = async () => {
     try {
-      const { id } = await params
-      const response = await fetch(`/api/client/announcements/${id}/validation-code`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ reason: 'Régénération demandée par le client' })
-      })
-      
+      const { id } = await params;
+      const response = await fetch(
+        `/api/client/announcements/${id}/validation-code`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            reason: "Régénération demandée par le client",
+          }),
+        },
+      );
+
       if (response.ok) {
-        const data = await response.json()
-        setValidationData(data)
-        toast.success('Nouveau code généré avec succès')
+        const data = await response.json();
+        setValidationData(data);
+        toast.success("Nouveau code généré avec succès");
       } else {
-        const errorData = await response.json()
-        toast.error(errorData.error || 'Erreur lors de la régénération')
+        const errorData = await response.json();
+        toast.error(errorData.error || "Erreur lors de la régénération");
       }
     } catch (err) {
-      toast.error('Erreur lors de la régénération du code')
+      toast.error("Erreur lors de la régénération du code");
     }
-  }
+  };
 
   if (loading) {
     return (
@@ -117,7 +129,7 @@ export default function ValidationCodePage({ params }: { params: Promise<{ id: s
           </div>
         </div>
       </div>
-    )
+    );
   }
 
   if (error) {
@@ -129,7 +141,7 @@ export default function ValidationCodePage({ params }: { params: Promise<{ id: s
           </Alert>
         </div>
       </div>
-    )
+    );
   }
 
   if (!validationData) {
@@ -137,17 +149,22 @@ export default function ValidationCodePage({ params }: { params: Promise<{ id: s
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-2xl mx-auto">
           <Alert>
-            <AlertDescription>Aucune donnée de validation disponible</AlertDescription>
+            <AlertDescription>
+              Aucune donnée de validation disponible
+            </AlertDescription>
           </Alert>
         </div>
       </div>
-    )
+    );
   }
 
-  const isExpired = new Date(validationData.expiresAt) < new Date()
-  const timeRemaining = new Date(validationData.expiresAt).getTime() - Date.now()
-  const hoursRemaining = Math.floor(timeRemaining / (1000 * 60 * 60))
-  const minutesRemaining = Math.floor((timeRemaining % (1000 * 60 * 60)) / (1000 * 60))
+  const isExpired = new Date(validationData.expiresAt) < new Date();
+  const timeRemaining =
+    new Date(validationData.expiresAt).getTime() - Date.now();
+  const hoursRemaining = Math.floor(timeRemaining / (1000 * 60 * 60));
+  const minutesRemaining = Math.floor(
+    (timeRemaining % (1000 * 60 * 60)) / (1000 * 60),
+  );
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -183,10 +200,14 @@ export default function ValidationCodePage({ params }: { params: Promise<{ id: s
                 variant="outline"
                 className="flex items-center gap-2"
               >
-                {copied ? <CheckCircle className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                {copied ? 'Copié !' : 'Copier'}
+                {copied ? (
+                  <CheckCircle className="h-4 w-4" />
+                ) : (
+                  <Copy className="h-4 w-4" />
+                )}
+                {copied ? "Copié !" : "Copier"}
               </Button>
-              
+
               <Button
                 onClick={regenerateCode}
                 variant="outline"
@@ -220,19 +241,28 @@ export default function ValidationCodePage({ params }: { params: Promise<{ id: s
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <h4 className="font-medium text-sm text-muted-foreground">Livraison</h4>
+              <h4 className="font-medium text-sm text-muted-foreground">
+                Livraison
+              </h4>
               <p className="text-sm">{validationData.announcement.title}</p>
-            </div>
-            
-            <div>
-              <h4 className="font-medium text-sm text-muted-foreground">Adresse de livraison</h4>
-              <p className="text-sm">{validationData.announcement.deliveryAddress}</p>
             </div>
 
             <div>
-              <h4 className="font-medium text-sm text-muted-foreground">Livreur</h4>
+              <h4 className="font-medium text-sm text-muted-foreground">
+                Adresse de livraison
+              </h4>
               <p className="text-sm">
-                {validationData.deliverer.firstName} {validationData.deliverer.lastName}
+                {validationData.announcement.deliveryAddress}
+              </p>
+            </div>
+
+            <div>
+              <h4 className="font-medium text-sm text-muted-foreground">
+                Livreur
+              </h4>
+              <p className="text-sm">
+                {validationData.deliverer.firstName}{" "}
+                {validationData.deliverer.lastName}
               </p>
               <p className="text-sm text-muted-foreground">
                 Tél: {validationData.deliverer.phone}
@@ -257,11 +287,9 @@ export default function ValidationCodePage({ params }: { params: Promise<{ id: s
                 </Badge>
               </div>
               <div className="text-sm text-muted-foreground">
-                {isExpired ? (
-                  "Ce code a expiré"
-                ) : (
-                  `Expire dans ${hoursRemaining}h ${minutesRemaining}m`
-                )}
+                {isExpired
+                  ? "Ce code a expiré"
+                  : `Expire dans ${hoursRemaining}h ${minutesRemaining}m`}
               </div>
             </div>
           </CardContent>
@@ -271,11 +299,12 @@ export default function ValidationCodePage({ params }: { params: Promise<{ id: s
         <Alert>
           <Shield className="h-4 w-4" />
           <AlertDescription>
-            <strong>Sécurité :</strong> Ne partagez ce code qu'avec le livreur qui se présente chez vous. 
-            Ce code est unique et ne peut être utilisé qu'une seule fois.
+            <strong>Sécurité :</strong> Ne partagez ce code qu'avec le livreur
+            qui se présente chez vous. Ce code est unique et ne peut être
+            utilisé qu'une seule fois.
           </AlertDescription>
         </Alert>
       </div>
     </div>
-  )
-} 
+  );
+}

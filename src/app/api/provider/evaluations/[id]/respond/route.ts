@@ -10,16 +10,13 @@ const responseSchema = z.object({
 // POST - Répondre à une évaluation
 export async function POST(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const { id } = await params
+    const { id } = await params;
     const session = await auth();
     if (!session || session.user.role !== "PROVIDER") {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const body = await request.json();
@@ -65,14 +62,14 @@ export async function POST(
     if (!evaluation) {
       return NextResponse.json(
         { error: "Evaluation not found" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
     if (evaluation.response) {
       return NextResponse.json(
         { error: "Response already exists" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -114,14 +111,14 @@ export async function POST(
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: "Validation error", details: error.errors },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     console.error("Error responding to evaluation:", error);
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
-} 
+}

@@ -1,8 +1,8 @@
-import { z } from 'zod'
-import { baseAnnouncementSchema } from './base-announcement.schema'
+import { z } from "zod";
+import { baseAnnouncementSchema } from "./base-announcement.schema";
 
 export const packageAnnouncementSchema = baseAnnouncementSchema.extend({
-  type: z.literal('PACKAGE'),
+  type: z.literal("PACKAGE"),
   packageDetails: z.object({
     weight: z.number().positive(),
     dimensions: z.object({
@@ -14,6 +14,8 @@ export const packageAnnouncementSchema = baseAnnouncementSchema.extend({
     value: z.number().positive().optional(),
     insurance: z.boolean().default(false),
   }),
-})
+});
 
-export type PackageAnnouncementInput = z.infer<typeof packageAnnouncementSchema>
+export type PackageAnnouncementInput = z.infer<
+  typeof packageAnnouncementSchema
+>;

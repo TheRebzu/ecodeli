@@ -5,8 +5,8 @@ interface CurrentMonthSummaryPageProps {
   params: Promise<{ locale: string }>;
 }
 
-export default async function CurrentMonthSummaryPage({ 
-  params 
+export default async function CurrentMonthSummaryPage({
+  params,
 }: CurrentMonthSummaryPageProps) {
   const { locale } = await params;
   await setRequestLocale(locale);

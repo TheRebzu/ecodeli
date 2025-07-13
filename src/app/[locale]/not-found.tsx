@@ -1,7 +1,7 @@
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { FileQuestion, ArrowLeft, Home, Search } from "lucide-react"
-import Link from "next/link"
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { FileQuestion, ArrowLeft, Home, Search } from "lucide-react";
+import Link from "next/link";
 
 export default function NotFound() {
   return (
@@ -17,13 +17,11 @@ export default function NotFound() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4 text-center">
-            <div className="text-6xl font-bold text-gray-300 mb-4">
-              404
-            </div>
+            <div className="text-6xl font-bold text-gray-300 mb-4">404</div>
             <p className="text-gray-600">
               Désolé, la page que vous cherchez n'existe pas ou a été déplacée.
             </p>
-            
+
             <div className="flex flex-col sm:flex-row gap-3 mt-6">
               <Button asChild variant="outline" className="flex-1">
                 <Link href="javascript:history.back()">
@@ -38,7 +36,7 @@ export default function NotFound() {
                 </Link>
               </Button>
             </div>
-            
+
             <div className="pt-4 border-t">
               <Button asChild variant="ghost" size="sm">
                 <Link href="/search">
@@ -51,5 +49,5 @@ export default function NotFound() {
         </Card>
       </div>
     </div>
-  )
-} 
+  );
+}

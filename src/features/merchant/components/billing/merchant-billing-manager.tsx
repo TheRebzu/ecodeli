@@ -35,7 +35,7 @@ import {
   Clock,
   FileText,
   TrendingUp,
-  TrendingDown
+  TrendingDown,
 } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
 
@@ -58,7 +58,7 @@ interface Invoice {
   issueDate: string;
   dueDate: string;
   amount: number;
-  status: 'PENDING' | 'PAID' | 'OVERDUE' | 'CANCELLED';
+  status: "PENDING" | "PAID" | "OVERDUE" | "CANCELLED";
   items: InvoiceItem[];
   downloadUrl?: string;
 }
@@ -72,7 +72,7 @@ interface InvoiceItem {
 
 interface PaymentMethod {
   id: string;
-  type: 'CARD' | 'BANK_TRANSFER' | 'WALLET';
+  type: "CARD" | "BANK_TRANSFER" | "WALLET";
   lastFour?: string;
   brand?: string;
   expiryMonth?: number;
@@ -82,9 +82,9 @@ interface PaymentMethod {
 
 interface Transaction {
   id: string;
-  type: 'PAYMENT' | 'REFUND' | 'FEE' | 'COMMISSION';
+  type: "PAYMENT" | "REFUND" | "FEE" | "COMMISSION";
   amount: number;
-  status: 'COMPLETED' | 'PENDING' | 'FAILED';
+  status: "COMPLETED" | "PENDING" | "FAILED";
   description: string;
   createdAt: string;
   invoiceId?: string;
@@ -94,7 +94,9 @@ interface MerchantBillingManagerProps {
   merchantId: string;
 }
 
-export function MerchantBillingManager({ merchantId }: MerchantBillingManagerProps) {
+export function MerchantBillingManager({
+  merchantId,
+}: MerchantBillingManagerProps) {
   const t = useTranslations("merchant.billing");
   const [overview, setOverview] = useState<BillingOverview | null>(null);
   const [invoices, setInvoices] = useState<Invoice[]>([]);
@@ -111,12 +113,15 @@ export function MerchantBillingManager({ merchantId }: MerchantBillingManagerPro
   const fetchBillingData = async () => {
     setIsLoading(true);
     try {
-      const [overviewRes, invoicesRes, transactionsRes, paymentMethodsRes] = await Promise.all([
-        fetch(`/api/merchant/billing/overview?merchantId=${merchantId}`),
-        fetch(`/api/merchant/billing/invoices?merchantId=${merchantId}`),
-        fetch(`/api/merchant/billing/transactions?merchantId=${merchantId}`),
-        fetch(`/api/merchant/billing/payment-methods?merchantId=${merchantId}`)
-      ]);
+      const [overviewRes, invoicesRes, transactionsRes, paymentMethodsRes] =
+        await Promise.all([
+          fetch(`/api/merchant/billing/overview?merchantId=${merchantId}`),
+          fetch(`/api/merchant/billing/invoices?merchantId=${merchantId}`),
+          fetch(`/api/merchant/billing/transactions?merchantId=${merchantId}`),
+          fetch(
+            `/api/merchant/billing/payment-methods?merchantId=${merchantId}`,
+          ),
+        ]);
 
       if (overviewRes.ok) {
         const data = await overviewRes.json();
@@ -141,14 +146,17 @@ export function MerchantBillingManager({ merchantId }: MerchantBillingManagerPro
       console.error("Error fetching billing data:", error);
       toast({
         title: t("error.fetch_failed"),
-        variant: "destructive"
+        variant: "destructive",
       });
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handlePayInvoice = async (invoiceId: string, paymentMethodId: string) => {
+  const handlePayInvoice = async (
+    invoiceId: string,
+    paymentMethodId: string,
+  ) => {
     try {
       const response = await fetch("/api/merchant/billing/pay", {
         method: "POST",
@@ -156,14 +164,14 @@ export function MerchantBillingManager({ merchantId }: MerchantBillingManagerPro
         body: JSON.stringify({
           merchantId,
           invoiceId,
-          paymentMethodId
-        })
+          paymentMethodId,
+        }),
       });
 
       if (response.ok) {
         toast({
           title: t("success.payment_processed"),
-          description: t("success.payment_description")
+          description: t("success.payment_description"),
         });
         setShowPaymentDialog(false);
         setSelectedInvoice(null);
@@ -175,19 +183,22 @@ export function MerchantBillingManager({ merchantId }: MerchantBillingManagerPro
     } catch (error) {
       toast({
         title: t("error.payment_failed"),
-        description: error instanceof Error ? error.message : t("error.generic"),
-        variant: "destructive"
+        description:
+          error instanceof Error ? error.message : t("error.generic"),
+        variant: "destructive",
       });
     }
   };
 
   const downloadInvoice = async (invoiceId: string) => {
     try {
-      const response = await fetch(`/api/merchant/billing/invoices/${invoiceId}/download`);
+      const response = await fetch(
+        `/api/merchant/billing/invoices/${invoiceId}/download`,
+      );
       if (response.ok) {
         const blob = await response.blob();
         const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
+        const a = document.createElement("a");
         a.href = url;
         a.download = `invoice_${invoiceId}.pdf`;
         document.body.appendChild(a);
@@ -198,35 +209,48 @@ export function MerchantBillingManager({ merchantId }: MerchantBillingManagerPro
     } catch (error) {
       toast({
         title: t("error.download_failed"),
-        variant: "destructive"
+        variant: "destructive",
       });
     }
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'PAID': case 'COMPLETED': return 'bg-green-100 text-green-800';
-      case 'PENDING': return 'bg-yellow-100 text-yellow-800';
-      case 'OVERDUE': case 'FAILED': return 'bg-red-100 text-red-800';
-      case 'CANCELLED': return 'bg-gray-100 text-gray-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case "PAID":
+      case "COMPLETED":
+        return "bg-green-100 text-green-800";
+      case "PENDING":
+        return "bg-yellow-100 text-yellow-800";
+      case "OVERDUE":
+      case "FAILED":
+        return "bg-red-100 text-red-800";
+      case "CANCELLED":
+        return "bg-gray-100 text-gray-800";
+      default:
+        return "bg-gray-100 text-gray-800";
     }
   };
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'PAID': case 'COMPLETED': return <CheckCircle className="h-4 w-4" />;
-      case 'PENDING': return <Clock className="h-4 w-4" />;
-      case 'OVERDUE': case 'FAILED': return <AlertCircle className="h-4 w-4" />;
-      default: return <Clock className="h-4 w-4" />;
+      case "PAID":
+      case "COMPLETED":
+        return <CheckCircle className="h-4 w-4" />;
+      case "PENDING":
+        return <Clock className="h-4 w-4" />;
+      case "OVERDUE":
+      case "FAILED":
+        return <AlertCircle className="h-4 w-4" />;
+      default:
+        return <Clock className="h-4 w-4" />;
     }
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('fr-FR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric'
+    return new Date(dateString).toLocaleDateString("fr-FR", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
     });
   };
 
@@ -328,20 +352,32 @@ export function MerchantBillingManager({ merchantId }: MerchantBillingManagerPro
       {overview?.activeContract && (
         <Card className="bg-blue-50 border-blue-200">
           <CardHeader>
-            <CardTitle className="text-blue-900">{t("contract.active_contract")}</CardTitle>
+            <CardTitle className="text-blue-900">
+              {t("contract.active_contract")}
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <p className="text-sm text-blue-700">{t("contract.monthly_fee")}</p>
-                <p className="font-semibold text-blue-900">{overview.activeContract.monthlyFee}€</p>
+                <p className="text-sm text-blue-700">
+                  {t("contract.monthly_fee")}
+                </p>
+                <p className="font-semibold text-blue-900">
+                  {overview.activeContract.monthlyFee}€
+                </p>
               </div>
               <div>
-                <p className="text-sm text-blue-700">{t("contract.commission_rate")}</p>
-                <p className="font-semibold text-blue-900">{overview.activeContract.commissionRate}%</p>
+                <p className="text-sm text-blue-700">
+                  {t("contract.commission_rate")}
+                </p>
+                <p className="font-semibold text-blue-900">
+                  {overview.activeContract.commissionRate}%
+                </p>
               </div>
               <div>
-                <p className="text-sm text-blue-700">{t("contract.next_billing")}</p>
+                <p className="text-sm text-blue-700">
+                  {t("contract.next_billing")}
+                </p>
                 <p className="font-semibold text-blue-900">
                   {formatDate(overview.activeContract.nextBillingDate)}
                 </p>
@@ -354,8 +390,12 @@ export function MerchantBillingManager({ merchantId }: MerchantBillingManagerPro
       <Tabs defaultValue="invoices" className="space-y-4">
         <TabsList>
           <TabsTrigger value="invoices">{t("tabs.invoices")}</TabsTrigger>
-          <TabsTrigger value="transactions">{t("tabs.transactions")}</TabsTrigger>
-          <TabsTrigger value="payment_methods">{t("tabs.payment_methods")}</TabsTrigger>
+          <TabsTrigger value="transactions">
+            {t("tabs.transactions")}
+          </TabsTrigger>
+          <TabsTrigger value="payment_methods">
+            {t("tabs.payment_methods")}
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="invoices">
@@ -400,7 +440,9 @@ export function MerchantBillingManager({ merchantId }: MerchantBillingManagerPro
                         <TableCell>
                           <Badge className={getStatusColor(invoice.status)}>
                             {getStatusIcon(invoice.status)}
-                            {t(`invoices.statuses.${invoice.status.toLowerCase()}`)}
+                            {t(
+                              `invoices.statuses.${invoice.status.toLowerCase()}`,
+                            )}
                           </Badge>
                         </TableCell>
                         <TableCell>{formatDate(invoice.dueDate)}</TableCell>
@@ -413,7 +455,7 @@ export function MerchantBillingManager({ merchantId }: MerchantBillingManagerPro
                             >
                               <Download className="h-4 w-4" />
                             </Button>
-                            {invoice.status === 'PENDING' && (
+                            {invoice.status === "PENDING" && (
                               <Button
                                 size="sm"
                                 onClick={() => {
@@ -449,23 +491,38 @@ export function MerchantBillingManager({ merchantId }: MerchantBillingManagerPro
               ) : (
                 <div className="space-y-4">
                   {transactions.map((transaction) => (
-                    <div key={transaction.id} className="flex items-center justify-between p-4 border rounded-lg">
+                    <div
+                      key={transaction.id}
+                      className="flex items-center justify-between p-4 border rounded-lg"
+                    >
                       <div>
                         <div className="flex items-center gap-2 mb-1">
-                          <span className="font-medium">{transaction.description}</span>
+                          <span className="font-medium">
+                            {transaction.description}
+                          </span>
                           <Badge className={getStatusColor(transaction.status)}>
-                            {t(`transactions.statuses.${transaction.status.toLowerCase()}`)}
+                            {t(
+                              `transactions.statuses.${transaction.status.toLowerCase()}`,
+                            )}
                           </Badge>
                         </div>
                         <div className="text-sm text-gray-600">
-                          {t(`transactions.types.${transaction.type.toLowerCase()}`)} • {formatDate(transaction.createdAt)}
+                          {t(
+                            `transactions.types.${transaction.type.toLowerCase()}`,
+                          )}{" "}
+                          • {formatDate(transaction.createdAt)}
                         </div>
                       </div>
                       <div className="text-right">
-                        <div className={`font-semibold ${
-                          transaction.type === 'PAYMENT' ? 'text-red-600' : 'text-green-600'
-                        }`}>
-                          {transaction.type === 'PAYMENT' ? '-' : '+'}{transaction.amount.toFixed(2)}€
+                        <div
+                          className={`font-semibold ${
+                            transaction.type === "PAYMENT"
+                              ? "text-red-600"
+                              : "text-green-600"
+                          }`}
+                        >
+                          {transaction.type === "PAYMENT" ? "-" : "+"}
+                          {transaction.amount.toFixed(2)}€
                         </div>
                       </div>
                     </div>
@@ -481,9 +538,7 @@ export function MerchantBillingManager({ merchantId }: MerchantBillingManagerPro
             <CardHeader>
               <CardTitle className="flex items-center justify-between">
                 {t("payment_methods.title")}
-                <Button size="sm">
-                  {t("actions.add_payment_method")}
-                </Button>
+                <Button size="sm">{t("actions.add_payment_method")}</Button>
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -495,7 +550,10 @@ export function MerchantBillingManager({ merchantId }: MerchantBillingManagerPro
               ) : (
                 <div className="space-y-4">
                   {paymentMethods.map((method) => (
-                    <div key={method.id} className="flex items-center justify-between p-4 border rounded-lg">
+                    <div
+                      key={method.id}
+                      className="flex items-center justify-between p-4 border rounded-lg"
+                    >
                       <div className="flex items-center gap-3">
                         <CreditCard className="h-5 w-5 text-gray-400" />
                         <div>
@@ -504,12 +562,16 @@ export function MerchantBillingManager({ merchantId }: MerchantBillingManagerPro
                               {method.brand} •••• {method.lastFour}
                             </span>
                             {method.isDefault && (
-                              <Badge variant="outline">{t("payment_methods.default")}</Badge>
+                              <Badge variant="outline">
+                                {t("payment_methods.default")}
+                              </Badge>
                             )}
                           </div>
                           {method.expiryMonth && method.expiryYear && (
                             <p className="text-sm text-gray-600">
-                              {t("payment_methods.expires")}: {method.expiryMonth.toString().padStart(2) || '0'}/{method.expiryYear}
+                              {t("payment_methods.expires")}:{" "}
+                              {method.expiryMonth.toString().padStart(2) || "0"}
+                              /{method.expiryYear}
                             </p>
                           )}
                         </div>
@@ -532,10 +594,11 @@ export function MerchantBillingManager({ merchantId }: MerchantBillingManagerPro
           <DialogHeader>
             <DialogTitle>{t("payment_dialog.title")}</DialogTitle>
             <DialogDescription>
-              {selectedInvoice && t("payment_dialog.description", {
-                invoice: selectedInvoice.invoiceNumber,
-                amount: selectedInvoice.amount.toFixed(2)
-              })}
+              {selectedInvoice &&
+                t("payment_dialog.description", {
+                  invoice: selectedInvoice.invoiceNumber,
+                  amount: selectedInvoice.amount.toFixed(2),
+                })}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
@@ -550,7 +613,10 @@ export function MerchantBillingManager({ merchantId }: MerchantBillingManagerPro
                       name="paymentMethod"
                       className="h-4 w-4"
                     />
-                    <label htmlFor={method.id} className="flex items-center gap-2 cursor-pointer">
+                    <label
+                      htmlFor={method.id}
+                      className="flex items-center gap-2 cursor-pointer"
+                    >
                       <CreditCard className="h-4 w-4" />
                       {method.brand} •••• {method.lastFour}
                     </label>
@@ -560,12 +626,13 @@ export function MerchantBillingManager({ merchantId }: MerchantBillingManagerPro
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowPaymentDialog(false)}>
+            <Button
+              variant="outline"
+              onClick={() => setShowPaymentDialog(false)}
+            >
               {t("actions.cancel")}
             </Button>
-            <Button>
-              {t("actions.confirm_payment")}
-            </Button>
+            <Button>{t("actions.confirm_payment")}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

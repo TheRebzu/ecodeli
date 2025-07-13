@@ -2,11 +2,17 @@
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { CheckCircle, XCircle, ArrowRight } from "lucide-react";
 import Link from "next/link";
 export default function PricingPage() {
-  
   return (
     <div className="flex flex-col gap-16 pb-20 max-w-screen-2xl mx-auto">
       {/* Hero Section */}
@@ -18,7 +24,8 @@ export default function PricingPage() {
               Des formules simples pour tous les besoins
             </h1>
             <p className="text-xl text-muted-foreground">
-              Choisissez la formule qui vous convient et profitez pleinement des services EcoDeli
+              Choisissez la formule qui vous convient et profitez pleinement des
+              services EcoDeli
             </p>
           </div>
         </div>
@@ -34,7 +41,9 @@ export default function PricingPage() {
                 <CardTitle>Gratuit</CardTitle>
                 <div className="mt-2">
                   <span className="text-3xl font-bold">0€</span>
-                  <span className="text-muted-foreground ml-1">pour toujours</span>
+                  <span className="text-muted-foreground ml-1">
+                    pour toujours
+                  </span>
                 </div>
                 <CardDescription className="mt-2">
                   Découvrez EcoDeli sans engagement
@@ -189,7 +198,8 @@ export default function PricingPage() {
               Rejoignez la communauté EcoDeli dès aujourd'hui
             </h2>
             <p className="text-lg text-muted-foreground max-w-xl mx-auto mb-8">
-              Créez votre compte gratuitement et découvrez tous les avantages d'EcoDeli
+              Créez votre compte gratuitement et découvrez tous les avantages
+              d'EcoDeli
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button size="lg" asChild>

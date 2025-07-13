@@ -1,44 +1,44 @@
-import { prisma } from '@/lib/db'
-import { ecoLogger } from '@/lib/logger'
-import { WalletOperationType, OperationStatus } from '@prisma/client'
+import { prisma } from "@/lib/db";
+import { ecoLogger } from "@/lib/logger";
+import { WalletOperationType, OperationStatus } from "@prisma/client";
 
 export interface WalletOperationData {
-  delivererId: string
-  type: WalletOperationType
-  amount: number
-  description: string
-  relatedDeliveryId?: string
-  relatedOrderId?: string
-  metadata?: Record<string, any>
+  delivererId: string;
+  type: WalletOperationType;
+  amount: number;
+  description: string;
+  relatedDeliveryId?: string;
+  relatedOrderId?: string;
+  metadata?: Record<string, any>;
 }
 
 export interface WithdrawalRequest {
-  delivererId: string
-  amount: number
+  delivererId: string;
+  amount: number;
   bankAccount: {
-    iban: string
-    bic: string
-    accountHolderName: string
-  }
-  notes?: string
+    iban: string;
+    bic: string;
+    accountHolderName: string;
+  };
+  notes?: string;
 }
 
 export interface EarningsReport {
   period: {
-    start: Date
-    end: Date
-  }
-  totalEarnings: number
-  totalDeliveries: number
-  averageEarningPerDelivery: number
+    start: Date;
+    end: Date;
+  };
+  totalEarnings: number;
+  totalDeliveries: number;
+  averageEarningPerDelivery: number;
   fees: {
-    commission: number
-    platform: number
-    total: number
-  }
-  netEarnings: number
-  pendingAmount: number
-  availableForWithdrawal: number
+    commission: number;
+    platform: number;
+    total: number;
+  };
+  netEarnings: number;
+  pendingAmount: number;
+  availableForWithdrawal: number;
 }
 
 export class WalletService {
@@ -52,65 +52,65 @@ export class WalletService {
         include: {
           walletOperations: {
             where: {
-              status: 'COMPLETED'
+              status: "COMPLETED",
             },
-            orderBy: { createdAt: 'desc' },
-            take: 10
-          }
-        }
-      })
+            orderBy: { createdAt: "desc" },
+            take: 10,
+          },
+        },
+      });
 
       if (!deliverer) {
-        throw new Error('Livreur non trouvé')
+        throw new Error("Livreur non trouvé");
       }
 
       // Calculer le solde total
       const totalCredits = await prisma.walletOperation.aggregate({
         where: {
           delivererId,
-          type: { in: ['CREDIT', 'REFUND'] },
-          status: 'COMPLETED'
+          type: { in: ["CREDIT", "REFUND"] },
+          status: "COMPLETED",
         },
-        _sum: { amount: true }
-      })
+        _sum: { amount: true },
+      });
 
       const totalDebits = await prisma.walletOperation.aggregate({
         where: {
           delivererId,
-          type: { in: ['DEBIT', 'WITHDRAWAL', 'FEE'] },
-          status: 'COMPLETED'
+          type: { in: ["DEBIT", "WITHDRAWAL", "FEE"] },
+          status: "COMPLETED",
         },
-        _sum: { amount: true }
-      })
+        _sum: { amount: true },
+      });
 
-      const balance = (totalCredits._sum.amount || 0) - (totalDebits._sum.amount || 0)
+      const balance =
+        (totalCredits._sum.amount || 0) - (totalDebits._sum.amount || 0);
 
       // Calculer le montant en attente
       const pendingAmount = await prisma.walletOperation.aggregate({
         where: {
           delivererId,
-          type: { in: ['CREDIT'] },
-          status: 'PENDING'
+          type: { in: ["CREDIT"] },
+          status: "PENDING",
         },
-        _sum: { amount: true }
-      })
+        _sum: { amount: true },
+      });
 
       // Calculer le montant disponible pour retrait (minimum 10€)
-      const availableForWithdrawal = Math.max(0, balance - 10)
+      const availableForWithdrawal = Math.max(0, balance - 10);
 
       return {
         balance,
         pendingAmount: pendingAmount._sum.amount || 0,
         availableForWithdrawal,
-        recentOperations: deliverer.walletOperations
-      }
-
+        recentOperations: deliverer.walletOperations,
+      };
     } catch (error) {
-      ecoLogger.wallet.error('Error getting wallet balance', {
+      ecoLogger.wallet.error("Error getting wallet balance", {
         delivererId,
-        error: error instanceof Error ? error.message : 'Unknown error'
-      })
-      throw error
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+      throw error;
     }
   }
 
@@ -125,32 +125,31 @@ export class WalletService {
           type: data.type,
           amount: data.amount,
           description: data.description,
-          status: 'PENDING',
+          status: "PENDING",
           relatedDeliveryId: data.relatedDeliveryId,
           relatedOrderId: data.relatedOrderId,
-          metadata: data.metadata || {}
+          metadata: data.metadata || {},
         },
         include: {
           deliverer: {
             include: {
               user: {
-                include: { profile: true }
-              }
-            }
-          }
-        }
-      })
+                include: { profile: true },
+              },
+            },
+          },
+        },
+      });
 
-      ecoLogger.wallet.operationCreated(operation.id, data.type, data.amount)
+      ecoLogger.wallet.operationCreated(operation.id, data.type, data.amount);
 
-      return operation
-
+      return operation;
     } catch (error) {
-      ecoLogger.wallet.error('Error creating wallet operation', {
+      ecoLogger.wallet.error("Error creating wallet operation", {
         data,
-        error: error instanceof Error ? error.message : 'Unknown error'
-      })
-      throw error
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+      throw error;
     }
   }
 
@@ -162,45 +161,44 @@ export class WalletService {
       const operation = await prisma.walletOperation.update({
         where: { id: operationId },
         data: {
-          status: 'COMPLETED',
-          processedAt: new Date()
+          status: "COMPLETED",
+          processedAt: new Date(),
         },
         include: {
           deliverer: {
             include: {
               user: {
-                include: { profile: true }
-              }
-            }
-          }
-        }
-      })
+                include: { profile: true },
+              },
+            },
+          },
+        },
+      });
 
       // Créer une notification pour le livreur
       await prisma.notification.create({
         data: {
           userId: operation.deliverer.userId,
-          type: 'PAYMENT',
-          title: 'Paiement reçu',
+          type: "PAYMENT",
+          title: "Paiement reçu",
           message: `Vous avez reçu ${operation.amount}€ pour une livraison`,
           data: {
             operationId: operation.id,
             amount: operation.amount,
-            type: operation.type
-          }
-        }
-      })
+            type: operation.type,
+          },
+        },
+      });
 
-      ecoLogger.wallet.operationConfirmed(operationId, operation.amount)
+      ecoLogger.wallet.operationConfirmed(operationId, operation.amount);
 
-      return operation
-
+      return operation;
     } catch (error) {
-      ecoLogger.wallet.error('Error confirming operation', {
+      ecoLogger.wallet.error("Error confirming operation", {
         operationId,
-        error: error instanceof Error ? error.message : 'Unknown error'
-      })
-      throw error
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+      throw error;
     }
   }
 
@@ -210,54 +208,57 @@ export class WalletService {
   static async createWithdrawalRequest(data: WithdrawalRequest) {
     try {
       // Vérifier le solde disponible
-      const walletInfo = await this.getWalletBalance(data.delivererId)
-      
+      const walletInfo = await this.getWalletBalance(data.delivererId);
+
       if (data.amount > walletInfo.availableForWithdrawal) {
-        throw new Error('Montant supérieur au solde disponible')
+        throw new Error("Montant supérieur au solde disponible");
       }
 
       if (data.amount < 10) {
-        throw new Error('Le montant minimum de retrait est de 10€')
+        throw new Error("Le montant minimum de retrait est de 10€");
       }
 
       // Créer l'opération de retrait
       const withdrawal = await this.createOperation({
         delivererId: data.delivererId,
-        type: 'WITHDRAWAL',
+        type: "WITHDRAWAL",
         amount: data.amount,
         description: `Demande de retrait - ${data.bankAccount.iban.slice(-4)}`,
         metadata: {
           bankAccount: data.bankAccount,
           notes: data.notes,
-          requestedAt: new Date().toISOString()
-        }
-      })
+          requestedAt: new Date().toISOString(),
+        },
+      });
 
       // Créer une notification pour l'admin
       await prisma.notification.create({
         data: {
-          userId: 'admin', // ID de l'admin ou système de notification admin
-          type: 'WITHDRAWAL_REQUEST',
-          title: 'Nouvelle demande de retrait',
+          userId: "admin", // ID de l'admin ou système de notification admin
+          type: "WITHDRAWAL_REQUEST",
+          title: "Nouvelle demande de retrait",
           message: `Demande de retrait de ${data.amount}€ pour le livreur`,
           data: {
             withdrawalId: withdrawal.id,
             delivererId: data.delivererId,
-            amount: data.amount
-          }
-        }
-      })
+            amount: data.amount,
+          },
+        },
+      });
 
-      ecoLogger.wallet.withdrawalRequested(withdrawal.id, data.delivererId, data.amount)
+      ecoLogger.wallet.withdrawalRequested(
+        withdrawal.id,
+        data.delivererId,
+        data.amount,
+      );
 
-      return withdrawal
-
+      return withdrawal;
     } catch (error) {
-      ecoLogger.wallet.error('Error creating withdrawal request', {
+      ecoLogger.wallet.error("Error creating withdrawal request", {
         data,
-        error: error instanceof Error ? error.message : 'Unknown error'
-      })
-      throw error
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+      throw error;
     }
   }
 
@@ -265,10 +266,10 @@ export class WalletService {
    * Traiter une demande de retrait (par un admin)
    */
   static async processWithdrawal(
-    withdrawalId: string, 
-    status: 'COMPLETED' | 'FAILED',
+    withdrawalId: string,
+    status: "COMPLETED" | "FAILED",
     processedBy: string,
-    notes?: string
+    notes?: string,
   ) {
     try {
       const withdrawal = await prisma.walletOperation.findUnique({
@@ -277,70 +278,70 @@ export class WalletService {
           deliverer: {
             include: {
               user: {
-                include: { profile: true }
-              }
-            }
-          }
-        }
-      })
+                include: { profile: true },
+              },
+            },
+          },
+        },
+      });
 
       if (!withdrawal) {
-        throw new Error('Demande de retrait non trouvée')
+        throw new Error("Demande de retrait non trouvée");
       }
 
-      if (withdrawal.type !== 'WITHDRAWAL') {
-        throw new Error('Cette opération n\'est pas une demande de retrait')
+      if (withdrawal.type !== "WITHDRAWAL") {
+        throw new Error("Cette opération n'est pas une demande de retrait");
       }
 
-      if (withdrawal.status !== 'PENDING') {
-        throw new Error('Cette demande de retrait a déjà été traitée')
+      if (withdrawal.status !== "PENDING") {
+        throw new Error("Cette demande de retrait a déjà été traitée");
       }
 
       // Mettre à jour le statut
       const updatedWithdrawal = await prisma.walletOperation.update({
         where: { id: withdrawalId },
         data: {
-          status: status === 'COMPLETED' ? 'COMPLETED' : 'FAILED',
+          status: status === "COMPLETED" ? "COMPLETED" : "FAILED",
           processedAt: new Date(),
           metadata: {
             ...withdrawal.metadata,
             processedBy,
             processedNotes: notes,
-            processedAt: new Date().toISOString()
-          }
-        }
-      })
+            processedAt: new Date().toISOString(),
+          },
+        },
+      });
 
       // Créer une notification pour le livreur
       await prisma.notification.create({
         data: {
           userId: withdrawal.deliverer.userId,
-          type: 'WITHDRAWAL_PROCESSED',
-          title: status === 'COMPLETED' ? 'Retrait effectué' : 'Retrait refusé',
-          message: status === 'COMPLETED' 
-            ? `Votre retrait de ${withdrawal.amount}€ a été effectué`
-            : `Votre retrait de ${withdrawal.amount}€ a été refusé`,
+          type: "WITHDRAWAL_PROCESSED",
+          title: status === "COMPLETED" ? "Retrait effectué" : "Retrait refusé",
+          message:
+            status === "COMPLETED"
+              ? `Votre retrait de ${withdrawal.amount}€ a été effectué`
+              : `Votre retrait de ${withdrawal.amount}€ a été refusé`,
           data: {
             withdrawalId: withdrawal.id,
             amount: withdrawal.amount,
             status,
-            notes
-          }
-        }
-      })
+            notes,
+          },
+        },
+      });
 
-      ecoLogger.wallet.withdrawalProcessed(withdrawalId, status, processedBy)
+      ecoLogger.wallet.withdrawalProcessed(withdrawalId, status, processedBy);
 
-      return updatedWithdrawal
-
+      return updatedWithdrawal;
     } catch (error) {
-      ecoLogger.wallet.error('Error processing withdrawal', {
+      ecoLogger.wallet.error("Error processing withdrawal", {
         withdrawalId,
         status,
         processedBy,
-        error: error instanceof Error ? error.message : 'Unknown error'
-      })
-      throw error
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+      throw error;
     }
   }
 
@@ -350,60 +351,66 @@ export class WalletService {
   static async getEarningsReport(
     delivererId: string,
     startDate: Date,
-    endDate: Date
+    endDate: Date,
   ): Promise<EarningsReport> {
     try {
       // Récupérer toutes les opérations de crédit dans la période
       const earnings = await prisma.walletOperation.findMany({
         where: {
           delivererId,
-          type: 'CREDIT',
-          status: 'COMPLETED',
+          type: "CREDIT",
+          status: "COMPLETED",
           createdAt: {
             gte: startDate,
-            lte: endDate
-          }
+            lte: endDate,
+          },
         },
         include: {
-          relatedDelivery: true
-        }
-      })
+          relatedDelivery: true,
+        },
+      });
 
-      const totalEarnings = earnings.reduce((sum, op) => sum + op.amount, 0)
-      const totalDeliveries = earnings.filter(op => op.relatedDeliveryId).length
+      const totalEarnings = earnings.reduce((sum, op) => sum + op.amount, 0);
+      const totalDeliveries = earnings.filter(
+        (op) => op.relatedDeliveryId,
+      ).length;
 
       // Récupérer les frais dans la période
       const fees = await prisma.walletOperation.findMany({
         where: {
           delivererId,
-          type: 'FEE',
-          status: 'COMPLETED',
+          type: "FEE",
+          status: "COMPLETED",
           createdAt: {
             gte: startDate,
-            lte: endDate
-          }
-        }
-      })
+            lte: endDate,
+          },
+        },
+      });
 
-      const totalFees = fees.reduce((sum, fee) => sum + fee.amount, 0)
+      const totalFees = fees.reduce((sum, fee) => sum + fee.amount, 0);
 
       // Calculer les métriques
-      const averageEarningPerDelivery = totalDeliveries > 0 ? totalEarnings / totalDeliveries : 0
-      const netEarnings = totalEarnings - totalFees
+      const averageEarningPerDelivery =
+        totalDeliveries > 0 ? totalEarnings / totalDeliveries : 0;
+      const netEarnings = totalEarnings - totalFees;
 
       // Montant en attente
       const pendingOperations = await prisma.walletOperation.findMany({
         where: {
           delivererId,
-          type: 'CREDIT',
-          status: 'PENDING'
-        }
-      })
+          type: "CREDIT",
+          status: "PENDING",
+        },
+      });
 
-      const pendingAmount = pendingOperations.reduce((sum, op) => sum + op.amount, 0)
+      const pendingAmount = pendingOperations.reduce(
+        (sum, op) => sum + op.amount,
+        0,
+      );
 
       // Solde disponible pour retrait
-      const walletInfo = await this.getWalletBalance(delivererId)
+      const walletInfo = await this.getWalletBalance(delivererId);
 
       return {
         period: { start: startDate, end: endDate },
@@ -413,21 +420,20 @@ export class WalletService {
         fees: {
           commission: totalFees * 0.7, // Estimation commission EcoDeli
           platform: totalFees * 0.3, // Estimation frais plateforme
-          total: totalFees
+          total: totalFees,
         },
         netEarnings,
         pendingAmount,
-        availableForWithdrawal: walletInfo.availableForWithdrawal
-      }
-
+        availableForWithdrawal: walletInfo.availableForWithdrawal,
+      };
     } catch (error) {
-      ecoLogger.wallet.error('Error generating earnings report', {
+      ecoLogger.wallet.error("Error generating earnings report", {
         delivererId,
         startDate,
         endDate,
-        error: error instanceof Error ? error.message : 'Unknown error'
-      })
-      throw error
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+      throw error;
     }
   }
 
@@ -437,13 +443,13 @@ export class WalletService {
   static async getOperationHistory(
     delivererId: string,
     filters: {
-      type?: WalletOperationType
-      status?: OperationStatus
-      startDate?: Date
-      endDate?: Date
-      page?: number
-      limit?: number
-    } = {}
+      type?: WalletOperationType;
+      status?: OperationStatus;
+      startDate?: Date;
+      endDate?: Date;
+      page?: number;
+      limit?: number;
+    } = {},
   ) {
     try {
       const {
@@ -452,17 +458,17 @@ export class WalletService {
         startDate,
         endDate,
         page = 1,
-        limit = 20
-      } = filters
+        limit = 20,
+      } = filters;
 
-      const where: any = { delivererId }
+      const where: any = { delivererId };
 
-      if (type) where.type = type
-      if (status) where.status = status
+      if (type) where.type = type;
+      if (status) where.status = status;
       if (startDate || endDate) {
-        where.createdAt = {}
-        if (startDate) where.createdAt.gte = startDate
-        if (endDate) where.createdAt.lte = endDate
+        where.createdAt = {};
+        if (startDate) where.createdAt.gte = startDate;
+        if (endDate) where.createdAt.lte = endDate;
       }
 
       const [operations, total] = await Promise.all([
@@ -474,18 +480,18 @@ export class WalletService {
                 announcement: {
                   select: {
                     title: true,
-                    type: true
-                  }
-                }
-              }
-            }
+                    type: true,
+                  },
+                },
+              },
+            },
           },
-          orderBy: { createdAt: 'desc' },
+          orderBy: { createdAt: "desc" },
           skip: (page - 1) * limit,
-          take: limit
+          take: limit,
         }),
-        prisma.walletOperation.count({ where })
-      ])
+        prisma.walletOperation.count({ where }),
+      ]);
 
       return {
         operations,
@@ -493,17 +499,16 @@ export class WalletService {
           page,
           limit,
           total,
-          pages: Math.ceil(total / limit)
-        }
-      }
-
+          pages: Math.ceil(total / limit),
+        },
+      };
     } catch (error) {
-      ecoLogger.wallet.error('Error getting operation history', {
+      ecoLogger.wallet.error("Error getting operation history", {
         delivererId,
         filters,
-        error: error instanceof Error ? error.message : 'Unknown error'
-      })
-      throw error
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+      throw error;
     }
   }
 
@@ -514,37 +519,37 @@ export class WalletService {
     deliveryPrice: number,
     distance: number,
     delivererRating: number,
-    isUrgent: boolean = false
-  ): { earning: number, commission: number, bonuses: number } {
+    isUrgent: boolean = false,
+  ): { earning: number; commission: number; bonuses: number } {
     // Base : 80% du prix de la livraison pour le livreur
-    let earning = deliveryPrice * 0.8
+    let earning = deliveryPrice * 0.8;
 
     // Bonus distance (pour les longues distances)
-    let bonuses = 0
+    let bonuses = 0;
     if (distance > 10) {
-      bonuses += Math.min((distance - 10) * 0.5, 5) // Max 5€ de bonus distance
+      bonuses += Math.min((distance - 10) * 0.5, 5); // Max 5€ de bonus distance
     }
 
     // Bonus rating (pour les livreurs bien notés)
     if (delivererRating >= 4.5) {
-      bonuses += 2
+      bonuses += 2;
     } else if (delivererRating >= 4.0) {
-      bonuses += 1
+      bonuses += 1;
     }
 
     // Bonus urgence
     if (isUrgent) {
-      bonuses += 3
+      bonuses += 3;
     }
 
-    const totalEarning = earning + bonuses
-    const commission = deliveryPrice - totalEarning
+    const totalEarning = earning + bonuses;
+    const commission = deliveryPrice - totalEarning;
 
     return {
       earning: Math.round(totalEarning * 100) / 100,
       commission: Math.round(commission * 100) / 100,
-      bonuses: Math.round(bonuses * 100) / 100
-    }
+      bonuses: Math.round(bonuses * 100) / 100,
+    };
   }
 
   /**
@@ -555,28 +560,28 @@ export class WalletService {
       // Récupérer les livraisons validées qui n'ont pas encore été payées
       const deliveriesToPay = await prisma.delivery.findMany({
         where: {
-          status: 'DELIVERED',
+          status: "DELIVERED",
           validatedAt: {
-            not: null
+            not: null,
           },
           walletOperations: {
-            none: {}
-          }
+            none: {},
+          },
         },
         include: {
           deliverer: {
             include: {
               user: {
-                include: { profile: true }
-              }
-            }
+                include: { profile: true },
+              },
+            },
           },
-          announcement: true
-        }
-      })
+          announcement: true,
+        },
+      });
 
-      let processedCount = 0
-      
+      let processedCount = 0;
+
       for (const delivery of deliveriesToPay) {
         try {
           // Calculer la rémunération
@@ -584,13 +589,13 @@ export class WalletService {
             delivery.price,
             delivery.distanceKm || 0,
             delivery.deliverer.averageRating || 0,
-            delivery.isUrgent || false
-          )
+            delivery.isUrgent || false,
+          );
 
           // Créer l'opération de crédit
           await this.createOperation({
             delivererId: delivery.delivererId,
-            type: 'CREDIT',
+            type: "CREDIT",
             amount: earning.earning,
             description: `Paiement livraison - ${delivery.announcement.title}`,
             relatedDeliveryId: delivery.id,
@@ -598,42 +603,43 @@ export class WalletService {
               originalPrice: delivery.price,
               commission: earning.commission,
               bonuses: earning.bonuses,
-              distance: delivery.distanceKm
-            }
-          })
+              distance: delivery.distanceKm,
+            },
+          });
 
           // Confirmer immédiatement l'opération
           const operation = await prisma.walletOperation.findFirst({
             where: {
               delivererId: delivery.delivererId,
               relatedDeliveryId: delivery.id,
-              type: 'CREDIT'
-            }
-          })
+              type: "CREDIT",
+            },
+          });
 
           if (operation) {
-            await this.confirmOperation(operation.id)
+            await this.confirmOperation(operation.id);
           }
 
-          processedCount++
-
+          processedCount++;
         } catch (error) {
-          console.error(`Error processing payment for delivery ${delivery.id}:`, error)
+          console.error(
+            `Error processing payment for delivery ${delivery.id}:`,
+            error,
+          );
         }
       }
 
-      ecoLogger.wallet.batchPaymentProcessed(processedCount)
+      ecoLogger.wallet.batchPaymentProcessed(processedCount);
 
       return {
         processed: processedCount,
-        total: deliveriesToPay.length
-      }
-
+        total: deliveriesToPay.length,
+      };
     } catch (error) {
-      ecoLogger.wallet.error('Error processing delivery payments', {
-        error: error instanceof Error ? error.message : 'Unknown error'
-      })
-      throw error
+      ecoLogger.wallet.error("Error processing delivery payments", {
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+      throw error;
     }
   }
 }

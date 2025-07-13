@@ -5,8 +5,8 @@ interface ProviderCalendarPageProps {
   params: Promise<{ locale: string }>;
 }
 
-export default async function ProviderCalendarPage({ 
-  params 
+export default async function ProviderCalendarPage({
+  params,
 }: ProviderCalendarPageProps) {
   const { locale } = await params;
   await setRequestLocale(locale);

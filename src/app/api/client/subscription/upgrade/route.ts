@@ -1,11 +1,11 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getCurrentUser } from '@/lib/auth/utils';
-import { prisma } from '@/lib/db';
-import { z } from 'zod';
+import { NextRequest, NextResponse } from "next/server";
+import { getCurrentUser } from "@/lib/auth/utils";
+import { prisma } from "@/lib/db";
+import { z } from "zod";
 
 const upgradeSchema = z.object({
-  plan: z.enum(['STARTER', 'PREMIUM'], {
-    errorMap: () => ({ message: 'Plan invalide' }),
+  plan: z.enum(["STARTER", "PREMIUM"], {
+    errorMap: () => ({ message: "Plan invalide" }),
   }),
 });
 
@@ -13,10 +13,7 @@ export async function POST(request: NextRequest) {
   try {
     const user = await getCurrentUser();
     if (!user) {
-      return NextResponse.json(
-        { error: 'Non autorisé' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
     }
 
     const body = await request.json();
@@ -26,19 +23,21 @@ export async function POST(request: NextRequest) {
     const currentSubscription = await prisma.subscription.findFirst({
       where: {
         userId: user.id,
-        status: 'active',
+        status: "active",
       },
     });
 
     // Définir les prix des plans
     const planPrices = {
       FREE: 0,
-      STARTER: 9.90,
+      STARTER: 9.9,
       PREMIUM: 19.99,
     };
 
     const newPlanPrice = planPrices[validatedData.plan];
-    const currentPlanPrice = currentSubscription ? planPrices[currentSubscription.plan as keyof typeof planPrices] : 0;
+    const currentPlanPrice = currentSubscription
+      ? planPrices[currentSubscription.plan as keyof typeof planPrices]
+      : 0;
     const priceDifference = newPlanPrice - currentPlanPrice;
 
     // Si c'est une mise à niveau gratuite (FREE -> STARTER/PREMIUM), procéder directement
@@ -49,7 +48,7 @@ export async function POST(request: NextRequest) {
           where: { id: currentSubscription.id },
           data: {
             plan: validatedData.plan,
-            status: 'active',
+            status: "active",
             startDate: new Date(),
           },
         });
@@ -58,7 +57,7 @@ export async function POST(request: NextRequest) {
           data: {
             userId: user.id,
             plan: validatedData.plan,
-            status: 'active',
+            status: "active",
             startDate: new Date(),
           },
         });
@@ -66,10 +65,10 @@ export async function POST(request: NextRequest) {
 
       return NextResponse.json({
         success: true,
-        message: 'Abonnement mis à jour avec succès',
+        message: "Abonnement mis à jour avec succès",
         subscription: {
           plan: validatedData.plan,
-          status: 'active',
+          status: "active",
         },
       });
     }
@@ -79,9 +78,9 @@ export async function POST(request: NextRequest) {
       data: {
         userId: user.id,
         amount: priceDifference,
-        currency: 'EUR',
-        status: 'PENDING',
-        type: 'SUBSCRIPTION',
+        currency: "EUR",
+        status: "PENDING",
+        type: "SUBSCRIPTION",
         description: `Mise à niveau vers ${validatedData.plan}`,
       },
     });
@@ -92,7 +91,7 @@ export async function POST(request: NextRequest) {
         where: { id: currentSubscription.id },
         data: {
           plan: validatedData.plan,
-          status: 'pending_payment',
+          status: "pending_payment",
           startDate: new Date(),
         },
       });
@@ -101,7 +100,7 @@ export async function POST(request: NextRequest) {
         data: {
           userId: user.id,
           plan: validatedData.plan,
-          status: 'pending_payment',
+          status: "pending_payment",
           startDate: new Date(),
         },
       });
@@ -112,7 +111,7 @@ export async function POST(request: NextRequest) {
     await prisma.payment.update({
       where: { id: payment.id },
       data: {
-        status: 'COMPLETED',
+        status: "COMPLETED",
         stripePaymentId: `sim_${Date.now()}`, // Simulation
       },
     });
@@ -122,16 +121,16 @@ export async function POST(request: NextRequest) {
       where: {
         userId: user.id,
         plan: validatedData.plan,
-        status: 'pending_payment',
+        status: "pending_payment",
       },
       data: {
-        status: 'active',
+        status: "active",
       },
     });
 
     return NextResponse.json({
       success: true,
-      message: 'Abonnement mis à niveau avec succès',
+      message: "Abonnement mis à niveau avec succès",
       payment: {
         id: payment.id,
         amount: payment.amount,
@@ -139,21 +138,21 @@ export async function POST(request: NextRequest) {
       },
       subscription: {
         plan: validatedData.plan,
-        status: 'active',
+        status: "active",
       },
     });
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: 'Données invalides', details: error.errors },
-        { status: 400 }
+        { error: "Données invalides", details: error.errors },
+        { status: 400 },
       );
     }
 
-    console.error('Error upgrading subscription:', error);
+    console.error("Error upgrading subscription:", error);
     return NextResponse.json(
-      { error: 'Erreur lors de la mise à niveau de l\'abonnement' },
-      { status: 500 }
+      { error: "Erreur lors de la mise à niveau de l'abonnement" },
+      { status: 500 },
     );
   }
-} 
+}

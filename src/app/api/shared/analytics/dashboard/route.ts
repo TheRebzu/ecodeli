@@ -1,47 +1,53 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '@/lib/auth'
-import { z } from 'zod'
-import { AnalyticsService, AnalyticsTimeframe } from '@/features/analytics/services/analytics.service'
+import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@/lib/auth";
+import { z } from "zod";
+import {
+  AnalyticsService,
+  AnalyticsTimeframe,
+} from "@/features/analytics/services/analytics.service";
 
 const analyticsQuerySchema = z.object({
-  period: z.enum(['daily', 'weekly', 'monthly', 'yearly']).default('monthly'),
+  period: z.enum(["daily", "weekly", "monthly", "yearly"]).default("monthly"),
   startDate: z.string().optional(),
-  endDate: z.string().optional()
-})
+  endDate: z.string().optional(),
+});
 
 /**
  * GET - Récupérer les statistiques du dashboard
  */
 export async function GET(request: NextRequest) {
   try {
-    const session = await auth()
-    
-    if (!session?.user || !['ADMIN', 'MERCHANT', 'PROVIDER'].includes(session.user.role)) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    const session = await auth();
+
+    if (
+      !session?.user ||
+      !["ADMIN", "MERCHANT", "PROVIDER"].includes(session.user.role)
+    ) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { searchParams } = new URL(request.url)
+    const { searchParams } = new URL(request.url);
     const query = analyticsQuerySchema.parse({
-      period: searchParams.get('period'),
-      startDate: searchParams.get('startDate'),
-      endDate: searchParams.get('endDate')
-    })
+      period: searchParams.get("period"),
+      startDate: searchParams.get("startDate"),
+      endDate: searchParams.get("endDate"),
+    });
 
     // Définir la période d'analyse
-    const timeframe: AnalyticsTimeframe = this.getTimeframe(query)
+    const timeframe: AnalyticsTimeframe = this.getTimeframe(query);
 
     // Récupérer toutes les données analytiques
     const [
       dashboardStats,
       performanceMetrics,
       revenueBreakdown,
-      geographicStats
+      geographicStats,
     ] = await Promise.all([
       AnalyticsService.getDashboardStats(timeframe),
       AnalyticsService.getPerformanceMetrics(timeframe),
       AnalyticsService.getRevenueBreakdown(timeframe),
-      AnalyticsService.getGeographicStats(timeframe)
-    ])
+      AnalyticsService.getGeographicStats(timeframe),
+    ]);
 
     // Filtrer les données selon le rôle
     const filteredData = this.filterDataByRole(session.user.role, {
@@ -52,35 +58,34 @@ export async function GET(request: NextRequest) {
       timeframe: {
         start: timeframe.start.toISOString(),
         end: timeframe.end.toISOString(),
-        period: timeframe.period
-      }
-    })
+        period: timeframe.period,
+      },
+    });
 
     return NextResponse.json({
       success: true,
-      analytics: filteredData
-    })
-
+      analytics: filteredData,
+    });
   } catch (error) {
-    console.error('Error getting analytics dashboard:', error)
-    
+    console.error("Error getting analytics dashboard:", error);
+
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { 
-          error: 'Paramètres invalides',
-          details: error.errors.map(e => ({
-            field: e.path.join('.'),
-            message: e.message
-          }))
+        {
+          error: "Paramètres invalides",
+          details: error.errors.map((e) => ({
+            field: e.path.join("."),
+            message: e.message,
+          })),
         },
-        { status: 400 }
-      )
+        { status: 400 },
+      );
     }
 
     return NextResponse.json(
-      { error: 'Erreur lors de la récupération des analytics' },
-      { status: 500 }
-    )
+      { error: "Erreur lors de la récupération des analytics" },
+      { status: 500 },
+    );
   }
 }
 
@@ -88,32 +93,33 @@ export async function GET(request: NextRequest) {
  * Définir la période d'analyse selon les paramètres
  */
 function getTimeframe(query: any): AnalyticsTimeframe {
-  const now = new Date()
-  let start: Date, end: Date = now
+  const now = new Date();
+  let start: Date,
+    end: Date = now;
 
   if (query.startDate && query.endDate) {
-    start = new Date(query.startDate)
-    end = new Date(query.endDate)
+    start = new Date(query.startDate);
+    end = new Date(query.endDate);
   } else {
     switch (query.period) {
-      case 'daily':
-        start = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1)
-        break
-      case 'weekly':
-        start = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 7)
-        break
-      case 'monthly':
-        start = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate())
-        break
-      case 'yearly':
-        start = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate())
-        break
+      case "daily":
+        start = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
+        break;
+      case "weekly":
+        start = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 7);
+        break;
+      case "monthly":
+        start = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
+        break;
+      case "yearly":
+        start = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
+        break;
       default:
-        start = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate())
+        start = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
     }
   }
 
-  return { start, end, period: query.period }
+  return { start, end, period: query.period };
 }
 
 /**
@@ -121,55 +127,55 @@ function getTimeframe(query: any): AnalyticsTimeframe {
  */
 function filterDataByRole(role: string, data: any): any {
   switch (role) {
-    case 'ADMIN':
+    case "ADMIN":
       // Admin voit tout
-      return data
+      return data;
 
-    case 'MERCHANT':
+    case "MERCHANT":
       // Merchant voit les données liées au commerce
       return {
         dashboard: {
           totalUsers: data.dashboard.totalUsers,
           totalDeliveries: data.dashboard.totalDeliveries,
           averageRating: data.dashboard.averageRating,
-          growthMetrics: data.dashboard.growthMetrics
+          growthMetrics: data.dashboard.growthMetrics,
         },
         performance: {
           deliverySuccessRate: data.performance.deliverySuccessRate,
           customerSatisfaction: data.performance.customerSatisfaction,
-          repeatCustomerRate: data.performance.repeatCustomerRate
+          repeatCustomerRate: data.performance.repeatCustomerRate,
         },
         revenue: {
           deliveries: data.revenue.deliveries,
-          commissions: data.revenue.commissions
+          commissions: data.revenue.commissions,
         },
         geographic: data.geographic,
-        timeframe: data.timeframe
-      }
+        timeframe: data.timeframe,
+      };
 
-    case 'PROVIDER':
+    case "PROVIDER":
       // Provider voit les données de services
       return {
         dashboard: {
           totalUsers: data.dashboard.totalUsers,
-          averageRating: data.dashboard.averageRating
+          averageRating: data.dashboard.averageRating,
         },
         performance: {
           customerSatisfaction: data.performance.customerSatisfaction,
-          repeatCustomerRate: data.performance.repeatCustomerRate
+          repeatCustomerRate: data.performance.repeatCustomerRate,
         },
         revenue: {
-          services: data.revenue.services
+          services: data.revenue.services,
         },
-        timeframe: data.timeframe
-      }
+        timeframe: data.timeframe,
+      };
 
     default:
       return {
         dashboard: {
-          averageRating: data.dashboard.averageRating
+          averageRating: data.dashboard.averageRating,
         },
-        timeframe: data.timeframe
-      }
+        timeframe: data.timeframe,
+      };
   }
 }

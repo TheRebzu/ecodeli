@@ -1,33 +1,44 @@
 "use client";
 
-import { useState, useEffect } from 'react';
-import { useAuth } from '@/hooks/use-auth';
-import { useTranslations } from 'next-intl';
-import { PageHeader } from '@/components/layout/page-header';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
-import { useToast } from '@/components/ui/use-toast';
-import { Package, MapPin, Clock, Euro, Search, Filter, Users, Eye, Star, CheckCircle } from 'lucide-react';
-import { Announcement } from '@/features/announcements/types/announcement.types';
-import { format, formatDistanceToNow } from 'date-fns';
-import { fr } from 'date-fns/locale';
-import Link from 'next/link';
+import { useState, useEffect } from "react";
+import { useAuth } from "@/hooks/use-auth";
+import { useTranslations } from "next-intl";
+import { PageHeader } from "@/components/layout/page-header";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { useToast } from "@/components/ui/use-toast";
+import {
+  Package,
+  MapPin,
+  Clock,
+  Euro,
+  Search,
+  Filter,
+  Users,
+  Eye,
+  Star,
+  CheckCircle,
+} from "lucide-react";
+import { Announcement } from "@/features/announcements/types/announcement.types";
+import { format, formatDistanceToNow } from "date-fns";
+import { fr } from "date-fns/locale";
+import Link from "next/link";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { 
-  TrendingUp,
-  Calendar,
-  DollarSign,
-  Timer,
-  Heart
-} from "lucide-react";
-import { 
-  AnnouncementType, 
+import { TrendingUp, Calendar, DollarSign, Timer, Heart } from "lucide-react";
+import {
+  AnnouncementType,
   AnnouncementStatus,
-  SearchAnnouncementsInput 
+  SearchAnnouncementsInput,
 } from "@/features/announcements/schemas/announcement.schema";
 
 interface AnnouncementWithMatch extends Announcement {
@@ -40,16 +51,18 @@ interface AnnouncementWithMatch extends Announcement {
 
 export default function DelivererAnnouncementsPage() {
   const { user } = useAuth();
-  const t = useTranslations('deliverer.announcements');
+  const t = useTranslations("deliverer.announcements");
   const { toast } = useToast();
-  
-  const [announcements, setAnnouncements] = useState<AnnouncementWithMatch[]>([]);
+
+  const [announcements, setAnnouncements] = useState<AnnouncementWithMatch[]>(
+    [],
+  );
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [typeFilter, setTypeFilter] = useState('');
-  const [cityFilter, setCityFilter] = useState('');
-  const [sortBy, setSortBy] = useState('createdAt');
-  const [sortOrder, setSortOrder] = useState('desc');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [typeFilter, setTypeFilter] = useState("");
+  const [cityFilter, setCityFilter] = useState("");
+  const [sortBy, setSortBy] = useState("createdAt");
+  const [sortOrder, setSortOrder] = useState("desc");
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [showFilters, setShowFilters] = useState(false);
@@ -57,7 +70,7 @@ export default function DelivererAnnouncementsPage() {
     total: 0,
     newToday: 0,
     matched: 0,
-    avgPrice: 0
+    avgPrice: 0,
   });
 
   useEffect(() => {
@@ -70,21 +83,21 @@ export default function DelivererAnnouncementsPage() {
   const fetchAnnouncements = async () => {
     try {
       setLoading(true);
-      
+
       const params = new URLSearchParams({
         page: page.toString(),
-        limit: '12',
+        limit: "12",
         ...(searchTerm && { search: searchTerm }),
         ...(typeFilter && { type: typeFilter }),
         ...(cityFilter && { city: cityFilter }),
         sortBy,
         sortOrder,
-        status: 'ACTIVE' // Seulement les annonces actives
+        status: "ACTIVE", // Seulement les annonces actives
       });
 
       const response = await fetch(`/api/deliverer/announcements?${params}`);
       if (!response.ok) {
-        throw new Error('Erreur lors du chargement des annonces');
+        throw new Error("Erreur lors du chargement des annonces");
       }
 
       const data = await response.json();
@@ -103,9 +116,9 @@ export default function DelivererAnnouncementsPage() {
 
   const fetchStats = async () => {
     try {
-      const response = await fetch('/api/deliverer/announcements/stats', {
+      const response = await fetch("/api/deliverer/announcements/stats", {
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
       });
 
@@ -114,24 +127,27 @@ export default function DelivererAnnouncementsPage() {
         setStats(data);
       }
     } catch (error) {
-      console.error('Erreur stats:', error);
+      console.error("Erreur stats:", error);
     }
   };
 
   const handleInterest = async (announcementId: string) => {
     try {
-      const response = await fetch(`/api/deliverer/announcements/${announcementId}/interest`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
+      const response = await fetch(
+        `/api/deliverer/announcements/${announcementId}/interest`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            message: "Je suis intéressé par cette livraison",
+          }),
         },
-        body: JSON.stringify({
-          message: 'Je suis intéressé par cette livraison'
-        }),
-      });
+      );
 
       if (!response.ok) {
-        throw new Error('Erreur lors de l\'expression d\'intérêt');
+        throw new Error("Erreur lors de l'expression d'intérêt");
       }
 
       toast({
@@ -144,7 +160,10 @@ export default function DelivererAnnouncementsPage() {
     } catch (error) {
       toast({
         title: "❌ Erreur",
-        description: error instanceof Error ? error.message : "Impossible d'exprimer votre intérêt",
+        description:
+          error instanceof Error
+            ? error.message
+            : "Impossible d'exprimer votre intérêt",
         variant: "destructive",
       });
     }
@@ -152,25 +171,25 @@ export default function DelivererAnnouncementsPage() {
 
   const getTypeLabel = (type: string) => {
     const typeLabels = {
-      'PACKAGE_DELIVERY': 'Transport de colis',
-      'PERSON_TRANSPORT': 'Transport de personnes',
-      'AIRPORT_TRANSFER': 'Transfert aéroport',
-      'SHOPPING': 'Courses',
-      'INTERNATIONAL_PURCHASE': 'Achats internationaux',
-      'HOME_SERVICE': 'Services à domicile',
-      'PET_SITTING': 'Garde d\'animaux',
-      'CART_DROP': 'Lâcher de chariot'
+      PACKAGE_DELIVERY: "Transport de colis",
+      PERSON_TRANSPORT: "Transport de personnes",
+      AIRPORT_TRANSFER: "Transfert aéroport",
+      SHOPPING: "Courses",
+      INTERNATIONAL_PURCHASE: "Achats internationaux",
+      HOME_SERVICE: "Services à domicile",
+      PET_SITTING: "Garde d'animaux",
+      CART_DROP: "Lâcher de chariot",
     };
     return typeLabels[type as keyof typeof typeLabels] || type;
   };
 
   const getTypeIcon = (type: string) => {
     switch (type) {
-      case 'PACKAGE_DELIVERY':
+      case "PACKAGE_DELIVERY":
         return <Package className="h-4 w-4" />;
-      case 'PERSON_TRANSPORT':
+      case "PERSON_TRANSPORT":
         return <Users className="h-4 w-4" />;
-      case 'AIRPORT_TRANSFER':
+      case "AIRPORT_TRANSFER":
         return <Package className="h-4 w-4" />;
       default:
         return <Package className="h-4 w-4" />;
@@ -188,11 +207,11 @@ export default function DelivererAnnouncementsPage() {
   };
 
   const resetFilters = () => {
-    setSearchTerm('');
-    setTypeFilter('');
-    setCityFilter('');
-    setSortBy('createdAt');
-    setSortOrder('desc');
+    setSearchTerm("");
+    setTypeFilter("");
+    setCityFilter("");
+    setSortBy("createdAt");
+    setSortOrder("desc");
     setPage(1);
   };
 
@@ -217,12 +236,12 @@ export default function DelivererAnnouncementsPage() {
         title="Opportunités de livraison"
         description="Découvrez les annonces qui correspondent à vos trajets"
         action={
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             onClick={() => setShowFilters(!showFilters)}
           >
             <Filter className="h-4 w-4 mr-2" />
-            {showFilters ? 'Masquer' : 'Afficher'} les filtres
+            {showFilters ? "Masquer" : "Afficher"} les filtres
           </Button>
         }
       />
@@ -235,7 +254,9 @@ export default function DelivererAnnouncementsPage() {
               <Package className="h-5 w-5 text-blue-500" />
               <div>
                 <p className="text-sm text-gray-600">Total annonces</p>
-                <p className="text-2xl font-bold text-blue-600">{stats.total}</p>
+                <p className="text-2xl font-bold text-blue-600">
+                  {stats.total}
+                </p>
               </div>
             </div>
           </CardContent>
@@ -247,7 +268,9 @@ export default function DelivererAnnouncementsPage() {
               <TrendingUp className="h-5 w-5 text-green-500" />
               <div>
                 <p className="text-sm text-gray-600">Nouvelles aujourd'hui</p>
-                <p className="text-2xl font-bold text-green-600">{stats.newToday}</p>
+                <p className="text-2xl font-bold text-green-600">
+                  {stats.newToday}
+                </p>
               </div>
             </div>
           </CardContent>
@@ -259,7 +282,9 @@ export default function DelivererAnnouncementsPage() {
               <Route className="h-5 w-5 text-purple-500" />
               <div>
                 <p className="text-sm text-gray-600">Correspondances</p>
-                <p className="text-2xl font-bold text-purple-600">{stats.matched}</p>
+                <p className="text-2xl font-bold text-purple-600">
+                  {stats.matched}
+                </p>
               </div>
             </div>
           </CardContent>
@@ -271,7 +296,9 @@ export default function DelivererAnnouncementsPage() {
               <DollarSign className="h-5 w-5 text-yellow-500" />
               <div>
                 <p className="text-sm text-gray-600">Prix moyen</p>
-                <p className="text-2xl font-bold text-yellow-600">{stats.avgPrice}€</p>
+                <p className="text-2xl font-bold text-yellow-600">
+                  {stats.avgPrice}€
+                </p>
               </div>
             </div>
           </CardContent>
@@ -291,8 +318,8 @@ export default function DelivererAnnouncementsPage() {
             <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
               <div>
                 <Label htmlFor="type">Type de service</Label>
-                <Select 
-                  value={typeFilter} 
+                <Select
+                  value={typeFilter}
                   onValueChange={(value) => setTypeFilter(value)}
                 >
                   <SelectTrigger>
@@ -300,9 +327,15 @@ export default function DelivererAnnouncementsPage() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="">Tous les types</SelectItem>
-                    <SelectItem value="PACKAGE_DELIVERY">Transport de colis</SelectItem>
-                    <SelectItem value="PERSON_TRANSPORT">Transport de personnes</SelectItem>
-                    <SelectItem value="AIRPORT_TRANSFER">Transfert aéroport</SelectItem>
+                    <SelectItem value="PACKAGE_DELIVERY">
+                      Transport de colis
+                    </SelectItem>
+                    <SelectItem value="PERSON_TRANSPORT">
+                      Transport de personnes
+                    </SelectItem>
+                    <SelectItem value="AIRPORT_TRANSFER">
+                      Transfert aéroport
+                    </SelectItem>
                     <SelectItem value="SHOPPING">Courses</SelectItem>
                     <SelectItem value="CART_DROP">Lâcher de chariot</SelectItem>
                   </SelectContent>
@@ -321,10 +354,10 @@ export default function DelivererAnnouncementsPage() {
 
               <div>
                 <Label htmlFor="sortBy">Trier par</Label>
-                <Select 
-                  value={`${sortBy}-${sortOrder}`} 
+                <Select
+                  value={`${sortBy}-${sortOrder}`}
                   onValueChange={(value) => {
-                    const [newSortBy, newSortOrder] = value.split('-');
+                    const [newSortBy, newSortOrder] = value.split("-");
                     setSortBy(newSortBy);
                     setSortOrder(newSortOrder);
                   }}
@@ -343,7 +376,11 @@ export default function DelivererAnnouncementsPage() {
               </div>
 
               <div className="flex items-end">
-                <Button variant="outline" onClick={resetFilters} className="w-full">
+                <Button
+                  variant="outline"
+                  onClick={resetFilters}
+                  className="w-full"
+                >
                   Réinitialiser
                 </Button>
               </div>
@@ -380,9 +417,7 @@ export default function DelivererAnnouncementsPage() {
             <p className="text-gray-600 mb-4">
               Il n'y a actuellement aucune annonce correspondant à vos critères.
             </p>
-            <Button onClick={resetFilters}>
-              Réinitialiser les filtres
-            </Button>
+            <Button onClick={resetFilters}>Réinitialiser les filtres</Button>
           </CardContent>
         </Card>
       ) : (
@@ -390,9 +425,12 @@ export default function DelivererAnnouncementsPage() {
           {announcements.map((announcement) => {
             const distance = calculateDistance(announcement);
             const matchScore = getMatchScore(announcement);
-            
+
             return (
-              <Card key={announcement.id} className="hover:shadow-lg transition-shadow">
+              <Card
+                key={announcement.id}
+                className="hover:shadow-lg transition-shadow"
+              >
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
@@ -402,7 +440,9 @@ export default function DelivererAnnouncementsPage() {
                       <div className="flex items-center gap-2 mt-1">
                         <Badge variant="secondary" className="text-xs">
                           {getTypeIcon(announcement.type)}
-                          <span className="ml-1">{getTypeLabel(announcement.type)}</span>
+                          <span className="ml-1">
+                            {getTypeLabel(announcement.type)}
+                          </span>
                         </Badge>
                         {announcement.urgent && (
                           <Badge variant="destructive" className="text-xs">
@@ -464,9 +504,9 @@ export default function DelivererAnnouncementsPage() {
                     </div>
                     <div className="flex items-center gap-1">
                       <Clock className="h-3 w-3" />
-                      {formatDistanceToNow(new Date(announcement.desiredDate), { 
-                        addSuffix: true, 
-                        locale: fr 
+                      {formatDistanceToNow(new Date(announcement.desiredDate), {
+                        addSuffix: true,
+                        locale: fr,
                       })}
                     </div>
                     <div className="flex items-center gap-1">
@@ -504,8 +544,8 @@ export default function DelivererAnnouncementsPage() {
                       </div>
                     </div>
                     <div className="w-full bg-green-200 rounded-full h-2 mt-2">
-                      <div 
-                        className="bg-green-600 h-2 rounded-full" 
+                      <div
+                        className="bg-green-600 h-2 rounded-full"
                         style={{ width: `${matchScore}%` }}
                       ></div>
                     </div>
@@ -513,13 +553,16 @@ export default function DelivererAnnouncementsPage() {
 
                   {/* Actions */}
                   <div className="flex gap-2">
-                    <Link href={`/deliverer/announcements/${announcement.id}`} className="flex-1">
+                    <Link
+                      href={`/deliverer/announcements/${announcement.id}`}
+                      className="flex-1"
+                    >
                       <Button variant="outline" className="w-full">
                         <Eye className="h-4 w-4 mr-2" />
                         Voir détails
                       </Button>
                     </Link>
-                    <Button 
+                    <Button
                       onClick={() => handleInterest(announcement.id)}
                       className="flex-1"
                     >
@@ -535,12 +578,14 @@ export default function DelivererAnnouncementsPage() {
                     </div>
                     <div className="flex-1">
                       <p className="text-xs font-medium">
-                        {announcement.client?.profile?.firstName || 'Client'} {announcement.client?.profile?.lastName || ''}
+                        {announcement.client?.profile?.firstName || "Client"}{" "}
+                        {announcement.client?.profile?.lastName || ""}
                       </p>
                       <p className="text-xs text-gray-500">
-                        Publié {formatDistanceToNow(new Date(announcement.createdAt), { 
-                          addSuffix: true, 
-                          locale: fr 
+                        Publié{" "}
+                        {formatDistanceToNow(new Date(announcement.createdAt), {
+                          addSuffix: true,
+                          locale: fr,
                         })}
                       </p>
                     </div>
@@ -562,10 +607,11 @@ export default function DelivererAnnouncementsPage() {
           >
             Précédent
           </Button>
-          
+
           <div className="flex items-center gap-1">
             {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-              const pageNum = Math.max(1, Math.min(totalPages - 4, page - 2)) + i;
+              const pageNum =
+                Math.max(1, Math.min(totalPages - 4, page - 2)) + i;
               return (
                 <Button
                   key={pageNum}

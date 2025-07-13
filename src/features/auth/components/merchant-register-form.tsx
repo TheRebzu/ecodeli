@@ -1,69 +1,72 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useRouter } from "next/navigation"
-import { useTranslations } from "next-intl"
-import { merchantRegisterSchema, type MerchantRegisterData } from "@/features/auth/schemas/auth.schema"
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
+import {
+  merchantRegisterSchema,
+  type MerchantRegisterData,
+} from "@/features/auth/schemas/auth.schema";
 
 export function MerchantRegisterForm() {
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const router = useRouter()
-  const t = useTranslations()
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
+  const t = useTranslations();
 
   const {
     register,
     handleSubmit,
-    formState: { errors }
+    formState: { errors },
   } = useForm<MerchantRegisterData>({
     resolver: zodResolver(merchantRegisterSchema),
     defaultValues: {
-      businessType: 'RETAIL'
-    }
-  })
+      businessType: "RETAIL",
+    },
+  });
 
   const onSubmit = async (data: MerchantRegisterData) => {
-    setIsLoading(true)
-    setError(null)
+    setIsLoading(true);
+    setError(null);
 
     try {
-      const response = await fetch('/api/auth/sign-up/email', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/auth/sign-up/email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           email: data.email,
           password: data.password,
           name: data.businessName,
-          role: 'MERCHANT',
+          role: "MERCHANT",
           // Propriétés additionnelles pour NextAuth
           isActive: false,
-          validationStatus: 'PENDING'
-        })
-      })
+          validationStatus: "PENDING",
+        }),
+      });
 
-      const result = await response.json()
+      const result = await response.json();
 
       if (!response.ok) {
-        setError(result.error || 'Une erreur est survenue')
-        return
+        setError(result.error || "Une erreur est survenue");
+        return;
       }
 
-      router.push('/verify-email?email=' + encodeURIComponent(data.email))
+      router.push("/verify-email?email=" + encodeURIComponent(data.email));
     } catch (err) {
-      setError('Une erreur est survenue lors de l\'inscription')
+      setError("Une erreur est survenue lors de l'inscription");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const businessTypes = [
-    { value: 'RETAIL', label: 'Commerce de détail' },
-    { value: 'RESTAURANT', label: 'Restaurant / Alimentation' },
-    { value: 'SERVICES', label: 'Services' },
-    { value: 'OTHER', label: 'Autre' }
-  ]
+    { value: "RETAIL", label: "Commerce de détail" },
+    { value: "RESTAURANT", label: "Restaurant / Alimentation" },
+    { value: "SERVICES", label: "Services" },
+    { value: "OTHER", label: "Autre" },
+  ];
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -74,7 +77,10 @@ export function MerchantRegisterForm() {
       )}
 
       <div>
-        <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
+        <label
+          htmlFor="name"
+          className="block text-sm font-medium text-gray-700 mb-1"
+        >
           Nom du responsable *
         </label>
         <input
@@ -90,7 +96,10 @@ export function MerchantRegisterForm() {
       </div>
 
       <div>
-        <label htmlFor="businessName" className="block text-sm font-medium text-gray-700 mb-1">
+        <label
+          htmlFor="businessName"
+          className="block text-sm font-medium text-gray-700 mb-1"
+        >
           Nom de l'entreprise *
         </label>
         <input
@@ -101,12 +110,17 @@ export function MerchantRegisterForm() {
           placeholder="Nom de votre entreprise"
         />
         {errors.businessName && (
-          <p className="mt-1 text-sm text-red-600">{errors.businessName.message}</p>
+          <p className="mt-1 text-sm text-red-600">
+            {errors.businessName.message}
+          </p>
         )}
       </div>
 
       <div>
-        <label htmlFor="businessType" className="block text-sm font-medium text-gray-700 mb-1">
+        <label
+          htmlFor="businessType"
+          className="block text-sm font-medium text-gray-700 mb-1"
+        >
           Type d'activité *
         </label>
         <select
@@ -121,12 +135,17 @@ export function MerchantRegisterForm() {
           ))}
         </select>
         {errors.businessType && (
-          <p className="mt-1 text-sm text-red-600">{errors.businessType.message}</p>
+          <p className="mt-1 text-sm text-red-600">
+            {errors.businessType.message}
+          </p>
         )}
       </div>
 
       <div>
-        <label htmlFor="siret" className="block text-sm font-medium text-gray-700 mb-1">
+        <label
+          htmlFor="siret"
+          className="block text-sm font-medium text-gray-700 mb-1"
+        >
           SIRET *
         </label>
         <input
@@ -143,7 +162,10 @@ export function MerchantRegisterForm() {
       </div>
 
       <div>
-        <label htmlFor="address" className="block text-sm font-medium text-gray-700 mb-1">
+        <label
+          htmlFor="address"
+          className="block text-sm font-medium text-gray-700 mb-1"
+        >
           Adresse de l'entreprise *
         </label>
         <textarea
@@ -159,7 +181,10 @@ export function MerchantRegisterForm() {
       </div>
 
       <div>
-        <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+        <label
+          htmlFor="email"
+          className="block text-sm font-medium text-gray-700 mb-1"
+        >
           Email professionnel *
         </label>
         <input
@@ -175,7 +200,10 @@ export function MerchantRegisterForm() {
       </div>
 
       <div>
-        <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">
+        <label
+          htmlFor="phone"
+          className="block text-sm font-medium text-gray-700 mb-1"
+        >
           Téléphone *
         </label>
         <input
@@ -191,7 +219,10 @@ export function MerchantRegisterForm() {
       </div>
 
       <div>
-        <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+        <label
+          htmlFor="password"
+          className="block text-sm font-medium text-gray-700 mb-1"
+        >
           Mot de passe *
         </label>
         <input
@@ -207,7 +238,10 @@ export function MerchantRegisterForm() {
       </div>
 
       <div>
-        <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1">
+        <label
+          htmlFor="confirmPassword"
+          className="block text-sm font-medium text-gray-700 mb-1"
+        >
           Confirmer le mot de passe *
         </label>
         <input
@@ -218,23 +252,25 @@ export function MerchantRegisterForm() {
           placeholder="Confirmer le mot de passe"
         />
         {errors.confirmPassword && (
-          <p className="mt-1 text-sm text-red-600">{errors.confirmPassword.message}</p>
+          <p className="mt-1 text-sm text-red-600">
+            {errors.confirmPassword.message}
+          </p>
         )}
       </div>
 
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
         <p className="text-sm text-blue-800">
-          📄 <strong>Validation requise :</strong> Votre compte sera vérifié par notre équipe 
-          dans les 24-48h après inscription.
+          📄 <strong>Validation requise :</strong> Votre compte sera vérifié par
+          notre équipe dans les 24-48h après inscription.
         </p>
       </div>
 
       <div className="text-xs text-gray-500">
-        En créant un compte, vous acceptez nos{' '}
+        En créant un compte, vous acceptez nos{" "}
         <a href="/terms" className="text-green-600 hover:underline">
           Conditions d'utilisation
-        </a>{' '}
-        et notre{' '}
+        </a>{" "}
+        et notre{" "}
         <a href="/privacy" className="text-green-600 hover:underline">
           Politique de confidentialité
         </a>
@@ -245,10 +281,10 @@ export function MerchantRegisterForm() {
         disabled={isLoading}
         className="w-full bg-green-600 text-white py-3 px-4 rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
       >
-        {isLoading ? 'Création en cours...' : 'Rejoindre EcoDeli'}
+        {isLoading ? "Création en cours..." : "Rejoindre EcoDeli"}
       </button>
     </form>
-  )
+  );
 }
 
-export default MerchantRegisterForm
+export default MerchantRegisterForm;

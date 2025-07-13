@@ -1,15 +1,18 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getUserFromSession } from '@/lib/auth/utils'
+import { NextRequest, NextResponse } from "next/server";
+import { getUserFromSession } from "@/lib/auth/utils";
 
 export async function GET(request: NextRequest) {
   try {
-    const user = await getUserFromSession(request)
-    
+    const user = await getUserFromSession(request);
+
     if (!user) {
-      return NextResponse.json({ 
-        error: 'No user found in session',
-        authenticated: false 
-      }, { status: 401 })
+      return NextResponse.json(
+        {
+          error: "No user found in session",
+          authenticated: false,
+        },
+        { status: 401 },
+      );
     }
 
     return NextResponse.json({
@@ -21,25 +24,26 @@ export async function GET(request: NextRequest) {
         roleType: typeof user.role,
         isActive: user.isActive,
         validationStatus: user.validationStatus,
-        profile: user.profile ? {
-          firstName: user.profile.firstName,
-          lastName: user.profile.lastName
-        } : null,
+        profile: user.profile
+          ? {
+              firstName: user.profile.firstName,
+              lastName: user.profile.lastName,
+            }
+          : null,
         roleChecks: {
-          isClient: user.role === 'CLIENT',
-          isDeliverer: user.role === 'DELIVERER',
-          isMerchant: user.role === 'MERCHANT',
-          isProvider: user.role === 'PROVIDER',
-          isAdmin: user.role === 'ADMIN'
-        }
-      }
-    })
-
+          isClient: user.role === "CLIENT",
+          isDeliverer: user.role === "DELIVERER",
+          isMerchant: user.role === "MERCHANT",
+          isProvider: user.role === "PROVIDER",
+          isAdmin: user.role === "ADMIN",
+        },
+      },
+    });
   } catch (error) {
-    console.error('Error in debug user-role:', error)
+    console.error("Error in debug user-role:", error);
     return NextResponse.json(
-      { error: 'Internal server error', details: error.message },
-      { status: 500 }
-    )
+      { error: "Internal server error", details: error.message },
+      { status: 500 },
+    );
   }
-} 
+}

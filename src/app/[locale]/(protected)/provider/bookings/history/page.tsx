@@ -4,16 +4,28 @@ import { useAuth } from "@/hooks/use-auth";
 import { PageHeader } from "@/components/layout/page-header";
 import { useTranslations } from "next-intl";
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { 
-  Calendar, 
-  Clock, 
-  Star, 
+import {
+  Calendar,
+  Clock,
+  Star,
   MapPin,
   User,
   DollarSign,
@@ -23,7 +35,7 @@ import {
   XCircle,
   AlertCircle,
   Eye,
-  Download
+  Download,
 } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 
@@ -32,7 +44,7 @@ interface HistoricalBooking {
   clientName: string;
   clientEmail: string;
   serviceName: string;
-  status: 'COMPLETED' | 'CANCELLED' | 'NO_SHOW';
+  status: "COMPLETED" | "CANCELLED" | "NO_SHOW";
   scheduledAt: string;
   completedAt?: string;
   duration: number;
@@ -55,9 +67,11 @@ export default function ProviderBookingHistoryPage() {
   useEffect(() => {
     const fetchBookingHistory = async () => {
       if (!user?.id) return;
-      
+
       try {
-        const response = await fetch(`/api/provider/bookings/history?userId=${user.id}`);
+        const response = await fetch(
+          `/api/provider/bookings/history?userId=${user.id}`,
+        );
         if (response.ok) {
           const data = await response.json();
           setBookings(data.bookings || []);
@@ -72,24 +86,32 @@ export default function ProviderBookingHistoryPage() {
     fetchBookingHistory();
   }, [user]);
 
-  const filteredBookings = bookings.filter(booking => {
-    const matchesSearch = booking.clientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         booking.serviceName.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesStatus = statusFilter === "all" || booking.status === statusFilter;
-    
+  const filteredBookings = bookings.filter((booking) => {
+    const matchesSearch =
+      booking.clientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      booking.serviceName.toLowerCase().includes(searchTerm.toLowerCase());
+
+    const matchesStatus =
+      statusFilter === "all" || booking.status === statusFilter;
+
     const matchesDate = (() => {
       if (dateFilter === "all") return true;
       const bookingDate = new Date(booking.scheduledAt);
       const now = new Date();
-      
+
       switch (dateFilter) {
         case "week":
-          return bookingDate >= new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+          return (
+            bookingDate >= new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
+          );
         case "month":
-          return bookingDate >= new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+          return (
+            bookingDate >= new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
+          );
         case "quarter":
-          return bookingDate >= new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
+          return (
+            bookingDate >= new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000)
+          );
         default:
           return true;
       }
@@ -100,11 +122,11 @@ export default function ProviderBookingHistoryPage() {
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'COMPLETED':
+      case "COMPLETED":
         return <CheckCircle className="h-4 w-4 text-green-600" />;
-      case 'CANCELLED':
+      case "CANCELLED":
         return <XCircle className="h-4 w-4 text-red-600" />;
-      case 'NO_SHOW':
+      case "NO_SHOW":
         return <AlertCircle className="h-4 w-4 text-orange-600" />;
       default:
         return <Clock className="h-4 w-4 text-gray-600" />;
@@ -113,11 +135,11 @@ export default function ProviderBookingHistoryPage() {
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case 'COMPLETED':
+      case "COMPLETED":
         return <Badge className="bg-green-100 text-green-800">Terminé</Badge>;
-      case 'CANCELLED':
+      case "CANCELLED":
         return <Badge variant="destructive">Annulé</Badge>;
-      case 'NO_SHOW':
+      case "NO_SHOW":
         return <Badge className="bg-orange-100 text-orange-800">Absent</Badge>;
       default:
         return <Badge variant="secondary">{status}</Badge>;
@@ -125,14 +147,14 @@ export default function ProviderBookingHistoryPage() {
   };
 
   const calculateStats = () => {
-    const completed = bookings.filter(b => b.status === 'COMPLETED').length;
-    const cancelled = bookings.filter(b => b.status === 'CANCELLED').length;
+    const completed = bookings.filter((b) => b.status === "COMPLETED").length;
+    const cancelled = bookings.filter((b) => b.status === "CANCELLED").length;
     const totalRevenue = bookings
-      .filter(b => b.status === 'COMPLETED')
+      .filter((b) => b.status === "COMPLETED")
       .reduce((sum, b) => sum + b.totalAmount, 0);
     const averageRating = bookings
-      .filter(b => b.rating)
-      .reduce((sum, b, _, arr) => sum + (b.rating! / arr.length), 0);
+      .filter((b) => b.rating)
+      .reduce((sum, b, _, arr) => sum + b.rating! / arr.length, 0);
 
     return { completed, cancelled, totalRevenue, averageRating };
   };
@@ -169,7 +191,9 @@ export default function ProviderBookingHistoryPage() {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Réservations Terminées</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Réservations Terminées
+            </CardTitle>
             <CheckCircle className="h-4 w-4 text-green-600" />
           </CardHeader>
           <CardContent>
@@ -195,14 +219,16 @@ export default function ProviderBookingHistoryPage() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Revenus Totaux</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Revenus Totaux
+            </CardTitle>
             <DollarSign className="h-4 w-4 text-green-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.totalRevenue.toFixed(0)}€</div>
-            <p className="text-xs text-muted-foreground">
-              services terminés
-            </p>
+            <div className="text-2xl font-bold">
+              {stats.totalRevenue.toFixed(0)}€
+            </div>
+            <p className="text-xs text-muted-foreground">services terminés</p>
           </CardContent>
         </Card>
 
@@ -212,10 +238,10 @@ export default function ProviderBookingHistoryPage() {
             <Star className="h-4 w-4 text-yellow-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.averageRating.toFixed(1)}</div>
-            <p className="text-xs text-muted-foreground">
-              sur 5 étoiles
-            </p>
+            <div className="text-2xl font-bold">
+              {stats.averageRating.toFixed(1)}
+            </div>
+            <p className="text-xs text-muted-foreground">sur 5 étoiles</p>
           </CardContent>
         </Card>
       </div>
@@ -283,10 +309,9 @@ export default function ProviderBookingHistoryPage() {
             <CardContent className="text-center py-8">
               <Calendar className="h-12 w-12 mx-auto mb-4 opacity-50" />
               <p className="text-muted-foreground">
-                {searchTerm || statusFilter !== "all" || dateFilter !== "all" 
+                {searchTerm || statusFilter !== "all" || dateFilter !== "all"
                   ? "Aucune réservation ne correspond aux filtres sélectionnés"
-                  : "Aucune réservation dans l'historique"
-                }
+                  : "Aucune réservation dans l'historique"}
               </p>
             </CardContent>
           </Card>
@@ -307,7 +332,9 @@ export default function ProviderBookingHistoryPage() {
                       </span>
                       <span className="flex items-center gap-1">
                         <Calendar className="h-3 w-3" />
-                        {new Date(booking.scheduledAt).toLocaleDateString('fr-FR')}
+                        {new Date(booking.scheduledAt).toLocaleDateString(
+                          "fr-FR",
+                        )}
                       </span>
                       <span className="flex items-center gap-1">
                         <Clock className="h-3 w-3" />
@@ -349,7 +376,7 @@ export default function ProviderBookingHistoryPage() {
                         Détails
                       </Link>
                     </Button>
-                    {booking.status === 'COMPLETED' && (
+                    {booking.status === "COMPLETED" && (
                       <Button variant="outline" size="sm">
                         <Download className="h-4 w-4 mr-2" />
                         Facture
@@ -386,4 +413,4 @@ export default function ProviderBookingHistoryPage() {
       </Card>
     </div>
   );
-} 
+}

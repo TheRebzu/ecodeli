@@ -1,48 +1,45 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { auth, authOptions } from '@/lib/auth'
-import { prisma } from '@/lib/db'
+import { NextRequest, NextResponse } from "next/server";
+import { auth, authOptions } from "@/lib/auth";
+import { prisma } from "@/lib/db";
 
 // GET /api/merchant/support/knowledge-base - Récupérer les articles de la base de connaissances
 export async function GET(request: NextRequest) {
   try {
-    const session = await auth()
-    
+    const session = await auth();
+
     if (!session?.user?.id) {
-      return NextResponse.json(
-        { error: 'Non authentifié' },
-        { status: 401 }
-      )
+      return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
     }
 
     // Vérifier que l'utilisateur est un commerçant
     const user = await prisma.user.findUnique({
       where: { id: session.user.id },
-      select: { role: true }
-    })
+      select: { role: true },
+    });
 
-    if (!user || user.role !== 'MERCHANT') {
+    if (!user || user.role !== "MERCHANT") {
       return NextResponse.json(
-        { error: 'Accès non autorisé' },
-        { status: 403 }
-      )
+        { error: "Accès non autorisé" },
+        { status: 403 },
+      );
     }
 
-    const { searchParams } = new URL(request.url)
-    const page = parseInt(searchParams.get('page') || '1')
-    const limit = parseInt(searchParams.get('limit') || '20')
-    const category = searchParams.get('category')
-    const search = searchParams.get('search')
+    const { searchParams } = new URL(request.url);
+    const page = parseInt(searchParams.get("page") || "1");
+    const limit = parseInt(searchParams.get("limit") || "20");
+    const category = searchParams.get("category");
+    const search = searchParams.get("search");
 
     const where: any = {
       // Articles publiés et destinés aux commerçants
       published: true,
       audience: {
-        has: 'MERCHANT'
-      }
-    }
+        has: "MERCHANT",
+      },
+    };
 
     if (category) {
-      where.category = category
+      where.category = category;
     }
 
     if (search) {
@@ -50,21 +47,21 @@ export async function GET(request: NextRequest) {
         {
           title: {
             contains: search,
-            mode: 'insensitive'
-          }
+            mode: "insensitive",
+          },
         },
         {
           content: {
             contains: search,
-            mode: 'insensitive'
-          }
+            mode: "insensitive",
+          },
         },
         {
           tags: {
-            has: search.toLowerCase()
-          }
-        }
-      ]
+            has: search.toLowerCase(),
+          },
+        },
+      ];
     }
 
     const [articles, total] = await Promise.all([
@@ -79,104 +76,99 @@ export async function GET(request: NextRequest) {
           views: true,
           helpful: true,
           createdAt: true,
-          updatedAt: true
+          updatedAt: true,
         },
         orderBy: [
-          { helpful: 'desc' },
-          { views: 'desc' },
-          { updatedAt: 'desc' }
+          { helpful: "desc" },
+          { views: "desc" },
+          { updatedAt: "desc" },
         ],
         skip: (page - 1) * limit,
-        take: limit
+        take: limit,
       }),
-      prisma.knowledgeBaseArticle.count({ where })
-    ])
+      prisma.knowledgeBaseArticle.count({ where }),
+    ]);
 
     return NextResponse.json({
-      articles: articles.map(article => ({
+      articles: articles.map((article) => ({
         id: article.id,
         title: article.title,
-        content: article.content.substring(0, 300) + '...', // Résumé pour la liste
+        content: article.content.substring(0, 300) + "...", // Résumé pour la liste
         category: article.category,
         tags: article.tags,
         views: article.views,
-        helpful: Math.round((article.helpful / Math.max(article.views, 1)) * 100), // Pourcentage d'utilité
+        helpful: Math.round(
+          (article.helpful / Math.max(article.views, 1)) * 100,
+        ), // Pourcentage d'utilité
         createdAt: article.createdAt.toISOString(),
-        updatedAt: article.updatedAt.toISOString()
+        updatedAt: article.updatedAt.toISOString(),
       })),
       pagination: {
         page,
         limit,
         total,
-        totalPages: Math.ceil(total / limit)
+        totalPages: Math.ceil(total / limit),
       },
       categories: [
-        'Configuration',
-        'Lâcher de chariot',
-        'Intégrations',
-        'Paiements',
-        'Facturation',
-        'Marketing',
-        'Analytics',
-        'Support technique',
-        'Bonnes pratiques'
-      ]
-    })
-
+        "Configuration",
+        "Lâcher de chariot",
+        "Intégrations",
+        "Paiements",
+        "Facturation",
+        "Marketing",
+        "Analytics",
+        "Support technique",
+        "Bonnes pratiques",
+      ],
+    });
   } catch (error) {
-    console.error('Erreur récupération base de connaissances:', error)
+    console.error("Erreur récupération base de connaissances:", error);
     return NextResponse.json(
-      { error: 'Erreur interne du serveur' },
-      { status: 500 }
-    )
+      { error: "Erreur interne du serveur" },
+      { status: 500 },
+    );
   }
 }
 
 // POST /api/merchant/support/knowledge-base - Marquer un article comme utile
 export async function POST(request: NextRequest) {
   try {
-    const session = await auth()
-    
+    const session = await auth();
+
     if (!session?.user?.id) {
-      return NextResponse.json(
-        { error: 'Non authentifié' },
-        { status: 401 }
-      )
+      return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
     }
 
     // Vérifier que l'utilisateur est un commerçant
     const user = await prisma.user.findUnique({
       where: { id: session.user.id },
-      select: { role: true }
-    })
+      select: { role: true },
+    });
 
-    if (!user || user.role !== 'MERCHANT') {
+    if (!user || user.role !== "MERCHANT") {
       return NextResponse.json(
-        { error: 'Accès non autorisé' },
-        { status: 403 }
-      )
+        { error: "Accès non autorisé" },
+        { status: 403 },
+      );
     }
 
-    const body = await request.json()
-    const { articleId, helpful } = body
+    const body = await request.json();
+    const { articleId, helpful } = body;
 
-    if (!articleId || typeof helpful !== 'boolean') {
-      return NextResponse.json(
-        { error: 'Données invalides' },
-        { status: 400 }
-      )
+    if (!articleId || typeof helpful !== "boolean") {
+      return NextResponse.json({ error: "Données invalides" }, { status: 400 });
     }
 
     // Vérifier que l'article existe
     const article = await prisma.knowledgeBaseArticle.findUnique({
-      where: { id: articleId }
-    })
+      where: { id: articleId },
+    });
 
     if (!article) {
       return NextResponse.json(
-        { error: 'Article non trouvé' },
-        { status: 404 }
-      )
+        { error: "Article non trouvé" },
+        { status: 404 },
+      );
     }
 
     // Enregistrer le feedback
@@ -184,45 +176,44 @@ export async function POST(request: NextRequest) {
       where: {
         articleId_userId: {
           articleId: articleId,
-          userId: session.user.id
-        }
+          userId: session.user.id,
+        },
       },
       update: {
-        helpful: helpful
+        helpful: helpful,
       },
       create: {
         articleId: articleId,
         userId: session.user.id,
-        helpful: helpful
-      }
-    })
+        helpful: helpful,
+      },
+    });
 
     // Mettre à jour les statistiques de l'article
     const feedbacks = await prisma.knowledgeBaseFeedback.findMany({
-      where: { articleId: articleId }
-    })
+      where: { articleId: articleId },
+    });
 
-    const helpfulCount = feedbacks.filter(f => f.helpful).length
+    const helpfulCount = feedbacks.filter((f) => f.helpful).length;
 
     await prisma.knowledgeBaseArticle.update({
       where: { id: articleId },
       data: {
         helpful: helpfulCount,
-        views: article.views + 1 // Incrémenter les vues aussi
-      }
-    })
+        views: article.views + 1, // Incrémenter les vues aussi
+      },
+    });
 
     return NextResponse.json({
       success: true,
       helpful: helpfulCount,
-      views: article.views + 1
-    })
-
+      views: article.views + 1,
+    });
   } catch (error) {
-    console.error('Erreur feedback article:', error)
+    console.error("Erreur feedback article:", error);
     return NextResponse.json(
-      { error: 'Erreur interne du serveur' },
-      { status: 500 }
-    )
+      { error: "Erreur interne du serveur" },
+      { status: 500 },
+    );
   }
-} 
+}

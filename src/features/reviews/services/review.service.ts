@@ -1,28 +1,28 @@
-import { prisma } from '@/lib/db'
-import { NotificationService } from '@/features/notifications/services/notification.service'
+import { prisma } from "@/lib/db";
+import { NotificationService } from "@/features/notifications/services/notification.service";
 
 export interface ReviewData {
-  rating: number // 1-5
-  comment?: string
-  bookingId?: string
-  providerId?: string
-  clientId: string
+  rating: number; // 1-5
+  comment?: string;
+  bookingId?: string;
+  providerId?: string;
+  clientId: string;
 }
 
 export interface ReviewStats {
-  averageRating: number
-  totalReviews: number
-  distribution: { [key: number]: number }
-  recentReviews: any[]
-  improvementAreas?: string[]
+  averageRating: number;
+  totalReviews: number;
+  distribution: { [key: number]: number };
+  recentReviews: any[];
+  improvementAreas?: string[];
 }
 
 export interface ReviewFilters {
-  rating?: number
-  startDate?: Date
-  endDate?: Date
-  limit?: number
-  offset?: number
+  rating?: number;
+  startDate?: Date;
+  endDate?: Date;
+  limit?: number;
+  offset?: number;
 }
 
 export class ReviewService {
@@ -31,20 +31,23 @@ export class ReviewService {
    */
   static async createReview(reviewData: ReviewData): Promise<any> {
     try {
-      const { rating, comment, bookingId, providerId, clientId } = reviewData
+      const { rating, comment, bookingId, providerId, clientId } = reviewData;
 
       // Validation des données
       if (rating < 1 || rating > 5) {
-        throw new Error('La note doit être comprise entre 1 et 5')
+        throw new Error("La note doit être comprise entre 1 et 5");
       }
 
       // Vérifier que l'utilisateur peut laisser cette évaluation
-      await this.validateReviewPermission(clientId, bookingId)
+      await this.validateReviewPermission(clientId, bookingId);
 
       // Vérifier qu'une évaluation n'existe pas déjà
-      const existingReview = await this.checkExistingReview(clientId, bookingId)
+      const existingReview = await this.checkExistingReview(
+        clientId,
+        bookingId,
+      );
       if (existingReview) {
-        throw new Error('Vous avez déjà évalué cet élément')
+        throw new Error("Vous avez déjà évalué cet élément");
       }
 
       const review = await prisma.$transaction(async (tx) => {
@@ -55,52 +58,51 @@ export class ReviewService {
             comment,
             clientId,
             bookingId,
-            providerId
+            providerId,
           },
           include: {
             client: true,
             provider: {
               include: {
-                user: true
-              }
+                user: true,
+              },
             },
             booking: {
               include: {
-                provider: true
-              }
-            }
-          }
-        })
+                provider: true,
+              },
+            },
+          },
+        });
 
         // Mettre à jour les moyennes du prestataire
         if (providerId) {
-          await this.updateProviderRating(tx, providerId)
+          await this.updateProviderRating(tx, providerId);
         }
 
-        return newReview
-      })
+        return newReview;
+      });
 
       // Envoyer une notification au prestataire
       if (providerId && review.provider) {
         await NotificationService.createNotification({
           userId: review.provider.userId,
-          type: 'NEW_REVIEW',
-          title: '⭐ Nouvelle évaluation',
-          message: `Vous avez reçu une note de ${rating}/5 ${comment ? 'avec commentaire' : ''}`,
+          type: "NEW_REVIEW",
+          title: "⭐ Nouvelle évaluation",
+          message: `Vous avez reçu une note de ${rating}/5 ${comment ? "avec commentaire" : ""}`,
           data: {
             reviewId: review.id,
-            rating
+            rating,
           },
           sendPush: true,
-          priority: rating >= 4 ? 'medium' : 'high'
-        })
+          priority: rating >= 4 ? "medium" : "high",
+        });
       }
 
-      return review
-
+      return review;
     } catch (error) {
-      console.error('Erreur lors de la création de l\'évaluation:', error)
-      throw error
+      console.error("Erreur lors de la création de l'évaluation:", error);
+      throw error;
     }
   }
 
@@ -109,21 +111,21 @@ export class ReviewService {
    */
   static async getProviderReviews(
     providerId: string,
-    filters: ReviewFilters = {}
+    filters: ReviewFilters = {},
   ): Promise<{ reviews: any[]; stats: any; pagination: any }> {
     try {
-      const { rating, startDate, endDate, limit = 20, offset = 0 } = filters
+      const { rating, startDate, endDate, limit = 20, offset = 0 } = filters;
 
       const where: any = {
-        providerId
-      }
+        providerId,
+      };
 
-      if (rating) where.rating = rating
+      if (rating) where.rating = rating;
       if (startDate && endDate) {
         where.createdAt = {
           gte: startDate,
-          lte: endDate
-        }
+          lte: endDate,
+        };
       }
 
       const [reviews, total, ratingDistribution] = await Promise.all([
@@ -132,30 +134,31 @@ export class ReviewService {
           include: {
             client: {
               include: {
-                user: true
-              }
+                user: true,
+              },
             },
-            booking: true
+            booking: true,
           },
-          orderBy: { createdAt: 'desc' },
+          orderBy: { createdAt: "desc" },
           take: limit,
-          skip: offset
+          skip: offset,
         }),
         prisma.review.count({ where }),
-        this.calculateRatingDistribution(providerId)
-      ])
+        this.calculateRatingDistribution(providerId),
+      ]);
 
       // Calculer les statistiques
-      const totalReviews = reviews.length
-      const averageRating = totalReviews > 0 
-        ? reviews.reduce((sum, r) => sum + r.rating, 0) / totalReviews 
-        : 0
+      const totalReviews = reviews.length;
+      const averageRating =
+        totalReviews > 0
+          ? reviews.reduce((sum, r) => sum + r.rating, 0) / totalReviews
+          : 0;
 
       const stats = {
         averageRating: Math.round(averageRating * 100) / 100,
         totalReviews: total,
-        ratingDistribution
-      }
+        ratingDistribution,
+      };
 
       return {
         reviews,
@@ -164,84 +167,98 @@ export class ReviewService {
           total,
           limit,
           offset,
-          totalPages: Math.ceil(total / limit)
-        }
-      }
-
+          totalPages: Math.ceil(total / limit),
+        },
+      };
     } catch (error) {
-      console.error('Erreur lors de la récupération des évaluations:', error)
-      throw error
+      console.error("Erreur lors de la récupération des évaluations:", error);
+      throw error;
     }
   }
 
   /**
    * Calculer la distribution des notes
    */
-  private static async calculateRatingDistribution(providerId: string): Promise<{ [key: number]: number }> {
+  private static async calculateRatingDistribution(
+    providerId: string,
+  ): Promise<{ [key: number]: number }> {
     const reviews = await prisma.review.findMany({
       where: { providerId },
-      select: { rating: true }
-    })
+      select: { rating: true },
+    });
 
-    const distribution: { [key: number]: number } = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 }
-    reviews.forEach(r => {
-      distribution[r.rating] = (distribution[r.rating] || 0) + 1
-    })
+    const distribution: { [key: number]: number } = {
+      1: 0,
+      2: 0,
+      3: 0,
+      4: 0,
+      5: 0,
+    };
+    reviews.forEach((r) => {
+      distribution[r.rating] = (distribution[r.rating] || 0) + 1;
+    });
 
-    return distribution
+    return distribution;
   }
 
   /**
    * Analyser les zones d'amélioration
    */
-  private static async analyzeImprovementAreas(providerId: string): Promise<string[]> {
+  private static async analyzeImprovementAreas(
+    providerId: string,
+  ): Promise<string[]> {
     const negativeReviews = await prisma.review.findMany({
       where: {
         providerId,
         rating: { lte: 3 },
-        comment: { not: null }
+        comment: { not: null },
       },
-      select: { comment: true, rating: true }
-    })
+      select: { comment: true, rating: true },
+    });
 
     const keywords = {
-      'Ponctualité': ['retard', 'en retard', 'attente', 'délai'],
-      'Communication': ['communication', 'contact', 'réponse', 'info'],
-      'Qualité du service': ['qualité', 'mal fait', 'bâclé', 'professionnel'],
-      'Attitude': ['attitude', 'impoli', 'désagréable', 'sourire'],
-      'Précaution': ['casse', 'abîmé', 'prudent', 'attention']
-    }
+      Ponctualité: ["retard", "en retard", "attente", "délai"],
+      Communication: ["communication", "contact", "réponse", "info"],
+      "Qualité du service": ["qualité", "mal fait", "bâclé", "professionnel"],
+      Attitude: ["attitude", "impoli", "désagréable", "sourire"],
+      Précaution: ["casse", "abîmé", "prudent", "attention"],
+    };
 
-    const areas: string[] = []
-    const comments = negativeReviews.map(r => r.comment?.toLowerCase() || '').join(' ')
+    const areas: string[] = [];
+    const comments = negativeReviews
+      .map((r) => r.comment?.toLowerCase() || "")
+      .join(" ");
 
     Object.entries(keywords).forEach(([area, words]) => {
-      if (words.some(word => comments.includes(word))) {
-        areas.push(area)
+      if (words.some((word) => comments.includes(word))) {
+        areas.push(area);
       }
-    })
+    });
 
-    return areas
+    return areas;
   }
 
   /**
    * Mettre à jour la note moyenne d'un prestataire
    */
-  private static async updateProviderRating(tx: any, providerId: string): Promise<void> {
+  private static async updateProviderRating(
+    tx: any,
+    providerId: string,
+  ): Promise<void> {
     const stats = await tx.review.aggregate({
       where: {
-        providerId
+        providerId,
       },
       _avg: { rating: true },
-      _count: { rating: true }
-    })
+      _count: { rating: true },
+    });
 
     await tx.provider.update({
       where: { id: providerId },
       data: {
-        averageRating: stats._avg.rating || 0
-      }
-    })
+        averageRating: stats._avg.rating || 0,
+      },
+    });
   }
 
   /**
@@ -249,19 +266,19 @@ export class ReviewService {
    */
   private static async validateReviewPermission(
     clientId: string,
-    bookingId?: string
+    bookingId?: string,
   ): Promise<void> {
     if (bookingId) {
       const booking = await prisma.booking.findFirst({
         where: {
           id: bookingId,
           clientId,
-          status: 'COMPLETED'
-        }
-      })
+          status: "COMPLETED",
+        },
+      });
 
       if (!booking) {
-        throw new Error('Réservation non trouvée ou non terminée')
+        throw new Error("Réservation non trouvée ou non terminée");
       }
     }
   }
@@ -271,13 +288,13 @@ export class ReviewService {
    */
   private static async checkExistingReview(
     clientId: string,
-    bookingId?: string
+    bookingId?: string,
   ): Promise<any> {
-    const where: any = { clientId }
+    const where: any = { clientId };
 
-    if (bookingId) where.bookingId = bookingId
+    if (bookingId) where.bookingId = bookingId;
 
-    return await prisma.review.findFirst({ where })
+    return await prisma.review.findFirst({ where });
   }
 
   /**
@@ -286,56 +303,58 @@ export class ReviewService {
   static async respondToReview(
     reviewId: string,
     responderId: string,
-    response: string
+    response: string,
   ): Promise<any> {
     try {
       const review = await prisma.review.findUnique({
         where: { id: reviewId },
         include: {
-          provider: true
-        }
-      })
+          provider: true,
+        },
+      });
 
       if (!review) {
-        throw new Error('Évaluation non trouvée')
+        throw new Error("Évaluation non trouvée");
       }
 
       // Vérifier que celui qui répond est bien le prestataire concerné
-      const canRespond = review.provider && review.provider.userId === responderId
+      const canRespond =
+        review.provider && review.provider.userId === responderId;
 
       if (!canRespond) {
-        throw new Error('Vous n\'êtes pas autorisé à répondre à cette évaluation')
+        throw new Error(
+          "Vous n'êtes pas autorisé à répondre à cette évaluation",
+        );
       }
 
       const updatedReview = await prisma.review.update({
         where: { id: reviewId },
         data: {
           response,
-          respondedAt: new Date()
-        }
-      })
+          respondedAt: new Date(),
+        },
+      });
 
       // Notifier le client de la réponse
       if (review.clientId) {
         await NotificationService.createNotification({
           userId: review.clientId,
-          type: 'REVIEW_RESPONSE',
-          title: '💬 Réponse à votre évaluation',
-          message: 'Une réponse a été apportée à votre évaluation',
+          type: "REVIEW_RESPONSE",
+          title: "💬 Réponse à votre évaluation",
+          message: "Une réponse a été apportée à votre évaluation",
           data: {
             reviewId,
-            response
+            response,
           },
           sendPush: true,
-          priority: 'medium'
-        })
+          priority: "medium",
+        });
       }
 
-      return updatedReview
-
+      return updatedReview;
     } catch (error) {
-      console.error('Erreur lors de la réponse à l\'évaluation:', error)
-      throw error
+      console.error("Erreur lors de la réponse à l'évaluation:", error);
+      throw error;
     }
   }
 
@@ -346,15 +365,13 @@ export class ReviewService {
     return await prisma.provider.findMany({
       where: {
         averageRating: { gt: 0 },
-        isActive: true
+        isActive: true,
       },
       include: {
-        user: true
+        user: true,
       },
-      orderBy: [
-        { averageRating: 'desc' }
-      ],
-      take: limit
-    })
+      orderBy: [{ averageRating: "desc" }],
+      take: limit,
+    });
   }
 }

@@ -1,90 +1,103 @@
-'use client'
+"use client";
 
-import { useTranslations } from 'next-intl'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Badge } from '@/components/ui/badge'
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
-} from '@/components/ui/table'
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
-  DropdownMenuTrigger 
-} from '@/components/ui/dropdown-menu'
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
-} from '@/components/ui/select'
-import { 
-  Plus, 
-  Search, 
-  Filter, 
-  MoreHorizontal, 
-  Edit, 
-  Trash2, 
+import { useTranslations } from "next-intl";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Plus,
+  Search,
+  Filter,
+  MoreHorizontal,
+  Edit,
+  Trash2,
   Eye,
   Package,
-  AlertTriangle
-} from 'lucide-react'
-import Link from 'next/link'
-import { useState, useEffect } from 'react'
-import { useProducts } from '@/features/merchant/hooks/use-products'
+  AlertTriangle,
+} from "lucide-react";
+import Link from "next/link";
+import { useState, useEffect } from "react";
+import { useProducts } from "@/features/merchant/hooks/use-products";
 
 export function ProductList() {
-  const t = useTranslations('merchant.products')
-  const { products, isLoading, deleteProduct } = useProducts()
-  const [searchTerm, setSearchTerm] = useState('')
-  const [categoryFilter, setCategoryFilter] = useState('all')
-  const [statusFilter, setStatusFilter] = useState('all')
+  const t = useTranslations("merchant.products");
+  const { products, isLoading, deleteProduct } = useProducts();
+  const [searchTerm, setSearchTerm] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("all");
 
-  const categories = Array.from(new Set(products.map(p => p.category).filter(Boolean)))
+  const categories = Array.from(
+    new Set(products.map((p) => p.category).filter(Boolean)),
+  );
 
-  const filteredProducts = products.filter(product => {
-    const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         product.sku?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         product.brand?.toLowerCase().includes(searchTerm.toLowerCase())
-    
-    const matchesCategory = categoryFilter === 'all' || product.category === categoryFilter
-    const matchesStatus = statusFilter === 'all' || 
-                         (statusFilter === 'active' && product.isActive) ||
-                         (statusFilter === 'inactive' && !product.isActive)
+  const filteredProducts = products.filter((product) => {
+    const matchesSearch =
+      product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      product.sku?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      product.brand?.toLowerCase().includes(searchTerm.toLowerCase());
 
-    return matchesSearch && matchesCategory && matchesStatus
-  })
+    const matchesCategory =
+      categoryFilter === "all" || product.category === categoryFilter;
+    const matchesStatus =
+      statusFilter === "all" ||
+      (statusFilter === "active" && product.isActive) ||
+      (statusFilter === "inactive" && !product.isActive);
+
+    return matchesSearch && matchesCategory && matchesStatus;
+  });
 
   const handleDelete = async (id: string) => {
-    if (confirm(t('delete.confirm'))) {
+    if (confirm(t("delete.confirm"))) {
       try {
-        await deleteProduct(id)
+        await deleteProduct(id);
       } catch (error) {
-        console.error('Error deleting product:', error)
+        console.error("Error deleting product:", error);
       }
     }
-  }
+  };
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">{t('list.title')}</h1>
-          <p className="text-muted-foreground">{t('list.description')}</p>
+          <h1 className="text-3xl font-bold tracking-tight">
+            {t("list.title")}
+          </h1>
+          <p className="text-muted-foreground">{t("list.description")}</p>
         </div>
         <Button asChild>
           <Link href="/merchant/products/add">
             <Plus className="mr-2 h-4 w-4" />
-            {t('addProduct')}
+            {t("addProduct")}
           </Link>
         </Button>
       </div>
@@ -92,27 +105,27 @@ export function ProductList() {
       {/* Filters */}
       <Card>
         <CardHeader>
-          <CardTitle>{t('list.filters')}</CardTitle>
+          <CardTitle>{t("list.filters")}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid gap-4 md:grid-cols-4">
             <div className="relative">
               <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder={t('list.searchPlaceholder')}
+                placeholder={t("list.searchPlaceholder")}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
               />
             </div>
-            
+
             <Select value={categoryFilter} onValueChange={setCategoryFilter}>
               <SelectTrigger>
-                <SelectValue placeholder={t('list.categoryFilter')} />
+                <SelectValue placeholder={t("list.categoryFilter")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">{t('list.allCategories')}</SelectItem>
-                {categories.map(category => (
+                <SelectItem value="all">{t("list.allCategories")}</SelectItem>
+                {categories.map((category) => (
                   <SelectItem key={category} value={category}>
                     {category}
                   </SelectItem>
@@ -122,17 +135,17 @@ export function ProductList() {
 
             <Select value={statusFilter} onValueChange={setStatusFilter}>
               <SelectTrigger>
-                <SelectValue placeholder={t('list.statusFilter')} />
+                <SelectValue placeholder={t("list.statusFilter")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">{t('list.allStatuses')}</SelectItem>
-                <SelectItem value="active">{t('list.active')}</SelectItem>
-                <SelectItem value="inactive">{t('list.inactive')}</SelectItem>
+                <SelectItem value="all">{t("list.allStatuses")}</SelectItem>
+                <SelectItem value="active">{t("list.active")}</SelectItem>
+                <SelectItem value="inactive">{t("list.inactive")}</SelectItem>
               </SelectContent>
             </Select>
 
             <div className="text-sm text-muted-foreground flex items-center justify-end">
-              {t('list.results', { count: filteredProducts.length })}
+              {t("list.results", { count: filteredProducts.length })}
             </div>
           </div>
         </CardContent>
@@ -141,8 +154,8 @@ export function ProductList() {
       {/* Products Table */}
       <Card>
         <CardHeader>
-          <CardTitle>{t('list.products')}</CardTitle>
-          <CardDescription>{t('list.productsDescription')}</CardDescription>
+          <CardTitle>{t("list.products")}</CardTitle>
+          <CardDescription>{t("list.productsDescription")}</CardDescription>
         </CardHeader>
         <CardContent>
           {isLoading ? (
@@ -153,13 +166,15 @@ export function ProductList() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>{t('list.columns.product')}</TableHead>
-                  <TableHead>{t('list.columns.sku')}</TableHead>
-                  <TableHead>{t('list.columns.category')}</TableHead>
-                  <TableHead>{t('list.columns.price')}</TableHead>
-                  <TableHead>{t('list.columns.stock')}</TableHead>
-                  <TableHead>{t('list.columns.status')}</TableHead>
-                  <TableHead className="text-right">{t('list.columns.actions')}</TableHead>
+                  <TableHead>{t("list.columns.product")}</TableHead>
+                  <TableHead>{t("list.columns.sku")}</TableHead>
+                  <TableHead>{t("list.columns.category")}</TableHead>
+                  <TableHead>{t("list.columns.price")}</TableHead>
+                  <TableHead>{t("list.columns.stock")}</TableHead>
+                  <TableHead>{t("list.columns.status")}</TableHead>
+                  <TableHead className="text-right">
+                    {t("list.columns.actions")}
+                  </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -181,7 +196,9 @@ export function ProductList() {
                         <div>
                           <div className="font-medium">{product.name}</div>
                           {product.brand && (
-                            <div className="text-sm text-muted-foreground">{product.brand}</div>
+                            <div className="text-sm text-muted-foreground">
+                              {product.brand}
+                            </div>
                           )}
                         </div>
                       </div>
@@ -199,16 +216,25 @@ export function ProductList() {
                       )}
                     </TableCell>
                     <TableCell>
-                      <div className="font-medium">€{product.price.toFixed(2)}</div>
-                      {product.originalPrice && product.originalPrice > product.price && (
-                        <div className="text-sm text-muted-foreground line-through">
-                          €{product.originalPrice.toFixed(2)}
-                        </div>
-                      )}
+                      <div className="font-medium">
+                        €{product.price.toFixed(2)}
+                      </div>
+                      {product.originalPrice &&
+                        product.originalPrice > product.price && (
+                          <div className="text-sm text-muted-foreground line-through">
+                            €{product.originalPrice.toFixed(2)}
+                          </div>
+                        )}
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center space-x-2">
-                        <span className={product.stockQuantity <= product.minStockAlert ? 'text-red-600' : ''}>
+                        <span
+                          className={
+                            product.stockQuantity <= product.minStockAlert
+                              ? "text-red-600"
+                              : ""
+                          }
+                        >
                           {product.stockQuantity}
                         </span>
                         {product.stockQuantity <= product.minStockAlert && (
@@ -217,8 +243,12 @@ export function ProductList() {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Badge variant={product.isActive ? 'default' : 'secondary'}>
-                        {product.isActive ? t('list.active') : t('list.inactive')}
+                      <Badge
+                        variant={product.isActive ? "default" : "secondary"}
+                      >
+                        {product.isActive
+                          ? t("list.active")
+                          : t("list.inactive")}
                       </Badge>
                     </TableCell>
                     <TableCell className="text-right">
@@ -232,13 +262,15 @@ export function ProductList() {
                           <DropdownMenuItem asChild>
                             <Link href={`/merchant/products/${product.id}`}>
                               <Eye className="mr-2 h-4 w-4" />
-                              {t('list.actions.view')}
+                              {t("list.actions.view")}
                             </Link>
                           </DropdownMenuItem>
                           <DropdownMenuItem asChild>
-                            <Link href={`/merchant/products/${product.id}/edit`}>
+                            <Link
+                              href={`/merchant/products/${product.id}/edit`}
+                            >
                               <Edit className="mr-2 h-4 w-4" />
-                              {t('list.actions.edit')}
+                              {t("list.actions.edit")}
                             </Link>
                           </DropdownMenuItem>
                           <DropdownMenuItem
@@ -246,7 +278,7 @@ export function ProductList() {
                             className="text-red-600"
                           >
                             <Trash2 className="mr-2 h-4 w-4" />
-                            {t('list.actions.delete')}
+                            {t("list.actions.delete")}
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
@@ -258,13 +290,17 @@ export function ProductList() {
           ) : (
             <div className="text-center py-8">
               <Package className="mx-auto h-12 w-12 text-muted-foreground" />
-              <h3 className="mt-2 text-sm font-medium">{t('list.noProducts')}</h3>
-              <p className="mt-1 text-sm text-muted-foreground">{t('list.noProductsDescription')}</p>
+              <h3 className="mt-2 text-sm font-medium">
+                {t("list.noProducts")}
+              </h3>
+              <p className="mt-1 text-sm text-muted-foreground">
+                {t("list.noProductsDescription")}
+              </p>
               <div className="mt-6">
                 <Button asChild>
                   <Link href="/merchant/products/add">
                     <Plus className="mr-2 h-4 w-4" />
-                    {t('addFirstProduct')}
+                    {t("addFirstProduct")}
                   </Link>
                 </Button>
               </div>
@@ -273,5 +309,5 @@ export function ProductList() {
         </CardContent>
       </Card>
     </div>
-  )
-} 
+  );
+}

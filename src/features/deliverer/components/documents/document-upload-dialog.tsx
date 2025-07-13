@@ -1,21 +1,21 @@
-import React from 'react'
-import { Button } from '@/components/ui/button'
+import React from "react";
+import { Button } from "@/components/ui/button";
 
 interface DocumentUploadDialogProps {
-  isOpen: boolean
-  onClose: () => void
-  documentType: string
-  onSuccess: () => void
+  isOpen: boolean;
+  onClose: () => void;
+  documentType: string;
+  onSuccess: () => void;
 }
 
-export function DocumentUploadDialog({ 
-  isOpen, 
-  onClose, 
-  documentType, 
-  onSuccess 
+export function DocumentUploadDialog({
+  isOpen,
+  onClose,
+  documentType,
+  onSuccess,
 }: DocumentUploadDialogProps) {
-  if (!isOpen) return null
-  
+  if (!isOpen) return null;
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white p-6 rounded-lg max-w-md w-full">
@@ -25,16 +25,18 @@ export function DocumentUploadDialog({
           <Button variant="outline" onClick={onClose}>
             Annuler
           </Button>
-          <Button onClick={() => { 
-            onSuccess()
-            onClose()
-          }}>
+          <Button
+            onClick={() => {
+              onSuccess();
+              onClose();
+            }}
+          >
             Simuler Upload
           </Button>
         </div>
       </div>
     </div>
-  )
+  );
 }
 
-export default DocumentUploadDialog 
+export default DocumentUploadDialog;

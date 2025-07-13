@@ -6,15 +6,30 @@ import { z } from "zod";
 const serviceSchema = z.object({
   providerId: z.string().cuid(),
   name: z.string().min(3, "Le nom du service doit faire au moins 3 caractères"),
-  description: z.string().min(10, "La description doit faire au moins 10 caractères"),
-  type: z.enum(["PERSON_TRANSPORT", "AIRPORT_TRANSFER", "SHOPPING", "INTERNATIONAL_PURCHASE", "PET_CARE", "HOME_SERVICE", "CART_DROP", "OTHER"]),
+  description: z
+    .string()
+    .min(10, "La description doit faire au moins 10 caractères"),
+  type: z.enum([
+    "PERSON_TRANSPORT",
+    "AIRPORT_TRANSFER",
+    "SHOPPING",
+    "INTERNATIONAL_PURCHASE",
+    "PET_CARE",
+    "HOME_SERVICE",
+    "CART_DROP",
+    "OTHER",
+  ]),
   basePrice: z.number().positive("Le prix de base doit être positif"),
   priceUnit: z.enum(["HOUR", "FLAT", "KM", "DAY"]),
   duration: z.number().positive().optional(),
   isActive: z.boolean().default(true),
   requirements: z.array(z.string()).default([]),
-  minAdvanceBooking: z.number().positive("Le délai minimum de réservation doit être positif"),
-  maxAdvanceBooking: z.number().positive("Le délai maximum de réservation doit être positif"),
+  minAdvanceBooking: z
+    .number()
+    .positive("Le délai minimum de réservation doit être positif"),
+  maxAdvanceBooking: z
+    .number()
+    .positive("Le délai maximum de réservation doit être positif"),
 });
 
 // GET - Récupérer les services d'un prestataire
@@ -22,10 +37,7 @@ export async function GET(request: NextRequest) {
   try {
     const session = await auth();
     if (!session) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const { searchParams } = new URL(request.url);
@@ -34,7 +46,7 @@ export async function GET(request: NextRequest) {
     if (!providerId) {
       return NextResponse.json(
         { error: "Provider ID is required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -53,15 +65,12 @@ export async function GET(request: NextRequest) {
     if (!provider) {
       return NextResponse.json(
         { error: "Provider not found" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
     if (session.user.role !== "ADMIN" && provider.userId !== session.user.id) {
-      return NextResponse.json(
-        { error: "Forbidden" },
-        { status: 403 }
-      );
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
     // Récupérer les services
@@ -75,7 +84,7 @@ export async function GET(request: NextRequest) {
     console.error("Error fetching provider services:", error);
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -85,10 +94,7 @@ export async function POST(request: NextRequest) {
   try {
     const session = await auth();
     if (!session || session.user.role !== "PROVIDER") {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const body = await request.json();
@@ -109,20 +115,17 @@ export async function POST(request: NextRequest) {
           userId: validatedData.providerId,
         },
       });
-      
+
       // Vérifier que ce provider appartient bien à l'utilisateur connecté
       if (provider && provider.userId !== session.user.id) {
-        return NextResponse.json(
-          { error: "Forbidden" },
-          { status: 403 }
-        );
+        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
       }
     }
 
     if (!provider) {
       return NextResponse.json(
         { error: "Provider not found" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -150,14 +153,14 @@ export async function POST(request: NextRequest) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: "Validation error", details: error.errors },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     console.error("Error creating provider service:", error);
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
-} 
+}

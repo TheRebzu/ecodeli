@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
 
 interface TutorialProgress {
   createAnnouncement: boolean;
@@ -36,29 +36,30 @@ export function useSimpleTutorial(): UseSimpleTutorialReturn {
     try {
       setIsLoading(true);
       setError(null);
-      
-      const response = await fetch('/api/client/tutorial/complete', {
-        method: 'GET',
+
+      const response = await fetch("/api/client/tutorial/complete", {
+        method: "GET",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
       });
 
       if (!response.ok) {
-        throw new Error('Failed to fetch tutorial status');
+        throw new Error("Failed to fetch tutorial status");
       }
 
       const data = await response.json();
       setTutorialData(data);
-      
+
       // Afficher le tutoriel si nécessaire
       if (data.blocksNavigation && !data.tutorialCompleted) {
         setShowTutorial(true);
       }
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
+      const errorMessage =
+        err instanceof Error ? err.message : "Unknown error occurred";
       setError(errorMessage);
-      console.error('Error fetching tutorial status:', err);
+      console.error("Error fetching tutorial status:", err);
     } finally {
       setIsLoading(false);
     }
@@ -66,23 +67,23 @@ export function useSimpleTutorial(): UseSimpleTutorialReturn {
 
   const completeStep = async (step: string) => {
     try {
-      const response = await fetch('/api/client/tutorial/complete', {
-        method: 'POST',
+      const response = await fetch("/api/client/tutorial/complete", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           step,
-          completed: true
+          completed: true,
         }),
       });
 
       if (!response.ok) {
-        throw new Error('Failed to complete tutorial step');
+        throw new Error("Failed to complete tutorial step");
       }
 
       const data = await response.json();
-      
+
       // Update local state with the new progress
       if (data.success && tutorialData) {
         const newTutorialData = {
@@ -90,20 +91,21 @@ export function useSimpleTutorial(): UseSimpleTutorialReturn {
           tutorialCompleted: data.tutorialCompleted,
           progress: data.tutorialProgress,
           nextStep: data.nextStep,
-          blocksNavigation: !data.tutorialCompleted
+          blocksNavigation: !data.tutorialCompleted,
         };
-        
+
         setTutorialData(newTutorialData);
-        
+
         // Masquer le tutoriel si terminé
         if (data.tutorialCompleted) {
           setShowTutorial(false);
         }
       }
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to complete step';
+      const errorMessage =
+        err instanceof Error ? err.message : "Failed to complete step";
       setError(errorMessage);
-      console.error('Error completing tutorial step:', err);
+      console.error("Error completing tutorial step:", err);
       throw err;
     }
   };
@@ -126,6 +128,6 @@ export function useSimpleTutorial(): UseSimpleTutorialReturn {
     completeStep,
     refetch: fetchTutorialStatus,
     showTutorial,
-    hideTutorial
+    hideTutorial,
   };
 }

@@ -6,7 +6,10 @@ import { useAuth } from "@/hooks/use-auth";
 import { useTranslations } from "next-intl";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { createServiceSchema, type CreateServiceInput } from "@/features/services/schemas/service.schema";
+import {
+  createServiceSchema,
+  type CreateServiceInput,
+} from "@/features/services/schemas/service.schema";
 
 import { PageHeader } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";
@@ -14,15 +17,31 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Separator } from "@/components/ui/separator";
 
-import { 
-  User, Users, Plane, Heart, Home, Wrench, 
-  GraduationCap, Sparkles, ArrowLeft, Save, Send, Loader2
+import {
+  User,
+  Users,
+  Plane,
+  Heart,
+  Home,
+  Wrench,
+  GraduationCap,
+  Sparkles,
+  ArrowLeft,
+  Save,
+  Send,
+  Loader2,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -30,28 +49,82 @@ type FormData = CreateServiceInput;
 
 // Types de services à la personne selon le cahier des charges EcoDeli
 const serviceTypes = [
-  { value: 'PERSON_TRANSPORT', label: 'Transport de personnes', icon: Users, description: 'Transport quotidien (médecin, travail, gare)', category: 'TRANSPORT' },
-  { value: 'AIRPORT_TRANSFER', label: 'Transfert aéroport', icon: Plane, description: 'Navette aéroport au départ ou à l\'arrivée', category: 'TRANSPORT' },
-  { value: 'PET_CARE', label: 'Garde d\'animaux', icon: Heart, description: 'Garde d\'animaux de compagnie à domicile', category: 'PET_SERVICES' },
-  { value: 'HOME_CLEANING', label: 'Ménage à domicile', icon: Home, description: 'Service de ménage et nettoyage', category: 'HOME_CARE' },
-  { value: 'GARDENING', label: 'Jardinage', icon: Home, description: 'Entretien jardin et espaces verts', category: 'MAINTENANCE' },
-  { value: 'HANDYMAN', label: 'Bricolage', icon: Wrench, description: 'Petits travaux ménagers et réparations', category: 'MAINTENANCE' },
-  { value: 'TUTORING', label: 'Cours particuliers', icon: GraduationCap, description: 'Enseignement et formation à domicile', category: 'EDUCATION' },
-  { value: 'BEAUTY', label: 'Soins beauté', icon: Sparkles, description: 'Soins esthétiques à domicile', category: 'PERSONAL_CARE' },
-  { value: 'HEALTHCARE', label: 'Soins à domicile', icon: User, description: 'Assistance et soins de santé', category: 'HOME_CARE' }
+  {
+    value: "PERSON_TRANSPORT",
+    label: "Transport de personnes",
+    icon: Users,
+    description: "Transport quotidien (médecin, travail, gare)",
+    category: "TRANSPORT",
+  },
+  {
+    value: "AIRPORT_TRANSFER",
+    label: "Transfert aéroport",
+    icon: Plane,
+    description: "Navette aéroport au départ ou à l'arrivée",
+    category: "TRANSPORT",
+  },
+  {
+    value: "PET_CARE",
+    label: "Garde d'animaux",
+    icon: Heart,
+    description: "Garde d'animaux de compagnie à domicile",
+    category: "PET_SERVICES",
+  },
+  {
+    value: "HOME_CLEANING",
+    label: "Ménage à domicile",
+    icon: Home,
+    description: "Service de ménage et nettoyage",
+    category: "HOME_CARE",
+  },
+  {
+    value: "GARDENING",
+    label: "Jardinage",
+    icon: Home,
+    description: "Entretien jardin et espaces verts",
+    category: "MAINTENANCE",
+  },
+  {
+    value: "HANDYMAN",
+    label: "Bricolage",
+    icon: Wrench,
+    description: "Petits travaux ménagers et réparations",
+    category: "MAINTENANCE",
+  },
+  {
+    value: "TUTORING",
+    label: "Cours particuliers",
+    icon: GraduationCap,
+    description: "Enseignement et formation à domicile",
+    category: "EDUCATION",
+  },
+  {
+    value: "BEAUTY",
+    label: "Soins beauté",
+    icon: Sparkles,
+    description: "Soins esthétiques à domicile",
+    category: "PERSONAL_CARE",
+  },
+  {
+    value: "HEALTHCARE",
+    label: "Soins à domicile",
+    icon: User,
+    description: "Assistance et soins de santé",
+    category: "HOME_CARE",
+  },
 ] as const;
 
 const priceUnits = [
-  { value: 'FLAT', label: 'Prix fixe' },
-  { value: 'HOURLY', label: 'Par heure' },
-  { value: 'DAILY', label: 'Par jour' }
+  { value: "FLAT", label: "Prix fixe" },
+  { value: "HOURLY", label: "Par heure" },
+  { value: "DAILY", label: "Par jour" },
 ] as const;
 
 export default function CreateServicePage() {
   const { user } = useAuth();
   const router = useRouter();
   const t = useTranslations("client.services");
-  
+
   const [isLoading, setIsLoading] = useState(false);
   const [saveAsDraft, setSaveAsDraft] = useState(false);
 
@@ -61,22 +134,22 @@ export default function CreateServicePage() {
     handleSubmit,
     watch,
     setValue,
-    formState: { errors, isValid }
+    formState: { errors, isValid },
   } = useForm<FormData>({
     resolver: zodResolver(createServiceSchema),
     defaultValues: {
       isUrgent: false,
       requiresCertification: false,
       allowsReschedule: true,
-      priceUnit: 'FLAT',
+      priceUnit: "FLAT",
       basePrice: 50,
       estimatedDuration: 120,
-      isFlexibleTime: false
-    }
+      isFlexibleTime: false,
+    },
   });
 
-  const selectedType = watch('type');
-  const selectedPriceUnit = watch('priceUnit');
+  const selectedType = watch("type");
+  const selectedPriceUnit = watch("priceUnit");
 
   const onSubmit = async (data: FormData, isDraft = false) => {
     if (!user) return;
@@ -85,30 +158,30 @@ export default function CreateServicePage() {
     setSaveAsDraft(isDraft);
 
     try {
-      console.log('📝 Envoi des données service:', data);
+      console.log("📝 Envoi des données service:", data);
 
-      const response = await fetch('/api/client/services', {
-        method: 'POST',
+      const response = await fetch("/api/client/services", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify(data)
+        body: JSON.stringify(data),
       });
 
       if (response.ok) {
         const result = await response.json();
-        console.log('✅ Service créé:', result);
-        
+        console.log("✅ Service créé:", result);
+
         // Redirection vers la page de services
         router.push(`/client/services/${result.service.id}`);
       } else {
         const error = await response.json();
-        console.error('❌ Erreur API:', error);
-        alert(`Erreur: ${error.error || 'Impossible de créer le service'}`);
+        console.error("❌ Erreur API:", error);
+        alert(`Erreur: ${error.error || "Impossible de créer le service"}`);
       }
     } catch (error) {
-      console.error('❌ Erreur:', error);
-      alert('Erreur de connexion. Veuillez réessayer.');
+      console.error("❌ Erreur:", error);
+      alert("Erreur de connexion. Veuillez réessayer.");
     } finally {
       setIsLoading(false);
       setSaveAsDraft(false);
@@ -116,7 +189,7 @@ export default function CreateServicePage() {
   };
 
   const getTypeIcon = (type: string) => {
-    const typeConfig = serviceTypes.find(t => t.value === type);
+    const typeConfig = serviceTypes.find((t) => t.value === type);
     const IconComponent = typeConfig?.icon || User;
     return <IconComponent className="h-4 w-4" />;
   };
@@ -151,7 +224,10 @@ export default function CreateServicePage() {
         }
       />
 
-      <form onSubmit={handleSubmit((data) => onSubmit(data, false))} className="space-y-6">
+      <form
+        onSubmit={handleSubmit((data) => onSubmit(data, false))}
+        className="space-y-6"
+      >
         {/* Type de service */}
         <Card>
           <CardHeader>
@@ -169,27 +245,30 @@ export default function CreateServicePage() {
                   {serviceTypes.map((type) => {
                     const IconComponent = type.icon;
                     const isSelected = field.value === type.value;
-                    
+
                     return (
                       <div
                         key={type.value}
                         className={`
                           p-4 border rounded-lg cursor-pointer transition-all
-                          ${isSelected 
-                            ? 'border-blue-500 bg-blue-50 ring-2 ring-blue-200' 
-                            : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                          ${
+                            isSelected
+                              ? "border-blue-500 bg-blue-50 ring-2 ring-blue-200"
+                              : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
                           }
                         `}
                         onClick={() => {
                           field.onChange(type.value);
-                          setValue('category', type.category);
+                          setValue("category", type.category);
                         }}
                       >
                         <div className="flex items-center gap-3 mb-2">
                           <IconComponent className="h-5 w-5 text-blue-600" />
                           <span className="font-medium">{type.label}</span>
                         </div>
-                        <p className="text-sm text-gray-600">{type.description}</p>
+                        <p className="text-sm text-gray-600">
+                          {type.description}
+                        </p>
                       </div>
                     );
                   })}
@@ -212,12 +291,14 @@ export default function CreateServicePage() {
               <Label htmlFor="title">Titre du service *</Label>
               <Input
                 id="title"
-                {...register('title')}
+                {...register("title")}
                 placeholder="Titre descriptif de votre demande"
-                className={errors.title ? 'border-red-500' : ''}
+                className={errors.title ? "border-red-500" : ""}
               />
               {errors.title && (
-                <p className="text-red-500 text-sm mt-1">{errors.title.message}</p>
+                <p className="text-red-500 text-sm mt-1">
+                  {errors.title.message}
+                </p>
               )}
             </div>
 
@@ -225,13 +306,15 @@ export default function CreateServicePage() {
               <Label htmlFor="description">Description détaillée *</Label>
               <Textarea
                 id="description"
-                {...register('description')}
+                {...register("description")}
                 placeholder="Décrivez précisément le service souhaité..."
                 rows={4}
-                className={errors.description ? 'border-red-500' : ''}
+                className={errors.description ? "border-red-500" : ""}
               />
               {errors.description && (
-                <p className="text-red-500 text-sm mt-1">{errors.description.message}</p>
+                <p className="text-red-500 text-sm mt-1">
+                  {errors.description.message}
+                </p>
               )}
             </div>
 
@@ -239,12 +322,14 @@ export default function CreateServicePage() {
               <Label htmlFor="specialRequirements">Exigences spéciales</Label>
               <Textarea
                 id="specialRequirements"
-                {...register('specialRequirements')}
+                {...register("specialRequirements")}
                 placeholder="Qualifications requises, matériel nécessaire..."
                 rows={2}
               />
               {errors.specialRequirements && (
-                <p className="text-red-500 text-sm mt-1">{errors.specialRequirements.message}</p>
+                <p className="text-red-500 text-sm mt-1">
+                  {errors.specialRequirements.message}
+                </p>
               )}
             </div>
           </CardContent>
@@ -263,12 +348,14 @@ export default function CreateServicePage() {
               <Label htmlFor="location.address">Adresse complète *</Label>
               <Input
                 id="location.address"
-                {...register('location.address')}
+                {...register("location.address")}
                 placeholder="Adresse complète d'intervention"
-                className={errors.location?.address ? 'border-red-500' : ''}
+                className={errors.location?.address ? "border-red-500" : ""}
               />
               {errors.location?.address && (
-                <p className="text-red-500 text-sm mt-1">{errors.location.address.message}</p>
+                <p className="text-red-500 text-sm mt-1">
+                  {errors.location.address.message}
+                </p>
               )}
             </div>
 
@@ -277,24 +364,30 @@ export default function CreateServicePage() {
                 <Label htmlFor="location.city">Ville *</Label>
                 <Input
                   id="location.city"
-                  {...register('location.city')}
+                  {...register("location.city")}
                   placeholder="Ville"
-                  className={errors.location?.city ? 'border-red-500' : ''}
+                  className={errors.location?.city ? "border-red-500" : ""}
                 />
                 {errors.location?.city && (
-                  <p className="text-red-500 text-sm mt-1">{errors.location.city.message}</p>
+                  <p className="text-red-500 text-sm mt-1">
+                    {errors.location.city.message}
+                  </p>
                 )}
               </div>
               <div>
                 <Label htmlFor="location.postalCode">Code postal *</Label>
                 <Input
                   id="location.postalCode"
-                  {...register('location.postalCode')}
+                  {...register("location.postalCode")}
                   placeholder="75000"
-                  className={errors.location?.postalCode ? 'border-red-500' : ''}
+                  className={
+                    errors.location?.postalCode ? "border-red-500" : ""
+                  }
                 />
                 {errors.location?.postalCode && (
-                  <p className="text-red-500 text-sm mt-1">{errors.location.postalCode.message}</p>
+                  <p className="text-red-500 text-sm mt-1">
+                    {errors.location.postalCode.message}
+                  </p>
                 )}
               </div>
             </div>
@@ -303,7 +396,7 @@ export default function CreateServicePage() {
               <Label htmlFor="accessInstructions">Instructions d'accès</Label>
               <Input
                 id="accessInstructions"
-                {...register('accessInstructions')}
+                {...register("accessInstructions")}
                 placeholder="Code porte, étage, instructions particulières..."
               />
             </div>
@@ -325,12 +418,14 @@ export default function CreateServicePage() {
                 <Input
                   id="scheduledDate"
                   type="date"
-                  {...register('scheduledDate')}
+                  {...register("scheduledDate")}
                   min={new Date().toISOString().slice(0, 10)}
-                  className={errors.scheduledDate ? 'border-red-500' : ''}
+                  className={errors.scheduledDate ? "border-red-500" : ""}
                 />
                 {errors.scheduledDate && (
-                  <p className="text-red-500 text-sm mt-1">{errors.scheduledDate.message}</p>
+                  <p className="text-red-500 text-sm mt-1">
+                    {errors.scheduledDate.message}
+                  </p>
                 )}
               </div>
 
@@ -339,27 +434,33 @@ export default function CreateServicePage() {
                 <Input
                   id="startTime"
                   type="time"
-                  {...register('startTime')}
-                  className={errors.startTime ? 'border-red-500' : ''}
+                  {...register("startTime")}
+                  className={errors.startTime ? "border-red-500" : ""}
                 />
                 {errors.startTime && (
-                  <p className="text-red-500 text-sm mt-1">{errors.startTime.message}</p>
+                  <p className="text-red-500 text-sm mt-1">
+                    {errors.startTime.message}
+                  </p>
                 )}
               </div>
 
               <div>
-                <Label htmlFor="estimatedDuration">Durée estimée (minutes) *</Label>
+                <Label htmlFor="estimatedDuration">
+                  Durée estimée (minutes) *
+                </Label>
                 <Input
                   id="estimatedDuration"
                   type="number"
                   step="30"
                   min="30"
                   max="480"
-                  {...register('estimatedDuration', { valueAsNumber: true })}
-                  className={errors.estimatedDuration ? 'border-red-500' : ''}
+                  {...register("estimatedDuration", { valueAsNumber: true })}
+                  className={errors.estimatedDuration ? "border-red-500" : ""}
                 />
                 {errors.estimatedDuration && (
-                  <p className="text-red-500 text-sm mt-1">{errors.estimatedDuration.message}</p>
+                  <p className="text-red-500 text-sm mt-1">
+                    {errors.estimatedDuration.message}
+                  </p>
                 )}
               </div>
 
@@ -375,9 +476,7 @@ export default function CreateServicePage() {
                     />
                   )}
                 />
-                <Label htmlFor="isFlexibleTime">
-                  Horaires flexibles
-                </Label>
+                <Label htmlFor="isFlexibleTime">Horaires flexibles</Label>
               </div>
             </CardContent>
           </Card>
@@ -398,11 +497,13 @@ export default function CreateServicePage() {
                   step="0.5"
                   min="1"
                   max="1000"
-                  {...register('basePrice', { valueAsNumber: true })}
-                  className={errors.basePrice ? 'border-red-500' : ''}
+                  {...register("basePrice", { valueAsNumber: true })}
+                  className={errors.basePrice ? "border-red-500" : ""}
                 />
                 {errors.basePrice && (
-                  <p className="text-red-500 text-sm mt-1">{errors.basePrice.message}</p>
+                  <p className="text-red-500 text-sm mt-1">
+                    {errors.basePrice.message}
+                  </p>
                 )}
               </div>
 
@@ -440,9 +541,7 @@ export default function CreateServicePage() {
                     />
                   )}
                 />
-                <Label htmlFor="isPriceNegotiable">
-                  Prix négociable
-                </Label>
+                <Label htmlFor="isPriceNegotiable">Prix négociable</Label>
               </div>
 
               <div className="flex items-center space-x-2">
@@ -486,10 +585,8 @@ export default function CreateServicePage() {
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
-              <div className="text-sm text-gray-600">
-                * Champs obligatoires
-              </div>
-              
+              <div className="text-sm text-gray-600">* Champs obligatoires</div>
+
               <div className="flex gap-4">
                 <Button
                   type="button"
@@ -509,11 +606,8 @@ export default function CreateServicePage() {
                     </>
                   )}
                 </Button>
-                
-                <Button
-                  type="submit"
-                  disabled={isLoading || !isValid}
-                >
+
+                <Button type="submit" disabled={isLoading || !isValid}>
                   {isLoading && !saveAsDraft ? (
                     <>
                       <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -533,4 +627,4 @@ export default function CreateServicePage() {
       </form>
     </div>
   );
-} 
+}

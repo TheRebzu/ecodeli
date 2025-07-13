@@ -8,17 +8,17 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { 
-  User, 
-  Phone, 
-  Mail, 
-  MapPin, 
-  FileText, 
+import {
+  User,
+  Phone,
+  Mail,
+  MapPin,
+  FileText,
   CheckCircle,
   Clock,
   AlertCircle,
   Upload,
-  Eye
+  Eye,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useApi } from "@/hooks/use-api";
@@ -39,7 +39,7 @@ interface ProviderProfile {
     postalCode: string;
     country: string;
   };
-  validationStatus: 'PENDING' | 'APPROVED' | 'REJECTED';
+  validationStatus: "PENDING" | "APPROVED" | "REJECTED";
   validationNotes?: string;
   validatedAt?: string;
   documents: {
@@ -51,7 +51,9 @@ interface ProviderProfile {
   }[];
 }
 
-export function ProviderProfileValidation({ providerId }: ProfileValidationProps) {
+export function ProviderProfileValidation({
+  providerId,
+}: ProfileValidationProps) {
   const t = useTranslations("provider.validation.profile");
   const { execute } = useApi();
   const [profile, setProfile] = useState<ProviderProfile | null>(null);
@@ -60,14 +62,14 @@ export function ProviderProfileValidation({ providerId }: ProfileValidationProps
 
   // Créer les méthodes GET et POST basées sur execute
   const get = async (url: string) => {
-    return await execute(url, { method: 'GET' });
+    return await execute(url, { method: "GET" });
   };
 
   const post = async (url: string, options: { body: string }) => {
-    return await execute(url, { 
-      method: 'POST',
+    return await execute(url, {
+      method: "POST",
       body: options.body,
-      headers: { 'Content-Type': 'application/json' }
+      headers: { "Content-Type": "application/json" },
     });
   };
   const [formData, setFormData] = useState({
@@ -78,13 +80,15 @@ export function ProviderProfileValidation({ providerId }: ProfileValidationProps
     street: "",
     city: "",
     postalCode: "",
-    country: "France"
+    country: "France",
   });
 
   const fetchProfile = async () => {
     try {
       setLoading(true);
-      const response = await get(`/api/provider/validation/profile?providerId=${providerId}`);
+      const response = await get(
+        `/api/provider/validation/profile?providerId=${providerId}`,
+      );
       if (response) {
         setProfile(response.profile);
         if (response.profile) {
@@ -96,7 +100,7 @@ export function ProviderProfileValidation({ providerId }: ProfileValidationProps
             street: response.profile.address?.street || "",
             city: response.profile.address?.city || "",
             postalCode: response.profile.address?.postalCode || "",
-            country: response.profile.address?.country || "France"
+            country: response.profile.address?.country || "France",
           });
         }
       }
@@ -114,8 +118,8 @@ export function ProviderProfileValidation({ providerId }: ProfileValidationProps
       const response = await post("/api/provider/validation/profile", {
         body: JSON.stringify({
           providerId,
-          ...formData
-        })
+          ...formData,
+        }),
       });
 
       if (response) {
@@ -133,7 +137,7 @@ export function ProviderProfileValidation({ providerId }: ProfileValidationProps
   const requestValidation = async () => {
     try {
       const response = await post("/api/provider/validation/profile/submit", {
-        body: JSON.stringify({ providerId })
+        body: JSON.stringify({ providerId }),
       });
 
       if (response) {
@@ -148,12 +152,25 @@ export function ProviderProfileValidation({ providerId }: ProfileValidationProps
 
   const getStatusBadge = (status: string) => {
     const config = {
-      PENDING: { color: "bg-yellow-100 text-yellow-800", icon: Clock, label: "En attente" },
-      APPROVED: { color: "bg-green-100 text-green-800", icon: CheckCircle, label: "Validé" },
-      REJECTED: { color: "bg-red-100 text-red-800", icon: AlertCircle, label: "Rejeté" }
+      PENDING: {
+        color: "bg-yellow-100 text-yellow-800",
+        icon: Clock,
+        label: "En attente",
+      },
+      APPROVED: {
+        color: "bg-green-100 text-green-800",
+        icon: CheckCircle,
+        label: "Validé",
+      },
+      REJECTED: {
+        color: "bg-red-100 text-red-800",
+        icon: AlertCircle,
+        label: "Rejeté",
+      },
     };
 
-    const statusConfig = config[status as keyof typeof config] || config.PENDING;
+    const statusConfig =
+      config[status as keyof typeof config] || config.PENDING;
     const Icon = statusConfig.icon;
 
     return (
@@ -199,38 +216,46 @@ export function ProviderProfileValidation({ providerId }: ProfileValidationProps
           </CardTitle>
         </CardHeader>
         <CardContent>
-          {profile?.validationStatus === 'APPROVED' && (
+          {profile?.validationStatus === "APPROVED" && (
             <div className="bg-green-50 border border-green-200 rounded-lg p-4">
               <div className="flex items-center space-x-2">
                 <CheckCircle className="w-5 h-5 text-green-600" />
                 <div>
                   <p className="font-medium text-green-800">Profil validé</p>
                   <p className="text-sm text-green-600">
-                    Validé le {profile.validatedAt ? new Date(profile.validatedAt).toLocaleDateString() : ''}
+                    Validé le{" "}
+                    {profile.validatedAt
+                      ? new Date(profile.validatedAt).toLocaleDateString()
+                      : ""}
                   </p>
                 </div>
               </div>
             </div>
           )}
 
-          {profile?.validationStatus === 'REJECTED' && profile.validationNotes && (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-              <div className="flex items-start space-x-2">
-                <AlertCircle className="w-5 h-5 text-red-600 mt-0.5" />
-                <div>
-                  <p className="font-medium text-red-800">Profil rejeté</p>
-                  <p className="text-sm text-red-600 mt-1">{profile.validationNotes}</p>
+          {profile?.validationStatus === "REJECTED" &&
+            profile.validationNotes && (
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                <div className="flex items-start space-x-2">
+                  <AlertCircle className="w-5 h-5 text-red-600 mt-0.5" />
+                  <div>
+                    <p className="font-medium text-red-800">Profil rejeté</p>
+                    <p className="text-sm text-red-600 mt-1">
+                      {profile.validationNotes}
+                    </p>
+                  </div>
                 </div>
               </div>
-            </div>
-          )}
+            )}
 
-          {profile?.validationStatus === 'PENDING' && (
+          {profile?.validationStatus === "PENDING" && (
             <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
               <div className="flex items-center space-x-2">
                 <Clock className="w-5 h-5 text-yellow-600" />
                 <div>
-                  <p className="font-medium text-yellow-800">En cours de validation</p>
+                  <p className="font-medium text-yellow-800">
+                    En cours de validation
+                  </p>
                   <p className="text-sm text-yellow-600">
                     Votre profil est en cours d'examen par notre équipe
                   </p>
@@ -256,7 +281,9 @@ export function ProviderProfileValidation({ providerId }: ProfileValidationProps
               <Input
                 id="businessName"
                 value={formData.businessName}
-                onChange={(e) => setFormData({...formData, businessName: e.target.value})}
+                onChange={(e) =>
+                  setFormData({ ...formData, businessName: e.target.value })
+                }
                 placeholder="Votre raison sociale"
               />
             </div>
@@ -265,7 +292,9 @@ export function ProviderProfileValidation({ providerId }: ProfileValidationProps
               <Input
                 id="siret"
                 value={formData.siret}
-                onChange={(e) => setFormData({...formData, siret: e.target.value})}
+                onChange={(e) =>
+                  setFormData({ ...formData, siret: e.target.value })
+                }
                 placeholder="123 456 789 00012"
               />
             </div>
@@ -276,7 +305,9 @@ export function ProviderProfileValidation({ providerId }: ProfileValidationProps
             <Textarea
               id="description"
               value={formData.description}
-              onChange={(e) => setFormData({...formData, description: e.target.value})}
+              onChange={(e) =>
+                setFormData({ ...formData, description: e.target.value })
+              }
               placeholder="Décrivez votre activité et vos services..."
               rows={4}
             />
@@ -289,7 +320,9 @@ export function ProviderProfileValidation({ providerId }: ProfileValidationProps
               <Input
                 id="phone"
                 value={formData.phone}
-                onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                onChange={(e) =>
+                  setFormData({ ...formData, phone: e.target.value })
+                }
                 placeholder="01 23 45 67 89"
                 className="pl-10"
               />
@@ -312,7 +345,9 @@ export function ProviderProfileValidation({ providerId }: ProfileValidationProps
             <Input
               id="street"
               value={formData.street}
-              onChange={(e) => setFormData({...formData, street: e.target.value})}
+              onChange={(e) =>
+                setFormData({ ...formData, street: e.target.value })
+              }
               placeholder="123 rue de la République"
             />
           </div>
@@ -323,7 +358,9 @@ export function ProviderProfileValidation({ providerId }: ProfileValidationProps
               <Input
                 id="city"
                 value={formData.city}
-                onChange={(e) => setFormData({...formData, city: e.target.value})}
+                onChange={(e) =>
+                  setFormData({ ...formData, city: e.target.value })
+                }
                 placeholder="Paris"
               />
             </div>
@@ -332,7 +369,9 @@ export function ProviderProfileValidation({ providerId }: ProfileValidationProps
               <Input
                 id="postalCode"
                 value={formData.postalCode}
-                onChange={(e) => setFormData({...formData, postalCode: e.target.value})}
+                onChange={(e) =>
+                  setFormData({ ...formData, postalCode: e.target.value })
+                }
                 placeholder="75001"
               />
             </div>
@@ -341,7 +380,9 @@ export function ProviderProfileValidation({ providerId }: ProfileValidationProps
               <Input
                 id="country"
                 value={formData.country}
-                onChange={(e) => setFormData({...formData, country: e.target.value})}
+                onChange={(e) =>
+                  setFormData({ ...formData, country: e.target.value })
+                }
                 placeholder="France"
               />
             </div>
@@ -361,13 +402,17 @@ export function ProviderProfileValidation({ providerId }: ProfileValidationProps
           {profile?.documents && profile.documents.length > 0 ? (
             <div className="space-y-3">
               {profile.documents.map((doc) => (
-                <div key={doc.id} className="flex items-center justify-between p-3 border rounded-lg">
+                <div
+                  key={doc.id}
+                  className="flex items-center justify-between p-3 border rounded-lg"
+                >
                   <div className="flex items-center space-x-3">
                     <FileText className="w-5 h-5 text-gray-400" />
                     <div>
                       <p className="font-medium">{doc.filename}</p>
                       <p className="text-sm text-gray-600">
-                        Téléchargé le {new Date(doc.uploadedAt).toLocaleDateString()}
+                        Téléchargé le{" "}
+                        {new Date(doc.uploadedAt).toLocaleDateString()}
                       </p>
                     </div>
                   </div>
@@ -411,7 +456,7 @@ export function ProviderProfileValidation({ providerId }: ProfileValidationProps
           )}
         </Button>
 
-        {profile?.validationStatus !== 'APPROVED' && (
+        {profile?.validationStatus !== "APPROVED" && (
           <Button variant="outline" onClick={requestValidation}>
             <CheckCircle className="w-4 h-4 mr-2" />
             Demander la validation

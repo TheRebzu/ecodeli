@@ -1,9 +1,11 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
-  const { id } = await params
-  return NextResponse.json({ message: `QR endpoint for storage box ${id} not implemented` })
+  const { id } = await params;
+  return NextResponse.json({
+    message: `QR endpoint for storage box ${id} not implemented`,
+  });
 }

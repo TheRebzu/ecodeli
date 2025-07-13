@@ -1,44 +1,52 @@
-import { useState, useEffect, useCallback } from 'react'
-import { 
-  Product, 
-  StockMovement, 
+import { useState, useEffect, useCallback } from "react";
+import {
+  Product,
+  StockMovement,
   InventoryAlert,
   InventoryStats,
-  Category
-} from '../services/inventory.service'
+  Category,
+} from "../services/inventory.service";
 
 interface UseInventoryState {
-  products: Product[]
-  isLoading: boolean
-  error: string | null
+  products: Product[];
+  isLoading: boolean;
+  error: string | null;
   pagination: {
-    page: number
-    limit: number
-    totalPages: number
-    total: number
-  }
+    page: number;
+    limit: number;
+    totalPages: number;
+    total: number;
+  };
   filters: {
-    category?: string
-    status?: string
-    search?: string
-    lowStock?: boolean
-    sortBy?: string
-    sortOrder?: 'asc' | 'desc'
-  }
+    category?: string;
+    status?: string;
+    search?: string;
+    lowStock?: boolean;
+    sortBy?: string;
+    sortOrder?: "asc" | "desc";
+  };
 }
 
 interface UseInventoryActions {
-  loadProducts: () => Promise<void>
-  setFilters: (filters: Partial<UseInventoryState['filters']>) => void
-  setPage: (page: number) => void
-  createProduct: (productData: any) => Promise<Product>
-  updateProduct: (productId: string, updates: Partial<Product>) => Promise<Product>
-  deleteProduct: (productId: string) => Promise<void>
-  addStockMovement: (productId: string, movement: any) => Promise<StockMovement>
-  refreshProduct: (productId: string) => Promise<Product | null>
+  loadProducts: () => Promise<void>;
+  setFilters: (filters: Partial<UseInventoryState["filters"]>) => void;
+  setPage: (page: number) => void;
+  createProduct: (productData: any) => Promise<Product>;
+  updateProduct: (
+    productId: string,
+    updates: Partial<Product>,
+  ) => Promise<Product>;
+  deleteProduct: (productId: string) => Promise<void>;
+  addStockMovement: (
+    productId: string,
+    movement: any,
+  ) => Promise<StockMovement>;
+  refreshProduct: (productId: string) => Promise<Product | null>;
 }
 
-export interface UseInventoryReturn extends UseInventoryState, UseInventoryActions {}
+export interface UseInventoryReturn
+  extends UseInventoryState,
+    UseInventoryActions {}
 
 /**
  * Hook principal pour la gestion d'inventaire
@@ -52,247 +60,279 @@ export function useMerchantInventory(merchantId: string): UseInventoryReturn {
       page: 1,
       limit: 20,
       totalPages: 0,
-      total: 0
+      total: 0,
     },
-    filters: {}
-  })
+    filters: {},
+  });
 
   /**
    * Charge les produits avec les filtres actuels
    */
   const loadProducts = useCallback(async () => {
-    if (!merchantId) return
+    if (!merchantId) return;
 
-    setState(prev => ({ ...prev, isLoading: true, error: null }))
+    setState((prev) => ({ ...prev, isLoading: true, error: null }));
 
     try {
-      const response = await fetch('/api/merchant/inventory/products', {
-        method: 'POST',
+      const response = await fetch("/api/merchant/inventory/products", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json'
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           merchantId,
           filters: {
             ...state.filters,
             page: state.pagination.page,
-            limit: state.pagination.limit
-          }
-        })
-      })
+            limit: state.pagination.limit,
+          },
+        }),
+      });
 
       if (!response.ok) {
-        throw new Error('Erreur lors du chargement des produits')
+        throw new Error("Erreur lors du chargement des produits");
       }
 
-      const data = await response.json()
+      const data = await response.json();
 
-      setState(prev => ({
+      setState((prev) => ({
         ...prev,
         products: data.products,
         pagination: {
           ...prev.pagination,
           totalPages: data.pagination.totalPages,
-          total: data.total
+          total: data.total,
         },
-        isLoading: false
-      }))
-
+        isLoading: false,
+      }));
     } catch (error) {
-      console.error('Erreur chargement produits:', error)
-      setState(prev => ({
+      console.error("Erreur chargement produits:", error);
+      setState((prev) => ({
         ...prev,
         isLoading: false,
-        error: error instanceof Error ? error.message : 'Erreur inconnue'
-      }))
+        error: error instanceof Error ? error.message : "Erreur inconnue",
+      }));
     }
-  }, [merchantId, state.filters, state.pagination.page, state.pagination.limit])
+  }, [
+    merchantId,
+    state.filters,
+    state.pagination.page,
+    state.pagination.limit,
+  ]);
 
   /**
    * Met à jour les filtres
    */
-  const setFilters = useCallback((newFilters: Partial<UseInventoryState['filters']>) => {
-    setState(prev => ({
-      ...prev,
-      filters: { ...prev.filters, ...newFilters },
-      pagination: { ...prev.pagination, page: 1 } // Reset page
-    }))
-  }, [])
+  const setFilters = useCallback(
+    (newFilters: Partial<UseInventoryState["filters"]>) => {
+      setState((prev) => ({
+        ...prev,
+        filters: { ...prev.filters, ...newFilters },
+        pagination: { ...prev.pagination, page: 1 }, // Reset page
+      }));
+    },
+    [],
+  );
 
   /**
    * Change de page
    */
   const setPage = useCallback((page: number) => {
-    setState(prev => ({
+    setState((prev) => ({
       ...prev,
-      pagination: { ...prev.pagination, page }
-    }))
-  }, [])
+      pagination: { ...prev.pagination, page },
+    }));
+  }, []);
 
   /**
    * Crée un nouveau produit
    */
-  const createProduct = useCallback(async (productData: any): Promise<Product> => {
-    try {
-      const response = await fetch('/api/merchant/inventory/products', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          merchantId,
-          productData
-        })
-      })
+  const createProduct = useCallback(
+    async (productData: any): Promise<Product> => {
+      try {
+        const response = await fetch("/api/merchant/inventory/products", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            merchantId,
+            productData,
+          }),
+        });
 
-      if (!response.ok) {
-        throw new Error('Erreur lors de la création du produit')
+        if (!response.ok) {
+          throw new Error("Erreur lors de la création du produit");
+        }
+
+        const product = await response.json();
+
+        // Recharger la liste
+        await loadProducts();
+
+        return product;
+      } catch (error) {
+        console.error("Erreur création produit:", error);
+        throw error;
       }
-
-      const product = await response.json()
-      
-      // Recharger la liste
-      await loadProducts()
-      
-      return product
-
-    } catch (error) {
-      console.error('Erreur création produit:', error)
-      throw error
-    }
-  }, [merchantId, loadProducts])
+    },
+    [merchantId, loadProducts],
+  );
 
   /**
    * Met à jour un produit
    */
-  const updateProduct = useCallback(async (productId: string, updates: Partial<Product>): Promise<Product> => {
-    try {
-      const response = await fetch(`/api/merchant/inventory/products/${productId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          merchantId,
-          updates
-        })
-      })
+  const updateProduct = useCallback(
+    async (productId: string, updates: Partial<Product>): Promise<Product> => {
+      try {
+        const response = await fetch(
+          `/api/merchant/inventory/products/${productId}`,
+          {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              merchantId,
+              updates,
+            }),
+          },
+        );
 
-      if (!response.ok) {
-        throw new Error('Erreur lors de la mise à jour du produit')
+        if (!response.ok) {
+          throw new Error("Erreur lors de la mise à jour du produit");
+        }
+
+        const product = await response.json();
+
+        // Mettre à jour le produit dans la liste
+        setState((prev) => ({
+          ...prev,
+          products: prev.products.map((p) =>
+            p.id === productId ? product : p,
+          ),
+        }));
+
+        return product;
+      } catch (error) {
+        console.error("Erreur mise à jour produit:", error);
+        throw error;
       }
-
-      const product = await response.json()
-      
-      // Mettre à jour le produit dans la liste
-      setState(prev => ({
-        ...prev,
-        products: prev.products.map(p => p.id === productId ? product : p)
-      }))
-      
-      return product
-
-    } catch (error) {
-      console.error('Erreur mise à jour produit:', error)
-      throw error
-    }
-  }, [merchantId])
+    },
+    [merchantId],
+  );
 
   /**
    * Supprime un produit
    */
-  const deleteProduct = useCallback(async (productId: string): Promise<void> => {
-    try {
-      const response = await fetch(`/api/merchant/inventory/products/${productId}`, {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          merchantId
-        })
-      })
+  const deleteProduct = useCallback(
+    async (productId: string): Promise<void> => {
+      try {
+        const response = await fetch(
+          `/api/merchant/inventory/products/${productId}`,
+          {
+            method: "DELETE",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              merchantId,
+            }),
+          },
+        );
 
-      if (!response.ok) {
-        throw new Error('Erreur lors de la suppression du produit')
+        if (!response.ok) {
+          throw new Error("Erreur lors de la suppression du produit");
+        }
+
+        // Retirer le produit de la liste
+        setState((prev) => ({
+          ...prev,
+          products: prev.products.filter((p) => p.id !== productId),
+        }));
+      } catch (error) {
+        console.error("Erreur suppression produit:", error);
+        throw error;
       }
-
-      // Retirer le produit de la liste
-      setState(prev => ({
-        ...prev,
-        products: prev.products.filter(p => p.id !== productId)
-      }))
-
-    } catch (error) {
-      console.error('Erreur suppression produit:', error)
-      throw error
-    }
-  }, [merchantId])
+    },
+    [merchantId],
+  );
 
   /**
    * Ajoute un mouvement de stock
    */
-  const addStockMovement = useCallback(async (productId: string, movement: any): Promise<StockMovement> => {
-    try {
-      const response = await fetch(`/api/merchant/inventory/products/${productId}/stock`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          merchantId,
-          movement
-        })
-      })
+  const addStockMovement = useCallback(
+    async (productId: string, movement: any): Promise<StockMovement> => {
+      try {
+        const response = await fetch(
+          `/api/merchant/inventory/products/${productId}/stock`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              merchantId,
+              movement,
+            }),
+          },
+        );
 
-      if (!response.ok) {
-        throw new Error('Erreur lors du mouvement de stock')
+        if (!response.ok) {
+          throw new Error("Erreur lors du mouvement de stock");
+        }
+
+        const stockMovement = await response.json();
+
+        // Recharger les produits pour mettre à jour les stocks
+        await loadProducts();
+
+        return stockMovement;
+      } catch (error) {
+        console.error("Erreur mouvement stock:", error);
+        throw error;
       }
-
-      const stockMovement = await response.json()
-      
-      // Recharger les produits pour mettre à jour les stocks
-      await loadProducts()
-      
-      return stockMovement
-
-    } catch (error) {
-      console.error('Erreur mouvement stock:', error)
-      throw error
-    }
-  }, [merchantId, loadProducts])
+    },
+    [merchantId, loadProducts],
+  );
 
   /**
    * Rafraîchit un produit spécifique
    */
-  const refreshProduct = useCallback(async (productId: string): Promise<Product | null> => {
-    try {
-      const response = await fetch(`/api/merchant/inventory/products/${productId}?merchantId=${merchantId}`)
-      
-      if (!response.ok) {
-        throw new Error('Erreur lors du rafraîchissement du produit')
+  const refreshProduct = useCallback(
+    async (productId: string): Promise<Product | null> => {
+      try {
+        const response = await fetch(
+          `/api/merchant/inventory/products/${productId}?merchantId=${merchantId}`,
+        );
+
+        if (!response.ok) {
+          throw new Error("Erreur lors du rafraîchissement du produit");
+        }
+
+        const product = await response.json();
+
+        // Mettre à jour le produit dans la liste
+        setState((prev) => ({
+          ...prev,
+          products: prev.products.map((p) =>
+            p.id === productId ? product : p,
+          ),
+        }));
+
+        return product;
+      } catch (error) {
+        console.error("Erreur rafraîchissement produit:", error);
+        return null;
       }
-
-      const product = await response.json()
-      
-      // Mettre à jour le produit dans la liste
-      setState(prev => ({
-        ...prev,
-        products: prev.products.map(p => p.id === productId ? product : p)
-      }))
-      
-      return product
-
-    } catch (error) {
-      console.error('Erreur rafraîchissement produit:', error)
-      return null
-    }
-  }, [merchantId])
+    },
+    [merchantId],
+  );
 
   // Charger les produits au montage et quand les filtres changent
   useEffect(() => {
-    loadProducts()
-  }, [loadProducts])
+    loadProducts();
+  }, [loadProducts]);
 
   return {
     ...state,
@@ -303,99 +343,101 @@ export function useMerchantInventory(merchantId: string): UseInventoryReturn {
     updateProduct,
     deleteProduct,
     addStockMovement,
-    refreshProduct
-  }
+    refreshProduct,
+  };
 }
 
 /**
  * Hook pour un produit spécifique
  */
 export function useProduct(productId: string, merchantId: string) {
-  const [product, setProduct] = useState<Product | null>(null)
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [product, setProduct] = useState<Product | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const fetchProduct = useCallback(async () => {
-    if (!productId || !merchantId) return
+    if (!productId || !merchantId) return;
 
-    setIsLoading(true)
-    setError(null)
+    setIsLoading(true);
+    setError(null);
 
     try {
-      const response = await fetch(`/api/merchant/inventory/products/${productId}?merchantId=${merchantId}`)
-      
+      const response = await fetch(
+        `/api/merchant/inventory/products/${productId}?merchantId=${merchantId}`,
+      );
+
       if (!response.ok) {
-        throw new Error('Erreur lors du chargement du produit')
+        throw new Error("Erreur lors du chargement du produit");
       }
 
-      const data = await response.json()
-      setProduct(data)
-
+      const data = await response.json();
+      setProduct(data);
     } catch (error) {
-      console.error('Erreur chargement produit:', error)
-      setError(error instanceof Error ? error.message : 'Erreur inconnue')
+      console.error("Erreur chargement produit:", error);
+      setError(error instanceof Error ? error.message : "Erreur inconnue");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }, [productId, merchantId])
+  }, [productId, merchantId]);
 
   useEffect(() => {
-    fetchProduct()
-  }, [fetchProduct])
+    fetchProduct();
+  }, [fetchProduct]);
 
   return {
     product,
     isLoading,
     error,
-    refresh: fetchProduct
-  }
+    refresh: fetchProduct,
+  };
 }
 
 /**
  * Hook pour les mouvements de stock
  */
 export function useStockMovements(productId: string) {
-  const [movements, setMovements] = useState<StockMovement[]>([])
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [movements, setMovements] = useState<StockMovement[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [pagination, setPagination] = useState({
     page: 1,
     limit: 20,
-    total: 0
-  })
+    total: 0,
+  });
 
   const fetchMovements = useCallback(async () => {
-    if (!productId) return
+    if (!productId) return;
 
-    setIsLoading(true)
-    setError(null)
+    setIsLoading(true);
+    setError(null);
 
     try {
-      const response = await fetch(`/api/merchant/inventory/products/${productId}/movements?page=${pagination.page}&limit=${pagination.limit}`)
-      
+      const response = await fetch(
+        `/api/merchant/inventory/products/${productId}/movements?page=${pagination.page}&limit=${pagination.limit}`,
+      );
+
       if (!response.ok) {
-        throw new Error('Erreur lors du chargement des mouvements')
+        throw new Error("Erreur lors du chargement des mouvements");
       }
 
-      const data = await response.json()
-      setMovements(data.movements)
-      setPagination(prev => ({ ...prev, total: data.total }))
-
+      const data = await response.json();
+      setMovements(data.movements);
+      setPagination((prev) => ({ ...prev, total: data.total }));
     } catch (error) {
-      console.error('Erreur chargement mouvements:', error)
-      setError(error instanceof Error ? error.message : 'Erreur inconnue')
+      console.error("Erreur chargement mouvements:", error);
+      setError(error instanceof Error ? error.message : "Erreur inconnue");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }, [productId, pagination.page, pagination.limit])
+  }, [productId, pagination.page, pagination.limit]);
 
   const setPage = useCallback((page: number) => {
-    setPagination(prev => ({ ...prev, page }))
-  }, [])
+    setPagination((prev) => ({ ...prev, page }));
+  }, []);
 
   useEffect(() => {
-    fetchMovements()
-  }, [fetchMovements])
+    fetchMovements();
+  }, [fetchMovements]);
 
   return {
     movements,
@@ -403,151 +445,153 @@ export function useStockMovements(productId: string) {
     error,
     pagination,
     setPage,
-    refresh: fetchMovements
-  }
+    refresh: fetchMovements,
+  };
 }
 
 /**
  * Hook pour les statistiques d'inventaire
  */
 export function useInventoryStats(merchantId: string) {
-  const [stats, setStats] = useState<InventoryStats | null>(null)
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [stats, setStats] = useState<InventoryStats | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const fetchStats = useCallback(async () => {
-    if (!merchantId) return
+    if (!merchantId) return;
 
-    setIsLoading(true)
-    setError(null)
+    setIsLoading(true);
+    setError(null);
 
     try {
-      const response = await fetch(`/api/merchant/inventory/stats?merchantId=${merchantId}`)
-      
+      const response = await fetch(
+        `/api/merchant/inventory/stats?merchantId=${merchantId}`,
+      );
+
       if (!response.ok) {
-        throw new Error('Erreur lors du chargement des statistiques')
+        throw new Error("Erreur lors du chargement des statistiques");
       }
 
-      const data = await response.json()
-      setStats(data)
-
+      const data = await response.json();
+      setStats(data);
     } catch (error) {
-      console.error('Erreur chargement stats:', error)
-      setError(error instanceof Error ? error.message : 'Erreur inconnue')
+      console.error("Erreur chargement stats:", error);
+      setError(error instanceof Error ? error.message : "Erreur inconnue");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }, [merchantId])
+  }, [merchantId]);
 
   useEffect(() => {
-    fetchStats()
-  }, [fetchStats])
+    fetchStats();
+  }, [fetchStats]);
 
   return {
     stats,
     isLoading,
     error,
-    refresh: fetchStats
-  }
+    refresh: fetchStats,
+  };
 }
 
 /**
  * Hook pour les alertes d'inventaire
  */
 export function useInventoryAlerts(merchantId: string) {
-  const [alerts, setAlerts] = useState<InventoryAlert[]>([])
-  const [isLoading, setIsLoading] = useState(false)
+  const [alerts, setAlerts] = useState<InventoryAlert[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   const fetchAlerts = useCallback(async () => {
-    if (!merchantId) return
+    if (!merchantId) return;
 
-    setIsLoading(true)
+    setIsLoading(true);
 
     try {
-      const response = await fetch(`/api/merchant/inventory/alerts?merchantId=${merchantId}`)
-      
+      const response = await fetch(
+        `/api/merchant/inventory/alerts?merchantId=${merchantId}`,
+      );
+
       if (!response.ok) {
-        throw new Error('Erreur lors du chargement des alertes')
+        throw new Error("Erreur lors du chargement des alertes");
       }
 
-      const data = await response.json()
-      setAlerts(data)
-
+      const data = await response.json();
+      setAlerts(data);
     } catch (error) {
-      console.error('Erreur chargement alertes:', error)
+      console.error("Erreur chargement alertes:", error);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }, [merchantId])
+  }, [merchantId]);
 
   const markAsRead = useCallback(async (alertId: string) => {
     try {
       await fetch(`/api/merchant/inventory/alerts/${alertId}/read`, {
-        method: 'PATCH'
-      })
+        method: "PATCH",
+      });
 
-      setAlerts(prev => 
-        prev.map(alert => 
-          alert.id === alertId 
-            ? { ...alert, isRead: true }
-            : alert
-        )
-      )
+      setAlerts((prev) =>
+        prev.map((alert) =>
+          alert.id === alertId ? { ...alert, isRead: true } : alert,
+        ),
+      );
     } catch (error) {
-      console.error('Erreur marquage alerte:', error)
+      console.error("Erreur marquage alerte:", error);
     }
-  }, [])
+  }, []);
 
   useEffect(() => {
-    fetchAlerts()
-  }, [fetchAlerts])
+    fetchAlerts();
+  }, [fetchAlerts]);
 
   return {
     alerts,
     isLoading,
     refresh: fetchAlerts,
     markAsRead,
-    unreadCount: alerts.filter(alert => !alert.isRead).length,
-    criticalCount: alerts.filter(alert => alert.severity === 'CRITICAL').length
-  }
+    unreadCount: alerts.filter((alert) => !alert.isRead).length,
+    criticalCount: alerts.filter((alert) => alert.severity === "CRITICAL")
+      .length,
+  };
 }
 
 /**
  * Hook pour les catégories
  */
 export function useCategories(merchantId: string) {
-  const [categories, setCategories] = useState<Category[]>([])
-  const [isLoading, setIsLoading] = useState(false)
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   const fetchCategories = useCallback(async () => {
-    if (!merchantId) return
+    if (!merchantId) return;
 
-    setIsLoading(true)
+    setIsLoading(true);
 
     try {
-      const response = await fetch(`/api/merchant/inventory/categories?merchantId=${merchantId}`)
-      
+      const response = await fetch(
+        `/api/merchant/inventory/categories?merchantId=${merchantId}`,
+      );
+
       if (!response.ok) {
-        throw new Error('Erreur lors du chargement des catégories')
+        throw new Error("Erreur lors du chargement des catégories");
       }
 
-      const data = await response.json()
-      setCategories(data)
-
+      const data = await response.json();
+      setCategories(data);
     } catch (error) {
-      console.error('Erreur chargement catégories:', error)
+      console.error("Erreur chargement catégories:", error);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }, [merchantId])
+  }, [merchantId]);
 
   useEffect(() => {
-    fetchCategories()
-  }, [fetchCategories])
+    fetchCategories();
+  }, [fetchCategories]);
 
   return {
     categories,
     isLoading,
-    refresh: fetchCategories
-  }
-} 
+    refresh: fetchCategories,
+  };
+}

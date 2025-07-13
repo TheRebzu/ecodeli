@@ -1,114 +1,130 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect } from "react";
 
 export interface ClientDelivery {
-  id: string
-  announcementId: string
-  announcementTitle: string
-  status: 'PENDING' | 'ACCEPTED' | 'IN_TRANSIT' | 'DELIVERED' | 'CANCELLED'
-  delivererName?: string
-  delivererPhone?: string
-  delivererAvatar?: string
-  pickupAddress: string
-  deliveryAddress: string
-  scheduledDate: string
-  price: number
-  validationCode?: string
-  trackingUrl?: string
-  estimatedDelivery?: string
-  actualDelivery?: string
-  rating?: number
-  review?: string
-  createdAt: string
+  id: string;
+  announcementId: string;
+  announcementTitle: string;
+  status: "PENDING" | "ACCEPTED" | "IN_TRANSIT" | "DELIVERED" | "CANCELLED";
+  delivererName?: string;
+  delivererPhone?: string;
+  delivererAvatar?: string;
+  pickupAddress: string;
+  deliveryAddress: string;
+  scheduledDate: string;
+  price: number;
+  validationCode?: string;
+  trackingUrl?: string;
+  estimatedDelivery?: string;
+  actualDelivery?: string;
+  rating?: number;
+  review?: string;
+  createdAt: string;
 }
 
 export function useClientDeliveries() {
-  const [deliveries, setDeliveries] = useState<ClientDelivery[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const [deliveries, setDeliveries] = useState<ClientDelivery[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchDeliveries()
-  }, [])
+    fetchDeliveries();
+  }, []);
 
   const fetchDeliveries = async () => {
-    setIsLoading(true)
-    setError(null)
+    setIsLoading(true);
+    setError(null);
     try {
-      const response = await fetch('/api/client/deliveries')
-      
+      const response = await fetch("/api/client/deliveries");
+
       if (!response.ok) {
-        throw new Error('Erreur lors du chargement des livraisons')
+        throw new Error("Erreur lors du chargement des livraisons");
       }
 
-      const data = await response.json()
-      setDeliveries(data.deliveries || [])
+      const data = await response.json();
+      setDeliveries(data.deliveries || []);
     } catch (error) {
-      console.error('Error fetching deliveries:', error)
-      setError(error instanceof Error ? error.message : 'Erreur inconnue')
+      console.error("Error fetching deliveries:", error);
+      setError(error instanceof Error ? error.message : "Erreur inconnue");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
-  const confirmDelivery = async (deliveryId: string, validationCode: string) => {
+  const confirmDelivery = async (
+    deliveryId: string,
+    validationCode: string,
+  ) => {
     try {
-      const response = await fetch(`/api/client/deliveries/${deliveryId}/confirm`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ validationCode })
-      })
+      const response = await fetch(
+        `/api/client/deliveries/${deliveryId}/confirm`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ validationCode }),
+        },
+      );
 
       if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.error || 'Erreur confirmation')
+        const error = await response.json();
+        throw new Error(error.error || "Erreur confirmation");
       }
 
-      await fetchDeliveries() // Recharger les données
-      return await response.json()
+      await fetchDeliveries(); // Recharger les données
+      return await response.json();
     } catch (error) {
-      throw error
+      throw error;
     }
-  }
+  };
 
-  const rateDelivery = async (deliveryId: string, rating: number, review?: string) => {
+  const rateDelivery = async (
+    deliveryId: string,
+    rating: number,
+    review?: string,
+  ) => {
     try {
-      const response = await fetch(`/api/client/deliveries/${deliveryId}/rate`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ rating, review })
-      })
+      const response = await fetch(
+        `/api/client/deliveries/${deliveryId}/rate`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ rating, review }),
+        },
+      );
 
       if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.error || 'Erreur évaluation')
+        const error = await response.json();
+        throw new Error(error.error || "Erreur évaluation");
       }
 
-      await fetchDeliveries() // Recharger les données
-      return await response.json()
+      await fetchDeliveries(); // Recharger les données
+      return await response.json();
     } catch (error) {
-      throw error
+      throw error;
     }
-  }
+  };
 
   const cancelDelivery = async (deliveryId: string, reason: string) => {
     try {
-      const response = await fetch(`/api/client/deliveries/${deliveryId}/cancel`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ reason })
-      })
+      const response = await fetch(
+        `/api/client/deliveries/${deliveryId}/cancel`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ reason }),
+        },
+      );
 
       if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.error || 'Erreur annulation')
+        const error = await response.json();
+        throw new Error(error.error || "Erreur annulation");
       }
 
-      await fetchDeliveries() // Recharger les données
-      return await response.json()
+      await fetchDeliveries(); // Recharger les données
+      return await response.json();
     } catch (error) {
-      throw error
+      throw error;
     }
-  }
+  };
 
   return {
     deliveries,
@@ -117,6 +133,6 @@ export function useClientDeliveries() {
     fetchDeliveries,
     confirmDelivery,
     rateDelivery,
-    cancelDelivery
-  }
+    cancelDelivery,
+  };
 }

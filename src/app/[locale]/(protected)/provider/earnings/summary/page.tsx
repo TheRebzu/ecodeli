@@ -4,13 +4,25 @@ import { useAuth } from "@/hooks/use-auth";
 import { PageHeader } from "@/components/layout/page-header";
 import { useTranslations } from "next-intl";
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { 
-  DollarSign, 
+import {
+  DollarSign,
   TrendingUp,
   TrendingDown,
   Calendar,
@@ -20,7 +32,7 @@ import {
   Users,
   Target,
   Download,
-  RefreshCw
+  RefreshCw,
 } from "lucide-react";
 
 interface EarningsSummary {
@@ -69,9 +81,11 @@ export default function ProviderEarningsSummaryPage() {
   useEffect(() => {
     const fetchEarningsSummary = async () => {
       if (!user?.id) return;
-      
+
       try {
-        const response = await fetch(`/api/provider/earnings/summary?userId=${user.id}&range=${timeRange}`);
+        const response = await fetch(
+          `/api/provider/earnings/summary?userId=${user.id}&range=${timeRange}`,
+        );
         if (response.ok) {
           const data = await response.json();
           setSummary(data);
@@ -98,9 +112,9 @@ export default function ProviderEarningsSummaryPage() {
   };
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('fr-FR', {
-      style: 'currency',
-      currency: 'EUR'
+    return new Intl.NumberFormat("fr-FR", {
+      style: "currency",
+      currency: "EUR",
     }).format(amount);
   };
 
@@ -123,8 +137,14 @@ export default function ProviderEarningsSummaryPage() {
     );
   }
 
-  const earningsGrowth = calculateGrowth(summary.currentMonth.totalEarnings, summary.previousMonth.totalEarnings);
-  const bookingsGrowth = calculateGrowth(summary.currentMonth.completedBookings, summary.previousMonth.completedBookings);
+  const earningsGrowth = calculateGrowth(
+    summary.currentMonth.totalEarnings,
+    summary.previousMonth.totalEarnings,
+  );
+  const bookingsGrowth = calculateGrowth(
+    summary.currentMonth.completedBookings,
+    summary.previousMonth.completedBookings,
+  );
 
   return (
     <div className="space-y-6">
@@ -145,8 +165,15 @@ export default function ProviderEarningsSummaryPage() {
               <SelectItem value="year">Cette année</SelectItem>
             </SelectContent>
           </Select>
-          <Button variant="outline" size="sm" onClick={handleRefresh} disabled={refreshing}>
-            <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleRefresh}
+            disabled={refreshing}
+          >
+            <RefreshCw
+              className={`h-4 w-4 mr-2 ${refreshing ? "animate-spin" : ""}`}
+            />
             Actualiser
           </Button>
         </div>
@@ -160,17 +187,25 @@ export default function ProviderEarningsSummaryPage() {
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(summary.currentMonth.totalEarnings)}</div>
+            <div className="text-2xl font-bold">
+              {formatCurrency(summary.currentMonth.totalEarnings)}
+            </div>
             <div className="flex items-center text-xs">
               {earningsGrowth >= 0 ? (
                 <TrendingUp className="h-3 w-3 text-green-600 mr-1" />
               ) : (
                 <TrendingDown className="h-3 w-3 text-red-600 mr-1" />
               )}
-              <span className={earningsGrowth >= 0 ? 'text-green-600' : 'text-red-600'}>
+              <span
+                className={
+                  earningsGrowth >= 0 ? "text-green-600" : "text-red-600"
+                }
+              >
                 {Math.abs(earningsGrowth).toFixed(1)}%
               </span>
-              <span className="text-muted-foreground ml-1">vs mois dernier</span>
+              <span className="text-muted-foreground ml-1">
+                vs mois dernier
+              </span>
             </div>
           </CardContent>
         </Card>
@@ -181,28 +216,40 @@ export default function ProviderEarningsSummaryPage() {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{summary.currentMonth.completedBookings}</div>
+            <div className="text-2xl font-bold">
+              {summary.currentMonth.completedBookings}
+            </div>
             <div className="flex items-center text-xs">
               {bookingsGrowth >= 0 ? (
                 <TrendingUp className="h-3 w-3 text-green-600 mr-1" />
               ) : (
                 <TrendingDown className="h-3 w-3 text-red-600 mr-1" />
               )}
-              <span className={bookingsGrowth >= 0 ? 'text-green-600' : 'text-red-600'}>
+              <span
+                className={
+                  bookingsGrowth >= 0 ? "text-green-600" : "text-red-600"
+                }
+              >
                 {Math.abs(bookingsGrowth).toFixed(1)}%
               </span>
-              <span className="text-muted-foreground ml-1">vs mois dernier</span>
+              <span className="text-muted-foreground ml-1">
+                vs mois dernier
+              </span>
             </div>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Valeur moyenne</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Valeur moyenne
+            </CardTitle>
             <Target className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(summary.currentMonth.averageBookingValue)}</div>
+            <div className="text-2xl font-bold">
+              {formatCurrency(summary.currentMonth.averageBookingValue)}
+            </div>
             <p className="text-xs text-muted-foreground">par réservation</p>
           </CardContent>
         </Card>
@@ -213,7 +260,9 @@ export default function ProviderEarningsSummaryPage() {
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(summary.currentMonth.pendingPayments)}</div>
+            <div className="text-2xl font-bold">
+              {formatCurrency(summary.currentMonth.pendingPayments)}
+            </div>
             <p className="text-xs text-muted-foreground">paiements en cours</p>
           </CardContent>
         </Card>
@@ -231,21 +280,35 @@ export default function ProviderEarningsSummaryPage() {
           <Card>
             <CardHeader>
               <CardTitle>Performance Annuelle</CardTitle>
-              <CardDescription>Vos résultats depuis le début de l'année</CardDescription>
+              <CardDescription>
+                Vos résultats depuis le début de l'année
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="text-center">
-                  <div className="text-3xl font-bold text-primary">{formatCurrency(summary.yearToDate.totalEarnings)}</div>
-                  <p className="text-sm text-muted-foreground">Total des gains YTD</p>
+                  <div className="text-3xl font-bold text-primary">
+                    {formatCurrency(summary.yearToDate.totalEarnings)}
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    Total des gains YTD
+                  </p>
                 </div>
                 <div className="text-center">
-                  <div className="text-3xl font-bold text-blue-600">{summary.yearToDate.completedBookings}</div>
-                  <p className="text-sm text-muted-foreground">Réservations terminées</p>
+                  <div className="text-3xl font-bold text-blue-600">
+                    {summary.yearToDate.completedBookings}
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    Réservations terminées
+                  </p>
                 </div>
                 <div className="text-center">
-                  <div className="text-lg font-bold text-green-600">{formatCurrency(summary.yearToDate.bestMonthAmount)}</div>
-                  <p className="text-sm text-muted-foreground">Meilleur mois ({summary.yearToDate.bestMonth})</p>
+                  <div className="text-lg font-bold text-green-600">
+                    {formatCurrency(summary.yearToDate.bestMonthAmount)}
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    Meilleur mois ({summary.yearToDate.bestMonth})
+                  </p>
                 </div>
               </div>
             </CardContent>
@@ -260,13 +323,20 @@ export default function ProviderEarningsSummaryPage() {
             <CardContent>
               <div className="space-y-4">
                 {summary.weeklyBreakdown.map((week, index) => (
-                  <div key={index} className="flex items-center justify-between p-3 border rounded">
+                  <div
+                    key={index}
+                    className="flex items-center justify-between p-3 border rounded"
+                  >
                     <div>
                       <p className="font-medium">{week.week}</p>
-                      <p className="text-sm text-muted-foreground">{week.bookings} réservations</p>
+                      <p className="text-sm text-muted-foreground">
+                        {week.bookings} réservations
+                      </p>
                     </div>
                     <div className="text-right">
-                      <p className="font-bold">{formatCurrency(week.earnings)}</p>
+                      <p className="font-bold">
+                        {formatCurrency(week.earnings)}
+                      </p>
                     </div>
                   </div>
                 ))}
@@ -284,20 +354,28 @@ export default function ProviderEarningsSummaryPage() {
             <CardContent>
               <div className="space-y-4">
                 {summary.topServices.map((service, index) => (
-                  <div key={index} className="flex items-center justify-between p-4 border rounded-lg">
+                  <div
+                    key={index}
+                    className="flex items-center justify-between p-4 border rounded-lg"
+                  >
                     <div className="flex items-center gap-3">
                       <div className="flex items-center justify-center w-8 h-8 bg-primary/10 rounded-full">
-                        <span className="text-sm font-bold text-primary">#{index + 1}</span>
+                        <span className="text-sm font-bold text-primary">
+                          #{index + 1}
+                        </span>
                       </div>
                       <div>
                         <p className="font-medium">{service.serviceName}</p>
                         <p className="text-sm text-muted-foreground">
-                          {service.bookings} réservations • Moyenne: {formatCurrency(service.averageValue)}
+                          {service.bookings} réservations • Moyenne:{" "}
+                          {formatCurrency(service.averageValue)}
                         </p>
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="font-bold">{formatCurrency(service.earnings)}</p>
+                      <p className="font-bold">
+                        {formatCurrency(service.earnings)}
+                      </p>
                     </div>
                   </div>
                 ))}
@@ -310,23 +388,31 @@ export default function ProviderEarningsSummaryPage() {
           <Card>
             <CardHeader>
               <CardTitle>Statut des Paiements</CardTitle>
-              <CardDescription>Répartition de vos paiements actuels</CardDescription>
+              <CardDescription>
+                Répartition de vos paiements actuels
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="text-center p-4 border rounded-lg">
                   <Wallet className="h-8 w-8 mx-auto mb-2 text-green-600" />
-                  <div className="text-2xl font-bold text-green-600">{formatCurrency(summary.paymentStatus.available)}</div>
+                  <div className="text-2xl font-bold text-green-600">
+                    {formatCurrency(summary.paymentStatus.available)}
+                  </div>
                   <p className="text-sm text-muted-foreground">Disponible</p>
                 </div>
                 <div className="text-center p-4 border rounded-lg">
                   <Clock className="h-8 w-8 mx-auto mb-2 text-yellow-600" />
-                  <div className="text-2xl font-bold text-yellow-600">{formatCurrency(summary.paymentStatus.pending)}</div>
+                  <div className="text-2xl font-bold text-yellow-600">
+                    {formatCurrency(summary.paymentStatus.pending)}
+                  </div>
                   <p className="text-sm text-muted-foreground">En attente</p>
                 </div>
                 <div className="text-center p-4 border rounded-lg">
                   <RefreshCw className="h-8 w-8 mx-auto mb-2 text-blue-600" />
-                  <div className="text-2xl font-bold text-blue-600">{formatCurrency(summary.paymentStatus.processing)}</div>
+                  <div className="text-2xl font-bold text-blue-600">
+                    {formatCurrency(summary.paymentStatus.processing)}
+                  </div>
                   <p className="text-sm text-muted-foreground">En cours</p>
                 </div>
               </div>
@@ -359,4 +445,4 @@ export default function ProviderEarningsSummaryPage() {
       </Card>
     </div>
   );
-} 
+}

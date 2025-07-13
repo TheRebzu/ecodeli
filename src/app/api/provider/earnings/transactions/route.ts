@@ -1,24 +1,24 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getCurrentUser } from '@/lib/auth/utils';
-import { prisma } from '@/lib/db';
+import { NextRequest, NextResponse } from "next/server";
+import { getCurrentUser } from "@/lib/auth/utils";
+import { prisma } from "@/lib/db";
 
 export async function GET(request: NextRequest) {
   try {
     const currentUser = await getCurrentUser();
     if (!currentUser) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const { searchParams } = new URL(request.url);
-    const userId = searchParams.get('userId');
-    const page = parseInt(searchParams.get('page') || '1');
-    const search = searchParams.get('search') || '';
-    const status = searchParams.get('status') || 'all';
-    const type = searchParams.get('type') || 'all';
-    const dateRange = searchParams.get('dateRange') || 'all';
+    const userId = searchParams.get("userId");
+    const page = parseInt(searchParams.get("page") || "1");
+    const search = searchParams.get("search") || "";
+    const status = searchParams.get("status") || "all";
+    const type = searchParams.get("type") || "all";
+    const dateRange = searchParams.get("dateRange") || "all";
 
     if (!userId || userId !== currentUser.id) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
     const limit = 20;
@@ -27,26 +27,26 @@ export async function GET(request: NextRequest) {
     // Calculate date filter
     let dateFilter: any = {};
     const now = new Date();
-    
+
     switch (dateRange) {
-      case 'today':
+      case "today":
         const today = new Date();
         today.setHours(0, 0, 0, 0);
         const tomorrow = new Date(today);
         tomorrow.setDate(tomorrow.getDate() + 1);
         dateFilter = { gte: today, lt: tomorrow };
         break;
-      case 'week':
+      case "week":
         const weekAgo = new Date();
         weekAgo.setDate(weekAgo.getDate() - 7);
         dateFilter = { gte: weekAgo };
         break;
-      case 'month':
+      case "month":
         const monthAgo = new Date();
         monthAgo.setDate(monthAgo.getDate() - 30);
         dateFilter = { gte: monthAgo };
         break;
-      case 'quarter':
+      case "quarter":
         const quarterAgo = new Date();
         quarterAgo.setDate(quarterAgo.getDate() - 90);
         dateFilter = { gte: quarterAgo };
@@ -59,11 +59,11 @@ export async function GET(request: NextRequest) {
         {
           // Bookings as payment transactions
           service: {
-            providerId: userId
+            providerId: userId,
           },
-          status: 'COMPLETED'
-        }
-      ]
+          status: "COMPLETED",
+        },
+      ],
     };
 
     if (Object.keys(dateFilter).length > 0) {
@@ -82,51 +82,51 @@ export async function GET(request: NextRequest) {
                 profile: {
                   select: {
                     firstName: true,
-                    lastName: true
-                  }
-                }
-              }
-            }
-          }
+                    lastName: true,
+                  },
+                },
+              },
+            },
+          },
         },
         service: {
           select: {
             name: true,
-            basePrice: true
-          }
-        }
+            basePrice: true,
+          },
+        },
       },
       orderBy: {
-        scheduledDate: 'desc'
+        scheduledDate: "desc",
       },
       take: limit,
-      skip: offset
+      skip: offset,
     });
 
     // Transform bookings to transactions
-    const transactions = bookings.map(booking => {
+    const transactions = bookings.map((booking) => {
       const amount = booking.totalPrice || booking.service.basePrice || 50;
       const feeAmount = amount * 0.15; // 15% platform fee
       const netAmount = amount - feeAmount;
-      
-      const clientName = booking.client.user.profile 
-        ? `${booking.client.user.profile.firstName || ''} ${booking.client.user.profile.lastName || ''}`.trim()
-        : booking.client.user.email.split('@')[0];
+
+      const clientName = booking.client.user.profile
+        ? `${booking.client.user.profile.firstName || ""} ${booking.client.user.profile.lastName || ""}`.trim()
+        : booking.client.user.email.split("@")[0];
 
       return {
         id: booking.id,
-        type: 'BOOKING_PAYMENT',
+        type: "BOOKING_PAYMENT",
         amount: amount,
-        currency: 'EUR',
-        status: 'COMPLETED',
+        currency: "EUR",
+        status: "COMPLETED",
         date: booking.scheduledDate.toISOString(),
         description: `Paiement pour service: ${booking.service.name}`,
         relatedBookingId: booking.id,
-        clientName: clientName || 'Client',
+        clientName: clientName || "Client",
         serviceName: booking.service.name,
-        paymentMethod: 'stripe',
+        paymentMethod: "stripe",
         feeAmount: feeAmount,
-        netAmount: netAmount
+        netAmount: netAmount,
       };
     });
 
@@ -134,51 +134,61 @@ export async function GET(request: NextRequest) {
     let filteredTransactions = transactions;
 
     if (search) {
-      filteredTransactions = filteredTransactions.filter(t => 
-        t.description.toLowerCase().includes(search.toLowerCase()) ||
-        t.clientName.toLowerCase().includes(search.toLowerCase()) ||
-        t.serviceName.toLowerCase().includes(search.toLowerCase())
+      filteredTransactions = filteredTransactions.filter(
+        (t) =>
+          t.description.toLowerCase().includes(search.toLowerCase()) ||
+          t.clientName.toLowerCase().includes(search.toLowerCase()) ||
+          t.serviceName.toLowerCase().includes(search.toLowerCase()),
       );
     }
 
-    if (status !== 'all') {
-      filteredTransactions = filteredTransactions.filter(t => t.status === status);
+    if (status !== "all") {
+      filteredTransactions = filteredTransactions.filter(
+        (t) => t.status === status,
+      );
     }
 
-    if (type !== 'all') {
-      filteredTransactions = filteredTransactions.filter(t => t.type === type);
+    if (type !== "all") {
+      filteredTransactions = filteredTransactions.filter(
+        (t) => t.type === type,
+      );
     }
 
     // Add some mock withdrawal transactions for variety
-    if (type === 'all' || type === 'WITHDRAWAL') {
+    if (type === "all" || type === "WITHDRAWAL") {
       const mockWithdrawals = [
         {
-          id: 'withdrawal-1',
-          type: 'WITHDRAWAL',
+          id: "withdrawal-1",
+          type: "WITHDRAWAL",
           amount: 500,
-          currency: 'EUR',
-          status: 'COMPLETED',
+          currency: "EUR",
+          status: "COMPLETED",
           date: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(), // 5 days ago
-          description: 'Retrait vers compte bancaire',
-          paymentMethod: 'bank_transfer',
-          feeAmount: 2.50,
-          netAmount: 497.50
+          description: "Retrait vers compte bancaire",
+          paymentMethod: "bank_transfer",
+          feeAmount: 2.5,
+          netAmount: 497.5,
         },
         {
-          id: 'withdrawal-2',
-          type: 'WITHDRAWAL',
+          id: "withdrawal-2",
+          type: "WITHDRAWAL",
           amount: 300,
-          currency: 'EUR',
-          status: 'PROCESSING',
+          currency: "EUR",
+          status: "PROCESSING",
           date: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(), // 1 day ago
-          description: 'Retrait vers compte bancaire',
-          paymentMethod: 'bank_transfer',
-          feeAmount: 2.50,
-          netAmount: 297.50
-        }
+          description: "Retrait vers compte bancaire",
+          paymentMethod: "bank_transfer",
+          feeAmount: 2.5,
+          netAmount: 297.5,
+        },
       ];
 
-      if (search === '' || mockWithdrawals.some(w => w.description.toLowerCase().includes(search.toLowerCase()))) {
+      if (
+        search === "" ||
+        mockWithdrawals.some((w) =>
+          w.description.toLowerCase().includes(search.toLowerCase()),
+        )
+      ) {
         filteredTransactions = [...mockWithdrawals, ...filteredTransactions];
       }
     }
@@ -192,14 +202,13 @@ export async function GET(request: NextRequest) {
       transactions: paginatedTransactions,
       totalPages: totalPages,
       currentPage: page,
-      totalTransactions: totalTransactions
+      totalTransactions: totalTransactions,
     });
-
   } catch (error) {
-    console.error('Error fetching transactions:', error);
+    console.error("Error fetching transactions:", error);
     return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
+      { error: "Internal server error" },
+      { status: 500 },
     );
   }
-} 
+}

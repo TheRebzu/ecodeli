@@ -1,36 +1,33 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getCurrentUser } from '@/lib/auth/utils';
-import { prisma } from '@/lib/db';
+import { NextRequest, NextResponse } from "next/server";
+import { getCurrentUser } from "@/lib/auth/utils";
+import { prisma } from "@/lib/db";
 
 export async function POST(request: NextRequest) {
   try {
     const user = await getCurrentUser();
     if (!user) {
-      return NextResponse.json(
-        { error: 'Non autorisé' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
     }
 
     // Récupérer l'abonnement actuel
     const currentSubscription = await prisma.subscription.findFirst({
       where: {
         userId: user.id,
-        status: 'active',
+        status: "active",
       },
     });
 
     if (!currentSubscription) {
       return NextResponse.json(
-        { error: 'Aucun abonnement actif trouvé' },
-        { status: 404 }
+        { error: "Aucun abonnement actif trouvé" },
+        { status: 404 },
       );
     }
 
-    if (currentSubscription.plan === 'FREE') {
+    if (currentSubscription.plan === "FREE") {
       return NextResponse.json(
-        { error: 'Impossible d\'annuler un abonnement gratuit' },
-        { status: 400 }
+        { error: "Impossible d'annuler un abonnement gratuit" },
+        { status: 400 },
       );
     }
 
@@ -44,7 +41,7 @@ export async function POST(request: NextRequest) {
     await prisma.subscription.update({
       where: { id: currentSubscription.id },
       data: {
-        status: 'cancelled',
+        status: "cancelled",
         endDate: endDate,
       },
     });
@@ -53,26 +50,26 @@ export async function POST(request: NextRequest) {
     await prisma.subscription.create({
       data: {
         userId: user.id,
-        plan: 'FREE',
-        status: 'active',
+        plan: "FREE",
+        status: "active",
         startDate: endDate, // Commencer après la fin de l'abonnement payant
       },
     });
 
     return NextResponse.json({
       success: true,
-      message: 'Abonnement annulé avec succès',
+      message: "Abonnement annulé avec succès",
       subscription: {
-        plan: 'FREE',
-        status: 'active',
+        plan: "FREE",
+        status: "active",
         endDate: endDate.toISOString(),
       },
     });
   } catch (error) {
-    console.error('Error cancelling subscription:', error);
+    console.error("Error cancelling subscription:", error);
     return NextResponse.json(
-      { error: 'Erreur lors de l\'annulation de l\'abonnement' },
-      { status: 500 }
+      { error: "Erreur lors de l'annulation de l'abonnement" },
+      { status: 500 },
     );
   }
-} 
+}

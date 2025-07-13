@@ -19,9 +19,7 @@ export default function ClientBookingsPage() {
           <h2 className="text-2xl font-semibold text-gray-900 mb-2">
             {t("auth.required_title")}
           </h2>
-          <p className="text-gray-600">
-            {t("auth.required_description")}
-          </p>
+          <p className="text-gray-600">{t("auth.required_description")}</p>
         </div>
       </div>
     );
@@ -41,7 +39,7 @@ export default function ClientBookingsPage() {
           </Link>
         }
       />
-      
+
       <BookingList clientId={user.id} />
     </div>
   );

@@ -7,11 +7,28 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { useTranslations } from "next-intl";
-import { CalendarIcon, Clock, MapPin, User, Star, AlertCircle } from "lucide-react";
+import {
+  CalendarIcon,
+  Clock,
+  MapPin,
+  User,
+  Star,
+  AlertCircle,
+} from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { useAuth } from "@/hooks/use-auth";
@@ -48,7 +65,10 @@ interface BookingFormData {
   notes: string;
 }
 
-export function ServiceBooking({ service, onBookingComplete }: ServiceBookingProps) {
+export function ServiceBooking({
+  service,
+  onBookingComplete,
+}: ServiceBookingProps) {
   const t = useTranslations("client.services.booking");
   const { user } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
@@ -61,15 +81,40 @@ export function ServiceBooking({ service, onBookingComplete }: ServiceBookingPro
   });
 
   const timeSlots = [
-    "08:00", "08:30", "09:00", "09:30", "10:00", "10:30", "11:00", "11:30",
-    "12:00", "12:30", "13:00", "13:30", "14:00", "14:30", "15:00", "15:30",
-    "16:00", "16:30", "17:00", "17:30", "18:00", "18:30", "19:00", "19:30"
+    "08:00",
+    "08:30",
+    "09:00",
+    "09:30",
+    "10:00",
+    "10:30",
+    "11:00",
+    "11:30",
+    "12:00",
+    "12:30",
+    "13:00",
+    "13:30",
+    "14:00",
+    "14:30",
+    "15:00",
+    "15:30",
+    "16:00",
+    "16:30",
+    "17:00",
+    "17:30",
+    "18:00",
+    "18:30",
+    "19:00",
+    "19:30",
   ];
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!formData.scheduledDate || !formData.scheduledTime || !formData.address) {
+
+    if (
+      !formData.scheduledDate ||
+      !formData.scheduledTime ||
+      !formData.address
+    ) {
       toast({
         title: t("errors.missing_fields"),
         description: t("errors.please_fill_all"),
@@ -91,13 +136,13 @@ export function ServiceBooking({ service, onBookingComplete }: ServiceBookingPro
 
     try {
       const scheduledDateTime = new Date(formData.scheduledDate);
-      const [hours, minutes] = formData.scheduledTime.split(':');
+      const [hours, minutes] = formData.scheduledTime.split(":");
       scheduledDateTime.setHours(parseInt(hours), parseInt(minutes), 0, 0);
 
-      const response = await fetch('/api/bookings', {
-        method: 'POST',
+      const response = await fetch("/api/bookings", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           serviceId: service.id,
@@ -109,7 +154,7 @@ export function ServiceBooking({ service, onBookingComplete }: ServiceBookingPro
 
       if (response.ok) {
         const booking = await response.json();
-        
+
         toast({
           title: t("success.title"),
           description: t("success.description"),
@@ -135,7 +180,7 @@ export function ServiceBooking({ service, onBookingComplete }: ServiceBookingPro
         });
       }
     } catch (error) {
-      console.error('Error creating booking:', error);
+      console.error("Error creating booking:", error);
       toast({
         title: t("errors.booking_failed"),
         description: t("errors.network_error"),
@@ -147,7 +192,7 @@ export function ServiceBooking({ service, onBookingComplete }: ServiceBookingPro
   };
 
   const handleInputChange = (field: keyof BookingFormData, value: any) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       [field]: value,
     }));
@@ -166,7 +211,7 @@ export function ServiceBooking({ service, onBookingComplete }: ServiceBookingPro
           {t("book_now")}
         </Button>
       </DialogTrigger>
-      
+
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-xl font-semibold">
@@ -185,19 +230,24 @@ export function ServiceBooking({ service, onBookingComplete }: ServiceBookingPro
                 <div className="flex items-center space-x-2">
                   <User className="h-4 w-4 text-gray-400" />
                   <span className="text-sm">
-                    {service.provider.profile.firstName} {service.provider.profile.lastName}
+                    {service.provider.profile.firstName}{" "}
+                    {service.provider.profile.lastName}
                   </span>
                 </div>
                 <div className="flex items-center space-x-2">
                   <MapPin className="h-4 w-4 text-gray-400" />
-                  <span className="text-sm">{service.provider.profile.city}</span>
+                  <span className="text-sm">
+                    {service.provider.profile.city}
+                  </span>
                 </div>
               </div>
 
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
                   <Clock className="h-4 w-4 text-gray-400" />
-                  <span className="text-sm">{service.duration} {t("minutes")}</span>
+                  <span className="text-sm">
+                    {service.duration} {t("minutes")}
+                  </span>
                 </div>
                 <div className="flex items-center space-x-1">
                   <Star className="h-4 w-4 text-yellow-400 fill-current" />
@@ -211,9 +261,7 @@ export function ServiceBooking({ service, onBookingComplete }: ServiceBookingPro
               </div>
 
               <div className="flex items-center justify-between pt-2 border-t">
-                <Badge variant="secondary">
-                  {service.category}
-                </Badge>
+                <Badge variant="secondary">{service.category}</Badge>
                 <span className="text-2xl font-bold text-primary">
                   {service.price}€
                 </span>
@@ -236,7 +284,9 @@ export function ServiceBooking({ service, onBookingComplete }: ServiceBookingPro
                     {formData.scheduledDate ? (
                       format(formData.scheduledDate, "PPP", { locale: fr })
                     ) : (
-                      <span className="text-muted-foreground">{t("select_date")}</span>
+                      <span className="text-muted-foreground">
+                        {t("select_date")}
+                      </span>
                     )}
                   </Button>
                 </PopoverTrigger>
@@ -244,7 +294,9 @@ export function ServiceBooking({ service, onBookingComplete }: ServiceBookingPro
                   <Calendar
                     mode="single"
                     selected={formData.scheduledDate}
-                    onSelect={(date) => handleInputChange('scheduledDate', date)}
+                    onSelect={(date) =>
+                      handleInputChange("scheduledDate", date)
+                    }
                     disabled={isDateDisabled}
                     initialFocus
                   />
@@ -258,7 +310,9 @@ export function ServiceBooking({ service, onBookingComplete }: ServiceBookingPro
               <select
                 id="time"
                 value={formData.scheduledTime}
-                onChange={(e) => handleInputChange('scheduledTime', e.target.value)}
+                onChange={(e) =>
+                  handleInputChange("scheduledTime", e.target.value)
+                }
                 className="w-full p-3 border border-input rounded-md bg-background"
                 required
               >
@@ -277,7 +331,7 @@ export function ServiceBooking({ service, onBookingComplete }: ServiceBookingPro
               <Textarea
                 id="address"
                 value={formData.address}
-                onChange={(e) => handleInputChange('address', e.target.value)}
+                onChange={(e) => handleInputChange("address", e.target.value)}
                 placeholder={t("address_placeholder")}
                 className="min-h-[80px]"
                 required
@@ -290,7 +344,7 @@ export function ServiceBooking({ service, onBookingComplete }: ServiceBookingPro
               <Textarea
                 id="notes"
                 value={formData.notes}
-                onChange={(e) => handleInputChange('notes', e.target.value)}
+                onChange={(e) => handleInputChange("notes", e.target.value)}
                 placeholder={t("notes_placeholder")}
                 className="min-h-[80px]"
               />
@@ -315,7 +369,12 @@ export function ServiceBooking({ service, onBookingComplete }: ServiceBookingPro
             <Button
               type="submit"
               className="w-full"
-              disabled={isLoading || !formData.scheduledDate || !formData.scheduledTime || !formData.address}
+              disabled={
+                isLoading ||
+                !formData.scheduledDate ||
+                !formData.scheduledTime ||
+                !formData.address
+              }
             >
               {isLoading ? t("booking") : t("confirm_booking")}
             </Button>
@@ -337,4 +396,4 @@ export function ServiceBooking({ service, onBookingComplete }: ServiceBookingPro
       </DialogContent>
     </Dialog>
   );
-} 
+}

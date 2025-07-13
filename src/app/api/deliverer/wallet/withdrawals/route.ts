@@ -1,18 +1,18 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@/lib/auth';
-import { prisma } from '@/lib/db';
-import { z } from 'zod';
+import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@/lib/auth";
+import { prisma } from "@/lib/db";
+import { z } from "zod";
 
 const withdrawalSchema = z.object({
-  amount: z.number().min(50, 'Le montant minimum de retrait est de 50€'),
-  bankAccountId: z.string().optional()
+  amount: z.number().min(50, "Le montant minimum de retrait est de 50€"),
+  bankAccountId: z.string().optional(),
 });
 
 export async function POST(request: NextRequest) {
   try {
     const session = await auth();
-    if (!session || session.user.role !== 'DELIVERER') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (!session || session.user.role !== "DELIVERER") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const body = await request.json();
@@ -20,21 +20,27 @@ export async function POST(request: NextRequest) {
 
     const deliverer = await prisma.deliverer.findUnique({
       where: { userId: session.user.id },
-      include: { user: true }
+      include: { user: true },
     });
 
     if (!deliverer) {
-      return NextResponse.json({ error: 'Deliverer not found' }, { status: 404 });
+      return NextResponse.json(
+        { error: "Deliverer not found" },
+        { status: 404 },
+      );
     }
 
     // Vérifier le solde disponible
     const availableBalance = await calculateAvailableBalance(session.user.id);
-    
+
     if (validatedWithdrawal.amount > availableBalance) {
-      return NextResponse.json({ 
-        error: 'Solde insuffisant',
-        availableBalance 
-      }, { status: 400 });
+      return NextResponse.json(
+        {
+          error: "Solde insuffisant",
+          availableBalance,
+        },
+        { status: 400 },
+      );
     }
 
     // Générer une référence unique
@@ -45,38 +51,41 @@ export async function POST(request: NextRequest) {
       data: {
         userId: session.user.id,
         amount: validatedWithdrawal.amount,
-        status: 'PENDING',
+        status: "PENDING",
         reference,
-        type: 'WITHDRAWAL',
-        bankAccountId: validatedWithdrawal.bankAccountId || null
-      }
+        type: "WITHDRAWAL",
+        bankAccountId: validatedWithdrawal.bankAccountId || null,
+      },
     });
 
     // TODO: Intégrer avec un service de virement bancaire
     // TODO: Envoyer une notification email de confirmation
 
-    return NextResponse.json({ 
-      message: 'Withdrawal request created successfully',
-      withdrawal: {
-        id: withdrawal.id,
-        amount: withdrawal.amount,
-        reference: withdrawal.reference,
-        status: withdrawal.status,
-        createdAt: withdrawal.createdAt
-      }
-    }, { status: 201 });
+    return NextResponse.json(
+      {
+        message: "Withdrawal request created successfully",
+        withdrawal: {
+          id: withdrawal.id,
+          amount: withdrawal.amount,
+          reference: withdrawal.reference,
+          status: withdrawal.status,
+          createdAt: withdrawal.createdAt,
+        },
+      },
+      { status: 201 },
+    );
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: 'Validation error', details: error.errors },
-        { status: 400 }
+        { error: "Validation error", details: error.errors },
+        { status: 400 },
       );
     }
 
-    console.error('Error creating withdrawal:', error);
+    console.error("Error creating withdrawal:", error);
     return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
+      { error: "Internal server error" },
+      { status: 500 },
     );
   }
 }
@@ -84,20 +93,20 @@ export async function POST(request: NextRequest) {
 export async function GET(request: NextRequest) {
   try {
     const session = await auth();
-    if (!session || session.user.role !== 'DELIVERER') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (!session || session.user.role !== "DELIVERER") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const { searchParams } = new URL(request.url);
-    const page = parseInt(searchParams.get('page') || '1');
-    const limit = parseInt(searchParams.get('limit') || '10');
-    const status = searchParams.get('status');
+    const page = parseInt(searchParams.get("page") || "1");
+    const limit = parseInt(searchParams.get("limit") || "10");
+    const status = searchParams.get("status");
 
-    const whereClause: any = { 
+    const whereClause: any = {
       userId: session.user.id,
-      type: 'WITHDRAWAL'
+      type: "WITHDRAWAL",
     };
-    
+
     if (status) {
       whereClause.status = status.toUpperCase();
     }
@@ -106,28 +115,30 @@ export async function GET(request: NextRequest) {
       where: whereClause,
       skip: (page - 1) * limit,
       take: limit,
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" },
       include: {
-        bankAccount: true
-      }
+        bankAccount: true,
+      },
     });
 
     const total = await prisma.withdrawal.count({
-      where: whereClause
+      where: whereClause,
     });
 
     // Formater les données pour le front-end
-    const formattedWithdrawals = withdrawals.map(withdrawal => ({
+    const formattedWithdrawals = withdrawals.map((withdrawal) => ({
       id: withdrawal.id,
       amount: withdrawal.amount,
       status: withdrawal.status,
       requestedAt: withdrawal.createdAt,
       processedAt: withdrawal.updatedAt,
       reference: withdrawal.reference,
-      bankAccount: withdrawal.bankAccount ? {
-        iban: maskIBAN(withdrawal.bankAccount.iban),
-        accountHolder: withdrawal.bankAccount.accountHolder
-      } : null
+      bankAccount: withdrawal.bankAccount
+        ? {
+            iban: maskIBAN(withdrawal.bankAccount.iban),
+            accountHolder: withdrawal.bankAccount.accountHolder,
+          }
+        : null,
     }));
 
     return NextResponse.json({
@@ -136,14 +147,14 @@ export async function GET(request: NextRequest) {
         page,
         limit,
         total,
-        pages: Math.ceil(total / limit)
-      }
+        pages: Math.ceil(total / limit),
+      },
     });
   } catch (error) {
-    console.error('Error fetching withdrawals:', error);
+    console.error("Error fetching withdrawals:", error);
     return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
+      { error: "Internal server error" },
+      { status: 500 },
     );
   }
 }
@@ -153,23 +164,23 @@ async function calculateAvailableBalance(userId: string): Promise<number> {
   const totalEarnings = await prisma.payment.aggregate({
     where: {
       userId,
-      status: 'COMPLETED',
-      type: 'DELIVERY'
+      status: "COMPLETED",
+      type: "DELIVERY",
     },
     _sum: {
-      amount: true
-    }
+      amount: true,
+    },
   });
 
   const totalWithdrawals = await prisma.withdrawal.aggregate({
     where: {
       userId,
-      status: 'COMPLETED',
-      type: 'WITHDRAWAL'
+      status: "COMPLETED",
+      type: "WITHDRAWAL",
     },
     _sum: {
-      amount: true
-    }
+      amount: true,
+    },
   });
 
   const earnings = totalEarnings._sum.amount || 0;
@@ -179,14 +190,14 @@ async function calculateAvailableBalance(userId: string): Promise<number> {
 }
 
 function maskIBAN(iban: string): string {
-  if (!iban) return '';
+  if (!iban) return "";
   // Masquer l'IBAN pour la sécurité (garder seulement les 4 premiers et 4 derniers caractères)
-  const cleaned = iban.replace(/\s/g, '');
+  const cleaned = iban.replace(/\s/g, "");
   if (cleaned.length < 8) return iban;
-  
+
   const first = cleaned.substring(0, 4);
   const last = cleaned.substring(cleaned.length - 4);
-  const masked = '*'.repeat(cleaned.length - 8);
-  
+  const masked = "*".repeat(cleaned.length - 8);
+
   return `${first} ${masked} ${last}`;
-} 
+}

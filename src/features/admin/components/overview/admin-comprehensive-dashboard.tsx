@@ -1,16 +1,44 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { 
-  Users, Package, TrendingUp, DollarSign, AlertCircle, CheckCircle, 
-  Clock, Star, FileText, CreditCard, MapPin, Calendar, BarChart3,
-  Activity, Shield, Database, Zap, Globe, Settings
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Users,
+  Package,
+  TrendingUp,
+  DollarSign,
+  AlertCircle,
+  CheckCircle,
+  Clock,
+  Star,
+  FileText,
+  CreditCard,
+  MapPin,
+  Calendar,
+  BarChart3,
+  Activity,
+  Shield,
+  Database,
+  Zap,
+  Globe,
+  Settings,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
 
@@ -29,7 +57,7 @@ interface DashboardMetrics {
     activeToday: number;
     growthRate: number;
   };
-  
+
   business: {
     totalRevenue: number;
     monthlyRevenue: number;
@@ -39,7 +67,7 @@ interface DashboardMetrics {
     avgOrderValue: number;
     profitMargin: number;
   };
-  
+
   operations: {
     pendingValidations: number;
     activeDeliveries: number;
@@ -49,7 +77,7 @@ interface DashboardMetrics {
     errorRate: number;
     supportTickets: number;
   };
-  
+
   performance: {
     avgRating: number;
     totalReviews: number;
@@ -58,7 +86,7 @@ interface DashboardMetrics {
     onTimeDeliveryRate: number;
     providerRetentionRate: number;
   };
-  
+
   financial: {
     totalPayments: number;
     pendingPayments: number;
@@ -71,7 +99,12 @@ interface DashboardMetrics {
 
 interface RecentActivity {
   id: string;
-  type: "user_registration" | "delivery_completed" | "payment_processed" | "issue_reported" | "contract_signed";
+  type:
+    | "user_registration"
+    | "delivery_completed"
+    | "payment_processed"
+    | "issue_reported"
+    | "contract_signed";
   description: string;
   timestamp: string;
   severity: "info" | "warning" | "error" | "success";
@@ -89,22 +122,26 @@ interface SystemAlert {
   priority: "low" | "medium" | "high" | "critical";
 }
 
-export default function AdminComprehensiveDashboard({ adminId }: AdminComprehensiveDashboardProps) {
+export default function AdminComprehensiveDashboard({
+  adminId,
+}: AdminComprehensiveDashboardProps) {
   const t = useTranslations("admin.dashboard");
   const [metrics, setMetrics] = useState<DashboardMetrics | null>(null);
   const [recentActivity, setRecentActivity] = useState<RecentActivity[]>([]);
   const [systemAlerts, setSystemAlerts] = useState<SystemAlert[]>([]);
   const [loading, setLoading] = useState(true);
   const [timeRange, setTimeRange] = useState("7d");
-  const [refreshInterval, setRefreshInterval] = useState<NodeJS.Timeout | null>(null);
+  const [refreshInterval, setRefreshInterval] = useState<NodeJS.Timeout | null>(
+    null,
+  );
 
   useEffect(() => {
     fetchDashboardData();
-    
+
     // Auto-refresh every 30 seconds
     const interval = setInterval(fetchDashboardData, 30000);
     setRefreshInterval(interval);
-    
+
     return () => {
       if (refreshInterval) clearInterval(refreshInterval);
     };
@@ -113,9 +150,11 @@ export default function AdminComprehensiveDashboard({ adminId }: AdminComprehens
   const fetchDashboardData = async () => {
     try {
       const [metricsRes, activityRes, alertsRes] = await Promise.all([
-        fetch(`/api/admin/dashboard/metrics?adminId=${adminId}&timeRange=${timeRange}`),
+        fetch(
+          `/api/admin/dashboard/metrics?adminId=${adminId}&timeRange=${timeRange}`,
+        ),
         fetch(`/api/admin/dashboard/activity?adminId=${adminId}&limit=20`),
-        fetch(`/api/admin/dashboard/alerts?adminId=${adminId}&unresolved=true`)
+        fetch(`/api/admin/dashboard/alerts?adminId=${adminId}&unresolved=true`),
       ]);
 
       if (metricsRes.ok) {
@@ -144,7 +183,7 @@ export default function AdminComprehensiveDashboard({ adminId }: AdminComprehens
       const response = await fetch(`/api/admin/alerts/${alertId}/resolve`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ adminId })
+        body: JSON.stringify({ adminId }),
       });
 
       if (response.ok) {
@@ -168,10 +207,19 @@ export default function AdminComprehensiveDashboard({ adminId }: AdminComprehens
 
   const getAlertBadge = (priority: string) => {
     const priorityConfig = {
-      critical: { color: "bg-red-100 text-red-800", label: t("priority.critical") },
-      high: { color: "bg-orange-100 text-orange-800", label: t("priority.high") },
-      medium: { color: "bg-yellow-100 text-yellow-800", label: t("priority.medium") },
-      low: { color: "bg-blue-100 text-blue-800", label: t("priority.low") }
+      critical: {
+        color: "bg-red-100 text-red-800",
+        label: t("priority.critical"),
+      },
+      high: {
+        color: "bg-orange-100 text-orange-800",
+        label: t("priority.high"),
+      },
+      medium: {
+        color: "bg-yellow-100 text-yellow-800",
+        label: t("priority.medium"),
+      },
+      low: { color: "bg-blue-100 text-blue-800", label: t("priority.low") },
     };
 
     const config = priorityConfig[priority as keyof typeof priorityConfig];
@@ -231,7 +279,8 @@ export default function AdminComprehensiveDashboard({ adminId }: AdminComprehens
       </div>
 
       {/* Alertes critiques */}
-      {systemAlerts.filter(alert => alert.priority === "critical").length > 0 && (
+      {systemAlerts.filter((alert) => alert.priority === "critical").length >
+        0 && (
         <Card className="mb-6 border-red-200 bg-red-50">
           <CardHeader>
             <CardTitle className="text-red-800 flex items-center gap-2">
@@ -241,17 +290,28 @@ export default function AdminComprehensiveDashboard({ adminId }: AdminComprehens
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
-              {systemAlerts.filter(alert => alert.priority === "critical").slice(0, 3).map((alert) => (
-                <div key={alert.id} className="flex items-center justify-between p-3 bg-white border border-red-200 rounded">
-                  <div className="flex items-center gap-2">
-                    {getAlertIcon(alert.type)}
-                    <span className="font-medium text-red-800">{alert.title}</span>
+              {systemAlerts
+                .filter((alert) => alert.priority === "critical")
+                .slice(0, 3)
+                .map((alert) => (
+                  <div
+                    key={alert.id}
+                    className="flex items-center justify-between p-3 bg-white border border-red-200 rounded"
+                  >
+                    <div className="flex items-center gap-2">
+                      {getAlertIcon(alert.type)}
+                      <span className="font-medium text-red-800">
+                        {alert.title}
+                      </span>
+                    </div>
+                    <Button
+                      size="sm"
+                      onClick={() => handleResolveAlert(alert.id)}
+                    >
+                      {t("resolve")}
+                    </Button>
                   </div>
-                  <Button size="sm" onClick={() => handleResolveAlert(alert.id)}>
-                    {t("resolve")}
-                  </Button>
-                </div>
-              ))}
+                ))}
             </div>
           </CardContent>
         </Card>
@@ -272,25 +332,33 @@ export default function AdminComprehensiveDashboard({ adminId }: AdminComprehens
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">{t("metrics.total_users")}</CardTitle>
+                <CardTitle className="text-sm font-medium">
+                  {t("metrics.total_users")}
+                </CardTitle>
                 <Users className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{metrics.users.total.toLocaleString()}</div>
+                <div className="text-2xl font-bold">
+                  {metrics.users.total.toLocaleString()}
+                </div>
                 <p className="text-xs text-muted-foreground">
-                  <TrendingUp className="h-3 w-3 inline mr-1" />
-                  +{metrics.users.growthRate}% {t("this_month")}
+                  <TrendingUp className="h-3 w-3 inline mr-1" />+
+                  {metrics.users.growthRate}% {t("this_month")}
                 </p>
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">{t("metrics.monthly_revenue")}</CardTitle>
+                <CardTitle className="text-sm font-medium">
+                  {t("metrics.monthly_revenue")}
+                </CardTitle>
                 <DollarSign className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">€{metrics.business.monthlyRevenue.toLocaleString()}</div>
+                <div className="text-2xl font-bold">
+                  €{metrics.business.monthlyRevenue.toLocaleString()}
+                </div>
                 <p className="text-xs text-muted-foreground">
                   {t("profit_margin")}: {metrics.business.profitMargin}%
                 </p>
@@ -299,25 +367,37 @@ export default function AdminComprehensiveDashboard({ adminId }: AdminComprehens
 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">{t("metrics.active_deliveries")}</CardTitle>
+                <CardTitle className="text-sm font-medium">
+                  {t("metrics.active_deliveries")}
+                </CardTitle>
                 <Package className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{metrics.operations.activeDeliveries}</div>
+                <div className="text-2xl font-bold">
+                  {metrics.operations.activeDeliveries}
+                </div>
                 <p className="text-xs text-muted-foreground">
-                  {t("success_rate")}: {metrics.performance.deliverySuccessRate}%
+                  {t("success_rate")}: {metrics.performance.deliverySuccessRate}
+                  %
                 </p>
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">{t("metrics.avg_rating")}</CardTitle>
+                <CardTitle className="text-sm font-medium">
+                  {t("metrics.avg_rating")}
+                </CardTitle>
                 <Star className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{metrics.performance.avgRating.toFixed(1)}/5</div>
-                <Progress value={metrics.performance.avgRating * 20} className="mt-2" />
+                <div className="text-2xl font-bold">
+                  {metrics.performance.avgRating.toFixed(1)}/5
+                </div>
+                <Progress
+                  value={metrics.performance.avgRating * 20}
+                  className="mt-2"
+                />
               </CardContent>
             </Card>
           </div>
@@ -342,7 +422,9 @@ export default function AdminComprehensiveDashboard({ adminId }: AdminComprehens
                         </p>
                       </div>
                       {activity.amount && (
-                        <span className="text-sm font-medium">€{activity.amount}</span>
+                        <span className="text-sm font-medium">
+                          €{activity.amount}
+                        </span>
                       )}
                     </div>
                   ))}
@@ -360,18 +442,27 @@ export default function AdminComprehensiveDashboard({ adminId }: AdminComprehens
               <CardContent>
                 <div className="space-y-3">
                   {systemAlerts.slice(0, 6).map((alert) => (
-                    <div key={alert.id} className="flex items-center justify-between">
+                    <div
+                      key={alert.id}
+                      className="flex items-center justify-between"
+                    >
                       <div className="flex items-center gap-2">
                         {getAlertIcon(alert.type)}
                         <div>
                           <p className="text-sm font-medium">{alert.title}</p>
-                          <p className="text-xs text-gray-500">{alert.description}</p>
+                          <p className="text-xs text-gray-500">
+                            {alert.description}
+                          </p>
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
                         {getAlertBadge(alert.priority)}
                         {!alert.resolved && (
-                          <Button size="sm" variant="outline" onClick={() => handleResolveAlert(alert.id)}>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleResolveAlert(alert.id)}
+                          >
                             {t("resolve")}
                           </Button>
                         )}
@@ -392,34 +483,48 @@ export default function AdminComprehensiveDashboard({ adminId }: AdminComprehens
                 <CardTitle className="text-sm">{t("users.clients")}</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{metrics.users.clients.toLocaleString()}</div>
+                <div className="text-2xl font-bold">
+                  {metrics.users.clients.toLocaleString()}
+                </div>
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader>
-                <CardTitle className="text-sm">{t("users.providers")}</CardTitle>
+                <CardTitle className="text-sm">
+                  {t("users.providers")}
+                </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{metrics.users.providers.toLocaleString()}</div>
+                <div className="text-2xl font-bold">
+                  {metrics.users.providers.toLocaleString()}
+                </div>
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader>
-                <CardTitle className="text-sm">{t("users.deliverers")}</CardTitle>
+                <CardTitle className="text-sm">
+                  {t("users.deliverers")}
+                </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{metrics.users.deliverers.toLocaleString()}</div>
+                <div className="text-2xl font-bold">
+                  {metrics.users.deliverers.toLocaleString()}
+                </div>
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader>
-                <CardTitle className="text-sm">{t("users.merchants")}</CardTitle>
+                <CardTitle className="text-sm">
+                  {t("users.merchants")}
+                </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{metrics.users.merchants.toLocaleString()}</div>
+                <div className="text-2xl font-bold">
+                  {metrics.users.merchants.toLocaleString()}
+                </div>
               </CardContent>
             </Card>
           </div>
@@ -433,15 +538,21 @@ export default function AdminComprehensiveDashboard({ adminId }: AdminComprehens
                 <div className="space-y-4">
                   <div className="flex justify-between">
                     <span>{t("active_today")}:</span>
-                    <span className="font-bold">{metrics.users.activeToday}</span>
+                    <span className="font-bold">
+                      {metrics.users.activeToday}
+                    </span>
                   </div>
                   <div className="flex justify-between">
                     <span>{t("new_this_month")}:</span>
-                    <span className="font-bold">{metrics.users.newThisMonth}</span>
+                    <span className="font-bold">
+                      {metrics.users.newThisMonth}
+                    </span>
                   </div>
                   <div className="flex justify-between">
                     <span>{t("growth_rate")}:</span>
-                    <span className="font-bold text-green-600">+{metrics.users.growthRate}%</span>
+                    <span className="font-bold text-green-600">
+                      +{metrics.users.growthRate}%
+                    </span>
                   </div>
                 </div>
               </CardContent>
@@ -456,23 +567,53 @@ export default function AdminComprehensiveDashboard({ adminId }: AdminComprehens
                   <div>
                     <div className="flex justify-between mb-1">
                       <span className="text-sm">{t("users.clients")}</span>
-                      <span className="text-sm">{((metrics.users.clients / metrics.users.total) * 100).toFixed(1)}%</span>
+                      <span className="text-sm">
+                        {(
+                          (metrics.users.clients / metrics.users.total) *
+                          100
+                        ).toFixed(1)}
+                        %
+                      </span>
                     </div>
-                    <Progress value={(metrics.users.clients / metrics.users.total) * 100} />
+                    <Progress
+                      value={
+                        (metrics.users.clients / metrics.users.total) * 100
+                      }
+                    />
                   </div>
                   <div>
                     <div className="flex justify-between mb-1">
                       <span className="text-sm">{t("users.providers")}</span>
-                      <span className="text-sm">{((metrics.users.providers / metrics.users.total) * 100).toFixed(1)}%</span>
+                      <span className="text-sm">
+                        {(
+                          (metrics.users.providers / metrics.users.total) *
+                          100
+                        ).toFixed(1)}
+                        %
+                      </span>
                     </div>
-                    <Progress value={(metrics.users.providers / metrics.users.total) * 100} />
+                    <Progress
+                      value={
+                        (metrics.users.providers / metrics.users.total) * 100
+                      }
+                    />
                   </div>
                   <div>
                     <div className="flex justify-between mb-1">
                       <span className="text-sm">{t("users.deliverers")}</span>
-                      <span className="text-sm">{((metrics.users.deliverers / metrics.users.total) * 100).toFixed(1)}%</span>
+                      <span className="text-sm">
+                        {(
+                          (metrics.users.deliverers / metrics.users.total) *
+                          100
+                        ).toFixed(1)}
+                        %
+                      </span>
                     </div>
-                    <Progress value={(metrics.users.deliverers / metrics.users.total) * 100} />
+                    <Progress
+                      value={
+                        (metrics.users.deliverers / metrics.users.total) * 100
+                      }
+                    />
                   </div>
                 </div>
               </CardContent>
@@ -485,55 +626,79 @@ export default function AdminComprehensiveDashboard({ adminId }: AdminComprehens
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <Card>
               <CardHeader>
-                <CardTitle className="text-sm">{t("business.total_revenue")}</CardTitle>
+                <CardTitle className="text-sm">
+                  {t("business.total_revenue")}
+                </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">€{metrics.business.totalRevenue.toLocaleString()}</div>
+                <div className="text-2xl font-bold">
+                  €{metrics.business.totalRevenue.toLocaleString()}
+                </div>
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader>
-                <CardTitle className="text-sm">{t("business.commissions")}</CardTitle>
+                <CardTitle className="text-sm">
+                  {t("business.commissions")}
+                </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">€{metrics.business.commissionsEarned.toLocaleString()}</div>
+                <div className="text-2xl font-bold">
+                  €{metrics.business.commissionsEarned.toLocaleString()}
+                </div>
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader>
-                <CardTitle className="text-sm">{t("business.active_contracts")}</CardTitle>
+                <CardTitle className="text-sm">
+                  {t("business.active_contracts")}
+                </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{metrics.business.activeContracts}</div>
+                <div className="text-2xl font-bold">
+                  {metrics.business.activeContracts}
+                </div>
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader>
-                <CardTitle className="text-sm">{t("business.completed_deliveries")}</CardTitle>
+                <CardTitle className="text-sm">
+                  {t("business.completed_deliveries")}
+                </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{metrics.business.completedDeliveries.toLocaleString()}</div>
+                <div className="text-2xl font-bold">
+                  {metrics.business.completedDeliveries.toLocaleString()}
+                </div>
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader>
-                <CardTitle className="text-sm">{t("business.avg_order_value")}</CardTitle>
+                <CardTitle className="text-sm">
+                  {t("business.avg_order_value")}
+                </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">€{metrics.business.avgOrderValue.toFixed(2)}</div>
+                <div className="text-2xl font-bold">
+                  €{metrics.business.avgOrderValue.toFixed(2)}
+                </div>
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader>
-                <CardTitle className="text-sm">{t("business.profit_margin")}</CardTitle>
+                <CardTitle className="text-sm">
+                  {t("business.profit_margin")}
+                </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{metrics.business.profitMargin}%</div>
+                <div className="text-2xl font-bold">
+                  {metrics.business.profitMargin}%
+                </div>
               </CardContent>
             </Card>
           </div>
@@ -544,10 +709,14 @@ export default function AdminComprehensiveDashboard({ adminId }: AdminComprehens
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <Card>
               <CardHeader>
-                <CardTitle className="text-sm">{t("operations.pending_validations")}</CardTitle>
+                <CardTitle className="text-sm">
+                  {t("operations.pending_validations")}
+                </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{metrics.operations.pendingValidations}</div>
+                <div className="text-2xl font-bold">
+                  {metrics.operations.pendingValidations}
+                </div>
                 {metrics.operations.pendingValidations > 0 && (
                   <Badge variant="destructive" className="mt-2">
                     {t("requires_attention")}
@@ -558,38 +727,57 @@ export default function AdminComprehensiveDashboard({ adminId }: AdminComprehens
 
             <Card>
               <CardHeader>
-                <CardTitle className="text-sm">{t("operations.available_providers")}</CardTitle>
+                <CardTitle className="text-sm">
+                  {t("operations.available_providers")}
+                </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{metrics.operations.availableProviders}</div>
+                <div className="text-2xl font-bold">
+                  {metrics.operations.availableProviders}
+                </div>
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader>
-                <CardTitle className="text-sm">{t("operations.system_uptime")}</CardTitle>
+                <CardTitle className="text-sm">
+                  {t("operations.system_uptime")}
+                </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{metrics.operations.systemUptime}%</div>
-                <Progress value={metrics.operations.systemUptime} className="mt-2" />
+                <div className="text-2xl font-bold">
+                  {metrics.operations.systemUptime}%
+                </div>
+                <Progress
+                  value={metrics.operations.systemUptime}
+                  className="mt-2"
+                />
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader>
-                <CardTitle className="text-sm">{t("operations.avg_response_time")}</CardTitle>
+                <CardTitle className="text-sm">
+                  {t("operations.avg_response_time")}
+                </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{metrics.operations.avgResponseTime}ms</div>
+                <div className="text-2xl font-bold">
+                  {metrics.operations.avgResponseTime}ms
+                </div>
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader>
-                <CardTitle className="text-sm">{t("operations.error_rate")}</CardTitle>
+                <CardTitle className="text-sm">
+                  {t("operations.error_rate")}
+                </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{metrics.operations.errorRate}%</div>
+                <div className="text-2xl font-bold">
+                  {metrics.operations.errorRate}%
+                </div>
                 {metrics.operations.errorRate > 1 && (
                   <Badge variant="destructive" className="mt-2">
                     {t("high")}
@@ -600,10 +788,14 @@ export default function AdminComprehensiveDashboard({ adminId }: AdminComprehens
 
             <Card>
               <CardHeader>
-                <CardTitle className="text-sm">{t("operations.support_tickets")}</CardTitle>
+                <CardTitle className="text-sm">
+                  {t("operations.support_tickets")}
+                </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{metrics.operations.supportTickets}</div>
+                <div className="text-2xl font-bold">
+                  {metrics.operations.supportTickets}
+                </div>
               </CardContent>
             </Card>
           </div>
@@ -614,55 +806,79 @@ export default function AdminComprehensiveDashboard({ adminId }: AdminComprehens
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <Card>
               <CardHeader>
-                <CardTitle className="text-sm">{t("financial.total_payments")}</CardTitle>
+                <CardTitle className="text-sm">
+                  {t("financial.total_payments")}
+                </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">€{metrics.financial.totalPayments.toLocaleString()}</div>
+                <div className="text-2xl font-bold">
+                  €{metrics.financial.totalPayments.toLocaleString()}
+                </div>
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader>
-                <CardTitle className="text-sm">{t("financial.pending_payments")}</CardTitle>
+                <CardTitle className="text-sm">
+                  {t("financial.pending_payments")}
+                </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">€{metrics.financial.pendingPayments.toLocaleString()}</div>
+                <div className="text-2xl font-bold">
+                  €{metrics.financial.pendingPayments.toLocaleString()}
+                </div>
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader>
-                <CardTitle className="text-sm">{t("financial.refunds_issued")}</CardTitle>
+                <CardTitle className="text-sm">
+                  {t("financial.refunds_issued")}
+                </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">€{metrics.financial.refundsIssued.toLocaleString()}</div>
+                <div className="text-2xl font-bold">
+                  €{metrics.financial.refundsIssued.toLocaleString()}
+                </div>
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader>
-                <CardTitle className="text-sm">{t("financial.chargeback_rate")}</CardTitle>
+                <CardTitle className="text-sm">
+                  {t("financial.chargeback_rate")}
+                </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{metrics.financial.chargebackRate}%</div>
+                <div className="text-2xl font-bold">
+                  {metrics.financial.chargebackRate}%
+                </div>
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader>
-                <CardTitle className="text-sm">{t("financial.processing_fees")}</CardTitle>
+                <CardTitle className="text-sm">
+                  {t("financial.processing_fees")}
+                </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">€{metrics.financial.processingFees.toLocaleString()}</div>
+                <div className="text-2xl font-bold">
+                  €{metrics.financial.processingFees.toLocaleString()}
+                </div>
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader>
-                <CardTitle className="text-sm">{t("financial.net_profit")}</CardTitle>
+                <CardTitle className="text-sm">
+                  {t("financial.net_profit")}
+                </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-green-600">€{metrics.financial.netProfit.toLocaleString()}</div>
+                <div className="text-2xl font-bold text-green-600">
+                  €{metrics.financial.netProfit.toLocaleString()}
+                </div>
               </CardContent>
             </Card>
           </div>
@@ -688,11 +904,15 @@ export default function AdminComprehensiveDashboard({ adminId }: AdminComprehens
                   </div>
                   <div className="flex justify-between items-center">
                     <span>{t("response_time")}:</span>
-                    <span className="font-medium">{metrics.operations.avgResponseTime}ms</span>
+                    <span className="font-medium">
+                      {metrics.operations.avgResponseTime}ms
+                    </span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span>{t("error_rate")}:</span>
-                    <span className="font-medium">{metrics.operations.errorRate}%</span>
+                    <span className="font-medium">
+                      {metrics.operations.errorRate}%
+                    </span>
                   </div>
                 </div>
               </CardContent>

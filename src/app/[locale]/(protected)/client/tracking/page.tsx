@@ -1,78 +1,92 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { useTranslations } from "next-intl"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { useClientDeliveries } from "@/features/deliveries/hooks/useClientDeliveries"
-import Link from "next/link"
+import { useState, useEffect } from "react";
+import { useTranslations } from "next-intl";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { useClientDeliveries } from "@/features/deliveries/hooks/useClientDeliveries";
+import Link from "next/link";
 
 export default function ClientTrackingPage() {
-  const { deliveries, isLoading, error } = useClientDeliveries()
-  const [realTimeUpdates, setRealTimeUpdates] = useState<{[key: string]: any}>({})
-  const t = useTranslations()
+  const { deliveries, isLoading, error } = useClientDeliveries();
+  const [realTimeUpdates, setRealTimeUpdates] = useState<{
+    [key: string]: any;
+  }>({});
+  const t = useTranslations();
 
   // Simuler les mises à jour temps réel (à remplacer par WebSocket)
   useEffect(() => {
     const interval = setInterval(() => {
-      const activeDeliveries = deliveries.filter(d => 
-        ['ACCEPTED', 'IN_PROGRESS'].includes(d.status)
-      )
-      
-      activeDeliveries.forEach(delivery => {
+      const activeDeliveries = deliveries.filter((d) =>
+        ["ACCEPTED", "IN_PROGRESS"].includes(d.status),
+      );
+
+      activeDeliveries.forEach((delivery) => {
         // Simuler une position GPS (à remplacer par vraies données)
         const mockPosition = {
           lat: 48.8566 + (Math.random() - 0.5) * 0.01,
           lng: 2.3522 + (Math.random() - 0.5) * 0.01,
-          timestamp: new Date().toISOString()
-        }
-        
-        setRealTimeUpdates(prev => ({
-          ...prev,
-          [delivery.id]: mockPosition
-        }))
-      })
-    }, 5000) // Mise à jour toutes les 5 secondes
+          timestamp: new Date().toISOString(),
+        };
 
-    return () => clearInterval(interval)
-  }, [deliveries])
+        setRealTimeUpdates((prev) => ({
+          ...prev,
+          [delivery.id]: mockPosition,
+        }));
+      });
+    }, 5000); // Mise à jour toutes les 5 secondes
+
+    return () => clearInterval(interval);
+  }, [deliveries]);
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('fr-FR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    })
-  }
+    return new Date(dateString).toLocaleDateString("fr-FR", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'PENDING': return 'bg-yellow-100 text-yellow-800'
-      case 'ACCEPTED': return 'bg-blue-100 text-blue-800'
-      case 'IN_PROGRESS': return 'bg-purple-100 text-purple-800'
-      case 'DELIVERED': return 'bg-green-100 text-green-800'
-      case 'CANCELLED': return 'bg-red-100 text-red-800'
-      default: return 'bg-gray-100 text-gray-800'
+      case "PENDING":
+        return "bg-yellow-100 text-yellow-800";
+      case "ACCEPTED":
+        return "bg-blue-100 text-blue-800";
+      case "IN_PROGRESS":
+        return "bg-purple-100 text-purple-800";
+      case "DELIVERED":
+        return "bg-green-100 text-green-800";
+      case "CANCELLED":
+        return "bg-red-100 text-red-800";
+      default:
+        return "bg-gray-100 text-gray-800";
     }
-  }
+  };
 
   const getStatusLabel = (status: string) => {
     switch (status) {
-      case 'PENDING': return 'En attente'
-      case 'ACCEPTED': return 'Acceptée'
-      case 'IN_PROGRESS': return 'En cours'
-      case 'DELIVERED': return 'Livrée'
-      case 'CANCELLED': return 'Annulée'
-      default: return status
+      case "PENDING":
+        return "En attente";
+      case "ACCEPTED":
+        return "Acceptée";
+      case "IN_PROGRESS":
+        return "En cours";
+      case "DELIVERED":
+        return "Livrée";
+      case "CANCELLED":
+        return "Annulée";
+      default:
+        return status;
     }
-  }
+  };
 
-  const activeDeliveries = deliveries.filter(d => 
-    ['PENDING', 'ACCEPTED', 'IN_PROGRESS'].includes(d.status)
-  )
+  const activeDeliveries = deliveries.filter((d) =>
+    ["PENDING", "ACCEPTED", "IN_PROGRESS"].includes(d.status),
+  );
 
   if (isLoading) {
     return (
@@ -84,7 +98,7 @@ export default function ClientTrackingPage() {
           </div>
         </div>
       </div>
-    )
+    );
   }
 
   if (error) {
@@ -99,7 +113,7 @@ export default function ClientTrackingPage() {
           </Card>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -142,7 +156,9 @@ export default function ClientTrackingPage() {
                   <div className="text-center text-gray-500">
                     <div className="text-4xl mb-4">🗺️</div>
                     <p>Carte GPS interactive</p>
-                    <p className="text-sm mt-2">Intégration Google Maps/OpenStreetMap en cours</p>
+                    <p className="text-sm mt-2">
+                      Intégration Google Maps/OpenStreetMap en cours
+                    </p>
                   </div>
                 </div>
               </CardContent>
@@ -151,10 +167,13 @@ export default function ClientTrackingPage() {
             {/* Liste des livraisons actives */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {activeDeliveries.map((delivery) => {
-                const position = realTimeUpdates[delivery.id]
-                
+                const position = realTimeUpdates[delivery.id];
+
                 return (
-                  <Card key={delivery.id} className="border-l-4 border-l-blue-500">
+                  <Card
+                    key={delivery.id}
+                    className="border-l-4 border-l-blue-500"
+                  >
                     <CardHeader className="pb-4">
                       <div className="flex items-start justify-between">
                         <div>
@@ -165,7 +184,9 @@ export default function ClientTrackingPage() {
                             </Badge>
                           </CardTitle>
                           <p className="text-sm text-gray-600 mt-1">
-                            👤 {delivery.delivererName || 'En attente d\'assignation'}
+                            👤{" "}
+                            {delivery.delivererName ||
+                              "En attente d'assignation"}
                           </p>
                         </div>
                         <div className="text-right">
@@ -179,7 +200,9 @@ export default function ClientTrackingPage() {
                     <CardContent className="space-y-4">
                       {/* Adresses */}
                       <div>
-                        <h5 className="font-medium text-gray-900 mb-2">📍 Trajet</h5>
+                        <h5 className="font-medium text-gray-900 mb-2">
+                          📍 Trajet
+                        </h5>
                         <div className="space-y-2 text-sm">
                           <div className="flex items-center gap-2">
                             <span className="w-3 h-3 bg-blue-500 rounded-full"></span>
@@ -197,7 +220,9 @@ export default function ClientTrackingPage() {
                       {/* Position temps réel */}
                       {position && (
                         <div>
-                          <h5 className="font-medium text-gray-900 mb-2">📡 Position actuelle</h5>
+                          <h5 className="font-medium text-gray-900 mb-2">
+                            📡 Position actuelle
+                          </h5>
                           <div className="bg-blue-50 p-3 rounded-lg">
                             <div className="text-sm space-y-1">
                               <p>🧭 Lat: {position.lat.toFixed(6)}</p>
@@ -210,31 +235,42 @@ export default function ClientTrackingPage() {
 
                       {/* Horaires */}
                       <div>
-                        <h5 className="font-medium text-gray-900 mb-2">⏰ Horaires</h5>
+                        <h5 className="font-medium text-gray-900 mb-2">
+                          ⏰ Horaires
+                        </h5>
                         <div className="text-sm text-gray-600 space-y-1">
                           {delivery.scheduledDate && (
-                            <p>📅 Programmée: {formatDate(delivery.scheduledDate)}</p>
+                            <p>
+                              📅 Programmée:{" "}
+                              {formatDate(delivery.scheduledDate)}
+                            </p>
                           )}
                           {delivery.estimatedDelivery && (
-                            <p>🎯 Estimation: {formatDate(delivery.estimatedDelivery)}</p>
+                            <p>
+                              🎯 Estimation:{" "}
+                              {formatDate(delivery.estimatedDelivery)}
+                            </p>
                           )}
                         </div>
                       </div>
 
                       {/* Code de validation */}
-                      {delivery.validationCode && delivery.status === 'IN_TRANSIT' && (
-                        <div>
-                          <h5 className="font-medium text-gray-900 mb-2">🔑 Code de validation</h5>
-                          <div className="p-3 bg-green-50 rounded-lg text-center">
-                            <div className="font-mono text-2xl font-bold text-green-800">
-                              {delivery.validationCode}
+                      {delivery.validationCode &&
+                        delivery.status === "IN_TRANSIT" && (
+                          <div>
+                            <h5 className="font-medium text-gray-900 mb-2">
+                              🔑 Code de validation
+                            </h5>
+                            <div className="p-3 bg-green-50 rounded-lg text-center">
+                              <div className="font-mono text-2xl font-bold text-green-800">
+                                {delivery.validationCode}
+                              </div>
+                              <p className="text-xs text-green-600 mt-1">
+                                Communiquez ce code au livreur
+                              </p>
                             </div>
-                            <p className="text-xs text-green-600 mt-1">
-                              Communiquez ce code au livreur
-                            </p>
                           </div>
-                        </div>
-                      )}
+                        )}
 
                       {/* Actions */}
                       <div className="flex items-center gap-2 pt-4 border-t">
@@ -243,7 +279,7 @@ export default function ClientTrackingPage() {
                             👁️ Détails
                           </Button>
                         </Link>
-                        
+
                         {delivery.delivererPhone && (
                           <a href={`tel:${delivery.delivererPhone}`}>
                             <Button variant="outline" size="sm">
@@ -251,14 +287,14 @@ export default function ClientTrackingPage() {
                             </Button>
                           </a>
                         )}
-                        
+
                         <Button variant="outline" size="sm">
                           💬 Chat
                         </Button>
                       </div>
                     </CardContent>
                   </Card>
-                )
+                );
               })}
             </div>
 
@@ -276,19 +312,23 @@ export default function ClientTrackingPage() {
                       <p className="text-xs text-gray-600">Il y a 2 minutes</p>
                     </div>
                   </div>
-                  
+
                   <div className="flex items-center gap-3 p-3 bg-green-50 rounded-lg">
                     <span>📍</span>
                     <div>
-                      <p className="text-sm font-medium">Position mise à jour</p>
+                      <p className="text-sm font-medium">
+                        Position mise à jour
+                      </p>
                       <p className="text-xs text-gray-600">Il y a 5 minutes</p>
                     </div>
                   </div>
-                  
+
                   <div className="flex items-center gap-3 p-3 bg-yellow-50 rounded-lg">
                     <span>⏱️</span>
                     <div>
-                      <p className="text-sm font-medium">Retard estimé: +10 min</p>
+                      <p className="text-sm font-medium">
+                        Retard estimé: +10 min
+                      </p>
                       <p className="text-xs text-gray-600">Il y a 8 minutes</p>
                     </div>
                   </div>
@@ -299,5 +339,5 @@ export default function ClientTrackingPage() {
         )}
       </div>
     </div>
-  )
+  );
 }

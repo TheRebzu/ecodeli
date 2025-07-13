@@ -1,37 +1,40 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getUserFromSession } from '@/lib/auth/utils'
-import { db } from '@/lib/db'
+import { NextRequest, NextResponse } from "next/server";
+import { getUserFromSession } from "@/lib/auth/utils";
+import { db } from "@/lib/db";
 
 export async function GET(request: NextRequest) {
   try {
-    const user = await getUserFromSession(request)
-    if (!user || user.role !== 'MERCHANT') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    const user = await getUserFromSession(request);
+    if (!user || user.role !== "MERCHANT") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     // Récupérer le merchant et son contrat
     const merchant = await db.merchant.findUnique({
       where: { userId: user.id },
       include: {
-        contract: true
-      }
-    })
+        contract: true,
+      },
+    });
 
     if (!merchant) {
-      return NextResponse.json({ error: 'Profil merchant non trouvé' }, { status: 404 })
+      return NextResponse.json(
+        { error: "Profil merchant non trouvé" },
+        { status: 404 },
+      );
     }
 
     // Si pas de contrat, créer un contrat par défaut
-    let contract = merchant.contract
+    let contract = merchant.contract;
     if (!contract) {
       contract = await db.contract.create({
         data: {
           merchantId: merchant.id,
-          type: 'STANDARD',
-          status: 'DRAFT',
+          type: "STANDARD",
+          status: "DRAFT",
           title: `Contrat EcoDeli - ${merchant.companyName}`,
-          description: 'Contrat standard de partenariat commercial EcoDeli',
-          version: '1.0',
+          description: "Contrat standard de partenariat commercial EcoDeli",
+          version: "1.0",
           commissionRate: 15.0,
           setupFee: 0,
           monthlyFee: 0,
@@ -40,20 +43,24 @@ export async function GET(request: NextRequest) {
           autoRenewal: true,
           renewalPeriod: 12,
           maxOrdersPerMonth: 100,
-          allowedServices: ['CART_DROP', 'PACKAGE_DELIVERY']
-        }
-      })
+          allowedServices: ["CART_DROP", "PACKAGE_DELIVERY"],
+        },
+      });
     }
 
     // Calculer si le contrat est complètement signé
-    const isFullySigned = !!(contract.merchantSignedAt && contract.adminSignedAt)
-    
+    const isFullySigned = !!(
+      contract.merchantSignedAt && contract.adminSignedAt
+    );
+
     // Calculer les jours jusqu'à expiration
-    let daysUntilExpiry
+    let daysUntilExpiry;
     if (contract.validUntil) {
-      const today = new Date()
-      const expiry = new Date(contract.validUntil)
-      daysUntilExpiry = Math.ceil((expiry.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
+      const today = new Date();
+      const expiry = new Date(contract.validUntil);
+      daysUntilExpiry = Math.ceil(
+        (expiry.getTime() - today.getTime()) / (1000 * 60 * 60 * 24),
+      );
     }
 
     return NextResponse.json({
@@ -78,13 +85,16 @@ export async function GET(request: NextRequest) {
         merchantSignedAt: contract.merchantSignedAt,
         adminSignedAt: contract.adminSignedAt,
         isFullySigned,
-        daysUntilExpiry: daysUntilExpiry && daysUntilExpiry > 0 ? daysUntilExpiry : undefined,
-        createdAt: contract.createdAt
-      }
-    })
-
+        daysUntilExpiry:
+          daysUntilExpiry && daysUntilExpiry > 0 ? daysUntilExpiry : undefined,
+        createdAt: contract.createdAt,
+      },
+    });
   } catch (error) {
-    console.error('❌ Erreur récupération contrat merchant:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    console.error("❌ Erreur récupération contrat merchant:", error);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 },
+    );
   }
-} 
+}

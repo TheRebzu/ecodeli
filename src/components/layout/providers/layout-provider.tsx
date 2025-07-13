@@ -1,303 +1,323 @@
-'use client'
+"use client";
 
-import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
-import { usePathname } from 'next/navigation'
-import { useIsMobile } from '@/hooks/use-mobile'
-import { 
-  type LayoutContextType, 
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  type ReactNode,
+} from "react";
+import { usePathname } from "next/navigation";
+import { useIsMobile } from "@/hooks/use-mobile";
+import {
+  type LayoutContextType,
   type LayoutProviderProps,
   type ThemeMode,
   type Notification,
-  type BreadcrumbItem
-} from '../types/layout.types'
+  type BreadcrumbItem,
+} from "../types/layout.types";
 
-const LayoutContext = createContext<LayoutContextType | undefined>(undefined)
+const LayoutContext = createContext<LayoutContextType | undefined>(undefined);
 
-export function LayoutProvider({ 
-  children, 
-  initialTheme = 'system',
-  initialLocale = 'fr',
-  initialNotifications = []
+export function LayoutProvider({
+  children,
+  initialTheme = "system",
+  initialLocale = "fr",
+  initialNotifications = [],
 }: LayoutProviderProps) {
   // État du thème
-  const [theme, setThemeState] = useState<ThemeMode>(initialTheme)
-  
+  const [theme, setThemeState] = useState<ThemeMode>(initialTheme);
+
   // État de la langue
-  const [locale, setLocale] = useState(initialLocale)
-  
+  const [locale, setLocale] = useState(initialLocale);
+
   // État de la sidebar
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
-  
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+
   // État des notifications
-  const [notifications, setNotifications] = useState<Notification[]>(initialNotifications)
-  
+  const [notifications, setNotifications] =
+    useState<Notification[]>(initialNotifications);
+
   // État des breadcrumbs
-  const [breadcrumbs, setBreadcrumbs] = useState<BreadcrumbItem[]>([])
-  
+  const [breadcrumbs, setBreadcrumbs] = useState<BreadcrumbItem[]>([]);
+
   // État mobile
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const isMobile = useIsMobile()
-  
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const isMobile = useIsMobile();
+
   // Hooks Next.js
-  const pathname = usePathname()
+  const pathname = usePathname();
 
   // Gestion du thème
   const setTheme = (newTheme: ThemeMode) => {
-    setThemeState(newTheme)
-    
+    setThemeState(newTheme);
+
     // Sauvegarder dans localStorage
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('ecodeli-theme', newTheme)
+    if (typeof window !== "undefined") {
+      localStorage.setItem("ecodeli-theme", newTheme);
     }
-    
+
     // Appliquer le thème
-    applyTheme(newTheme)
-  }
+    applyTheme(newTheme);
+  };
 
   const applyTheme = (themeMode: ThemeMode) => {
-    if (typeof window === 'undefined') return
+    if (typeof window === "undefined") return;
 
-    const root = window.document.documentElement
-    
-    if (themeMode === 'system') {
-      const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
-      root.classList.toggle('dark', systemTheme === 'dark')
+    const root = window.document.documentElement;
+
+    if (themeMode === "system") {
+      const systemTheme = window.matchMedia("(prefers-color-scheme: dark)")
+        .matches
+        ? "dark"
+        : "light";
+      root.classList.toggle("dark", systemTheme === "dark");
     } else {
-      root.classList.toggle('dark', themeMode === 'dark')
+      root.classList.toggle("dark", themeMode === "dark");
     }
-  }
+  };
 
   // Initialisation du thème
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const savedTheme = localStorage.getItem('ecodeli-theme') as ThemeMode
+    if (typeof window !== "undefined") {
+      const savedTheme = localStorage.getItem("ecodeli-theme") as ThemeMode;
       if (savedTheme) {
-        setThemeState(savedTheme)
-        applyTheme(savedTheme)
+        setThemeState(savedTheme);
+        applyTheme(savedTheme);
       } else {
-        applyTheme(theme)
+        applyTheme(theme);
       }
     }
-  }, [])
+  }, []);
 
   // Gestion des changements de thème système
   useEffect(() => {
-    if (theme === 'system' && typeof window !== 'undefined') {
-      const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
-      const handleChange = () => applyTheme('system')
-      
-      mediaQuery.addEventListener('change', handleChange)
-      return () => mediaQuery.removeEventListener('change', handleChange)
+    if (theme === "system" && typeof window !== "undefined") {
+      const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+      const handleChange = () => applyTheme("system");
+
+      mediaQuery.addEventListener("change", handleChange);
+      return () => mediaQuery.removeEventListener("change", handleChange);
     }
-  }, [theme])
+  }, [theme]);
 
   // Auto-collapse sidebar sur mobile
   useEffect(() => {
     if (isMobile) {
-      setSidebarCollapsed(true)
-      setMobileMenuOpen(false)
+      setSidebarCollapsed(true);
+      setMobileMenuOpen(false);
     }
-  }, [isMobile])
+  }, [isMobile]);
 
   // Fermer le menu mobile lors du changement de route
   useEffect(() => {
-    setMobileMenuOpen(false)
-  }, [pathname])
+    setMobileMenuOpen(false);
+  }, [pathname]);
 
   // Gestion de la sidebar
   const toggleSidebar = () => {
-    setSidebarCollapsed(prev => {
-      const newState = !prev
-      
+    setSidebarCollapsed((prev) => {
+      const newState = !prev;
+
       // Sauvegarder l'état sur desktop
-      if (!isMobile && typeof window !== 'undefined') {
-        localStorage.setItem('ecodeli-sidebar-collapsed', newState.toString())
+      if (!isMobile && typeof window !== "undefined") {
+        localStorage.setItem("ecodeli-sidebar-collapsed", newState.toString());
       }
-      
-      return newState
-    })
-  }
+
+      return newState;
+    });
+  };
 
   // Restaurer l'état de la sidebar sur desktop
   useEffect(() => {
-    if (!isMobile && typeof window !== 'undefined') {
-      const savedState = localStorage.getItem('ecodeli-sidebar-collapsed')
+    if (!isMobile && typeof window !== "undefined") {
+      const savedState = localStorage.getItem("ecodeli-sidebar-collapsed");
       if (savedState !== null) {
-        setSidebarCollapsed(savedState === 'true')
+        setSidebarCollapsed(savedState === "true");
       }
     }
-  }, [isMobile])
+  }, [isMobile]);
 
   // Gestion des notifications
-  const unreadCount = notifications.filter(n => !n.read).length
+  const unreadCount = notifications.filter((n) => !n.read).length;
 
   const markAsRead = (notificationId: string) => {
-    setNotifications(prev => 
-      prev.map(notification => 
-        notification.id === notificationId 
+    setNotifications((prev) =>
+      prev.map((notification) =>
+        notification.id === notificationId
           ? { ...notification, read: true }
-          : notification
-      )
-    )
-  }
+          : notification,
+      ),
+    );
+  };
 
   const markAllAsRead = () => {
-    setNotifications(prev => 
-      prev.map(notification => ({ ...notification, read: true }))
-    )
-  }
+    setNotifications((prev) =>
+      prev.map((notification) => ({ ...notification, read: true })),
+    );
+  };
 
   // Mise à jour automatique des breadcrumbs basée sur la route
   useEffect(() => {
     const generateBreadcrumbs = (pathname: string): BreadcrumbItem[] => {
-      const segments = pathname.split('/').filter(Boolean)
-      const breadcrumbItems: BreadcrumbItem[] = []
-      
+      const segments = pathname.split("/").filter(Boolean);
+      const breadcrumbItems: BreadcrumbItem[] = [];
+
       // Ignorer la locale dans l'URL
-      const pathSegments = segments[0]?.match(/^(fr|en)$/) ? segments.slice(1) : segments
-      
+      const pathSegments = segments[0]?.match(/^(fr|en)$/)
+        ? segments.slice(1)
+        : segments;
+
       // Ajouter l'accueil
       breadcrumbItems.push({
-        label: 'Accueil',
-        href: '/',
-        isActive: pathSegments.length === 0
-      })
-      
+        label: "Accueil",
+        href: "/",
+        isActive: pathSegments.length === 0,
+      });
+
       // Générer les breadcrumbs pour chaque segment
-      let currentPath = ''
+      let currentPath = "";
       pathSegments.forEach((segment, index) => {
-        currentPath += `/${segment}`
-        const isLast = index === pathSegments.length - 1
-        
+        currentPath += `/${segment}`;
+        const isLast = index === pathSegments.length - 1;
+
         // Transformer le segment en label lisible
         const label = segment
-          .split('-')
-          .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-          .join(' ')
-        
+          .split("-")
+          .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+          .join(" ");
+
         breadcrumbItems.push({
           label,
           href: isLast ? undefined : currentPath,
-          isActive: isLast
-        })
-      })
-      
-      return breadcrumbItems
-    }
-    
-    setBreadcrumbs(generateBreadcrumbs(pathname))
-  }, [pathname])
+          isActive: isLast,
+        });
+      });
+
+      return breadcrumbItems;
+    };
+
+    setBreadcrumbs(generateBreadcrumbs(pathname));
+  }, [pathname]);
 
   const contextValue: LayoutContextType = {
     // Thème
     theme,
     setTheme,
-    
+
     // Langue
     locale,
     setLocale,
-    
+
     // Sidebar
     sidebarCollapsed,
     toggleSidebar,
-    
+
     // Notifications
     notifications,
     unreadCount,
     markAsRead,
     markAllAsRead,
-    
+
     // Breadcrumbs
     breadcrumbs,
     setBreadcrumbs,
-    
+
     // Mobile
     isMobile,
     mobileMenuOpen,
-    setMobileMenuOpen
-  }
+    setMobileMenuOpen,
+  };
 
   return (
     <LayoutContext.Provider value={contextValue}>
       {children}
     </LayoutContext.Provider>
-  )
+  );
 }
 
 // Hook pour utiliser le contexte
 export function useLayout(): LayoutContextType {
-  const context = useContext(LayoutContext)
+  const context = useContext(LayoutContext);
   if (context === undefined) {
-    throw new Error('useLayout must be used within a LayoutProvider')
+    throw new Error("useLayout must be used within a LayoutProvider");
   }
-  return context
+  return context;
 }
 
 // Hook pour la sidebar
 export function useSidebar() {
-  const { sidebarCollapsed, toggleSidebar, isMobile } = useLayout()
-  
+  const { sidebarCollapsed, toggleSidebar, isMobile } = useLayout();
+
   return {
     collapsed: sidebarCollapsed,
     toggle: toggleSidebar,
     isMobile,
     // Utilitaires
     isExpanded: !sidebarCollapsed,
-    shouldShowOverlay: isMobile && !sidebarCollapsed
-  }
+    shouldShowOverlay: isMobile && !sidebarCollapsed,
+  };
 }
 
 // Hook pour les breadcrumbs
 export function useBreadcrumbs() {
-  const { breadcrumbs, setBreadcrumbs } = useLayout()
-  
+  const { breadcrumbs, setBreadcrumbs } = useLayout();
+
   const updateBreadcrumbs = (newBreadcrumbs: BreadcrumbItem[]) => {
-    setBreadcrumbs(newBreadcrumbs)
-  }
-  
+    setBreadcrumbs(newBreadcrumbs);
+  };
+
   const addBreadcrumb = (breadcrumb: BreadcrumbItem) => {
-    setBreadcrumbs(prev => [...prev, breadcrumb])
-  }
-  
+    setBreadcrumbs((prev) => [...prev, breadcrumb]);
+  };
+
   return {
     breadcrumbs,
     setBreadcrumbs: updateBreadcrumbs,
-    addBreadcrumb
-  }
+    addBreadcrumb,
+  };
 }
 
 // Hook pour les notifications
 export function useNotifications() {
-  const { notifications, unreadCount, markAsRead, markAllAsRead } = useLayout()
-  
+  const { notifications, unreadCount, markAsRead, markAllAsRead } = useLayout();
+
   return {
     notifications,
     unreadCount,
     markAsRead,
     markAllAsRead,
-    hasUnread: unreadCount > 0
-  }
+    hasUnread: unreadCount > 0,
+  };
 }
 
 // Hook pour le thème
 export function useTheme() {
-  const { theme, setTheme } = useLayout()
-  
+  const { theme, setTheme } = useLayout();
+
   const toggleTheme = () => {
-    setTheme(theme === 'light' ? 'dark' : 'light')
-  }
-  
+    setTheme(theme === "light" ? "dark" : "light");
+  };
+
   const setSystemTheme = () => {
-    setTheme('system')
-  }
-  
+    setTheme("system");
+  };
+
   return {
     theme,
     setTheme,
     toggleTheme,
     setSystemTheme,
-    isDark: theme === 'dark' || (theme === 'system' && typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches),
-    isLight: theme === 'light' || (theme === 'system' && typeof window !== 'undefined' && !window.matchMedia('(prefers-color-scheme: dark)').matches),
-    isSystem: theme === 'system'
-  }
+    isDark:
+      theme === "dark" ||
+      (theme === "system" &&
+        typeof window !== "undefined" &&
+        window.matchMedia("(prefers-color-scheme: dark)").matches),
+    isLight:
+      theme === "light" ||
+      (theme === "system" &&
+        typeof window !== "undefined" &&
+        !window.matchMedia("(prefers-color-scheme: dark)").matches),
+    isSystem: theme === "system",
+  };
 }

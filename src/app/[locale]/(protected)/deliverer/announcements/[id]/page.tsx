@@ -1,34 +1,57 @@
 "use client";
 
-import { useState, useEffect } from 'react';
-import { useParams, useRouter } from 'next/navigation';
-import { useAuth } from '@/hooks/use-auth';
-import { useTranslations } from 'next-intl';
-import { PageHeader } from '@/components/layout/page-header';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
-import { useToast } from '@/components/ui/use-toast';
-import { Textarea } from '@/components/ui/textarea';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Package, MapPin, Clock, Euro, AlertCircle, ArrowLeft, Users, CheckCircle, XCircle, Star, Eye, MessageCircle, Phone, Navigation } from 'lucide-react';
-import { Announcement } from '@/features/announcements/types/announcement.types';
-import { format, formatDistanceToNow } from 'date-fns';
-import { fr } from 'date-fns/locale';
-import Link from 'next/link';
+import { useState, useEffect } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { useAuth } from "@/hooks/use-auth";
+import { useTranslations } from "next-intl";
+import { PageHeader } from "@/components/layout/page-header";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import { useToast } from "@/components/ui/use-toast";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  Package,
+  MapPin,
+  Clock,
+  Euro,
+  AlertCircle,
+  ArrowLeft,
+  Users,
+  CheckCircle,
+  XCircle,
+  Star,
+  Eye,
+  MessageCircle,
+  Phone,
+  Navigation,
+} from "lucide-react";
+import { Announcement } from "@/features/announcements/types/announcement.types";
+import { format, formatDistanceToNow } from "date-fns";
+import { fr } from "date-fns/locale";
+import Link from "next/link";
 
 export default function DelivererAnnouncementDetailPage() {
   const { id } = useParams();
   const { user } = useAuth();
   const router = useRouter();
-  const t = useTranslations('deliverer.announcements');
+  const t = useTranslations("deliverer.announcements");
   const { toast } = useToast();
-  
+
   const [announcement, setAnnouncement] = useState<Announcement | null>(null);
   const [loading, setLoading] = useState(true);
   const [showInterestDialog, setShowInterestDialog] = useState(false);
-  const [interestMessage, setInterestMessage] = useState('');
+  const [interestMessage, setInterestMessage] = useState("");
   const [submittingInterest, setSubmittingInterest] = useState(false);
 
   useEffect(() => {
@@ -41,7 +64,7 @@ export default function DelivererAnnouncementDetailPage() {
     try {
       const response = await fetch(`/api/deliverer/announcements/${id}`);
       if (!response.ok) {
-        throw new Error('Annonce non trouvée');
+        throw new Error("Annonce non trouvée");
       }
       const data = await response.json();
       setAnnouncement(data);
@@ -51,7 +74,7 @@ export default function DelivererAnnouncementDetailPage() {
         description: "Impossible de charger l'annonce",
         variant: "destructive",
       });
-      router.push('/deliverer/announcements');
+      router.push("/deliverer/announcements");
     } finally {
       setLoading(false);
     }
@@ -59,21 +82,24 @@ export default function DelivererAnnouncementDetailPage() {
 
   const handleInterest = async () => {
     if (!announcement) return;
-    
+
     setSubmittingInterest(true);
     try {
-      const response = await fetch(`/api/deliverer/announcements/${id}/interest`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
+      const response = await fetch(
+        `/api/deliverer/announcements/${id}/interest`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            message: interestMessage || "Je suis intéressé par cette livraison",
+          }),
         },
-        body: JSON.stringify({
-          message: interestMessage || 'Je suis intéressé par cette livraison'
-        }),
-      });
+      );
 
       if (!response.ok) {
-        throw new Error('Erreur lors de l\'expression d\'intérêt');
+        throw new Error("Erreur lors de l'expression d'intérêt");
       }
 
       toast({
@@ -82,13 +108,16 @@ export default function DelivererAnnouncementDetailPage() {
       });
 
       setShowInterestDialog(false);
-      setInterestMessage('');
+      setInterestMessage("");
       // Rafraîchir les données
       fetchAnnouncement();
     } catch (error) {
       toast({
         title: "❌ Erreur",
-        description: error instanceof Error ? error.message : "Impossible d'exprimer votre intérêt",
+        description:
+          error instanceof Error
+            ? error.message
+            : "Impossible d'exprimer votre intérêt",
         variant: "destructive",
       });
     } finally {
@@ -98,29 +127,29 @@ export default function DelivererAnnouncementDetailPage() {
 
   const getTypeLabel = (type: string) => {
     const typeLabels = {
-      'PACKAGE_DELIVERY': 'Transport de colis',
-      'PERSON_TRANSPORT': 'Transport de personnes',
-      'AIRPORT_TRANSFER': 'Transfert aéroport',
-      'SHOPPING': 'Courses',
-      'INTERNATIONAL_PURCHASE': 'Achats internationaux',
-      'HOME_SERVICE': 'Services à domicile',
-      'PET_SITTING': 'Garde d\'animaux',
-      'CART_DROP': 'Lâcher de chariot'
+      PACKAGE_DELIVERY: "Transport de colis",
+      PERSON_TRANSPORT: "Transport de personnes",
+      AIRPORT_TRANSFER: "Transfert aéroport",
+      SHOPPING: "Courses",
+      INTERNATIONAL_PURCHASE: "Achats internationaux",
+      HOME_SERVICE: "Services à domicile",
+      PET_SITTING: "Garde d'animaux",
+      CART_DROP: "Lâcher de chariot",
     };
     return typeLabels[type as keyof typeof typeLabels] || type;
   };
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'ACTIVE':
+      case "ACTIVE":
         return <CheckCircle className="h-4 w-4" />;
-      case 'IN_PROGRESS':
+      case "IN_PROGRESS":
         return <Clock className="h-4 w-4" />;
-      case 'COMPLETED':
+      case "COMPLETED":
         return <CheckCircle className="h-4 w-4" />;
-      case 'CANCELLED':
+      case "CANCELLED":
         return <XCircle className="h-4 w-4" />;
-      case 'MATCHED':
+      case "MATCHED":
         return <Users className="h-4 w-4" />;
       default:
         return <AlertCircle className="h-4 w-4" />;
@@ -129,18 +158,18 @@ export default function DelivererAnnouncementDetailPage() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'ACTIVE':
-        return 'bg-green-100 text-green-800';
-      case 'IN_PROGRESS':
-        return 'bg-blue-100 text-blue-800';
-      case 'COMPLETED':
-        return 'bg-gray-100 text-gray-800';
-      case 'CANCELLED':
-        return 'bg-red-100 text-red-800';
-      case 'MATCHED':
-        return 'bg-yellow-100 text-yellow-800';
+      case "ACTIVE":
+        return "bg-green-100 text-green-800";
+      case "IN_PROGRESS":
+        return "bg-blue-100 text-blue-800";
+      case "COMPLETED":
+        return "bg-gray-100 text-gray-800";
+      case "CANCELLED":
+        return "bg-red-100 text-red-800";
+      case "MATCHED":
+        return "bg-yellow-100 text-yellow-800";
       default:
-        return 'bg-gray-100 text-gray-800';
+        return "bg-gray-100 text-gray-800";
     }
   };
 
@@ -216,7 +245,9 @@ export default function DelivererAnnouncementDetailPage() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <p className="text-sm text-gray-600">Type de service</p>
-                  <p className="font-medium">{getTypeLabel(announcement.type)}</p>
+                  <p className="font-medium">
+                    {getTypeLabel(announcement.type)}
+                  </p>
                 </div>
                 <div>
                   <p className="text-sm text-gray-600">Statut</p>
@@ -226,7 +257,7 @@ export default function DelivererAnnouncementDetailPage() {
                   </Badge>
                 </div>
               </div>
-              
+
               <div>
                 <p className="text-sm text-gray-600">Description</p>
                 <p className="mt-1">{announcement.description}</p>
@@ -234,9 +265,13 @@ export default function DelivererAnnouncementDetailPage() {
 
               {announcement.specialInstructions && (
                 <div>
-                  <p className="text-sm text-gray-600">Instructions spéciales</p>
+                  <p className="text-sm text-gray-600">
+                    Instructions spéciales
+                  </p>
                   <div className="mt-1 p-3 bg-blue-50 rounded-md">
-                    <p className="text-sm">{announcement.specialInstructions}</p>
+                    <p className="text-sm">
+                      {announcement.specialInstructions}
+                    </p>
                   </div>
                 </div>
               )}
@@ -271,22 +306,28 @@ export default function DelivererAnnouncementDetailPage() {
                   </div>
                   <div className="flex-1">
                     <p className="text-sm text-gray-600">📍 Point de départ</p>
-                    <p className="font-medium">{announcement.startLocation.address}</p>
+                    <p className="font-medium">
+                      {announcement.startLocation.address}
+                    </p>
                     <p className="text-sm text-gray-500">
-                      {announcement.startLocation.city}, {announcement.startLocation.postalCode}
+                      {announcement.startLocation.city},{" "}
+                      {announcement.startLocation.postalCode}
                     </p>
                   </div>
                 </div>
-                
+
                 <div className="flex items-start gap-4">
                   <div className="flex flex-col items-center">
                     <div className="w-3 h-3 bg-red-500 rounded-full"></div>
                   </div>
                   <div className="flex-1">
                     <p className="text-sm text-gray-600">🎯 Destination</p>
-                    <p className="font-medium">{announcement.endLocation.address}</p>
+                    <p className="font-medium">
+                      {announcement.endLocation.address}
+                    </p>
                     <p className="text-sm text-gray-500">
-                      {announcement.endLocation.city}, {announcement.endLocation.postalCode}
+                      {announcement.endLocation.city},{" "}
+                      {announcement.endLocation.postalCode}
                     </p>
                   </div>
                 </div>
@@ -321,19 +362,25 @@ export default function DelivererAnnouncementDetailPage() {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <p className="text-sm text-gray-600">Poids</p>
-                    <p className="font-medium">{announcement.packageDetails.weight} kg</p>
+                    <p className="font-medium">
+                      {announcement.packageDetails.weight} kg
+                    </p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-600">Dimensions</p>
                     <p className="font-medium">
-                      {announcement.packageDetails.length} x {announcement.packageDetails.width} x {announcement.packageDetails.height} cm
+                      {announcement.packageDetails.length} x{" "}
+                      {announcement.packageDetails.width} x{" "}
+                      {announcement.packageDetails.height} cm
                     </p>
                   </div>
                 </div>
-                
+
                 <div>
                   <p className="text-sm text-gray-600">Contenu</p>
-                  <p className="font-medium">{announcement.packageDetails.content}</p>
+                  <p className="font-medium">
+                    {announcement.packageDetails.content}
+                  </p>
                 </div>
 
                 {announcement.packageDetails.fragile && (
@@ -366,14 +413,23 @@ export default function DelivererAnnouncementDetailPage() {
                   </div>
                   <div>
                     <p className="font-medium">
-                      {announcement.client.profile?.firstName || 'Client'} {announcement.client.profile?.lastName || ''}
+                      {announcement.client.profile?.firstName || "Client"}{" "}
+                      {announcement.client.profile?.lastName || ""}
                     </p>
                     <p className="text-sm text-gray-500">
-                      Membre depuis {format(new Date(announcement.client.createdAt || announcement.createdAt), 'MMMM yyyy', { locale: fr })}
+                      Membre depuis{" "}
+                      {format(
+                        new Date(
+                          announcement.client.createdAt ||
+                            announcement.createdAt,
+                        ),
+                        "MMMM yyyy",
+                        { locale: fr },
+                      )}
                     </p>
                   </div>
                 </div>
-                
+
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div>
                     <p className="text-gray-600">Total d'annonces</p>
@@ -407,14 +463,12 @@ export default function DelivererAnnouncementDetailPage() {
                 <div className="text-3xl font-bold text-green-600 mb-1">
                   {matchScore}%
                 </div>
-                <p className="text-sm text-gray-600">
-                  Score de correspondance
-                </p>
+                <p className="text-sm text-gray-600">Score de correspondance</p>
               </div>
-              
+
               <div className="w-full bg-green-200 rounded-full h-3 mb-3">
-                <div 
-                  className="bg-green-600 h-3 rounded-full" 
+                <div
+                  className="bg-green-600 h-3 rounded-full"
                   style={{ width: `${matchScore}%` }}
                 ></div>
               </div>
@@ -487,10 +541,14 @@ export default function DelivererAnnouncementDetailPage() {
               <div>
                 <p className="text-sm text-gray-600">Date souhaitée</p>
                 <p className="font-medium">
-                  {format(new Date(announcement.desiredDate), 'EEEE dd MMMM yyyy', { locale: fr })}
+                  {format(
+                    new Date(announcement.desiredDate),
+                    "EEEE dd MMMM yyyy",
+                    { locale: fr },
+                  )}
                 </p>
                 <p className="text-sm text-gray-500">
-                  {format(new Date(announcement.desiredDate), 'HH:mm')}
+                  {format(new Date(announcement.desiredDate), "HH:mm")}
                 </p>
               </div>
 
@@ -518,7 +576,10 @@ export default function DelivererAnnouncementDetailPage() {
           <Card>
             <CardContent className="pt-6">
               <div className="space-y-3">
-                <Dialog open={showInterestDialog} onOpenChange={setShowInterestDialog}>
+                <Dialog
+                  open={showInterestDialog}
+                  onOpenChange={setShowInterestDialog}
+                >
                   <DialogTrigger asChild>
                     <Button className="w-full" size="lg">
                       <CheckCircle className="h-4 w-4 mr-2" />
@@ -529,10 +590,11 @@ export default function DelivererAnnouncementDetailPage() {
                     <DialogHeader>
                       <DialogTitle>Exprimer votre intérêt</DialogTitle>
                       <DialogDescription>
-                        Envoyez un message au client pour lui faire savoir que vous êtes intéressé par cette livraison.
+                        Envoyez un message au client pour lui faire savoir que
+                        vous êtes intéressé par cette livraison.
                       </DialogDescription>
                     </DialogHeader>
-                    
+
                     <div className="space-y-4">
                       <Textarea
                         placeholder="Bonjour, je suis disponible pour effectuer cette livraison. Je peux m'adapter à vos horaires..."
@@ -553,7 +615,7 @@ export default function DelivererAnnouncementDetailPage() {
                         onClick={handleInterest}
                         disabled={submittingInterest}
                       >
-                        {submittingInterest ? 'Envoi...' : 'Envoyer'}
+                        {submittingInterest ? "Envoi..." : "Envoyer"}
                       </Button>
                     </DialogFooter>
                   </DialogContent>
@@ -594,7 +656,7 @@ export default function DelivererAnnouncementDetailPage() {
               <div className="flex justify-between">
                 <span className="text-sm text-gray-600">Créée</span>
                 <span className="font-medium">
-                  {format(new Date(announcement.createdAt), 'dd/MM/yyyy')}
+                  {format(new Date(announcement.createdAt), "dd/MM/yyyy")}
                 </span>
               </div>
             </CardContent>
@@ -603,4 +665,4 @@ export default function DelivererAnnouncementDetailPage() {
       </div>
     </div>
   );
-} 
+}

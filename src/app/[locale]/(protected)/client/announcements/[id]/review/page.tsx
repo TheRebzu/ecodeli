@@ -1,15 +1,15 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import { useParams, useRouter } from 'next/navigation'
-import Link from 'next/link'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Textarea } from '@/components/ui/textarea'
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Badge } from '@/components/ui/badge'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Separator } from '@/components/ui/separator'
+import { useState, useEffect } from "react";
+import { useParams, useRouter } from "next/navigation";
+import Link from "next/link";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Separator } from "@/components/ui/separator";
 import {
   ArrowLeft,
   Star,
@@ -18,137 +18,144 @@ import {
   Truck,
   Clock,
   MessageCircle,
-  Package
-} from 'lucide-react'
+  Package,
+} from "lucide-react";
 
 interface ReviewData {
   announcement: {
-    id: string
-    title: string
-    status: string
-    createdAt: string
+    id: string;
+    title: string;
+    status: string;
+    createdAt: string;
     delivery: {
-      id: string
+      id: string;
       deliverer: {
-        id: string
-        name: string
-        avatar?: string
-        averageRating: number
-        totalDeliveries: number
-      }
-      acceptedPrice: number
-      completedAt: string
-    }
-  }
+        id: string;
+        name: string;
+        avatar?: string;
+        averageRating: number;
+        totalDeliveries: number;
+      };
+      acceptedPrice: number;
+      completedAt: string;
+    };
+  };
   existingReview?: {
-    id: string
-    rating: number
-    comment: string
-    createdAt: string
-  }
+    id: string;
+    rating: number;
+    comment: string;
+    createdAt: string;
+  };
 }
 
 export default function ReviewPage() {
-  const { id } = useParams()
-  const router = useRouter()
-  const [loading, setLoading] = useState(true)
-  const [submitting, setSubmitting] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [reviewData, setReviewData] = useState<ReviewData | null>(null)
-  
+  const { id } = useParams();
+  const router = useRouter();
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [reviewData, setReviewData] = useState<ReviewData | null>(null);
+
   // Form state
-  const [rating, setRating] = useState(0)
-  const [hoveredRating, setHoveredRating] = useState(0)
-  const [comment, setComment] = useState('')
+  const [rating, setRating] = useState(0);
+  const [hoveredRating, setHoveredRating] = useState(0);
+  const [comment, setComment] = useState("");
 
   useEffect(() => {
     if (id) {
-      fetchReviewData()
+      fetchReviewData();
     }
-  }, [id])
+  }, [id]);
 
   const fetchReviewData = async () => {
     try {
-      setLoading(true)
+      setLoading(true);
       const response = await fetch(`/api/client/announcements/${id}/review`, {
-        credentials: 'include'
-      })
-      
+        credentials: "include",
+      });
+
       if (response.ok) {
-        const data = await response.json()
-        setReviewData(data)
-        
+        const data = await response.json();
+        setReviewData(data);
+
         // Si une évaluation existe déjà, pré-remplir le formulaire
         if (data.existingReview) {
-          setRating(data.existingReview.rating)
-          setComment(data.existingReview.comment)
+          setRating(data.existingReview.rating);
+          setComment(data.existingReview.comment);
         }
       } else {
-        const errorData = await response.json()
-        setError(errorData.error || 'Impossible de charger les données')
+        const errorData = await response.json();
+        setError(errorData.error || "Impossible de charger les données");
       }
     } catch (err) {
-      console.error('❌ Erreur chargement évaluation:', err)
-      setError('Erreur de connexion')
+      console.error("❌ Erreur chargement évaluation:", err);
+      setError("Erreur de connexion");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const handleSubmitReview = async () => {
     if (rating === 0) {
-      alert('Veuillez sélectionner une note')
-      return
+      alert("Veuillez sélectionner une note");
+      return;
     }
 
     try {
-      setSubmitting(true)
+      setSubmitting(true);
       const response = await fetch(`/api/client/announcements/${id}/review`, {
-        method: 'POST',
-        credentials: 'include',
+        method: "POST",
+        credentials: "include",
         headers: {
-          'Content-Type': 'application/json'
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           rating,
-          comment: comment.trim()
-        })
-      })
-      
+          comment: comment.trim(),
+        }),
+      });
+
       if (response.ok) {
-        alert('Évaluation envoyée avec succès !')
-        router.push(`/client/announcements/${id}`)
+        alert("Évaluation envoyée avec succès !");
+        router.push(`/client/announcements/${id}`);
       } else {
-        const errorData = await response.json()
-        alert(`Erreur: ${errorData.error || 'Impossible d\'envoyer l\'évaluation'}`)
+        const errorData = await response.json();
+        alert(
+          `Erreur: ${errorData.error || "Impossible d'envoyer l'évaluation"}`,
+        );
       }
     } catch (err) {
-      console.error('❌ Erreur envoi évaluation:', err)
-      alert('Erreur de connexion')
+      console.error("❌ Erreur envoi évaluation:", err);
+      alert("Erreur de connexion");
     } finally {
-      setSubmitting(false)
+      setSubmitting(false);
     }
-  }
+  };
 
-  const renderStars = (currentRating: number, isInteractive: boolean = false) => {
+  const renderStars = (
+    currentRating: number,
+    isInteractive: boolean = false,
+  ) => {
     return (
       <div className="flex items-center gap-1">
         {[1, 2, 3, 4, 5].map((star) => (
           <Star
             key={star}
             className={`h-6 w-6 transition-colors ${
-              star <= (isInteractive ? (hoveredRating || rating) : currentRating)
-                ? 'fill-yellow-400 text-yellow-400'
-                : 'text-gray-300'
-            } ${isInteractive ? 'cursor-pointer hover:scale-110' : ''}`}
+              star <= (isInteractive ? hoveredRating || rating : currentRating)
+                ? "fill-yellow-400 text-yellow-400"
+                : "text-gray-300"
+            } ${isInteractive ? "cursor-pointer hover:scale-110" : ""}`}
             onClick={isInteractive ? () => setRating(star) : undefined}
-            onMouseEnter={isInteractive ? () => setHoveredRating(star) : undefined}
+            onMouseEnter={
+              isInteractive ? () => setHoveredRating(star) : undefined
+            }
             onMouseLeave={isInteractive ? () => setHoveredRating(0) : undefined}
           />
         ))}
       </div>
-    )
-  }
+    );
+  };
 
   if (loading) {
     return (
@@ -158,7 +165,7 @@ export default function ReviewPage() {
           <p className="text-gray-600">Chargement...</p>
         </div>
       </div>
-    )
+    );
   }
 
   if (error || !reviewData) {
@@ -166,9 +173,7 @@ export default function ReviewPage() {
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
           <AlertTriangle className="h-12 w-12 text-red-500 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">
-            Erreur
-          </h2>
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">Erreur</h2>
           <p className="text-gray-600 mb-4">
             {error || "Impossible de charger les données d'évaluation."}
           </p>
@@ -180,11 +185,11 @@ export default function ReviewPage() {
           </Link>
         </div>
       </div>
-    )
+    );
   }
 
-  const { announcement, existingReview } = reviewData
-  const deliverer = announcement.delivery.deliverer
+  const { announcement, existingReview } = reviewData;
+  const deliverer = announcement.delivery.deliverer;
 
   return (
     <div className="space-y-6">
@@ -192,11 +197,9 @@ export default function ReviewPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">
-            {existingReview ? 'Modifier l\'évaluation' : 'Évaluer le livreur'}
+            {existingReview ? "Modifier l'évaluation" : "Évaluer le livreur"}
           </h1>
-          <p className="text-gray-600">
-            Pour l'annonce: {announcement.title}
-          </p>
+          <p className="text-gray-600">Pour l'annonce: {announcement.title}</p>
         </div>
         <div className="flex gap-2">
           <Link href={`/client/announcements/${id}`}>
@@ -215,7 +218,9 @@ export default function ReviewPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Star className="h-5 w-5" />
-                {existingReview ? 'Modifier votre évaluation' : 'Votre évaluation'}
+                {existingReview
+                  ? "Modifier votre évaluation"
+                  : "Votre évaluation"}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -227,7 +232,7 @@ export default function ReviewPage() {
                 <div className="flex items-center gap-4">
                   {renderStars(rating, true)}
                   <span className="text-sm text-gray-600">
-                    {rating > 0 ? `${rating}/5 étoiles` : 'Cliquez pour noter'}
+                    {rating > 0 ? `${rating}/5 étoiles` : "Cliquez pour noter"}
                   </span>
                 </div>
               </div>
@@ -247,7 +252,8 @@ export default function ReviewPage() {
                   className="resize-none"
                 />
                 <p className="text-sm text-gray-500 mt-2">
-                  Votre commentaire aidera les autres clients et permettra au livreur de s'améliorer.
+                  Votre commentaire aidera les autres clients et permettra au
+                  livreur de s'améliorer.
                 </p>
               </div>
 
@@ -284,19 +290,19 @@ export default function ReviewPage() {
                   {submitting ? (
                     <>
                       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                      {existingReview ? 'Modification...' : 'Envoi...'}
+                      {existingReview ? "Modification..." : "Envoi..."}
                     </>
                   ) : (
                     <>
                       <Star className="h-4 w-4 mr-2" />
-                      {existingReview ? 'Modifier l\'évaluation' : 'Envoyer l\'évaluation'}
+                      {existingReview
+                        ? "Modifier l'évaluation"
+                        : "Envoyer l'évaluation"}
                     </>
                   )}
                 </Button>
                 <Link href={`/client/announcements/${id}`}>
-                  <Button variant="outline">
-                    Annuler
-                  </Button>
+                  <Button variant="outline">Annuler</Button>
                 </Link>
               </div>
             </CardContent>
@@ -318,15 +324,19 @@ export default function ReviewPage() {
                 <Avatar className="h-12 w-12">
                   <AvatarImage src={deliverer.avatar} />
                   <AvatarFallback>
-                    {deliverer.name.split(' ').map(n => n[0]).join('')}
+                    {deliverer.name
+                      .split(" ")
+                      .map((n) => n[0])
+                      .join("")}
                   </AvatarFallback>
                 </Avatar>
-                
+
                 <div>
                   <div className="font-medium">{deliverer.name}</div>
                   <div className="flex items-center gap-2 text-sm text-gray-600">
                     <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                    {deliverer.averageRating}/5 • {deliverer.totalDeliveries} livraisons
+                    {deliverer.averageRating}/5 • {deliverer.totalDeliveries}{" "}
+                    livraisons
                   </div>
                 </div>
               </div>
@@ -336,18 +346,22 @@ export default function ReviewPage() {
               <div className="space-y-3">
                 <div>
                   <p className="text-sm font-medium">Prix de la livraison</p>
-                  <p className="text-sm text-gray-600">{announcement.delivery.acceptedPrice} EUR</p>
+                  <p className="text-sm text-gray-600">
+                    {announcement.delivery.acceptedPrice} EUR
+                  </p>
                 </div>
 
                 <div>
                   <p className="text-sm font-medium">Livraison terminée le</p>
                   <p className="text-sm text-gray-600">
-                    {new Date(announcement.delivery.completedAt).toLocaleDateString('fr-FR', {
-                      day: 'numeric',
-                      month: 'long',
-                      year: 'numeric',
-                      hour: '2-digit',
-                      minute: '2-digit'
+                    {new Date(
+                      announcement.delivery.completedAt,
+                    ).toLocaleDateString("fr-FR", {
+                      day: "numeric",
+                      month: "long",
+                      year: "numeric",
+                      hour: "2-digit",
+                      minute: "2-digit",
                     })}
                   </p>
                 </div>
@@ -372,7 +386,9 @@ export default function ReviewPage() {
 
                 {existingReview.comment && (
                   <div>
-                    <p className="text-sm font-medium mb-2">Votre commentaire</p>
+                    <p className="text-sm font-medium mb-2">
+                      Votre commentaire
+                    </p>
                     <p className="text-sm text-gray-600 bg-gray-50 p-3 rounded">
                       "{existingReview.comment}"
                     </p>
@@ -382,7 +398,9 @@ export default function ReviewPage() {
                 <div>
                   <p className="text-sm font-medium">Évaluée le</p>
                   <p className="text-sm text-gray-600">
-                    {new Date(existingReview.createdAt).toLocaleDateString('fr-FR')}
+                    {new Date(existingReview.createdAt).toLocaleDateString(
+                      "fr-FR",
+                    )}
                   </p>
                 </div>
               </CardContent>
@@ -393,11 +411,12 @@ export default function ReviewPage() {
           <Alert>
             <AlertTriangle className="h-4 w-4" />
             <AlertDescription>
-              Votre évaluation est importante pour la communauté EcoDeli et aide les livreurs à s'améliorer.
+              Votre évaluation est importante pour la communauté EcoDeli et aide
+              les livreurs à s'améliorer.
             </AlertDescription>
           </Alert>
         </div>
       </div>
     </div>
-  )
-} 
+  );
+}

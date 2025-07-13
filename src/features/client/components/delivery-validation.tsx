@@ -6,14 +6,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
-import { 
-  CheckCircle, 
-  XCircle, 
-  Star, 
+import {
+  CheckCircle,
+  XCircle,
+  Star,
   Camera,
   MapPin,
   Clock,
-  Package
+  Package,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -61,7 +61,10 @@ interface DeliveryValidationProps {
   onValidationComplete: () => void;
 }
 
-export default function DeliveryValidation({ delivery, onValidationComplete }: DeliveryValidationProps) {
+export default function DeliveryValidation({
+  delivery,
+  onValidationComplete,
+}: DeliveryValidationProps) {
   const t = useTranslations("client.delivery");
   const [showValidationDialog, setShowValidationDialog] = useState(false);
   const [showRejectionDialog, setShowRejectionDialog] = useState(false);
@@ -74,26 +77,33 @@ export default function DeliveryValidation({ delivery, onValidationComplete }: D
   const handleValidation = async (isValidated: boolean) => {
     try {
       setLoading(true);
-      
-      const response = await fetch(`/api/client/deliveries/${delivery.id}/validate`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          validated: isValidated,
-          rating: isValidated ? rating : undefined,
-          review: isValidated ? review : undefined,
-          issues: !isValidated ? [{
-            type: 'OTHER',
-            description: rejectionReason
-          }] : undefined
-        }),
-      });
+
+      const response = await fetch(
+        `/api/client/deliveries/${delivery.id}/validate`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            validated: isValidated,
+            rating: isValidated ? rating : undefined,
+            review: isValidated ? review : undefined,
+            issues: !isValidated
+              ? [
+                  {
+                    type: "OTHER",
+                    description: rejectionReason,
+                  },
+                ]
+              : undefined,
+          }),
+        },
+      );
 
       if (response.ok) {
         toast.success(
-          isValidated 
-            ? t("validation.success.accepted") 
-            : t("validation.success.rejected")
+          isValidated
+            ? t("validation.success.accepted")
+            : t("validation.success.rejected"),
         );
         setValidated(isValidated);
         setShowValidationDialog(false);
@@ -115,16 +125,21 @@ export default function DeliveryValidation({ delivery, onValidationComplete }: D
     const statusConfig = {
       PENDING: { color: "bg-gray-100 text-gray-800", label: "En attente" },
       ACCEPTED: { color: "bg-blue-100 text-blue-800", label: "Acceptée" },
-      IN_PROGRESS: { color: "bg-yellow-100 text-yellow-800", label: "En cours de livraison" },
+      IN_PROGRESS: {
+        color: "bg-yellow-100 text-yellow-800",
+        label: "En cours de livraison",
+      },
       DELIVERED: { color: "bg-green-100 text-green-800", label: "Livrée" },
       CANCELLED: { color: "bg-red-100 text-red-800", label: "Annulée" },
     };
-    
-    const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.PENDING;
+
+    const config =
+      statusConfig[status as keyof typeof statusConfig] || statusConfig.PENDING;
     return <Badge className={config.color}>{config.label}</Badge>;
   };
 
-  const canValidate = delivery.status === 'IN_TRANSIT' && delivery.ProofOfDelivery;
+  const canValidate =
+    delivery.status === "IN_TRANSIT" && delivery.ProofOfDelivery;
 
   return (
     <>
@@ -158,11 +173,9 @@ export default function DeliveryValidation({ delivery, onValidationComplete }: D
                 <Clock className="w-4 h-4 text-gray-400" />
                 <span className="text-gray-600">{t("deliverer")}:</span>
                 <span>
-                  {delivery.deliverer.user.profile ? (
-                    `${delivery.deliverer.user.profile.firstName || 'Non renseigné'} ${delivery.deliverer.user.profile.lastName || 'Non renseigné'}`
-                  ) : (
-                    'Profil non disponible'
-                  )}
+                  {delivery.deliverer.user.profile
+                    ? `${delivery.deliverer.user.profile.firstName || "Non renseigné"} ${delivery.deliverer.user.profile.lastName || "Non renseigné"}`
+                    : "Profil non disponible"}
                 </span>
               </div>
             </div>
@@ -175,25 +188,27 @@ export default function DeliveryValidation({ delivery, onValidationComplete }: D
                 <Camera className="w-4 h-4 mr-2" />
                 {t("proof.title")}
               </h4>
-              
+
               {delivery.ProofOfDelivery.photoUrl && (
                 <div className="mb-3">
-                  <img 
-                    src={delivery.ProofOfDelivery.photoUrl} 
+                  <img
+                    src={delivery.ProofOfDelivery.photoUrl}
                     alt="Preuve de livraison"
                     className="w-full max-w-md rounded-lg border"
                   />
                 </div>
               )}
-              
+
               {delivery.ProofOfDelivery.notes && (
                 <p className="text-sm text-gray-600 mb-2">
-                  <strong>{t("proof.notes")}:</strong> {delivery.ProofOfDelivery.notes}
+                  <strong>{t("proof.notes")}:</strong>{" "}
+                  {delivery.ProofOfDelivery.notes}
                 </p>
               )}
-              
+
               <p className="text-xs text-gray-500">
-                {t("proof.uploaded_at")}: {new Date(delivery.ProofOfDelivery.uploadedAt).toLocaleString()}
+                {t("proof.uploaded_at")}:{" "}
+                {new Date(delivery.ProofOfDelivery.uploadedAt).toLocaleString()}
               </p>
             </div>
           )}
@@ -201,7 +216,7 @@ export default function DeliveryValidation({ delivery, onValidationComplete }: D
           {/* Actions de validation */}
           {canValidate && (
             <div className="flex space-x-3 pt-4 border-t">
-              <Button 
+              <Button
                 onClick={() => setShowValidationDialog(true)}
                 className="bg-green-600 hover:bg-green-700"
                 disabled={loading}
@@ -209,8 +224,8 @@ export default function DeliveryValidation({ delivery, onValidationComplete }: D
                 <CheckCircle className="w-4 h-4 mr-2" />
                 {t("validation.accept")}
               </Button>
-              
-              <Button 
+
+              <Button
                 onClick={() => setShowRejectionDialog(true)}
                 variant="destructive"
                 disabled={loading}
@@ -223,15 +238,19 @@ export default function DeliveryValidation({ delivery, onValidationComplete }: D
 
           {/* Statut de validation */}
           {validated !== null && (
-            <div className={`p-3 rounded-lg ${validated ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'}`}>
+            <div
+              className={`p-3 rounded-lg ${validated ? "bg-green-50 border border-green-200" : "bg-red-50 border border-red-200"}`}
+            >
               <div className="flex items-center">
                 {validated ? (
                   <CheckCircle className="w-5 h-5 text-green-600 mr-2" />
                 ) : (
                   <XCircle className="w-5 h-5 text-red-600 mr-2" />
                 )}
-                <span className={validated ? 'text-green-800' : 'text-red-800'}>
-                  {validated ? t("validation.status.accepted") : t("validation.status.rejected")}
+                <span className={validated ? "text-green-800" : "text-red-800"}>
+                  {validated
+                    ? t("validation.status.accepted")
+                    : t("validation.status.rejected")}
                 </span>
               </div>
             </div>
@@ -240,7 +259,10 @@ export default function DeliveryValidation({ delivery, onValidationComplete }: D
       </Card>
 
       {/* Dialog de validation positive */}
-      <Dialog open={showValidationDialog} onOpenChange={setShowValidationDialog}>
+      <Dialog
+        open={showValidationDialog}
+        onOpenChange={setShowValidationDialog}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>{t("validation.dialog.accept_title")}</DialogTitle>
@@ -248,7 +270,7 @@ export default function DeliveryValidation({ delivery, onValidationComplete }: D
               {t("validation.dialog.accept_description")}
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="space-y-4">
             {/* Note */}
             <div>
@@ -260,7 +282,7 @@ export default function DeliveryValidation({ delivery, onValidationComplete }: D
                   <button
                     key={star}
                     onClick={() => setRating(star)}
-                    className={`p-1 ${rating >= star ? 'text-yellow-400' : 'text-gray-300'}`}
+                    className={`p-1 ${rating >= star ? "text-yellow-400" : "text-gray-300"}`}
                   >
                     <Star className="w-6 h-6 fill-current" />
                   </button>
@@ -283,7 +305,10 @@ export default function DeliveryValidation({ delivery, onValidationComplete }: D
           </div>
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowValidationDialog(false)}>
+            <Button
+              variant="outline"
+              onClick={() => setShowValidationDialog(false)}
+            >
               {t("validation.cancel")}
             </Button>
             <Button
@@ -291,22 +316,29 @@ export default function DeliveryValidation({ delivery, onValidationComplete }: D
               disabled={loading}
               className="bg-green-600 hover:bg-green-700"
             >
-              {loading ? t("validation.loading") : t("validation.confirm_accept")}
+              {loading
+                ? t("validation.loading")
+                : t("validation.confirm_accept")}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
       {/* Dialog de rejet */}
-      <AlertDialog open={showRejectionDialog} onOpenChange={setShowRejectionDialog}>
+      <AlertDialog
+        open={showRejectionDialog}
+        onOpenChange={setShowRejectionDialog}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>{t("validation.dialog.reject_title")}</AlertDialogTitle>
+            <AlertDialogTitle>
+              {t("validation.dialog.reject_title")}
+            </AlertDialogTitle>
             <AlertDialogDescription>
               {t("validation.dialog.reject_description")}
             </AlertDialogDescription>
           </AlertDialogHeader>
-          
+
           <div className="space-y-4">
             <Textarea
               value={rejectionReason}
@@ -315,7 +347,7 @@ export default function DeliveryValidation({ delivery, onValidationComplete }: D
               rows={3}
             />
           </div>
-          
+
           <AlertDialogFooter>
             <AlertDialogCancel>{t("validation.cancel")}</AlertDialogCancel>
             <AlertDialogAction
@@ -323,11 +355,13 @@ export default function DeliveryValidation({ delivery, onValidationComplete }: D
               disabled={!rejectionReason.trim() || loading}
               className="bg-red-600 hover:bg-red-700"
             >
-              {loading ? t("validation.loading") : t("validation.confirm_reject")}
+              {loading
+                ? t("validation.loading")
+                : t("validation.confirm_reject")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
     </>
   );
-} 
+}

@@ -5,12 +5,18 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { 
-  MapPin, 
-  Clock, 
-  Euro, 
+import {
+  MapPin,
+  Clock,
+  Euro,
   User,
   Calendar,
   Filter,
@@ -20,7 +26,7 @@ import {
   Package,
   TrendingUp,
   AlertCircle,
-  RefreshCw
+  RefreshCw,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
@@ -52,7 +58,9 @@ interface Opportunity {
   createdAt: string;
 }
 
-export default function OpportunityManager({ delivererId }: OpportunityManagerProps) {
+export default function OpportunityManager({
+  delivererId,
+}: OpportunityManagerProps) {
   const t = useTranslations("deliverer.opportunities");
   const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
   const [loading, setLoading] = useState(true);
@@ -69,9 +77,12 @@ export default function OpportunityManager({ delivererId }: OpportunityManagerPr
     try {
       setLoading(true);
       const params = new URLSearchParams();
-      if (filters.type && filters.type !== "all") params.append("type", filters.type);
-      if (filters.maxDistance) params.append("maxDistance", filters.maxDistance);
-      if (filters.minEarnings) params.append("minEarnings", filters.minEarnings);
+      if (filters.type && filters.type !== "all")
+        params.append("type", filters.type);
+      if (filters.maxDistance)
+        params.append("maxDistance", filters.maxDistance);
+      if (filters.minEarnings)
+        params.append("minEarnings", filters.minEarnings);
       if (filters.urgency) params.append("urgency", filters.urgency);
 
       const response = await fetch(`/api/deliverer/opportunities?${params}`);
@@ -90,13 +101,16 @@ export default function OpportunityManager({ delivererId }: OpportunityManagerPr
   const handleAcceptOpportunity = async (opportunityId: string) => {
     setAccepting(opportunityId);
     try {
-      const response = await fetch(`/api/deliverer/opportunities/${opportunityId}/accept`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+      const response = await fetch(
+        `/api/deliverer/opportunities/${opportunityId}/accept`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({}),
         },
-        body: JSON.stringify({})
-      });
+      );
 
       if (response.ok) {
         toast.success(t("success.opportunity_accepted"));
@@ -120,25 +134,37 @@ export default function OpportunityManager({ delivererId }: OpportunityManagerPr
 
   const getTypeColor = (type: string) => {
     switch (type) {
-      case "PACKAGE_DELIVERY": return "bg-blue-100 text-blue-800";
-      case "PERSON_TRANSPORT": return "bg-green-100 text-green-800";
-      case "AIRPORT_TRANSFER": return "bg-purple-100 text-purple-800";
-      case "SHOPPING": return "bg-orange-100 text-orange-800";
-      default: return "bg-gray-100 text-gray-800";
+      case "PACKAGE_DELIVERY":
+        return "bg-blue-100 text-blue-800";
+      case "PERSON_TRANSPORT":
+        return "bg-green-100 text-green-800";
+      case "AIRPORT_TRANSFER":
+        return "bg-purple-100 text-purple-800";
+      case "SHOPPING":
+        return "bg-orange-100 text-orange-800";
+      default:
+        return "bg-gray-100 text-gray-800";
     }
   };
 
   const getUrgencyColor = (urgency: string) => {
     switch (urgency) {
-      case "urgent": return "bg-red-100 text-red-800";
-      case "normal": return "bg-blue-100 text-blue-800";
-      case "flexible": return "bg-green-100 text-green-800";
-      default: return "bg-gray-100 text-gray-800";
+      case "urgent":
+        return "bg-red-100 text-red-800";
+      case "normal":
+        return "bg-blue-100 text-blue-800";
+      case "flexible":
+        return "bg-green-100 text-green-800";
+      default:
+        return "bg-gray-100 text-gray-800";
     }
   };
 
-  const filteredOpportunities = opportunities.filter(opportunity => {
-    if (filters.search && !opportunity.title.toLowerCase().includes(filters.search.toLowerCase())) {
+  const filteredOpportunities = opportunities.filter((opportunity) => {
+    if (
+      filters.search &&
+      !opportunity.title.toLowerCase().includes(filters.search.toLowerCase())
+    ) {
       return false;
     }
     return true;
@@ -171,7 +197,7 @@ export default function OpportunityManager({ delivererId }: OpportunityManagerPr
             {opportunities.length} {t("available_opportunities")}
           </span>
         </div>
-        
+
         <Button onClick={fetchOpportunities} variant="outline">
           <RefreshCw className="w-4 h-4 mr-2" />
           {t("refresh")}
@@ -193,23 +219,31 @@ export default function OpportunityManager({ delivererId }: OpportunityManagerPr
               <Input
                 placeholder={t("search_placeholder")}
                 value={filters.search}
-                onChange={(e) => setFilters({...filters, search: e.target.value})}
+                onChange={(e) =>
+                  setFilters({ ...filters, search: e.target.value })
+                }
                 className="pl-10"
               />
             </div>
 
             <Select
               value={filters.type}
-              onValueChange={(value) => setFilters({...filters, type: value})}
+              onValueChange={(value) => setFilters({ ...filters, type: value })}
             >
               <SelectTrigger>
                 <SelectValue placeholder={t("filter_type")} />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">{t("all_types")}</SelectItem>
-                <SelectItem value="PACKAGE_DELIVERY">{t("package_delivery")}</SelectItem>
-                <SelectItem value="PERSON_TRANSPORT">{t("person_transport")}</SelectItem>
-                <SelectItem value="AIRPORT_TRANSFER">{t("airport_transfer")}</SelectItem>
+                <SelectItem value="PACKAGE_DELIVERY">
+                  {t("package_delivery")}
+                </SelectItem>
+                <SelectItem value="PERSON_TRANSPORT">
+                  {t("person_transport")}
+                </SelectItem>
+                <SelectItem value="AIRPORT_TRANSFER">
+                  {t("airport_transfer")}
+                </SelectItem>
                 <SelectItem value="SHOPPING">{t("shopping")}</SelectItem>
               </SelectContent>
             </Select>
@@ -218,7 +252,9 @@ export default function OpportunityManager({ delivererId }: OpportunityManagerPr
               type="number"
               placeholder={t("max_distance")}
               value={filters.maxDistance}
-              onChange={(e) => setFilters({...filters, maxDistance: e.target.value})}
+              onChange={(e) =>
+                setFilters({ ...filters, maxDistance: e.target.value })
+              }
             />
 
             <Input
@@ -226,12 +262,22 @@ export default function OpportunityManager({ delivererId }: OpportunityManagerPr
               step="0.01"
               placeholder={t("min_earnings")}
               value={filters.minEarnings}
-              onChange={(e) => setFilters({...filters, minEarnings: e.target.value})}
+              onChange={(e) =>
+                setFilters({ ...filters, minEarnings: e.target.value })
+              }
             />
 
-            <Button 
-              variant="outline" 
-              onClick={() => setFilters({ type: "all", maxDistance: "", minEarnings: "", urgency: "", search: "" })}
+            <Button
+              variant="outline"
+              onClick={() =>
+                setFilters({
+                  type: "all",
+                  maxDistance: "",
+                  minEarnings: "",
+                  urgency: "",
+                  search: "",
+                })
+              }
             >
               {t("clear_filters")}
             </Button>
@@ -248,28 +294,41 @@ export default function OpportunityManager({ delivererId }: OpportunityManagerPr
               <h3 className="text-lg font-semibold text-gray-900 mb-2">
                 {t("no_opportunities_title")}
               </h3>
-              <p className="text-gray-600">{t("no_opportunities_description")}</p>
+              <p className="text-gray-600">
+                {t("no_opportunities_description")}
+              </p>
             </CardContent>
           </Card>
         ) : (
           filteredOpportunities.map((opportunity) => (
-            <Card key={opportunity.id} className="hover:shadow-md transition-shadow">
+            <Card
+              key={opportunity.id}
+              className="hover:shadow-md transition-shadow"
+            >
               <CardContent className="p-6">
                 <div className="flex items-start justify-between">
                   <div className="flex-1 space-y-3">
                     <div className="flex items-center justify-between">
-                      <h3 className="font-semibold text-lg">{opportunity.title}</h3>
+                      <h3 className="font-semibold text-lg">
+                        {opportunity.title}
+                      </h3>
                       <div className="flex items-center space-x-2">
                         <Badge className={getTypeColor(opportunity.type)}>
                           {t(opportunity.type.toLowerCase())}
                         </Badge>
-                        <Badge className={getUrgencyColor(opportunity.urgency || 'normal')}>
-                          {t(opportunity.urgency || 'normal')}
+                        <Badge
+                          className={getUrgencyColor(
+                            opportunity.urgency || "normal",
+                          )}
+                        >
+                          {t(opportunity.urgency || "normal")}
                         </Badge>
                       </div>
                     </div>
 
-                    <p className="text-gray-600 text-sm">{opportunity.description}</p>
+                    <p className="text-gray-600 text-sm">
+                      {opportunity.description}
+                    </p>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                       <div className="space-y-2">
@@ -280,7 +339,9 @@ export default function OpportunityManager({ delivererId }: OpportunityManagerPr
                         </div>
                         <div className="flex items-center space-x-2">
                           <MapPin className="w-4 h-4 text-gray-400" />
-                          <span className="text-gray-600">{t("delivery")}:</span>
+                          <span className="text-gray-600">
+                            {t("delivery")}:
+                          </span>
                           <span>{opportunity.deliveryAddress}</span>
                         </div>
                       </div>
@@ -288,8 +349,15 @@ export default function OpportunityManager({ delivererId }: OpportunityManagerPr
                       <div className="space-y-2">
                         <div className="flex items-center space-x-2">
                           <Calendar className="w-4 h-4 text-gray-400" />
-                          <span className="text-gray-600">{t("scheduled")}:</span>
-                          <span>{new Date(opportunity.scheduledDate).toLocaleDateString()} {opportunity.scheduledTime}</span>
+                          <span className="text-gray-600">
+                            {t("scheduled")}:
+                          </span>
+                          <span>
+                            {new Date(
+                              opportunity.scheduledDate,
+                            ).toLocaleDateString()}{" "}
+                            {opportunity.scheduledTime}
+                          </span>
                         </div>
                         <div className="flex items-center space-x-2">
                           <User className="w-4 w-4 text-gray-400" />
@@ -297,7 +365,9 @@ export default function OpportunityManager({ delivererId }: OpportunityManagerPr
                           <span>{opportunity.clientName}</span>
                           <div className="flex items-center">
                             <Star className="w-3 h-3 text-yellow-400 mr-1" />
-                            <span className="text-xs">{opportunity.clientRating}</span>
+                            <span className="text-xs">
+                              {opportunity.clientRating}
+                            </span>
                           </div>
                         </div>
                       </div>
@@ -312,15 +382,21 @@ export default function OpportunityManager({ delivererId }: OpportunityManagerPr
                       </div>
                       <div className="flex items-center space-x-2">
                         <MapPin className="w-4 h-4 text-blue-600" />
-                        <span className="text-blue-600">{opportunity.distance.toFixed(1)}km</span>
+                        <span className="text-blue-600">
+                          {opportunity.distance.toFixed(1)}km
+                        </span>
                       </div>
                       <div className="flex items-center space-x-2">
                         <Package className="w-4 h-4 text-purple-600" />
-                        <span className="text-purple-600">{opportunity.weight}kg</span>
+                        <span className="text-purple-600">
+                          {opportunity.weight}kg
+                        </span>
                       </div>
                       <div className="flex items-center space-x-2">
                         <TrendingUp className="w-4 h-4 text-orange-600" />
-                        <span className="text-orange-600">{opportunity.compatibilityScore}%</span>
+                        <span className="text-orange-600">
+                          {opportunity.compatibilityScore}%
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -353,4 +429,4 @@ export default function OpportunityManager({ delivererId }: OpportunityManagerPr
       </div>
     </div>
   );
-} 
+}

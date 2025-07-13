@@ -7,13 +7,13 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { 
-  Camera, 
-  Upload, 
-  MapPin, 
+import {
+  Camera,
+  Upload,
+  MapPin,
   CheckCircle,
   XCircle,
-  Image as ImageIcon
+  Image as ImageIcon,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -30,7 +30,10 @@ interface DeliveryProofUploadProps {
   onUploadComplete: () => void;
 }
 
-export default function DeliveryProofUpload({ deliveryId, onUploadComplete }: DeliveryProofUploadProps) {
+export default function DeliveryProofUpload({
+  deliveryId,
+  onUploadComplete,
+}: DeliveryProofUploadProps) {
   const t = useTranslations("deliverer.delivery");
   const [showUploadDialog, setShowUploadDialog] = useState(false);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
@@ -44,7 +47,7 @@ export default function DeliveryProofUpload({ deliveryId, onUploadComplete }: De
     const file = event.target.files?.[0];
     if (file) {
       // Vérifier le type de fichier
-      if (!file.type.startsWith('image/')) {
+      if (!file.type.startsWith("image/")) {
         toast.error(t("proof.error.invalid_file_type"));
         return;
       }
@@ -56,7 +59,7 @@ export default function DeliveryProofUpload({ deliveryId, onUploadComplete }: De
       }
 
       setPhotoFile(file);
-      
+
       // Créer un aperçu
       const reader = new FileReader();
       reader.onload = (e) => {
@@ -94,25 +97,28 @@ export default function DeliveryProofUpload({ deliveryId, onUploadComplete }: De
       const photoUrl = await uploadPhoto();
 
       // Envoyer les données à l'API
-      const response = await fetch(`/api/deliverer/deliveries/${deliveryId}/proof`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          photo: photoUrl,
-          notes: notes.trim() || undefined,
-          gpsCoordinates: {
-            latitude: 48.8566, // Coordonnées simulées
-            longitude: 2.3522
-          }
-        }),
-      });
+      const response = await fetch(
+        `/api/deliverer/deliveries/${deliveryId}/proof`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            photo: photoUrl,
+            notes: notes.trim() || undefined,
+            gpsCoordinates: {
+              latitude: 48.8566, // Coordonnées simulées
+              longitude: 2.3522,
+            },
+          }),
+        },
+      );
 
       if (response.ok) {
         toast.success(t("proof.success.uploaded"));
         setUploaded(true);
         setShowUploadDialog(false);
         onUploadComplete();
-        
+
         // Reset form
         setPhotoFile(null);
         setPhotoPreview(null);
@@ -148,9 +154,7 @@ export default function DeliveryProofUpload({ deliveryId, onUploadComplete }: De
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <p className="text-sm text-gray-600">
-            {t("proof.description")}
-          </p>
+          <p className="text-sm text-gray-600">{t("proof.description")}</p>
 
           {uploaded ? (
             <div className="p-3 rounded-lg bg-green-50 border border-green-200">
@@ -162,7 +166,7 @@ export default function DeliveryProofUpload({ deliveryId, onUploadComplete }: De
               </div>
             </div>
           ) : (
-            <Button 
+            <Button
               onClick={() => setShowUploadDialog(true)}
               className="w-full"
             >
@@ -182,20 +186,20 @@ export default function DeliveryProofUpload({ deliveryId, onUploadComplete }: De
               {t("proof.dialog.description")}
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="space-y-4">
             {/* Upload de photo */}
             <div>
               <label className="block text-sm font-medium mb-2">
                 {t("proof.photo")} *
               </label>
-              
+
               <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
                 {photoPreview ? (
                   <div className="space-y-2">
-                    <img 
-                      src={photoPreview} 
-                      alt="Aperçu" 
+                    <img
+                      src={photoPreview}
+                      alt="Aperçu"
                       className="w-full max-h-48 object-cover rounded"
                     />
                     <Button
@@ -228,7 +232,7 @@ export default function DeliveryProofUpload({ deliveryId, onUploadComplete }: De
                     </Button>
                   </div>
                 )}
-                
+
                 <input
                   ref={fileInputRef}
                   type="file"
@@ -237,7 +241,7 @@ export default function DeliveryProofUpload({ deliveryId, onUploadComplete }: De
                   className="hidden"
                 />
               </div>
-              
+
               <p className="text-xs text-gray-500 mt-2">
                 {t("proof.file_requirements")}
               </p>
@@ -266,10 +270,13 @@ export default function DeliveryProofUpload({ deliveryId, onUploadComplete }: De
           </div>
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => {
-              setShowUploadDialog(false);
-              resetForm();
-            }}>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowUploadDialog(false);
+                resetForm();
+              }}
+            >
               {t("proof.cancel")}
             </Button>
             <Button
@@ -284,4 +291,4 @@ export default function DeliveryProofUpload({ deliveryId, onUploadComplete }: De
       </Dialog>
     </>
   );
-} 
+}

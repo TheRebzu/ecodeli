@@ -1,58 +1,55 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { useAnnouncements } from "@/features/announcements/hooks/useAnnouncements"
-import { AnnouncementCard } from "../shared/announcement-card"
-import { AnnouncementFilters } from "../shared/announcement-filters"
-import Link from "next/link"
+import { useState, useEffect } from "react";
+import { useAnnouncements } from "@/features/announcements/hooks/useAnnouncements";
+import { AnnouncementCard } from "../shared/announcement-card";
+import { AnnouncementFilters } from "../shared/announcement-filters";
+import Link from "next/link";
 
 interface DashboardStats {
-  totalAnnouncements: number
-  activeAnnouncements: number
-  completedAnnouncements: number
-  pendingPayments: number
-  totalRevenue: number
-  averagePrice: number
-  successRate: number
-  recurringTemplates: number
+  totalAnnouncements: number;
+  activeAnnouncements: number;
+  completedAnnouncements: number;
+  pendingPayments: number;
+  totalRevenue: number;
+  averagePrice: number;
+  successRate: number;
+  recurringTemplates: number;
 }
 
 export function AnnouncementDashboard() {
-  const [filters, setFilters] = useState({})
-  const [stats, setStats] = useState<DashboardStats | null>(null)
-  const [loadingStats, setLoadingStats] = useState(true)
-  const [timeRange, setTimeRange] = useState('30d')
+  const [filters, setFilters] = useState({});
+  const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [loadingStats, setLoadingStats] = useState(true);
+  const [timeRange, setTimeRange] = useState("30d");
 
-  const {
-    announcements,
-    loading,
-    error,
-    pagination,
-    refresh
-  } = useAnnouncements({ 
-    filters, 
-    role: 'MERCHANT',
-    pagination: { page: 1, limit: 10 }
-  })
+  const { announcements, loading, error, pagination, refresh } =
+    useAnnouncements({
+      filters,
+      role: "MERCHANT",
+      pagination: { page: 1, limit: 10 },
+    });
 
   useEffect(() => {
-    loadDashboardStats()
-  }, [timeRange])
+    loadDashboardStats();
+  }, [timeRange]);
 
   const loadDashboardStats = async () => {
-    setLoadingStats(true)
+    setLoadingStats(true);
     try {
-      const response = await fetch(`/api/merchant/analytics/announcements?period=${timeRange}`)
+      const response = await fetch(
+        `/api/merchant/analytics/announcements?period=${timeRange}`,
+      );
       if (response.ok) {
-        const data = await response.json()
-        setStats(data)
+        const data = await response.json();
+        setStats(data);
       }
     } catch (err) {
-      console.error('Error loading dashboard stats:', err)
+      console.error("Error loading dashboard stats:", err);
     } finally {
-      setLoadingStats(false)
+      setLoadingStats(false);
     }
-  }
+  };
 
   const quickActions = [
     {
@@ -60,51 +57,59 @@ export function AnnouncementDashboard() {
       description: "Créer une annonce de livraison",
       icon: "📦",
       href: "/merchant/announcements/create",
-      color: "bg-green-600 hover:bg-green-700"
+      color: "bg-green-600 hover:bg-green-700",
     },
     {
       title: "Import en masse",
       description: "Importer plusieurs annonces",
       icon: "📊",
       href: "/merchant/announcements/bulk-import",
-      color: "bg-blue-600 hover:bg-blue-700"
+      color: "bg-blue-600 hover:bg-blue-700",
     },
     {
       title: "Annonces récurrentes",
       description: "Gérer les modèles récurrents",
       icon: "🔄",
       href: "/merchant/announcements/recurring",
-      color: "bg-purple-600 hover:bg-purple-700"
+      color: "bg-purple-600 hover:bg-purple-700",
     },
     {
       title: "Configuration chariot",
       description: "Paramétrer le lâcher de chariot",
       icon: "🛒",
       href: "/merchant/cart-drop/settings",
-      color: "bg-orange-600 hover:bg-orange-700"
-    }
-  ]
+      color: "bg-orange-600 hover:bg-orange-700",
+    },
+  ];
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('fr-FR', {
-      style: 'currency',
-      currency: 'EUR'
-    }).format(amount)
-  }
+    return new Intl.NumberFormat("fr-FR", {
+      style: "currency",
+      currency: "EUR",
+    }).format(amount);
+  };
 
-  const getStatusColor = (value: number, goodThreshold: number, excellentThreshold: number) => {
-    if (value >= excellentThreshold) return 'text-green-600'
-    if (value >= goodThreshold) return 'text-yellow-600'
-    return 'text-red-600'
-  }
+  const getStatusColor = (
+    value: number,
+    goodThreshold: number,
+    excellentThreshold: number,
+  ) => {
+    if (value >= excellentThreshold) return "text-green-600";
+    if (value >= goodThreshold) return "text-yellow-600";
+    return "text-red-600";
+  };
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Tableau de bord - Annonces</h1>
-          <p className="text-gray-600">Gérez vos annonces et suivez vos performances</p>
+          <h1 className="text-2xl font-bold text-gray-900">
+            Tableau de bord - Annonces
+          </h1>
+          <p className="text-gray-600">
+            Gérez vos annonces et suivez vos performances
+          </p>
         </div>
         <div className="flex items-center space-x-4">
           <select
@@ -119,8 +124,8 @@ export function AnnouncementDashboard() {
           </select>
           <button
             onClick={() => {
-              refresh()
-              loadDashboardStats()
+              refresh();
+              loadDashboardStats();
             }}
             className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700"
           >
@@ -166,17 +171,23 @@ export function AnnouncementDashboard() {
         </div>
       ) : stats ? (
         <div className="bg-white rounded-lg shadow-sm border p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Statistiques</h2>
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">
+            Statistiques
+          </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <div>
               <div className="text-sm text-gray-500 mb-1">Total annonces</div>
-              <div className="text-2xl font-bold text-gray-900">{stats.totalAnnouncements}</div>
+              <div className="text-2xl font-bold text-gray-900">
+                {stats.totalAnnouncements}
+              </div>
               <div className="text-xs text-gray-400">
                 {stats.activeAnnouncements} actives
               </div>
             </div>
             <div>
-              <div className="text-sm text-gray-500 mb-1">Chiffre d'affaires</div>
+              <div className="text-sm text-gray-500 mb-1">
+                Chiffre d'affaires
+              </div>
               <div className="text-2xl font-bold text-green-600">
                 {formatCurrency(stats.totalRevenue)}
               </div>
@@ -186,7 +197,9 @@ export function AnnouncementDashboard() {
             </div>
             <div>
               <div className="text-sm text-gray-500 mb-1">Taux de succès</div>
-              <div className={`text-2xl font-bold ${getStatusColor(stats.successRate, 70, 85)}`}>
+              <div
+                className={`text-2xl font-bold ${getStatusColor(stats.successRate, 70, 85)}`}
+              >
                 {stats.successRate.toFixed(1)}%
               </div>
               <div className="text-xs text-gray-400">
@@ -194,7 +207,9 @@ export function AnnouncementDashboard() {
               </div>
             </div>
             <div>
-              <div className="text-sm text-gray-500 mb-1">Paiements en attente</div>
+              <div className="text-sm text-gray-500 mb-1">
+                Paiements en attente
+              </div>
               <div className="text-2xl font-bold text-orange-600">
                 {stats.pendingPayments}
               </div>
@@ -213,12 +228,12 @@ export function AnnouncementDashboard() {
           <AnnouncementFilters
             onFiltersChange={setFilters}
             statusFilters={[
-              { key: 'all', label: 'Toutes' },
-              { key: 'ACTIVE', label: 'Actives' },
-              { key: 'MATCHED', label: 'Matchées' },
-              { key: 'IN_PROGRESS', label: 'En cours' },
-              { key: 'COMPLETED', label: 'Terminées' },
-              { key: 'CANCELLED', label: 'Annulées' }
+              { key: "all", label: "Toutes" },
+              { key: "ACTIVE", label: "Actives" },
+              { key: "MATCHED", label: "Matchées" },
+              { key: "IN_PROGRESS", label: "En cours" },
+              { key: "COMPLETED", label: "Terminées" },
+              { key: "CANCELLED", label: "Annulées" },
             ]}
           />
         </div>
@@ -252,7 +267,9 @@ export function AnnouncementDashboard() {
               ) : error ? (
                 <div className="p-6 text-center">
                   <div className="text-red-600 text-4xl mb-2">⚠️</div>
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">Erreur de chargement</h3>
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">
+                    Erreur de chargement
+                  </h3>
                   <p className="text-gray-600 mb-4">{error}</p>
                   <button
                     onClick={refresh}
@@ -297,8 +314,8 @@ export function AnnouncementDashboard() {
               <div className="p-6 border-t">
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-gray-500">
-                    Page {pagination.page} sur {pagination.totalPages} 
-                    ({pagination.total} annonces au total)
+                    Page {pagination.page} sur {pagination.totalPages}(
+                    {pagination.total} annonces au total)
                   </span>
                   <Link
                     href="/merchant/announcements"
@@ -315,13 +332,21 @@ export function AnnouncementDashboard() {
 
       {/* Recent Activity */}
       <div className="bg-white rounded-lg shadow-sm border p-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Activité récente</h2>
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">
+          Activité récente
+        </h2>
         <div className="space-y-3">
           {announcements.slice(0, 5).map((announcement) => (
-            <div key={announcement.id} className="flex items-center space-x-3 text-sm">
+            <div
+              key={announcement.id}
+              className="flex items-center space-x-3 text-sm"
+            >
               <span className="text-lg">
-                {announcement.type === 'PACKAGE' ? '📦' : 
-                 announcement.type === 'SERVICE' ? '🛠️' : '🛒'}
+                {announcement.type === "PACKAGE"
+                  ? "📦"
+                  : announcement.type === "SERVICE"
+                    ? "🛠️"
+                    : "🛒"}
               </span>
               <span className="flex-1 truncate">
                 <span className="font-medium">{announcement.title}</span>
@@ -330,12 +355,12 @@ export function AnnouncementDashboard() {
                 </span>
               </span>
               <span className="text-gray-400">
-                {new Date(announcement.createdAt).toLocaleDateString('fr-FR')}
+                {new Date(announcement.createdAt).toLocaleDateString("fr-FR")}
               </span>
             </div>
           ))}
         </div>
       </div>
     </div>
-  )
+  );
 }

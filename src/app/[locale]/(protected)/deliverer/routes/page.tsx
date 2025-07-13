@@ -8,12 +8,26 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { 
-  MapPin, 
-  Plus, 
+import {
+  MapPin,
+  Plus,
   Calendar,
   Clock,
   Truck,
@@ -21,7 +35,7 @@ import {
   Trash2,
   CheckCircle,
   XCircle,
-  Route
+  Route,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -52,7 +66,7 @@ export default function DelivererRoutesPage() {
     daysOfWeek: [] as string[],
     vehicleType: "CAR",
     maxDistance: 10,
-    minPrice: 15
+    minPrice: 15,
   });
 
   const daysOfWeek = [
@@ -62,7 +76,7 @@ export default function DelivererRoutesPage() {
     { value: "thursday", label: "Jeudi" },
     { value: "friday", label: "Vendredi" },
     { value: "saturday", label: "Samedi" },
-    { value: "sunday", label: "Dimanche" }
+    { value: "sunday", label: "Dimanche" },
   ];
 
   const vehicleTypes = [
@@ -70,7 +84,7 @@ export default function DelivererRoutesPage() {
     { value: "BIKE", label: "Vélo" },
     { value: "SCOOTER", label: "Scooter" },
     { value: "TRUCK", label: "Camion" },
-    { value: "WALKING", label: "À pied" }
+    { value: "WALKING", label: "À pied" },
   ];
 
   useEffect(() => {
@@ -82,13 +96,13 @@ export default function DelivererRoutesPage() {
   const fetchRoutes = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/deliverer/routes');
+      const response = await fetch("/api/deliverer/routes");
       if (response.ok) {
         const data = await response.json();
         setRoutes(data.routes);
       }
     } catch (error) {
-      console.error('Error fetching routes:', error);
+      console.error("Error fetching routes:", error);
       toast.error("Erreur lors du chargement des trajets");
     } finally {
       setLoading(false);
@@ -96,16 +110,20 @@ export default function DelivererRoutesPage() {
   };
 
   const handleAddRoute = async () => {
-    if (!newRoute.startLocation || !newRoute.endLocation || newRoute.daysOfWeek.length === 0) {
+    if (
+      !newRoute.startLocation ||
+      !newRoute.endLocation ||
+      newRoute.daysOfWeek.length === 0
+    ) {
       toast.error("Veuillez remplir tous les champs obligatoires");
       return;
     }
 
     try {
-      const response = await fetch('/api/deliverer/routes', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newRoute)
+      const response = await fetch("/api/deliverer/routes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newRoute),
       });
 
       if (response.ok) {
@@ -119,12 +137,12 @@ export default function DelivererRoutesPage() {
           daysOfWeek: [],
           vehicleType: "CAR",
           maxDistance: 10,
-          minPrice: 15
+          minPrice: 15,
         });
         await fetchRoutes();
       }
     } catch (error) {
-      console.error('Error adding route:', error);
+      console.error("Error adding route:", error);
       toast.error("Erreur lors de l'ajout du trajet");
     }
   };
@@ -132,9 +150,9 @@ export default function DelivererRoutesPage() {
   const toggleRouteStatus = async (routeId: string, isActive: boolean) => {
     try {
       const response = await fetch(`/api/deliverer/routes/${routeId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ isActive: !isActive })
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ isActive: !isActive }),
       });
 
       if (response.ok) {
@@ -142,7 +160,7 @@ export default function DelivererRoutesPage() {
         await fetchRoutes();
       }
     } catch (error) {
-      console.error('Error toggling route status:', error);
+      console.error("Error toggling route status:", error);
       toast.error("Erreur lors de la modification du statut");
     }
   };
@@ -154,7 +172,7 @@ export default function DelivererRoutesPage() {
 
     try {
       const response = await fetch(`/api/deliverer/routes/${routeId}`, {
-        method: 'DELETE'
+        method: "DELETE",
       });
 
       if (response.ok) {
@@ -162,25 +180,27 @@ export default function DelivererRoutesPage() {
         await fetchRoutes();
       }
     } catch (error) {
-      console.error('Error deleting route:', error);
+      console.error("Error deleting route:", error);
       toast.error("Erreur lors de la suppression");
     }
   };
 
   const toggleDayOfWeek = (day: string) => {
-    setNewRoute(prev => ({
+    setNewRoute((prev) => ({
       ...prev,
       daysOfWeek: prev.daysOfWeek.includes(day)
-        ? prev.daysOfWeek.filter(d => d !== day)
-        : [...prev.daysOfWeek, day]
+        ? prev.daysOfWeek.filter((d) => d !== day)
+        : [...prev.daysOfWeek, day],
     }));
   };
 
   const formatDaysOfWeek = (days: string[]) => {
-    return days.map(day => {
-      const dayInfo = daysOfWeek.find(d => d.value === day);
-      return dayInfo ? dayInfo.label : day;
-    }).join(", ");
+    return days
+      .map((day) => {
+        const dayInfo = daysOfWeek.find((d) => d.value === day);
+        return dayInfo ? dayInfo.label : day;
+      })
+      .join(", ");
   };
 
   const formatTime = (time: string) => {
@@ -230,17 +250,20 @@ export default function DelivererRoutesPage() {
             <DialogHeader>
               <DialogTitle>Ajouter un trajet</DialogTitle>
               <DialogDescription>
-                Définissez un trajet régulier pour recevoir des propositions de livraison
+                Définissez un trajet régulier pour recevoir des propositions de
+                livraison
               </DialogDescription>
             </DialogHeader>
-            
+
             <div className="space-y-4">
               <div>
                 <Label htmlFor="startLocation">Point de départ *</Label>
                 <Input
                   id="startLocation"
                   value={newRoute.startLocation}
-                  onChange={(e) => setNewRoute({...newRoute, startLocation: e.target.value})}
+                  onChange={(e) =>
+                    setNewRoute({ ...newRoute, startLocation: e.target.value })
+                  }
                   placeholder="Adresse de départ"
                 />
               </div>
@@ -250,7 +273,9 @@ export default function DelivererRoutesPage() {
                 <Input
                   id="endLocation"
                   value={newRoute.endLocation}
-                  onChange={(e) => setNewRoute({...newRoute, endLocation: e.target.value})}
+                  onChange={(e) =>
+                    setNewRoute({ ...newRoute, endLocation: e.target.value })
+                  }
                   placeholder="Adresse de destination"
                 />
               </div>
@@ -262,7 +287,9 @@ export default function DelivererRoutesPage() {
                     id="startTime"
                     type="time"
                     value={newRoute.startTime}
-                    onChange={(e) => setNewRoute({...newRoute, startTime: e.target.value})}
+                    onChange={(e) =>
+                      setNewRoute({ ...newRoute, startTime: e.target.value })
+                    }
                   />
                 </div>
 
@@ -272,7 +299,9 @@ export default function DelivererRoutesPage() {
                     id="endTime"
                     type="time"
                     value={newRoute.endTime}
-                    onChange={(e) => setNewRoute({...newRoute, endTime: e.target.value})}
+                    onChange={(e) =>
+                      setNewRoute({ ...newRoute, endTime: e.target.value })
+                    }
                   />
                 </div>
               </div>
@@ -284,7 +313,11 @@ export default function DelivererRoutesPage() {
                     <Button
                       key={day.value}
                       type="button"
-                      variant={newRoute.daysOfWeek.includes(day.value) ? "default" : "outline"}
+                      variant={
+                        newRoute.daysOfWeek.includes(day.value)
+                          ? "default"
+                          : "outline"
+                      }
                       size="sm"
                       onClick={() => toggleDayOfWeek(day.value)}
                     >
@@ -298,7 +331,9 @@ export default function DelivererRoutesPage() {
                 <Label htmlFor="vehicleType">Type de véhicule</Label>
                 <Select
                   value={newRoute.vehicleType}
-                  onValueChange={(value) => setNewRoute({...newRoute, vehicleType: value})}
+                  onValueChange={(value) =>
+                    setNewRoute({ ...newRoute, vehicleType: value })
+                  }
                 >
                   <SelectTrigger>
                     <SelectValue />
@@ -320,7 +355,12 @@ export default function DelivererRoutesPage() {
                   min="1"
                   max="50"
                   value={newRoute.maxDistance}
-                  onChange={(e) => setNewRoute({...newRoute, maxDistance: parseInt(e.target.value)})}
+                  onChange={(e) =>
+                    setNewRoute({
+                      ...newRoute,
+                      maxDistance: parseInt(e.target.value),
+                    })
+                  }
                   className="mt-2"
                 />
               </div>
@@ -332,7 +372,12 @@ export default function DelivererRoutesPage() {
                   min="5"
                   max="100"
                   value={newRoute.minPrice}
-                  onChange={(e) => setNewRoute({...newRoute, minPrice: parseInt(e.target.value)})}
+                  onChange={(e) =>
+                    setNewRoute({
+                      ...newRoute,
+                      minPrice: parseInt(e.target.value),
+                    })
+                  }
                   className="mt-2"
                 />
               </div>
@@ -342,9 +387,7 @@ export default function DelivererRoutesPage() {
               <Button variant="outline" onClick={() => setShowAddDialog(false)}>
                 Annuler
               </Button>
-              <Button onClick={handleAddRoute}>
-                Ajouter le trajet
-              </Button>
+              <Button onClick={handleAddRoute}>Ajouter le trajet</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
@@ -357,74 +400,89 @@ export default function DelivererRoutesPage() {
         </TabsList>
 
         <TabsContent value="active" className="space-y-4">
-          {routes.filter(route => route.isActive).length === 0 ? (
+          {routes.filter((route) => route.isActive).length === 0 ? (
             <Card>
               <CardContent className="text-center py-8">
                 <Route className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                 <p className="text-gray-600">Aucun trajet actif</p>
-                <p className="text-sm text-gray-500">Ajoutez un trajet pour commencer à recevoir des propositions</p>
+                <p className="text-sm text-gray-500">
+                  Ajoutez un trajet pour commencer à recevoir des propositions
+                </p>
               </CardContent>
             </Card>
           ) : (
-            routes.filter(route => route.isActive).map((route) => (
-              <Card key={route.id}>
-                <CardContent className="p-6">
-                  <div className="flex items-start justify-between">
-                    <div className="space-y-2">
+            routes
+              .filter((route) => route.isActive)
+              .map((route) => (
+                <Card key={route.id}>
+                  <CardContent className="p-6">
+                    <div className="flex items-start justify-between">
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2">
+                          <MapPin className="h-4 w-4 text-blue-600" />
+                          <span className="font-medium">
+                            {route.startLocation}
+                          </span>
+                          <span className="text-gray-400">→</span>
+                          <span className="font-medium">
+                            {route.endLocation}
+                          </span>
+                        </div>
+
+                        <div className="flex items-center gap-4 text-sm text-gray-600">
+                          <div className="flex items-center gap-1">
+                            <Clock className="h-4 w-4" />
+                            {formatTime(route.startTime)} -{" "}
+                            {formatTime(route.endTime)}
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <Calendar className="h-4 w-4" />
+                            {formatDaysOfWeek(route.daysOfWeek)}
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-4 text-sm">
+                          <Badge variant="outline">
+                            <Truck className="h-3 w-3 mr-1" />
+                            {
+                              vehicleTypes.find(
+                                (v) => v.value === route.vehicleType,
+                              )?.label
+                            }
+                          </Badge>
+                          <span>Max {route.maxDistance}km</span>
+                          <span>Min {route.minPrice}€</span>
+                        </div>
+                      </div>
+
                       <div className="flex items-center gap-2">
-                        <MapPin className="h-4 w-4 text-blue-600" />
-                        <span className="font-medium">{route.startLocation}</span>
-                        <span className="text-gray-400">→</span>
-                        <span className="font-medium">{route.endLocation}</span>
-                      </div>
-                      
-                      <div className="flex items-center gap-4 text-sm text-gray-600">
-                        <div className="flex items-center gap-1">
-                          <Clock className="h-4 w-4" />
-                          {formatTime(route.startTime)} - {formatTime(route.endTime)}
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <Calendar className="h-4 w-4" />
-                          {formatDaysOfWeek(route.daysOfWeek)}
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-4 text-sm">
-                        <Badge variant="outline">
-                          <Truck className="h-3 w-3 mr-1" />
-                          {vehicleTypes.find(v => v.value === route.vehicleType)?.label}
-                        </Badge>
-                        <span>Max {route.maxDistance}km</span>
-                        <span>Min {route.minPrice}€</span>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() =>
+                            toggleRouteStatus(route.id, route.isActive)
+                          }
+                        >
+                          <XCircle className="h-4 w-4 mr-1" />
+                          Désactiver
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => deleteRoute(route.id)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
                       </div>
                     </div>
-
-                    <div className="flex items-center gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => toggleRouteStatus(route.id, route.isActive)}
-                      >
-                        <XCircle className="h-4 w-4 mr-1" />
-                        Désactiver
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => deleteRoute(route.id)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))
+                  </CardContent>
+                </Card>
+              ))
           )}
         </TabsContent>
 
         <TabsContent value="inactive" className="space-y-4">
-          {routes.filter(route => !route.isActive).length === 0 ? (
+          {routes.filter((route) => !route.isActive).length === 0 ? (
             <Card>
               <CardContent className="text-center py-8">
                 <Route className="h-12 w-12 text-gray-400 mx-auto mb-4" />
@@ -432,51 +490,60 @@ export default function DelivererRoutesPage() {
               </CardContent>
             </Card>
           ) : (
-            routes.filter(route => !route.isActive).map((route) => (
-              <Card key={route.id}>
-                <CardContent className="p-6">
-                  <div className="flex items-start justify-between">
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-2">
-                        <MapPin className="h-4 w-4 text-gray-400" />
-                        <span className="font-medium text-gray-600">{route.startLocation}</span>
-                        <span className="text-gray-400">→</span>
-                        <span className="font-medium text-gray-600">{route.endLocation}</span>
-                      </div>
-                      
-                      <div className="flex items-center gap-4 text-sm text-gray-500">
-                        <div className="flex items-center gap-1">
-                          <Clock className="h-4 w-4" />
-                          {formatTime(route.startTime)} - {formatTime(route.endTime)}
+            routes
+              .filter((route) => !route.isActive)
+              .map((route) => (
+                <Card key={route.id}>
+                  <CardContent className="p-6">
+                    <div className="flex items-start justify-between">
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2">
+                          <MapPin className="h-4 w-4 text-gray-400" />
+                          <span className="font-medium text-gray-600">
+                            {route.startLocation}
+                          </span>
+                          <span className="text-gray-400">→</span>
+                          <span className="font-medium text-gray-600">
+                            {route.endLocation}
+                          </span>
                         </div>
-                        <div className="flex items-center gap-1">
-                          <Calendar className="h-4 w-4" />
-                          {formatDaysOfWeek(route.daysOfWeek)}
-                        </div>
-                      </div>
-                    </div>
 
-                    <div className="flex items-center gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => toggleRouteStatus(route.id, route.isActive)}
-                      >
-                        <CheckCircle className="h-4 w-4 mr-1" />
-                        Activer
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => deleteRoute(route.id)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                        <div className="flex items-center gap-4 text-sm text-gray-500">
+                          <div className="flex items-center gap-1">
+                            <Clock className="h-4 w-4" />
+                            {formatTime(route.startTime)} -{" "}
+                            {formatTime(route.endTime)}
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <Calendar className="h-4 w-4" />
+                            {formatDaysOfWeek(route.daysOfWeek)}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() =>
+                            toggleRouteStatus(route.id, route.isActive)
+                          }
+                        >
+                          <CheckCircle className="h-4 w-4 mr-1" />
+                          Activer
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => deleteRoute(route.id)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))
+                  </CardContent>
+                </Card>
+              ))
           )}
         </TabsContent>
       </Tabs>
