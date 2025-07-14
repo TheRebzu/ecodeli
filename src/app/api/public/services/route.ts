@@ -75,7 +75,9 @@ export async function GET(request: NextRequest) {
     const where: any = {
       isActive: true, // Seulement les services actifs
       provider: {
-        validationStatus: "APPROVED", // Seulement les providers validés
+        validationStatus: {
+          in: ["APPROVED", "VALIDATED"] // Accepter les deux statuts valides
+        },
         isActive: true,
       },
     };

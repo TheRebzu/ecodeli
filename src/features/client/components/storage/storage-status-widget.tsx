@@ -19,6 +19,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useApi } from "@/hooks/use-api";
 
 interface StorageRental {
   id: string;
@@ -37,8 +38,7 @@ interface StorageRental {
 }
 
 export function StorageStatusWidget() {
-  const [rentals, setRentals] = useState<StorageRental[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data, loading, error, execute } = useApi<{ success: boolean; rentals: StorageRental[] }>();
   const router = useRouter();
 
   useEffect(() => {
@@ -47,19 +47,13 @@ export function StorageStatusWidget() {
 
   const fetchRentals = async () => {
     try {
-      const response = await fetch("/api/client/storage-boxes/rentals");
-
-      if (response.ok) {
-        const data = await response.json();
-        setRentals(data.rentals || []);
-      }
+      await execute("/api/client/storage-boxes/rentals");
     } catch (error) {
       console.error("Error fetching storage rentals:", error);
-    } finally {
-      setLoading(false);
     }
   };
 
+  const rentals = data?.rentals || [];
   const activeRentals = rentals.filter((rental) => rental.isActive);
   const expiringRentals = rentals.filter(
     (rental) =>

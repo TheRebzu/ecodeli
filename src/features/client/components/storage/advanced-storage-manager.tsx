@@ -97,6 +97,7 @@ interface StorageRental {
   paymentStatus: "paid" | "pending" | "overdue";
   autoExtend: boolean;
   notes?: string;
+  isActive: boolean;
 }
 
 interface StorageItem {
@@ -176,6 +177,7 @@ export default function AdvancedStorageManager({
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
+          credentials: 'include',
         },
       );
 
@@ -201,12 +203,17 @@ export default function AdvancedStorageManager({
   const fetchStorageData = async () => {
     try {
       const [boxesRes, rentalsRes] = await Promise.all([
-        fetch(`/api/client/storage-boxes?clientId=${clientId}`),
-        fetch(`/api/client/storage-boxes/rentals?clientId=${clientId}`),
+        fetch(`/api/client/storage-boxes?clientId=${clientId}`, {
+          credentials: 'include'
+        }),
+        fetch(`/api/client/storage-boxes/rentals?clientId=${clientId}`, {
+          credentials: 'include'
+        }),
       ]);
 
       if (boxesRes.ok) {
         const boxesData = await boxesRes.json();
+        
         // Mapper les données de l'API vers le format attendu par l'interface
         const mappedBoxes = (boxesData.boxes || []).map((box: any) => {
           // Définir les dimensions et poids selon la taille
@@ -259,7 +266,47 @@ export default function AdvancedStorageManager({
 
       if (rentalsRes.ok) {
         const rentalsData = await rentalsRes.json();
-        setRentals(rentalsData.rentals || []);
+        
+        // Map the API response to the expected format
+        const mappedRentals = (rentalsData.rentals || []).map((rental: any) => ({
+          id: rental.id,
+          storageBoxId: rental.storageBoxId,
+          storageBox: {
+            id: rental.storageBox?.id || '',
+            name: rental.storageBox?.boxNumber || '',
+            address: rental.storageBox?.location?.address || '',
+            latitude: rental.storageBox?.location?.lat || 0,
+            longitude: rental.storageBox?.location?.lng || 0,
+            size: rental.storageBox?.size?.toLowerCase() || 'medium',
+            type: 'standard',
+            hourlyRate: (rental.storageBox?.pricePerDay || 0) / 24,
+            dailyRate: rental.storageBox?.pricePerDay || 0,
+            weeklyRate: (rental.storageBox?.pricePerDay || 0) * 7,
+            monthlyRate: (rental.storageBox?.pricePerDay || 0) * 30,
+            availability: rental.storageBox?.isAvailable ? 'available' : 'occupied',
+            features: ['Sécurisé', 'Accès 24h/24'],
+            maxWeight: 100,
+            dimensions: { width: 100, height: 100, depth: 100 },
+            accessHours: { start: '00:00', end: '23:59' },
+            security: { camera: true, alarm: true, keypadAccess: true, biometric: false },
+            distance: undefined,
+          },
+          startDate: rental.startDate,
+          endDate: rental.endDate || '',
+          actualEndDate: rental.actualEndDate || undefined,
+          status: rental.isActive ? 'active' : (rental.endDate && new Date(rental.endDate) < new Date() ? 'completed' : 'cancelled'),
+          totalCost: rental.totalPrice || 0,
+          accessCode: rental.accessCode || '',
+          items: [],
+          paymentStatus: rental.isPaid ? 'paid' : 'pending',
+          autoExtend: false,
+          notes: undefined,
+          isActive: rental.isActive,
+        }));
+        
+        setRentals(mappedRentals);
+      } else {
+        console.error("Error fetching rentals:", rentalsRes.status, rentalsRes.statusText);
       }
     } catch (error) {
       console.error("Error fetching storage data:", error);
@@ -274,6 +321,9 @@ export default function AdvancedStorageManager({
     try {
       const response = await fetch(
         `/api/client/storage-boxes/nearby?location=${encodeURIComponent(searchLocation)}&clientId=${clientId}`,
+        {
+          credentials: 'include'
+        }
       );
       if (response.ok) {
         const data = await response.json();
@@ -338,6 +388,7 @@ export default function AdvancedStorageManager({
       const response = await fetch("/api/client/storage-boxes/rent", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: 'include',
         body: JSON.stringify({
           ...rentalForm,
           storageBoxId: selectedBox.id,
@@ -424,6 +475,7 @@ export default function AdvancedStorageManager({
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
+          credentials: 'include',
           body: JSON.stringify({ additionalDays }),
         },
       );
@@ -443,6 +495,7 @@ export default function AdvancedStorageManager({
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
+          credentials: 'include',
           body: JSON.stringify({ clientId }),
         },
       );
@@ -833,7 +886,7 @@ export default function AdvancedStorageManager({
 
         <TabsContent value="my_rentals" className="space-y-4">
           {rentals
-            .filter((r) => r.status === "active")
+            .filter((r) => r.isActive)
             .map((rental) => (
               <Card key={rental.id}>
                 <CardHeader>
@@ -958,7 +1011,7 @@ export default function AdvancedStorageManager({
               </Card>
             ))}
 
-          {rentals.filter((r) => r.status === "active").length === 0 && (
+          {rentals.filter((r) => r.isActive).length === 0 && (
             <Card>
               <CardContent className="flex flex-col items-center justify-center py-12">
                 <Package className="h-12 w-12 text-gray-400 mb-4" />
@@ -975,7 +1028,7 @@ export default function AdvancedStorageManager({
 
         <TabsContent value="history" className="space-y-4">
           {rentals
-            .filter((r) => ["completed", "cancelled"].includes(r.status))
+            .filter((r) => !r.isActive)
             .map((rental) => (
               <Card key={rental.id}>
                 <CardContent className="flex items-center justify-between p-4">

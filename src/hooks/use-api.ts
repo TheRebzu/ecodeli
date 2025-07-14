@@ -47,6 +47,7 @@ export function useApi<T = any>() {
         ...fetchOptions,
         headers,
         body,
+        credentials: 'include', // Always include cookies for authentication
       });
 
       if (!response.ok) {

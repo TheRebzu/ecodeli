@@ -7,7 +7,7 @@ import { OneSignalService } from "@/lib/onesignal";
 import { SubscriptionService } from "@/features/payments/services/subscription.service";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2024-06-20",
+  apiVersion: "2025-06-30.basil",
 });
 
 const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET!;
@@ -15,7 +15,8 @@ const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET!;
 export async function POST(request: NextRequest) {
   try {
     const body = await request.text();
-    const signature = headers().get("stripe-signature")!;
+    const headersList = await headers();
+    const signature = headersList.get("stripe-signature")!;
 
     let event: Stripe.Event;
 
@@ -173,8 +174,8 @@ async function handleDeliveryPaymentSucceeded(
   const platformFee = amount * 0.15; // 15% pour la plateforme
   const delivererFee = amount - platformFee;
 
-  // Utiliser une transaction pour assurer la cohérence
-  await prisma.$transaction(async (tx) => {
+      // Utiliser une transaction pour assurer la cohérence
+    await prisma.$transaction(async (tx: any) => {
     // Mettre à jour la livraison - maintenant ACCEPTED (prêt pour récupération)
     await tx.delivery.update({
       where: { id: delivery.id },
@@ -302,30 +303,45 @@ async function handleStorageRentalPaymentSucceeded(
 
     // Récupérer les informations de la location depuis les métadonnées du paiement
     const metadata = payment.metadata as any;
-    const storageBoxId = metadata.storageBoxId;
-    const clientId = metadata.clientId;
-    const startDate = new Date(metadata.startDate);
-    const endDate = new Date(metadata.endDate);
-    const items = metadata.items || [];
+    const rentalId = metadata.rentalId;
 
-    // Créer la location en utilisant le service StorageBoxService
-    const { StorageBoxService } = await import(
-      "@/features/storage/services/storage-box.service"
-    );
+    if (!rentalId) {
+      console.error("Rental ID not found in payment metadata");
+      return;
+    }
 
-    const rental = await StorageBoxService.createRental({
-      clientId,
-      storageBoxId,
-      startDate,
-      endDate,
-      notes: `Location avec ${items.length} objets - Paiement confirmé`,
+    // Mettre à jour la location existante
+    const rental = await prisma.storageBoxRental.update({
+      where: { id: rentalId },
+      data: {
+        isPaid: true,
+      },
+      include: {
+        storageBox: {
+          include: {
+            location: true,
+          },
+        },
+        client: {
+          include: {
+            user: true,
+          },
+        },
+      },
     });
 
-    // Mettre à jour le paiement pour lier la location créée
+    // Marquer la box comme occupée
+    await prisma.storageBox.update({
+      where: { id: rental.storageBoxId },
+      data: {
+        isAvailable: false,
+      },
+    });
+
+    // Mettre à jour le paiement
     await prisma.payment.update({
       where: { id: payment.id },
       data: {
-        storageRentalId: rental.id,
         status: "COMPLETED",
         paidAt: new Date(),
         metadata: {
@@ -338,34 +354,29 @@ async function handleStorageRentalPaymentSucceeded(
       },
     });
 
-    // Marquer la location comme payée
-    await prisma.storageBoxRental.update({
-      where: { id: rental.id },
-      data: {
-        isPaid: true,
-      },
-    });
-
     // Notification au client
     await OneSignalService.sendToUser(
       payment.userId,
       "Paiement confirmé - Location de stockage",
-      `Votre paiement de ${amount}€ pour la location de stockage a été confirmé.`,
+      `Votre paiement de ${amount}€ pour la location de stockage a été confirmé. Votre box ${rental.storageBox.boxNumber} est maintenant active.`,
       {
         type: "storage_rental_confirmed",
         rentalId: rental.id,
         amount: amount,
+        boxNumber: rental.storageBox.boxNumber,
+        location: rental.storageBox.location.name,
       },
     );
 
-    console.log("Location créée après paiement réussi:", {
+    console.log("Location activée après paiement réussi:", {
       rentalId: rental.id,
       paymentId: payment.id,
       amount: amount,
+      boxNumber: rental.storageBox.boxNumber,
     });
   } catch (error) {
     console.error(
-      "Erreur lors de la création de la location après paiement:",
+      "Erreur lors de l'activation de la location après paiement:",
       error,
     );
 
@@ -378,7 +389,7 @@ async function handleStorageRentalPaymentSucceeded(
         metadata: {
           ...payment.metadata,
           error:
-            error instanceof Error ? error.message : "Erreur création location",
+            error instanceof Error ? error.message : "Erreur activation location",
         },
       },
     });

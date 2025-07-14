@@ -11,7 +11,7 @@ export async function GET(
     const warehouse = await prisma.location.findUnique({
       where: { id: id },
       include: {
-        warehouse: true,
+        warehouses: true,
         storageBoxes: true,
       },
     });
@@ -54,7 +54,7 @@ export async function PUT(
     const { id } = await params;
     const existingLocation = await prisma.location.findUnique({
       where: { id: id },
-      include: { warehouse: true },
+      include: { warehouses: true },
     });
 
     if (!existingLocation) {
@@ -76,9 +76,9 @@ export async function PUT(
     });
 
     // Mettre à jour le warehouse associé
-    if (existingLocation.warehouse) {
+    if (existingLocation.warehouses && existingLocation.warehouses.length > 0) {
       await prisma.warehouse.update({
-        where: { id: existingLocation.warehouse.id },
+        where: { id: existingLocation.warehouses[0].id },
         data: {
           capacity,
           managerName,
@@ -159,7 +159,7 @@ export async function DELETE(
             rentals: true,
           },
         },
-        warehouse: true,
+        warehouses: true,
       },
     });
 
@@ -172,7 +172,7 @@ export async function DELETE(
 
     // Vérifier s'il y a des box occupées
     const occupiedBoxes = existingLocation.storageBoxes.filter(
-      (box) => !box.isAvailable,
+      (box: any) => !box.isAvailable,
     );
     if (occupiedBoxes.length > 0) {
       return NextResponse.json(
@@ -186,9 +186,9 @@ export async function DELETE(
     }
 
     // Vérifier s'il y a des locations actives
-    const activeRentals = existingLocation.storageBoxes.flatMap((box) =>
+    const activeRentals = existingLocation.storageBoxes.flatMap((box: any) =>
       box.rentals.filter(
-        (rental) => !rental.endDate || new Date(rental.endDate) > new Date(),
+        (rental: any) => !rental.endDate || new Date(rental.endDate) > new Date(),
       ),
     );
     if (activeRentals.length > 0) {

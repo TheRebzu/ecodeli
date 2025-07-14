@@ -24,8 +24,8 @@ export async function POST(
         },
       },
       include: {
-        payment: true,
         storageBox: true,
+        payments: true,
       },
     });
 
@@ -42,18 +42,19 @@ export async function POST(
       prisma.storageBoxRental.update({
         where: { id: id },
         data: {
-          status: "ACTIVE",
-          paymentStatus: "PAID",
+          isPaid: true,
         },
       }),
-      // Mettre à jour le paiement
-      prisma.payment.update({
-        where: { id: rental.paymentId! },
-        data: {
-          status: "COMPLETED",
-          paidAt: new Date(),
-        },
-      }),
+      // Mettre à jour le paiement (s'il existe)
+      ...(rental.payments.length > 0 ? [
+        prisma.payment.update({
+          where: { id: rental.payments[0].id },
+          data: {
+            status: "COMPLETED",
+            paidAt: new Date(),
+          },
+        })
+      ] : []),
       // Marquer la box comme occupée
       prisma.storageBox.update({
         where: { id: rental.storageBoxId },

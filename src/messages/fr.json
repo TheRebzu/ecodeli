@@ -1498,6 +1498,33 @@
           "title": "Aucune certification requise",
           "description": "Aucune certification n'est nécessaire pour vos spécialités actuelles."
         }
+      },
+      "calendar": {
+        "title": "Calendrier des disponibilités",
+        "description": "Gérez vos créneaux de disponibilité pour vos prestations",
+        "add_availability": "Ajouter une disponibilité",
+        "edit_availability": "Modifier la disponibilité",
+        "new_availability": "Nouvelle disponibilité",
+        "availability_description": "Définissez vos créneaux de disponibilité pour vos prestations",
+        "start_time": "Heure de début",
+        "end_time": "Heure de fin",
+        "max_bookings": "Nombre maximum de réservations",
+        "recurring": "Récurrent",
+        "recurring_days": "Jours récurrents",
+        "save": "Enregistrer",
+        "cancel": "Annuler",
+        "delete": "Supprimer",
+        "delete_confirm": "Êtes-vous sûr de vouloir supprimer cette disponibilité ?",
+        "success": {
+          "created": "Disponibilité créée avec succès",
+          "updated": "Disponibilité mise à jour",
+          "deleted": "Disponibilité supprimée"
+        },
+        "error": {
+          "fetch_failed": "Erreur lors du chargement des disponibilités",
+          "save_failed": "Erreur lors de la sauvegarde",
+          "delete_failed": "Erreur lors de la suppression"
+        }
       }
     }
   },

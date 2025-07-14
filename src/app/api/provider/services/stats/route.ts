@@ -46,12 +46,10 @@ export async function GET(request: NextRequest) {
       }),
     ]);
 
-    // Get average rating from bookings
-    const ratingsAggregate = await prisma.booking.aggregate({
+    // Get average rating from reviews
+    const ratingsAggregate = await prisma.review.aggregate({
       where: {
-        service: {
-          providerId: provider.id,
-        },
+        providerId: provider.id,
         rating: {
           not: null,
         },
@@ -87,7 +85,7 @@ export async function GET(request: NextRequest) {
         },
       },
       _sum: {
-        totalAmount: true,
+        totalPrice: true,
       },
     });
 
@@ -96,7 +94,7 @@ export async function GET(request: NextRequest) {
       activeServices,
       averageRating: ratingsAggregate._avg.rating || 0,
       totalBookings: monthlyBookings,
-      monthlyRevenue: revenueAggregate._sum.totalAmount || 0,
+      monthlyRevenue: revenueAggregate._sum.totalPrice || 0,
     };
 
     return NextResponse.json(stats);

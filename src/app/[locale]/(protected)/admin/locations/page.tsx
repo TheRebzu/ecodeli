@@ -14,6 +14,13 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   MapPin,
   Plus,
   Edit,
@@ -104,7 +111,14 @@ const warehouseSchema = z.object({
   managerEmail: z.string().email("Email invalide").optional(),
 });
 
+const storageBoxSchema = z.object({
+  boxNumber: z.string().min(1, "Numéro de box requis"),
+  size: z.enum(["SMALL", "MEDIUM", "LARGE", "EXTRA_LARGE"]),
+  pricePerDay: z.coerce.number().positive("Prix doit être positif"),
+});
+
 type WarehouseForm = z.infer<typeof warehouseSchema>;
+type StorageBoxForm = z.infer<typeof storageBoxSchema>;
 
 export default function AdminLocationsPage() {
   const { toast } = useToast();
@@ -119,6 +133,8 @@ export default function AdminLocationsPage() {
   const [editWarehouse, setEditWarehouse] = useState<Warehouse | null>(null);
   const [boxOpen, setBoxOpen] = useState(false);
   const [boxWarehouse, setBoxWarehouse] = useState<Warehouse | null>(null);
+  const [addBoxOpen, setAddBoxOpen] = useState(false);
+  const [addBoxWarehouse, setAddBoxWarehouse] = useState<Warehouse | null>(null);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleteWarehouse, setDeleteWarehouse] = useState<Warehouse | null>(
     null,
@@ -149,6 +165,15 @@ export default function AdminLocationsPage() {
       capacity: 1,
       managerName: "",
       managerEmail: "",
+    },
+  });
+
+  const addBoxForm = useForm<StorageBoxForm>({
+    resolver: zodResolver(storageBoxSchema),
+    defaultValues: {
+      boxNumber: "",
+      size: "MEDIUM",
+      pricePerDay: 5,
     },
   });
 
@@ -379,6 +404,48 @@ export default function AdminLocationsPage() {
       toast({
         title: "Erreur",
         description: "Erreur réseau",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleCreateStorageBox = async (data: StorageBoxForm) => {
+    if (!addBoxWarehouse) return;
+
+    try {
+      const response = await fetch("/api/admin/storage-boxes", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          ...data,
+          locationId: addBoxWarehouse.id,
+        }),
+      });
+
+      if (response.ok) {
+        toast({
+          title: "Succès",
+          description: "Box de stockage créée avec succès",
+        });
+        setAddBoxOpen(false);
+        setAddBoxWarehouse(null);
+        addBoxForm.reset();
+        loadWarehouses();
+      } else {
+        const error = await response.json();
+        toast({
+          title: "Erreur",
+          description: error.error || "Erreur lors de la création",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("Erreur lors de la création:", error);
+      toast({
+        title: "Erreur",
+        description: "Erreur de connexion",
         variant: "destructive",
       });
     }
@@ -907,9 +974,28 @@ export default function AdminLocationsPage() {
           <DialogHeader>
             <DialogTitle>Box de stockage - {boxWarehouse?.name}</DialogTitle>
           </DialogHeader>
-          <div className="space-y-2">
+          <div className="space-y-4">
+            <div className="flex justify-between items-center">
+              <h3 className="text-lg font-medium">Boxes configurées</h3>
+              <Button
+                onClick={() => {
+                  setAddBoxWarehouse(boxWarehouse);
+                  setAddBoxOpen(true);
+                  setBoxOpen(false);
+                }}
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Ajouter une box
+              </Button>
+            </div>
             {boxWarehouse?.storageBoxes.length === 0 ? (
-              <p className="text-muted-foreground">Aucune box configurée</p>
+              <div className="text-center py-8">
+                <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <p className="text-muted-foreground">Aucune box configurée</p>
+                <p className="text-sm text-muted-foreground mt-2">
+                  Cliquez sur "Ajouter une box" pour commencer
+                </p>
+              </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                 {boxWarehouse?.storageBoxes.map((box) => (
@@ -929,6 +1015,75 @@ export default function AdminLocationsPage() {
               </div>
             )}
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal Ajouter Box */}
+      <Dialog open={addBoxOpen} onOpenChange={setAddBoxOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              Ajouter une box - {addBoxWarehouse?.name}
+            </DialogTitle>
+          </DialogHeader>
+          <form
+            onSubmit={addBoxForm.handleSubmit(handleCreateStorageBox)}
+            className="space-y-4"
+          >
+            <div>
+              <Label>Numéro de box</Label>
+              <Input {...addBoxForm.register("boxNumber")} />
+              {addBoxForm.formState.errors.boxNumber && (
+                <p className="text-red-500 text-xs">
+                  {addBoxForm.formState.errors.boxNumber.message}
+                </p>
+              )}
+            </div>
+            <div>
+              <Label>Taille</Label>
+              <Select
+                onValueChange={(value) => addBoxForm.setValue("size", value as any)}
+                defaultValue={addBoxForm.getValues("size")}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Sélectionner une taille" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="SMALL">Petite</SelectItem>
+                  <SelectItem value="MEDIUM">Moyenne</SelectItem>
+                  <SelectItem value="LARGE">Grande</SelectItem>
+                  <SelectItem value="EXTRA_LARGE">Très grande</SelectItem>
+                </SelectContent>
+              </Select>
+              {addBoxForm.formState.errors.size && (
+                <p className="text-red-500 text-xs">
+                  {addBoxForm.formState.errors.size.message}
+                </p>
+              )}
+            </div>
+            <div>
+              <Label>Prix par jour (€)</Label>
+              <Input
+                type="number"
+                step="0.01"
+                min="0"
+                {...addBoxForm.register("pricePerDay", { valueAsNumber: true })}
+              />
+              {addBoxForm.formState.errors.pricePerDay && (
+                <p className="text-red-500 text-xs">
+                  {addBoxForm.formState.errors.pricePerDay.message}
+                </p>
+              )}
+            </div>
+            <DialogFooter>
+              <Button type="submit">Créer la box</Button>
+              <DialogClose asChild>
+                <Button type="button" variant="outline">
+                  Annuler
+                </Button>
+              </DialogClose>
+            </DialogFooter>
+          </form>
         </DialogContent>
       </Dialog>
 

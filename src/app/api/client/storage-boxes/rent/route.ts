@@ -4,10 +4,9 @@ import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { StorageBoxService } from "@/features/storage/services/storage-box.service";
 import { StripeService } from "@/features/payments/services/stripe.service";
-import { PaymentType } from "@prisma/client";
 import Stripe from "stripe";
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2024-06-20",
+  apiVersion: "2025-06-30.basil",
 });
 
 const rentalSchema = z.object({
@@ -121,7 +120,41 @@ export async function POST(request: NextRequest) {
     );
     const totalPrice = daysDiff * storageBox.pricePerDay;
 
-    // Créer la session Stripe Checkout
+    // Créer l'entrée Payment en base d'abord
+    const payment = await prisma.payment.create({
+      data: {
+        userId: session.user.id,
+        clientId: client.id,
+        amount: totalPrice,
+        currency: "EUR",
+        status: "PENDING",
+        type: "STORAGE_RENTAL",
+        paymentMethod: "CARD",
+        metadata: {
+          storageBoxId: validatedData.storageBoxId,
+          startDate: startDateTime.toISOString(),
+          endDate: endDateTime.toISOString(),
+          items: validatedData.items,
+        },
+      },
+    });
+
+    // Générer un code d'accès unique pour la location
+    const accessCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+
+    // Créer la location StorageBoxRental avec statut PENDING_PAYMENT
+    const storageRental = await prisma.storageBoxRental.create({
+      data: {
+        clientId: client.id,
+        storageBoxId: validatedData.storageBoxId,
+        startDate: startDateTime,
+        endDate: endDateTime,
+        totalPrice: totalPrice,
+        accessCode: accessCode,
+      },
+    });
+
+    // Créer la session Stripe Checkout après avoir créé la location
     const sessionStripe = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
       line_items: [
@@ -146,42 +179,15 @@ export async function POST(request: NextRequest) {
         endDate: endDateTime.toISOString(),
         clientId: client.id,
         userId: session.user.id,
-      },
-    });
-
-    // Créer l'entrée Payment en base (optionnel, à ajuster selon le flow)
-    const payment = await prisma.payment.create({
-      data: {
-        userId: session.user.id,
-        clientId: client.id,
-        amount: totalPrice,
-        currency: "EUR",
-        status: "PENDING",
-        type: PaymentType.STORAGE_RENTAL,
-        paymentMethod: "CARD",
-        stripeSessionId: sessionStripe.id,
-        metadata: {
-          storageBoxId: validatedData.storageBoxId,
-          startDate: startDateTime.toISOString(),
-          endDate: endDateTime.toISOString(),
-          items: validatedData.items,
-        },
-      },
-    });
-
-    // Créer la location StorageBoxRental avec statut PENDING_PAYMENT
-    const storageRental = await prisma.storageBoxRental.create({
-      data: {
-        clientId: client.id,
-        storageBoxId: validatedData.storageBoxId,
-        startDate: startDateTime,
-        endDate: endDateTime,
-        totalCost: totalPrice,
-        status: "PENDING_PAYMENT",
-        autoExtend: validatedData.autoExtend,
-        items: validatedData.items,
+        rentalId: storageRental.id,
         paymentId: payment.id,
       },
+    });
+
+    // Mettre à jour le payment avec l'ID de session Stripe
+    await prisma.payment.update({
+      where: { id: payment.id },
+      data: { stripeSessionId: sessionStripe.id },
     });
 
     // Retourner l'URL Stripe Checkout au front
@@ -197,7 +203,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           error: "Données invalides",
-          details: error.errors.map((e) => ({
+          details: error.issues.map((e: any) => ({
             field: e.path.join("."),
             message: e.message,
           })),
