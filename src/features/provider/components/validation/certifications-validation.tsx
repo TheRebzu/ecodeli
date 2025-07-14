@@ -704,9 +704,12 @@ export function ProviderCertificationsValidation({
                         <Button
                           size="sm"
                           variant="outline"
-                          onClick={() =>
-                            window.open(cert.documentUrl, "_blank")
-                          }
+                                                      onClick={() => {
+                              const link = document.createElement("a");
+                              link.href = `/api/provider/documents/${cert.documentId}/download`;
+                              link.download = cert.documentName || "certification.pdf";
+                              link.click();
+                            }}
                         >
                           <Eye className="w-4 h-4" />
                         </Button>

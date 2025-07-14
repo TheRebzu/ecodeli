@@ -10,6 +10,23 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    // Get all documents with their status for debugging
+    const allDocuments = await prisma.document.findMany({
+      select: {
+        id: true,
+        type: true,
+        validationStatus: true,
+        userId: true,
+        user: {
+          select: {
+            role: true,
+          },
+        },
+      },
+    });
+
+    console.log("🔍 Admin Stats Debug - All documents:", allDocuments);
+
     // Statistiques globales
     const [total, pending, approved, rejected] = await Promise.all([
       prisma.document.count(),
@@ -17,6 +34,8 @@ export async function GET(request: NextRequest) {
       prisma.document.count({ where: { validationStatus: "APPROVED" } }),
       prisma.document.count({ where: { validationStatus: "REJECTED" } }),
     ]);
+
+    console.log("🔍 Admin Stats Debug - Counts:", { total, pending, approved, rejected });
 
     // Statistiques par type
     const byType = await prisma.document.groupBy({
@@ -40,7 +59,7 @@ export async function GET(request: NextRequest) {
 
     // Calculer les statistiques par rôle manuellement
     const roleStats = documentsWithUsers.reduce(
-      (acc, doc) => {
+      (acc: Record<string, number>, doc: { userId: string; user: { role: string } }) => {
         const role = doc.user.role;
         if (!acc[role]) {
           acc[role] = 0;
@@ -51,13 +70,12 @@ export async function GET(request: NextRequest) {
       {} as Record<string, number>,
     );
 
-    // Calculer le taux d'approbation
-    const approvalRate =
-      total > 0 ? ((approved / total) * 100).toFixed(1) : "0.0";
+    // Calculer le taux d'approbation correctement
+    const approvalRate = total > 0 ? ((approved / total) * 100).toFixed(1) : "0.0";
 
     // Formater les statistiques par type
     const typeStats = byType.reduce(
-      (acc, item) => {
+      (acc: Record<string, any>, item: { type: string; _count: { id: number } }) => {
         acc[item.type] = {
           count: item._count.id,
           percentage:
@@ -78,6 +96,15 @@ export async function GET(request: NextRequest) {
         approvalRate: `${approvalRate}%`,
         byType: typeStats,
         byUserRole: roleStats,
+        debug: {
+          allDocuments: allDocuments.length,
+          documentStatuses: allDocuments.map((d: { id: string; type: string; validationStatus: string; user: { role: string } }) => ({ 
+            id: d.id, 
+            type: d.type, 
+            status: d.validationStatus, 
+            userRole: d.user.role 
+          }))
+        }
       },
     });
   } catch (error) {

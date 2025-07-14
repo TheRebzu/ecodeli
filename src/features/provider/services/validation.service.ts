@@ -564,7 +564,8 @@ export class ProviderValidationService {
    */
   static async getValidationStatus(providerId: string): Promise<ProviderValidationStatus> {
     try {
-      const provider = await prisma.provider.findUnique({
+      // First try to find by provider ID
+      let provider = await prisma.provider.findUnique({
         where: { id: providerId },
         include: {
           user: {
@@ -581,9 +582,123 @@ export class ProviderValidationService {
         }
       })
 
+      // If not found by provider ID, try to find by userId
       if (!provider) {
-        throw new Error('Prestataire non trouvé')
+        provider = await prisma.provider.findUnique({
+          where: { userId: providerId },
+          include: {
+            user: {
+              include: {
+                profile: true,
+                documents: true
+              }
+            },
+            ProviderCertification: {
+              include: {
+                certification: true
+              }
+            }
+          }
+        })
       }
+
+      // If still not found, try to find by user email (in case providerId is actually an email)
+      if (!provider) {
+        const userByEmail = await prisma.user.findUnique({
+          where: { email: providerId },
+          include: {
+            profile: true,
+            documents: true,
+            provider: {
+              include: {
+                ProviderCertification: {
+                  include: {
+                    certification: true
+                  }
+                }
+              }
+            }
+          }
+        })
+        
+        if (userByEmail?.provider) {
+          provider = userByEmail.provider
+        }
+      }
+
+              // If still not found, create a basic provider profile
+        if (!provider) {
+          const user = await prisma.user.findUnique({
+            where: { id: providerId },
+            include: {
+              profile: true,
+              documents: true
+            }
+          })
+
+          if (!user) {
+            throw new Error('Utilisateur non trouvé')
+          }
+
+          // Check if provider already exists for this user
+          const existingProvider = await prisma.provider.findUnique({
+            where: { userId: providerId }
+          })
+
+          if (existingProvider) {
+            // Provider exists but wasn't found in our earlier queries, fetch it properly
+            provider = await prisma.provider.findUnique({
+              where: { id: existingProvider.id },
+              include: {
+                user: {
+                  include: {
+                    profile: true,
+                    documents: true
+                  }
+                },
+                ProviderCertification: {
+                  include: {
+                    certification: true
+                  }
+                }
+              }
+            })
+          } else {
+            // Create a basic provider profile
+            provider = await prisma.provider.create({
+              data: {
+                userId: providerId,
+                businessName: user.profile?.firstName && user.profile?.lastName 
+                  ? `${user.profile.firstName} ${user.profile.lastName}`
+                  : user.email,
+                siret: '',
+                description: '',
+                validationStatus: 'PENDING',
+                isActive: false,
+                legalStatus: 'AUTOENTREPRENEUR',
+                specialties: [],
+                zone: null,
+                hourlyRate: null,
+                averageRating: 0,
+                totalBookings: 0,
+                monthlyInvoiceDay: 30
+              },
+              include: {
+                user: {
+                  include: {
+                    profile: true,
+                    documents: true
+                  }
+                },
+                ProviderCertification: {
+                  include: {
+                    certification: true
+                  }
+                }
+              }
+            })
+          }
+        }
 
       // Construire les étapes de validation
       const steps: ValidationStep[] = [

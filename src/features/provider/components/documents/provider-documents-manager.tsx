@@ -170,7 +170,7 @@ export function ProviderDocumentsManager() {
       {error && (
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
-          <AlertDescription>{error.message}</AlertDescription>
+          <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}
 
@@ -241,7 +241,12 @@ export function ProviderDocumentsManager() {
                           <Button
                             size="sm"
                             variant="outline"
-                            onClick={() => window.open(latestDoc.url, "_blank")}
+                            onClick={() => {
+                              const link = document.createElement("a");
+                              link.href = `/api/provider/documents/${latestDoc.id}/download`;
+                              link.download = latestDoc.originalName;
+                              link.click();
+                            }}
                           >
                             <Download className="w-4 h-4" />
                           </Button>

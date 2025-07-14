@@ -446,7 +446,12 @@ export default function ValidationManager({
                             <Button
                               size="sm"
                               variant="ghost"
-                              onClick={() => window.open(doc.url, "_blank")}
+                              onClick={() => {
+                                const link = document.createElement("a");
+                                link.href = `/api/provider/documents/${doc.id}/download`;
+                                link.download = doc.name;
+                                link.click();
+                              }}
                             >
                               <Eye className="w-4 h-4" />
                             </Button>
@@ -541,9 +546,12 @@ export default function ValidationManager({
                                     size="sm"
                                     variant="ghost"
                                     className="mt-2"
-                                    onClick={() =>
-                                      window.open(doc.url, "_blank")
-                                    }
+                                    onClick={() => {
+                                      const link = document.createElement("a");
+                                      link.href = `/api/provider/documents/${doc.id}/download`;
+                                      link.download = doc.name;
+                                      link.click();
+                                    }}
                                   >
                                     <Eye className="w-4 h-4 mr-1" />
                                     {t("view")}

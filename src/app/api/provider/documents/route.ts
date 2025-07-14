@@ -1,95 +1,67 @@
-import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
-import { prisma } from "@/lib/db";
+import { NextRequest, NextResponse } from 'next/server'
+import { auth } from '@/lib/auth'
+import { prisma } from '@/lib/db'
 
-/**
- * GET /api/provider/documents
- * Récupérer les documents d'un prestataire avec résumé
- */
 export async function GET(request: NextRequest) {
   try {
-    const session = await auth();
-
-    if (!session) {
-      return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
+    const session = await auth()
+    
+    if (!session?.user) {
+      return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
     }
 
-    if (session.user.role !== "PROVIDER") {
-      return NextResponse.json(
-        { error: "Accès non autorisé" },
-        { status: 403 },
-      );
+    const { searchParams } = new URL(request.url)
+    const providerId = searchParams.get('providerId')
+
+    if (!providerId) {
+      return NextResponse.json({ error: 'ID prestataire requis' }, { status: 400 })
+    }
+
+    // Vérifier les permissions
+    if (session.user.role !== 'ADMIN' && session.user.id !== providerId) {
+      return NextResponse.json({ error: 'Accès interdit' }, { status: 403 })
     }
 
     // Récupérer les documents du prestataire
     const documents = await prisma.document.findMany({
       where: {
-        userId: session.user.id,
-        type: { in: ["IDENTITY", "CERTIFICATION", "INSURANCE", "CONTRACT"] },
+        userId: providerId,
+        type: {
+          in: ['IDENTITY', 'DRIVING_LICENSE', 'INSURANCE', 'CERTIFICATION', 'CONTRACT']
+        }
       },
-      orderBy: { createdAt: "desc" },
-    });
+      orderBy: {
+        createdAt: 'desc'
+      }
+    })
 
-    // Récupérer le profil prestataire
-    const provider = await prisma.provider.findUnique({
-      where: { userId: session.user.id },
-    });
+    console.log('🔍 Provider Documents Debug:', {
+      providerId,
+      documentsFound: documents.length,
+      documents: documents.map((d: any) => ({ id: d.id, type: d.type, status: d.validationStatus }))
+    })
 
-    // Documents requis pour les prestataires
-    const requiredDocuments = ["IDENTITY", "CERTIFICATION"];
+    // Transformer les documents pour l'interface
+    const transformedDocuments = documents.map((doc: any) => ({
+      id: doc.id,
+      type: doc.type, // Keep original type (IDENTITY, DRIVING_LICENSE, etc.)
+      name: doc.originalName || doc.filename,
+      size: doc.size,
+      uploadedAt: doc.createdAt,
+      status: doc.validationStatus, // Keep original case
+      url: doc.url,
+      rejectionReason: doc.rejectionReason
+    }))
 
-    // Calculer le résumé
-    const approvedDocs = documents.filter(
-      (doc) => doc.validationStatus === "APPROVED",
-    );
-    const pendingDocs = documents.filter(
-      (doc) => doc.validationStatus === "PENDING",
-    );
-    const rejectedDocs = documents.filter(
-      (doc) => doc.validationStatus === "REJECTED",
-    );
+    console.log('🔍 Provider Transformed Documents:', transformedDocuments)
 
-    // Documents manquants (requis mais pas approuvés)
-    const missing = requiredDocuments.filter(
-      (requiredType) => !approvedDocs.some((doc) => doc.type === requiredType),
-    );
+    return NextResponse.json(transformedDocuments)
 
-    // Peut être activé si tous les documents requis sont approuvés
-    const canActivate = requiredDocuments.every((requiredType) =>
-      approvedDocs.some((doc) => doc.type === requiredType),
-    );
-
-    const summary = {
-      total: documents.length,
-      approved: approvedDocs.length,
-      pending: pendingDocs.length,
-      rejected: rejectedDocs.length,
-      requiredDocuments,
-      missing,
-      canActivate,
-    };
-
-    return NextResponse.json({
-      documents: documents.map((doc) => ({
-        id: doc.id,
-        type: doc.type,
-        filename: doc.filename,
-        originalName: doc.originalName,
-        url: doc.url,
-        validationStatus: doc.validationStatus,
-        validatedBy: doc.validatedBy,
-        validatedAt: doc.validatedAt,
-        rejectionReason: doc.rejectionReason,
-        createdAt: doc.createdAt,
-        updatedAt: doc.updatedAt,
-      })),
-      summary,
-    });
   } catch (error) {
-    console.error("Erreur récupération documents prestataire:", error);
+    console.error('Erreur récupération documents:', error)
     return NextResponse.json(
-      { error: "Erreur interne du serveur" },
-      { status: 500 },
-    );
+      { error: 'Erreur lors de la récupération des documents' },
+      { status: 500 }
+    )
   }
 }

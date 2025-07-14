@@ -216,6 +216,12 @@ export default function ProviderValidationPage() {
   const { user } = useAuth()
   const [activeTab, setActiveTab] = useState('overview')
   
+  // Debug: Log user information
+  console.log('🔍 ProviderValidationPage Debug:', {
+    user: user ? { id: user.id, role: user.role } : null,
+    userId: user?.id
+  })
+  
   const {
     validationStatus,
     isLoading,
@@ -230,10 +236,32 @@ export default function ProviderValidationPage() {
     progressPercentage
   } = useProviderValidation(user?.id)
 
+  // Debug: Log hook state
+  console.log('🔍 useProviderValidation Debug:', {
+    validationStatus: validationStatus ? 'exists' : 'null',
+    isLoading,
+    error,
+    requiredCertifications: requiredCertifications.length,
+    currentStep: currentStep?.id
+  })
+
   // Rafraîchir le statut au montage
   useEffect(() => {
+    console.log('🔄 useEffect: Calling refreshStatus')
     refreshStatus()
   }, [refreshStatus])
+
+  // Debug: Enhanced refresh function
+  const handleRefresh = () => {
+    console.log('🔄 Button clicked: refreshStatus')
+    refreshStatus()
+  }
+
+  // Debug: Enhanced certification start function
+  const handleStartCertification = (certificationId: string) => {
+    console.log('🔄 Button clicked: startCertification', { certificationId })
+    startCertification(certificationId)
+  }
 
   if (isLoading) {
     return (
@@ -265,10 +293,21 @@ export default function ProviderValidationPage() {
             {t('subtitle')}
           </p>
         </div>
-        <Button variant="outline" onClick={refreshStatus}>
-          <RefreshCw className="h-4 w-4 mr-2" />
-          {t('refresh')}
-        </Button>
+        <div className="flex gap-2">
+          <Button 
+            variant="outline" 
+            onClick={() => {
+              console.log('🧪 Test button clicked!')
+              alert('Test button works!')
+            }}
+          >
+            🧪 Test Button
+          </Button>
+          <Button variant="outline" onClick={handleRefresh}>
+            <RefreshCw className="h-4 w-4 mr-2" />
+            {t('refresh')}
+          </Button>
+        </div>
       </div>
 
       {/* Barre de progression globale */}
@@ -336,7 +375,7 @@ export default function ProviderValidationPage() {
       )}
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="overview" className="flex items-center gap-2">
             <Shield className="h-4 w-4" />
             {t('tabs.overview')}
@@ -348,6 +387,10 @@ export default function ProviderValidationPage() {
           <TabsTrigger value="certifications" className="flex items-center gap-2">
             <Award className="h-4 w-4" />
             {t('tabs.certifications')}
+          </TabsTrigger>
+          <TabsTrigger value="documents" className="flex items-center gap-2">
+            <FileText className="h-4 w-4" />
+            Documents
           </TabsTrigger>
         </TabsList>
 
@@ -430,7 +473,10 @@ export default function ProviderValidationPage() {
                   </div>
                   
                   {currentStep.id === 'documents' && (
-                    <Button className="w-full">
+                    <Button 
+                      className="w-full"
+                      onClick={() => window.location.href = '/fr/provider/validation/documents'}
+                    >
                       <Upload className="h-4 w-4 mr-2" />
                       {t('current.uploadDocuments')}
                     </Button>
@@ -496,7 +542,7 @@ export default function ProviderValidationPage() {
                 <CertificationCard
                   key={certification.id}
                   certification={certification}
-                  onStart={() => startCertification(certification.id)}
+                  onStart={() => handleStartCertification(certification.id)}
                   onView={() => {
                     // Naviguer vers la page de certification
                     window.location.href = `/provider/certifications/${certification.id}`
@@ -515,6 +561,85 @@ export default function ProviderValidationPage() {
               )}
             </div>
           )}
+        </TabsContent>
+
+        {/* Documents */}
+        <TabsContent value="documents" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <FileText className="h-5 w-5" />
+                Documents de validation
+              </CardTitle>
+              <CardDescription>
+                Téléchargez les documents requis pour valider votre profil prestataire
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="font-semibold">Documents requis</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Pièce d'identité, licence professionnelle, assurance, etc.
+                    </p>
+                  </div>
+                  <Button 
+                    onClick={() => window.location.href = '/fr/provider/validation/documents'}
+                  >
+                    <Upload className="h-4 w-4 mr-2" />
+                    Gérer les documents
+                  </Button>
+                </div>
+                
+                <div className="grid gap-3">
+                  <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <User className="h-5 w-5 text-muted-foreground" />
+                      <div>
+                        <p className="font-medium">Pièce d'identité</p>
+                        <p className="text-sm text-muted-foreground">Carte nationale, passeport</p>
+                      </div>
+                    </div>
+                    <Badge variant="outline">Obligatoire</Badge>
+                  </div>
+                  
+                  <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <Building className="h-5 w-5 text-muted-foreground" />
+                      <div>
+                        <p className="font-medium">Licence professionnelle</p>
+                        <p className="text-sm text-muted-foreground">Autorisation d'exercer</p>
+                      </div>
+                    </div>
+                    <Badge variant="outline">Obligatoire</Badge>
+                  </div>
+                  
+                  <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <Shield className="h-5 w-5 text-muted-foreground" />
+                      <div>
+                        <p className="font-medium">Assurance professionnelle</p>
+                        <p className="text-sm text-muted-foreground">Responsabilité civile</p>
+                      </div>
+                    </div>
+                    <Badge variant="outline">Obligatoire</Badge>
+                  </div>
+                  
+                  <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <Award className="h-5 w-5 text-muted-foreground" />
+                      <div>
+                        <p className="font-medium">Certifications</p>
+                        <p className="text-sm text-muted-foreground">Diplômes et formations</p>
+                      </div>
+                    </div>
+                    <Badge variant="secondary">Optionnel</Badge>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
       </Tabs>
     </div>

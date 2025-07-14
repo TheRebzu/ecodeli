@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import createIntlMiddleware from 'next-intl/middleware'
 import { auth } from '@/lib/auth'
-import type { UserRole } from "@prisma/client"
+import { UserRole } from '@/types/entities'
 
 const intlMiddleware = createIntlMiddleware({
   locales: ['fr', 'en'],
@@ -216,23 +216,25 @@ export default async function middleware(request: NextRequest) {
       }
 
       // Vérifications spécifiques par rôle
-      if (user.role === 'DELIVERER' || user.role === 'PROVIDER') {
-        // Vérifier le statut de validation pour les livreurs et prestataires
+      if (user.role === 'DELIVERER') {
+        // Vérifier le statut de validation pour les livreurs
         if (user.validationStatus !== 'APPROVED') {
           // Permettre l'accès aux pages de validation même si non validé
-          if (pathname.includes('/provider/validation') || pathname.includes('/api/provider/validation')) {
+          if (pathname.includes('/deliverer/validation') || pathname.includes('/api/deliverer/validation')) {
             console.log(`✅ Middleware: Accès autorisé à la page de validation - ${user.role} (ID: ${user.id})`)
             return NextResponse.next()
           }
           
           console.log(`🚨 Middleware: Validation en attente - ${user.role} (ID: ${user.id})`)
           const locale = pathname.split('/')[1] || 'fr'
-          if (user.role === 'PROVIDER') {
-            return NextResponse.redirect(new URL(`/${locale}/provider/validation`, request.url))
-          } else {
-            return NextResponse.redirect(new URL(`/${locale}/deliverer/validation`, request.url))
-          }
+          return NextResponse.redirect(new URL(`/${locale}/deliverer/validation`, request.url))
         }
+      }
+      
+      // Pour les providers, permettre l'accès (validation gérée côté client)
+      if (user.role === 'PROVIDER') {
+        console.log(`✅ Middleware: Provider autorisé - ${user.role} (ID: ${user.id})`)
+        return NextResponse.next()
       }
 
       console.log('✅ Middleware: Accès autorisé', {
