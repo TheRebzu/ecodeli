@@ -1,19 +1,19 @@
-'use client'
+"use client";
 
-import { useAuth } from './useAuth'
-import { useState, useEffect } from 'react'
-import { UserRole } from '@/lib/auth/permissions'
+import { useAuth } from "./useAuth";
+import { useState, useEffect } from "react";
+import { UserRole } from "@/lib/auth/permissions";
 
 export interface ValidationStatus {
-  isValid: boolean
-  canLogin: boolean
-  needsEmailVerification: boolean
-  needsDocumentUpload: boolean
-  needsAdminValidation: boolean
-  needsTutorial: boolean
-  needsContractSignature: boolean
-  validationMessage: string
-  nextStepUrl?: string
+  isValid: boolean;
+  canLogin: boolean;
+  needsEmailVerification: boolean;
+  needsDocumentUpload: boolean;
+  needsAdminValidation: boolean;
+  needsTutorial: boolean;
+  needsContractSignature: boolean;
+  validationMessage: string;
+  nextStepUrl?: string;
 }
 
 /**
@@ -21,7 +21,7 @@ export interface ValidationStatus {
  * Détermine les étapes manquantes selon le rôle
  */
 export function useValidation(): ValidationStatus {
-  const { user, isAuthenticated, needsAction } = useAuth()
+  const { user, isAuthenticated, needsAction } = useAuth();
   const [validationStatus, setValidationStatus] = useState<ValidationStatus>({
     isValid: false,
     canLogin: false,
@@ -30,8 +30,8 @@ export function useValidation(): ValidationStatus {
     needsAdminValidation: false,
     needsTutorial: false,
     needsContractSignature: false,
-    validationMessage: 'Chargement...'
-  })
+    validationMessage: "Chargement...",
+  });
 
   useEffect(() => {
     if (!isAuthenticated || !user) {
@@ -43,80 +43,82 @@ export function useValidation(): ValidationStatus {
         needsAdminValidation: false,
         needsTutorial: false,
         needsContractSignature: false,
-        validationMessage: 'Non connecté'
-      })
-      return
+        validationMessage: "Non connecté",
+      });
+      return;
     }
 
     const status: ValidationStatus = {
       isValid: true,
       canLogin: true,
-      needsEmailVerification: needsAction.includes('EMAIL_VERIFICATION'),
-      needsDocumentUpload: needsAction.includes('DOCUMENT_UPLOAD'),
-      needsAdminValidation: needsAction.includes('ADMIN_VALIDATION'),
-      needsTutorial: needsAction.includes('TUTORIAL_COMPLETION'),
-      needsContractSignature: needsAction.includes('CONTRACT_SIGNATURE'),
-      validationMessage: 'Compte validé'
-    }
+      needsEmailVerification: needsAction.includes("EMAIL_VERIFICATION"),
+      needsDocumentUpload: needsAction.includes("DOCUMENT_UPLOAD"),
+      needsAdminValidation: needsAction.includes("ADMIN_VALIDATION"),
+      needsTutorial: needsAction.includes("TUTORIAL_COMPLETION"),
+      needsContractSignature: needsAction.includes("CONTRACT_SIGNATURE"),
+      validationMessage: "Compte validé",
+    };
 
     // Déterminer si l'utilisateur peut se connecter
-    if (user.status === 'SUSPENDED') {
-      status.canLogin = false
-      status.validationMessage = 'Compte suspendu'
-    } else if (user.status === 'INACTIVE') {
-      status.canLogin = false
-      status.validationMessage = 'Compte inactif'
+    if (user.status === "SUSPENDED") {
+      status.canLogin = false;
+      status.validationMessage = "Compte suspendu";
+    } else if (user.status === "INACTIVE") {
+      status.canLogin = false;
+      status.validationMessage = "Compte inactif";
     }
 
     // Messages et URLs selon les actions nécessaires
     if (status.needsEmailVerification) {
-      status.canLogin = false
-      status.validationMessage = 'Vérification email requise'
-      status.nextStepUrl = '/verify-email'
+      status.canLogin = false;
+      status.validationMessage = "Vérification email requise";
+      status.nextStepUrl = "/verify-email";
     } else if (status.needsDocumentUpload) {
-      status.canLogin = false
-      status.validationMessage = getDocumentUploadMessage(user.role as UserRole)
-      if (user.role === 'PROVIDER') {
-        status.nextStepUrl = '/provider/validation'
-      } else if (user.role === 'DELIVERER') {
-        status.nextStepUrl = '/deliverer/validation'
+      status.canLogin = false;
+      status.validationMessage = getDocumentUploadMessage(
+        user.role as UserRole,
+      );
+      if (user.role === "PROVIDER") {
+        status.nextStepUrl = "/provider/validation";
+      } else if (user.role === "DELIVERER") {
+        status.nextStepUrl = "/deliverer/validation";
       } else {
-        status.nextStepUrl = '/onboarding/documents'
+        status.nextStepUrl = "/onboarding/documents";
       }
     } else if (status.needsAdminValidation) {
-      status.canLogin = false
-      status.validationMessage = 'Validation admin en cours'
-      if (user.role === 'PROVIDER') {
-        status.nextStepUrl = '/provider/validation'
-      } else if (user.role === 'DELIVERER') {
-        status.nextStepUrl = '/deliverer/validation'
+      status.canLogin = false;
+      status.validationMessage = "Validation admin en cours";
+      if (user.role === "PROVIDER") {
+        status.nextStepUrl = "/provider/validation";
+      } else if (user.role === "DELIVERER") {
+        status.nextStepUrl = "/deliverer/validation";
       } else {
-        status.nextStepUrl = '/onboarding/pending'
+        status.nextStepUrl = "/onboarding/pending";
       }
     } else if (status.needsTutorial) {
-      status.validationMessage = 'Tutoriel requis'
-      status.nextStepUrl = '/onboarding/tutorial'
+      status.validationMessage = "Tutoriel requis";
+      status.nextStepUrl = "/onboarding/tutorial";
     } else if (status.needsContractSignature) {
-      status.canLogin = false
-      status.validationMessage = 'Signature de contrat requise'
-      status.nextStepUrl = '/onboarding/contract'
+      status.canLogin = false;
+      status.validationMessage = "Signature de contrat requise";
+      status.nextStepUrl = "/onboarding/contract";
     }
 
-    setValidationStatus(status)
-  }, [user, isAuthenticated, needsAction])
+    setValidationStatus(status);
+  }, [user, isAuthenticated, needsAction]);
 
-  return validationStatus
+  return validationStatus;
 }
 
 function getDocumentUploadMessage(role: UserRole): string {
   switch (role) {
-    case 'DELIVERER':
-      return 'Upload des documents requis (identité, permis, assurance)'
-    case 'PROVIDER':
-      return 'Upload des certifications requis'
-    case 'MERCHANT':
-      return 'Informations entreprise requises'
+    case "DELIVERER":
+      return "Upload des documents requis (identité, permis, assurance)";
+    case "PROVIDER":
+      return "Upload des certifications requis";
+    case "MERCHANT":
+      return "Informations entreprise requises";
     default:
-      return 'Documents requis'
+      return "Documents requis";
   }
 }

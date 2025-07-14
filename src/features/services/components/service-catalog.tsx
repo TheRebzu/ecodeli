@@ -15,9 +15,24 @@ import { Badge } from "@/components/ui/badge";
 import { useTranslations } from "next-intl";
 import { Search, Filter, Star, Clock, MapPin, User } from "lucide-react";
 // Define ServiceCategory locally to avoid Prisma client import on client side
-type ServiceCategory = 'CLEANING' | 'GARDENING' | 'HANDYMAN' | 'TUTORING' | 'HEALTHCARE' | 'BEAUTY' | 'OTHER';
+type ServiceCategory =
+  | "CLEANING"
+  | "GARDENING"
+  | "HANDYMAN"
+  | "TUTORING"
+  | "HEALTHCARE"
+  | "BEAUTY"
+  | "OTHER";
 
-const ServiceCategoryValues: ServiceCategory[] = ['CLEANING', 'GARDENING', 'HANDYMAN', 'TUTORING', 'HEALTHCARE', 'BEAUTY', 'OTHER'];
+const ServiceCategoryValues: ServiceCategory[] = [
+  "CLEANING",
+  "GARDENING",
+  "HANDYMAN",
+  "TUTORING",
+  "HEALTHCARE",
+  "BEAUTY",
+  "OTHER",
+];
 
 interface Service {
   id: string;

@@ -1,110 +1,119 @@
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect } from "react";
 
 export interface ProviderValidationData {
   profile: {
-    businessName: string
-    siret: string
-    description: string
-    specialties: string[]
-    hourlyRate: number
+    businessName: string;
+    siret: string;
+    description: string;
+    specialties: string[];
+    hourlyRate: number;
     zone?: {
-      coordinates: number[]
-      radius: number
-    }
-  }
+      coordinates: number[];
+      radius: number;
+    };
+  };
   services: Array<{
-    name: string
-    description: string
-    type: string
-    basePrice: number
-    priceUnit: string
-    duration?: number
-    requirements: string[]
-    minAdvanceBooking: number
-    maxAdvanceBooking: number
-  }>
+    name: string;
+    description: string;
+    type: string;
+    basePrice: number;
+    priceUnit: string;
+    duration?: number;
+    requirements: string[];
+    minAdvanceBooking: number;
+    maxAdvanceBooking: number;
+  }>;
   certifications: Array<{
-    name: string
-    issuingOrganization: string
-    issueDate: Date
-    expiryDate?: Date
-    certificateNumber?: string
-    documentUrl?: string
-  }>
+    name: string;
+    issuingOrganization: string;
+    issueDate: Date;
+    expiryDate?: Date;
+    certificateNumber?: string;
+    documentUrl?: string;
+  }>;
   rates: Array<{
-    serviceType: string
-    baseRate: number
-    unitType: string
-    minimumCharge?: number
-  }>
+    serviceType: string;
+    baseRate: number;
+    unitType: string;
+    minimumCharge?: number;
+  }>;
 }
 
 export interface ValidationStep {
-  id: string
-  title: string
-  description: string
-  status: 'pending' | 'in_progress' | 'completed' | 'failed'
-  completedAt?: Date
-  errorMessage?: string
+  id: string;
+  title: string;
+  description: string;
+  status: "pending" | "in_progress" | "completed" | "failed";
+  completedAt?: Date;
+  errorMessage?: string;
 }
 
 export interface ProviderValidationStatus {
-  currentStatus: 'PENDING' | 'IN_REVIEW' | 'APPROVED' | 'REJECTED'
-  steps: ValidationStep[]
-  progress: number
-  estimatedCompletionDate?: Date
-  rejectionReason?: string
-  nextAction?: string
+  currentStatus: "PENDING" | "IN_REVIEW" | "APPROVED" | "REJECTED";
+  steps: ValidationStep[];
+  progress: number;
+  estimatedCompletionDate?: Date;
+  rejectionReason?: string;
+  nextAction?: string;
 }
 
 export interface CertificationRequirement {
-  id: string
-  name: string
-  description: string
-  category: string
-  level: string
-  isRequired: boolean
-  status: 'not_started' | 'in_progress' | 'completed' | 'failed' | 'expired'
-  expiresAt?: Date
-  certificateUrl?: string
-  score?: number
-  attempts: number
-  maxAttempts: number
+  id: string;
+  name: string;
+  description: string;
+  category: string;
+  level: string;
+  isRequired: boolean;
+  status: "not_started" | "in_progress" | "completed" | "failed" | "expired";
+  expiresAt?: Date;
+  certificateUrl?: string;
+  score?: number;
+  attempts: number;
+  maxAttempts: number;
 }
 
 interface UseProviderValidationReturn {
   // État de validation
-  validationStatus: ProviderValidationStatus | null
-  isLoading: boolean
-  error: string | null
-  
+  validationStatus: ProviderValidationStatus | null;
+  isLoading: boolean;
+  error: string | null;
+
   // Certifications
-  requiredCertifications: CertificationRequirement[]
-  certificationsLoading: boolean
-  
+  requiredCertifications: CertificationRequirement[];
+  certificationsLoading: boolean;
+
   // Actions de validation
-  startValidation: (data: ProviderValidationData) => Promise<void>
-  refreshStatus: () => Promise<void>
-  startCertification: (certificationId: string) => Promise<void>
-  completeModule: (certificationId: string, moduleId: string, score: number) => Promise<void>
-  
+  startValidation: (data: ProviderValidationData) => Promise<void>;
+  refreshStatus: () => Promise<void>;
+  startCertification: (certificationId: string) => Promise<void>;
+  completeModule: (
+    certificationId: string,
+    moduleId: string,
+    score: number,
+  ) => Promise<void>;
+
   // Upload de documents
-  uploadDocument: (file: File, type: string) => Promise<string>
-  
+  uploadDocument: (file: File, type: string) => Promise<string>;
+
   // État des étapes
-  currentStep: ValidationStep | null
-  nextStep: ValidationStep | null
-  canProceed: boolean
-  progressPercentage: number
+  currentStep: ValidationStep | null;
+  nextStep: ValidationStep | null;
+  canProceed: boolean;
+  progressPercentage: number;
 }
 
-export function useProviderValidation(providerId?: string): UseProviderValidationReturn {
+export function useProviderValidation(
+  providerId?: string,
+): UseProviderValidationReturn {
   // États principaux
-  const [validationStatus, setValidationStatus] = useState<ProviderValidationStatus | null>(null)
-  const [requiredCertifications, setRequiredCertifications] = useState<CertificationRequirement[]>([])
-  const [isLoading, setIsLoading] = useState(false)
-  const [certificationsLoading, setCertificationsLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [validationStatus, setValidationStatus] =
+    useState<ProviderValidationStatus | null>(null);
+  const [requiredCertifications, setRequiredCertifications] = useState<
+    CertificationRequirement[]
+  >([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [certificationsLoading, setCertificationsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   // Charger le statut de validation
   const loadValidationStatus = useCallback(async () => {
@@ -135,9 +144,9 @@ export function useProviderValidation(providerId?: string): UseProviderValidatio
       console.error('❌ loadValidationStatus: Error:', err)
       setError(err instanceof Error ? err.message : 'Erreur de chargement')
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }, [providerId])
+  }, [providerId]);
 
   // Charger les certifications requises
   const loadRequiredCertifications = useCallback(async (specialties: string[]) => {
@@ -179,14 +188,14 @@ export function useProviderValidation(providerId?: string): UseProviderValidatio
     setIsLoading(true)
     setError(null)
 
-    try {
-      const response = await fetch('/api/provider/validation/start', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(data)
-      })
+      try {
+        const response = await fetch("/api/provider/validation/start", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(data),
+        });
 
       console.log('🔄 startValidation: Response status:', response.status)
 
@@ -230,17 +239,17 @@ export function useProviderValidation(providerId?: string): UseProviderValidatio
     setIsLoading(true)
     setError(null)
 
-    try {
-      const response = await fetch('/api/provider/certifications/start', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          providerId,
-          certificationId
-        })
-      })
+      try {
+        const response = await fetch("/api/provider/certifications/start", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            providerId,
+            certificationId,
+          }),
+        });
 
       console.log('🔄 startCertification: Response status:', response.status)
 
@@ -263,227 +272,244 @@ export function useProviderValidation(providerId?: string): UseProviderValidatio
   }, [providerId, loadValidationStatus])
 
   // Compléter un module
-  const completeModule = useCallback(async (
-    certificationId: string, 
-    moduleId: string, 
-    score: number
-  ) => {
-    if (!providerId) return
+  const completeModule = useCallback(
+    async (certificationId: string, moduleId: string, score: number) => {
+      if (!providerId) return;
 
-    setIsLoading(true)
-    setError(null)
+      setIsLoading(true);
+      setError(null);
 
-    try {
-      const response = await fetch('/api/provider/certifications/complete-module', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          providerId,
-          certificationId,
-          moduleId,
-          score
-        })
-      })
+      try {
+        const response = await fetch(
+          "/api/provider/certifications/complete-module",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              providerId,
+              certificationId,
+              moduleId,
+              score,
+            }),
+          },
+        );
 
-      if (!response.ok) {
-        throw new Error('Erreur lors de la complétion du module')
+        if (!response.ok) {
+          throw new Error("Erreur lors de la complétion du module");
+        }
+
+        // Recharger le statut
+        await loadValidationStatus();
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Erreur de complétion");
+      } finally {
+        setIsLoading(false);
       }
-
-      // Recharger le statut
-      await loadValidationStatus()
-
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erreur de complétion')
-    } finally {
-      setIsLoading(false)
-    }
-  }, [providerId, loadValidationStatus])
+    },
+    [providerId, loadValidationStatus],
+  );
 
   // Upload de document
-  const uploadDocument = useCallback(async (file: File, type: string): Promise<string> => {
-    const formData = new FormData()
-    formData.append('file', file)
-    formData.append('type', type)
+  const uploadDocument = useCallback(
+    async (file: File, type: string): Promise<string> => {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("type", type);
 
-    try {
-      const response = await fetch('/api/documents/upload', {
-        method: 'POST',
-        body: formData
-      })
+      try {
+        const response = await fetch("/api/documents/upload", {
+          method: "POST",
+          body: formData,
+        });
 
-      if (!response.ok) {
-        throw new Error('Erreur lors de l\'upload')
+        if (!response.ok) {
+          throw new Error("Erreur lors de l'upload");
+        }
+
+        const result = await response.json();
+        return result.url;
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Erreur d'upload");
+        throw err;
       }
-
-      const result = await response.json()
-      return result.url
-
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erreur d\'upload')
-      throw err
-    }
-  }, [])
+    },
+    [],
+  );
 
   // Charger le statut au montage
   useEffect(() => {
     if (providerId) {
-      loadValidationStatus()
+      loadValidationStatus();
     }
-  }, [providerId, loadValidationStatus])
+  }, [providerId, loadValidationStatus]);
 
   // Calculer les propriétés dérivées
-  const currentStep = validationStatus?.steps.find(
-    step => step.status === 'in_progress' || step.status === 'pending'
-  ) || null
+  const currentStep =
+    validationStatus?.steps.find(
+      (step) => step.status === "in_progress" || step.status === "pending",
+    ) || null;
 
-  const nextStep = validationStatus?.steps.find(
-    (step, index) => {
-      const currentStepIndex = validationStatus.steps.findIndex(s => s === currentStep)
-      return index === currentStepIndex + 1
-    }
-  ) || null
+  const nextStep =
+    validationStatus?.steps.find((step, index) => {
+      const currentStepIndex = validationStatus.steps.findIndex(
+        (s) => s === currentStep,
+      );
+      return index === currentStepIndex + 1;
+    }) || null;
 
-  const canProceed = currentStep?.status !== 'failed' && 
-                     validationStatus?.currentStatus !== 'REJECTED'
+  const canProceed =
+    currentStep?.status !== "failed" &&
+    validationStatus?.currentStatus !== "REJECTED";
 
-  const progressPercentage = validationStatus?.progress || 0
+  const progressPercentage = validationStatus?.progress || 0;
 
   return {
     // État de validation
     validationStatus,
     isLoading,
     error,
-    
+
     // Certifications
     requiredCertifications,
     certificationsLoading,
-    
+
     // Actions
     startValidation,
     refreshStatus,
     startCertification,
     completeModule,
     uploadDocument,
-    
+
     // État des étapes
     currentStep,
     nextStep,
     canProceed,
-    progressPercentage
-  }
+    progressPercentage,
+  };
 }
 
 // Hook pour la gestion des certifications
 export function useProviderCertifications(providerId: string) {
-  const [certifications, setCertifications] = useState<CertificationRequirement[]>([])
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [certifications, setCertifications] = useState<
+    CertificationRequirement[]
+  >([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const loadCertifications = useCallback(async () => {
-    setLoading(true)
-    setError(null)
+    setLoading(true);
+    setError(null);
 
     try {
-      const response = await fetch(`/api/provider/certifications?providerId=${providerId}`)
-      
+      const response = await fetch(
+        `/api/provider/certifications?providerId=${providerId}`,
+      );
+
       if (!response.ok) {
-        throw new Error('Erreur lors du chargement des certifications')
+        throw new Error("Erreur lors du chargement des certifications");
       }
 
-      const data = await response.json()
-      setCertifications(data.certifications)
-
+      const data = await response.json();
+      setCertifications(data.certifications);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erreur de chargement')
+      setError(err instanceof Error ? err.message : "Erreur de chargement");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }, [providerId])
+  }, [providerId]);
 
   useEffect(() => {
     if (providerId) {
-      loadCertifications()
+      loadCertifications();
     }
-  }, [providerId, loadCertifications])
+  }, [providerId, loadCertifications]);
 
   return {
     certifications,
     loading,
     error,
-    reload: loadCertifications
-  }
+    reload: loadCertifications,
+  };
 }
 
 // Hook pour la gestion des modules de certification
 export function useCertificationModules(certificationId: string) {
-  const [modules, setModules] = useState<any[]>([])
-  const [currentModule, setCurrentModule] = useState<any | null>(null)
-  const [progress, setProgress] = useState<any[]>([])
-  const [loading, setLoading] = useState(false)
+  const [modules, setModules] = useState<any[]>([]);
+  const [currentModule, setCurrentModule] = useState<any | null>(null);
+  const [progress, setProgress] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
 
   const loadModules = useCallback(async () => {
-    setLoading(true)
+    setLoading(true);
 
     try {
-      const response = await fetch(`/api/provider/certifications/${certificationId}/modules`)
-      
+      const response = await fetch(
+        `/api/provider/certifications/${certificationId}/modules`,
+      );
+
       if (!response.ok) {
-        throw new Error('Erreur lors du chargement des modules')
+        throw new Error("Erreur lors du chargement des modules");
       }
 
-      const data = await response.json()
-      setModules(data.modules)
-      setProgress(data.progress)
-      
+      const data = await response.json();
+      setModules(data.modules);
+      setProgress(data.progress);
+
       // Trouver le module actuel (premier non terminé)
       const currentMod = data.modules.find((mod: any) => {
-        const moduleProgress = data.progress.find((p: any) => p.moduleId === mod.id)
-        return !moduleProgress || moduleProgress.status !== 'COMPLETED'
-      })
-      
-      setCurrentModule(currentMod || null)
+        const moduleProgress = data.progress.find(
+          (p: any) => p.moduleId === mod.id,
+        );
+        return !moduleProgress || moduleProgress.status !== "COMPLETED";
+      });
 
+      setCurrentModule(currentMod || null);
     } catch (err) {
-      console.error('Erreur chargement modules:', err)
+      console.error("Erreur chargement modules:", err);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }, [certificationId])
+  }, [certificationId]);
 
-  const completeModule = useCallback(async (moduleId: string, score: number) => {
-    try {
-      const response = await fetch('/api/provider/certifications/complete-module', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          certificationId,
-          moduleId,
-          score
-        })
-      })
+  const completeModule = useCallback(
+    async (moduleId: string, score: number) => {
+      try {
+        const response = await fetch(
+          "/api/provider/certifications/complete-module",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              certificationId,
+              moduleId,
+              score,
+            }),
+          },
+        );
 
-      if (!response.ok) {
-        throw new Error('Erreur lors de la complétion')
+        if (!response.ok) {
+          throw new Error("Erreur lors de la complétion");
+        }
+
+        // Recharger les modules
+        await loadModules();
+      } catch (err) {
+        console.error("Erreur complétion module:", err);
+        throw err;
       }
-
-      // Recharger les modules
-      await loadModules()
-
-    } catch (err) {
-      console.error('Erreur complétion module:', err)
-      throw err
-    }
-  }, [certificationId, loadModules])
+    },
+    [certificationId, loadModules],
+  );
 
   useEffect(() => {
     if (certificationId) {
-      loadModules()
+      loadModules();
     }
-  }, [certificationId, loadModules])
+  }, [certificationId, loadModules]);
 
   return {
     modules,
@@ -491,58 +517,60 @@ export function useCertificationModules(certificationId: string) {
     progress,
     loading,
     completeModule,
-    reload: loadModules
-  }
+    reload: loadModules,
+  };
 }
 
 // Hook pour l'upload de documents
 export function useDocumentUpload() {
-  const [uploading, setUploading] = useState(false)
-  const [progress, setProgress] = useState(0)
-  const [error, setError] = useState<string | null>(null)
+  const [uploading, setUploading] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [error, setError] = useState<string | null>(null);
 
-  const upload = useCallback(async (file: File, type: string): Promise<string> => {
-    setUploading(true)
-    setProgress(0)
-    setError(null)
+  const upload = useCallback(
+    async (file: File, type: string): Promise<string> => {
+      setUploading(true);
+      setProgress(0);
+      setError(null);
 
-    try {
-      const formData = new FormData()
-      formData.append('file', file)
-      formData.append('type', type)
+      try {
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("type", type);
 
-      const response = await fetch('/api/documents/upload', {
-        method: 'POST',
-        body: formData
-      })
+        const response = await fetch("/api/documents/upload", {
+          method: "POST",
+          body: formData,
+        });
 
-      if (!response.ok) {
-        throw new Error('Erreur lors de l\'upload')
+        if (!response.ok) {
+          throw new Error("Erreur lors de l'upload");
+        }
+
+        const result = await response.json();
+        setProgress(100);
+
+        return result.url;
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Erreur d'upload");
+        throw err;
+      } finally {
+        setUploading(false);
       }
-
-      const result = await response.json()
-      setProgress(100)
-      
-      return result.url
-
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erreur d\'upload')
-      throw err
-    } finally {
-      setUploading(false)
-    }
-  }, [])
+    },
+    [],
+  );
 
   const reset = useCallback(() => {
-    setProgress(0)
-    setError(null)
-  }, [])
+    setProgress(0);
+    setError(null);
+  }, []);
 
   return {
     upload,
     uploading,
     progress,
     error,
-    reset
-  }
-} 
+    reset,
+  };
+}
