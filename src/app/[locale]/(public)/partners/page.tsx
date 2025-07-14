@@ -1,4 +1,7 @@
 ﻿import { useTranslations } from "next-intl";
+import { PageHeader } from "@/components/layout/page-header";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 
 export default function PartnersPage() {
   const t = useTranslations("public.partners");
