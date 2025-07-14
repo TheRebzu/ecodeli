@@ -142,16 +142,22 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const filters = reviewFiltersSchema.parse({
       rating: searchParams.get("rating")
-        ? parseInt(searchParams.get("rating")!)
+        ? Number.isNaN(Number(searchParams.get("rating")))
+          ? undefined
+          : Number(searchParams.get("rating"))
         : undefined,
-      type: searchParams.get("type"),
-      startDate: searchParams.get("startDate"),
-      endDate: searchParams.get("endDate"),
+      type: searchParams.get("type") || undefined,
+      startDate: searchParams.get("startDate") || undefined,
+      endDate: searchParams.get("endDate") || undefined,
       limit: searchParams.get("limit")
-        ? parseInt(searchParams.get("limit")!)
+        ? Number.isNaN(Number(searchParams.get("limit")))
+          ? 20
+          : Number(searchParams.get("limit"))
         : 20,
       offset: searchParams.get("offset")
-        ? parseInt(searchParams.get("offset")!)
+        ? Number.isNaN(Number(searchParams.get("offset")))
+          ? 0
+          : Number(searchParams.get("offset"))
         : 0,
     });
 
@@ -170,7 +176,6 @@ export async function GET(request: NextRequest) {
       prisma.review.findMany({
         where,
         include: {
-          delivery: true,
           booking: {
             include: {
               service: {
@@ -184,11 +189,7 @@ export async function GET(request: NextRequest) {
               },
             },
           },
-          deliverer: {
-            include: {
-              user: { include: { profile: true } },
-            },
-          },
+          // deliverer: { ... } supprimé car la relation n'existe pas sur Review
         },
         orderBy: { createdAt: "desc" },
         take: filters.limit,
@@ -214,10 +215,12 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(
         {
           error: "Paramètres invalides",
-          details: error.errors.map((e) => ({
-            field: e.path.join("."),
-            message: e.message,
-          })),
+          details: Array.isArray(error.errors)
+            ? error.errors.map((e) => ({
+                field: e.path.join("."),
+                message: e.message,
+              }))
+            : [],
         },
         { status: 400 },
       );

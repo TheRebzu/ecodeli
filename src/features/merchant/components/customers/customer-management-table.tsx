@@ -85,7 +85,6 @@ export function CustomerManagementTable() {
         toast.error("Failed to fetch customers");
       }
     } catch (error) {
-      console.error("Error fetching customers:", error);
       toast.error("Error loading customers");
     } finally {
       setLoading(false);

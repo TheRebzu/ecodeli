@@ -47,8 +47,6 @@ export async function POST(request: NextRequest) {
       ...result,
     });
   } catch (error) {
-    console.error("Erreur complétion module:", error);
-
     if (error instanceof Error) {
       return NextResponse.json({ error: error.message }, { status: 400 });
     }

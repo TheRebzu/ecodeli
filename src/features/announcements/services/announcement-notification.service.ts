@@ -60,14 +60,11 @@ class AnnouncementNotificationService {
         return;
       }
 
-      const urgencyEmoji = announcement.urgency === "URGENT" ? "🚨 " : "";
-      const typeEmoji = this.getTypeEmoji(announcement.type);
-
       await this.sendNotification({
         playerIds: delivererIds,
         payload: {
-          title: `${urgencyEmoji}Nouvelle opportunité de livraison`,
-          message: `${typeEmoji} ${announcement.title} - ${announcement.price}€`,
+          title: `Nouvelle opportunité de livraison`,
+          message: `${announcement.title} - ${announcement.price}€`,
           data: {
             type: "NEW_OPPORTUNITY",
             announcementId: announcement.id,
@@ -258,13 +255,11 @@ class AnnouncementNotificationService {
     for (const match of unrespondedMatches) {
       if (!match.delivererRoute.deliverer.oneSignalPlayerId) continue;
 
-      const typeEmoji = this.getTypeEmoji(match.announcement.type);
-
       await this.sendNotification({
         playerIds: [match.delivererRoute.deliverer.oneSignalPlayerId],
         payload: {
           title: "⏰ Rappel - Opportunité en attente",
-          message: `${typeEmoji} ${match.announcement.title} - ${match.announcement.price}€`,
+          message: `${match.announcement.title} - ${match.announcement.price}€`,
           data: {
             type: "OPPORTUNITY_REMINDER",
             announcementId: match.announcement.id,
@@ -375,15 +370,6 @@ class AnnouncementNotificationService {
     } catch (error) {
       console.error("Failed to log notification activity:", error);
     }
-  }
-
-  private getTypeEmoji(type: string): string {
-    const emojis = {
-      PACKAGE: "📦",
-      SERVICE: "🛠️",
-      CART_DROP: "🛒",
-    };
-    return emojis[type as keyof typeof emojis] || "📦";
   }
 }
 

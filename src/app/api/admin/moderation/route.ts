@@ -56,7 +56,6 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(mockData);
   } catch (error) {
-    console.error("Error fetching moderation data:", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 },
@@ -83,19 +82,12 @@ export async function POST(request: NextRequest) {
     }
 
     // TODO: Implement actual content moderation actions
-    console.log("Moderation action:", {
-      action,
-      itemId,
-      reason,
-      adminId: user.id,
-    });
-
+    // Suppression du log
     return NextResponse.json({
       success: true,
       message: `Content ${action} successfully`,
     });
   } catch (error) {
-    console.error("Error processing moderation action:", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 },

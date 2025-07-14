@@ -43,7 +43,7 @@
       "chooseType": "Choose Type"
     },
     "validation": {
-      "loading": "Chargement...",
+    "loading": "Chargement...",
       "loadingMessage": "Loading Message",
       "error": "Erreur",
       "userNotFound": "User Not Found",
@@ -57,7 +57,7 @@
       "validationProcessDescription": "Validation Process Description"
     },
     "verifyEmail": {
-      "success": "Succès",
+    "success": "Succès",
       "error": "Erreur",
       "verifying": "Verifying",
       "successMessage": "Success Message",
@@ -332,8 +332,8 @@
         },
         "tabs": {
           "auth": "Authentification",
-          "announcements": "Annonces",
-          "deliveries": "Livraisons",
+    "announcements": "Annonces",
+    "deliveries": "Livraisons",
           "services": "Services",
           "admin": "Administration"
         },
@@ -386,10 +386,10 @@
           "book": {
             "description": "Réserver un créneau pour un service à la personne"
           }
-        },
-        "admin": {
+  },
+  "admin": {
           "title": "Administration",
-          "users": {
+      "users": {
             "list": {
               "description": "Lister tous les utilisateurs avec filtres par rôle"
             }
@@ -537,7 +537,7 @@
         "title": "Catégories",
         "announcements": "Annonces",
         "shipping": "Expédition",
-        "delivery": "Livraison",
+      "delivery": "Livraison",
         "services": "Services",
         "payment": "Paiement",
         "security": "Sécurité",
@@ -854,9 +854,9 @@
         "verification": {
           "title": "Vérification",
           "description": "Validation de vos documents"
-        },
-        "announcements": {
-          "title": "Annonces",
+  },
+  "announcements": {
+    "title": "Annonces",
           "description": "Accédez aux offres de livraison"
         },
         "deliveryPayment": {
@@ -949,8 +949,8 @@
         "message": "Message",
         "messagePlaceholder": "Votre message...",
         "submit": "Envoyer le message"
-      },
-      "social": {
+    },
+    "social": {
         "badge": "Réseaux sociaux",
         "title": "Suivez-nous",
         "subtitle": "Restez connectés avec EcoDeli"
@@ -1259,7 +1259,7 @@
   "sortOrder": "Sort Order",
   "EUR": "E U R",
   "serviceRequestId": "Service Request Id",
-  "date": "Date",
+    "date": "Date",
   "clientId": "Client Id",
   "serviceType": "Service Type",
   "read": "Read",
@@ -1335,10 +1335,10 @@
   "created": "Created",
   "programId": "Program Id",
   "code": "Code",
-  "active": {
+      "active": {
     "title": "Titre",
     "count": "Count",
-    "empty": {
+        "empty": {
       "title": "Titre",
       "description": "Description",
       "action": "Action"
@@ -1501,7 +1501,7 @@
   "updateStatus": "Update Status",
   "resolution": "Resolution",
   "relatedInfo": "Related Info",
-  "client": {
+      "client": {
     "announcements": "Announcements",
     "bookings": "Bookings",
     "deliveries": "Deliveries",
@@ -1525,7 +1525,7 @@
     "deliveries": {
       "history": "History"
     },
-    "documents": "Documents",
+      "documents": "Documents",
     "planning": "Planning",
     "profile": "Profil",
     "recruitment": "Recruitment",
@@ -1642,7 +1642,7 @@
   "ClientApplications": "Client Applications",
   "session_id": "Session Id",
   "application_id": "Application Id",
-  "error": {
+      "error": {
     "fetch_failed": "Fetch Failed",
     "title": "Titre",
     "resolve_failed": "Resolve Failed",
@@ -2211,16 +2211,16 @@
     "rejectionReason": "Rejection Reason",
     "completed": "Completed",
     "steps_completed": "Steps Completed"
-  },
-  "current": {
+      },
+      "current": {
     "title": "Titre",
     "description": "Description",
     "uploadDocuments": "Upload Documents",
     "startCertifications": "Start Certifications",
     "adminReview": "Admin Review"
-  },
-  "certifications": {
-    "empty": {
+      },
+      "certifications": {
+        "empty": {
       "title": "Titre",
       "description": "Description"
     }
@@ -2462,7 +2462,7 @@
     "tagsDescription": "Tags Description",
     "tagPlaceholder": "Tag Placeholder",
     "addTag": "Add Tag",
-    "cancel": "Annuler",
+          "cancel": "Annuler",
     "saving": "Saving",
     "save": "Enregistrer",
     "uploadImages": "Upload Images",
@@ -2575,9 +2575,9 @@
     },
     "updateLocation": {
       "description": "Description"
-    }
-  },
-  "services": {
+      }
+    },
+    "services": {
     "title": "Titre",
     "search": {
       "description": "Description"
@@ -2639,7 +2639,7 @@
     "errorHandling": "Error Handling"
   },
   "errorId": "Error Id",
-  "categories": {
+      "categories": {
     "title": "Titre",
     "announcements": "Announcements",
     "shipping": "Shipping",
@@ -2651,7 +2651,7 @@
     "electronics": "Electronics",
     "furniture": "Furniture",
     "clothing": "Clothing",
-    "documents": "Documents",
+        "documents": "Documents",
     "other": "Other",
     "person_transport": "Person Transport",
     "airport_transfer": "Airport Transfer",
@@ -2857,9 +2857,16 @@
   "navigation": {
     "services": "Services",
     "pricing": "Pricing",
-    "about": "À propos"
+    "about": "À propos",
+    "delivery": "Livraison",
+    "personal_services": "Services à la personne",
+    "storage": "Stockage",
+    "partners": "Partenaires",
+    "merchants": "Commerçants",
+    "providers": "Prestataires",
+    "contact": "Contact"
   },
-  "dashboard": {
+    "dashboard": {
     "welcome": "Welcome",
     "newAnnouncement": "New Announcement",
     "title": "Titre",
@@ -2875,7 +2882,7 @@
       "storageDesc": "Storage Desc"
     },
     "subtitle": "Sous-titre",
-    "stats": {
+      "stats": {
       "totalDeliveries": "Total Deliveries",
       "completed": "Completed",
       "inProgress": "In Progress",
@@ -2996,7 +3003,7 @@
     "no_issues_description": "No Issues Description",
     "delivery_id": "Delivery Id",
     "deliverer": "Deliverer",
-    "client": "Client",
+      "client": "Client",
     "reported": "Reported"
   },
   "location": {
@@ -3202,11 +3209,11 @@
   "events": "Events",
   "enabled": "Enabled",
   "cancel": {
-    "success": {
+        "success": {
       "title": "Titre",
       "description": "Description"
-    },
-    "error": {
+        },
+        "error": {
       "title": "Titre",
       "description": "Description",
       "network": "Network"
@@ -3311,7 +3318,7 @@
       "rating_label": "Rating Label",
       "review_label": "Review Label",
       "review_placeholder": "Review Placeholder",
-      "cancel": "Annuler",
+        "cancel": "Annuler",
       "submit": "Valider"
     }
   },
@@ -3320,8 +3327,8 @@
     "empty": "Empty",
     "no_activities": "No Activities",
     "view_all": "View All"
-  },
-  "validation": {
+      },
+      "validation": {
     "code": "Code",
     "instructions": "Instructions",
     "success": {
@@ -3337,7 +3344,7 @@
       "accepted": "Accepted",
       "rejected": "Rejected"
     },
-    "dialog": {
+        "dialog": {
       "accept_title": "Accept Title",
       "accept_description": "Accept Description",
       "reject_title": "Reject Title",
@@ -3347,7 +3354,7 @@
     "review": "Review",
     "optional": "Optional",
     "review_placeholder": "Review Placeholder",
-    "cancel": "Annuler",
+          "cancel": "Annuler",
     "loading": "Chargement...",
     "confirm_accept": "Confirm Accept",
     "rejection_reason_placeholder": "Rejection Reason Placeholder",
@@ -3363,8 +3370,8 @@
     "email": "Email",
     "password": "Mot de passe",
     "confirmPassword": "Confirm Password"
-  },
-  "proof": {
+      },
+      "proof": {
     "title": "Titre",
     "notes": "Notes",
     "uploaded_at": "Uploaded At",
@@ -3382,7 +3389,7 @@
       "uploaded": "Uploaded"
     },
     "upload_button": "Upload Button",
-    "dialog": {
+        "dialog": {
       "title": "Titre",
       "description": "Description"
     },
@@ -3394,7 +3401,7 @@
     "optional": "Optional",
     "notes_placeholder": "Notes Placeholder",
     "gps_auto": "Gps Auto",
-    "cancel": "Annuler",
+          "cancel": "Annuler",
     "uploading": "Uploading",
     "upload": "Téléverser"
   },
@@ -3504,7 +3511,7 @@
     "months": "Months"
   },
   "reservation": {
-    "success": {
+      "success": {
       "title": "Titre",
       "description": "Description"
     },
@@ -3542,7 +3549,7 @@
       "title": "Titre",
       "description": "Description"
     },
-    "error": {
+          "error": {
       "title": "Titre",
       "description": "Description",
       "network": "Network"
@@ -3677,7 +3684,7 @@
     "service_types": "Service Types",
     "select_services": "Select Services",
     "max_bookings": "Max Bookings",
-    "status": "Statut",
+        "status": "Statut",
     "recurring": "Recurring",
     "pattern": "Pattern",
     "end_date": "End Date",
@@ -3929,8 +3936,8 @@
     "revenue": "Revenue",
     "commission": "Commission",
     "status": "Statut"
-  },
-  "billing": {
+      },
+      "billing": {
     "empty_title": "Empty Title",
     "empty_description": "Empty Description",
     "orders": "Orders",
@@ -4190,7 +4197,7 @@
     "title": "Titre",
     "service": "Service",
     "status": "Statut",
-    "client": "Client",
+            "client": "Client",
     "price": "Prix",
     "time": "Heure",
     "address": "Adresse",

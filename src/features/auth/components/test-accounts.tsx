@@ -65,8 +65,6 @@ export function TestAccounts({ onAccountSelect }: TestAccountsProps) {
     setLoadingAccount(account.role);
 
     try {
-      console.log("🔐 Connexion rapide:", account.email);
-
       const response = await fetch("/api/auth/sign-in/email", {
         method: "POST",
         headers: {
@@ -81,8 +79,6 @@ export function TestAccounts({ onAccountSelect }: TestAccountsProps) {
 
       if (response.ok) {
         const result = await response.json();
-        console.log("✅ Connexion réussie:", result);
-
         // Redirection selon le rôle avec locale
         const locale = window.location.pathname.split("/")[1] || "fr";
         const roleRoutes = {
@@ -98,16 +94,12 @@ export function TestAccounts({ onAccountSelect }: TestAccountsProps) {
           `/${locale}/client`;
       } else {
         const errorData = await response.json();
-        console.error("❌ Erreur de connexion:", errorData);
-
         // Si l'utilisateur n'existe pas, essayer de le créer
         if (response.status === 401) {
-          console.log("🌱 Utilisateur introuvable, création en cours...");
           await createTestUser(account);
         }
       }
     } catch (error) {
-      console.error("❌ Erreur:", error);
     } finally {
       setLoadingAccount(null);
     }
@@ -115,8 +107,6 @@ export function TestAccounts({ onAccountSelect }: TestAccountsProps) {
 
   const createTestUser = async (account: (typeof TEST_ACCOUNTS)[0]) => {
     try {
-      console.log("🌱 Création utilisateur:", account.email);
-
       const response = await fetch("/api/auth/sign-up/email", {
         method: "POST",
         headers: {
@@ -134,15 +124,12 @@ export function TestAccounts({ onAccountSelect }: TestAccountsProps) {
       });
 
       if (response.ok) {
-        console.log("✅ Utilisateur créé, connexion automatique...");
         // Essayer de se connecter après création
         await handleQuickLogin(account);
       } else {
         const errorData = await response.json();
-        console.error("❌ Erreur création utilisateur:", errorData);
       }
     } catch (error) {
-      console.error("❌ Erreur création:", error);
     }
   };
 

@@ -37,7 +37,7 @@ export class OneSignalService {
   ): Promise<boolean> {
     try {
       if (!this.appId || !this.apiKey) {
-        console.warn("OneSignal credentials not configured");
+        // Suppression du log
         return false;
       }
 
@@ -64,15 +64,12 @@ export class OneSignalService {
 
       if (!response.ok) {
         const error = await response.text();
-        console.error("OneSignal API error:", error);
         return false;
       }
 
       const result = await response.json();
-      console.log("OneSignal notification sent:", result.id);
       return true;
     } catch (error) {
-      console.error("Error sending OneSignal notification:", error);
       return false;
     }
   }

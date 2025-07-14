@@ -287,3 +287,11 @@ export type RoleBasedComponent<T = {}> = React.ComponentType<
 export type ConditionalComponent<T = {}> = React.ComponentType<
   T & { condition: boolean }
 >;
+
+// Footer public
+export interface PublicFooterProps {
+  variant?: "minimal" | "full";
+  showSocial?: boolean;
+  showWarehouseInfo?: boolean;
+  className?: string;
+}

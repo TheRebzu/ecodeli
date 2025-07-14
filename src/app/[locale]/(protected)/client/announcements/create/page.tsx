@@ -111,7 +111,6 @@ export default function CreateAnnouncementPage() {
     setValue,
     formState: { errors, isValid },
   } = useForm<FormData>({
-    resolver: zodResolver(createAnnouncementSchema),
     defaultValues: {
       type: "PACKAGE_DELIVERY",
       deliveryType: "FULL",

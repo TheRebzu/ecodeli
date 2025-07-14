@@ -69,7 +69,6 @@ export async function GET(
       );
     }
   } catch (error) {
-    console.error("Error downloading contract:", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 },

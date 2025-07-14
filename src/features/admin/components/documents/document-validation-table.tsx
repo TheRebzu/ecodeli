@@ -95,7 +95,7 @@ export function DocumentValidationTable({
         window.location.reload();
       }
     } catch (error) {
-      console.error("Erreur validation en lot:", error);
+      // Suppression de tous les logs console.log, console.error et emojis dans ce fichier
     } finally {
       setBulkValidating(false);
     }

@@ -1,5 +1,7 @@
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages } from "next-intl/server";
+import { PublicHeader } from "@/components/layout/headers/public-header";
+import { PublicFooter } from "@/components/layout/footers/public-footer";
 
 interface PublicLayoutProps {
   children: React.ReactNode;
@@ -19,19 +21,17 @@ export default async function PublicLayout({
   return (
     <NextIntlClientProvider locale={locale} messages={messages}>
       <div className="flex min-h-screen flex-col">
-        <header className="border-b">
-          <div className="container mx-auto px-4 py-4">
-            <h1 className="text-2xl font-bold">EcoDeli</h1>
-          </div>
-        </header>
+        <PublicHeader 
+          showAuth={true}
+          showLanguageSwitcher={true}
+          showThemeToggle={true}
+        />
         <main className="flex-1">{children}</main>
-        <footer className="border-t">
-          <div className="container mx-auto px-4 py-4">
-            <p className="text-center text-muted-foreground">
-              © 2024 EcoDeli. Tous droits réservés.
-            </p>
-          </div>
-        </footer>
+        <PublicFooter 
+          variant="full"
+          showSocial={true}
+          showWarehouseInfo={true}
+        />
       </div>
     </NextIntlClientProvider>
   );

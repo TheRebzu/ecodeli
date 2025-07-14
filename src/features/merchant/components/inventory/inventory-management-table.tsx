@@ -84,7 +84,6 @@ export function InventoryManagementTable() {
         toast.error("Failed to fetch inventory");
       }
     } catch (error) {
-      console.error("Error fetching inventory:", error);
       toast.error("Error loading inventory");
     } finally {
       setLoading(false);

@@ -324,10 +324,6 @@ export async function getCurrentUser() {
 
     // Vérifier et réparer automatiquement si l'utilisateur n'a pas de profil
     if (!user.profile) {
-      console.log(
-        `🔧 Réparation automatique du profil pour l'utilisateur ${user.email} (${user.id})`,
-      );
-
       const profile = await prisma.profile.create({
         data: {
           userId: user.id,
@@ -341,9 +337,6 @@ export async function getCurrentUser() {
           isVerified: false,
         },
       });
-
-      console.log(`✅ Profil créé pour ${user.email}: ${profile.id}`);
-
       // Recharger l'utilisateur avec le nouveau profil
       return await prisma.user.findUnique({
         where: { id: session.user.id },
@@ -359,10 +352,6 @@ export async function getCurrentUser() {
 
     return user;
   } catch (error) {
-    console.error(
-      "Erreur lors de la récupération/réparation de l'utilisateur:",
-      error,
-    );
     return null;
   }
 }

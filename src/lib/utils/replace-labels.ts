@@ -102,7 +102,6 @@ export class LabelReplacer {
 
     const backupPath = `${filePath}.backup.${Date.now()}`;
     fs.copyFileSync(filePath, backupPath);
-    console.log(`Backup created: ${backupPath}`);
   }
 
   /**
@@ -158,9 +157,6 @@ export class LabelReplacer {
                 namespace: label.namespace || this.config.defaultNamespace,
               });
 
-              console.log(
-                `${filePath}:${label.line} - "${label.text}" → ${replacement}`,
-              );
               break;
             }
           }
@@ -183,7 +179,6 @@ export class LabelReplacer {
         filePath,
       );
       fs.writeFileSync(filePath, updatedContent);
-      console.log(`Updated ${filePath}`);
     }
   }
 
@@ -329,7 +324,6 @@ export class LabelReplacer {
         if (!this.config.dryRun) {
           this.createBackup(filePath);
           fs.writeFileSync(filePath, JSON.stringify(translations, null, 2));
-          console.log(`Updated ${filePath}`);
         }
       } catch (error) {
         console.error(`Error updating ${filePath}:`, error);
@@ -341,15 +335,12 @@ export class LabelReplacer {
    * Lancer le remplacement complet
    */
   async replace(): Promise<Replacement[]> {
-    console.log("Starting label replacement...");
-
+    // Suppression des logs
     if (this.config.dryRun) {
-      console.log("DRY RUN MODE - No files will be modified");
+      // Suppression du log
     }
-
     const labels = this.loadExtractedLabels();
-    console.log(`Loaded ${labels.length} labels to replace`);
-
+    // Suppression du log
     // Grouper les labels par fichier
     const fileGroups = labels.reduce(
       (acc, label) => {
@@ -359,20 +350,17 @@ export class LabelReplacer {
       },
       {} as Record<string, ExtractedLabel[]>,
     );
-
     // Remplacer dans chaque fichier
     for (const [filePath, fileLabels] of Object.entries(fileGroups)) {
       try {
         await this.replaceInFile(filePath, fileLabels);
       } catch (error) {
-        console.error(`Error processing ${filePath}:`, error);
+        // Suppression du log
       }
     }
-
     // Mettre à jour les fichiers de traduction
     await this.updateTranslationFiles(labels);
-
-    console.log(`Completed ${this.replacements.length} replacements`);
+    // Suppression du log
     return this.replacements;
   }
 

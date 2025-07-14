@@ -13,12 +13,11 @@ import { Icon, LatLng, LatLngBounds } from "leaflet";
 import "leaflet/dist/leaflet.css";
 
 // Icônes personnalisées
-const createIcon = (color: string, emoji: string) =>
+const createIcon = (color: string) =>
   new Icon({
     iconUrl: `data:image/svg+xml;base64,${btoa(`
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
       <circle cx="16" cy="16" r="15" fill="${color}" stroke="white" stroke-width="2"/>
-      <text x="16" y="20" text-anchor="middle" font-size="16" fill="white">${emoji}</text>
     </svg>
   `)}`,
     iconSize: [32, 32],
@@ -26,9 +25,9 @@ const createIcon = (color: string, emoji: string) =>
     popupAnchor: [0, -32],
   });
 
-const pickupIcon = createIcon("#3B82F6", "📦");
-const deliveryIcon = createIcon("#EF4444", "🏠");
-const delivererIcon = createIcon("#10B981", "🚚");
+const pickupIcon = createIcon("#3B82F6");
+const deliveryIcon = createIcon("#EF4444");
+const delivererIcon = createIcon("#10B981");
 
 interface TrackingMapProps {
   announcement: {

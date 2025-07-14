@@ -136,25 +136,25 @@ export function AnnouncementCard({
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-500 mb-4">
         <div className="flex items-center space-x-2">
-          <span>📍</span>
+          <span>Départ :</span>
           <span className="truncate">{announcement.pickupAddress}</span>
         </div>
         <div className="flex items-center space-x-2">
-          <span>🎯</span>
+          <span>Arrivée :</span>
           <span className="truncate">{announcement.deliveryAddress}</span>
         </div>
         <div className="flex items-center space-x-2">
-          <span>📅</span>
+          <span>Date :</span>
           <span>
             {new Date(announcement.pickupDate).toLocaleDateString("fr-FR")}
           </span>
         </div>
         {announcement.type === "PACKAGE" && announcement.packageDetails && (
           <div className="flex items-center space-x-2">
-            <span>⚖️</span>
+            <span>Poids :</span>
             <span>{announcement.packageDetails.weight}kg</span>
             {announcement.packageDetails.fragile && (
-              <span className="text-orange-600">🔺 Fragile</span>
+              <span className="text-orange-600">Fragile</span>
             )}
           </div>
         )}
@@ -177,10 +177,10 @@ export function AnnouncementCard({
         <div className="flex items-center justify-between pt-4 border-t">
           <div className="flex items-center space-x-4 text-sm text-gray-500">
             {announcement._count?.applications !== undefined && (
-              <span>👥 {announcement._count.applications} candidature(s)</span>
+              <span>{announcement._count.applications} candidature(s)</span>
             )}
             {announcement._count?.routeMatches !== undefined && (
-              <span>🎯 {announcement._count.routeMatches} match(es)</span>
+              <span>{announcement._count.routeMatches} match(es)</span>
             )}
           </div>
           {getActionButtons()}

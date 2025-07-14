@@ -266,26 +266,19 @@ export class LabelExtractor {
    * Lancer l'extraction complète
    */
   async extract(): Promise<ExtractedLabel[]> {
-    console.log("Scanning files for hardcoded labels...");
-
+    // Suppression des logs
     const files = await this.scanFiles();
-    console.log(`Found ${files.length} files to scan`);
-
     this.extractedLabels = [];
-
     for (const file of files) {
       try {
         const labels = await this.extractFromFile(file);
         this.extractedLabels.push(...labels);
       } catch (error) {
-        console.error(`Error scanning ${file}:`, error);
+        // Suppression du log
       }
     }
-
     // Supprimer les doublons
     this.extractedLabels = this.deduplicateLabels(this.extractedLabels);
-
-    console.log(`Extracted ${this.extractedLabels.length} unique labels`);
     return this.extractedLabels;
   }
 

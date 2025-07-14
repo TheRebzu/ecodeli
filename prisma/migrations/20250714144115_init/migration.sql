@@ -17,16 +17,19 @@ CREATE TYPE "ServiceType" AS ENUM ('PERSON_TRANSPORT', 'AIRPORT_TRANSFER', 'SHOP
 CREATE TYPE "AnnouncementType" AS ENUM ('PACKAGE_DELIVERY', 'PERSON_TRANSPORT', 'AIRPORT_TRANSFER', 'SHOPPING', 'INTERNATIONAL_PURCHASE', 'PET_SITTING', 'HOME_SERVICE', 'CART_DROP');
 
 -- CreateEnum
-CREATE TYPE "AnnouncementStatus" AS ENUM ('DRAFT', 'ACTIVE', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED', 'EXPIRED');
+CREATE TYPE "AnnouncementStatus" AS ENUM ('DRAFT', 'ACTIVE', 'PENDING_PAYMENT', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED', 'EXPIRED');
 
 -- CreateEnum
-CREATE TYPE "DeliveryStatus" AS ENUM ('PENDING', 'ACCEPTED', 'IN_PROGRESS', 'DELIVERED', 'CANCELLED', 'FAILED');
+CREATE TYPE "DeliveryStatus" AS ENUM ('PENDING', 'ACCEPTED', 'PICKED_UP', 'IN_TRANSIT', 'DELIVERED', 'CANCELLED', 'FAILED');
 
 -- CreateEnum
 CREATE TYPE "BookingStatus" AS ENUM ('PENDING', 'CONFIRMED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED', 'RESCHEDULED');
 
 -- CreateEnum
 CREATE TYPE "PaymentStatus" AS ENUM ('PENDING', 'PROCESSING', 'COMPLETED', 'FAILED', 'REFUNDED', 'PARTIALLY_REFUNDED');
+
+-- CreateEnum
+CREATE TYPE "PaymentType" AS ENUM ('DELIVERY', 'SERVICE', 'SUBSCRIPTION', 'REFUND', 'COMMISSION', 'WITHDRAWAL', 'STORAGE_RENTAL');
 
 -- CreateEnum
 CREATE TYPE "SubscriptionPlan" AS ENUM ('FREE', 'STARTER', 'PREMIUM');
@@ -59,16 +62,16 @@ CREATE TYPE "BoxSize" AS ENUM ('SMALL', 'MEDIUM', 'LARGE', 'EXTRA_LARGE');
 CREATE TYPE "BoxStatus" AS ENUM ('AVAILABLE', 'OCCUPIED', 'MAINTENANCE', 'RESERVED');
 
 -- CreateEnum
-CREATE TYPE "ContractType" AS ENUM ('STANDARD', 'PREMIUM', 'ENTERPRISE', 'CUSTOM');
-
--- CreateEnum
-CREATE TYPE "ContractStatus" AS ENUM ('DRAFT', 'PENDING', 'ACTIVE', 'SUSPENDED', 'TERMINATED');
-
--- CreateEnum
 CREATE TYPE "GenerationStatus" AS ENUM ('SUCCESS', 'FAILED', 'IN_PROGRESS');
 
 -- CreateEnum
 CREATE TYPE "OrderStatus" AS ENUM ('PENDING', 'CONFIRMED', 'PREPARING', 'READY_FOR_PICKUP', 'IN_TRANSIT', 'DELIVERED', 'CANCELLED', 'REFUNDED');
+
+-- CreateEnum
+CREATE TYPE "ContractType" AS ENUM ('STANDARD', 'PREMIUM', 'CUSTOM');
+
+-- CreateEnum
+CREATE TYPE "ContractStatus" AS ENUM ('DRAFT', 'PENDING_SIGNATURE', 'ACTIVE', 'EXPIRED', 'TERMINATED');
 
 -- CreateEnum
 CREATE TYPE "TicketCategory" AS ENUM ('DELIVERY_ISSUE', 'PAYMENT_PROBLEM', 'ACCOUNT_ACCESS', 'TECHNICAL_SUPPORT', 'BILLING_INQUIRY', 'FEATURE_REQUEST', 'COMPLAINT', 'PARTNERSHIP', 'GENERAL_INQUIRY', 'BUG_REPORT');
@@ -170,11 +173,11 @@ CREATE TYPE "ProposalStatus" AS ENUM ('PENDING', 'ACCEPT', 'DECLINE', 'EXPIRED',
 CREATE TABLE "User" (
     "id" TEXT NOT NULL,
     "email" TEXT NOT NULL,
-    "password" TEXT,
     "emailVerified" BOOLEAN NOT NULL DEFAULT false,
     "emailVerifiedAt" TIMESTAMP(3),
     "name" TEXT,
     "image" TEXT,
+    "password" TEXT,
     "role" "UserRole" NOT NULL DEFAULT 'CLIENT',
     "isActive" BOOLEAN NOT NULL DEFAULT false,
     "validationStatus" "ValidationStatus" NOT NULL DEFAULT 'PENDING',
@@ -199,6 +202,8 @@ CREATE TABLE "Profile" (
     "city" TEXT,
     "postalCode" TEXT,
     "country" TEXT NOT NULL DEFAULT 'FR',
+    "latitude" DOUBLE PRECISION,
+    "longitude" DOUBLE PRECISION,
     "isVerified" BOOLEAN NOT NULL DEFAULT false,
     "verifiedAt" TIMESTAMP(3),
     "language" TEXT NOT NULL DEFAULT 'fr',
@@ -212,18 +217,17 @@ CREATE TABLE "Profile" (
 -- CreateTable
 CREATE TABLE "Account" (
     "id" TEXT NOT NULL,
-    "accountId" TEXT NOT NULL,
-    "providerId" TEXT NOT NULL,
     "userId" TEXT NOT NULL,
-    "accessToken" TEXT,
-    "refreshToken" TEXT,
-    "idToken" TEXT,
-    "accessTokenExpiresAt" TIMESTAMP(3),
-    "refreshTokenExpiresAt" TIMESTAMP(3),
+    "type" TEXT NOT NULL,
+    "provider" TEXT NOT NULL,
+    "providerAccountId" TEXT NOT NULL,
+    "refresh_token" TEXT,
+    "access_token" TEXT,
+    "expires_at" INTEGER,
+    "token_type" TEXT,
     "scope" TEXT,
-    "password" TEXT,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "id_token" TEXT,
+    "session_state" TEXT,
 
     CONSTRAINT "Account_pkey" PRIMARY KEY ("id")
 );
@@ -231,27 +235,18 @@ CREATE TABLE "Account" (
 -- CreateTable
 CREATE TABLE "Session" (
     "id" TEXT NOT NULL,
-    "expiresAt" TIMESTAMP(3) NOT NULL,
-    "token" TEXT NOT NULL,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
-    "ipAddress" TEXT,
-    "userAgent" TEXT,
+    "sessionToken" TEXT NOT NULL,
     "userId" TEXT NOT NULL,
+    "expires" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "Session_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
 CREATE TABLE "VerificationToken" (
-    "id" TEXT NOT NULL,
     "identifier" TEXT NOT NULL,
     "token" TEXT NOT NULL,
-    "expires" TIMESTAMP(3) NOT NULL,
-    "type" TEXT NOT NULL,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-
-    CONSTRAINT "VerificationToken_pkey" PRIMARY KEY ("id")
+    "expires" TIMESTAMP(3) NOT NULL
 );
 
 -- CreateTable
@@ -273,6 +268,8 @@ CREATE TABLE "Client" (
     "subscriptionPlan" "SubscriptionPlan" NOT NULL DEFAULT 'FREE',
     "subscriptionStart" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "subscriptionEnd" TIMESTAMP(3),
+    "stripeCustomerId" TEXT,
+    "stripeSubscriptionId" TEXT,
     "tutorialCompleted" BOOLEAN NOT NULL DEFAULT false,
     "tutorialCompletedAt" TIMESTAMP(3),
     "termsAcceptedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -371,6 +368,31 @@ CREATE TABLE "Merchant" (
 );
 
 -- CreateTable
+CREATE TABLE "Product" (
+    "id" TEXT NOT NULL,
+    "merchantId" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "description" TEXT,
+    "price" DOUBLE PRECISION NOT NULL,
+    "originalPrice" DOUBLE PRECISION,
+    "sku" TEXT,
+    "category" TEXT,
+    "brand" TEXT,
+    "weight" DOUBLE PRECISION,
+    "dimensions" JSONB,
+    "images" TEXT[],
+    "isActive" BOOLEAN NOT NULL DEFAULT true,
+    "stockQuantity" INTEGER NOT NULL DEFAULT 0,
+    "minStockAlert" INTEGER NOT NULL DEFAULT 5,
+    "tags" TEXT[],
+    "metadata" JSONB,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "Product_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "CartDropConfig" (
     "id" TEXT NOT NULL,
     "merchantId" TEXT NOT NULL,
@@ -410,6 +432,7 @@ CREATE TABLE "Order" (
 CREATE TABLE "OrderItem" (
     "id" TEXT NOT NULL,
     "orderId" TEXT NOT NULL,
+    "productId" TEXT,
     "name" TEXT NOT NULL,
     "quantity" INTEGER NOT NULL,
     "unitPrice" DOUBLE PRECISION NOT NULL,
@@ -436,6 +459,12 @@ CREATE TABLE "Provider" (
     "activatedAt" TIMESTAMP(3),
     "lastActiveAt" TIMESTAMP(3),
     "zone" JSONB,
+    "legalStatus" TEXT NOT NULL DEFAULT 'AUTOENTREPRENEUR',
+    "vatNumber" TEXT,
+    "insuranceProvider" TEXT,
+    "insurancePolicy" TEXT,
+    "insuranceExpiry" TIMESTAMP(3),
+    "insuranceDocument" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -555,6 +584,27 @@ CREATE TABLE "ProviderInvoiceIntervention" (
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "ProviderInvoiceIntervention_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "ProviderContract" (
+    "id" TEXT NOT NULL,
+    "providerId" TEXT NOT NULL,
+    "contractType" "ContractType" NOT NULL DEFAULT 'STANDARD',
+    "status" "ContractStatus" NOT NULL DEFAULT 'DRAFT',
+    "commissionRate" DOUBLE PRECISION NOT NULL DEFAULT 0.15,
+    "startDate" TIMESTAMP(3) NOT NULL,
+    "endDate" TIMESTAMP(3),
+    "signedAt" TIMESTAMP(3),
+    "signedByProvider" BOOLEAN NOT NULL DEFAULT false,
+    "signedByEcoDeli" BOOLEAN NOT NULL DEFAULT false,
+    "contractUrl" TEXT,
+    "terms" JSONB,
+    "notes" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "ProviderContract_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -911,11 +961,13 @@ CREATE TABLE "Payment" (
     "announcementId" TEXT,
     "deliveryId" TEXT,
     "bookingId" TEXT,
+    "storageRentalId" TEXT,
     "clientId" TEXT,
     "merchantId" TEXT,
     "amount" DOUBLE PRECISION NOT NULL,
     "currency" TEXT NOT NULL DEFAULT 'EUR',
     "status" "PaymentStatus" NOT NULL DEFAULT 'PENDING',
+    "type" "PaymentType" NOT NULL,
     "paymentMethod" TEXT NOT NULL,
     "stripePaymentId" TEXT,
     "stripeSessionId" TEXT,
@@ -2307,18 +2359,6 @@ CREATE TABLE "GroupingProposal" (
     CONSTRAINT "GroupingProposal_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable
-CREATE TABLE "Verification" (
-    "id" TEXT NOT NULL,
-    "identifier" TEXT NOT NULL,
-    "value" TEXT NOT NULL,
-    "expiresAt" TIMESTAMP(3) NOT NULL,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "Verification_pkey" PRIMARY KEY ("id")
-);
-
 -- CreateIndex
 CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
 
@@ -2335,13 +2375,16 @@ CREATE UNIQUE INDEX "Profile_userId_key" ON "Profile"("userId");
 CREATE INDEX "Profile_userId_idx" ON "Profile"("userId");
 
 -- CreateIndex
+CREATE INDEX "Profile_latitude_longitude_idx" ON "Profile"("latitude", "longitude");
+
+-- CreateIndex
 CREATE INDEX "Account_userId_idx" ON "Account"("userId");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Account_providerId_accountId_key" ON "Account"("providerId", "accountId");
+CREATE UNIQUE INDEX "Account_provider_providerAccountId_key" ON "Account"("provider", "providerAccountId");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Session_token_key" ON "Session"("token");
+CREATE UNIQUE INDEX "Session_sessionToken_key" ON "Session"("sessionToken");
 
 -- CreateIndex
 CREATE INDEX "Session_userId_idx" ON "Session"("userId");
@@ -2350,16 +2393,7 @@ CREATE INDEX "Session_userId_idx" ON "Session"("userId");
 CREATE UNIQUE INDEX "VerificationToken_token_key" ON "VerificationToken"("token");
 
 -- CreateIndex
-CREATE INDEX "VerificationToken_expires_idx" ON "VerificationToken"("expires");
-
--- CreateIndex
-CREATE INDEX "VerificationToken_identifier_idx" ON "VerificationToken"("identifier");
-
--- CreateIndex
-CREATE INDEX "VerificationToken_token_idx" ON "VerificationToken"("token");
-
--- CreateIndex
-CREATE INDEX "VerificationToken_type_idx" ON "VerificationToken"("type");
+CREATE UNIQUE INDEX "VerificationToken_identifier_token_key" ON "VerificationToken"("identifier", "token");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "PasswordReset_token_key" ON "PasswordReset"("token");
@@ -2377,10 +2411,22 @@ CREATE INDEX "PasswordReset_expiresAt_idx" ON "PasswordReset"("expiresAt");
 CREATE UNIQUE INDEX "Client_userId_key" ON "Client"("userId");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "Client_stripeCustomerId_key" ON "Client"("stripeCustomerId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Client_stripeSubscriptionId_key" ON "Client"("stripeSubscriptionId");
+
+-- CreateIndex
 CREATE INDEX "Client_userId_idx" ON "Client"("userId");
 
 -- CreateIndex
 CREATE INDEX "Client_subscriptionPlan_idx" ON "Client"("subscriptionPlan");
+
+-- CreateIndex
+CREATE INDEX "Client_stripeCustomerId_idx" ON "Client"("stripeCustomerId");
+
+-- CreateIndex
+CREATE INDEX "Client_stripeSubscriptionId_idx" ON "Client"("stripeSubscriptionId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Deliverer_userId_key" ON "Deliverer"("userId");
@@ -2431,6 +2477,21 @@ CREATE INDEX "Merchant_userId_idx" ON "Merchant"("userId");
 CREATE INDEX "Merchant_siret_idx" ON "Merchant"("siret");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "Product_sku_key" ON "Product"("sku");
+
+-- CreateIndex
+CREATE INDEX "Product_merchantId_idx" ON "Product"("merchantId");
+
+-- CreateIndex
+CREATE INDEX "Product_category_idx" ON "Product"("category");
+
+-- CreateIndex
+CREATE INDEX "Product_isActive_idx" ON "Product"("isActive");
+
+-- CreateIndex
+CREATE INDEX "Product_sku_idx" ON "Product"("sku");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "CartDropConfig_merchantId_key" ON "CartDropConfig"("merchantId");
 
 -- CreateIndex
@@ -2455,6 +2516,9 @@ CREATE INDEX "Order_status_idx" ON "Order"("status");
 CREATE INDEX "OrderItem_orderId_idx" ON "OrderItem"("orderId");
 
 -- CreateIndex
+CREATE INDEX "OrderItem_productId_idx" ON "OrderItem"("productId");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "Provider_userId_key" ON "Provider"("userId");
 
 -- CreateIndex
@@ -2462,6 +2526,9 @@ CREATE UNIQUE INDEX "Provider_siret_key" ON "Provider"("siret");
 
 -- CreateIndex
 CREATE INDEX "Provider_userId_idx" ON "Provider"("userId");
+
+-- CreateIndex
+CREATE INDEX "Provider_legalStatus_idx" ON "Provider"("legalStatus");
 
 -- CreateIndex
 CREATE INDEX "Service_providerId_idx" ON "Service"("providerId");
@@ -2522,6 +2589,15 @@ CREATE INDEX "ProviderInvoiceIntervention_interventionId_idx" ON "ProviderInvoic
 
 -- CreateIndex
 CREATE UNIQUE INDEX "ProviderInvoiceIntervention_invoiceId_interventionId_key" ON "ProviderInvoiceIntervention"("invoiceId", "interventionId");
+
+-- CreateIndex
+CREATE INDEX "ProviderContract_providerId_idx" ON "ProviderContract"("providerId");
+
+-- CreateIndex
+CREATE INDEX "ProviderContract_status_idx" ON "ProviderContract"("status");
+
+-- CreateIndex
+CREATE INDEX "ProviderContract_contractType_idx" ON "ProviderContract"("contractType");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Admin_userId_key" ON "Admin"("userId");
@@ -2704,6 +2780,9 @@ CREATE UNIQUE INDEX "Payment_deliveryId_key" ON "Payment"("deliveryId");
 CREATE UNIQUE INDEX "Payment_bookingId_key" ON "Payment"("bookingId");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "Payment_storageRentalId_key" ON "Payment"("storageRentalId");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "Payment_stripePaymentId_key" ON "Payment"("stripePaymentId");
 
 -- CreateIndex
@@ -2711,6 +2790,9 @@ CREATE INDEX "Payment_userId_idx" ON "Payment"("userId");
 
 -- CreateIndex
 CREATE INDEX "Payment_status_idx" ON "Payment"("status");
+
+-- CreateIndex
+CREATE INDEX "Payment_type_idx" ON "Payment"("type");
 
 -- CreateIndex
 CREATE INDEX "Payment_paymentMethod_idx" ON "Payment"("paymentMethod");
@@ -3067,10 +3149,10 @@ CREATE INDEX "SupportTemplate_category_idx" ON "SupportTemplate"("category");
 CREATE INDEX "SupportTemplate_isActive_idx" ON "SupportTemplate"("isActive");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "SupportMetrics_date_key" ON "SupportMetrics"("date");
+CREATE INDEX "SupportMetrics_date_idx" ON "SupportMetrics"("date");
 
 -- CreateIndex
-CREATE INDEX "SupportMetrics_date_idx" ON "SupportMetrics"("date");
+CREATE UNIQUE INDEX "SupportMetrics_date_key" ON "SupportMetrics"("date");
 
 -- CreateIndex
 CREATE INDEX "Certification_category_idx" ON "Certification"("category");
@@ -3477,9 +3559,6 @@ CREATE INDEX "GroupingProposal_clientId_idx" ON "GroupingProposal"("clientId");
 -- CreateIndex
 CREATE INDEX "GroupingProposal_status_idx" ON "GroupingProposal"("status");
 
--- CreateIndex
-CREATE UNIQUE INDEX "Verification_identifier_value_key" ON "Verification"("identifier", "value");
-
 -- AddForeignKey
 ALTER TABLE "Profile" ADD CONSTRAINT "Profile_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
@@ -3508,25 +3587,31 @@ ALTER TABLE "NFCCard" ADD CONSTRAINT "NFCCard_delivererId_fkey" FOREIGN KEY ("de
 ALTER TABLE "Merchant" ADD CONSTRAINT "Merchant_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "Product" ADD CONSTRAINT "Product_merchantId_fkey" FOREIGN KEY ("merchantId") REFERENCES "Merchant"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "CartDropConfig" ADD CONSTRAINT "CartDropConfig_merchantId_fkey" FOREIGN KEY ("merchantId") REFERENCES "Merchant"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "Order" ADD CONSTRAINT "Order_announcementId_fkey" FOREIGN KEY ("announcementId") REFERENCES "Announcement"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "Order" ADD CONSTRAINT "Order_clientId_fkey" FOREIGN KEY ("clientId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "Order" ADD CONSTRAINT "Order_merchantBillingId_fkey" FOREIGN KEY ("merchantBillingId") REFERENCES "MerchantBilling"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Order" ADD CONSTRAINT "Order_merchantId_fkey" FOREIGN KEY ("merchantId") REFERENCES "Merchant"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "Order" ADD CONSTRAINT "Order_clientId_fkey" FOREIGN KEY ("clientId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Order" ADD CONSTRAINT "Order_announcementId_fkey" FOREIGN KEY ("announcementId") REFERENCES "Announcement"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "Order" ADD CONSTRAINT "Order_paymentId_fkey" FOREIGN KEY ("paymentId") REFERENCES "Payment"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "Order" ADD CONSTRAINT "Order_merchantBillingId_fkey" FOREIGN KEY ("merchantBillingId") REFERENCES "MerchantBilling"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "OrderItem" ADD CONSTRAINT "OrderItem_orderId_fkey" FOREIGN KEY ("orderId") REFERENCES "Order"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "OrderItem" ADD CONSTRAINT "OrderItem_productId_fkey" FOREIGN KEY ("productId") REFERENCES "Product"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Provider" ADD CONSTRAINT "Provider_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -3541,10 +3626,10 @@ ALTER TABLE "ProviderAvailability" ADD CONSTRAINT "ProviderAvailability_provider
 ALTER TABLE "ProviderRate" ADD CONSTRAINT "ProviderRate_providerId_fkey" FOREIGN KEY ("providerId") REFERENCES "Provider"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "ProviderTimeSlot" ADD CONSTRAINT "ProviderTimeSlot_bookingId_fkey" FOREIGN KEY ("bookingId") REFERENCES "Booking"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "ProviderTimeSlot" ADD CONSTRAINT "ProviderTimeSlot_providerId_fkey" FOREIGN KEY ("providerId") REFERENCES "Provider"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "ProviderTimeSlot" ADD CONSTRAINT "ProviderTimeSlot_providerId_fkey" FOREIGN KEY ("providerId") REFERENCES "Provider"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "ProviderTimeSlot" ADD CONSTRAINT "ProviderTimeSlot_bookingId_fkey" FOREIGN KEY ("bookingId") REFERENCES "Booking"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "ProviderAvailabilityBlock" ADD CONSTRAINT "ProviderAvailabilityBlock_providerId_fkey" FOREIGN KEY ("providerId") REFERENCES "Provider"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -3553,10 +3638,13 @@ ALTER TABLE "ProviderAvailabilityBlock" ADD CONSTRAINT "ProviderAvailabilityBloc
 ALTER TABLE "ProviderMonthlyInvoice" ADD CONSTRAINT "ProviderMonthlyInvoice_providerId_fkey" FOREIGN KEY ("providerId") REFERENCES "Provider"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "ProviderInvoiceIntervention" ADD CONSTRAINT "ProviderInvoiceIntervention_invoiceId_fkey" FOREIGN KEY ("invoiceId") REFERENCES "ProviderMonthlyInvoice"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "ProviderInvoiceIntervention" ADD CONSTRAINT "ProviderInvoiceIntervention_interventionId_fkey" FOREIGN KEY ("interventionId") REFERENCES "Intervention"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "ProviderInvoiceIntervention" ADD CONSTRAINT "ProviderInvoiceIntervention_invoiceId_fkey" FOREIGN KEY ("invoiceId") REFERENCES "ProviderMonthlyInvoice"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "ProviderContract" ADD CONSTRAINT "ProviderContract_providerId_fkey" FOREIGN KEY ("providerId") REFERENCES "Provider"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Admin" ADD CONSTRAINT "Admin_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -3565,10 +3653,10 @@ ALTER TABLE "Admin" ADD CONSTRAINT "Admin_userId_fkey" FOREIGN KEY ("userId") RE
 ALTER TABLE "Announcement" ADD CONSTRAINT "Announcement_authorId_fkey" FOREIGN KEY ("authorId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Announcement" ADD CONSTRAINT "Announcement_clientId_fkey" FOREIGN KEY ("clientId") REFERENCES "Client"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "Announcement" ADD CONSTRAINT "Announcement_delivererId_fkey" FOREIGN KEY ("delivererId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Announcement" ADD CONSTRAINT "Announcement_delivererId_fkey" FOREIGN KEY ("delivererId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "Announcement" ADD CONSTRAINT "Announcement_clientId_fkey" FOREIGN KEY ("clientId") REFERENCES "Client"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Announcement" ADD CONSTRAINT "Announcement_merchantId_fkey" FOREIGN KEY ("merchantId") REFERENCES "Merchant"("id") ON DELETE SET NULL ON UPDATE CASCADE;
@@ -3586,10 +3674,10 @@ ALTER TABLE "DelivererRoute" ADD CONSTRAINT "DelivererRoute_delivererId_fkey" FO
 ALTER TABLE "RouteMatch" ADD CONSTRAINT "RouteMatch_announcementId_fkey" FOREIGN KEY ("announcementId") REFERENCES "Announcement"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "RouteMatch" ADD CONSTRAINT "RouteMatch_delivererId_fkey" FOREIGN KEY ("delivererId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "RouteMatch" ADD CONSTRAINT "RouteMatch_routeId_fkey" FOREIGN KEY ("routeId") REFERENCES "DelivererRoute"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "RouteMatch" ADD CONSTRAINT "RouteMatch_routeId_fkey" FOREIGN KEY ("routeId") REFERENCES "DelivererRoute"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "RouteMatch" ADD CONSTRAINT "RouteMatch_delivererId_fkey" FOREIGN KEY ("delivererId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "AnnouncementTracking" ADD CONSTRAINT "AnnouncementTracking_announcementId_fkey" FOREIGN KEY ("announcementId") REFERENCES "Announcement"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -3649,31 +3737,34 @@ ALTER TABLE "Intervention" ADD CONSTRAINT "Intervention_providerId_fkey" FOREIGN
 ALTER TABLE "DeliveryValidation" ADD CONSTRAINT "DeliveryValidation_deliveryId_fkey" FOREIGN KEY ("deliveryId") REFERENCES "Delivery"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "Payment" ADD CONSTRAINT "Payment_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "Payment" ADD CONSTRAINT "Payment_announcementId_fkey" FOREIGN KEY ("announcementId") REFERENCES "Announcement"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "Payment" ADD CONSTRAINT "Payment_bookingId_fkey" FOREIGN KEY ("bookingId") REFERENCES "Booking"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "Payment" ADD CONSTRAINT "Payment_clientId_fkey" FOREIGN KEY ("clientId") REFERENCES "Client"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Payment" ADD CONSTRAINT "Payment_deliveryId_fkey" FOREIGN KEY ("deliveryId") REFERENCES "Delivery"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Payment" ADD CONSTRAINT "Payment_merchantId_fkey" FOREIGN KEY ("merchantId") REFERENCES "Merchant"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "Payment" ADD CONSTRAINT "Payment_bookingId_fkey" FOREIGN KEY ("bookingId") REFERENCES "Booking"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Payment" ADD CONSTRAINT "Payment_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "Payment" ADD CONSTRAINT "Payment_storageRentalId_fkey" FOREIGN KEY ("storageRentalId") REFERENCES "StorageBoxRental"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Payment" ADD CONSTRAINT "Payment_clientId_fkey" FOREIGN KEY ("clientId") REFERENCES "Client"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Payment" ADD CONSTRAINT "Payment_merchantId_fkey" FOREIGN KEY ("merchantId") REFERENCES "Merchant"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Wallet" ADD CONSTRAINT "Wallet_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "WalletOperation" ADD CONSTRAINT "WalletOperation_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "WalletOperation" ADD CONSTRAINT "WalletOperation_walletId_fkey" FOREIGN KEY ("walletId") REFERENCES "Wallet"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "WalletOperation" ADD CONSTRAINT "WalletOperation_walletId_fkey" FOREIGN KEY ("walletId") REFERENCES "Wallet"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "WalletOperation" ADD CONSTRAINT "WalletOperation_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "InvoiceItem" ADD CONSTRAINT "InvoiceItem_invoiceId_fkey" FOREIGN KEY ("invoiceId") REFERENCES "Invoice"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -3703,9 +3794,6 @@ ALTER TABLE "DocumentGeneration" ADD CONSTRAINT "DocumentGeneration_userId_fkey"
 ALTER TABLE "Notification" ADD CONSTRAINT "Notification_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Review" ADD CONSTRAINT "Review_announcementId_fkey" FOREIGN KEY ("announcementId") REFERENCES "Announcement"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
 ALTER TABLE "Review" ADD CONSTRAINT "Review_bookingId_fkey" FOREIGN KEY ("bookingId") REFERENCES "Booking"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -3715,16 +3803,19 @@ ALTER TABLE "Review" ADD CONSTRAINT "Review_clientId_fkey" FOREIGN KEY ("clientI
 ALTER TABLE "Review" ADD CONSTRAINT "Review_providerId_fkey" FOREIGN KEY ("providerId") REFERENCES "Provider"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "Review" ADD CONSTRAINT "Review_announcementId_fkey" FOREIGN KEY ("announcementId") REFERENCES "Announcement"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "GlobalAvailability" ADD CONSTRAINT "GlobalAvailability_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "ActivityLog" ADD CONSTRAINT "ActivityLog_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Availability" ADD CONSTRAINT "Availability_delivererId_fkey" FOREIGN KEY ("delivererId") REFERENCES "Deliverer"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "Availability" ADD CONSTRAINT "Availability_providerId_fkey" FOREIGN KEY ("providerId") REFERENCES "Provider"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Availability" ADD CONSTRAINT "Availability_providerId_fkey" FOREIGN KEY ("providerId") REFERENCES "Provider"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "Availability" ADD CONSTRAINT "Availability_delivererId_fkey" FOREIGN KEY ("delivererId") REFERENCES "Deliverer"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Contract" ADD CONSTRAINT "Contract_merchantId_fkey" FOREIGN KEY ("merchantId") REFERENCES "Merchant"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -3733,10 +3824,10 @@ ALTER TABLE "Contract" ADD CONSTRAINT "Contract_merchantId_fkey" FOREIGN KEY ("m
 ALTER TABLE "ContractAmendment" ADD CONSTRAINT "ContractAmendment_contractId_fkey" FOREIGN KEY ("contractId") REFERENCES "Contract"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "MerchantBilling" ADD CONSTRAINT "MerchantBilling_contractId_fkey" FOREIGN KEY ("contractId") REFERENCES "Contract"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "MerchantBilling" ADD CONSTRAINT "MerchantBilling_merchantId_fkey" FOREIGN KEY ("merchantId") REFERENCES "Merchant"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "MerchantBilling" ADD CONSTRAINT "MerchantBilling_merchantId_fkey" FOREIGN KEY ("merchantId") REFERENCES "Merchant"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "MerchantBilling" ADD CONSTRAINT "MerchantBilling_contractId_fkey" FOREIGN KEY ("contractId") REFERENCES "Contract"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "ClientTutorialProgress" ADD CONSTRAINT "ClientTutorialProgress_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -3748,37 +3839,37 @@ ALTER TABLE "TutorialStep" ADD CONSTRAINT "TutorialStep_userId_fkey" FOREIGN KEY
 ALTER TABLE "TutorialFeedback" ADD CONSTRAINT "TutorialFeedback_userId_fkey" FOREIGN KEY ("userId") REFERENCES "ClientTutorialProgress"("userId") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "TrackingSession" ADD CONSTRAINT "TrackingSession_delivererId_fkey" FOREIGN KEY ("delivererId") REFERENCES "Deliverer"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "TrackingSession" ADD CONSTRAINT "TrackingSession_deliveryId_fkey" FOREIGN KEY ("deliveryId") REFERENCES "Delivery"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "TrackingSession" ADD CONSTRAINT "TrackingSession_deliveryId_fkey" FOREIGN KEY ("deliveryId") REFERENCES "Delivery"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "TrackingSession" ADD CONSTRAINT "TrackingSession_delivererId_fkey" FOREIGN KEY ("delivererId") REFERENCES "Deliverer"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "LocationUpdate" ADD CONSTRAINT "LocationUpdate_trackingSessionId_fkey" FOREIGN KEY ("trackingSessionId") REFERENCES "TrackingSession"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "GeofenceEntry" ADD CONSTRAINT "GeofenceEntry_geofenceId_fkey" FOREIGN KEY ("geofenceId") REFERENCES "Geofence"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "GeofenceEntry" ADD CONSTRAINT "GeofenceEntry_trackingSessionId_fkey" FOREIGN KEY ("trackingSessionId") REFERENCES "TrackingSession"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "GeofenceEntry" ADD CONSTRAINT "GeofenceEntry_trackingSessionId_fkey" FOREIGN KEY ("trackingSessionId") REFERENCES "TrackingSession"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "GeofenceEntry" ADD CONSTRAINT "GeofenceEntry_geofenceId_fkey" FOREIGN KEY ("geofenceId") REFERENCES "Geofence"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "DelivererLocation" ADD CONSTRAINT "DelivererLocation_delivererId_fkey" FOREIGN KEY ("delivererId") REFERENCES "Deliverer"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "SupportTicket" ADD CONSTRAINT "SupportTicket_assignedToId_fkey" FOREIGN KEY ("assignedToId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "SupportTicket" ADD CONSTRAINT "SupportTicket_authorId_fkey" FOREIGN KEY ("authorId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "SupportTicket" ADD CONSTRAINT "SupportTicket_authorId_fkey" FOREIGN KEY ("authorId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "SupportTicket" ADD CONSTRAINT "SupportTicket_assignedToId_fkey" FOREIGN KEY ("assignedToId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "SupportTicket" ADD CONSTRAINT "SupportTicket_deliveryId_fkey" FOREIGN KEY ("deliveryId") REFERENCES "Delivery"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "TicketMessage" ADD CONSTRAINT "TicketMessage_authorId_fkey" FOREIGN KEY ("authorId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "TicketMessage" ADD CONSTRAINT "TicketMessage_ticketId_fkey" FOREIGN KEY ("ticketId") REFERENCES "SupportTicket"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "TicketMessage" ADD CONSTRAINT "TicketMessage_ticketId_fkey" FOREIGN KEY ("ticketId") REFERENCES "SupportTicket"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "TicketMessage" ADD CONSTRAINT "TicketMessage_authorId_fkey" FOREIGN KEY ("authorId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "TicketAttachment" ADD CONSTRAINT "TicketAttachment_ticketId_fkey" FOREIGN KEY ("ticketId") REFERENCES "SupportTicket"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -3790,10 +3881,10 @@ ALTER TABLE "TicketAttachment" ADD CONSTRAINT "TicketAttachment_uploadedById_fke
 ALTER TABLE "MessageAttachment" ADD CONSTRAINT "MessageAttachment_messageId_fkey" FOREIGN KEY ("messageId") REFERENCES "TicketMessage"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "TicketEscalation" ADD CONSTRAINT "TicketEscalation_fromUserId_fkey" FOREIGN KEY ("fromUserId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "TicketEscalation" ADD CONSTRAINT "TicketEscalation_ticketId_fkey" FOREIGN KEY ("ticketId") REFERENCES "SupportTicket"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "TicketEscalation" ADD CONSTRAINT "TicketEscalation_ticketId_fkey" FOREIGN KEY ("ticketId") REFERENCES "SupportTicket"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "TicketEscalation" ADD CONSTRAINT "TicketEscalation_fromUserId_fkey" FOREIGN KEY ("fromUserId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "TicketEscalation" ADD CONSTRAINT "TicketEscalation_toUserId_fkey" FOREIGN KEY ("toUserId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -3814,19 +3905,16 @@ ALTER TABLE "Certification" ADD CONSTRAINT "Certification_providerId_fkey" FOREI
 ALTER TABLE "CertificationModule" ADD CONSTRAINT "CertificationModule_certificationId_fkey" FOREIGN KEY ("certificationId") REFERENCES "Certification"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "ProviderCertification" ADD CONSTRAINT "ProviderCertification_certificationId_fkey" FOREIGN KEY ("certificationId") REFERENCES "Certification"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
 ALTER TABLE "ProviderCertification" ADD CONSTRAINT "ProviderCertification_providerId_fkey" FOREIGN KEY ("providerId") REFERENCES "Provider"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "DelivererCertification" ADD CONSTRAINT "DelivererCertification_certificationId_fkey" FOREIGN KEY ("certificationId") REFERENCES "Certification"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "ProviderCertification" ADD CONSTRAINT "ProviderCertification_certificationId_fkey" FOREIGN KEY ("certificationId") REFERENCES "Certification"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "DelivererCertification" ADD CONSTRAINT "DelivererCertification_delivererId_fkey" FOREIGN KEY ("delivererId") REFERENCES "Deliverer"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "ModuleProgress" ADD CONSTRAINT "ModuleProgress_delivererCertificationId_fkey" FOREIGN KEY ("delivererCertificationId") REFERENCES "DelivererCertification"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "DelivererCertification" ADD CONSTRAINT "DelivererCertification_certificationId_fkey" FOREIGN KEY ("certificationId") REFERENCES "Certification"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "ModuleProgress" ADD CONSTRAINT "ModuleProgress_moduleId_fkey" FOREIGN KEY ("moduleId") REFERENCES "CertificationModule"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -3835,13 +3923,16 @@ ALTER TABLE "ModuleProgress" ADD CONSTRAINT "ModuleProgress_moduleId_fkey" FOREI
 ALTER TABLE "ModuleProgress" ADD CONSTRAINT "ModuleProgress_providerCertificationId_fkey" FOREIGN KEY ("providerCertificationId") REFERENCES "ProviderCertification"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "ModuleProgress" ADD CONSTRAINT "ModuleProgress_delivererCertificationId_fkey" FOREIGN KEY ("delivererCertificationId") REFERENCES "DelivererCertification"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "ExamSession" ADD CONSTRAINT "ExamSession_certificationId_fkey" FOREIGN KEY ("certificationId") REFERENCES "Certification"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "ExamSession" ADD CONSTRAINT "ExamSession_delivererCertificationId_fkey" FOREIGN KEY ("delivererCertificationId") REFERENCES "DelivererCertification"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "ExamSession" ADD CONSTRAINT "ExamSession_providerCertificationId_fkey" FOREIGN KEY ("providerCertificationId") REFERENCES "ProviderCertification"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "ExamSession" ADD CONSTRAINT "ExamSession_providerCertificationId_fkey" FOREIGN KEY ("providerCertificationId") REFERENCES "ProviderCertification"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "ExamSession" ADD CONSTRAINT "ExamSession_delivererCertificationId_fkey" FOREIGN KEY ("delivererCertificationId") REFERENCES "DelivererCertification"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "QualificationRequirement" ADD CONSTRAINT "QualificationRequirement_certificationId_fkey" FOREIGN KEY ("certificationId") REFERENCES "Certification"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -3850,52 +3941,52 @@ ALTER TABLE "QualificationRequirement" ADD CONSTRAINT "QualificationRequirement_
 ALTER TABLE "InsuranceCoverage" ADD CONSTRAINT "InsuranceCoverage_policyId_fkey" FOREIGN KEY ("policyId") REFERENCES "InsurancePolicy"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "InsuranceClaim" ADD CONSTRAINT "InsuranceClaim_claimantId_fkey" FOREIGN KEY ("claimantId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "InsuranceClaim" ADD CONSTRAINT "InsuranceClaim_policyId_fkey" FOREIGN KEY ("policyId") REFERENCES "InsurancePolicy"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "InsuranceClaim" ADD CONSTRAINT "InsuranceClaim_coverageId_fkey" FOREIGN KEY ("coverageId") REFERENCES "InsuranceCoverage"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "InsuranceClaim" ADD CONSTRAINT "InsuranceClaim_policyId_fkey" FOREIGN KEY ("policyId") REFERENCES "InsurancePolicy"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "ClaimAssessment" ADD CONSTRAINT "ClaimAssessment_assessorId_fkey" FOREIGN KEY ("assessorId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "InsuranceClaim" ADD CONSTRAINT "InsuranceClaim_claimantId_fkey" FOREIGN KEY ("claimantId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "ClaimAssessment" ADD CONSTRAINT "ClaimAssessment_claimId_fkey" FOREIGN KEY ("claimId") REFERENCES "InsuranceClaim"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "ClaimAssessment" ADD CONSTRAINT "ClaimAssessment_assessorId_fkey" FOREIGN KEY ("assessorId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "ClaimPayment" ADD CONSTRAINT "ClaimPayment_claimId_fkey" FOREIGN KEY ("claimId") REFERENCES "InsuranceClaim"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "ServiceWarranty" ADD CONSTRAINT "ServiceWarranty_clientId_fkey" FOREIGN KEY ("clientId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "ServiceWarranty" ADD CONSTRAINT "ServiceWarranty_providerId_fkey" FOREIGN KEY ("providerId") REFERENCES "Provider"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "ServiceWarranty" ADD CONSTRAINT "ServiceWarranty_warrantyId_fkey" FOREIGN KEY ("warrantyId") REFERENCES "Warranty"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "DeliveryWarranty" ADD CONSTRAINT "DeliveryWarranty_clientId_fkey" FOREIGN KEY ("clientId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "ServiceWarranty" ADD CONSTRAINT "ServiceWarranty_providerId_fkey" FOREIGN KEY ("providerId") REFERENCES "Provider"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "DeliveryWarranty" ADD CONSTRAINT "DeliveryWarranty_delivererId_fkey" FOREIGN KEY ("delivererId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "DeliveryWarranty" ADD CONSTRAINT "DeliveryWarranty_deliveryId_fkey" FOREIGN KEY ("deliveryId") REFERENCES "Delivery"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "ServiceWarranty" ADD CONSTRAINT "ServiceWarranty_clientId_fkey" FOREIGN KEY ("clientId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "DeliveryWarranty" ADD CONSTRAINT "DeliveryWarranty_warrantyId_fkey" FOREIGN KEY ("warrantyId") REFERENCES "Warranty"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "WarrantyClaim" ADD CONSTRAINT "WarrantyClaim_claimantId_fkey" FOREIGN KEY ("claimantId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "DeliveryWarranty" ADD CONSTRAINT "DeliveryWarranty_deliveryId_fkey" FOREIGN KEY ("deliveryId") REFERENCES "Delivery"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "DeliveryWarranty" ADD CONSTRAINT "DeliveryWarranty_delivererId_fkey" FOREIGN KEY ("delivererId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "DeliveryWarranty" ADD CONSTRAINT "DeliveryWarranty_clientId_fkey" FOREIGN KEY ("clientId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "WarrantyClaim" ADD CONSTRAINT "WarrantyClaim_serviceWarrantyId_fkey" FOREIGN KEY ("serviceWarrantyId") REFERENCES "ServiceWarranty"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "WarrantyClaim" ADD CONSTRAINT "WarrantyClaim_deliveryWarrantyId_fkey" FOREIGN KEY ("deliveryWarrantyId") REFERENCES "DeliveryWarranty"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "WarrantyClaim" ADD CONSTRAINT "WarrantyClaim_serviceWarrantyId_fkey" FOREIGN KEY ("serviceWarrantyId") REFERENCES "ServiceWarranty"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "WarrantyClaim" ADD CONSTRAINT "WarrantyClaim_claimantId_fkey" FOREIGN KEY ("claimantId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "ReferralCode" ADD CONSTRAINT "ReferralCode_programId_fkey" FOREIGN KEY ("programId") REFERENCES "ReferralProgram"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -3904,31 +3995,31 @@ ALTER TABLE "ReferralCode" ADD CONSTRAINT "ReferralCode_programId_fkey" FOREIGN 
 ALTER TABLE "ReferralCode" ADD CONSTRAINT "ReferralCode_referrerId_fkey" FOREIGN KEY ("referrerId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Referral" ADD CONSTRAINT "Referral_codeId_fkey" FOREIGN KEY ("codeId") REFERENCES "ReferralCode"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
 ALTER TABLE "Referral" ADD CONSTRAINT "Referral_programId_fkey" FOREIGN KEY ("programId") REFERENCES "ReferralProgram"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Referral" ADD CONSTRAINT "Referral_refereeId_fkey" FOREIGN KEY ("refereeId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "Referral" ADD CONSTRAINT "Referral_codeId_fkey" FOREIGN KEY ("codeId") REFERENCES "ReferralCode"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Referral" ADD CONSTRAINT "Referral_referrerId_fkey" FOREIGN KEY ("referrerId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "ReferralActivity" ADD CONSTRAINT "ReferralActivity_referralId_fkey" FOREIGN KEY ("referralId") REFERENCES "Referral"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "Referral" ADD CONSTRAINT "Referral_refereeId_fkey" FOREIGN KEY ("refereeId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "ReferralReward" ADD CONSTRAINT "ReferralReward_referralId_fkey" FOREIGN KEY ("referralId") REFERENCES "Referral"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "ReferralActivity" ADD CONSTRAINT "ReferralActivity_referralId_fkey" FOREIGN KEY ("referralId") REFERENCES "Referral"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "ReferralReward" ADD CONSTRAINT "ReferralReward_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "ReferralStats" ADD CONSTRAINT "ReferralStats_programId_fkey" FOREIGN KEY ("programId") REFERENCES "ReferralProgram"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "ReferralReward" ADD CONSTRAINT "ReferralReward_referralId_fkey" FOREIGN KEY ("referralId") REFERENCES "Referral"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "ReferralStats" ADD CONSTRAINT "ReferralStats_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ReferralStats" ADD CONSTRAINT "ReferralStats_programId_fkey" FOREIGN KEY ("programId") REFERENCES "ReferralProgram"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "InfluencerProgram" ADD CONSTRAINT "InfluencerProgram_influencerId_fkey" FOREIGN KEY ("influencerId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -3949,10 +4040,10 @@ ALTER TABLE "LinkAnalytics" ADD CONSTRAINT "LinkAnalytics_linkId_fkey" FOREIGN K
 ALTER TABLE "Dispute" ADD CONSTRAINT "Dispute_announcementId_fkey" FOREIGN KEY ("announcementId") REFERENCES "Announcement"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Dispute" ADD CONSTRAINT "Dispute_reportedUserId_fkey" FOREIGN KEY ("reportedUserId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "Dispute" ADD CONSTRAINT "Dispute_reporterId_fkey" FOREIGN KEY ("reporterId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Dispute" ADD CONSTRAINT "Dispute_reporterId_fkey" FOREIGN KEY ("reporterId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "Dispute" ADD CONSTRAINT "Dispute_reportedUserId_fkey" FOREIGN KEY ("reportedUserId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "ReverseAuction" ADD CONSTRAINT "ReverseAuction_announcementId_fkey" FOREIGN KEY ("announcementId") REFERENCES "Announcement"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -3976,10 +4067,10 @@ ALTER TABLE "AnnouncementGroup" ADD CONSTRAINT "AnnouncementGroup_announcementId
 ALTER TABLE "AnnouncementGroup" ADD CONSTRAINT "AnnouncementGroup_deliveryGroupId_fkey" FOREIGN KEY ("deliveryGroupId") REFERENCES "DeliveryGroup"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "GroupingProposal" ADD CONSTRAINT "GroupingProposal_announcementId_fkey" FOREIGN KEY ("announcementId") REFERENCES "Announcement"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "GroupingProposal" ADD CONSTRAINT "GroupingProposal_deliveryGroupId_fkey" FOREIGN KEY ("deliveryGroupId") REFERENCES "DeliveryGroup"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "GroupingProposal" ADD CONSTRAINT "GroupingProposal_clientId_fkey" FOREIGN KEY ("clientId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "GroupingProposal" ADD CONSTRAINT "GroupingProposal_deliveryGroupId_fkey" FOREIGN KEY ("deliveryGroupId") REFERENCES "DeliveryGroup"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "GroupingProposal" ADD CONSTRAINT "GroupingProposal_announcementId_fkey" FOREIGN KEY ("announcementId") REFERENCES "Announcement"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

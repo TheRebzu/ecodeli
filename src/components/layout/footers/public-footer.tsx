@@ -1,3 +1,5 @@
+"use client";
+
 /**
  * Footer public refactorisé pour EcoDeli
  * Version complète pour les pages publiques avec toutes les informations
@@ -98,7 +100,7 @@ export function PublicFooter({
             </div>
 
             <div className="flex items-center space-x-4">
-              <ThemeToggle variant="icon-only" size="sm" />
+              <ThemeToggle variant="icon-only" />
               <LanguageSwitcher variant="minimal" />
               <Link
                 href="/legal/privacy"

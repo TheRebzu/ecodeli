@@ -248,9 +248,7 @@ class DisputeManagementService {
       const dispute = await db.dispute.findUnique({
         where: { id: disputeId },
         include: {
-          announcement: {
-            include: { payment: true },
-          },
+          announcement: true,
           reporter: true,
           reportedUser: true,
         },

@@ -25,8 +25,6 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    console.log("🔍 Admin Stats Debug - All documents:", allDocuments);
-
     // Statistiques globales
     const [total, pending, approved, rejected] = await Promise.all([
       prisma.document.count(),
@@ -34,8 +32,6 @@ export async function GET(request: NextRequest) {
       prisma.document.count({ where: { validationStatus: "APPROVED" } }),
       prisma.document.count({ where: { validationStatus: "REJECTED" } }),
     ]);
-
-    console.log("🔍 Admin Stats Debug - Counts:", { total, pending, approved, rejected });
 
     // Statistiques par type
     const byType = await prisma.document.groupBy({

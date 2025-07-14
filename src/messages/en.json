@@ -332,8 +332,8 @@
         },
         "tabs": {
           "auth": "Authentication",
-          "announcements": "Announcements",
-          "deliveries": "Deliveries",
+    "announcements": "Announcements",
+    "deliveries": "Deliveries",
           "services": "Services",
           "admin": "Administration"
         },
@@ -386,10 +386,10 @@
           "book": {
             "description": "Book a slot for a personal service"
           }
-        },
-        "admin": {
+  },
+  "admin": {
           "title": "Administration",
-          "users": {
+      "users": {
             "list": {
               "description": "List all users with role filters"
             }
@@ -1025,7 +1025,7 @@
     "paid": "Paid",
     "overdue": "Overdue",
     "cancelled": "Cancelled",
-    "pending": "Pending",
+        "pending": "Pending",
     "picking_up": "Picking Up",
     "in_transit": "In Transit",
     "delivered": "Delivered",
@@ -1064,7 +1064,7 @@
     "busy": "Busy",
     "blocked": "Blocked",
     "holiday": "Holiday",
-    "approved": "Approved",
+        "approved": "Approved",
     "disputed": "Disputed",
     "no_show": "No Show",
     "submitted": "Submitted",
@@ -1151,7 +1151,7 @@
     "this_week": "This Week",
     "average_rating": "Average Rating",
     "validated": "Validated",
-    "rejected": "Rejected",
+        "rejected": "Rejected",
     "expired": "Expired",
     "available_slots": "Available Slots",
     "busy_days": "Busy Days",
@@ -1379,7 +1379,7 @@
   },
   "admin": {
     "announcements": "Announcements",
-    "deliveries": {
+      "deliveries": {
       "monitoring": "Monitoring"
     },
     "disputes": "Disputes",
@@ -1411,7 +1411,7 @@
   "description": {
     "manageYourAnnouncements": "Manage Your Announcements"
   },
-  "refresh": "Refresh",
+        "refresh": "Refresh",
   "filters": {
     "title": "Title",
     "search": "Search",
@@ -1471,41 +1471,41 @@
   "searchPlaceholder": "Search Placeholder",
   "statusFilter": "Status Filter",
   "allStatuses": "All Statuses",
-  "open": "Open",
-  "inProgress": "In Progress",
-  "resolved": "Resolved",
-  "closed": "Closed",
+        "open": "Open",
+        "inProgress": "In Progress",
+        "resolved": "Resolved",
+        "closed": "Closed",
   "typeFilter": "Type Filter",
   "allTypes": "All Types",
-  "deliveryIssue": "Delivery Issue",
-  "paymentDispute": "Payment Dispute",
-  "serviceQuality": "Service Quality",
-  "cancellation": "Cancellation",
-  "other": "Other",
+        "deliveryIssue": "Delivery Issue",
+        "paymentDispute": "Payment Dispute",
+        "serviceQuality": "Service Quality",
+        "cancellation": "Cancellation",
+        "other": "Other",
   "clearFilters": "Clear Filters",
-  "allDisputes": "All Disputes",
-  "openDisputes": "Open Disputes",
-  "inProgressDisputes": "In Progress Disputes",
-  "resolvedDisputes": "Resolved Disputes",
-  "back": "Back",
-  "dispute": "Dispute",
-  "disputeDetails": "Dispute Details",
+        "allDisputes": "All Disputes",
+        "openDisputes": "Open Disputes",
+        "inProgressDisputes": "In Progress Disputes",
+        "resolvedDisputes": "Resolved Disputes",
+        "back": "Back",
+        "dispute": "Dispute",
+        "disputeDetails": "Dispute Details",
   "timeline": {
     "application_created": "Application Created",
     "review_started": "Review Started",
     "application_approved": "Application Approved",
     "application_rejected": "Application Rejected"
   },
-  "quickActions": "Quick Actions",
+        "quickActions": "Quick Actions",
   "selectStatus": "Select Status",
-  "updateStatus": "Update Status",
-  "resolution": "Resolution",
+        "updateStatus": "Update Status",
+        "resolution": "Resolution",
   "relatedInfo": "Related Info",
   "client": {
     "announcements": "Announcements",
     "bookings": "Bookings",
     "deliveries": "Deliveries",
-    "delivery": "Delivery",
+        "delivery": "Delivery",
     "notifications": "Notifications",
     "payments": "Payments",
     "profile": "Profile",
@@ -1558,7 +1558,7 @@
     "client": "Client",
     "pickup": "Pickup",
     "destination": "Destination",
-    "created": "Created",
+        "created": "Created",
     "estimated": "Estimated",
     "last_location": "Last Location",
     "pending": "Pending",
@@ -1579,7 +1579,7 @@
     "draft": "Draft",
     "published": "Published",
     "matched": "Matched",
-    "inProgress": "In Progress",
+        "inProgress": "In Progress",
     "completed": "Completed",
     "cancelled": "Cancelled"
   },
@@ -1590,15 +1590,15 @@
   "sanctions": "Sanctions",
   "reports": {
     "title": "Title",
-    "description": "Description",
+        "description": "Description",
     "comingSoon": "Coming Soon",
     "comingSoonDescription": "Coming Soon Description"
   },
   "generateInvoices": "Generate Invoices",
   "monthFilter": "Month Filter",
   "allMonths": "All Months",
-  "generated": "Generated",
-  "paid": "Paid",
+          "generated": "Generated",
+          "paid": "Paid",
   "overdue": "Overdue",
   "allInvoices": "All Invoices",
   "pendingInvoices": "Pending Invoices",
@@ -1696,7 +1696,7 @@
     "auth": "Auth",
     "announcements": "Announcements",
     "deliveries": "Deliveries",
-    "services": "Services",
+          "services": "Services",
     "admin": "Admin",
     "active_deliveries": "Active Deliveries",
     "issues": "Issues",
@@ -1883,9 +1883,9 @@
   "Date": "Date",
   "Statut": "Statut",
   "Client": "Client",
-  "pagination": {
-    "previous": "Previous",
-    "next": "Next",
+        "pagination": {
+          "previous": "Previous",
+          "next": "Next",
     "page": "Page",
     "of": "Of"
   },
@@ -1948,7 +1948,7 @@
   },
   "earnings": {
     "title": "Title",
-    "client": "Client",
+            "client": "Client",
     "paid_on": "Paid On",
     "commission": "Commission",
     "no_earnings": "No Earnings"
@@ -2086,7 +2086,7 @@
     "allCategories": "All Categories",
     "statusFilter": "Status Filter",
     "allStatuses": "All Statuses",
-    "active": "Active",
+        "active": "Active",
     "inactive": "Inactive",
     "products": "Products",
     "productsDescription": "Products Description",
@@ -2098,8 +2098,8 @@
       "stock": "Stock",
       "status": "Status",
       "actions": "Actions"
-    },
-    "actions": {
+      },
+      "actions": {
       "view": "View",
       "edit": "Edit",
       "delete": "Delete"
@@ -2141,7 +2141,7 @@
     "tagsDescription": "Tags Description",
     "tagPlaceholder": "Tag Placeholder",
     "addTag": "Add Tag",
-    "cancel": "Cancel",
+        "cancel": "Cancel",
     "saving": "Saving",
     "save": "Save"
   },
@@ -2209,7 +2209,7 @@
     "estimated": "Estimated",
     "nextAction": "Next Action",
     "rejectionReason": "Rejection Reason",
-    "completed": "Completed",
+        "completed": "Completed",
     "steps_completed": "Steps Completed"
   },
   "current": {
@@ -2220,7 +2220,7 @@
     "adminReview": "Admin Review"
   },
   "certifications": {
-    "empty": {
+      "empty": {
       "title": "Title",
       "description": "Description"
     }
@@ -2462,7 +2462,7 @@
     "tagsDescription": "Tags Description",
     "tagPlaceholder": "Tag Placeholder",
     "addTag": "Add Tag",
-    "cancel": "Cancel",
+          "cancel": "Cancel",
     "saving": "Saving",
     "save": "Save",
     "uploadImages": "Upload Images",
@@ -2575,9 +2575,9 @@
     },
     "updateLocation": {
       "description": "Description"
-    }
-  },
-  "services": {
+      }
+    },
+    "services": {
     "title": "Title",
     "search": {
       "description": "Description"
@@ -2639,7 +2639,7 @@
     "errorHandling": "Error Handling"
   },
   "errorId": "Error Id",
-  "categories": {
+      "categories": {
     "title": "Title",
     "announcements": "Announcements",
     "shipping": "Shipping",
@@ -2648,10 +2648,10 @@
     "payment": "Payment",
     "security": "Security",
     "account": "Account",
-    "electronics": "Electronics",
-    "furniture": "Furniture",
-    "clothing": "Clothing",
-    "documents": "Documents",
+        "electronics": "Electronics",
+        "furniture": "Furniture",
+        "clothing": "Clothing",
+        "documents": "Documents",
     "other": "Other",
     "person_transport": "Person Transport",
     "airport_transfer": "Airport Transfer",
@@ -2857,9 +2857,16 @@
   "navigation": {
     "services": "Services",
     "pricing": "Pricing",
-    "about": "About"
+    "about": "About",
+    "delivery": "Delivery",
+    "personal_services": "Personal Services",
+    "storage": "Storage",
+    "partners": "Partners",
+    "merchants": "Merchants",
+    "providers": "Providers",
+    "contact": "Contact"
   },
-  "dashboard": {
+    "dashboard": {
     "welcome": "Welcome",
     "newAnnouncement": "New Announcement",
     "title": "Title",
@@ -2875,7 +2882,7 @@
       "storageDesc": "Storage Desc"
     },
     "subtitle": "Subtitle",
-    "stats": {
+      "stats": {
       "totalDeliveries": "Total Deliveries",
       "completed": "Completed",
       "inProgress": "In Progress",
@@ -2986,7 +2993,7 @@
   },
   "control_panel": {
     "title": "Title",
-    "refresh": "Refresh",
+      "refresh": "Refresh",
     "search_placeholder": "Search Placeholder",
     "filter_status": "Filter Status",
     "filter_priority": "Filter Priority"
@@ -2996,7 +3003,7 @@
     "no_issues_description": "No Issues Description",
     "delivery_id": "Delivery Id",
     "deliverer": "Deliverer",
-    "client": "Client",
+      "client": "Client",
     "reported": "Reported"
   },
   "location": {
@@ -3202,7 +3209,7 @@
   "events": "Events",
   "enabled": "Enabled",
   "cancel": {
-    "success": {
+      "success": {
       "title": "Title",
       "description": "Description"
     },
@@ -3333,8 +3340,8 @@
     },
     "accept": "Accept",
     "reject": "Reject",
-    "status": {
-      "accepted": "Accepted",
+      "status": {
+        "accepted": "Accepted",
       "rejected": "Rejected"
     },
     "dialog": {
@@ -3448,7 +3455,7 @@
   "rentalId": "Rental Id",
   "rental_status": {
     "active": "Active",
-    "completed": "Completed",
+        "completed": "Completed",
     "cancelled": "Cancelled",
     "overdue": "Overdue"
   },
@@ -3507,8 +3514,8 @@
     "success": {
       "title": "Title",
       "description": "Description"
-    },
-    "error": {
+      },
+      "error": {
       "title": "Title",
       "description": "Description",
       "network": "Network"
@@ -3579,7 +3586,7 @@
   "documents": {
     "title": "Title",
     "validated": "Validated",
-    "pending": "Pending",
+        "pending": "Pending",
     "rejected": "Rejected",
     "manage": "Manage",
     "types": {
@@ -3695,10 +3702,10 @@
     "max_appointments": "Max Appointments",
     "specific_date": "Specific Date",
     "create": "Create"
-  },
-  "vehicle_types": {
+      },
+      "vehicle_types": {
     "bike": "Bike",
-    "car": "Car",
+        "car": "Car",
     "van": "Van"
   },
   "calendar": {
@@ -3748,7 +3755,7 @@
   },
   "vehicles": {
     "car": "Car",
-    "bike": "Bike",
+        "bike": "Bike",
     "scooter": "Scooter",
     "truck": "Truck",
     "walking": "Walking"
@@ -3801,15 +3808,15 @@
     "description": "Description"
   },
   "withdrawal_status": {
-    "pending": "Pending",
+        "pending": "Pending",
     "processing": "Processing",
     "completed": "Completed",
     "rejected": "Rejected"
-  },
+      },
   "balance": {
     "current": "Current",
     "last_update": "Last Update",
-    "pending": "Pending",
+        "pending": "Pending",
     "pending_description": "Pending Description",
     "total_earned": "Total Earned",
     "total_description": "Total Description"
@@ -3856,7 +3863,7 @@
   },
   "available_balance": "Available Balance",
   "amount_label": "Amount Label",
-  "all": "All",
+      "all": "All",
   "iban_label": "Iban Label",
   "fee_calculation": "Fee Calculation",
   "requested_amount": "Requested Amount",
@@ -4032,8 +4039,8 @@
     "paid": "Paid",
     "pending": "Pending",
     "overdue": "Overdue",
-    "cancelled": "Cancelled"
-  },
+      "cancelled": "Cancelled"
+    },
   "new_contract_dialog": {
     "title": "Title",
     "description": "Description",
@@ -4209,8 +4216,8 @@
     "profile": {
       "title": "Title",
       "description": "Description"
-    },
-    "services": {
+  },
+  "services": {
       "title": "Title",
       "description": "Description"
     },
@@ -4356,7 +4363,7 @@
   "deleteSuccessDesc": "Delete Success Desc",
   "deleteError": "Delete Error",
   "deleteErrorDesc": "Delete Error Desc",
-  "budget": "Budget",
+    "budget": "Budget",
   "scheduledFor": "Scheduled For",
   "viewDetails": "View Details",
   "newRequest": "New Request",

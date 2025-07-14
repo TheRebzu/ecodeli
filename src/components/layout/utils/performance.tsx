@@ -226,12 +226,7 @@ export class PerformanceMonitor {
     const measure = performance.getEntriesByName(name)[0];
     this.metrics.set(name, measure.duration);
 
-    // Log si la performance est dégradée
-    if (measure.duration > 100) {
-      console.warn(
-        `Performance warning: ${name} took ${measure.duration.toFixed(2)}ms`,
-      );
-    }
+    // Suppression du log
   }
 
   getMetrics() {

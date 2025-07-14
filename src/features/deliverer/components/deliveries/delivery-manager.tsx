@@ -114,34 +114,16 @@ export default function DeliveryManager({ delivererId }: DeliveryManagerProps) {
   const fetchDeliveries = async () => {
     try {
       setLoading(true);
-      console.log("🔄 Fetching deliveries...");
-
+      // Suppression des logs
       const response = await fetch("/api/deliverer/deliveries");
-      console.log("📡 Fetch response status:", response.status);
-
       if (response.ok) {
         const data = await response.json();
-        console.log("📦 Fetched deliveries data:", data);
-        console.log("📋 Number of deliveries:", data.deliveries?.length || 0);
-
-        if (data.deliveries && data.deliveries.length > 0) {
-          console.log(
-            "📊 Delivery statuses:",
-            data.deliveries.map((d: any) => ({
-              id: d.id,
-              status: d.status,
-            })),
-          );
-        }
-
         setDeliveries(data.deliveries || []);
       } else {
-        console.error("❌ Failed to fetch deliveries:", response.status);
         const errorData = await response.json();
-        console.error("❌ Error data:", errorData);
+        toast.error(t("error.fetch_failed"));
       }
     } catch (error) {
-      console.error("Error fetching deliveries:", error);
       toast.error(t("error.fetch_failed"));
     } finally {
       setLoading(false);
@@ -151,8 +133,6 @@ export default function DeliveryManager({ delivererId }: DeliveryManagerProps) {
   const updateDeliveryStatus = async (deliveryId: string, status: string) => {
     try {
       setActionLoading(deliveryId);
-      console.log(`🔄 Updating delivery ${deliveryId} to status: ${status}`);
-
       // Utiliser l'API existante pour mettre à jour le statut
       let endpoint = "";
       let method = "PUT";
@@ -171,32 +151,23 @@ export default function DeliveryManager({ delivererId }: DeliveryManagerProps) {
           method = "PUT";
       }
 
-      console.log(`📡 Calling API: ${method} ${endpoint}`);
-
       const response = await fetch(endpoint, {
         method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status }),
       });
 
-      console.log(`📡 API Response status: ${response.status}`);
-
       if (response.ok) {
         const responseData = await response.json();
-        console.log(`✅ Status update successful:`, responseData);
         toast.success(t(`success.status_updated_${status}`));
 
         // Force refresh the deliveries data
-        console.log(`🔄 Refreshing deliveries data...`);
         await fetchDeliveries();
-        console.log(`✅ Deliveries data refreshed`);
       } else {
         const errorData = await response.json();
-        console.error(`❌ Status update failed:`, errorData);
         toast.error(errorData.error || t("error.status_update_failed"));
       }
     } catch (error) {
-      console.error("Error updating delivery status:", error);
       toast.error(t("error.status_update_failed"));
     } finally {
       setActionLoading(null);
@@ -231,7 +202,6 @@ export default function DeliveryManager({ delivererId }: DeliveryManagerProps) {
         toast.error(errorData.error || t("error.validation_failed"));
       }
     } catch (error) {
-      console.error("Error validating delivery:", error);
       toast.error(t("error.validation_failed"));
     } finally {
       setActionLoading(null);
@@ -259,7 +229,6 @@ export default function DeliveryManager({ delivererId }: DeliveryManagerProps) {
         toast.error(errorData.error || t("error.cancel_failed"));
       }
     } catch (error) {
-      console.error("Error cancelling delivery:", error);
       toast.error(t("error.cancel_failed"));
     } finally {
       setActionLoading(null);
@@ -510,12 +479,6 @@ export default function DeliveryManager({ delivererId }: DeliveryManagerProps) {
                           size="sm"
                           variant="outline"
                           onClick={() => {
-                            console.log(
-                              "Test button clicked for delivery:",
-                              delivery.id,
-                              "Status:",
-                              delivery.status,
-                            );
                             toast.info(`Status: ${delivery.status}`);
                           }}
                         >
@@ -757,12 +720,6 @@ export default function DeliveryManager({ delivererId }: DeliveryManagerProps) {
                           size="sm"
                           variant="outline"
                           onClick={() => {
-                            console.log(
-                              "Test button clicked for completed delivery:",
-                              delivery.id,
-                              "Status:",
-                              delivery.status,
-                            );
                             toast.info(
                               `Livraison terminée - Status: ${delivery.status}`,
                             );

@@ -96,7 +96,6 @@ export function MonitoringDashboard() {
         setServices(formattedServices);
       }
     } catch (err) {
-      console.error("Erreur récupération données monitoring:", err);
       setError("Erreur lors de la récupération des données");
     } finally {
       setLoading(false);

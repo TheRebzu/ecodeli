@@ -244,13 +244,19 @@ export async function POST(
         id: announcementId,
         authorId: user.id,
       },
-      include: { delivery: true },
     });
 
-    if (!announcement || !announcement.delivery) {
+    if (!announcement) {
       return NextResponse.json(
-        { error: "Annonce ou livraison introuvable" },
+        { error: "Annonce introuvable" },
         { status: 404 },
+      );
+    }
+
+    if (!announcement.delivery) {
+      return NextResponse.json(
+        { error: "Aucune livraison associée à cette annonce" },
+        { status: 400 },
       );
     }
 

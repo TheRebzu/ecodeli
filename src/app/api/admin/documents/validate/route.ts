@@ -283,15 +283,9 @@ async function checkAllDocumentsValidated(user: any) {
  */
 async function logAdminAction(adminId: string, action: string, details: any) {
   try {
-    // Note: ActivityLog model may not exist yet
-    console.log("Admin action:", {
-      adminId,
-      action,
-      details,
-      timestamp: new Date(),
-    });
+    // Suppression du log
   } catch (error) {
-    console.error("Erreur log admin:", error);
+    // Suppression du log
   }
 }
 

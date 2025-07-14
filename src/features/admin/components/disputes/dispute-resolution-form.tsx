@@ -44,20 +44,12 @@ export function DisputeResolutionForm({
 
     try {
       // TODO: Submit resolution
-      console.log("Submitting resolution:", {
-        disputeId,
-        resolutionType,
-        resolution,
-        compensation,
-        sanction,
-      });
-
+      // Suppression du log
       // Simulate API call
       await new Promise((resolve) => setTimeout(resolve, 1000));
-
       onResolved();
     } catch (error) {
-      console.error("Error submitting resolution:", error);
+      // Suppression du log
     } finally {
       setLoading(false);
     }

@@ -9,57 +9,54 @@ const intlMiddleware = createIntlMiddleware({
   localePrefix: "always",
 });
 
+// Configuration des routes par rôle
+const ROLE_ROUTES = {
+  ADMIN: "/admin",
+  CLIENT: "/client", 
+  DELIVERER: "/deliverer",
+  MERCHANT: "/merchant",
+  PROVIDER: "/provider",
+} as const;
+
+// Fonction pour obtenir la route par défaut selon le rôle
+function getDefaultRouteForRole(role: UserRole, locale: string = 'fr'): string {
+  const basePath = ROLE_ROUTES[role] || '/home';
+  return `/${locale}${basePath}`;
+}
+
 // Fonction pour vérifier les permissions par rôle
 function hasRequiredRole(userRole: string, pathname: string): boolean {
   const rolePermissions = {
     ADMIN: [
       "/admin",
-      "/admin/",
-      "/client",
-      "/client/",
+      "/client", 
       "/deliverer",
-      "/deliverer/",
       "/merchant",
-      "/merchant/",
       "/provider",
-      "/provider/",
     ],
-    CLIENT: ["/client", "/client/"],
-    DELIVERER: ["/deliverer", "/deliverer/"],
-    MERCHANT: ["/merchant", "/merchant/"],
-    PROVIDER: ["/provider", "/provider/"],
+    CLIENT: ["/client"],
+    DELIVERER: ["/deliverer"],
+    MERCHANT: ["/merchant"],
+    PROVIDER: ["/provider"],
   };
-
   const userAllowedPaths = rolePermissions[userRole as UserRole] || [];
-
-  // Extraire la partie après la locale (ex: /fr/client -> /client)
   const pathAfterLocale = pathname.replace(/^\/[a-z]{2}/, "");
-
-  console.log("🔍 hasRequiredRole debug:", {
-    userRole,
-    pathname,
-    pathAfterLocale,
-    userAllowedPaths,
-    result: userAllowedPaths.some((path) => pathAfterLocale.startsWith(path)),
-  });
-
   return userAllowedPaths.some((path) => pathAfterLocale.startsWith(path));
 }
 
 // Fonction pour vérifier si l'utilisateur est actif selon son rôle
 function isUserActive(userRole: string, isActive: boolean): boolean {
   const requiresActiveStatus = ["DELIVERER", "PROVIDER"];
-
+  
   if (requiresActiveStatus.includes(userRole)) {
     return isActive;
   }
-
+  
   return true; // Les autres rôles n'ont pas besoin de validation active
 }
 
 // Fonction pour détecter si une route est protégée
 function isProtectedRoute(pathname: string): boolean {
-  // Protéger /fr/client, /fr/client/, /fr/client/xxx, etc.
   const protectedPatterns = [
     /^\/[a-z]{2}\/client(\/|$)/,
     /^\/[a-z]{2}\/admin(\/|$)/,
@@ -70,11 +67,62 @@ function isProtectedRoute(pathname: string): boolean {
   return protectedPatterns.some((regex) => regex.test(pathname));
 }
 
+// Fonction pour détecter si l'utilisateur connecté devrait être redirigé vers son espace
+function shouldRedirectToUserSpace(pathname: string, userRole: UserRole): boolean {
+  const pathAfterLocale = pathname.replace(/^\/[a-z]{2}/, "");
+  
+  // Routes où les utilisateurs connectés devraient être redirigés vers leur espace
+  const redirectRoutes = [
+    "", // racine après locale (ex: /fr)
+    "/",
+    "/home",
+    "/login", // si déjà connecté, ne pas rester sur login
+    "/register", // si déjà connecté, ne pas rester sur register
+  ];
+  
+  return redirectRoutes.includes(pathAfterLocale);
+}
+
+// Routes publiques (autorisées sans connexion)
+const PUBLIC_ROUTES = [
+  "/about",
+  "/contact", 
+  "/services",
+  "/partners",
+  "/pricing",
+  "/legal",
+  "/legal/cgu",
+  "/legal/cgv",
+  "/privacy",
+  "/faq",
+  "/developers",
+  "/developers/api-docs",
+  "/developers/api-keys", 
+  "/developers/api-manual",
+  "/blog",
+  "/terms",
+  "/shipping",
+  "/become-delivery",
+  "/partners/merchants",
+  "/partners/providers",
+  "/login",
+  "/register",
+  "/register/client",
+  "/register/deliverer", 
+  "/register/merchant",
+  "/forgot-password",
+  "/reset-password",
+  "/verify-email",
+  "/validate-user",
+  "/403",
+  "/unauthorized",
+  "/payment-success",
+  "/home", // Nouvelle page d'accueil
+];
+
 export default async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
-
-  console.log("🔍 Middleware: Vérification route:", pathname);
-
+  
   // Rewrite legacy uploads URLs to API routes
   if (pathname.startsWith("/uploads/documents/")) {
     const filename = pathname.replace("/uploads/documents/", "");
@@ -101,179 +149,101 @@ export default async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL(correctedPath, request.url));
   }
 
+  // Redirection de la racine vers /home
+  if (pathname === "/" || pathname === "") {
+    return NextResponse.redirect(new URL("/fr/home", request.url));
+  }
+
   // Gérer l'internationalisation
   const intlResponse = intlMiddleware(request);
-
+  
   // Si redirection i18n nécessaire, l'appliquer
   if (intlResponse?.status === 307 || intlResponse?.status === 302) {
     return intlResponse;
   }
 
-  // Routes publiques (incluant locales) - LOGIQUE STRICTE
-  const publicRoutes = [
-    "/fr",
-    "/en",
-    "/fr/home",
-    "/en/home",
-    "/fr/partners",
-    "/en/partners",
-    "/fr/login",
-    "/en/login",
-    "/fr/register",
-    "/en/register",
-    "/fr/forgot-password",
-    "/en/forgot-password",
-    "/fr/reset-password",
-    "/en/reset-password",
-    "/fr/verify-email",
-    "/en/verify-email",
-    "/fr/403",
-    "/en/403",
-    "/fr/about",
-    "/en/about",
-    "/fr/contact",
-    "/en/contact",
-    "/fr/services",
-    "/en/services",
-  ];
-
-  // Vérifier si c'est une route publique - LOGIQUE STRICTE
-  const isPublicRoute = publicRoutes.includes(pathname);
-
-  if (isPublicRoute) {
-    console.log("✅ Middleware: Route publique autorisée:", pathname);
-    return NextResponse.next();
-  }
-
-  // Vérifier si c'est une route protégée
-  if (isProtectedRoute(pathname)) {
-    console.log("🔒 Middleware: Route protégée détectée:", pathname);
-
-    try {
-      // Récupérer la session avec NextAuth v5
-      const session = await auth();
-
-      console.log("🔍 Middleware: Session récupérée:", session ? "OUI" : "NON");
-
-      // Vérifier si l'utilisateur est connecté
-      if (!session || !session.user) {
-        console.log(
-          "🚨 Middleware: Utilisateur non connecté, redirection vers login",
-        );
-        const locale = pathname.split("/")[1] || "fr";
-        const loginUrl = new URL(`/${locale}/login`, request.url);
-        loginUrl.searchParams.set("redirect", pathname);
-        return NextResponse.redirect(loginUrl);
+  // Extraire la locale et la route sans locale
+  const locale = pathname.split("/")[1] || "fr";
+  const pathAfterLocale = pathname.replace(/^\/[a-z]{2}/, "") || "/";
+  
+  // Vérifier si c'est une route publique
+  const isPublicRoute = PUBLIC_ROUTES.includes(pathAfterLocale);
+  
+  try {
+    // Récupérer la session avec NextAuth v5
+    const session = await auth();
+    const isLoggedIn = !!(session?.user?.id && session?.user?.role);
+    
+    // LOGIQUE PRINCIPALE DE REDIRECTION
+    
+    // 1. Utilisateur NON connecté
+    if (!isLoggedIn) {
+      if (isProtectedRoute(pathname)) {
+        // Tentative d'accès à une route protégée -> redirection vers home
+        return NextResponse.redirect(new URL(`/${locale}/home`, request.url));
       }
+      
+      // Route publique -> autoriser l'accès
+      return NextResponse.next();
+    }
 
-      // Vérifier que la session contient les informations nécessaires
-      if (!session.user.id || !session.user.role) {
-        console.log(
-          "🚨 Middleware: Session invalide - informations manquantes",
-        );
-        const locale = pathname.split("/")[1] || "fr";
-        const loginUrl = new URL(`/${locale}/login`, request.url);
-        loginUrl.searchParams.set("redirect", pathname);
-        return NextResponse.redirect(loginUrl);
-      }
+    // 2. Utilisateur CONNECTÉ
+    const user = {
+      id: session.user.id,
+      role: session.user.role as UserRole,
+      isActive: session.user.isActive,
+      validationStatus: session.user.validationStatus,
+    };
 
-      // Extraire les informations utilisateur de la session
-      const user = {
-        id: session.user.id,
-        role: session.user.role as UserRole,
-        isActive: session.user.isActive,
-        validationStatus: session.user.validationStatus,
-      };
+    // Vérifier si l'utilisateur devrait être redirigé vers son espace
+    if (shouldRedirectToUserSpace(pathname, user.role)) {
+      const defaultRoute = getDefaultRouteForRole(user.role, locale);
+      return NextResponse.redirect(new URL(defaultRoute, request.url));
+    }
 
-      console.log("🔍 Middleware: Vérification utilisateur", {
-        id: user.id,
-        role: user.role,
-        isActive: user.isActive,
-        pathname: pathname,
-      });
-
+    // Route protégée -> vérifier les permissions
+    if (isProtectedRoute(pathname)) {
       // Vérifier si l'utilisateur a le rôle requis pour cette route
       if (!hasRequiredRole(user.role, pathname)) {
-        console.log(
-          `🚨 Middleware: Accès refusé - Rôle ${user.role} tente d'accéder à ${pathname}`,
-        );
-        const locale = pathname.split("/")[1] || "fr";
-
-        // Redirection vers l'espace approprié selon le rôle
-        let redirectPath = `/${locale}`;
-        switch (user.role) {
-          case "CLIENT":
-            redirectPath = `/${locale}/client/`;
-            break;
-          case "DELIVERER":
-            redirectPath = `/${locale}/deliverer/`;
-            break;
-          case "MERCHANT":
-            redirectPath = `/${locale}/merchant/`;
-            break;
-          case "PROVIDER":
-            redirectPath = `/${locale}/provider/`;
-            break;
-          case "ADMIN":
-            redirectPath = `/${locale}/admin/`;
-            break;
-          default:
-            redirectPath = `/${locale}/login`;
-        }
-
-        return NextResponse.redirect(new URL(redirectPath, request.url));
+        const defaultRoute = getDefaultRouteForRole(user.role, locale);
+        return NextResponse.redirect(new URL(defaultRoute, request.url));
       }
 
       // Vérifier si le compte est actif selon le rôle
       if (!isUserActive(user.role, user.isActive)) {
-        console.log(
-          `🚨 Middleware: Compte inactif - Utilisateur ${user.role} (ID: ${user.id})`,
-        );
-        const locale = pathname.split("/")[1] || "fr";
-        return NextResponse.redirect(
-          new URL(`/${locale}/onboarding`, request.url),
-        );
+        return NextResponse.redirect(new URL(`/${locale}/onboarding`, request.url));
       }
 
       // Vérifications spécifiques par rôle
       if (user.role === 'DELIVERER') {
         // Vérifier le statut de validation pour les livreurs
         if (user.validationStatus !== 'APPROVED') {
-          // Permettre l'accès aux pages de validation même si non validé
-          if (pathname.includes('/deliverer/validation') || pathname.includes('/api/deliverer/validation')) {
-            console.log(`✅ Middleware: Accès autorisé à la page de validation - ${user.role} (ID: ${user.id})`)
-            return NextResponse.next()
+          // Permettre l'accès aux pages de validation et documents
+          if (pathname.includes('/deliverer/validation') || 
+              pathname.includes('/deliverer/documents') || 
+              pathname.includes('/deliverer/recruitment')) {
+            return NextResponse.next();
           }
           
-          console.log(`🚨 Middleware: Validation en attente - ${user.role} (ID: ${user.id})`)
-          const locale = pathname.split('/')[1] || 'fr'
-          return NextResponse.redirect(new URL(`/${locale}/deliverer/validation`, request.url))
+          return NextResponse.redirect(new URL(`/${locale}/deliverer/recruitment`, request.url));
         }
       }
       
-      // Pour les providers, permettre l'accès (validation gérée côté client)
       if (user.role === 'PROVIDER') {
-        console.log(`✅ Middleware: Provider autorisé - ${user.role} (ID: ${user.id})`)
-        return NextResponse.next()
+        // Permettre l'accès mais vérifier validation côté client si nécessaire
+        return NextResponse.next();
       }
 
-      console.log("✅ Middleware: Accès autorisé", {
-        role: user.role,
-        pathname: pathname,
-      });
-
-      // Si toutes les vérifications passent, autoriser l'accès
       return NextResponse.next();
-    } catch (error) {
-      console.error("❌ Erreur middleware auth:", error);
-      const locale = pathname.split("/")[1] || "fr";
-      return NextResponse.redirect(new URL(`/${locale}/login`, request.url));
     }
-  }
 
-  // Si ce n'est pas une route protégée, autoriser l'accès
-  console.log("✅ Middleware: Route non protégée autorisée:", pathname);
-  return NextResponse.next();
+    // Route publique avec utilisateur connecté -> autoriser l'accès
+    return NextResponse.next();
+
+  } catch (error) {
+    // En cas d'erreur, rediriger vers home (pas login pour éviter les boucles)
+    return NextResponse.redirect(new URL(`/${locale}/home`, request.url));
+  }
 }
 
 export const config = {

@@ -16,7 +16,6 @@ export function useClientDashboard() {
    * Charger les données du dashboard
    */
   const fetchDashboard = useCallback(async () => {
-    console.log("🔄 [useDashboard] Récupération données dashboard...");
     await execute("/api/client/dashboard");
     setLastRefresh(new Date());
   }, [execute]);
@@ -25,7 +24,6 @@ export function useClientDashboard() {
    * Rafraîchir les données (force refresh)
    */
   const refreshDashboard = useCallback(async () => {
-    console.log("🔄 [useDashboard] Rafraîchissement forcé...");
     await execute("/api/client/dashboard/refresh", {
       method: "POST",
     });
@@ -37,8 +35,6 @@ export function useClientDashboard() {
    */
   const completeTutorial = useCallback(
     async (timeSpent: number = 0, feedback?: string) => {
-      console.log("✅ [useDashboard] Marquage tutoriel comme terminé...");
-
       try {
         const response = await fetch("/api/client/dashboard/tutorial", {
           method: "PUT",
@@ -83,7 +79,6 @@ export function useClientDashboard() {
       () => {
         // Seulement refresh si pas d'erreur et que l'onglet est actif
         if (!error && !document.hidden) {
-          console.log("🔄 [useDashboard] Auto-refresh périodique");
           fetchDashboard();
         }
       },

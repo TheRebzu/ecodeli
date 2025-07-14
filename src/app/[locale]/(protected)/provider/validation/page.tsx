@@ -259,12 +259,6 @@ export default function ProviderValidationPage() {
   const { user } = useAuth()
   const [activeTab, setActiveTab] = useState('overview')
   
-  // Debug: Log user information
-  console.log('🔍 ProviderValidationPage Debug:', {
-    user: user ? { id: user.id, role: user.role } : null,
-    userId: user?.id
-  })
-  
   const {
     validationStatus,
     isLoading,
@@ -279,30 +273,15 @@ export default function ProviderValidationPage() {
     progressPercentage,
   } = useProviderValidation(user?.id);
 
-  // Debug: Log hook state
-  console.log('🔍 useProviderValidation Debug:', {
-    validationStatus: validationStatus ? 'exists' : 'null',
-    isLoading,
-    error,
-    requiredCertifications: requiredCertifications.length,
-    currentStep: currentStep?.id
-  })
-
-  // Rafraîchir le statut au montage
   useEffect(() => {
-    console.log('🔄 useEffect: Calling refreshStatus')
     refreshStatus()
   }, [refreshStatus])
 
-  // Debug: Enhanced refresh function
   const handleRefresh = () => {
-    console.log('🔄 Button clicked: refreshStatus')
     refreshStatus()
   }
 
-  // Debug: Enhanced certification start function
   const handleStartCertification = (certificationId: string) => {
-    console.log('🔄 Button clicked: startCertification', { certificationId })
     startCertification(certificationId)
   }
 
@@ -335,15 +314,6 @@ export default function ProviderValidationPage() {
           <p className="text-muted-foreground">{t("subtitle")}</p>
         </div>
         <div className="flex gap-2">
-          <Button 
-            variant="outline" 
-            onClick={() => {
-              console.log('🧪 Test button clicked!')
-              alert('Test button works!')
-            }}
-          >
-            🧪 Test Button
-          </Button>
           <Button variant="outline" onClick={handleRefresh}>
             <RefreshCw className="h-4 w-4 mr-2" />
             {t('refresh')}

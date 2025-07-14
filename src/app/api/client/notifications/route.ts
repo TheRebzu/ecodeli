@@ -40,24 +40,8 @@ export async function GET(request: NextRequest) {
       where,
       orderBy: { createdAt: "desc" },
       take: limit,
-      skip: (page - 1) * limit,
-      include: {
-        delivery: {
-          select: {
-            id: true,
-            announcement: {
-              select: { title: true },
-            },
-          },
-        },
-        payment: {
-          select: {
-            id: true,
-            amount: true,
-            currency: true,
-          },
-        },
-      },
+      skip: (page - 1) * limit
+      // include supprimé car pas de relation delivery/payment
     });
 
     const unreadCount = await db.notification.count({
@@ -79,12 +63,7 @@ export async function GET(request: NextRequest) {
         expiresAt: notification.expiresAt?.toISOString(),
         actionUrl: notification.actionUrl,
         actionLabel: notification.actionLabel,
-        metadata: {
-          deliveryId: notification.delivery?.id,
-          announcementId: notification.delivery?.announcement?.title,
-          paymentId: notification.payment?.id,
-          amount: notification.payment?.amount,
-        },
+        metadata: {}, // plus de delivery/payment
       })),
       unreadCount,
       pagination: {

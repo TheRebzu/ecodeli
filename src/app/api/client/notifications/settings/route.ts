@@ -9,28 +9,23 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
     }
 
-    const settings = await db.notificationSettings.findUnique({
+    // Remplacer notificationSettings par notificationPreference (modèle Prisma correct)
+    const settings = await db.notificationPreference.findUnique({
       where: { userId: session.user.id },
     });
 
     if (!settings) {
       // Créer des paramètres par défaut
-      const defaultSettings = await db.notificationSettings.create({
+      const defaultSettings = await db.notificationPreference.create({
         data: {
           userId: session.user.id,
           emailNotifications: true,
           pushNotifications: true,
           smsNotifications: false,
-          soundEnabled: true,
-          quietHoursEnabled: false,
-          quietHoursStart: "22:00",
-          quietHoursEnd: "08:00",
-          deliveryNotifications: true,
-          paymentNotifications: true,
-          messageNotifications: true,
-          systemNotifications: true,
-          announcementNotifications: true,
-          frequency: "instant",
+          announcementMatch: true,
+          deliveryUpdates: true,
+          paymentUpdates: true,
+          marketingEmails: false,
         },
       });
 
@@ -39,20 +34,18 @@ export async function GET(request: NextRequest) {
           emailNotifications: defaultSettings.emailNotifications,
           pushNotifications: defaultSettings.pushNotifications,
           smsNotifications: defaultSettings.smsNotifications,
-          soundEnabled: defaultSettings.soundEnabled,
+          soundEnabled: false,
           quiet: {
-            enabled: defaultSettings.quietHoursEnabled,
-            startTime: defaultSettings.quietHoursStart,
-            endTime: defaultSettings.quietHoursEnd,
+            enabled: false,
+            startTime: "22:00",
+            endTime: "08:00",
           },
           categories: {
-            delivery: defaultSettings.deliveryNotifications,
-            payment: defaultSettings.paymentNotifications,
-            message: defaultSettings.messageNotifications,
-            system: defaultSettings.systemNotifications,
-            announcement: defaultSettings.announcementNotifications,
+            announcementMatch: defaultSettings.announcementMatch,
+            deliveryUpdates: defaultSettings.deliveryUpdates,
+            paymentUpdates: defaultSettings.paymentUpdates,
+            marketingEmails: defaultSettings.marketingEmails,
           },
-          frequency: defaultSettings.frequency,
         },
       });
     }
@@ -62,20 +55,18 @@ export async function GET(request: NextRequest) {
         emailNotifications: settings.emailNotifications,
         pushNotifications: settings.pushNotifications,
         smsNotifications: settings.smsNotifications,
-        soundEnabled: settings.soundEnabled,
+        soundEnabled: false,
         quiet: {
-          enabled: settings.quietHoursEnabled,
-          startTime: settings.quietHoursStart,
-          endTime: settings.quietHoursEnd,
+          enabled: false,
+          startTime: "22:00",
+          endTime: "08:00",
         },
         categories: {
-          delivery: settings.deliveryNotifications,
-          payment: settings.paymentNotifications,
-          message: settings.messageNotifications,
-          system: settings.systemNotifications,
-          announcement: settings.announcementNotifications,
+          announcementMatch: settings.announcementMatch,
+          deliveryUpdates: settings.deliveryUpdates,
+          paymentUpdates: settings.paymentUpdates,
+          marketingEmails: settings.marketingEmails,
         },
-        frequency: settings.frequency,
       },
     });
   } catch (error) {
@@ -99,44 +90,29 @@ export async function PUT(request: NextRequest) {
       emailNotifications,
       pushNotifications,
       smsNotifications,
-      soundEnabled,
-      quiet,
       categories,
-      frequency,
     } = body;
 
-    const settings = await db.notificationSettings.upsert({
+    const settings = await db.notificationPreference.upsert({
       where: { userId: session.user.id },
       update: {
         emailNotifications,
         pushNotifications,
         smsNotifications,
-        soundEnabled,
-        quietHoursEnabled: quiet.enabled,
-        quietHoursStart: quiet.startTime,
-        quietHoursEnd: quiet.endTime,
-        deliveryNotifications: categories.delivery,
-        paymentNotifications: categories.payment,
-        messageNotifications: categories.message,
-        systemNotifications: categories.system,
-        announcementNotifications: categories.announcement,
-        frequency,
+        announcementMatch: categories.announcementMatch,
+        deliveryUpdates: categories.deliveryUpdates,
+        paymentUpdates: categories.paymentUpdates,
+        marketingEmails: categories.marketingEmails,
       },
       create: {
         userId: session.user.id,
         emailNotifications,
         pushNotifications,
         smsNotifications,
-        soundEnabled,
-        quietHoursEnabled: quiet.enabled,
-        quietHoursStart: quiet.startTime,
-        quietHoursEnd: quiet.endTime,
-        deliveryNotifications: categories.delivery,
-        paymentNotifications: categories.payment,
-        messageNotifications: categories.message,
-        systemNotifications: categories.system,
-        announcementNotifications: categories.announcement,
-        frequency,
+        announcementMatch: categories.announcementMatch,
+        deliveryUpdates: categories.deliveryUpdates,
+        paymentUpdates: categories.paymentUpdates,
+        marketingEmails: categories.marketingEmails,
       },
     });
 
@@ -145,20 +121,12 @@ export async function PUT(request: NextRequest) {
         emailNotifications: settings.emailNotifications,
         pushNotifications: settings.pushNotifications,
         smsNotifications: settings.smsNotifications,
-        soundEnabled: settings.soundEnabled,
-        quiet: {
-          enabled: settings.quietHoursEnabled,
-          startTime: settings.quietHoursStart,
-          endTime: settings.quietHoursEnd,
-        },
         categories: {
-          delivery: settings.deliveryNotifications,
-          payment: settings.paymentNotifications,
-          message: settings.messageNotifications,
-          system: settings.systemNotifications,
-          announcement: settings.announcementNotifications,
+          announcementMatch: settings.announcementMatch,
+          deliveryUpdates: settings.deliveryUpdates,
+          paymentUpdates: settings.paymentUpdates,
+          marketingEmails: settings.marketingEmails,
         },
-        frequency: settings.frequency,
       },
     });
   } catch (error) {

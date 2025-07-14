@@ -89,7 +89,7 @@ export class TestsService {
       }
 
       // Log du test (console.log au lieu de prisma.systemLog)
-      console.log(`✅ Email de test envoyé à ${email} (type: ${type})`);
+      // Suppression du log
 
       return {
         success: true,
@@ -98,13 +98,7 @@ export class TestsService {
         subject: emailSubject,
       };
     } catch (error) {
-      console.error("Erreur lors de l'envoi de l'email de test:", error);
-
-      // Log de l'erreur (console.log au lieu de prisma.systemLog)
-      console.error(
-        `❌ Erreur envoi email de test: ${error instanceof Error ? error.message : "Erreur inconnue"}`,
-      );
-
+      // Suppression du log
       throw new Error(
         `Erreur lors de l'envoi de l'email: ${error instanceof Error ? error.message : "Erreur inconnue"}`,
       );
@@ -203,13 +197,10 @@ export class TestsService {
       }
 
       // Simulation de l'envoi via OneSignal (car OneSignalService.sendNotification n'existe pas)
-      console.log(
-        "📱 Simulation envoi notification OneSignal:",
-        notificationData,
-      );
+      // Suppression du log
 
       // Log du test (console.log au lieu de prisma.systemLog)
-      console.log(`✅ Notification de test simulée (type: ${targetType})`);
+      // Suppression du log
 
       return {
         success: true,
@@ -220,16 +211,7 @@ export class TestsService {
         message,
       };
     } catch (error) {
-      console.error(
-        "Erreur lors de l'envoi de la notification de test:",
-        error,
-      );
-
-      // Log de l'erreur (console.log au lieu de prisma.systemLog)
-      console.error(
-        `❌ Erreur envoi notification de test: ${error instanceof Error ? error.message : "Erreur inconnue"}`,
-      );
-
+      // Suppression du log
       throw new Error(
         `Erreur lors de l'envoi de la notification: ${error instanceof Error ? error.message : "Erreur inconnue"}`,
       );

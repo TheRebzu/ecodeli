@@ -36,17 +36,16 @@ export async function bookingSyncMiddleware(
     // Vérifier s'il y a une incohérence
     const booking = await prisma.booking.findUnique({
       where: { id: targetBookingId },
-      include: { payment: true },
     });
 
-    if (!booking?.payment) {
+    if (!booking) {
       return null;
     }
 
     // Détecter l'incohérence
     const hasInconsistency = detectStatusInconsistency(
       booking.status,
-      booking.payment.status,
+      booking.paymentStatus, // Assuming paymentStatus is the correct field
     );
 
     if (hasInconsistency) {

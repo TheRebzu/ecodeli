@@ -30,7 +30,6 @@ export async function GET(
 
     return NextResponse.json(modules);
   } catch (error) {
-    console.error("Erreur récupération modules:", error);
     return NextResponse.json(
       { error: "Erreur lors de la récupération des modules" },
       { status: 500 },
