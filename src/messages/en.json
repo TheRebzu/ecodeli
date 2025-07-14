@@ -1,795 +1,4402 @@
 {
-  "navigation": {
-    "home": "Home",
-    "services": "Services",
-    "pricing": "Pricing",
-    "about": "About",
-    "contact": "Contact",
-    "dashboard": "Dashboard",
-    "announcements": "Announcements",
-    "deliveries": "Deliveries",
-    "bookings": "Bookings",
-    "payments": "Payments",
-    "wallet": "Wallet",
-    "messages": "Messages",
-    "notifications": "Notifications",
-    "support": "Support",
-    "availability": "Availability",
-    "earnings": "Earnings",
-    "routes": "Routes",
-    "schedule": "Schedule",
-    "deliverer_space": "Deliverer Space",
-    "verification": "Verification",
-    "vehicle": "Vehicle"
-  },
-  "dashboard": {
-    "title": "Dashboard",
-    "welcome": "Welcome to EcoDeli",
-    "overview": "Overview",
-    "newAnnouncement": "New announcement"
-  },
-  "admin": {
-    "navigation": {
-      "dashboard": "Dashboard",
-      "users": {
-        "title": "Users",
-        "all": "All Users",
-        "clients": "Clients",
-        "deliverers": "Deliverers",
-        "merchants": "Merchants",
-        "providers": "Providers"
+  "1": "1",
+  "10": "10",
+  "12": "12",
+  "auth": {
+    "login": {
+      "loginButton": "Sign in",
+      "subtitle": "Subtitle",
+      "title": "Title",
+      "forgotPassword": "Forgot Password",
+      "noAccount": "No Account",
+      "errors": {
+        "generic": "Generic"
       },
-      "verifications": {
-        "title": "Verifications",
-        "pending": "Pending",
-        "approved": "Approved",
-        "rejected": "Rejected",
-        "incomplete": "Incomplete"
+      "email": "Email",
+      "emailPlaceholder": "Email Placeholder",
+      "password": "Password",
+      "passwordPlaceholder": "Password Placeholder",
+      "signing": "Signing"
+    },
+    "register": {
+      "alreadyHaveAccount": "Already have an account?",
+      "chooseAnotherAccountType": "Choose another account type",
+      "deliverer": {
+        "advantage1": "Flexible additional income",
+        "advantage2": "Optimize your travels",
+        "advantage3": "Insurance included on all packages",
+        "advantage4": "Fast payment within 24h",
+        "advantagesTitle": "Courier advantages",
+        "subtitle": "Earn money by delivering on your routes",
+        "title": "Become an EcoDeli Courier"
       },
-      "deliveries": {
-        "title": "Deliveries",
-        "active": "Active",
-        "completed": "Completed",
-        "disputes": "Disputes"
+      "merchant": {
+        "advantage1": "Expand your catchment area",
+        "advantage2": "Turnkey delivery service",
+        "advantage3": "Negotiated preferential rates",
+        "advantage4": "Dedicated customer support 7/7",
+        "advantagesTitle": "Merchant advantages",
+        "subtitle": "Join our merchant network and grow your sales",
+        "title": "Become a Partner Merchant"
       },
-      "finance": {
-        "title": "Finance",
-        "payments": "Payments",
-        "subscriptions": "Subscriptions",
-        "reports": "Reports"
+      "title": "Title",
+      "chooseType": "Choose Type"
+    },
+    "validation": {
+      "loading": "Loading...",
+      "loadingMessage": "Loading Message",
+      "error": "Error",
+      "userNotFound": "User Not Found",
+      "userNotFoundMessage": "User Not Found Message",
+      "title": "Title",
+      "description": "Description",
+      "userInfo": "User Info",
+      "emailVerified": "Email Verified",
+      "profileVerified": "Profile Verified",
+      "validationProcess": "Validation Process",
+      "validationProcessDescription": "Validation Process Description"
+    },
+    "verifyEmail": {
+      "success": "Success",
+      "error": "Error",
+      "verifying": "Verifying",
+      "successMessage": "Success Message",
+      "errorMessage": "Error Message",
+      "verifyingMessage": "Verifying Message",
+      "emailAddress": "Email Address",
+      "goToLogin": "Go To Login",
+      "troubleshoot": "Troubleshoot",
+      "backToLogin": "Back To Login",
+      "pleaseWait": "Please Wait"
+    },
+    "required_title": "Required Title",
+    "required_description": "Required Description",
+    "title": "Title",
+    "methods": {
+      "session": {
+        "title": "Title",
+        "description": "Description"
       },
-      "analytics": {
-        "title": "Analytics",
-        "overview": "Overview",
-        "users": "Users",
-        "deliveries": "Deliveries",
-        "revenue": "Revenue"
-      },
-      "support": {
-        "title": "Support",
-        "tickets": "Tickets",
-        "chat": "Chat"
-      },
-      "system": {
-        "title": "System",
-        "monitoring": "Monitoring",
-        "logs": "Logs",
-        "settings": "Settings"
-      },
-      "disputes": {
-        "title": "Dispute Management",
-        "description": "Manage disputes between clients and deliverers",
-        "refresh": "Refresh",
-        "filters": "Filters",
-        "searchPlaceholder": "Search disputes...",
-        "statusFilter": "Status",
-        "typeFilter": "Type",
-        "allStatuses": "All statuses",
-        "allTypes": "All types",
-        "open": "Open",
-        "inProgress": "In Progress",
-        "resolved": "Resolved",
-        "closed": "Closed",
-        "deliveryIssue": "Delivery Issue",
-        "paymentDispute": "Payment Dispute",
-        "serviceQuality": "Service Quality",
-        "cancellation": "Cancellation",
-        "other": "Other",
-        "clearFilters": "Clear filters",
-        "allDisputes": "All Disputes",
-        "openDisputes": "Open Disputes",
-        "inProgressDisputes": "In Progress Disputes",
-        "resolvedDisputes": "Resolved Disputes",
-        "noDisputes": "No disputes found",
-        "view": "View",
-        "back": "Back",
-        "dispute": "Dispute",
-        "disputeDetails": "Dispute Details",
-        "timeline": "Timeline",
-        "quickActions": "Quick Actions",
-        "status": "Status",
-        "selectStatus": "Select status",
-        "updateStatus": "Update Status",
-        "resolution": "Resolution",
-        "relatedInfo": "Related Information",
-        "client": "Client",
-        "deliverer": "Deliverer",
-        "delivery": "Delivery",
-        "amount": "Amount",
-        "created": "Created",
-        "updated": "Updated",
-        "type": "Type",
-        "additionalInfo": "Additional Information",
-        "attachments": "Attachments",
-        "addComment": "Add comment",
-        "noTimelineEvents": "No timeline events",
-        "resolutionType": "Resolution Type",
-        "selectResolutionType": "Select resolution type",
-        "resolvedClientFavor": "Resolved in client favor",
-        "resolvedDelivererFavor": "Resolved in deliverer favor",
-        "partialResolution": "Partial resolution",
-        "cancelled": "Cancelled",
-        "resolutionDetails": "Resolution Details",
-        "resolutionDetailsPlaceholder": "Describe the resolution...",
-        "compensation": "Compensation",
-        "selectCompensation": "Select compensation",
-        "fullRefund": "Full refund",
-        "partialRefund": "Partial refund",
-        "credit": "Credit",
-        "noCompensation": "No compensation",
-        "sanctions": "Sanctions",
-        "selectSanction": "Select sanction",
-        "warning": "Warning",
-        "suspension": "Suspension",
-        "ban": "Ban",
-        "noSanction": "No sanction",
-        "submitResolution": "Submit Resolution",
-        "submitting": "Submitting...",
-        "resolutionPreview": "Resolution Preview",
-        "totalDisputes": "Total Disputes",
-        "openDisputes": "Open Disputes",
-        "inProgress": "In Progress",
-        "resolved": "Resolved",
-        "allTime": "All time",
-        "requiresAttention": "Requires attention",
-        "beingHandled": "Being handled",
-        "successfullyResolved": "Successfully resolved",
-        "avgResolutionTime": "Average Resolution Time",
-        "days": "days",
-        "last30Days": "Last 30 days",
-        "resolutionRate": "Resolution Rate",
-        "successfulResolutions": "Successful resolutions",
-        "description": "Description",
-        "priority": "Priority",
-        "evidence": "Evidence",
-        "adminNotes": "Admin Notes",
-        "estimatedResolutionDate": "Estimated Resolution Date",
-        "escalatedAt": "Escalated at",
-        "escalationReason": "Escalation reason",
-        "lastUpdatedBy": "Last updated by",
-        "resolvedBy": "Resolved by",
-        "escalatedBy": "Escalated by"
-      },
-      "providerBilling": {
-        "title": "Provider Billing",
-        "description": "Manage automatic monthly billing for providers",
-        "refresh": "Refresh",
-        "generateInvoices": "Generate invoices",
-        "filters": "Filters",
-        "searchPlaceholder": "Search for a provider...",
-        "monthFilter": "Filter by month",
-        "statusFilter": "Filter by status",
-        "clearFilters": "Clear filters",
-        "allMonths": "All months",
-        "allStatuses": "All statuses",
-        "allDisputes": "All disputes",
-        "openDisputes": "Open disputes",
-        "inProgressDisputes": "In progress disputes",
-        "resolvedDisputes": "Resolved disputes",
-        "allInvoices": "All invoices",
-        "pendingInvoices": "Pending invoices",
-        "generatedInvoices": "Generated invoices",
-        "paidInvoices": "Paid invoices",
-        "stats": {
-          "totalProviders": "Total providers",
-          "pendingInvoices": "Pending invoices",
-          "totalAmount": "Total amount",
-          "overdueInvoices": "Overdue invoices",
-          "paidInvoices": "Paid invoices",
-          "generatedInvoices": "Generated invoices",
-          "averageAmount": "Average amount",
-          "paid": "Paid",
-          "generated": "Generated",
-          "average": "Average"
-        },
-        "status": {
-          "pending": "Pending",
-          "generated": "Generated",
-          "paid": "Paid",
-          "overdue": "Overdue"
-        },
-        "invoices": {
-          "title": "Provider Invoices",
-          "export": "Export",
-          "generateAll": "Generate all",
-          "provider": "Provider",
-          "period": "Period",
-          "amount": "Amount",
-          "services": "Services",
-          "status": "Status",
-          "dueDate": "Due date",
-          "actions": "Actions"
-        },
-        "pagination": {
-          "showing": "Showing {from} to {to} of {total} invoices",
-          "previous": "Previous",
-          "next": "Next",
-          "page": "Page {page} of {pages}"
-        }
-      },
-      "deliveries": {
-        "monitoring": {
-          "page": {
-            "title": "Delivery Monitoring",
-            "description": "Real-time tracking of deliveries and active deliverers"
-          },
-          "stats": {
-            "active_deliveries": "Active deliveries",
-            "since_yesterday": "since yesterday",
-            "active_deliverers": "Active deliverers",
-            "out_of_total": "out of total",
-            "avg_delivery_time": "Average delivery time",
-            "average_completion": "Average completion rate",
-            "success_rate": "Success rate",
-            "today_deliveries": "Today's deliveries",
-            "pending_deliveries": "Pending deliveries",
-            "completed_today": "Completed today",
-            "cancelled_today": "Cancelled today",
-            "delayed_deliveries": "Delayed deliveries"
-          },
-          "control_panel": {
-            "title": "Control Panel"
-          },
-          "delivery": {
-            "id": "ID",
-            "deliverer": "Deliverer",
-            "client": "Client",
-            "pickup": "Pickup point",
-            "destination": "Destination",
-            "created": "Created on",
-            "estimated": "Estimated for"
-          },
-          "status": {
-            "pending": "Pending",
-            "in_transit": "In transit",
-            "delivered": "Delivered",
-            "cancelled": "Cancelled"
-          },
-          "priority": {
-            "low": "Low",
-            "medium": "Medium",
-            "high": "High",
-            "urgent": "Urgent"
-          }
-        }
+      "jwt": {
+        "title": "Title",
+        "description": "Description"
       }
     },
-    "dashboard": "Dashboard",
-    "users": "Users",
-    "deliveries": "Deliveries",
-    "finance": "Finance",
-    "monitoring": "Monitoring",
-    "admin_panel": "Admin Panel",
-    "system_settings": "System Settings",
-    "system_logs": "System Logs"
+    "endpoints": {
+      "signin": {
+        "description": "Description"
+      },
+      "session": {
+        "description": "Description"
+      }
+    },
+    "invalidCredentials": "Invalid Credentials",
+    "accountSuspended": "Account Suspended",
+    "emailNotVerified": "Email Not Verified",
+    "generic": "Generic"
   },
   "common": {
+    "about": "About",
+    "actions": "Actions",
+    "address": "Address",
+    "back": "Back",
+    "cancel": "Cancel",
+    "city": "City",
+    "close": "Close",
+    "confirm": "Confirm",
+    "contact": "Contact",
+    "country": "Country",
+    "dashboard": "Dashboard",
+    "date": "Date",
+    "delete": "Delete",
+    "description": "Description",
+    "details": "Details",
+    "edit": "Edit",
+    "email": "Email",
+    "error": "Error",
+    "faq": "FAQ",
+    "filter": "Filter",
+    "firstName": "First Name",
+    "help": "Help",
+    "home": "Home",
+    "lastName": "Last Name",
+    "legal": "Legal",
+    "loading": "Loading...",
+    "login": "Login",
+    "logout": "Logout",
+    "name": "Name",
+    "next": "Next",
+    "no": "No",
+    "of": "of",
+    "page": "Page",
+    "password": "Password",
+    "phone": "Phone",
+    "postalCode": "Postal Code",
+    "previous": "Previous",
+    "price": "Price",
+    "privacy": "Privacy",
     "profile": "Profile",
+    "register": "Register",
+    "save": "Save",
+    "search": "Search",
     "settings": "Settings",
-    "logout": "Logout"
+    "sort": "Sort",
+    "status": "Status",
+    "success": "Success",
+    "terms": "Terms",
+    "title": "Title",
+    "total": "Total",
+    "type": "Type",
+    "view": "View",
+    "yes": "Yes",
+    "role": "Role",
+    "support": "Support"
   },
-  "client": {
+  "merchant": {
+    "products": {
+      "add": {
+        "description": "Add a new product to your catalog",
+        "title": "Add Product"
+      },
+      "import": {
+        "description": "Import multiple products via CSV file",
+        "title": "Import Products"
+      },
+      "title": "Product catalog",
+      "description": "Manage your product catalog",
+      "list": {
+        "title": "Product list",
+        "description": "Manage your product catalog"
+      }
+    },
     "announcements": {
-      "create": {
-        "page": {
-          "title": "Create a delivery announcement",
-          "description": "Post your package delivery request on EcoDeli"
-        }
-      },
-      "page": {
-        "title": "My announcements",
-        "description": "Manage your package delivery requests"
-      }
+      "create": "Create"
     },
-    "bookings": {
-      "page": {
-        "title": "My bookings",
-        "description": "Manage your service bookings",
-        "new_booking_button": "New booking"
-      },
-      "loading": "Loading bookings...",
-      "filters": {
-        "title": "Filters"
-      },
-      "tabs": {
-        "active": "Active",
-        "history": "History"
-      },
-      "actions": {
-        "cancel": "Cancel",
-        "rate": "Rate",
-        "pay": "Pay"
-      },
-      "status": {
-        "pending": "Pending",
-        "confirmed": "Confirmed",
-        "in_progress": "In Progress",
-        "completed": "Completed",
-        "cancelled": "Cancelled"
-      },
-      "empty": {
-        "no_active_bookings": "No active bookings",
-        "book_service_description": "Book a service to get started",
-        "no_past_bookings": "No past bookings",
-        "past_bookings_description": "Your completed bookings will appear here"
-      },
-      "dialogs": {
-        "cancel": {
-          "title": "Cancel booking",
-          "description": "Are you sure you want to cancel this booking?",
-          "keep": "Keep booking",
-          "confirm": "Cancel booking"
-        },
-        "rating": {
-          "title": "Rate service",
-          "description": "How was your experience?",
-          "rating_label": "Rating",
-          "review_label": "Review (optional)",
-          "review_placeholder": "Share your experience...",
-          "cancel": "Cancel",
-          "submit": "Submit rating"
-        }
-      },
-      "success": {
-        "booking_cancelled": "Booking cancelled successfully",
-        "rating_submitted": "Rating submitted successfully"
-      },
-      "error": {
-        "fetch_failed": "Failed to load bookings",
-        "cancel_failed": "Failed to cancel booking",
-        "rating_failed": "Failed to submit rating"
-      }
-    },
-    "deliveries": {
-      "page": {
-        "title": "My deliveries",
-        "description": "Track your package deliveries"
-      },
-      "loading": "Loading deliveries...",
-      "tabs": {
-        "active": "In progress",
-        "history": "History"
-      }
-    },
-    "payments": {
-      "page": {
-        "title": "My payments",
-        "description": "Manage your payments and transactions"
-      },
-      "filters": {
-        "title": "Filters",
-        "search": "Search",
-        "search_placeholder": "Search in payments..."
-      },
-      "tabs": {
-        "history": "History",
-        "statistics": "Statistics"
-      }
-    },
-    "profile": {
-      "page": {
-        "title": "My profile",
-        "description": "Manage your personal information"
-      },
-      "loading": "Loading profile...",
-      "profile_not_found": "Profile not found",
-      "stats": {
-        "orders": "Orders",
-        "spent": "Spent",
-        "rating": "Average rating",
-        "deliveries": "Deliveries"
-      }
-    },
-    "services": {
-      "page": {
-        "title": "Available services",
-        "description": "Discover and book our services"
-      }
-    },
-    "storage": {
-      "page": {
-        "title": "My storage boxes",
-        "description": "Manage your storage box rentals"
-      },
-      "rent_dialog": {
-        "title": "Rent a storage box",
-        "description": "Configure your rental for box {name}",
-        "duration": "Duration",
-        "duration_type": "Duration type",
-        "start_date": "Start date",
-        "start_time": "Start time",
-        "auto_extend": "Auto-renewal",
-        "items_to_store": "Items to store",
-        "item_name": "Item name",
-        "item_value": "Value (€)",
-        "cost_breakdown": "Cost breakdown",
-        "base_cost": "Base cost",
-        "total": "Total",
-        "confirm_rental": "Confirm rental"
-      },
-      "duration_types": {
-        "hours": "Hours",
-        "days": "Days",
-        "weeks": "Weeks",
-        "months": "Months"
-      },
-      "categories": {
-        "electronics": "Electronics",
-        "furniture": "Furniture",
-        "clothing": "Clothing",
-        "documents": "Documents",
-        "other": "Other"
-      },
-      "actions": {
-        "end_rental": "End rental"
-      },
-      "auto_extend_enabled": "Auto-renewal enabled",
-      "empty_rentals": {
-        "title": "No active rentals",
-        "description": "You currently have no active storage box rentals."
-      },
-      "extend_dialog": {
-        "confirm": "Extend"
-      }
-    },
-    "tutorial": {
-      "page": {
-        "title": "EcoDeli Tutorial",
-        "description": "Learn how to use the EcoDeli platform"
-      }
+    "billing": "Billing",
+    "cart-drop": "Cart Drop",
+    "dashboard": "Dashboard",
+    "payments": "Payments",
+    "zones": "Zones",
+    "analytics": "Analytics",
+    "cartDrop": "Cart Drop",
+    "contract": "Contract",
+    "contracts": "Contracts",
+    "customers": "Customers",
+    "finances": "Finances",
+    "inventory": "Inventory",
+    "orders": {
+      "title": "Order management",
+      "description": "View and manage all your orders"
     }
   },
-  "deliverer": {
-    "dashboard": {
-      "title": "Deliverer dashboard",
-      "description": "Manage your deliveries and track your earnings",
-      "stats": {
-        "earnings": "Monthly earnings",
-        "deliveries": "Deliveries",
-        "rating": "Average rating",
-        "pending": "Pending"
-      },
-      "loading": "Loading...",
-      "dashboard_not_found": "Dashboard not found",
-      "page": {
-        "title": "Dashboard",
-        "description": "Overview of your activity"
-      }
+  "public": {
+    "BecomeProvider": {
+      "description": "Join our network of service providers"
     },
-    "opportunities": {
-      "title": "Delivery opportunities",
-      "description": "Find deliveries on your route",
-      "available_opportunities": "available opportunities",
-      "filter": {
-        "all": "All",
-        "near_me": "Near me",
-        "on_my_route": "On my route"
+    "blog": {
+      "description": "News, tips and guides about ecological delivery",
+      "post1": {
+        "date": "January 15, 2025",
+        "description": "Discover how our crowdshipping platform transforms city logistics",
+        "readTime": "5 min read",
+        "title": "How EcoDeli revolutionizes urban delivery"
       },
-      "no_opportunities": "No opportunities available",
-      "loading": "Searching for opportunities...",
-      "accept": "Accept",
-      "view_details": "View details",
-      "page": {
-        "title": "Opportunities",
-        "description": "Available deliveries"
+      "post2": {
+        "date": "January 10, 2025",
+        "description": "All steps to join our network of partner couriers",
+        "readTime": "8 min read",
+        "title": "Complete guide to becoming an EcoDeli courier"
       },
-      "refresh": "Refresh",
-      "filters": "Filters",
-      "search_placeholder": "Search opportunities...",
-      "filter_type": "Filter by type",
-      "all_types": "All types",
-      "package_delivery": "Package delivery",
-      "person_transport": "Person transport",
-      "airport_transfer": "Airport transfer",
-      "shopping": "Shopping",
-      "max_distance": "Max distance (km)",
-      "min_earnings": "Min earnings (€)",
-      "clear_filters": "Clear filters",
-      "no_opportunities_title": "No opportunities available",
-      "no_opportunities_description": "Check back later for new delivery opportunities.",
-      "pickup": "Pickup",
-      "delivery": "Delivery",
-      "scheduled": "Scheduled",
-      "client": "Client",
-      "accepting": "Accepting...",
-      "error": {
-        "fetch_failed": "Failed to load opportunities",
-        "accept_failed": "Failed to accept opportunity"
+      "post3": {
+        "date": "January 5, 2025",
+        "description": "Positive impact of collaborative delivery on carbon footprint",
+        "readTime": "6 min read",
+        "title": "Environmental benefits of crowdshipping"
       },
-      "success": {
-        "opportunity_accepted": "Opportunity accepted successfully"
-      }
+      "post4": {
+        "date": "December 28, 2024",
+        "description": "How our artificial intelligence improves logistics efficiency",
+        "readTime": "7 min read",
+        "title": "Optimize your deliveries with EcoDeli's AI"
+      },
+      "post5": {
+        "date": "December 20, 2024",
+        "description": "Everything about our package and user protection measures",
+        "readTime": "4 min read",
+        "title": "Security and insurance: our EcoDeli guarantees"
+      },
+      "post6": {
+        "date": "December 15, 2024",
+        "description": "Our deployment in major European cities",
+        "readTime": "5 min read",
+        "title": "European expansion: EcoDeli goes international"
+      },
+      "title": "EcoDeli Blog"
     },
-    "deliveries": {
-      "title": "My deliveries",
-      "description": "Manage your ongoing deliveries",
-      "active": {
-        "title": "Active deliveries",
-        "count": "delivery(ies)",
-        "empty": {
-          "title": "No active deliveries",
-          "description": "You currently have no ongoing deliveries. Check out new opportunities.",
-          "action": "View opportunities"
+    "developers": {
+      "api": {
+        "description": "Our robust API to integrate all our services",
+        "title": "EcoDeli REST API"
+      },
+      "apiDocs": {
+        "apiInfo": {
+          "description": "Our REST API allows you to integrate EcoDeli services into your applications",
+          "mainFeatures": {
+            "item1": "Delivery and package management",
+            "item2": "Stripe payment integration",
+            "item3": "Real-time delivery tracking",
+            "item4": "User management and authentication",
+            "item5": "Push notifications and webhooks",
+            "title": "Main Features"
+          },
+          "technicalInfo": {
+            "item1": "REST API with Bearer Token authentication",
+            "item2": "Standardized JSON responses",
+            "item3": "Rate limiting: 1000 requests/hour",
+            "item4": "HTTPS support with SSL certificates",
+            "item5": "OpenAPI 3.0 documentation available",
+            "title": "Technical Information"
+          },
+          "title": "API Information"
+        },
+        "description": "Complete EcoDeli API documentation for developers",
+        "interactiveDocs": {
+          "description": "Test our endpoints directly from this interface",
+          "title": "Interactive Documentation"
+        },
+        "quickLinks": {
+          "apiKeys": {
+            "description": "Generate and manage your API access keys",
+            "link": "Manage keys",
+            "title": "API Keys"
+          },
+          "codeSamples": {
+            "description": "Integration examples in multiple languages",
+            "link": "View samples",
+            "title": "Code Samples"
+          },
+          "support": {
+            "description": "Get help with your integrations",
+            "link": "Contact support",
+            "title": "Developer Support"
+          }
+        },
+        "title": "EcoDeli API Documentation"
+      },
+      "apiKeys": {
+        "title": "API Keys",
+        "description": "Manage your EcoDeli API access keys",
+        "management": {
+          "title": "Key management",
+          "description": "Create and manage your API keys",
+          "production": {
+            "title": "Production key",
+            "created": "Created on"
+          },
+          "test": {
+            "title": "Test key",
+            "created": "Created on"
+          },
+          "buttons": {
+            "copy": "Copy",
+            "regenerate": "Regenerate",
+            "createNew": "Create new key"
+          }
+        },
+        "usage": {
+          "title": "Usage",
+          "authentication": {
+            "title": "Authentication",
+            "description": "Use your API key in the Authorization header"
+          },
+          "rateLimits": {
+            "title": "Rate limits",
+            "production": "Production: 1000 requests/hour",
+            "test": "Test: 100 requests/hour"
+          },
+          "security": {
+            "title": "Security",
+            "item1": "Never share your API keys",
+            "item2": "Use HTTPS only",
+            "item3": "Regenerate your keys regularly",
+            "item4": "Monitor your key usage"
+          }
         }
       },
-      "status": {
-        "pending": "Pending",
-        "accepted": "Accepted",
-        "picked_up": "Picked up",
-        "inTransit": "In transit",
-        "delivered": "Delivered",
-        "cancelled": "Cancelled"
+      "apiManual": {
+        "title": "EcoDeli API Manual",
+        "description": "Complete EcoDeli REST API documentation for developers",
+        "statusBanner": {
+          "badge": "API Online",
+          "description": "EcoDeli API is operational and ready to use"
+        },
+        "tabs": {
+          "auth": "Authentication",
+          "announcements": "Announcements",
+          "deliveries": "Deliveries",
+          "services": "Services",
+          "admin": "Administration"
+        },
+        "auth": {
+          "title": "Authentication",
+          "methods": {
+            "title": "Authentication methods",
+            "session": {
+              "title": "Session (Cookie)",
+              "description": "Session authentication with secure cookies"
+            },
+            "jwt": {
+              "title": "JWT Token",
+              "description": "JWT token for API authentication"
+            }
+          },
+          "endpoints": {
+            "title": "Authentication endpoints",
+            "signin": {
+              "description": "User login with email and password"
+            },
+            "session": {
+              "description": "Retrieve user session information"
+            }
+          }
+        },
+        "announcements": {
+          "title": "Announcements management",
+          "list": {
+            "description": "Retrieve announcements list with filters and pagination"
+          },
+          "create": {
+            "description": "Create a new delivery or service announcement"
+          }
+        },
+        "deliveries": {
+          "title": "Deliveries management",
+          "search": {
+            "description": "Search available deliveries by geographic area"
+          },
+          "updateLocation": {
+            "description": "Update GPS location of an ongoing delivery"
+          }
+        },
+        "services": {
+          "title": "Personal services",
+          "search": {
+            "description": "Search available services by category and location"
+          },
+          "book": {
+            "description": "Book a slot for a personal service"
+          }
+        },
+        "admin": {
+          "title": "Administration",
+          "users": {
+            "list": {
+              "description": "List all users with role filters"
+            }
+          },
+          "stats": {
+            "dashboard": {
+              "description": "Retrieve global platform statistics"
+            }
+          }
+        },
+        "quickReference": {
+          "title": "Quick reference",
+          "urls": {
+            "title": "Base URLs",
+            "apiBase": "Base API: https://api.ecodeli.fr",
+            "trpc": "tRPC: https://api.ecodeli.fr/trpc",
+            "auth": "Auth: https://api.ecodeli.fr/auth",
+            "openapi": "OpenAPI: https://api.ecodeli.fr/swagger"
+          },
+          "statusCodes": {
+            "200": "200 - Success",
+            "400": "400 - Bad request",
+            "401": "401 - Unauthorized",
+            "403": "403 - Forbidden",
+            "404": "404 - Not found",
+            "500": "500 - Server error",
+            "title": "Status codes"
+          }
+        },
+        "statusCheck": {
+          "title": "Status check",
+          "description": "Test API connectivity and availability",
+          "button": "Test API"
+        }
       },
-      "pickup": {
-        "title": "Pickup"
+      "description": "Integrate EcoDeli services into your applications",
+      "docs": {
+        "apiReference": "API Reference",
+        "description": "Guides and references to get started",
+        "errorHandling": "Error Handling",
+        "examples": "Code Examples",
+        "quickstart": "Quick Start Guide",
+        "title": "Complete Documentation"
+      },
+      "sdks": {
+        "description": "Libraries in your favorite languages",
+        "js": "JavaScript / Node.js",
+        "php": "PHP",
+        "python": "Python",
+        "title": "Official SDKs"
+      },
+      "title": "EcoDeli Developers",
+      "webhooks": {
+        "description": "Receive events in real-time",
+        "title": "Real-time Webhooks"
+      }
+    },
+    "faq": {
+      "services": {
+        "title": "Services",
+        "q1": {
+          "question": "How can I have a package delivered?",
+          "answer": "Create an announcement with your package details, choose a deliverer and make the payment."
+        },
+        "q2": {
+          "question": "What types of services do you offer?",
+          "answer": "We offer package delivery, people transport, airport transfers and home services."
+        },
+        "q3": {
+          "question": "How are prices determined?",
+          "answer": "Prices depend on distance, type of service and urgency of the request."
+        },
+        "q4": {
+          "question": "Can I track my delivery in real time?",
+          "answer": "Yes, you can track your delivery in real time via your client area."
+        }
+      },
+      "payment": {
+        "title": "Payment",
+        "q1": {
+          "question": "What payment methods do you accept?",
+          "answer": "We accept credit cards, PayPal and bank transfers."
+        },
+        "q2": {
+          "question": "When am I charged?",
+          "answer": "Payment is made when the delivery is validated by the recipient."
+        },
+        "q3": {
+          "question": "Can I cancel an order?",
+          "answer": "Yes, you can cancel an order before it is accepted by a deliverer."
+        },
+        "q4": {
+          "question": "How does refund work?",
+          "answer": "Refunds are processed within 3-5 business days depending on your payment method."
+        }
+      },
+      "security": {
+        "title": "Security",
+        "q1": {
+          "question": "How do you verify your deliverers?",
+          "answer": "All our deliverers go through a verification process including identity and insurance checks."
+        },
+        "q2": {
+          "question": "What happens if my package is lost?",
+          "answer": "We offer insurance covering your packages up to €500 by default, extendable according to your subscription."
+        },
+        "q3": {
+          "question": "Are my personal data protected?",
+          "answer": "Yes, we comply with GDPR and use SSL encryption to protect your data."
+        },
+        "q4": {
+          "question": "How to report a problem?",
+          "answer": "You can contact us via our 24/7 customer support from your personal area."
+        }
+      },
+      "account": {
+        "title": "Account",
+        "q1": {
+          "question": "How to create an account?",
+          "answer": "Click on \"Sign up\" and follow the steps. Email verification is required."
+        },
+        "q2": {
+          "question": "I forgot my password, what to do?",
+          "answer": "Use the \"Forgot password\" link on the login page to reset your password."
+        },
+        "q3": {
+          "question": "Can I modify my personal information?",
+          "answer": "Yes, you can modify your information from your personal area at any time."
+        },
+        "q4": {
+          "question": "How to delete my account?",
+          "answer": "Contact our customer support to request deletion of your account and all your data."
+        }
+      },
+      "notFound": {
+        "title": "Question not found?",
+        "subtitle": "Contact our support team for more help",
+        "contactUs": "contact us"
+      },
+      "badge": "FAQ",
+      "title": "Frequently Asked Questions",
+      "subtitle": "Find answers to your most frequently asked questions",
+      "searchPlaceholder": "Search for a question...",
+      "categories": {
+        "title": "Categories",
+        "announcements": "Announcements",
+        "shipping": "Shipping",
+        "delivery": "Delivery",
+        "services": "Services",
+        "payment": "Payment",
+        "security": "Security",
+        "account": "Account"
+      },
+      "announcements": {
+        "title": "Questions about announcements",
+        "q1": {
+          "question": "How to create an announcement?",
+          "answer": "Log in to your account, click 'New announcement' and fill out the form with your request details."
+        },
+        "q2": {
+          "question": "Can I edit my announcement?",
+          "answer": "Yes, you can edit your announcement as long as it hasn't been accepted by a deliverer."
+        },
+        "q3": {
+          "question": "How much does an announcement cost?",
+          "answer": "The price depends on the service type, distance and urgency. You set your budget when creating."
+        },
+        "q4": {
+          "question": "How to delete an announcement?",
+          "answer": "Access your announcements from your dashboard and click 'Delete'."
+        }
+      },
+      "shipping": {
+        "title": "Questions about shipping",
+        "q1": {
+          "question": "What types of packages can I send?",
+          "answer": "All types of legal packages, up to 30kg. Fragile, valuable or dangerous items require special mention."
+        },
+        "q2": {
+          "question": "How to pack my package?",
+          "answer": "Use appropriate and sturdy packaging. Protect fragile items and clearly indicate the address."
+        },
+        "q3": {
+          "question": "Can I insure my package?",
+          "answer": "Yes, our Starter and Premium subscriptions include automatic insurance up to €115 and €3000 respectively."
+        },
+        "q4": {
+          "question": "What to do if my package is lost?",
+          "answer": "Immediately contact our customer service with your tracking number. We launch an investigation."
+        }
       },
       "delivery": {
-        "title": "Delivery"
-      },
-      "client": {
-        "info": "Client information"
-      },
-      "validationCode": {
-        "title": "Validation code",
-        "description": "Code to request from client upon delivery"
-      },
-      "actions": {
-        "viewDetails": "View details",
-        "startDelivery": "Start delivery",
-        "updateStatus": "Update status"
-      },
-      "no_deliveries": "No ongoing deliveries",
-      "validate": "Validate delivery",
-      "start": "Start",
-      "pickup": "Pick up",
-      "deliver": "Deliver"
-    },
-    "wallet": {
-      "title": "My wallet",
-      "balance": "Available balance",
-      "pending": "Pending",
-      "withdraw": "Withdraw",
-      "history": "History",
-      "no_transactions": "No transactions",
-      "page": {
-        "title": "My Earnings",
-        "description": "Track your earnings and generate detailed reports"
-      },
-      "stats": {
-        "current_balance": "Current balance",
-        "available_balance": "Available balance",
-        "total_earnings": "Total earnings",
-        "all_time": "All time",
-        "net_earnings": "Net earnings",
-        "after_commission": "After commission",
-        "average_per_delivery": "Average/Delivery",
-        "per_delivery": "Per delivery",
-        "commission": "Commission",
-        "platform_fees": "Platform fees"
-      },
-      "filters": {
-        "title": "Filters",
-        "start_date": "Start date",
-        "end_date": "End date",
-        "status": "Status",
-        "all_statuses": "All statuses",
-        "completed": "Completed",
-        "pending": "Pending",
-        "processing": "Processing",
-        "export": "Export"
-      },
-      "tabs": {
-        "list": "Earnings List",
-        "analytics": "Analytics"
-      },
-      "earnings": {
-        "title": "Earnings Details",
-        "client": "Client",
-        "commission": "Commission",
-        "no_earnings": "No earnings found for this period",
-        "paid_on": "Paid on"
-      },
-      "analytics": {
-        "title": "Earnings Analytics",
-        "status_breakdown": "Status Breakdown",
-        "completed": "Completed",
-        "pending": "Pending",
-        "processing": "Processing",
-        "monthly_evolution": "Monthly Evolution",
-        "deliveries": "deliveries",
-        "no_data": "No analytics data available"
-      },
-      "export": {
-        "success": "Export downloaded successfully",
-        "error": "Error during export"
-      },
-      "error": {
-        "fetch_failed": "Error loading earnings"
+        "title": "Questions about delivery",
+        "q1": {
+          "question": "How to track my delivery?",
+          "answer": "Use the tracking number provided in your customer area or mobile app to track in real time."
+        },
+        "q2": {
+          "question": "What to do if nobody is present for delivery?",
+          "answer": "The deliverer will contact you. You can reschedule delivery or designate a pickup point."
+        },
+        "q3": {
+          "question": "How to validate reception?",
+          "answer": "Give the 6-digit code received by SMS to the deliverer to confirm proper reception."
+        },
+        "q4": {
+          "question": "Can I change the delivery address?",
+          "answer": "Yes, before the deliverer picks up the package. Contact them directly via messaging."
+        }
       }
     },
-    "routes": {
-      "title": "My routes",
-      "add": "Declare a route",
-      "active": "Active routes",
-      "past": "Past routes"
-    },
-    "planning": {
-      "title": "My schedule",
-      "availability": "Availability",
-      "calendar": "Calendar"
-    },
-    "profile": {
-      "title": "My Deliverer Profile",
-      "description": "Manage your personal and professional information",
-      "personal_info": "Personal Information",
-      "professional_info": "Professional Information",
-      "documents": "Documents",
-      "statistics": "Statistics",
-      "routes": "My Routes",
-      "vehicle_info": "Vehicle Information",
-      "contact_info": "Contact Information",
-      "validation_status": "Validation Status",
-      "edit_profile": "Edit Profile",
-      "save_changes": "Save Changes",
-      "upload_document": "Upload Document",
-      "view_document": "View Document",
-      "download_document": "Download Document",
-      "document_status": {
-        "pending": "Pending",
-        "approved": "Approved",
-        "rejected": "Rejected"
+    "legal": {
+      "cgv": {
+        "article1": {
+          "content": "These general terms of sale apply to all services offered by EcoDeli.",
+          "title": "Article 1 - Scope"
+        },
+        "article2": {
+          "intro": "Prices are shown in euros including tax and include:",
+          "item1": "Delivery costs calculated by distance",
+          "item2": "Platform commission",
+          "item3": "Applicable VAT",
+          "note": "Prices may be changed at any time but only apply to new orders.",
+          "title": "Article 2 - Prices and rates"
+        },
+        "article3": {
+          "content": "EcoDeli connects users and cannot be held responsible for damages between parties.",
+          "title": "Article 3 - Liability",
+          "item1": "Package delivery between individuals and professionals",
+          "item2": "People transportation and airport transfers",
+          "item3": "Home services: cleaning, gardening, handyman",
+          "note": "All services are subject to prior validation by EcoDeli",
+          "intro": "EcoDeli offers several types of services through its platform:"
+        },
+        "article4": {
+          "content": "Your personal data is processed in accordance with our privacy policy.",
+          "title": "Article 4 - Data protection"
+        },
+        "description": "Terms governing the use of EcoDeli services",
+        "title": "Terms of Sale",
+        "article5": {
+          "title": "Payment terms",
+          "content": "Payments are made via Stripe according to displayed rates. Payment is due before service delivery."
+        },
+        "article6": {
+          "title": "Responsibilities and insurance",
+          "content": "EcoDeli acts as an intermediary. Users are responsible for their actions and must have appropriate insurance."
+        }
       },
-      "vehicle_types": {
-        "car": "Car",
-        "motorcycle": "Motorcycle",
-        "bike": "Bike",
-        "truck": "Truck"
+      "cgu": {
+        "title": "Terms of Service",
+        "description": "Terms governing the use of the EcoDeli platform",
+        "article1": {
+          "title": "Article 1 - Purpose",
+          "content": "These general terms of use define the terms of access and use of the EcoDeli platform."
+        },
+        "article2": {
+          "title": "Article 2 - Acceptance",
+          "content": "Use of the platform implies full acceptance of these terms."
+        },
+        "article3": {
+          "title": "Article 3 - Services offered",
+          "intro": "EcoDeli offers the following services:",
+          "service1": "Package delivery between individuals",
+          "service2": "People transportation",
+          "service3": "Personal services",
+          "service4": "Temporary storage"
+        },
+        "article4": {
+          "title": "Article 4 - Responsibilities",
+          "content": "Each user is responsible for their use of the platform and services."
+        },
+        "article5": {
+          "title": "Article 5 - Personal data",
+          "content": "Personal data processing complies with GDPR and our privacy policy."
+        },
+        "article6": {
+          "title": "Article 6 - Modification",
+          "content": "EcoDeli reserves the right to modify these terms at any time."
+        }
       },
-      "stats": {
-        "total_deliveries": "Total Deliveries",
-        "average_rating": "Average Rating",
-        "total_earnings": "Total Earnings",
-        "response_time": "Response Time"
+      "title": "Legal Notice",
+      "description": "Legal information relating to EcoDeli",
+      "legalInfo": {
+        "title": "Legal information",
+        "companyName": "Company name: EcoDeli SAS",
+        "address": "Address: 110 rue de Flandre, 75019 Paris",
+        "siret": "SIRET: 123 456 789 00010",
+        "capital": "Share capital: €100,000",
+        "director": "Publishing director: Sylvain Levy"
+      },
+      "hosting": {
+        "title": "Hosting",
+        "provider": "Host: OVH SAS",
+        "address": "2 rue Kellermann, 59100 Roubaix"
+      },
+      "dataProtection": {
+        "title": "Data protection",
+        "content": "EcoDeli complies with GDPR. See our privacy policy for more information."
+      },
+      "intellectualProperty": {
+        "title": "Intellectual property",
+        "content": "All site content is protected by copyright. Any reproduction is prohibited without authorization."
       }
     },
-    "documents": {
-      "auth": {
-        "required_title": "Authentication required",
-        "required_description": "You must be logged in to access this page"
+    "partners": {
+      "title": "Our Partners",
+      "description": "Join the EcoDeli ecosystem and grow your business",
+      "merchants": {
+        "title": "Merchants",
+        "description": "Offer your delivery services and expand your customer base",
+        "button": "Become a merchant"
       },
-      "stats": {
-        "validated": "Validated",
-        "pending": "Pending",
-        "rejected": "Rejected",
-        "expired": "Expired"
+      "providers": {
+        "title": "Service Providers",
+        "description": "Offer your personal services and develop your clientele",
+        "button": "Become a provider"
       },
-      "status": {
-        "validated": "Validated",
-        "pending": "Pending",
-        "rejected": "Rejected",
-        "expired": "Expired"
+      "deliverers": {
+        "title": "Deliverers",
+        "description": "Join our delivery network and earn money by delivering",
+        "button": "Become a deliverer"
+      }
+    },
+    "about": {
+      "personalServices": {
+        "item2": "Personalized home service",
+        "item3": "Professional housekeeping help",
+        "item4": "Gardening and maintenance",
+        "item5": "DIY and repairs",
+        "item6": "Pet sitting at home",
+        "title": "Personal services",
+        "item1": "People transport"
       },
-      "required": "Required",
-      "allowed_formats": "Allowed formats",
-      "max_size": "Max size",
-      "expires": "Expires on",
-      "rejection_reason": "Rejection reason",
-      "upload_document": "Upload document",
-      "replace_document": "Replace document",
-      "error": {
-        "fetch_failed": "Error loading documents",
-        "upload_failed": "Error uploading document",
-        "delete_failed": "Error deleting document",
-        "file_too_large": "File too large"
+      "howItWorksBadge": "How it works",
+      "howItWorksTitle": "Your delivery solution in 4 steps",
+      "howItWorksSubtitle": "Discover how simple it is to use EcoDeli",
+      "howItWorksItems": {
+        "publish": {
+          "title": "Publish your announcement",
+          "description": "Describe your delivery or service need"
+        },
+        "connect": {
+          "title": "Connect with a deliverer",
+          "description": "Our validated deliverers accept your request"
+        },
+        "track": {
+          "title": "Track in real time",
+          "description": "Stay informed about your delivery status"
+        },
+        "validate": {
+          "title": "Validate reception",
+          "description": "Confirm delivery with validation code"
+        }
       },
-      "success": {
-        "document_uploaded": "Document uploaded successfully",
-        "document_deleted": "Document deleted successfully"
+      "cta": {
+        "badge": "Ready to start?",
+        "title": "Join the EcoDeli community",
+        "subtitle": "Discover all our services",
+        "register": "Register now",
+        "discoverServices": "Discover services"
+      },
+      "badge": "About",
+      "title": "Our story",
+      "subtitle": "Discover the EcoDeli adventure since 2018",
+      "foundingTeamAlt": "EcoDeli founding team",
+      "concept": "Our revolutionary concept",
+      "conceptBadge": "Concept",
+      "conceptTitle": "Ecological crowdshipping",
+      "conceptDescription1": "EcoDeli revolutionizes delivery by optimizing existing routes.",
+      "conceptDescription2": "Our platform connects individuals and professionals for more ecological transport.",
+      "conceptDescription3": "Reduce your carbon footprint while increasing your purchasing power.",
+      "conceptDescription4": "Join the collaborative and responsible delivery community.",
+      "joinCommunity": "Join the community",
+      "missionBadge": "Mission",
+      "missionTitle": "Our mission",
+      "missionSubtitle": "Transform delivery for a more sustainable world",
+      "missionItems": {
+        "reduceImpact": {
+          "title": "Reduce environmental impact",
+          "description": "Optimize routes to reduce CO2 emissions"
+        },
+        "createPurchasingPower": {
+          "title": "Create purchasing power",
+          "description": "Allow everyone to earn money with their travels"
+        },
+        "fightIsolation": {
+          "title": "Fight against isolation",
+          "description": "Create social bonds in local communities"
+        },
+        "optimizeResources": {
+          "title": "Optimize resources",
+          "description": "Make the best use of existing transport capacities"
+        },
+        "offerVariedServices": {
+          "title": "Offer varied services",
+          "description": "Beyond delivery, offer personal services"
+        },
+        "supportLocalEconomy": {
+          "title": "Support local economy",
+          "description": "Promote local exchanges and mutual aid"
+        }
+      },
+      "servicesBadge": "Services",
+      "servicesTitle": "Our services",
+      "servicesSubtitle": "A complete range for all your needs",
+      "parcelTransport": {
+        "title": "Package transport",
+        "item1": "Fast and secure delivery",
+        "item2": "Real-time tracking",
+        "item3": "Insurance included",
+        "item4": "Validation code",
+        "item5": "Competitive rates",
+        "item6": "24/7 customer service"
+      }
+    },
+    "becomeDelivery": {
+      "badge": "Become a deliverer",
+      "title": "Join our EcoDeli delivery network",
+      "subtitle": "Earn money delivering in your neighborhood while protecting the environment",
+      "registerAsCourier": "Register as courier",
+      "discoverAdvantages": "Discover advantages",
+      "heroImageAlt": "EcoDeli deliverer in action",
+      "joinNetwork": "Join the network",
+      "advantagesBadge": "Advantages",
+      "advantagesTitle": "Why choose EcoDeli?",
+      "advantagesSubtitle": "Discover all the advantages of our platform",
+      "advantages": {
+        "purchasingPower": {
+          "title": "Increase your purchasing power",
+          "description": "Earn flexible additional income"
+        },
+        "flexibility": {
+          "title": "Total flexibility",
+          "description": "Choose your schedules and routes"
+        },
+        "ecologicalImpact": {
+          "title": "Positive ecological impact",
+          "description": "Participate in carbon footprint reduction"
+        },
+        "security": {
+          "title": "Guaranteed security",
+          "description": "24/7 insurance and support"
+        },
+        "fightIsolation": {
+          "title": "Fight against isolation",
+          "description": "Create social bonds in your community"
+        },
+        "variedServices": {
+          "title": "Varied services",
+          "description": "Deliveries, personal services, and more"
+        }
+      },
+      "processBadge": "Process",
+      "processTitle": "How to become an EcoDeli deliverer",
+      "processSubtitle": "A simple 4-step process",
+      "processSteps": {
+        "register": {
+          "title": "Registration",
+          "description": "Create your deliverer account"
+        },
+        "verification": {
+          "title": "Verification",
+          "description": "Validation of your documents"
+        },
+        "announcements": {
+          "title": "Announcements",
+          "description": "Access delivery offers"
+        },
+        "deliveryPayment": {
+          "title": "Delivery and payment",
+          "description": "Perform deliveries and receive your earnings"
+        }
+      },
+      "becomeCourierNow": "Become courier now",
+      "servicesBadge": "Services",
+      "servicesTitle": "Available service types",
+      "servicesSubtitle": "Diversify your activities with our different services",
+      "parcelTransport": {
+        "title": "Parcel transport",
+        "feature1": "Fast and secure delivery",
+        "feature2": "Real-time tracking",
+        "feature3": "Insurance included",
+        "feature4": "Validation code",
+        "feature5": "Attractive compensation"
+      },
+      "personalServices": {
+        "title": "Personal services",
+        "feature1": "People transport",
+        "feature2": "Airport transfer",
+        "feature3": "Shopping and purchases",
+        "feature4": "Pet sitting",
+        "feature5": "Home services",
+        "feature6": "Senior assistance"
+      },
+      "paymentBadge": "Payment",
+      "paymentTitle": "How to get paid on EcoDeli",
+      "paymentSubtitle": "A simple and transparent payment system",
+      "paymentSteps": {
+        "step1": "Agreement on price and delivery date",
+        "step2": "Client pays on EcoDeli (funds blocked)",
+        "step3": "You perform the delivery",
+        "step4": "Recipient gives you validation code",
+        "step5": "Funds are available in your wallet"
+      },
+      "cta": {
+        "badge": "Ready to start?",
+        "title": "Join EcoDeli today",
+        "subtitle": "Start earning money while protecting the environment",
+        "registerAsCourier": "Register as courier"
+      }
+    },
+    "blogPost": "Blog Post",
+    "contact": {
+      "badge": "Contact",
+      "title": "Contact us",
+      "subtitle": "We are here to help you",
+      "phone": {
+        "title": "Phone",
+        "description": "Call us for immediate assistance",
+        "button": "Call now"
+      },
+      "email": {
+        "title": "Email",
+        "description": "Send us an email",
+        "button": "Send email"
+      },
+      "address": {
+        "title": "Address",
+        "description": "Come visit us",
+        "value": "110 rue de Flandre, 75019 Paris",
+        "button": "View on map"
+      },
+      "schedule": {
+        "badge": "Schedule",
+        "title": "Our schedule",
+        "subtitle": "When to contact us",
+        "mondayFriday": "Monday - Friday: 9am - 6pm",
+        "saturday": "Saturday: 10am - 4pm",
+        "sunday": "Sunday: Closed",
+        "closed": "Closed"
+      },
+      "form": {
+        "badge": "Form",
+        "title": "Send us a message",
+        "subtitle": "We will reply quickly",
+        "firstName": "First name",
+        "firstNamePlaceholder": "Your first name",
+        "lastName": "Last name",
+        "lastNamePlaceholder": "Your last name",
+        "email": "Email",
+        "emailPlaceholder": "your@email.com",
+        "phone": "Phone",
+        "phonePlaceholder": "Your phone number",
+        "subject": "Subject",
+        "subjectPlaceholder": "Subject of your message",
+        "message": "Message",
+        "messagePlaceholder": "Your message...",
+        "submit": "Send message"
+      },
+      "social": {
+        "badge": "Social media",
+        "title": "Follow us",
+        "subtitle": "Stay connected with EcoDeli"
+      }
+    },
+    "error": "Error",
+    "BecomeMerchant": {
+      "description": "Description"
+    },
+    "privacy": {
+      "title": "Privacy Policy",
+      "lastUpdated": "Last updated: January 2025",
+      "section1": {
+        "title": "Introduction",
+        "content": "EcoDeli is committed to protecting your privacy. This policy describes how we collect, use and protect your personal data in accordance with GDPR."
+      },
+      "section2": {
+        "title": "Data collected",
+        "intro": "We collect the following types of data:",
+        "item1": "Identification information: name, surname, email, phone",
+        "item2": "Location data for delivery services",
+        "item3": "Transaction and order history",
+        "item4": "Browsing data and technical cookies",
+        "item5": "Identity documents for deliverer account validation"
+      },
+      "section3": {
+        "title": "Data usage",
+        "content": "Your data is used to provide our delivery services, manage your account, improve our platform and comply with our legal obligations. We never sell your data to third parties."
+      },
+      "section4": {
+        "title": "Legal basis",
+        "content": "The processing of your data is based on the performance of the service contract, your explicit consent, and compliance with our legal obligations as a matchmaking platform."
+      },
+      "section5": {
+        "title": "Data sharing",
+        "intro": "We may share your data in the following cases:",
+        "item1": "With deliverers for delivery execution",
+        "item2": "With our secure payment providers",
+        "item3": "In case of legal or judicial obligation",
+        "item4": "With your explicit consent",
+        "item5": "For fraud prevention and security"
+      },
+      "section6": {
+        "title": "Your rights",
+        "content": "You have the rights of access, rectification, erasure, portability, limitation of processing and opposition. Contact us at privacy@ecodeli.fr to exercise your rights."
+      },
+      "section7": {
+        "title": "Contact",
+        "content": "For any questions regarding this privacy policy, contact our DPO at privacy@ecodeli.fr or by mail at 110 rue de Flandre, 75019 Paris."
       }
     }
   },
-  "serviceRequests": {
-    "pageTitle": "Service Requests",
-    "pageDescription": "Manage your personal service requests",
-    "title": "Service Requests",
-    "description": "View and manage your personal service requests",
-    "createNew": "Create new request",
-    "noRequests": "No service requests found",
-    "filters": {
-      "title": "Filters",
+  "period": "Period",
+  "type": {
+    "standard": "Standard",
+    "premium": "Premium",
+    "enterprise": "Enterprise",
+    "custom": "Custom"
+  },
+  "T": "T",
+  "page": {
+    "title": "Title",
+    "description": "Description",
+    "new_booking": "New Booking"
+  },
+  "limit": "Limit",
+  "status": {
+    "accepted": "Accepted",
+    "inTransit": "In Transit",
+    "draft": "Draft",
+    "sent": "Sent",
+    "paid": "Paid",
+    "overdue": "Overdue",
+    "cancelled": "Cancelled",
+    "pending": "Pending",
+    "picking_up": "Picking Up",
+    "in_transit": "In Transit",
+    "delivered": "Delivered",
+    "failed": "Failed",
+    "completed": "Completed",
+    "generated": "Generated",
+    "active": "Active",
+    "inProgress": "In Progress",
+    "expired": "Expired",
+    "confirmed": "Confirmed",
+    "in_progress": "In Progress",
+    "validated": "Validated",
+    "rejected": "Rejected",
+    "assigned": "Assigned",
+    "picked_up": "Picked Up",
+    "scheduled": "Scheduled",
+    "application_status": "Application Status",
+    "completion_progress": "Completion Progress",
+    "congratulations": "Congratulations",
+    "approved_message": "Approved Message",
+    "rejection_reason": "Rejection Reason",
+    "inactive": "Inactive",
+    "notifications_on": "Notifications On",
+    "processing": "Processing",
+    "published": "Published",
+    "paused": "Paused",
+    "title": "Title",
+    "description": "Description",
+    "suspended": "Suspended",
+    "terminated": "Terminated",
+    "pending_review": "Pending Review",
+    "urgent": "Urgent",
+    "deliverer_assigned": "Deliverer Assigned",
+    "full": "Full",
+    "available": "Available",
+    "busy": "Busy",
+    "blocked": "Blocked",
+    "holiday": "Holiday",
+    "approved": "Approved",
+    "disputed": "Disputed",
+    "no_show": "No Show",
+    "submitted": "Submitted",
+    "under_review": "Under Review",
+    "pending_documents": "Pending Documents",
+    "requires_action": "Requires Action",
+    "hidden": "Hidden"
+  },
+  "flagged": "Flagged",
+  "authorId": "Author Id",
+  "search": {
+    "placeholder": "Placeholder",
+    "title": "Title",
+    "category": "Category",
+    "all_categories": "All Categories",
+    "location_placeholder": "Location Placeholder",
+    "search": "Search"
+  },
+  "merchantId": "Merchant Id",
+  "validFrom": "Valid From",
+  "validUntil": "Valid Until",
+  "stats": {
+    "total_spent": "Total Spent",
+    "all_time": "All Time",
+    "total_refunds": "Total Refunds",
+    "refunds_received": "Refunds Received",
+    "pending": "Pending",
+    "pending_payments": "Pending Payments",
+    "monthly_evolution": "Monthly Evolution",
+    "chart_placeholder": "Chart Placeholder",
+    "orders": "Orders",
+    "spent": "Spent",
+    "rating": "Rating",
+    "deliveries": "Deliveries",
+    "total_earnings": "Total Earnings",
+    "net_earnings": "Net Earnings",
+    "after_commission": "After Commission",
+    "average_per_delivery": "Average Per Delivery",
+    "per_delivery": "Per Delivery",
+    "commission": "Commission",
+    "platform_fees": "Platform Fees",
+    "totalInvoiced": "Total Invoiced",
+    "totalPaid": "Total Paid",
+    "totalPending": "Total Pending",
+    "totalOverdue": "Total Overdue",
+    "status": "Status",
+    "statusDesc": "Status Desc",
+    "progress": "Progress",
+    "progressDesc": "Progress Desc",
+    "certifications": "Certifications",
+    "certificationsDesc": "Certifications Desc",
+    "documents": "Documents",
+    "documentsDesc": "Documents Desc",
+    "active_deliveries": "Active Deliveries",
+    "since_yesterday": "Since Yesterday",
+    "active_deliverers": "Active Deliverers",
+    "avg_delivery_time": "Avg Delivery Time",
+    "average_completion": "Average Completion",
+    "success_rate": "Success Rate",
+    "today_deliveries": "Today Deliveries",
+    "pending_deliveries": "Pending Deliveries",
+    "completed_today": "Completed Today",
+    "cancelled_today": "Cancelled Today",
+    "delayed_deliveries": "Delayed Deliveries",
+    "totalProviders": "Total Providers",
+    "pendingInvoices": "Pending Invoices",
+    "totalAmount": "Total Amount",
+    "overdueInvoices": "Overdue Invoices",
+    "paidInvoices": "Paid Invoices",
+    "paid": "Paid",
+    "generatedInvoices": "Generated Invoices",
+    "generated": "Generated",
+    "averageAmount": "Average Amount",
+    "average": "Average",
+    "totalServices": "Total Services",
+    "connectedServices": "Connected Services",
+    "connectionRate": "Connection Rate",
+    "disconnectedServices": "Disconnected Services",
+    "announcements": "Announcements",
+    "bookings": "Bookings",
+    "total_deliveries": "Total Deliveries",
+    "completed": "Completed",
+    "opportunities": "Opportunities",
+    "this_week": "This Week",
+    "average_rating": "Average Rating",
+    "validated": "Validated",
+    "rejected": "Rejected",
+    "expired": "Expired",
+    "available_slots": "Available Slots",
+    "busy_days": "Busy Days",
+    "active_routes": "Active Routes",
+    "new_notifications": "New Notifications",
+    "notifications_enabled": "Notifications Enabled",
+    "match_threshold": "Match Threshold",
+    "current_balance": "Current Balance",
+    "available_balance": "Available Balance",
+    "monthly_earnings": "Monthly Earnings",
+    "this_month": "This Month",
+    "pending_earnings": "Pending Earnings",
+    "processing": "Processing",
+    "total_billings": "Total Billings",
+    "total_revenue": "Total Revenue",
+    "total_commissions": "Total Commissions",
+    "amount_due": "Amount Due",
+    "totalOrders": "Total Orders",
+    "allTime": "All Time",
+    "activeZones": "Active Zones",
+    "deliveryZones": "Delivery Zones",
+    "timeSlots": "Time Slots",
+    "availableSlots": "Available Slots",
+    "revenue": "Revenue",
+    "fromCartDrop": "From Cart Drop",
+    "pendingOrders": "Pending Orders",
+    "awaiting": "Awaiting",
+    "monthly": "Monthly",
+    "averageOrder": "Average Order",
+    "perOrder": "Per Order",
+    "active_announcements": "Active Announcements",
+    "total": "Total",
+    "monthly_deliveries": "Monthly Deliveries",
+    "monthly_revenue": "Monthly Revenue",
+    "conversion_rate": "Conversion Rate",
+    "average_order": "Average Order",
+    "awaitingAction": "Awaiting Action",
+    "completedOrders": "Completed Orders",
+    "successfullyDelivered": "Successfully Delivered",
+    "totalRevenue": "Total Revenue",
+    "successful": "Successful",
+    "totalProducts": "Total Products",
+    "activeProducts": "Active Products",
+    "lowStock": "Low Stock",
+    "needsRestock": "Needs Restock",
+    "totalValue": "Total Value",
+    "inventoryValue": "Inventory Value",
+    "categories": "Categories",
+    "uniqueCategories": "Unique Categories",
+    "active": "Active",
+    "inStock": "In Stock",
+    "needsAttention": "Needs Attention",
+    "current_month": "Current Month",
+    "vs_last_month": "Vs Last Month",
+    "year_to_date": "Year To Date",
+    "unpaid_amount": "Unpaid Amount",
+    "awaiting_payment": "Awaiting Payment",
+    "average_monthly": "Average Monthly",
+    "current_month_earnings": "Current Month Earnings",
+    "interventions_this_month": "Interventions This Month",
+    "hours_worked": "Hours Worked",
+    "total_appointments": "Total Appointments",
+    "confirmed": "Confirmed",
+    "total_interventions": "Total Interventions",
+    "active_interventions": "Active Interventions",
+    "total_reviews": "Total Reviews",
+    "positive_reviews": "Positive Reviews",
+    "responses_rate": "Responses Rate",
+    "rating_distribution": "Rating Distribution",
+    "monthly_trend": "Monthly Trend"
+  },
+  "action": "Action",
+  "adminId": "Admin Id",
+  "MEDIUM": "M E D I U M",
+  "userRole": "User Role",
+  "userId": "User Id",
+  "role": "Role",
+  "summary": "Summary",
+  "daily": "Daily",
+  "startDate": "Start Date",
+  "endDate": "End Date",
+  "interval": "Interval",
+  "pdf": "Pdf",
+  "month": "Month",
+  "-": "",
+  "providerId": "Provider Id",
+  "category": "Category",
+  "key": "Key",
+  "locationId": "Location Id",
+  "FR": "F R",
+  "timeRange": {
+    "24h": "24h",
+    "7d": "7d",
+    "30d": "30d",
+    "90d": "90d"
+  },
+  "deliveryType": "Delivery Type",
+  "priceMin": "Price Min",
+  "priceMax": "Price Max",
+  "city": "City",
+  "dateFrom": "Date From",
+  "dateTo": "Date To",
+  "urgent": "Urgent",
+  "sortBy": "Sort By",
+  "sortOrder": "Sort Order",
+  "EUR": "E U R",
+  "serviceRequestId": "Service Request Id",
+  "date": "Date",
+  "clientId": "Client Id",
+  "serviceType": "Service Type",
+  "read": "Read",
+  "offset": "Offset",
+  "format": "Format",
+  "stripe": {
+    "description": "Description",
+    "publishableKey": "Publishable Key",
+    "secretKey": "Secret Key"
+  },
+  "rating": {
+    "your_rating": "Your Rating",
+    "dialog": {
+      "title": "Title",
+      "rating_label": "Rating Label",
+      "review_label": "Review Label",
+      "submit": "Submit"
+    }
+  },
+  "budgetMin": "Budget Min",
+  "budgetMax": "Budget Max",
+  "urgency": "Urgency",
+  "isRecurring": "Is Recurring",
+  "requiresCertification": "Requires Certification",
+  "lat": "Lat",
+  "lng": "Lng",
+  "radius": "Radius",
+  "size": "Size",
+  "maxPrice": "Max Price",
+  "includeExpired": "Include Expired",
+  "authorization": "Authorization",
+  "secret": "Secret",
+  "X-Cron-Key": "X  Cron  Key",
+  "year": "Year",
+  "delivererId": "Deliverer Id",
+  "content-length": "Content Length",
+  "createdAt": "Created At",
+  "desc": "Desc",
+  "file": "File",
+  "typeId": "Type Id",
+  "minPrice": "Min Price",
+  "urgentOnly": "Urgent Only",
+  "CAR": "C A R",
+  "asc": "Asc",
+  "fr": "Fr",
+  "user-agent": "User Agent",
+  "x-forwarded-for": "X Forwarded For",
+  "x-real-ip": "X Real Ip",
+  "claimType": "Claim Type",
+  "day": "Day",
+  "compare": "Compare",
+  "granularity": "Granularity",
+  "preview": "Preview",
+  "mappings": "Mappings",
+  "_": "",
+  "week": "Week",
+  "-W": "W",
+  "medium": "Medium",
+  "includeHistory": "Include History",
+  "priority": {
+    "low": "Low",
+    "medium": "Medium",
+    "high": "High",
+    "urgent": "Urgent",
+    "critical": "Critical"
+  },
+  "unreadOnly": "Unread Only",
+  "actionRequired": "Action Required",
+  "datauristring": "Datauristring",
+  "range": "Range",
+  "dateRange": "Date Range",
+  "France": "France",
+  "created": "Created",
+  "programId": "Program Id",
+  "code": "Code",
+  "active": {
+    "title": "Title",
+    "count": "Count",
+    "empty": {
+      "title": "Title",
+      "description": "Description",
+      "action": "Action"
+    },
+    "no_deliveries_title": "No Deliveries Title",
+    "no_deliveries_description": "No Deliveries Description"
+  },
+  "monthly": "Monthly",
+  "json": "Json",
+  "driving": "Driving",
+  "metric": "Metric",
+  "distance": "Distance",
+  "km": "Km",
+  "address": {
+    "title": "Title",
+    "description": "Description",
+    "button": "Button"
+  },
+  "country": "Country",
+  "latitude": "Latitude",
+  "longitude": "Longitude",
+  "includeInactive": "Include Inactive",
+  "warehouseId": "Warehouse Id",
+  "X-API-Key": "X  A P I  Key",
+  "boxId": "Box Id",
+  "assignedToId": "Assigned To Id",
+  "certificationId": "Certification Id",
+  "documentId": "Document Id",
+  "id": "Id",
+  "stripe-signature": "Stripe Signature",
+  "link": "Link",
+  "script": "Script",
+  "token": "Token",
+  "email": {
+    "description": "Description",
+    "title": "Title",
+    "button": "Button"
+  },
+  "admin": {
+    "announcements": "Announcements",
+    "deliveries": {
+      "monitoring": "Monitoring"
+    },
+    "disputes": "Disputes",
+    "moderation": "Moderation",
+    "providerBilling": "Provider Billing",
+    "systemConfig": {
+      "webhooks": "Webhooks"
+    },
+    "title": "Title",
+    "users": {
+      "list": {
+        "description": "Description"
+      }
+    },
+    "stats": {
+      "dashboard": {
+        "description": "Description"
+      }
+    },
+    "navigation": "Navigation",
+    "billing": "Billing",
+    "contracts": "Contracts",
+    "finance": "Finance",
+    "dashboard": "Dashboard"
+  },
+  "title": {
+    "myAnnouncements": "My Announcements"
+  },
+  "description": {
+    "manageYourAnnouncements": "Manage Your Announcements"
+  },
+  "refresh": "Refresh",
+  "filters": {
+    "title": "Title",
+    "search": "Search",
+    "search_placeholder": "Search Placeholder",
+    "status": "Status",
+    "all_statuses": "All Statuses",
+    "type": "Type",
+    "all_types": "All Types",
+    "reset": "Reset",
+    "start_date": "Start Date",
+    "end_date": "End Date",
+    "completed": "Completed",
+    "pending": "Pending",
+    "processing": "Processing",
+    "export": "Export",
+    "allStatuses": "All Statuses",
+    "advanced": "Advanced",
+    "all_priorities": "All Priorities",
+    "allTypes": "All Types",
+    "urgency": "Urgency",
+    "allUrgencies": "All Urgencies",
+    "urgentOnly": "Urgent Only",
+    "normalOnly": "Normal Only",
+    "status_placeholder": "Status Placeholder",
+    "type_placeholder": "Type Placeholder",
+    "max_distance": "Max Distance",
+    "min_rating": "Min Rating",
+    "max_price": "Max Price",
+    "home_service": "Home Service",
+    "size": "Size",
+    "all": "All",
+    "date": "Date",
+    "all_time": "All Time",
+    "this_week": "This Week",
+    "this_month": "This Month",
+    "this_quarter": "This Quarter",
+    "year": "Year",
+    "unread": "Unread",
+    "read": "Read",
+    "period": "Period",
+    "all_periods": "All Periods",
+    "current_year": "Current Year",
+    "previous_year": "Previous Year",
+    "rating": "Rating",
+    "all_ratings": "All Ratings",
+    "category": "Category",
+    "all_categories": "All Categories",
+    "sort_by": "Sort By",
+    "sort": {
+      "name": "Name",
+      "price_low": "Price Low",
+      "price_high": "Price High",
+      "rating": "Rating",
+      "duration": "Duration"
+    }
+  },
+  "searchPlaceholder": "Search Placeholder",
+  "statusFilter": "Status Filter",
+  "allStatuses": "All Statuses",
+  "open": "Open",
+  "inProgress": "In Progress",
+  "resolved": "Resolved",
+  "closed": "Closed",
+  "typeFilter": "Type Filter",
+  "allTypes": "All Types",
+  "deliveryIssue": "Delivery Issue",
+  "paymentDispute": "Payment Dispute",
+  "serviceQuality": "Service Quality",
+  "cancellation": "Cancellation",
+  "other": "Other",
+  "clearFilters": "Clear Filters",
+  "allDisputes": "All Disputes",
+  "openDisputes": "Open Disputes",
+  "inProgressDisputes": "In Progress Disputes",
+  "resolvedDisputes": "Resolved Disputes",
+  "back": "Back",
+  "dispute": "Dispute",
+  "disputeDetails": "Dispute Details",
+  "timeline": {
+    "application_created": "Application Created",
+    "review_started": "Review Started",
+    "application_approved": "Application Approved",
+    "application_rejected": "Application Rejected"
+  },
+  "quickActions": "Quick Actions",
+  "selectStatus": "Select Status",
+  "updateStatus": "Update Status",
+  "resolution": "Resolution",
+  "relatedInfo": "Related Info",
+  "client": {
+    "announcements": "Announcements",
+    "bookings": "Bookings",
+    "deliveries": "Deliveries",
+    "delivery": "Delivery",
+    "notifications": "Notifications",
+    "payments": "Payments",
+    "profile": "Profile",
+    "reviews": "Reviews",
+    "services": {
+      "booking": "Booking"
+    },
+    "storage": "Storage",
+    "support": "Support",
+    "tutorial": "Tutorial",
+    "info": "Info",
+    "dashboard": "Dashboard",
+    "subscription": "Subscription"
+  },
+  "deliverer": {
+    "announcements": "Announcements",
+    "deliveries": {
+      "history": "History"
+    },
+    "documents": "Documents",
+    "planning": "Planning",
+    "profile": "Profile",
+    "recruitment": "Recruitment",
+    "wallet": {
+      "withdrawal": "Withdrawal"
+    },
+    "title": "Title",
+    "completed": "Completed",
+    "routes": {
+      "notifications": "Notifications"
+    },
+    "dashboard": "Dashboard",
+    "delivery": "Delivery",
+    "opportunities": "Opportunities"
+  },
+  "delivery": {
+    "title": "Title",
+    "q1": {
+      "question": "Question"
+    },
+    "q2": {
+      "question": "Question",
+      "answer": "Answer"
+    },
+    "q4": {
+      "question": "Question"
+    },
+    "id": "Id",
+    "deliverer": "Deliverer",
+    "client": "Client",
+    "pickup": "Pickup",
+    "destination": "Destination",
+    "created": "Created",
+    "estimated": "Estimated",
+    "last_location": "Last Location",
+    "pending": "Pending",
+    "accepted": "Accepted",
+    "inTransit": "In Transit",
+    "delivered": "Delivered",
+    "cancelled": "Cancelled"
+  },
+  "amount": "Amount",
+  "a": "A",
+  "excel": "Excel",
+  "csv": "Csv",
+  "pending": "Pending",
+  "reviewed": "Reviewed",
+  "approved": "Approved",
+  "rejected": "Rejected",
+  "announcement": {
+    "draft": "Draft",
+    "published": "Published",
+    "matched": "Matched",
+    "inProgress": "In Progress",
+    "completed": "Completed",
+    "cancelled": "Cancelled"
+  },
+  "review": "Review",
+  "comment": "Comment",
+  "userReport": "User Report",
+  "contentReview": "Content Review",
+  "sanctions": "Sanctions",
+  "reports": {
+    "title": "Title",
+    "description": "Description",
+    "comingSoon": "Coming Soon",
+    "comingSoonDescription": "Coming Soon Description"
+  },
+  "generateInvoices": "Generate Invoices",
+  "monthFilter": "Month Filter",
+  "allMonths": "All Months",
+  "generated": "Generated",
+  "paid": "Paid",
+  "overdue": "Overdue",
+  "allInvoices": "All Invoices",
+  "pendingInvoices": "Pending Invoices",
+  "generatedInvoices": "Generated Invoices",
+  "paidInvoices": "Paid Invoices",
+  "hideSecrets": "Hide Secrets",
+  "showSecrets": "Show Secrets",
+  "saveConfig": "Save Config",
+  "overview": {
+    "title": "Title",
+    "serviceStatus": "Service Status",
+    "current_balance": "Current Balance",
+    "account_balance": "Account Balance",
+    "monthly_total": "Monthly Total",
+    "this_month": "This Month",
+    "pending_payments": "Pending Payments",
+    "awaiting_payment": "Awaiting Payment",
+    "total_spent": "Total Spent",
+    "all_time": "All Time"
+  },
+  "cloudServices": {
+    "title": "Title"
+  },
+  "webhooks": {
+    "title": "Title"
+  },
+  "apiKeys": {
+    "title": "Title",
+    "name": "Name",
+    "permissions": "Permissions",
+    "generate": "Generate"
+  },
+  "oneSignal": {
+    "description": "Description",
+    "appId": "App Id",
+    "apiKey": "Api Key"
+  },
+  "storage": {
+    "description": "Description"
+  },
+  "ClientApplications": "Client Applications",
+  "session_id": "Session Id",
+  "application_id": "Application Id",
+  "error": {
+    "fetch_failed": "Fetch Failed",
+    "title": "Title",
+    "resolve_failed": "Resolve Failed",
+    "contact_failed": "Contact Failed",
+    "reassign_failed": "Reassign Failed",
+    "export_failed": "Export Failed",
+    "loading": "Loading...",
+    "cancel_failed": "Cancel Failed",
+    "rating_failed": "Rating Failed",
+    "status_update_failed": "Status Update Failed",
+    "validation_failed": "Validation Failed",
+    "upload_failed": "Upload Failed",
+    "delete_failed": "Delete Failed",
+    "file_too_large": "File Too Large",
+    "accept_failed": "Accept Failed",
+    "update_failed": "Update Failed",
+    "save_failed": "Save Failed",
+    "generic": "Generic",
+    "download_failed": "Download Failed",
+    "response_failed": "Response Failed",
+    "settings_failed": "Settings Failed",
+    "request_failed": "Request Failed",
+    "payment_failed": "Payment Failed",
+    "sign_failed": "Sign Failed",
+    "fetchFailed": "Fetch Failed",
+    "unknown": "Unknown",
+    "deleteFailed": "Delete Failed",
+    "notFound": "Not Found",
+    "updateFailed": "Update Failed",
+    "createFailed": "Create Failed",
+    "importFailed": "Import Failed",
+    "payment_request_failed": "Payment Request Failed",
+    "create_failed": "Create Failed",
+    "revalidation_failed": "Revalidation Failed"
+  },
+  "loading": "Loading...",
+  "search_placeholder": "Search Placeholder",
+  "tabs": {
+    "active": "Active",
+    "history": "History",
+    "statistics": "Statistics",
+    "list": "List",
+    "analytics": "Analytics",
+    "invoices": "Invoices",
+    "create": "Create",
+    "settings": "Settings",
+    "reports": "Reports",
+    "overview": "Overview",
+    "steps": "Steps",
+    "certifications": "Certifications",
+    "auth": "Auth",
+    "announcements": "Announcements",
+    "deliveries": "Deliveries",
+    "services": "Services",
+    "admin": "Admin",
+    "active_deliveries": "Active Deliveries",
+    "issues": "Issues",
+    "deliverer_locations": "Deliverer Locations",
+    "revenue": "Revenue",
+    "commissions": "Commissions",
+    "exports": "Exports",
+    "users": "Users",
+    "business": "Business",
+    "operations": "Operations",
+    "financial": "Financial",
+    "system": "System",
+    "browse_services": "Browse Services",
+    "my_bookings": "My Bookings",
+    "available": "Available",
+    "my_rentals": "My Rentals",
+    "my_deliveries": "My Deliveries",
+    "completed": "Completed",
+    "all": "All",
+    "personal_info": "Personal Info",
+    "professional_info": "Professional Info",
+    "documents": "Documents",
+    "my_routes": "My Routes",
+    "notifications": "Notifications",
+    "transactions": "Transactions",
+    "withdrawals": "Withdrawals",
+    "earnings": "Earnings",
+    "drafts": "Drafts",
+    "payment_methods": "Payment Methods",
+    "billing_cycles": "Billing Cycles",
+    "details": "Details",
+    "conditions": "Conditions",
+    "amendments": "Amendments",
+    "billing": "Billing",
+    "calendar": "Calendar",
+    "bookings": "Bookings",
+    "weekly_view": "Weekly View",
+    "service_breakdown": "Service Breakdown",
+    "payment_history": "Payment History",
+    "monthly_billings": "Monthly Billings",
+    "current_period": "Current Period",
+    "validation_steps": "Validation Steps",
+    "reviews": "Reviews"
+  },
+  "empty": {
+    "no_active_deliveries": "No Active Deliveries",
+    "active_description": "Active Description",
+    "no_completed_deliveries": "No Completed Deliveries",
+    "completed_description": "Completed Description",
+    "title": "Title",
+    "description": "Description",
+    "create_first": "Create First",
+    "no_active_bookings": "No Active Bookings",
+    "book_service_description": "Book Service Description",
+    "no_past_bookings": "No Past Bookings",
+    "past_bookings_description": "Past Bookings Description",
+    "active": {
+      "title": "Title",
+      "description": "Description"
+    },
+    "history": {
+      "title": "Title",
+      "description": "Description"
+    },
+    "no_operations": "No Operations",
+    "operations_description": "Operations Description",
+    "no_earnings": "No Earnings",
+    "earnings_description": "Earnings Description",
+    "add_first_slot": "Add First Slot",
+    "generate_first": "Generate First"
+  },
+  "pickup": {
+    "title": "Title"
+  },
+  "scheduled_at": "Scheduled At",
+  "actions": {
+    "view_details": "View Details",
+    "track": "Track",
+    "contact_deliverer": "Contact Deliverer",
+    "viewDetails": "View Details",
+    "startDelivery": "Start Delivery",
+    "updateStatus": "Update Status",
+    "export": "Export",
+    "newInvoice": "New Invoice",
+    "view": "View",
+    "download": "Download",
+    "email": "Email",
+    "print": "Print",
+    "contact": "Contact",
+    "reassign": "Reassign",
+    "resolve": "Resolve",
+    "retry": "Retry",
+    "createNew": "Create New",
+    "createFirst": "Create First",
+    "confirm_delete": "Confirm Delete",
+    "pay": "Pay",
+    "cancel": "Cancel",
+    "rate": "Rate",
+    "create_announcement": "Create Announcement",
+    "create_announcement_desc": "Create Announcement Desc",
+    "book_service": "Book Service",
+    "book_service_desc": "Book Service Desc",
+    "track_deliveries": "Track Deliveries",
+    "track_deliveries_desc": "Track Deliveries Desc",
+    "view_profile": "View Profile",
+    "contact_provider": "Contact Provider",
+    "rate_service": "Rate Service",
+    "rent": "Rent",
+    "extend": "Extend",
+    "end_rental": "End Rental",
+    "accept": "Accept",
+    "decline": "Decline",
+    "declare_route": "Declare Route",
+    "declare_first_route": "Declare First Route",
+    "start_delivery": "Start Delivery",
+    "confirm_pickup": "Confirm Pickup",
+    "validate_delivery": "Validate Delivery",
+    "contact_client": "Contact Client",
+    "navigate": "Navigate",
+    "report_issue": "Report Issue",
+    "delete": "Delete",
+    "reupload": "Reupload",
+    "upload": "Upload",
+    "add_entry": "Add Entry",
+    "set_availability": "Set Availability",
+    "save_draft": "Save Draft",
+    "upload_document": "Upload Document",
+    "submit_application": "Submit Application",
+    "add_route": "Add Route",
+    "settings": "Settings",
+    "add_first_route": "Add First Route",
+    "update": "Update",
+    "create": "Create",
+    "close": "Close",
+    "withdraw": "Withdraw",
+    "bulk_import": "Bulk Import",
+    "edit": "Edit",
+    "change_status": "Change Status",
+    "publish": "Publish",
+    "create_first": "Create First",
+    "export_all": "Export All",
+    "add_payment_method": "Add Payment Method",
+    "confirm_payment": "Confirm Payment",
+    "download_invoice": "Download Invoice",
+    "configure": "Configure",
+    "title": "Title",
+    "description": "Description",
+    "viewOrders": "View Orders",
+    "analytics": "Analytics",
+    "contact_admin": "Contact Admin",
+    "sign_contract": "Sign Contract",
+    "signing": "Signing",
+    "sign_electronically": "Sign Electronically",
+    "new_contract": "New Contract",
+    "select_plan": "Select Plan",
+    "sign": "Sign",
+    "terminate": "Terminate",
+    "create_first_contract": "Create First Contract",
+    "viewAll": "View All",
+    "backToList": "Back To List",
+    "confirmDelete": "Confirm Delete",
+    "back": "Back",
+    "add": "Add",
+    "addFirst": "Add First",
+    "apply_template": "Apply Template",
+    "add_slot": "Add Slot",
+    "confirm": "Confirm",
+    "generate_current_month": "Generate Current Month",
+    "approve": "Approve",
+    "dispute": "Dispute",
+    "generate_billing": "Generate Billing",
+    "complete": "Complete",
+    "upload_documents": "Upload Documents",
+    "view_document": "View Document",
+    "respond": "Respond",
+    "submitting": "Submitting",
+    "submit_response": "Submit Response",
+    "write_review": "Write Review",
+    "report": "Report",
+    "book_now": "Book Now"
+  },
+  "completed_at": "Completed At",
+  "Facture": "Facture",
+  "Date": "Date",
+  "Statut": "Statut",
+  "Client": "Client",
+  "pagination": {
+    "previous": "Previous",
+    "next": "Next",
+    "page": "Page",
+    "of": "Of"
+  },
+  "profile_not_found": "Profile Not Found",
+  "pageTitle": "Page Title",
+  "pageDescription": "Page Description",
+  "validationCode": {
+    "title": "Title",
+    "description": "Description"
+  },
+  "Destination": "Destination",
+  "export": {
+    "success": "Success",
+    "error": "Error"
+  },
+  "analytics": {
+    "deliveries": "Deliveries",
+    "title": "Title",
+    "status_breakdown": "Status Breakdown",
+    "completed": "Completed",
+    "pending": "Pending",
+    "processing": "Processing",
+    "monthly_evolution": "Monthly Evolution",
+    "no_data": "No Data",
+    "description": "Description",
+    "revenue_breakdown": "Revenue Breakdown",
+    "gross_revenue": "Gross Revenue",
+    "commissions_paid": "Commissions Paid",
+    "net_revenue": "Net Revenue",
+    "billing_summary": "Billing Summary",
+    "commission_rate_info": "Commission Rate Info",
+    "commission_rate_description": "Commission Rate Description",
+    "monthly_comparison": "Monthly Comparison",
+    "this_month": "This Month",
+    "earnings": "Earnings",
+    "interventions": "Interventions",
+    "hours": "Hours",
+    "hourly_rate": "Hourly Rate",
+    "last_month": "Last Month",
+    "year_to_date": "Year To Date",
+    "performance_indicators": "Performance Indicators",
+    "growth_trends": "Growth Trends",
+    "earnings_growth": "Earnings Growth",
+    "interventions_growth": "Interventions Growth",
+    "efficiency_metrics": "Efficiency Metrics",
+    "avg_intervention_value": "Avg Intervention Value",
+    "monthly_target": "Monthly Target",
+    "performance": "Performance",
+    "rating_distribution": "Rating Distribution",
+    "performance_summary": "Performance Summary",
+    "satisfaction_level": "Satisfaction Level",
+    "excellent": "Excellent",
+    "good": "Good",
+    "average": "Average",
+    "poor": "Poor",
+    "response_insights": "Response Insights",
+    "responded_reviews": "Responded Reviews",
+    "verified_reviews": "Verified Reviews",
+    "reviews_with_comments": "Reviews With Comments"
+  },
+  "earnings": {
+    "title": "Title",
+    "client": "Client",
+    "paid_on": "Paid On",
+    "commission": "Commission",
+    "no_earnings": "No Earnings"
+  },
+  "fr-FR": "Fr  F R",
+  "serviceTypes": {
+    "cartDrop": "Cart Drop",
+    "delivery": "Delivery",
+    "commission": "Commission"
+  },
+  "retry": "Retry",
+  "subtitle": "Subtitle",
+  "invoice": {
+    "client": "Client",
+    "totalTTC": "Total T T C",
+    "dueDate": "Due Date",
+    "createdDate": "Created Date",
+    "services": "Services",
+    "gross_amount": "Gross Amount",
+    "commission": "Commission",
+    "net_amount": "Net Amount",
+    "issued": "Issued",
+    "due": "Due",
+    "paid": "Paid"
+  },
+  "create": {
+    "title": "Title",
+    "description": "Description",
+    "clientName": "Client Name",
+    "clientNamePlaceholder": "Client Name Placeholder",
+    "clientEmail": "Client Email",
+    "clientEmailPlaceholder": "Client Email Placeholder",
+    "services": "Services",
+    "addService": "Add Service",
+    "quantity": "Quantity",
+    "unitPrice": "Unit Price",
+    "total": "Total",
+    "descriptionPlaceholder": "Description Placeholder",
+    "subtotalHT": "Subtotal H T",
+    "vatAmount": "Vat Amount",
+    "totalTTC": "Total T T C",
+    "saveDraft": "Save Draft",
+    "createAndSend": "Create And Send"
+  },
+  "settings": {
+    "title": "Title",
+    "description": "Description",
+    "companyName": "Company Name",
+    "vatNumber": "Vat Number",
+    "address": "Address",
+    "defaultVatRate": "Default Vat Rate",
+    "paymentTerms": "Payment Terms",
+    "invoicePrefix": "Invoice Prefix",
+    "save": "Save",
+    "notifications_enabled": "Notifications Enabled",
+    "notifications_enabled_desc": "Notifications Enabled Desc",
+    "min_match_percentage": "Min Match Percentage",
+    "max_distance": "Max Distance",
+    "min_price": "Min Price",
+    "sound_enabled": "Sound Enabled",
+    "sound_enabled_desc": "Sound Enabled Desc",
+    "notifications": "Notifications",
+    "email": "Email",
+    "emailDesc": "Email Desc",
+    "push": "Push",
+    "pushDesc": "Push Desc",
+    "sms": "Sms",
+    "smsDesc": "Sms Desc",
+    "sound": "Sound",
+    "soundDesc": "Sound Desc",
+    "categories": "Categories",
+    "quietHours": "Quiet Hours",
+    "enableQuiet": "Enable Quiet",
+    "quietStart": "Quiet Start",
+    "quietEnd": "Quiet End"
+  },
+  "add": {
+    "title": "Title",
+    "description": "Description"
+  },
+  "import": {
+    "title": "Title",
+    "description": "Description",
+    "back": "Back",
+    "uploadTitle": "Upload Title",
+    "uploadDescription": "Upload Description",
+    "dragDrop": "Drag Drop",
+    "orClick": "Or Click",
+    "selectFile": "Select File",
+    "uploading": "Uploading",
+    "upload": {
+      "title": "Title",
+      "description": "Description",
+      "dragDrop": "Drag Drop",
+      "supportedFormats": "Supported Formats",
+      "selectFile": "Select File",
+      "button": "Button"
+    },
+    "templateTitle": "Template Title",
+    "templateDescription": "Template Description",
+    "templateInstructions": "Template Instructions",
+    "downloadTemplate": "Download Template",
+    "supportedColumns": "Supported Columns",
+    "resultsTitle": "Results Title",
+    "results": {
+      "row": "Row",
       "status": "Status",
-      "type": "Type",
-      "budget": "Budget",
-      "city": "City",
-      "date": "Date",
-      "urgency": "Urgency",
-      "recurring": "Recurring"
+      "message": "Message",
+      "data": "Data",
+      "success": "Success",
+      "error": "Error",
+      "title": "Title",
+      "products": "Products",
+      "failed": "Failed",
+      "errors": "Errors",
+      "importMore": "Import More"
     },
-    "status": {
-      "all": "All",
-      "draft": "Draft",
-      "active": "Active",
-      "in_progress": "In Progress",
-      "completed": "Completed",
-      "cancelled": "Cancelled"
+    "backToProducts": "Back To Products",
+    "tryAgain": "Try Again",
+    "preview": {
+      "title": "Title",
+      "description": "Description",
+      "name": "Name",
+      "price": "Price",
+      "category": "Category",
+      "stock": "Stock"
+    }
+  },
+  "list": {
+    "title": "Title",
+    "description": "Description",
+    "filters": "Filters",
+    "searchPlaceholder": "Search Placeholder",
+    "categoryFilter": "Category Filter",
+    "allCategories": "All Categories",
+    "statusFilter": "Status Filter",
+    "allStatuses": "All Statuses",
+    "active": "Active",
+    "inactive": "Inactive",
+    "products": "Products",
+    "productsDescription": "Products Description",
+    "columns": {
+      "product": "Product",
+      "sku": "Sku",
+      "category": "Category",
+      "price": "Price",
+      "stock": "Stock",
+      "status": "Status",
+      "actions": "Actions"
     },
-    "types": {
-      "all": "All types",
-      "cleaning": "Cleaning",
-      "gardening": "Gardening",
-      "handyman": "Handyman",
-      "tutoring": "Tutoring",
-      "healthcare": "Healthcare",
-      "beauty": "Beauty",
-      "other": "Other"
+    "actions": {
+      "view": "View",
+      "edit": "Edit",
+      "delete": "Delete"
+    },
+    "noProducts": "No Products",
+    "noProductsDescription": "No Products Description",
+    "empty": {
+      "title": "Title",
+      "description": "Description"
+    }
+  },
+  "edit": {
+    "title": "Title",
+    "description": "Description",
+    "back": "Back",
+    "basicInfo": "Basic Info",
+    "basicInfoDescription": "Basic Info Description",
+    "name": "Name",
+    "namePlaceholder": "Name Placeholder",
+    "descriptionPlaceholder": "Description Placeholder",
+    "price": "Price",
+    "originalPrice": "Original Price",
+    "sku": "Sku",
+    "skuPlaceholder": "Sku Placeholder",
+    "brand": "Brand",
+    "brandPlaceholder": "Brand Placeholder",
+    "category": "Category",
+    "categoryPlaceholder": "Category Placeholder",
+    "inventory": "Inventory",
+    "inventoryDescription": "Inventory Description",
+    "stockQuantity": "Stock Quantity",
+    "minStockAlert": "Min Stock Alert",
+    "weight": "Weight",
+    "isActive": "Is Active",
+    "images": "Images",
+    "imagesDescription": "Images Description",
+    "uploadImage": "Upload Image",
+    "tags": "Tags",
+    "tagsDescription": "Tags Description",
+    "tagPlaceholder": "Tag Placeholder",
+    "addTag": "Add Tag",
+    "cancel": "Cancel",
+    "saving": "Saving",
+    "save": "Save"
+  },
+  "detail": {
+    "title": "Title",
+    "description": "Description",
+    "back": "Back",
+    "edit": "Edit",
+    "images": "Images",
+    "basicInfo": "Basic Info",
+    "price": "Price",
+    "status": "Status",
+    "active": "Active",
+    "inactive": "Inactive",
+    "sku": "Sku",
+    "brand": "Brand",
+    "category": "Category",
+    "inventory": "Inventory",
+    "stockQuantity": "Stock Quantity",
+    "minStockAlert": "Min Stock Alert",
+    "weight": "Weight",
+    "tags": "Tags",
+    "metadata": "Metadata",
+    "createdAt": "Created At",
+    "updatedAt": "Updated At",
+    "pricingStock": "Pricing Stock",
+    "originalPrice": "Original Price",
+    "lowStock": "Low Stock",
+    "timestamps": "Timestamps"
+  },
+  "payment_intent": "Payment Intent",
+  "redirect_status": "Redirect Status",
+  "provider": {
+    "billing": {
+      "archives": "Archives",
+      "monthly": "Monthly"
+    },
+    "bookings": "Bookings",
+    "earnings": "Earnings",
+    "transactions": "Transactions",
+    "withdrawals": "Withdrawals",
+    "profile": "Profile",
+    "reviews": "Reviews",
+    "serviceRequests": "Service Requests",
+    "services": "Services",
+    "validation": {
+      "certifications": "Certifications",
+      "profile": "Profile",
+      "rates": "Rates",
+      "services": "Services"
+    },
+    "availability": "Availability",
+    "calendar": "Calendar",
+    "evaluations": {
+      "stats": "Stats"
+    },
+    "interventions": "Interventions",
+    "dashboard": "Dashboard"
+  },
+  "ProviderInterventions": "Provider Interventions",
+  "progress": {
+    "title": "Title",
+    "description": "Description",
+    "completion": "Completion",
+    "estimated": "Estimated",
+    "nextAction": "Next Action",
+    "rejectionReason": "Rejection Reason",
+    "completed": "Completed",
+    "steps_completed": "Steps Completed"
+  },
+  "current": {
+    "title": "Title",
+    "description": "Description",
+    "uploadDocuments": "Upload Documents",
+    "startCertifications": "Start Certifications",
+    "adminReview": "Admin Review"
+  },
+  "certifications": {
+    "empty": {
+      "title": "Title",
+      "description": "Description"
+    }
+  },
+  "badge": "Badge",
+  "concept": "Concept",
+  "conceptBadge": "Concept Badge",
+  "conceptTitle": "Concept Title",
+  "joinCommunity": "Join Community",
+  "missionBadge": "Mission Badge",
+  "missionTitle": "Mission Title",
+  "missionSubtitle": "Mission Subtitle",
+  "missionItems": {
+    "reduceImpact": {
+      "description": "Description"
+    },
+    "createPurchasingPower": {
+      "description": "Description"
+    },
+    "optimizeResources": {
+      "title": "Title"
+    },
+    "offerVariedServices": {
+      "title": "Title",
+      "description": "Description"
+    },
+    "supportLocalEconomy": {
+      "description": "Description"
+    }
+  },
+  "servicesBadge": "Services Badge",
+  "servicesTitle": "Services Title",
+  "servicesSubtitle": "Services Subtitle",
+  "parcelTransport": {
+    "title": "Title",
+    "item1": "Item1",
+    "item2": "Item2",
+    "item3": "Item3",
+    "item4": "Item4",
+    "item5": "Item5",
+    "item6": "Item6",
+    "feature1": "Feature1",
+    "feature2": "Feature2",
+    "feature3": "Feature3",
+    "feature4": "Feature4",
+    "feature5": "Feature5"
+  },
+  "personalServices": {
+    "title": "Title",
+    "item1": "Item1",
+    "item2": "Item2",
+    "item3": "Item3",
+    "item6": "Item6",
+    "feature1": "Feature1",
+    "feature2": "Feature2",
+    "feature3": "Feature3",
+    "feature6": "Feature6"
+  },
+  "howItWorksBadge": "How It Works Badge",
+  "howItWorksTitle": "How It Works Title",
+  "howItWorksSubtitle": "How It Works Subtitle",
+  "howItWorksItems": {
+    "connect": {
+      "title": "Title",
+      "description": "Description"
+    },
+    "track": {
+      "title": "Title",
+      "description": "Description"
+    },
+    "validate": {
+      "title": "Title",
+      "description": "Description"
+    }
+  },
+  "cta": {
+    "badge": "Badge",
+    "title": "Title",
+    "discoverServices": "Discover Services",
+    "subtitle": "Subtitle"
+  },
+  "discoverAdvantages": "Discover Advantages",
+  "heroImageAlt": "Hero Image Alt",
+  "joinNetwork": "Join Network",
+  "advantagesBadge": "Advantages Badge",
+  "advantagesTitle": "Advantages Title",
+  "advantagesSubtitle": "Advantages Subtitle",
+  "advantages": {
+    "purchasingPower": {
+      "description": "Description"
+    },
+    "flexibility": {
+      "title": "Title",
+      "description": "Description"
+    },
+    "ecologicalImpact": {
+      "title": "Title"
+    },
+    "security": {
+      "title": "Title",
+      "description": "Description"
+    },
+    "fightIsolation": {
+      "description": "Description"
+    },
+    "variedServices": {
+      "title": "Title"
+    }
+  },
+  "processBadge": "Process Badge",
+  "processTitle": "Process Title",
+  "processSubtitle": "Process Subtitle",
+  "processSteps": {
+    "register": {
+      "title": "Title",
+      "description": "Description"
+    },
+    "verification": {
+      "title": "Title",
+      "description": "Description"
+    },
+    "announcements": {
+      "title": "Title"
+    },
+    "deliveryPayment": {
+      "title": "Title",
+      "description": "Description"
+    }
+  },
+  "becomeCourierNow": "Become Courier Now",
+  "paymentBadge": "Payment Badge",
+  "paymentTitle": "Payment Title",
+  "paymentSubtitle": "Payment Subtitle",
+  "paymentSteps": {
+    "step5": "Step5"
+  },
+  "post1": {
+    "description": "Description",
+    "date": "Date",
+    "readTime": "Read Time"
+  },
+  "post2": {
+    "title": "Title",
+    "date": "Date",
+    "readTime": "Read Time"
+  },
+  "post3": {
+    "title": "Title",
+    "date": "Date",
+    "readTime": "Read Time"
+  },
+  "post4": {
+    "title": "Title",
+    "description": "Description",
+    "date": "Date",
+    "readTime": "Read Time"
+  },
+  "post5": {
+    "title": "Title",
+    "description": "Description",
+    "date": "Date",
+    "readTime": "Read Time"
+  },
+  "post6": {
+    "title": "Title",
+    "date": "Date",
+    "readTime": "Read Time"
+  },
+  "author": "Author",
+  "readTime": "Read Time",
+  "h2_1": "H2 1",
+  "h2_3": "H2 3",
+  "phone": {
+    "title": "Title",
+    "description": "Description",
+    "button": "Button"
+  },
+  "schedule": {
+    "badge": "Badge",
+    "subtitle": "Subtitle",
+    "mondayFriday": "Monday Friday",
+    "saturday": "Saturday",
+    "sunday": "Sunday",
+    "closed": "Closed"
+  },
+  "form": {
+    "badge": "Badge",
+    "title": "Title",
+    "subtitle": "Subtitle",
+    "firstName": "First Name",
+    "firstNamePlaceholder": "First Name Placeholder",
+    "lastName": "Last Name",
+    "lastNamePlaceholder": "Last Name Placeholder",
+    "email": "Email",
+    "emailPlaceholder": "Email Placeholder",
+    "phone": "Phone",
+    "phonePlaceholder": "Phone Placeholder",
+    "subject": "Subject",
+    "subjectPlaceholder": "Subject Placeholder",
+    "message": "Message",
+    "messagePlaceholder": "Message Placeholder",
+    "submit": "Submit",
+    "departure_address": "Departure Address",
+    "arrival_address": "Arrival Address",
+    "departure_date": "Departure Date",
+    "select_date": "Select Date",
+    "departure_time": "Departure Time",
+    "arrival_time": "Arrival Time",
+    "available_space": "Available Space",
+    "price_per_km": "Price Per Km",
+    "description": "Description",
+    "description_placeholder": "Description Placeholder",
+    "back": "Back",
+    "addTitle": "Add Title",
+    "addDescription": "Add Description",
+    "basicInfo": "Basic Info",
+    "basicInfoDescription": "Basic Info Description",
+    "name": "Name",
+    "namePlaceholder": "Name Placeholder",
+    "descriptionPlaceholder": "Description Placeholder",
+    "price": "Price",
+    "originalPrice": "Original Price",
+    "sku": "Sku",
+    "skuPlaceholder": "Sku Placeholder",
+    "brand": "Brand",
+    "brandPlaceholder": "Brand Placeholder",
+    "category": "Category",
+    "categoryPlaceholder": "Category Placeholder",
+    "inventory": "Inventory",
+    "inventoryDescription": "Inventory Description",
+    "stockQuantity": "Stock Quantity",
+    "minStockAlert": "Min Stock Alert",
+    "weight": "Weight",
+    "isActive": "Is Active",
+    "images": "Images",
+    "imagesDescription": "Images Description",
+    "uploadImage": "Upload Image",
+    "tags": "Tags",
+    "tagsDescription": "Tags Description",
+    "tagPlaceholder": "Tag Placeholder",
+    "addTag": "Add Tag",
+    "cancel": "Cancel",
+    "saving": "Saving",
+    "save": "Save",
+    "uploadImages": "Upload Images",
+    "selectImages": "Select Images"
+  },
+  "social": {
+    "badge": "Badge",
+    "title": "Title",
+    "subtitle": "Subtitle"
+  },
+  "apiInfo": {
+    "title": "Title",
+    "mainFeatures": {
+      "title": "Title",
+      "item1": "Item1",
+      "item2": "Item2",
+      "item3": "Item3",
+      "item4": "Item4",
+      "item5": "Item5"
+    },
+    "technicalInfo": {
+      "title": "Title",
+      "item1": "Item1",
+      "item2": "Item2",
+      "item3": "Item3",
+      "item4": "Item4",
+      "item5": "Item5"
+    }
+  },
+  "interactiveDocs": {
+    "title": "Title"
+  },
+  "quickLinks": {
+    "apiKeys": {
+      "title": "Title",
+      "link": "Link"
+    },
+    "codeSamples": {
+      "title": "Title",
+      "link": "Link"
+    },
+    "support": {
+      "title": "Title",
+      "link": "Link"
+    }
+  },
+  "management": {
+    "title": "Title",
+    "description": "Description",
+    "production": {
+      "title": "Title",
+      "created": "Created"
+    },
+    "buttons": {
+      "copy": "Copy",
+      "regenerate": "Regenerate",
+      "createNew": "Create New"
+    },
+    "test": {
+      "title": "Title",
+      "created": "Created"
+    }
+  },
+  "usage": {
+    "title": "Title",
+    "authentication": {
+      "title": "Title"
+    },
+    "rateLimits": {
+      "title": "Title",
+      "production": "Production",
+      "test": "Test"
+    },
+    "security": {
+      "title": "Title",
+      "item1": "Item1",
+      "item2": "Item2",
+      "item3": "Item3"
+    }
+  },
+  "statusBanner": {
+    "badge": "Badge"
+  },
+  "announcements": {
+    "title": "Title",
+    "list": {
+      "description": "Description"
+    },
+    "create": {
+      "description": "Description"
+    },
+    "q1": {
+      "question": "Question",
+      "answer": "Answer"
+    },
+    "q2": {
+      "question": "Question"
+    },
+    "q3": {
+      "question": "Question"
+    },
+    "q4": {
+      "question": "Question"
+    }
+  },
+  "deliveries": {
+    "title": "Title",
+    "search": {
+      "description": "Description"
+    },
+    "updateLocation": {
+      "description": "Description"
     }
   },
   "services": {
-    "title": "My Service Requests",
-    "subtitle": "Manage your personal service requests",
-    "newRequest": "New request",
-    "loading": "Loading...",
-    "searchPlaceholder": "Search requests...",
-    "allTypes": "All types",
-    "allStatuses": "All statuses",
-    "viewDetails": "View details",
-    "edit": "Edit",
-    "budget": "Budget",
-    "scheduledFor": "Scheduled for",
-    "recurring": "Recurring",
-    "confirmDelete": "Are you sure you want to delete this request?",
-    "deleteSuccess": "Request deleted",
-    "deleteSuccessDesc": "The request has been deleted successfully",
-    "deleteError": "Delete error",
-    "deleteErrorDesc": "An error occurred while deleting the request"
+    "title": "Title",
+    "search": {
+      "description": "Description"
+    },
+    "book": {
+      "description": "Description"
+    },
+    "q1": {
+      "question": "Question"
+    },
+    "q3": {
+      "question": "Question",
+      "answer": "Answer"
+    },
+    "q4": {
+      "question": "Question",
+      "answer": "Answer"
+    }
   },
-  "provider": {
-    "calendar": {
-      "title": "Availability Calendar",
-      "description": "Manage your availability slots for your services",
-      "add_availability": "Add availability",
-      "edit_availability": "Edit availability",
-      "new_availability": "New availability",
-      "availability_description": "Define your availability slots for your services",
-      "start_time": "Start time",
-      "end_time": "End time",
-      "max_bookings": "Maximum number of bookings",
-      "recurring": "Recurring",
-      "recurring_days": "Recurring days",
-      "save": "Save",
-      "cancel": "Cancel",
-      "delete": "Delete",
-      "delete_confirm": "Are you sure you want to delete this availability?",
-      "success": {
-        "created": "Availability created successfully",
-        "updated": "Availability updated",
-        "deleted": "Availability deleted"
-      },
+  "quickReference": {
+    "title": "Title",
+    "urls": {
+      "title": "Title",
+      "apiBase": "Api Base",
+      "trpc": "Trpc",
+      "auth": "Auth",
+      "openapi": "Openapi"
+    },
+    "statusCodes": {
+      "200": "200",
+      "400": "400",
+      "401": "401",
+      "403": "403",
+      "404": "404",
+      "500": "500",
+      "title": "Title"
+    }
+  },
+  "statusCheck": {
+    "title": "Title",
+    "description": "Description",
+    "button": "Button"
+  },
+  "api": {
+    "title": "Title",
+    "description": "Description"
+  },
+  "sdks": {
+    "title": "Title",
+    "description": "Description",
+    "js": "Js",
+    "python": "Python",
+    "php": "Php"
+  },
+  "docs": {
+    "title": "Title",
+    "quickstart": "Quickstart",
+    "apiReference": "Api Reference",
+    "errorHandling": "Error Handling"
+  },
+  "errorId": "Error Id",
+  "categories": {
+    "title": "Title",
+    "announcements": "Announcements",
+    "shipping": "Shipping",
+    "delivery": "Delivery",
+    "services": "Services",
+    "payment": "Payment",
+    "security": "Security",
+    "account": "Account",
+    "electronics": "Electronics",
+    "furniture": "Furniture",
+    "clothing": "Clothing",
+    "documents": "Documents",
+    "other": "Other",
+    "person_transport": "Person Transport",
+    "airport_transfer": "Airport Transfer",
+    "shopping": "Shopping",
+    "international_purchase": "International Purchase",
+    "pet_care": "Pet Care",
+    "home_service": "Home Service",
+    "cart_drop": "Cart Drop"
+  },
+  "shipping": {
+    "title": "Title",
+    "q2": {
+      "question": "Question"
+    },
+    "q3": {
+      "question": "Question"
+    },
+    "q4": {
+      "question": "Question",
+      "answer": "Answer"
+    }
+  },
+  "payment": {
+    "title": "Title",
+    "q1": {
+      "question": "Question"
+    },
+    "q2": {
+      "question": "Question"
+    },
+    "q3": {
+      "question": "Question"
+    },
+    "q4": {
+      "question": "Question"
+    },
+    "pending": "Pending",
+    "completed": "Completed",
+    "failed": "Failed",
+    "refunded": "Refunded"
+  },
+  "security": {
+    "title": "Title",
+    "q1": {
+      "question": "Question"
+    },
+    "q2": {
+      "question": "Question",
+      "answer": "Answer"
+    },
+    "q3": {
+      "question": "Question"
+    }
+  },
+  "account": {
+    "title": "Title",
+    "q1": {
+      "question": "Question"
+    },
+    "q2": {
+      "question": "Question"
+    },
+    "q3": {
+      "question": "Question"
+    },
+    "q4": {
+      "question": "Question"
+    }
+  },
+  "notFound": {
+    "subtitle": "Subtitle",
+    "contactUs": "Contact Us"
+  },
+  "article1": {
+    "title": "Title",
+    "content": "Content"
+  },
+  "article2": {
+    "title": "Title",
+    "content": "Content",
+    "intro": "Intro",
+    "item1": "Item1",
+    "item2": "Item2",
+    "item3": "Item3"
+  },
+  "article3": {
+    "title": "Title",
+    "intro": "Intro",
+    "service1": "Service1",
+    "service2": "Service2",
+    "service3": "Service3",
+    "service4": "Service4",
+    "item1": "Item1",
+    "item2": "Item2",
+    "item3": "Item3"
+  },
+  "article4": {
+    "title": "Title",
+    "content": "Content"
+  },
+  "article5": {
+    "title": "Title",
+    "content": "Content"
+  },
+  "article6": {
+    "title": "Title",
+    "content": "Content"
+  },
+  "legalInfo": {
+    "title": "Title",
+    "companyName": "Company Name",
+    "address": "Address",
+    "siret": "Siret",
+    "capital": "Capital",
+    "director": "Director"
+  },
+  "hosting": {
+    "title": "Title",
+    "provider": "Provider",
+    "address": "Address"
+  },
+  "dataProtection": {
+    "title": "Title"
+  },
+  "intellectualProperty": {
+    "title": "Title",
+    "content": "Content"
+  },
+  "merchants": {
+    "title": "Title",
+    "description": "Description",
+    "button": "Button"
+  },
+  "providers": {
+    "title": "Title",
+    "description": "Description",
+    "button": "Button"
+  },
+  "deliverers": {
+    "title": "Title",
+    "description": "Description",
+    "button": "Button"
+  },
+  "lastUpdated": "Last Updated",
+  "section1": {
+    "title": "Title"
+  },
+  "section2": {
+    "title": "Title",
+    "intro": "Intro",
+    "item1": "Item1",
+    "item2": "Item2",
+    "item3": "Item3",
+    "item4": "Item4",
+    "item5": "Item5"
+  },
+  "section3": {
+    "title": "Title"
+  },
+  "section4": {
+    "title": "Title",
+    "content": "Content"
+  },
+  "section5": {
+    "title": "Title",
+    "intro": "Intro",
+    "item1": "Item1",
+    "item2": "Item2",
+    "item3": "Item3",
+    "item4": "Item4",
+    "item5": "Item5"
+  },
+  "section6": {
+    "title": "Title"
+  },
+  "section7": {
+    "title": "Title",
+    "content": "Content"
+  },
+  "message": "Message",
+  "backButton": "Back Button",
+  "loginButton": "Login Button",
+  "homeButton": "Home Button",
+  "errors": {
+    "unauthorized": {
+      "title": "Unauthorized access",
+      "message": "You do not have permission to access this page",
+      "subtitle": "Please login with an authorized account",
+      "backButton": "Back",
+      "loginButton": "Login",
+      "homeButton": "Home"
+    },
+    "missing_fields": "Missing Fields",
+    "please_fill_all": "Please Fill All",
+    "not_authenticated": "Not Authenticated",
+    "please_login": "Please Login",
+    "incomplete_steps": "Incomplete Steps",
+    "submission_failed": "Submission Failed",
+    "booking_failed": "Booking Failed",
+    "try_again": "Try Again",
+    "network_error": "Network Error"
+  },
+  "navigation": {
+    "services": "Services",
+    "pricing": "Pricing",
+    "about": "About"
+  },
+  "dashboard": {
+    "welcome": "Welcome",
+    "newAnnouncement": "New Announcement",
+    "title": "Title",
+    "description": "Description",
+    "actions": {
+      "newAnnouncement": "New Announcement",
+      "newAnnouncementDesc": "New Announcement Desc",
+      "bookService": "Book Service",
+      "bookServiceDesc": "Book Service Desc",
+      "myDeliveries": "My Deliveries",
+      "myDeliveriesDesc": "My Deliveries Desc",
+      "storage": "Storage",
+      "storageDesc": "Storage Desc"
+    },
+    "subtitle": "Subtitle",
+    "stats": {
+      "totalDeliveries": "Total Deliveries",
+      "completed": "Completed",
+      "inProgress": "In Progress",
+      "totalSaved": "Total Saved"
+    },
+    "recentActivity": "Recent Activity",
+    "noRecentActivity": "No Recent Activity",
+    "viewAllNotifications": "View All Notifications"
+  },
+  "footer": {
+    "description": "Description",
+    "links": {
+      "about": "About",
+      "contact": "Contact",
+      "legal": "Legal",
+      "privacy": "Privacy Policy",
+      "terms": "Terms of Service"
+    },
+    "copyright": "Copyright"
+  },
+  "routes": {
+    "empty_title": "Empty Title",
+    "empty_description": "Empty Description"
+  },
+  "deliverer_space": "Deliverer Space",
+  "verification": "Verification",
+  "vehicle": "Vehicle",
+  "personal_services": "Personal Services",
+  "partners": "Partners",
+  "pricing": "Pricing",
+  "about": "About",
+  "contact": {
+    "dialog": {
+      "title": "Title",
+      "description": "Description",
+      "close": "Close"
+    }
+  },
+  "orders": "Orders",
+  "cart_drop": "Cart Drop",
+  "contract": {
+    "active_contract": "Active Contract",
+    "monthly_fee": "Monthly Fee",
+    "commission_rate": "Commission Rate",
+    "next_billing": "Next Billing"
+  },
+  "bookings": "Bookings",
+  "availability": {
+    "available": "Available",
+    "occupied": "Occupied",
+    "maintenance": "Maintenance",
+    "reserved": "Reserved"
+  },
+  "become_deliverer": "Become Deliverer",
+  "sidebar": "Sidebar",
+  "div": "Div",
+  "commissionRate": "Commission Rate",
+  "paymentTerms": "Payment Terms",
+  "deliveryZones": "Delivery Zones",
+  "serviceLevel": "Service Level",
+  "success": {
+    "issue_resolved": "Issue Resolved",
+    "contact_sent": "Contact Sent",
+    "delivery_reassigned": "Delivery Reassigned",
+    "export_complete": "Export Complete",
+    "booking_cancelled": "Booking Cancelled",
+    "rating_submitted": "Rating Submitted",
+    "delivery_validated": "Delivery Validated",
+    "delivery_cancelled": "Delivery Cancelled",
+    "document_uploaded": "Document Uploaded",
+    "document_deleted": "Document Deleted",
+    "opportunity_accepted": "Opportunity Accepted",
+    "availability_updated": "Availability Updated",
+    "application_submitted": "Application Submitted",
+    "application_saved": "Application Saved",
+    "application_submitted_desc": "Application Submitted Desc",
+    "application_saved_desc": "Application Saved Desc",
+    "document_uploaded_desc": "Document Uploaded Desc",
+    "route_updated": "Route Updated",
+    "route_created": "Route Created",
+    "route_saved_desc": "Route Saved Desc",
+    "route_deleted": "Route Deleted",
+    "route_deleted_desc": "Route Deleted Desc",
+    "notification_accepted": "Notification Accepted",
+    "notification_accepted_desc": "Notification Accepted Desc",
+    "settings_updated": "Settings Updated",
+    "settings_updated_desc": "Settings Updated Desc",
+    "payment_processed": "Payment Processed",
+    "payment_description": "Payment Description",
+    "contract_signed": "Contract Signed",
+    "contract_signed_desc": "Contract Signed Desc",
+    "invoice_downloaded": "Invoice Downloaded",
+    "payment_requested": "Payment Requested",
+    "availability_created": "Availability Created",
+    "status_updated": "Status Updated",
+    "candidature_submitted": "Candidature Submitted",
+    "revalidation_requested": "Revalidation Requested",
+    "response_added": "Response Added",
+    "response_added_desc": "Response Added Desc",
+    "title": "Title",
+    "description": "Description"
+  },
+  "severity": {
+    "low": "Low",
+    "medium": "Medium",
+    "high": "High",
+    "critical": "Critical"
+  },
+  "control_panel": {
+    "title": "Title",
+    "refresh": "Refresh",
+    "search_placeholder": "Search Placeholder",
+    "filter_status": "Filter Status",
+    "filter_priority": "Filter Priority"
+  },
+  "issues": {
+    "no_issues_title": "No Issues Title",
+    "no_issues_description": "No Issues Description",
+    "delivery_id": "Delivery Id",
+    "deliverer": "Deliverer",
+    "client": "Client",
+    "reported": "Reported"
+  },
+  "location": {
+    "coordinates": "Coordinates",
+    "current_delivery": "Current Delivery",
+    "last_update": "Last Update",
+    "speed": "Speed",
+    "battery": "Battery"
+  },
+  "updated": "Updated",
+  "additionalInfo": "Additional Info",
+  "attachments": "Attachments",
+  "resolutionType": "Resolution Type",
+  "selectResolutionType": "Select Resolution Type",
+  "resolvedClientFavor": "Resolved Client Favor",
+  "resolvedDelivererFavor": "Resolved Deliverer Favor",
+  "partialResolution": "Partial Resolution",
+  "cancelled": "Cancelled",
+  "resolutionDetails": "Resolution Details",
+  "resolutionDetailsPlaceholder": "Resolution Details Placeholder",
+  "compensation": "Compensation",
+  "selectCompensation": "Select Compensation",
+  "fullRefund": "Full Refund",
+  "partialRefund": "Partial Refund",
+  "credit": "Credit",
+  "noCompensation": "No Compensation",
+  "selectSanction": "Select Sanction",
+  "warning": "Warning",
+  "suspension": "Suspension",
+  "ban": "Ban",
+  "noSanction": "No Sanction",
+  "submitting": "Submitting",
+  "submitResolution": "Submit Resolution",
+  "resolutionPreview": "Resolution Preview",
+  "sanction": "Sanction",
+  "addComment": "Add Comment",
+  "noTimelineEvents": "No Timeline Events",
+  "totalDisputes": "Total Disputes",
+  "allTime": "All Time",
+  "requiresAttention": "Requires Attention",
+  "beingHandled": "Being Handled",
+  "successfullyResolved": "Successfully Resolved",
+  "avgResolutionTime": "Avg Resolution Time",
+  "days": {
+    "sunday": "Sunday",
+    "monday": "Monday",
+    "tuesday": "Tuesday",
+    "wednesday": "Wednesday",
+    "thursday": "Thursday",
+    "friday": "Friday",
+    "saturday": "Saturday"
+  },
+  "last30Days": "Last30 Days",
+  "resolutionRate": "Resolution Rate",
+  "successfulResolutions": "Successful Resolutions",
+  "noDisputes": "No Disputes",
+  "view": "View",
+  "periods": {
+    "last30days": "Last30days",
+    "last3months": "Last3months",
+    "last6months": "Last6months",
+    "last12months": "Last12months",
+    "currentyear": "Currentyear"
+  },
+  "metrics": {
+    "total_revenue": "Total Revenue",
+    "commission_earned": "Commission Earned",
+    "avg_rate": "Avg Rate",
+    "total_transactions": "Total Transactions",
+    "completed": "Completed",
+    "active_users": "Active Users",
+    "this_month": "This Month",
+    "total_users": "Total Users",
+    "monthly_revenue": "Monthly Revenue",
+    "active_deliveries": "Active Deliveries",
+    "avg_rating": "Avg Rating",
+    "current_month_revenue": "Current Month Revenue",
+    "services_completed": "Services Completed",
+    "total_hours": "Total Hours",
+    "average_rating": "Average Rating"
+  },
+  "charts": {
+    "monthly_trends": "Monthly Trends",
+    "transaction_status": "Transaction Status"
+  },
+  "revenue": {
+    "breakdown": "Breakdown",
+    "description": "Description",
+    "total": "Total",
+    "monthly": "Monthly",
+    "commission": "Commission"
+  },
+  "commissions": {
+    "top_providers": "Top Providers",
+    "description": "Description",
+    "revenue": "Revenue",
+    "commission": "Commission"
+  },
+  "exports": {
+    "title": "Title",
+    "description": "Description",
+    "revenue": "Revenue",
+    "commissions": "Commissions",
+    "transactions": "Transactions"
+  },
+  "error_loading": "Error Loading",
+  "critical_alerts": "Critical Alerts",
+  "resolve": "Resolve",
+  "this_month": "This Month",
+  "profit_margin": "Profit Margin",
+  "success_rate": "Success Rate",
+  "recent_activity": "Recent Activity",
+  "system_alerts": "System Alerts",
+  "users": {
+    "clients": "Clients",
+    "providers": "Providers",
+    "deliverers": "Deliverers",
+    "merchants": "Merchants"
+  },
+  "user_activity": "User Activity",
+  "active_today": "Active Today",
+  "new_this_month": "New This Month",
+  "growth_rate": "Growth Rate",
+  "user_distribution": "User Distribution",
+  "business": {
+    "total_revenue": "Total Revenue",
+    "commissions": "Commissions",
+    "active_contracts": "Active Contracts",
+    "completed_deliveries": "Completed Deliveries",
+    "avg_order_value": "Avg Order Value",
+    "profit_margin": "Profit Margin"
+  },
+  "operations": {
+    "pending_validations": "Pending Validations",
+    "available_providers": "Available Providers",
+    "system_uptime": "System Uptime",
+    "avg_response_time": "Avg Response Time",
+    "error_rate": "Error Rate",
+    "support_tickets": "Support Tickets"
+  },
+  "requires_attention": "Requires Attention",
+  "high": "High",
+  "financial": {
+    "total_payments": "Total Payments",
+    "pending_payments": "Pending Payments",
+    "refunds_issued": "Refunds Issued",
+    "chargeback_rate": "Chargeback Rate",
+    "processing_fees": "Processing Fees",
+    "net_profit": "Net Profit"
+  },
+  "system_health": "System Health",
+  "uptime": "Uptime",
+  "response_time": "Response Time",
+  "error_rate": "Error Rate",
+  "quick_actions": {
+    "title": "Title",
+    "opportunities": "Opportunities",
+    "deliveries": "Deliveries",
+    "wallet": "Wallet",
+    "documents": "Documents",
+    "description": "Description",
+    "announcements": "Announcements",
+    "contracts": "Contracts",
+    "billing": "Billing",
+    "analytics": "Analytics",
+    "calendar": "Calendar",
+    "validation": "Validation"
+  },
+  "manage_users": "Manage Users",
+  "review_validations": "Review Validations",
+  "financial_reports": "Financial Reports",
+  "system_settings": "System Settings",
+  "invoices": {
+    "title": "Title",
+    "export": "Export",
+    "generateAll": "Generate All",
+    "provider": "Provider",
+    "period": "Period",
+    "amount": "Amount",
+    "services": "Services",
+    "status": "Status",
+    "dueDate": "Due Date",
+    "actions": "Actions",
+    "empty": "Empty",
+    "table": {
+      "number": "Number",
+      "period": "Period",
+      "amount": "Amount",
+      "status": "Status",
+      "due_date": "Due Date",
+      "actions": "Actions"
+    },
+    "empty_title": "Empty Title",
+    "empty_description": "Empty Description"
+  },
+  "testConnection": "Test Connection",
+  "configure": "Configure",
+  "serviceDisabled": "Service Disabled",
+  "addWebhook": "Add Webhook",
+  "name": "Name",
+  "namePlaceholder": "Name Placeholder",
+  "url": "Url",
+  "events": "Events",
+  "enabled": "Enabled",
+  "cancel": {
+    "success": {
+      "title": "Title",
+      "description": "Description"
+    },
+    "error": {
+      "title": "Title",
+      "description": "Description",
+      "network": "Network"
+    },
+    "confirm": {
+      "title": "Title",
+      "description": "Description"
+    },
+    "dialog": {
       "error": {
-        "fetch_failed": "Error loading availabilities",
-        "save_failed": "Error saving",
-        "delete_failed": "Error deleting"
+        "no_reason": "No Reason",
+        "general": "General"
+      },
+      "success": "Success",
+      "title": "Title",
+      "description": "Description",
+      "important_title": "Important Title",
+      "important_message": "Important Message",
+      "reason_label": "Reason Label",
+      "reason_placeholder": "Reason Placeholder",
+      "min_chars": "Min Chars",
+      "back": "Back",
+      "cancelling": "Cancelling",
+      "cancel_button": "Cancel Button"
+    }
+  },
+  "noWebhooks": "No Webhooks",
+  "types": {
+    "packageDelivery": "Package Delivery",
+    "personTransport": "Person Transport",
+    "airportTransfer": "Airport Transfer",
+    "shopping": "Shopping",
+    "internationalPurchase": "International Purchase",
+    "petSitting": "Pet Sitting",
+    "homeService": "Home Service",
+    "cartDrop": "Cart Drop",
+    "package": "Package",
+    "person": "Person",
+    "pet": "Pet",
+    "service": "Service",
+    "secure": "Secure",
+    "refrigerated": "Refrigerated",
+    "standard": "Standard",
+    "fragile": "Fragile",
+    "document": "Document",
+    "food": "Food",
+    "other": "Other",
+    "available": "Available",
+    "route": "Route",
+    "delivery": "Delivery",
+    "break": "Break",
+    "bulk": "Bulk",
+    "recurring": "Recurring",
+    "express": "Express",
+    "premium": "Premium",
+    "enterprise": "Enterprise",
+    "custom": "Custom",
+    "payment": "Payment",
+    "message": "Message",
+    "system": "System",
+    "announcement": "Announcement"
+  },
+  "yourLocation": "Your Location",
+  "delivererCurrentPosition": "Deliverer Current Position",
+  "clearRoute": "Clear Route",
+  "centerOnRoute": "Center On Route",
+  "map": "Map",
+  "CARD": "C A R D",
+  "NORMAL": "N O R M A L",
+  "FULL": "F U L L",
+  "USD": "U S D",
+  "EVERY_2_DAYS": "E V E R Y 2  D A Y S",
+  "STORE_POLICY": "S T O R E  P O L I C Y",
+  "NO_PREFERENCE": "N O  P R E F E R E N C E",
+  "MODERATE": "M O D E R A T E",
+  "APP": "A P P",
+  "WITHIN_HOUR": "W I T H I N  H O U R",
+  "redirect": "Redirect",
+  "FREE": "F R E E",
+  "arraybuffer": "Arraybuffer",
+  "statuses": {
+    "draft": "Draft",
+    "published": "Published",
+    "assigned": "Assigned",
+    "in_progress": "In Progress",
+    "completed": "Completed",
+    "cancelled": "Cancelled"
+  },
+  "labels": {
+    "urgent": "Urgent"
+  },
+  "dialogs": {
+    "cancel": {
+      "title": "Title",
+      "description": "Description",
+      "keep": "Keep",
+      "confirm": "Confirm"
+    },
+    "rating": {
+      "title": "Title",
+      "description": "Description",
+      "rating_label": "Rating Label",
+      "review_label": "Review Label",
+      "review_placeholder": "Review Placeholder",
+      "cancel": "Cancel",
+      "submit": "Submit"
+    }
+  },
+  "recent_activities": {
+    "title": "Title",
+    "empty": "Empty",
+    "no_activities": "No Activities",
+    "view_all": "View All"
+  },
+  "validation": {
+    "code": "Code",
+    "instructions": "Instructions",
+    "success": {
+      "accepted": "Accepted",
+      "rejected": "Rejected"
+    },
+    "error": {
+      "failed": "Failed"
+    },
+    "accept": "Accept",
+    "reject": "Reject",
+    "status": {
+      "accepted": "Accepted",
+      "rejected": "Rejected"
+    },
+    "dialog": {
+      "accept_title": "Accept Title",
+      "accept_description": "Accept Description",
+      "reject_title": "Reject Title",
+      "reject_description": "Reject Description"
+    },
+    "rating": "Rating",
+    "review": "Review",
+    "optional": "Optional",
+    "review_placeholder": "Review Placeholder",
+    "cancel": "Cancel",
+    "loading": "Loading...",
+    "confirm_accept": "Confirm Accept",
+    "rejection_reason_placeholder": "Rejection Reason Placeholder",
+    "confirm_reject": "Confirm Reject",
+    "validated": "Validated",
+    "pending": "Pending",
+    "rejected": "Rejected",
+    "unknown": "Unknown",
+    "status_alert_title": "Status Alert Title",
+    "status_alert_description": "Status Alert Description",
+    "complete_validation": "Complete Validation",
+    "title": "Title",
+    "email": "Email",
+    "password": "Password",
+    "confirmPassword": "Confirm Password"
+  },
+  "proof": {
+    "title": "Title",
+    "notes": "Notes",
+    "uploaded_at": "Uploaded At",
+    "error": {
+      "invalid_file_type": "Invalid File Type",
+      "file_too_large": "File Too Large",
+      "no_photo": "No Photo",
+      "upload_failed": "Upload Failed"
+    },
+    "success": {
+      "uploaded": "Uploaded"
+    },
+    "description": "Description",
+    "status": {
+      "uploaded": "Uploaded"
+    },
+    "upload_button": "Upload Button",
+    "dialog": {
+      "title": "Title",
+      "description": "Description"
+    },
+    "photo": "Photo",
+    "remove_photo": "Remove Photo",
+    "drag_drop_or_click": "Drag Drop Or Click",
+    "select_photo": "Select Photo",
+    "file_requirements": "File Requirements",
+    "optional": "Optional",
+    "notes_placeholder": "Notes Placeholder",
+    "gps_auto": "Gps Auto",
+    "cancel": "Cancel",
+    "uploading": "Uploading",
+    "upload": "Upload"
+  },
+  "years_experience": "Years Experience",
+  "more_services": "More Services",
+  "empty_search": {
+    "title": "Title",
+    "description": "Description"
+  },
+  "notes": "Notes",
+  "rating_dialog": {
+    "title": "Title",
+    "rating": "Rating",
+    "review": "Review",
+    "submit": "Submit"
+  },
+  "empty_bookings": {
+    "title": "Title",
+    "description": "Description"
+  },
+  "booking_dialog": {
+    "title": "Title",
+    "description": "Description",
+    "select_service": "Select Service",
+    "choose_service": "Choose Service",
+    "select_date": "Select Date",
+    "pick_date": "Pick Date",
+    "select_time": "Select Time",
+    "choose_time": "Choose Time",
+    "location": "Location",
+    "location_placeholder": "Location Placeholder",
+    "notes": "Notes",
+    "notes_placeholder": "Notes Placeholder",
+    "special_requests": "Special Requests",
+    "special_requests_placeholder": "Special Requests Placeholder",
+    "confirm_booking": "Confirm Booking"
+  },
+  "provider_dialog": {
+    "description": "Description",
+    "services": "Services",
+    "certifications": "Certifications",
+    "languages": "Languages",
+    "book_service": "Book Service"
+  },
+  "reviews": {
+    "empty_title": "Empty Title",
+    "empty_description": "Empty Description"
+  },
+  "home_service": "Home Service",
+  "office_only": "Office Only",
+  "rentalId": "Rental Id",
+  "rental_status": {
+    "active": "Active",
+    "completed": "Completed",
+    "cancelled": "Cancelled",
+    "overdue": "Overdue"
+  },
+  "sizes": {
+    "small": "Small",
+    "medium": "Medium",
+    "large": "Large",
+    "xl": "Xl",
+    "extra_large": "Extra Large"
+  },
+  "dimensions": "Dimensions",
+  "max_weight": "Max Weight",
+  "hourly_rate": "Hourly Rate",
+  "daily_rate": "Daily Rate",
+  "access_hours": "Access Hours",
+  "empty_boxes": {
+    "title": "Title",
+    "description": "Description"
+  },
+  "access_code": "Access Code",
+  "total_cost": "Total Cost",
+  "stored_items": "Stored Items",
+  "extend_dialog": {
+    "title": "Title",
+    "description": "Description",
+    "additional_days": "Additional Days",
+    "confirm": "Confirm"
+  },
+  "auto_extend_enabled": "Auto Extend Enabled",
+  "empty_rentals": {
+    "title": "Title",
+    "description": "Description"
+  },
+  "rent_dialog": {
+    "title": "Title",
+    "duration": "Duration",
+    "duration_type": "Duration Type",
+    "start_date": "Start Date",
+    "start_time": "Start Time",
+    "auto_extend": "Auto Extend",
+    "items_to_store": "Items To Store",
+    "item_name": "Item Name",
+    "item_value": "Item Value",
+    "cost_breakdown": "Cost Breakdown",
+    "base_cost": "Base Cost",
+    "total": "Total",
+    "confirm_rental": "Confirm Rental"
+  },
+  "duration_types": {
+    "hours": "Hours",
+    "days": "Days",
+    "weeks": "Weeks",
+    "months": "Months"
+  },
+  "reservation": {
+    "success": {
+      "title": "Title",
+      "description": "Description"
+    },
+    "error": {
+      "title": "Title",
+      "description": "Description",
+      "network": "Network"
+    },
+    "confirm": {
+      "description": "Description"
+    }
+  },
+  "current_reservations": "Current Reservations",
+  "box": "Box",
+  "reserve_box": "Reserve Box",
+  "warehouse": "Warehouse",
+  "select_warehouse": "Select Warehouse",
+  "box_size": "Box Size",
+  "select_size": "Select Size",
+  "start_date": "Start Date",
+  "select_start_date": "Select Start Date",
+  "end_date": "End Date",
+  "select_end_date": "Select End Date",
+  "duration": {
+    "minutes": "Minutes"
+  },
+  "total_price": "Total Price",
+  "reserve_now": "Reserve Now",
+  "available_boxes": "Available Boxes",
+  "available": "Available",
+  "confirm_reservation": "Confirm Reservation",
+  "processing": "Processing",
+  "upgrade": {
+    "success": {
+      "title": "Title",
+      "description": "Description"
+    },
+    "error": {
+      "title": "Title",
+      "description": "Description",
+      "network": "Network"
+    },
+    "confirm": {
+      "title": "Title",
+      "description": "Description"
+    }
+  },
+  "current_plan": "Current Plan",
+  "next_billing": "Next Billing",
+  "upgrade_to_premium": "Upgrade To Premium",
+  "cancel_subscription": "Cancel Subscription",
+  "plan_benefits": "Plan Benefits",
+  "insurance": "Insurance",
+  "no_insurance": "No Insurance",
+  "discount": "Discount",
+  "no_discount": "No Discount",
+  "priority_shipping": "Priority Shipping",
+  "priority_available": "Priority Available",
+  "priority_not_available": "Priority Not Available",
+  "downgrade": "Downgrade",
+  "confirm_upgrade": "Confirm Upgrade",
+  "keep_subscription": "Keep Subscription",
+  "confirm_cancel": "Confirm Cancel",
+  "crypto": "Crypto",
+  "hex": "Hex",
+  "price": "Price",
+  "scheduled_date": "Scheduled Date",
+  "departure": "Departure",
+  "arrival": "Arrival",
+  "available_space": "Available Space",
+  "created_at": "Created At",
+  "documents": {
+    "title": "Title",
+    "validated": "Validated",
+    "pending": "Pending",
+    "rejected": "Rejected",
+    "manage": "Manage",
+    "types": {
+      "identity_card": "Identity Card",
+      "driving_license": "Driving License",
+      "vehicle_registration": "Vehicle Registration",
+      "insurance": "Insurance",
+      "criminal_record": "Criminal Record",
+      "bank_rib": "Bank Rib"
+    },
+    "empty": "Empty",
+    "uploaded_on": "Uploaded On",
+    "rejection_reason": "Rejection Reason"
+  },
+  "validation_dialog": {
+    "title": "Title",
+    "description": "Description",
+    "code_label": "Code Label",
+    "code_placeholder": "Code Placeholder",
+    "confirm": "Confirm"
+  },
+  "special_instructions": "Special Instructions",
+  "issue_dialog": {
+    "title": "Title",
+    "description": "Description",
+    "description_label": "Description Label",
+    "submit": "Submit"
+  },
+  "tracking_events": "Tracking Events",
+  "scheduled": "Scheduled",
+  "validation_status": {
+    "title": "Title",
+    "progress": "Progress",
+    "complete": "Complete",
+    "incomplete": "Incomplete"
+  },
+  "required": "Required",
+  "uploaded_at": "Uploaded At",
+  "expires_at": "Expires At",
+  "rejected_reason": "Rejected Reason",
+  "upload_dialog": {
+    "title": "Title",
+    "select_file": "Select File",
+    "description": "Description",
+    "document_type": "Document Type",
+    "select_type": "Select Type",
+    "file": "File"
+  },
+  "uploading": "Uploading",
+  "upload": "Upload",
+  "incomplete_warning": {
+    "title": "Title",
+    "description": "Description"
+  },
+  "allowed_formats": "Allowed Formats",
+  "max_size": "Max Size",
+  "expires": "Expires",
+  "rejection_reason": "Rejection Reason",
+  "replace_document": "Replace Document",
+  "upload_document": "Upload Document",
+  "delete_confirm": "Delete Confirm",
+  "validated": "Validated",
+  "ready_for_activation": "Ready For Activation",
+  "missing_documents": "Missing Documents",
+  "missing_required": "Missing Required",
+  "uploaded_on": "Uploaded On",
+  "document_rejected": "Document Rejected",
+  "document_approved": "Document Approved",
+  "no_document": "No Document",
+  "replace": "Replace",
+  "update": "Update",
+  "available_opportunities": "Available Opportunities",
+  "filter_type": "Filter Type",
+  "all_types": "All Types",
+  "package_delivery": "Package Delivery",
+  "person_transport": "Person Transport",
+  "airport_transfer": "Airport Transfer",
+  "shopping": "Shopping",
+  "max_distance": "Max Distance",
+  "min_earnings": "Min Earnings",
+  "clear_filters": "Clear Filters",
+  "no_opportunities_title": "No Opportunities Title",
+  "no_opportunities_description": "No Opportunities Description",
+  "accepting": "Accepting",
+  "accept": "Accept",
+  "add_dialog": {
+    "title": "Title",
+    "description": "Description",
+    "type": "Type",
+    "title_field": "Title Field",
+    "start_time": "Start Time",
+    "end_time": "End Time",
+    "location": "Location",
+    "confirm": "Confirm",
+    "service_types": "Service Types",
+    "select_services": "Select Services",
+    "max_bookings": "Max Bookings",
+    "status": "Status",
+    "recurring": "Recurring",
+    "pattern": "Pattern",
+    "end_date": "End Date",
+    "create": "Create"
+  },
+  "availability_dialog": {
+    "title": "Title",
+    "description": "Description",
+    "start_time": "Start Time",
+    "end_time": "End Time",
+    "vehicle_type": "Vehicle Type",
+    "max_deliveries": "Max Deliveries",
+    "confirm": "Confirm",
+    "day": "Day",
+    "max_appointments": "Max Appointments",
+    "specific_date": "Specific Date",
+    "create": "Create"
+  },
+  "vehicle_types": {
+    "bike": "Bike",
+    "car": "Car",
+    "van": "Van"
+  },
+  "calendar": {
+    "title": "Title",
+    "select_date": "Select Date",
+    "no_entries": "No Entries",
+    "no_slots": "No Slots"
+  },
+  "weekly_view": {
+    "title": "Title",
+    "description": "Description",
+    "more": "More"
+  },
+  "edit_dialog": {
+    "title": "Title",
+    "title_field": "Title Field",
+    "start_time": "Start Time",
+    "end_time": "End Time",
+    "status": "Status",
+    "confirm": "Confirm",
+    "description": "Description",
+    "price": "Price",
+    "update": "Update",
+    "max_bookings": "Max Bookings"
+  },
+  "weekly_planning": "Weekly Planning",
+  "no_events": "No Events",
+  "set_available": "Set Available",
+  "available_slots": "Available Slots",
+  "personal": {
+    "title": "Title",
+    "first_name": "First Name",
+    "last_name": "Last Name",
+    "email": "Email",
+    "phone": "Phone",
+    "date_of_birth": "Date Of Birth",
+    "nationality": "Nationality",
+    "address": "Address"
+  },
+  "professional": {
+    "title": "Title",
+    "vehicle_type": "Vehicle Type",
+    "select_vehicle": "Select Vehicle",
+    "vehicle_model": "Vehicle Model",
+    "license_number": "License Number",
+    "experience": "Experience"
+  },
+  "vehicles": {
+    "car": "Car",
+    "bike": "Bike",
+    "scooter": "Scooter",
+    "truck": "Truck",
+    "walking": "Walking"
+  },
+  "submit": {
+    "ready_title": "Ready Title",
+    "ready_description": "Ready Description",
+    "requirements_not_met": "Requirements Not Met",
+    "title": "Title",
+    "description": "Description",
+    "submitting": "Submitting",
+    "button": "Button"
+  },
+  "new_match_title": "New Match Title",
+  "yes": "Yes",
+  "no": "No",
+  "route": {
+    "start": "Start",
+    "end": "End",
+    "schedule": "Schedule",
+    "days": "Days",
+    "radius": "Radius",
+    "capacity": "Capacity",
+    "last_used": "Last Used"
+  },
+  "notifications": {
+    "empty_title": "Empty Title",
+    "empty_description": "Empty Description"
+  },
+  "match": "Match",
+  "received": "Received",
+  "route_dialog": {
+    "edit_title": "Edit Title",
+    "add_title": "Add Title",
+    "description": "Description",
+    "name": "Name",
+    "name_placeholder": "Name Placeholder",
+    "vehicle_type": "Vehicle Type",
+    "description_placeholder": "Description Placeholder",
+    "start_point": "Start Point",
+    "start_placeholder": "Start Placeholder",
+    "end_point": "End Point",
+    "end_placeholder": "End Placeholder",
+    "start_time": "Start Time",
+    "end_time": "End Time",
+    "radius": "Radius"
+  },
+  "settings_dialog": {
+    "title": "Title",
+    "description": "Description"
+  },
+  "withdrawal_status": {
+    "pending": "Pending",
+    "processing": "Processing",
+    "completed": "Completed",
+    "rejected": "Rejected"
+  },
+  "balance": {
+    "current": "Current",
+    "last_update": "Last Update",
+    "pending": "Pending",
+    "pending_description": "Pending Description",
+    "total_earned": "Total Earned",
+    "total_description": "Total Description"
+  },
+  "transaction_types": {
+    "earning": "Earning",
+    "withdrawal": "Withdrawal",
+    "bonus": "Bonus",
+    "penalty": "Penalty"
+  },
+  "withdrawal_dialog": {
+    "title": "Title",
+    "amount": "Amount",
+    "bank_account": "Bank Account",
+    "select_account": "Select Account",
+    "confirm": "Confirm"
+  },
+  "reference": "Reference",
+  "delivery_id": "Delivery Id",
+  "empty_transactions": {
+    "title": "Title",
+    "description": "Description"
+  },
+  "withdrawal_to": "Withdrawal To",
+  "requested_at": "Requested At",
+  "processed_at": "Processed At",
+  "empty_withdrawals": {
+    "title": "Title",
+    "description": "Description"
+  },
+  "withdrawal": {
+    "title": "Title",
+    "request": "Request",
+    "available": "Available",
+    "last": "Last",
+    "minimum_amount": "Minimum Amount"
+  },
+  "operation": {
+    "reference": "Reference"
+  },
+  "earning": {
+    "gross": "Gross",
+    "commission": "Commission"
+  },
+  "available_balance": "Available Balance",
+  "amount_label": "Amount Label",
+  "all": "All",
+  "iban_label": "Iban Label",
+  "fee_calculation": "Fee Calculation",
+  "requested_amount": "Requested Amount",
+  "processing_fee": "Processing Fee",
+  "net_amount": "Net Amount",
+  "info": {
+    "fee_structure": "Fee Structure",
+    "processing_time": "Processing Time",
+    "minimum_amount": "Minimum Amount",
+    "title": "Title",
+    "autoentrepreneur": "Autoentrepreneur",
+    "rates_negotiated": "Rates Negotiated",
+    "quality_service": "Quality Service",
+    "regular_evaluations": "Regular Evaluations"
+  },
+  "request": "Request",
+  "MONTH": "M O N T H",
+  "confirm_delete": "Confirm Delete",
+  "bulk_dialog": {
+    "title": "Title",
+    "description": "Description",
+    "template": "Template",
+    "file": "File",
+    "download_template": "Download Template",
+    "import": "Import"
+  },
+  "templates": {
+    "standard": "Standard",
+    "express": "Express",
+    "custom": "Custom"
+  },
+  "create_dialog": {
+    "title": "Title",
+    "description": "Description",
+    "title_field": "Title Field",
+    "type": "Type",
+    "pickup_address": "Pickup Address",
+    "delivery_address": "Delivery Address",
+    "weight": "Weight",
+    "dimensions": "Dimensions",
+    "price": "Price",
+    "fragile": "Fragile",
+    "urgent": "Urgent",
+    "instructions": "Instructions",
+    "instructions_placeholder": "Instructions Placeholder",
+    "create": "Create"
+  },
+  "fragile": "Fragile",
+  "accepted_bids": "Accepted Bids",
+  "total_views": "Total Views",
+  "assigned_to": "Assigned To",
+  "transactions": {
+    "title": "Title",
+    "empty": "Empty"
+  },
+  "payment_methods": {
+    "title": "Title",
+    "empty": "Empty",
+    "default": "Default",
+    "expires": "Expires"
+  },
+  "payment_dialog": {
+    "title": "Title",
+    "payment_method": "Payment Method"
+  },
+  "current_month": {
+    "title": "Title",
+    "description": "Description",
+    "orders": "Orders",
+    "revenue": "Revenue",
+    "commission": "Commission",
+    "status": "Status"
+  },
+  "billing": {
+    "empty_title": "Empty Title",
+    "empty_description": "Empty Description",
+    "orders": "Orders",
+    "revenue": "Revenue",
+    "commission": "Commission",
+    "fees": "Fees",
+    "total": "Total"
+  },
+  "invoice_number": "Invoice Number",
+  "commission": "Commission",
+  "due_date": "Due Date",
+  "paid_on": "Paid On",
+  "payment_method": "Payment Method",
+  "zones": {
+    "title": "Title",
+    "description": "Description"
+  },
+  "serviceStatus": "Service Status",
+  "serviceStatusDescription": "Service Status Description",
+  "cartDropService": "Cart Drop Service",
+  "serviceActive": "Service Active",
+  "serviceInactive": "Service Inactive",
+  "deliveryZonesDescription": "Delivery Zones Description",
+  "deliveryFee": "Delivery Fee",
+  "viewAllZones": "View All Zones",
+  "noZonesConfigured": "No Zones Configured",
+  "configureZones": "Configure Zones",
+  "timeSlots": {
+    "title": "Title",
+    "description": "Description"
+  },
+  "timeSlotsDescription": "Time Slots Description",
+  "viewAllSlots": "View All Slots",
+  "noSlotsConfigured": "No Slots Configured",
+  "configureSlots": "Configure Slots",
+  "quickActionsDescription": "Quick Actions Description",
+  "configureService": "Configure Service",
+  "manageZones": "Manage Zones",
+  "manageSchedules": "Manage Schedules",
+  "no_contract": {
+    "title": "Title",
+    "description": "Description"
+  },
+  "contract_details": "Contract Details",
+  "version": "Version",
+  "commission_rate": "Commission Rate",
+  "valid_from": "Valid From",
+  "valid_until": "Valid Until",
+  "renewal_period": "Renewal Period",
+  "months": "Months",
+  "contract_information": "Contract Information",
+  "financial_conditions": "Financial Conditions",
+  "min_commission": "Min Commission",
+  "setup_fee": "Setup Fee",
+  "monthly_fee": "Monthly Fee",
+  "limits_conditions": "Limits Conditions",
+  "max_orders_month": "Max Orders Month",
+  "max_order_value": "Max Order Value",
+  "auto_renewal": "Auto Renewal",
+  "signatures": "Signatures",
+  "merchant_signature": "Merchant Signature",
+  "signed_on": "Signed On",
+  "not_signed": "Not Signed",
+  "admin_signature": "Admin Signature",
+  "pending_admin_signature": "Pending Admin Signature",
+  "delivery_zones_services": "Delivery Zones Services",
+  "allowed_services": "Allowed Services",
+  "delivery_zones": "Delivery Zones",
+  "amendments": {
+    "empty_title": "Empty Title",
+    "empty_description": "Empty Description"
+  },
+  "effective_date": "Effective Date",
+  "merchant_signed": "Merchant Signed",
+  "admin_signed": "Admin Signed",
+  "created_on": "Created On",
+  "total_orders": "Total Orders",
+  "total_revenue": "Total Revenue",
+  "commission_amount": "Commission Amount",
+  "total_amount": "Total Amount",
+  "sign_dialog": {
+    "title": "Title",
+    "description": "Description",
+    "warning_title": "Warning Title",
+    "warning_description": "Warning Description"
+  },
+  "features": {
+    "basic_support": "Basic Support",
+    "standard_analytics": "Standard Analytics",
+    "priority_support": "Priority Support",
+    "advanced_analytics": "Advanced Analytics",
+    "api_access": "Api Access",
+    "dedicated_account": "Dedicated Account",
+    "custom_branding": "Custom Branding",
+    "full_api": "Full Api",
+    "negotiated_terms": "Negotiated Terms"
+  },
+  "billing_status": {
+    "paid": "Paid",
+    "pending": "Pending",
+    "overdue": "Overdue",
+    "cancelled": "Cancelled"
+  },
+  "new_contract_dialog": {
+    "title": "Title",
+    "description": "Description",
+    "type": "Type",
+    "title_field": "Title Field",
+    "title_placeholder": "Title Placeholder",
+    "monthly_volume": "Monthly Volume",
+    "max_deliveries": "Max Deliveries",
+    "create": "Create"
+  },
+  "empty_active": {
+    "title": "Title",
+    "description": "Description"
+  },
+  "paid_at": "Paid At",
+  "empty_billing": {
+    "title": "Title",
+    "description": "Description"
+  },
+  "empty_documents": {
+    "title": "Title",
+    "description": "Description"
+  },
+  "terminate_dialog": {
+    "title": "Title",
+    "reason": "Reason",
+    "reason_placeholder": "Reason Placeholder",
+    "confirm": "Confirm"
+  },
+  "recent_announcements": {
+    "title": "Title",
+    "description": "Description",
+    "view_all": "View All"
+  },
+  "no_announcements": {
+    "title": "Title",
+    "description": "Description",
+    "create_first": "Create First"
+  },
+  "newOrders": "New Orders",
+  "activeOrders": "Active Orders",
+  "recentOrders": "Recent Orders",
+  "recentOrdersDescription": "Recent Orders Description",
+  "viewAllOrders": "View All Orders",
+  "noOrders": "No Orders",
+  "noOrdersDescription": "No Orders Description",
+  "recent": {
+    "title": "Title",
+    "description": "Description",
+    "items": "Items"
+  },
+  "delete": {
+    "confirm": "Confirm"
+  },
+  "addProduct": "Add Product",
+  "addFirstProduct": "Add First Product",
+  "importBulk": "Import Bulk",
+  "recentProducts": "Recent Products",
+  "recentProductsDescription": "Recent Products Description",
+  "viewAllProducts": "View All Products",
+  "noProducts": "No Products",
+  "noProductsDescription": "No Products Description",
+  "markAllRead": "Mark All Read",
+  "enablePush": "Enable Push",
+  "booking_status": {
+    "confirmed": "Confirmed",
+    "pending": "Pending",
+    "cancelled": "Cancelled",
+    "completed": "Completed"
+  },
+  "template_dialog": {
+    "title": "Title",
+    "description": "Description",
+    "apply": "Apply",
+    "close": "Close"
+  },
+  "patterns": {
+    "weekly": "Weekly",
+    "monthly": "Monthly"
+  },
+  "all_services": "All Services",
+  "YYYY-MM-DD": "Y Y Y Y  M M  D D",
+  "next_payment": "Next Payment",
+  "request_payment": "Request Payment",
+  "invoices_title": "Invoices Title",
+  "no_invoices_title": "No Invoices Title",
+  "no_invoices_description": "No Invoices Description",
+  "service_breakdown_title": "Service Breakdown Title",
+  "no_breakdown_title": "No Breakdown Title",
+  "no_breakdown_description": "No Breakdown Description",
+  "breakdown": {
+    "count": "Count",
+    "total": "Total",
+    "average": "Average",
+    "commission": "Commission"
+  },
+  "payment_history_title": "Payment History Title",
+  "history_coming_soon": "History Coming Soon",
+  "history_description": "History Description",
+  "services_completed": "Services Completed",
+  "worked": "Worked",
+  "gross_amount": "Gross Amount",
+  "taxes": "Taxes",
+  "bonuses_earned": "Bonuses Earned",
+  "penalties_applied": "Penalties Applied",
+  "generated_at": "Generated At",
+  "bank_transfer": "Bank Transfer",
+  "current_period": {
+    "title": "Title",
+    "description": "Description",
+    "summary": "Summary",
+    "comparison": "Comparison"
+  },
+  "hours_worked": "Hours Worked",
+  "average_rating": "Average Rating",
+  "gross_earnings": "Gross Earnings",
+  "estimated_net": "Estimated Net",
+  "vs_previous_month": "Vs Previous Month",
+  "services_vs_previous": "Services Vs Previous",
+  "total_services": "Total Services",
+  "total_hours": "Total Hours",
+  "avg_service_value": "Avg Service Value",
+  "monthly_target": "Monthly Target",
+  "detail_dialog": {
+    "description": "Description",
+    "close": "Close"
+  },
+  "detail_tabs": {
+    "summary": "Summary",
+    "services": "Services",
+    "detailed": "Detailed"
+  },
+  "financial_summary": "Financial Summary",
+  "bonuses": "Bonuses",
+  "penalties": "Penalties",
+  "activity_summary": "Activity Summary",
+  "avg_service_duration": "Avg Service Duration",
+  "avg_hourly_rate": "Avg Hourly Rate",
+  "avg_rating": "Avg Rating",
+  "weekly_schedule": "Weekly Schedule",
+  "add_availability": "Add Availability",
+  "no_appointments": "No Appointments",
+  "available_for_booking": "Available For Booking",
+  "not_available": "Not Available",
+  "current_availabilities": "Current Availabilities",
+  "no_availabilities_title": "No Availabilities Title",
+  "no_availabilities_description": "No Availabilities Description",
+  "create_first_availability": "Create First Availability",
+  "recurring": "Recurring",
+  "one_time": "One Time",
+  "max_appointments": "Max Appointments",
+  "current_bookings": "Current Bookings",
+  "appointment_details": {
+    "title": "Title",
+    "service": "Service",
+    "status": "Status",
+    "client": "Client",
+    "price": "Price",
+    "time": "Time",
+    "address": "Address",
+    "notes": "Notes",
+    "confirm": "Confirm",
+    "start": "Start",
+    "complete": "Complete",
+    "cancel": "Cancel"
+  },
+  "recent_interventions": {
+    "title": "Title",
+    "no_interventions": "No Interventions",
+    "view_all": "View All"
+  },
+  "steps": {
+    "profile": {
+      "title": "Title",
+      "description": "Description"
+    },
+    "services": {
+      "title": "Title",
+      "description": "Description"
+    },
+    "certifications": {
+      "title": "Title",
+      "description": "Description"
+    },
+    "rates": {
+      "title": "Title",
+      "description": "Description"
+    }
+  },
+  "step_status": {
+    "pending": "Pending",
+    "in_progress": "In Progress",
+    "completed": "Completed",
+    "failed": "Failed"
+  },
+  "document_status": {
+    "missing": "Missing",
+    "uploaded": "Uploaded",
+    "approved": "Approved",
+    "rejected": "Rejected"
+  },
+  "no_application": {
+    "title": "Title",
+    "description": "Description",
+    "start_application": "Start Application"
+  },
+  "score": {
+    "overall": "Overall"
+  },
+  "submitted_at": "Submitted At",
+  "next_action": {
+    "title": "Title",
+    "take_action": "Take Action"
+  },
+  "estimated_duration": "Estimated Duration",
+  "documents_required": "Documents Required",
+  "required_documents": "Required Documents",
+  "evaluation_criteria": "Evaluation Criteria",
+  "weight": "Weight",
+  "step_completed": "Step Completed",
+  "application_timeline": "Application Timeline",
+  "reason": "Reason",
+  "reviewer_notes": "Reviewer Notes",
+  "document_dialog": {
+    "title": "Title",
+    "close": "Close"
+  },
+  "completion_progress": "Completion Progress",
+  "congratulations": "Congratulations",
+  "validated_message": "Validated Message",
+  "next_review": "Next Review",
+  "validation_rejected": "Validation Rejected",
+  "review_requirements": "Review Requirements",
+  "cannot_work_yet": "Cannot Work Yet",
+  "complete_validation_first": "Complete Validation First",
+  "current_restrictions": "Current Restrictions",
+  "action_required_message": "Action Required Message",
+  "uploaded": "Uploaded",
+  "request_revalidation": "Request Revalidation",
+  "completed_on": "Completed On",
+  "all_documents": "All Documents",
+  "no_documents_title": "No Documents Title",
+  "no_documents_description": "No Documents Description",
+  "validation_history": "Validation History",
+  "STANDARD": "S T A N D A R D",
+  "AUTOENTREPRENEUR": "A U T O E N T R E P R E N E U R",
+  "HOUR": "H O U R",
+  "verified": "Verified",
+  "your_response": "Your Response",
+  "response_dialog": {
+    "title": "Title",
+    "description": "Description",
+    "your_response": "Your Response",
+    "placeholder": "Placeholder",
+    "response_placeholder": "Response Placeholder",
+    "submit": "Submit"
+  },
+  "write_dialog": {
+    "title": "Title",
+    "description": "Description",
+    "subject_type": "Subject Type",
+    "rating": "Rating",
+    "title_placeholder": "Title Placeholder",
+    "content": "Content",
+    "content_placeholder": "Content Placeholder",
+    "pros": "Pros",
+    "add_pro": "Add Pro",
+    "cons": "Cons",
+    "add_con": "Add Con",
+    "recommendations": "Recommendations",
+    "photos": "Photos",
+    "submit": "Submit"
+  },
+  "subject_types": {
+    "provider": "Provider",
+    "deliverer": "Deliverer",
+    "service": "Service",
+    "delivery": "Delivery"
+  },
+  "stars": "Stars",
+  "star": "Star",
+  "sort": {
+    "label": "Label",
+    "newest": "Newest",
+    "oldest": "Oldest",
+    "highest_rated": "Highest Rated",
+    "lowest_rated": "Lowest Rated",
+    "most_helpful": "Most Helpful"
+  },
+  "verified_purchase": "Verified Purchase",
+  "pros": "Pros",
+  "cons": "Cons",
+  "recommendations": "Recommendations",
+  "provider_response": "Provider Response",
+  "helpful": "Helpful",
+  "not_helpful": "Not Helpful",
+  "book_now": "Book Now",
+  "service_details": "Service Details",
+  "minutes": "Minutes",
+  "select_date": "Select Date",
+  "time": "Time",
+  "select_time": "Select Time",
+  "address_placeholder": "Address Placeholder",
+  "notes_placeholder": "Notes Placeholder",
+  "payment_info": "Payment Info",
+  "booking": "Booking",
+  "confirm_booking": "Confirm Booking",
+  "important": {
+    "title": "Title",
+    "cancellation": "Cancellation",
+    "payment": "Payment",
+    "contact": "Contact"
+  },
+  "no_results": {
+    "title": "Title",
+    "description": "Description"
+  },
+  "confirmDelete": "Confirm Delete",
+  "deleteSuccess": "Delete Success",
+  "deleteSuccessDesc": "Delete Success Desc",
+  "deleteError": "Delete Error",
+  "deleteErrorDesc": "Delete Error Desc",
+  "budget": "Budget",
+  "scheduledFor": "Scheduled For",
+  "viewDetails": "View Details",
+  "newRequest": "New Request",
+  "completed": "Completed",
+  "drafts": "Drafts",
+  "noRequestsFound": "No Requests Found",
+  "noRequestsYet": "No Requests Yet",
+  "noMatchingRequests": "No Matching Requests",
+  "createFirstRequest": "Create First Request",
+  "SIMPLE": "S I M P L E",
+  "BASIC": "B A S I C",
+  "ONE_TIME": "O N E  T I M E",
+  "FLAT": "F L A T",
+  "tutorial": "Tutorial",
+  "X-Test-User-Email": "X  Test  User  Email",
+  "User-Agent": "User  Agent",
+  "network": {
+    "offline": "Offline",
+    "timeout": "Timeout",
+    "serverError": "Server Error"
+  },
+  "document": {
+    "pending": "Pending",
+    "approved": "Approved",
+    "rejected": "Rejected"
+  },
+  "serviceRequests": {
+    "pageTitle": "Service requests",
+    "pageDescription": "Manage your service requests"
+  },
+  "pages": {
+    "admin": {
+      "billing": "Billing",
+      "contracts": {
+        "title": "Contracts Management",
+        "description": "Manage contracts with merchants and providers"
       }
     }
+  },
+  "": {
+    "": ""
   }
 }

@@ -106,7 +106,7 @@ const warehouseSchema = z.object({
   address: z.string().min(5, "Adresse requise"),
   city: z.string().min(2, "Ville requise"),
   postalCode: z.string().min(4, "Code postal requis"),
-  capacity: z.coerce.number().min(1, "Capacité requise"),
+  capacity: z.number().min(1, "Capacité requise"),
   managerName: z.string().optional(),
   managerEmail: z.string().email("Email invalide").optional(),
 });
@@ -114,7 +114,7 @@ const warehouseSchema = z.object({
 const storageBoxSchema = z.object({
   boxNumber: z.string().min(1, "Numéro de box requis"),
   size: z.enum(["SMALL", "MEDIUM", "LARGE", "EXTRA_LARGE"]),
-  pricePerDay: z.coerce.number().positive("Prix doit être positif"),
+  pricePerDay: z.number().positive("Prix doit être positif"),
 });
 
 type WarehouseForm = z.infer<typeof warehouseSchema>;

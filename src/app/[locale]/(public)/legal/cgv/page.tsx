@@ -1,11 +1,13 @@
 ﻿import { useTranslations } from "next-intl";
+import { PageHeader } from "@/components/layout/page-header";
+import { Card } from "@/components/ui/card";
 
 export default function CGVPage() {
   const t = useTranslations("public.legal.cgv");
 
   return (
     <div className="container mx-auto py-6 space-y-6">
-      <PageHeader title={t("title") || "CGV"} description={t("description")} />
+      <PageHeader title="CGV" description="Conditions Générales de Vente" />
 
       <Card className="p-6">
         <div className="space-y-6">

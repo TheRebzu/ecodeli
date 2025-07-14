@@ -70,7 +70,7 @@ export async function POST(
 
     // Réassigner la livraison
     const updatedDelivery = await prisma.delivery.update({
-      where: { id: params.id },
+      where: { id: (await params).id },
       data: {
         delivererId: availableDeliverer.id,
         status: "PENDING",
@@ -86,7 +86,7 @@ export async function POST(
         action: "REASSIGN_DELIVERY",
         targetUserId: availableDeliverer.id,
         details: {
-          deliveryId: params.id,
+          deliveryId: (await params).id,
           previousDelivererId: delivery.delivererId,
           newDelivererId: availableDeliverer.id,
           reason: "Admin reassignment",

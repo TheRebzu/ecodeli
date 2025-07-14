@@ -45,10 +45,10 @@ export async function GET(request: NextRequest) {
 
     // Filtres optionnels
     if (params.type) {
-      where.type = params.type;
+      where.type = (await params).type;
     }
 
-    if (params.priceMin || params.priceMax) {
+    if (params.priceMin || (await params).priceMax) {
       where.basePrice = {};
       if (params.priceMin) where.basePrice.gte = parseFloat(params.priceMin);
       if (params.priceMax) where.basePrice.lte = parseFloat(params.priceMax);
@@ -102,10 +102,10 @@ export async function GET(request: NextRequest) {
             },
           },
           orderBy: {
-            [params.sortBy || "createdAt"]: params.sortOrder || "desc",
+            [(await params).sortBy || "createdAt"]: (await params).sortOrder || "desc",
           },
-          skip: (params.page - 1) * params.limit,
-          take: params.limit,
+          skip: (params.page - 1) * (await params).limit,
+          take: (await params).limit,
         }),
         db.service.count({ where }),
       ]);
@@ -117,10 +117,10 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({
         services,
         pagination: {
-          page: params.page,
-          limit: params.limit,
+          page: (await params).page,
+          limit: (await params).limit,
           total,
-          totalPages: Math.ceil(total / params.limit),
+          totalPages: Math.ceil(total / (await params).limit),
         },
       });
     } catch (dbError) {

@@ -41,11 +41,11 @@ export async function GET(request: NextRequest) {
 
     // Filtres optionnels
     if (params.status) {
-      where.status = params.status;
+      where.status = (await params).status;
     }
 
     if (params.serviceRequestId) {
-      where.serviceRequestId = params.serviceRequestId;
+      where.serviceRequestId = (await params).serviceRequestId;
     }
 
     console.log("🔍 Requête base de données candidatures avec filtres...");
@@ -83,10 +83,10 @@ export async function GET(request: NextRequest) {
             },
           },
           orderBy: {
-            [params.sortBy]: params.sortOrder,
+            [(await params).sortBy]: (await params).sortOrder,
           },
-          skip: (params.page - 1) * params.limit,
-          take: params.limit,
+          skip: (params.page - 1) * (await params).limit,
+          take: (await params).limit,
         }),
         db.serviceApplication.count({ where }),
       ]);
@@ -136,10 +136,10 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({
         applications: transformedApplications,
         pagination: {
-          page: params.page,
-          limit: params.limit,
+          page: (await params).page,
+          limit: (await params).limit,
           total,
-          totalPages: Math.ceil(total / params.limit),
+          totalPages: Math.ceil(total / (await params).limit),
         },
       });
     } catch (dbError) {

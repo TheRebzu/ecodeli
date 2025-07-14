@@ -51,7 +51,7 @@ export async function GET(request: NextRequest) {
     // Construction de la clause WHERE
     const where: any = { authorId: userId };
     if (params.status) {
-      where.status = params.status;
+      where.status = (await params).status;
     }
 
     // Récupération des annonces
@@ -96,8 +96,8 @@ export async function GET(request: NextRequest) {
           },
         },
         orderBy: { createdAt: "desc" },
-        skip: (params.page - 1) * params.limit,
-        take: params.limit,
+        skip: (params.page - 1) * (await params).limit,
+        take: (await params).limit,
       }),
       prisma.announcement.count({ where }),
     ]);
@@ -152,12 +152,12 @@ export async function GET(request: NextRequest) {
 
     // Métadonnées de pagination
     const pagination = {
-      page: params.page,
-      limit: params.limit,
+      page: (await params).page,
+      limit: (await params).limit,
       total,
-      totalPages: Math.ceil(total / params.limit),
-      hasNext: params.page < Math.ceil(total / params.limit),
-      hasPrev: params.page > 1,
+      totalPages: Math.ceil(total / (await params).limit),
+      hasNext: (await params).page < Math.ceil(total / (await params).limit),
+      hasPrev: (await params).page > 1,
     };
 
     // Statistiques rapides

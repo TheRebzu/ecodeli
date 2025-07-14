@@ -128,16 +128,16 @@ export default function EditAnnouncementPage() {
   const [saving, setSaving] = useState(false);
   const [selectedType, setSelectedType] = useState<string>("");
 
-  const form = useForm<UpdateAnnouncementInput>({
-    resolver: zodResolver(updateAnnouncementSchema),
+  const form = useForm<any>({
+    // resolver: zodResolver(updateAnnouncementSchema),
     defaultValues: {
       id: id as string,
       title: "",
       description: "",
       type: "PACKAGE_DELIVERY",
-      price: 0,
+      estimatedPrice: 0,
       currency: "EUR",
-      urgent: false,
+      isUrgent: false,
       flexibleDates: false,
       specialInstructions: "",
       startLocation: {
@@ -421,7 +421,7 @@ export default function EditAnnouncementPage() {
                 <CardContent className="space-y-4">
                   <FormField
                     control={form.control}
-                    name="startLocation.address"
+                    name="pickupAddress"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Adresse de départ</FormLabel>
@@ -439,7 +439,7 @@ export default function EditAnnouncementPage() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <FormField
                       control={form.control}
-                      name="startLocation.city"
+                      name="pickupAddress"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Ville de départ</FormLabel>
@@ -453,7 +453,7 @@ export default function EditAnnouncementPage() {
 
                     <FormField
                       control={form.control}
-                      name="startLocation.postalCode"
+                      name="pickupAddress"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Code postal</FormLabel>
@@ -470,7 +470,7 @@ export default function EditAnnouncementPage() {
 
                   <FormField
                     control={form.control}
-                    name="endLocation.address"
+                    name="deliveryAddress"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Adresse d'arrivée</FormLabel>
@@ -488,7 +488,7 @@ export default function EditAnnouncementPage() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <FormField
                       control={form.control}
-                      name="endLocation.city"
+                      name="deliveryAddress"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Ville d'arrivée</FormLabel>
@@ -502,7 +502,7 @@ export default function EditAnnouncementPage() {
 
                     <FormField
                       control={form.control}
-                      name="endLocation.postalCode"
+                      name="deliveryAddress"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Code postal</FormLabel>
@@ -674,7 +674,7 @@ export default function EditAnnouncementPage() {
                 <CardContent className="space-y-4">
                   <FormField
                     control={form.control}
-                    name="desiredDate"
+                    name="pickupDate"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Date souhaitée</FormLabel>
@@ -688,7 +688,7 @@ export default function EditAnnouncementPage() {
 
                   <FormField
                     control={form.control}
-                    name="flexibleDates"
+                    name="isFlexibleDate"
                     render={({ field }) => (
                       <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
                         <div className="space-y-0.5">
@@ -722,7 +722,7 @@ export default function EditAnnouncementPage() {
                 <CardContent className="space-y-4">
                   <FormField
                     control={form.control}
-                    name="price"
+                    name="estimatedPrice"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Prix (€)</FormLabel>
@@ -744,7 +744,7 @@ export default function EditAnnouncementPage() {
 
                   <FormField
                     control={form.control}
-                    name="urgent"
+                    name="isUrgent"
                     render={({ field }) => (
                       <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
                         <div className="space-y-0.5">

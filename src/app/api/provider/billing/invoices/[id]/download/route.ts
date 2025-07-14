@@ -21,7 +21,7 @@ export async function GET(
 
     // Récupérer la facture
     const invoice = await prisma.invoice.findUnique({
-      where: { id: params.id },
+      where: { id: (await params).id },
       include: {
         items: true,
         provider: {
@@ -194,7 +194,7 @@ export async function GET(
 
     // Optionnel : sauvegarder l'URL du PDF en base de données
     // await prisma.invoice.update({
-    //   where: { id: params.id },
+    //   where: { id: (await params).id },
     //   data: { pdfUrl: pdfBase64 }
     // })
 

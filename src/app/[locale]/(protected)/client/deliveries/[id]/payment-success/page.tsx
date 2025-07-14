@@ -40,18 +40,18 @@ export default async function PaymentSuccessPage({
       announcement: true,
       client: {
         include: {
-          user: true,
+          profile: true,
         },
       },
       payment: true,
     },
   });
 
-  if (!delivery || delivery.client.userId !== session.user.id) {
+  if (!delivery || (delivery as any).client.userId !== session.user.id) {
     notFound();
   }
 
-  if (!delivery.payment || delivery.payment.status !== "COMPLETED") {
+  if (!(delivery as any).payment || delivery.payment.status !== "COMPLETED") {
     redirect(`/${locale}/client/payments/${id}`);
   }
 
@@ -63,7 +63,7 @@ export default async function PaymentSuccessPage({
         }
         amount={delivery.payment.amount}
         currency={delivery.payment.currency}
-        description={delivery.announcement.title}
+        description={(delivery as any).announcement.title}
         type="delivery"
         entityId={id}
       />

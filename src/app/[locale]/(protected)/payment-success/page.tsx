@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 
-export default function PaymentSuccessPage() {
+function PaymentSuccessContent() {
   const [loading, setLoading] = useState(true);
   const [paymentStatus, setPaymentStatus] = useState<
     "success" | "processing" | "error"
@@ -34,43 +34,41 @@ export default function PaymentSuccessPage() {
           return;
         }
 
-        // Vérifier le statut du paiement
-        if (redirectStatus === "succeeded") {
-          // Récupérer les détails du Payment Intent pour trouver le bookingId
-          const response = await fetch("/api/payments/verify-payment", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              paymentIntentId: paymentIntent,
-            }),
+        // Appel à l'API pour vérifier le statut du paiement
+        const response = await fetch("/api/payments/verify", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            paymentIntent,
+            redirectStatus,
+          }),
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          setPaymentStatus("success");
+          setBookingId(data.bookingId);
+          toast({
+            title: "Paiement réussi !",
+            description: "Votre réservation a été confirmée.",
           });
-
-          if (response.ok) {
-            const data = await response.json();
-            setBookingId(data.bookingId);
-            setPaymentStatus("success");
-
-            toast({
-              title: "Payment Successful! 🎉",
-              description:
-                "Your booking has been confirmed and payment processed.",
-              duration: 5000,
-            });
-          } else {
-            setPaymentStatus("error");
-          }
         } else {
           setPaymentStatus("error");
+          toast({
+            title: "Erreur de paiement",
+            description: data.error || "Une erreur est survenue lors du paiement.",
+            variant: "destructive",
+          });
         }
       } catch (error) {
-        console.error("Error verifying payment:", error);
+        console.error("Erreur lors de la vérification du paiement:", error);
         setPaymentStatus("error");
         toast({
-          title: "Verification Error",
-          description:
-            "Unable to verify payment status. Please contact support.",
+          title: "Erreur",
+          description: "Impossible de vérifier le statut du paiement.",
           variant: "destructive",
         });
       } finally {
@@ -93,137 +91,136 @@ export default function PaymentSuccessPage() {
     router.push("/client/bookings");
   };
 
+  const handleGoHome = () => {
+    router.push("/client");
+  };
+
   if (loading) {
     return (
-      <div className="container mx-auto p-6 max-w-2xl">
-        <Card>
-          <CardContent className="flex items-center justify-center py-12">
-            <div className="text-center">
-              <Loader2 className="h-12 w-12 text-primary mx-auto mb-4 animate-spin" />
-              <h2 className="text-xl font-semibold mb-2">
-                Verifying Payment...
-              </h2>
-              <p className="text-muted-foreground">
-                Please wait while we confirm your payment.
-              </p>
-            </div>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <Card className="w-full max-w-md">
+          <CardContent className="p-8 text-center">
+            <Loader2 className="h-12 w-12 animate-spin text-blue-500 mx-auto mb-4" />
+            <h2 className="text-xl font-semibold text-gray-900 mb-2">
+              Traitement du paiement...
+            </h2>
+            <p className="text-gray-600">
+              Veuillez patienter pendant que nous vérifions votre paiement.
+            </p>
           </CardContent>
         </Card>
       </div>
     );
   }
 
-  if (paymentStatus === "success") {
-    return (
-      <div className="container mx-auto p-6 max-w-2xl">
-        <Card>
-          <CardHeader className="text-center">
-            <div className="mx-auto mb-4 w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
-              <CheckCircleIcon className="h-8 w-8 text-green-600" />
-            </div>
-            <CardTitle className="text-2xl text-green-600">
-              Payment Successful!
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="text-center space-y-6">
-            <div>
-              <p className="text-lg mb-2">
-                🎉 Your booking has been confirmed!
-              </p>
-              <p className="text-muted-foreground">
-                Payment has been successfully processed and your service
-                provider has been notified.
-              </p>
-            </div>
-
-            <div className="bg-green-50 p-4 rounded-lg border border-green-200">
-              <div className="flex items-center justify-center gap-2 mb-2">
-                <CreditCardIcon className="h-5 w-5 text-green-600" />
-                <span className="font-semibold text-green-600">
-                  Payment Details
-                </span>
-              </div>
-              <p className="text-sm text-green-700">
-                <strong>Payment ID:</strong> {paymentIntent}
-              </p>
-              <p className="text-sm text-green-700">
-                <strong>Status:</strong> Completed
-              </p>
-            </div>
-
-            <div className="space-y-3">
-              <h3 className="font-semibold">What happens next?</h3>
-              <ul className="text-sm text-muted-foreground space-y-1 text-left">
-                <li>
-                  ✅ Your service provider will prepare for the appointment
-                </li>
-                <li>✅ You'll receive a confirmation email with details</li>
-                <li>✅ You can track your booking status in your dashboard</li>
-                <li>✅ You'll be notified before the scheduled service</li>
-              </ul>
-            </div>
-
-            <div className="flex flex-col sm:flex-row gap-3 pt-4">
-              {bookingId && (
-                <Button onClick={handleGoToBooking} className="flex-1">
-                  View Booking Details
-                </Button>
-              )}
-              <Button
-                variant="outline"
-                onClick={handleGoToBookings}
-                className="flex-1"
-              >
-                <ArrowLeftIcon className="h-4 w-4 mr-2" />
-                All Bookings
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  // Error state
   return (
-    <div className="container mx-auto p-6 max-w-2xl">
-      <Card>
-        <CardHeader className="text-center">
-          <div className="mx-auto mb-4 w-16 h-16 bg-red-100 rounded-full flex items-center justify-center">
-            <CreditCardIcon className="h-8 w-8 text-red-600" />
-          </div>
-          <CardTitle className="text-2xl text-red-600">Payment Issue</CardTitle>
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+      <Card className="w-full max-w-md">
+        <CardHeader className="text-center pb-4">
+          {paymentStatus === "success" ? (
+            <CheckCircleIcon className="h-16 w-16 text-green-500 mx-auto mb-4" />
+          ) : paymentStatus === "error" ? (
+            <CreditCardIcon className="h-16 w-16 text-red-500 mx-auto mb-4" />
+          ) : (
+            <Loader2 className="h-16 w-16 animate-spin text-blue-500 mx-auto mb-4" />
+          )}
+          
+          <CardTitle className="text-2xl font-bold">
+            {paymentStatus === "success"
+              ? "Paiement réussi !"
+              : paymentStatus === "error"
+              ? "Erreur de paiement"
+              : "Traitement en cours..."}
+          </CardTitle>
         </CardHeader>
-        <CardContent className="text-center space-y-6">
-          <div>
-            <p className="text-lg mb-2">There was an issue with your payment</p>
-            <p className="text-muted-foreground">
-              We couldn't verify your payment status. Please check your bookings
-              or contact support.
-            </p>
-          </div>
 
-          <div className="bg-red-50 p-4 rounded-lg border border-red-200">
-            <p className="text-sm text-red-700">
-              If you believe this is an error, please contact our support team
-              with your payment reference.
-            </p>
-          </div>
+        <CardContent className="space-y-6">
+          {paymentStatus === "success" && (
+            <>
+              <div className="text-center">
+                <p className="text-gray-600 mb-4">
+                  Votre paiement a été traité avec succès et votre réservation
+                  est confirmée.
+                </p>
+                {bookingId && (
+                  <p className="text-sm text-gray-500">
+                    Numéro de réservation : {bookingId}
+                  </p>
+                )}
+              </div>
 
-          <div className="flex flex-col sm:flex-row gap-3 pt-4">
-            <Button onClick={handleGoToBookings} className="flex-1">
-              Check My Bookings
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => router.push("/support")}
-              className="flex-1"
-            >
-              Contact Support
-            </Button>
-          </div>
+              <div className="space-y-3">
+                <Button onClick={handleGoToBooking} className="w-full">
+                  Voir ma réservation
+                </Button>
+                <Button
+                  onClick={handleGoToBookings}
+                  variant="outline"
+                  className="w-full"
+                >
+                  Toutes mes réservations
+                </Button>
+              </div>
+            </>
+          )}
+
+          {paymentStatus === "error" && (
+            <>
+              <div className="text-center">
+                <p className="text-gray-600 mb-4">
+                  Une erreur est survenue lors du traitement de votre paiement.
+                  Veuillez réessayer ou contacter notre support.
+                </p>
+              </div>
+
+              <div className="space-y-3">
+                <Button onClick={handleGoToBookings} className="w-full">
+                  Retour aux réservations
+                </Button>
+                <Button
+                  onClick={handleGoHome}
+                  variant="outline"
+                  className="w-full"
+                >
+                  <ArrowLeftIcon className="h-4 w-4 mr-2" />
+                  Retour à l'accueil
+                </Button>
+              </div>
+            </>
+          )}
+
+          {paymentStatus === "processing" && (
+            <div className="text-center">
+              <p className="text-gray-600">
+                Votre paiement est en cours de traitement. Cela peut prendre
+                quelques instants.
+              </p>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+export default function PaymentSuccessPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <Card className="w-full max-w-md">
+          <CardContent className="p-8 text-center">
+            <Loader2 className="h-12 w-12 animate-spin text-blue-500 mx-auto mb-4" />
+            <h2 className="text-xl font-semibold text-gray-900 mb-2">
+              Chargement...
+            </h2>
+            <p className="text-gray-600">
+              Préparation de la page de paiement.
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    }>
+      <PaymentSuccessContent />
+    </Suspense>
   );
 }

@@ -40,25 +40,25 @@ export async function GET(request: NextRequest) {
     // Construire la clause WHERE pour ANNONCES UNIQUEMENT
     const where: any = { authorId: user.id };
 
-    if (params.status) where.status = params.status;
-    if (params.type) where.type = params.type;
-    if (params.urgent !== undefined) where.isUrgent = params.urgent;
+    if (params.status) where.status = (await params).status;
+    if (params.type) where.type = (await params).type;
+    if (params.urgent !== undefined) where.isUrgent = (await params).urgent;
     if (params.city) {
       where.OR = [
-        { pickupAddress: { contains: params.city, mode: "insensitive" } },
-        { deliveryAddress: { contains: params.city, mode: "insensitive" } },
+        { pickupAddress: { contains: (await params).city, mode: "insensitive" } },
+        { deliveryAddress: { contains: (await params).city, mode: "insensitive" } },
       ];
     }
 
     // Filtres de prix
-    if (params.priceMin || params.priceMax) {
+    if (params.priceMin || (await params).priceMax) {
       where.basePrice = {};
-      if (params.priceMin) where.basePrice.gte = params.priceMin;
-      if (params.priceMax) where.basePrice.lte = params.priceMax;
+      if (params.priceMin) where.basePrice.gte = (await params).priceMin;
+      if (params.priceMax) where.basePrice.lte = (await params).priceMax;
     }
 
     // Filtres de date
-    if (params.dateFrom || params.dateTo) {
+    if (params.dateFrom || (await params).dateTo) {
       where.pickupDate = {};
       if (params.dateFrom) where.pickupDate.gte = new Date(params.dateFrom);
       if (params.dateTo) where.pickupDate.lte = new Date(params.dateTo);
@@ -67,13 +67,13 @@ export async function GET(request: NextRequest) {
     // Construire l'ordre de tri
     const orderBy: any = {};
     if (params.sortBy === "pickupDate") {
-      orderBy.pickupDate = params.sortOrder;
+      orderBy.pickupDate = (await params).sortOrder;
     } else if (params.sortBy === "basePrice") {
-      orderBy.basePrice = params.sortOrder;
+      orderBy.basePrice = (await params).sortOrder;
     } else if (params.sortBy === "distance") {
-      orderBy.distance = params.sortOrder;
+      orderBy.distance = (await params).sortOrder;
     } else {
-      orderBy.createdAt = params.sortOrder;
+      orderBy.createdAt = (await params).sortOrder;
     }
 
     try {
@@ -142,8 +142,8 @@ export async function GET(request: NextRequest) {
             },
           },
           orderBy,
-          skip: (params.page - 1) * params.limit,
-          take: params.limit,
+          skip: (params.page - 1) * (await params).limit,
+          take: (await params).limit,
         }),
         db.announcement.count({ where }),
       ]);
@@ -208,12 +208,12 @@ export async function GET(request: NextRequest) {
           },
         })),
         pagination: {
-          page: params.page,
-          limit: params.limit,
+          page: (await params).page,
+          limit: (await params).limit,
           total,
-          totalPages: Math.ceil(total / params.limit),
-          hasNext: params.page < Math.ceil(total / params.limit),
-          hasPrev: params.page > 1,
+          totalPages: Math.ceil(total / (await params).limit),
+          hasNext: (await params).page < Math.ceil(total / (await params).limit),
+          hasPrev: (await params).page > 1,
         },
         stats: {
           totalValue: announcements.reduce(

@@ -83,22 +83,22 @@ export async function GET(request: NextRequest) {
     };
 
     if (params.category) {
-      where.type = params.category;
+      where.type = (await params).category;
     }
 
-    if (params.priceMin || params.priceMax) {
+    if (params.priceMin || (await params).priceMax) {
       where.basePrice = {};
-      if (params.priceMin) where.basePrice.gte = params.priceMin;
-      if (params.priceMax) where.basePrice.lte = params.priceMax;
+      if (params.priceMin) where.basePrice.gte = (await params).priceMin;
+      if (params.priceMax) where.basePrice.lte = (await params).priceMax;
     }
 
     if (params.search) {
       where.OR = [
-        { name: { contains: params.search, mode: "insensitive" } },
-        { description: { contains: params.search, mode: "insensitive" } },
+        { name: { contains: (await params).search, mode: "insensitive" } },
+        { description: { contains: (await params).search, mode: "insensitive" } },
         {
           provider: {
-            businessName: { contains: params.search, mode: "insensitive" },
+            businessName: { contains: (await params).search, mode: "insensitive" },
           },
         },
       ];
@@ -108,7 +108,7 @@ export async function GET(request: NextRequest) {
       // Filtrer par zone géographique du provider
       where.provider.zone = {
         path: ["city"],
-        string_contains: params.city,
+        string_contains: (await params).city,
       };
     }
 
@@ -117,16 +117,16 @@ export async function GET(request: NextRequest) {
 
     switch (params.sortBy) {
       case "price":
-        orderBy.basePrice = params.sortOrder;
+        orderBy.basePrice = (await params).sortOrder;
         break;
       case "rating":
-        orderBy.provider = { averageRating: params.sortOrder };
+        orderBy.provider = { averageRating: (await params).sortOrder };
         break;
       case "name":
-        orderBy.name = params.sortOrder;
+        orderBy.name = (await params).sortOrder;
         break;
       default:
-        orderBy.createdAt = params.sortOrder;
+        orderBy.createdAt = (await params).sortOrder;
     }
 
     const [services, total] = await Promise.all([
@@ -159,8 +159,8 @@ export async function GET(request: NextRequest) {
           },
         },
         orderBy,
-        skip: (params.page - 1) * params.limit,
-        take: params.limit,
+        skip: (params.page - 1) * (await params).limit,
+        take: (await params).limit,
       }),
       db.service.count({ where }),
     ]);
@@ -231,12 +231,12 @@ export async function GET(request: NextRequest) {
     const result = {
       services: formattedServices,
       pagination: {
-        page: params.page,
-        limit: params.limit,
+        page: (await params).page,
+        limit: (await params).limit,
         total,
-        totalPages: Math.ceil(total / params.limit),
-        hasNext: params.page < Math.ceil(total / params.limit),
-        hasPrev: params.page > 1,
+        totalPages: Math.ceil(total / (await params).limit),
+        hasNext: (await params).page < Math.ceil(total / (await params).limit),
+        hasPrev: (await params).page > 1,
       },
       stats,
     };

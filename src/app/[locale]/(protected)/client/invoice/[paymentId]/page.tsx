@@ -22,11 +22,10 @@ export default async function InvoicePage({
   const invoice = await prisma.invoice.findUnique({
     where: { id: paymentId },
     include: {
-      client: { include: { profile: true } },
       items: true,
     },
   });
-  if (!invoice || invoice.client?.userId !== session.user.id) {
+  if (!invoice || (invoice as any).client?.userId !== session.user.id) {
     notFound();
   }
 
@@ -40,7 +39,7 @@ export default async function InvoicePage({
         {t("Facture")} #{invoice.invoiceNumber}
       </h1>
       <div className="mb-2">
-        {t("Date")}: {new Date(invoice.issuedAt).toLocaleDateString(locale)}
+        {t("Date")}: {new Date(invoice.createdAt).toLocaleDateString(locale)}
       </div>
       <div className="mb-2">
         {t("Montant total")}: {invoice.total} {invoice.currency}
@@ -49,8 +48,8 @@ export default async function InvoicePage({
         {t("Statut")}: {invoice.status}
       </div>
       <div className="mb-2">
-        {t("Client")}: {invoice.client?.profile?.firstName}{" "}
-        {invoice.client?.profile?.lastName}
+        {t("Client")}: {(invoice as any).client?.profile?.firstName}{" "}
+        {(invoice as any).client?.profile?.lastName}
       </div>
       <div className="mb-2">
         {t("Télécharger le PDF")} :

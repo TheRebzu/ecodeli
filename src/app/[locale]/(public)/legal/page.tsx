@@ -1,4 +1,6 @@
 ﻿import { useTranslations } from "next-intl";
+import { PageHeader } from "@/components/layout/page-header";
+import { Card } from "@/components/ui/card";
 
 export default function LegalPage() {
   const t = useTranslations("public.legal");

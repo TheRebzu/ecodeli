@@ -111,7 +111,7 @@ export default function ClientLayout({ children }: ClientLayoutProps) {
               email: user.email,
               role: user.role,
               subscription:
-                (user.subscription as "FREE" | "STARTER" | "PREMIUM") || "FREE",
+                ((user as any).subscription as "FREE" | "STARTER" | "PREMIUM") || "FREE",
             }}
           />
         </aside>
@@ -132,7 +132,7 @@ export default function ClientLayout({ children }: ClientLayoutProps) {
                   email: user.email,
                   role: user.role,
                   subscription:
-                    (user.subscription as "FREE" | "STARTER" | "PREMIUM") ||
+                    ((user as any).subscription as "FREE" | "STARTER" | "PREMIUM") ||
                     "FREE",
                 }}
               />
@@ -150,7 +150,7 @@ export default function ClientLayout({ children }: ClientLayoutProps) {
               email: user.email,
               role: user.role,
               subscription:
-                (user.subscription as "FREE" | "STARTER" | "PREMIUM") || "FREE",
+                ((user as any).subscription as "FREE" | "STARTER" | "PREMIUM") || "FREE",
               avatar: (user.avatar as string) || "",
             }}
             onSidebarToggle={toggleMobileMenu}

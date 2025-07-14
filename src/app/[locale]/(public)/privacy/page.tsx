@@ -1,4 +1,6 @@
 import { useTranslations } from "next-intl";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
 
 export default function Page() {
   const t = useTranslations("public.privacy");

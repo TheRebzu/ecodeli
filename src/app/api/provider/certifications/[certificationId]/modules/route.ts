@@ -4,7 +4,7 @@ import { prisma } from "@/lib/db";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { certificationId: string } },
+  { params }: { params: Promise<{ certificationId: string }> },
 ) {
   try {
     const session = await auth();
@@ -13,7 +13,7 @@ export async function GET(
       return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
     }
 
-    const { certificationId } = params;
+    const { certificationId  } = await params;
 
     if (!certificationId) {
       return NextResponse.json(

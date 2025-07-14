@@ -1,4 +1,15 @@
 import { useTranslations } from "next-intl";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Search } from "lucide-react";
+import Link from "next/link";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 
 export default function FAQPage() {
   const t = useTranslations("public.faq");
@@ -81,10 +92,8 @@ export default function FAQPage() {
                         question:
                           t("announcements.q1.question") ||
                           "Comment publier une annonce de trajet ?",
-                        answer: t(
-                          "announcements.q1.answer",
+                        answer: t("announcements.q1.answer") ||
                           "Pour publier une annonce de trajet, connectez-vous à votre compte, cliquez sur 'Publier une annonce' et suivez les étapes. Vous devrez préciser votre point de départ, votre destination, la date, l'heure, ainsi que les détails sur ce que vous êtes prêt à transporter.",
-                        ),
                       },
                       {
                         question:

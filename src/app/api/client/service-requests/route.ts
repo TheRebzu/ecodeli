@@ -47,17 +47,17 @@ export async function GET(request: NextRequest) {
 
     // Filtres optionnels
     if (params.status) {
-      where.status = params.status;
+      where.status = (await params).status;
     }
 
-    if (params.budgetMin || params.budgetMax) {
+    if (params.budgetMin || (await params).budgetMax) {
       where.basePrice = {};
       if (params.budgetMin) where.basePrice.gte = parseFloat(params.budgetMin);
       if (params.budgetMax) where.basePrice.lte = parseFloat(params.budgetMax);
     }
 
     if (params.urgency) {
-      where.isUrgent = params.urgency === "true";
+      where.isUrgent = (await params).urgency === "true";
     }
 
     console.log(
@@ -105,10 +105,10 @@ export async function GET(request: NextRequest) {
             },
           },
           orderBy: {
-            [params.sortBy]: params.sortOrder,
+            [(await params).sortBy]: (await params).sortOrder,
           },
-          skip: (params.page - 1) * params.limit,
-          take: params.limit,
+          skip: (params.page - 1) * (await params).limit,
+          take: (await params).limit,
         }),
         db.announcement.count({ where }),
       ]);
@@ -120,10 +120,10 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({
         serviceRequests,
         pagination: {
-          page: params.page,
-          limit: params.limit,
+          page: (await params).page,
+          limit: (await params).limit,
           total,
-          totalPages: Math.ceil(total / params.limit),
+          totalPages: Math.ceil(total / (await params).limit),
         },
       });
     } catch (dbError) {

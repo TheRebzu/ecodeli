@@ -1,7 +1,7 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -16,7 +16,7 @@ import Link from "next/link";
 
 import { useTranslations } from "next-intl";
 
-export default function VerifyEmailPage() {
+function VerifyEmailContent() {
   const t = useTranslations();
   const params = useSearchParams();
   const token = params.get("token");
@@ -28,12 +28,9 @@ export default function VerifyEmailPage() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    if (!token || !email) {
+    if (!token) {
       setStatus("error");
-      setMessage(
-        t("auth.verifyEmail.errors.invalidLink") ||
-          "Lien de vérification invalide. Veuillez vérifier votre email.",
-      );
+      setMessage("Token manquant");
       setIsLoading(false);
       return;
     }
@@ -42,37 +39,24 @@ export default function VerifyEmailPage() {
       try {
         const response = await fetch("/api/auth/verify-email", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+          },
           body: JSON.stringify({ token, email }),
         });
 
         const data = await response.json();
 
-        if (data.success) {
+        if (response.ok) {
           setStatus("success");
-          setMessage(
-            t("auth.verifyEmail.success.message") ||
-              "Votre email a été vérifié avec succès ! Vous pouvez maintenant vous connecter.",
-          );
+          setMessage(data.message || "Email vérifié avec succès");
         } else {
           setStatus("error");
-          setMessage(
-            data.error ||
-              t("auth.verifyEmail.errors.verificationError") ||
-              "Erreur lors de la vérification de votre email.",
-          );
+          setMessage(data.error || "Erreur lors de la vérification");
         }
       } catch (error) {
-        console.error(
-          t("auth.verifyEmail.errors.verificationError") ||
-            "Erreur de vérification:",
-          error,
-        );
         setStatus("error");
-        setMessage(
-          t("auth.verifyEmail.errors.connectionError") ||
-            "Erreur de connexion. Veuillez réessayer.",
-        );
+        setMessage("Erreur de connexion");
       } finally {
         setIsLoading(false);
       }
@@ -82,110 +66,97 @@ export default function VerifyEmailPage() {
   }, [token, email]);
 
   const getStatusIcon = () => {
-    if (isLoading)
-      return <Loader2 className="h-8 w-8 animate-spin text-blue-500" />;
-    if (status === "success")
-      return <CheckCircle className="h-8 w-8 text-green-500" />;
-    if (status === "error") return <XCircle className="h-8 w-8 text-red-500" />;
-    return <Mail className="h-8 w-8 text-blue-500" />;
+    switch (status) {
+      case "success":
+        return <CheckCircle className="h-12 w-12 text-green-500" />;
+      case "error":
+        return <XCircle className="h-12 w-12 text-red-500" />;
+      default:
+        return <Loader2 className="h-12 w-12 text-blue-500 animate-spin" />;
+    }
   };
 
   const getStatusTitle = () => {
-    if (isLoading)
-      return (
-        t("auth.verifyEmail.status.verifying") || "Vérification en cours..."
-      );
-    if (status === "success")
-      return t("auth.verifyEmail.status.verified") || "Email vérifié !";
-    if (status === "error")
-      return t("auth.verifyEmail.status.error") || "Erreur de vérification";
-    return t("auth.verifyEmail.status.pending") || "Vérification de l'email";
+    switch (status) {
+      case "success":
+        return t("auth.verifyEmail.success") || "Email vérifié !";
+      case "error":
+        return t("auth.verifyEmail.error") || "Erreur de vérification";
+      default:
+        return t("auth.verifyEmail.verifying") || "Vérification en cours...";
+    }
   };
 
   const getStatusDescription = () => {
-    if (isLoading)
-      return (
-        t("auth.verifyEmail.description.verifying") ||
-        "Nous vérifions votre adresse email..."
-      );
-    if (status === "success")
-      return (
-        t("auth.verifyEmail.description.verified") ||
-        "Votre compte a été activé avec succès."
-      );
-    if (status === "error")
-      return (
-        t("auth.verifyEmail.description.error") ||
-        "Impossible de vérifier votre email."
-      );
-    return (
-      t("auth.verifyEmail.description.pending") ||
-      "Vérification de votre adresse email"
-    );
+    switch (status) {
+      case "success":
+        return (
+          t("auth.verifyEmail.successMessage") ||
+          "Votre email a été vérifié avec succès. Vous pouvez maintenant vous connecter."
+        );
+      case "error":
+        return message || (t("auth.verifyEmail.errorMessage") || "Une erreur est survenue.");
+      default:
+        return (
+          t("auth.verifyEmail.verifyingMessage") ||
+          "Nous vérifions votre email, veuillez patienter..."
+        );
+    }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 flex items-center justify-center p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">{getStatusIcon()}</div>
-          <CardTitle className="text-2xl font-bold">
-            {getStatusTitle()}
-          </CardTitle>
+          <CardTitle className="text-2xl">{getStatusTitle()}</CardTitle>
           <CardDescription>{getStatusDescription()}</CardDescription>
         </CardHeader>
-
-        <CardContent className="space-y-4">
-          {message && (
-            <Alert
-              className={
-                status === "success"
-                  ? "border-green-200 bg-green-50"
-                  : "border-red-200 bg-red-50"
-              }
-            >
-              <AlertDescription
-                className={
-                  status === "success" ? "text-green-800" : "text-red-800"
-                }
-              >
-                {message}
+        <CardContent>
+          {email && (
+            <Alert className="mb-4">
+              <Mail className="h-4 w-4" />
+              <AlertDescription>
+                {t("auth.verifyEmail.emailAddress") || "Adresse email"}: {email}
               </AlertDescription>
             </Alert>
           )}
 
           {status === "success" && (
-            <div className="space-y-3">
-              <p className="text-sm text-gray-600 text-center">
-                {t("auth.verifyEmail.success.canUseFeatures") ||
-                  "Vous pouvez maintenant accéder à toutes les fonctionnalités d'EcoDeli."}
-              </p>
+            <div className="space-y-4">
               <Button asChild className="w-full">
                 <Link href="/login">
-                  {t("auth.login.loginButton") || "Se connecter"}
+                  {t("auth.verifyEmail.goToLogin") || "Aller à la connexion"}
                 </Link>
               </Button>
             </div>
           )}
 
           {status === "error" && (
-            <div className="space-y-3">
-              <p className="text-sm text-gray-600 text-center">
-                {t("auth.verifyEmail.errors.contactSupport") ||
-                  "Si le problème persiste, contactez notre support."}
-              </p>
-              <div className="flex gap-2">
-                <Button variant="outline" asChild className="flex-1">
-                  <Link href="/login">
-                    {t("auth.verifyEmail.backToLogin") ||
-                      "Retour à la connexion"}
-                  </Link>
-                </Button>
-                <Button asChild className="flex-1">
-                  <Link href="/contact">
-                    {t("common.support") || "Support"}
-                  </Link>
-                </Button>
+            <div className="space-y-4">
+              <Alert variant="destructive">
+                <XCircle className="h-4 w-4" />
+                <AlertDescription>{message}</AlertDescription>
+              </Alert>
+
+              <div className="text-center space-y-2">
+                <p className="text-sm text-gray-600">
+                  {t("auth.verifyEmail.troubleshoot") ||
+                    "Problème avec la vérification ?"}
+                </p>
+                <div className="flex gap-2">
+                  <Button variant="outline" asChild className="flex-1">
+                    <Link href="/login">
+                      {t("auth.verifyEmail.backToLogin") ||
+                        "Retour à la connexion"}
+                    </Link>
+                  </Button>
+                  <Button asChild className="flex-1">
+                    <Link href="/contact">
+                      {t("common.support") || "Support"}
+                    </Link>
+                  </Button>
+                </div>
               </div>
             </div>
           )}
@@ -201,5 +172,20 @@ export default function VerifyEmailPage() {
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+export default function VerifyEmailPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 flex items-center justify-center p-4">
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-2" />
+          <p>Chargement...</p>
+        </div>
+      </div>
+    }>
+      <VerifyEmailContent />
+    </Suspense>
   );
 }
