@@ -182,12 +182,24 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Find the provider record for this user
+    const provider = await prisma.provider.findUnique({
+      where: { userId: session.user.id },
+    });
+
+    if (!provider) {
+      return NextResponse.json(
+        { error: "Provider not found" },
+        { status: 404 },
+      );
+    }
+
     // Créer la candidature/booking
     const booking = await prisma.booking.create({
       data: {
         announcementId,
         clientId: announcement.clientId,
-        providerId: session.user.id,
+        providerId: provider.id,
         status: "PENDING",
         proposedPrice: proposedPrice || announcement.price,
         providerMessage: message,

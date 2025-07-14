@@ -216,8 +216,8 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    const totalAmount = services.reduce((sum, service) => {
-      return sum + service.price * service.bookings.length;
+    const totalAmount = services.reduce((sum: number, service: any) => {
+      return sum + service.basePrice * service.bookings.length;
     }, 0);
 
     // Create the invoice
@@ -229,7 +229,7 @@ export async function POST(request: NextRequest) {
         status: "SENT",
         totalAmount,
         totalHours: services.reduce(
-          (sum, service) =>
+          (sum: number, service: any) =>
             sum + (service.duration || 0) * service.bookings.length,
           0,
         ),
@@ -256,7 +256,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: "Validation error", details: error.errors },
+        { error: "Validation error", details: error.issues },
         { status: 400 },
       );
     }

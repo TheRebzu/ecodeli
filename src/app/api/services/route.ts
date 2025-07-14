@@ -8,16 +8,17 @@ const serviceSchema = z.object({
   description: z
     .string()
     .min(10, "La description doit faire au moins 10 caractères"),
-  category: z.enum([
-    "CLEANING",
-    "GARDENING",
-    "HANDYMAN",
-    "TUTORING",
-    "HEALTHCARE",
-    "BEAUTY",
+  type: z.enum([
+    "PERSON_TRANSPORT",
+    "AIRPORT_TRANSFER",
+    "SHOPPING",
+    "INTERNATIONAL_PURCHASE",
+    "PET_CARE",
+    "HOME_SERVICE",
+    "CART_DROP",
     "OTHER",
   ]),
-  price: z.number().positive("Le prix doit être positif"),
+  basePrice: z.number().positive("Le prix doit être positif"),
   duration: z.number().positive("La durée doit être positive"),
 });
 
@@ -27,7 +28,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get("page") || "1");
     const limit = parseInt(searchParams.get("limit") || "12");
-    const category = searchParams.get("category");
+    const type = searchParams.get("type");
     const search = searchParams.get("search");
     const sortBy = searchParams.get("sortBy") || "name";
     const sortOrder = searchParams.get("sortOrder") || "asc";
@@ -40,8 +41,8 @@ export async function GET(request: NextRequest) {
       isActive: true,
     };
 
-    if (category) {
-      whereConditions.category = category;
+    if (type) {
+      whereConditions.type = type;
     }
 
     if (search) {
@@ -64,11 +65,8 @@ export async function GET(request: NextRequest) {
     // Construire l'ordre de tri
     let orderBy: any = {};
     switch (sortBy) {
-      case "price":
-        orderBy.price = sortOrder === "desc" ? "desc" : "asc";
-        break;
-      case "rating":
-        orderBy.averageRating = sortOrder === "desc" ? "desc" : "asc";
+      case "basePrice":
+        orderBy.basePrice = sortOrder === "desc" ? "desc" : "asc";
         break;
       case "duration":
         orderBy.duration = sortOrder === "desc" ? "desc" : "asc";
@@ -95,11 +93,6 @@ export async function GET(request: NextRequest) {
               },
             },
           },
-          reviews: {
-            select: {
-              rating: true,
-            },
-          },
         },
         orderBy,
         skip,
@@ -110,29 +103,36 @@ export async function GET(request: NextRequest) {
       }),
     ]);
 
-    // Calculer les moyennes et totaux des avis
-    const servicesWithStats = services.map((service) => {
-      const totalReviews = service.reviews.length;
-      const averageRating =
-        totalReviews > 0
-          ? service.reviews.reduce((sum, review) => sum + review.rating, 0) /
-            totalReviews
-          : 0;
-
+    // Transformer les services pour l'interface
+    const servicesWithStats = services.map((service: {
+      id: string;
+      name: string;
+      description: string;
+      type: string;
+      basePrice: number;
+      duration: number | null;
+      isActive: boolean;
+      provider: {
+        id: string;
+        profile: any;
+      };
+      createdAt: Date;
+      updatedAt: Date;
+    }) => {
       return {
         id: service.id,
         name: service.name,
         description: service.description,
-        category: service.category,
-        price: service.price,
+        type: service.type,
+        basePrice: service.basePrice,
         duration: service.duration,
         isActive: service.isActive,
         provider: {
           id: service.provider.id,
           profile: service.provider.profile,
         },
-        averageRating,
-        totalReviews,
+        averageRating: 0, // Placeholder - no reviews relation in current schema
+        totalReviews: 0, // Placeholder - no reviews relation in current schema
         createdAt: service.createdAt,
         updatedAt: service.updatedAt,
       };
@@ -199,7 +199,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: "Validation error", details: error.errors },
+        { error: "Validation error", details: error.issues },
         { status: 400 },
       );
     }

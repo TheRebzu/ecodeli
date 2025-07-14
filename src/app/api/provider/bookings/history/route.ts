@@ -16,13 +16,22 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
+    // Find the provider record for this user
+    const provider = await prisma.provider.findUnique({
+      where: { userId: userId },
+    });
+
+    if (!provider) {
+      return NextResponse.json({ error: "Provider not found" }, { status: 404 });
+    }
+
     // Get historical bookings (completed, cancelled, or past scheduled date)
     const now = new Date();
 
     const bookings = await prisma.booking.findMany({
       where: {
         service: {
-          providerId: userId,
+          providerId: provider.id,
         },
         OR: [
           { status: "COMPLETED" },

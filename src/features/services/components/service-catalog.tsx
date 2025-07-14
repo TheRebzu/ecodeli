@@ -16,21 +16,23 @@ import { useTranslations } from "next-intl";
 import { Search, Filter, Star, Clock, MapPin, User } from "lucide-react";
 // Define ServiceCategory locally to avoid Prisma client import on client side
 type ServiceCategory =
-  | "CLEANING"
-  | "GARDENING"
-  | "HANDYMAN"
-  | "TUTORING"
-  | "HEALTHCARE"
-  | "BEAUTY"
+  | "PERSON_TRANSPORT"
+  | "AIRPORT_TRANSFER"
+  | "SHOPPING"
+  | "INTERNATIONAL_PURCHASE"
+  | "PET_CARE"
+  | "HOME_SERVICE"
+  | "CART_DROP"
   | "OTHER";
 
 const ServiceCategoryValues: ServiceCategory[] = [
-  "CLEANING",
-  "GARDENING",
-  "HANDYMAN",
-  "TUTORING",
-  "HEALTHCARE",
-  "BEAUTY",
+  "PERSON_TRANSPORT",
+  "AIRPORT_TRANSFER",
+  "SHOPPING",
+  "INTERNATIONAL_PURCHASE",
+  "PET_CARE",
+  "HOME_SERVICE",
+  "CART_DROP",
   "OTHER",
 ];
 
@@ -38,8 +40,8 @@ interface Service {
   id: string;
   name: string;
   description: string;
-  category: ServiceCategory;
-  price: number;
+  type: ServiceCategory;
+  basePrice: number;
   duration: number;
   provider: {
     id: string;
@@ -117,7 +119,7 @@ export function ServiceCatalog({ onServiceSelect }: ServiceCatalogProps) {
     // Filter by category
     if (selectedCategory) {
       filtered = filtered.filter(
-        (service) => service.category === selectedCategory,
+        (service) => service.type === selectedCategory,
       );
     }
 
@@ -125,9 +127,9 @@ export function ServiceCatalog({ onServiceSelect }: ServiceCatalogProps) {
     filtered.sort((a, b) => {
       switch (sortBy) {
         case "price":
-          return a.price - b.price;
+          return a.basePrice - b.basePrice;
         case "price-desc":
-          return b.price - a.price;
+          return b.basePrice - a.basePrice;
         case "rating":
           return b.averageRating - a.averageRating;
         case "duration":
@@ -143,12 +145,13 @@ export function ServiceCatalog({ onServiceSelect }: ServiceCatalogProps) {
 
   const getCategoryLabel = (category: ServiceCategory) => {
     const categoryLabels: Record<ServiceCategory, string> = {
-      CLEANING: t("categories.cleaning"),
-      GARDENING: t("categories.gardening"),
-      HANDYMAN: t("categories.handyman"),
-      TUTORING: t("categories.tutoring"),
-      HEALTHCARE: t("categories.healthcare"),
-      BEAUTY: t("categories.beauty"),
+      PERSON_TRANSPORT: t("categories.person_transport"),
+      AIRPORT_TRANSFER: t("categories.airport_transfer"),
+      SHOPPING: t("categories.shopping"),
+      INTERNATIONAL_PURCHASE: t("categories.international_purchase"),
+      PET_CARE: t("categories.pet_care"),
+      HOME_SERVICE: t("categories.home_service"),
+      CART_DROP: t("categories.cart_drop"),
       OTHER: t("categories.other"),
     };
     return categoryLabels[category] || category;
@@ -156,12 +159,13 @@ export function ServiceCatalog({ onServiceSelect }: ServiceCatalogProps) {
 
   const getCategoryColor = (category: ServiceCategory) => {
     const colors: Record<ServiceCategory, string> = {
-      CLEANING: "bg-blue-100 text-blue-800",
-      GARDENING: "bg-green-100 text-green-800",
-      HANDYMAN: "bg-orange-100 text-orange-800",
-      TUTORING: "bg-purple-100 text-purple-800",
-      HEALTHCARE: "bg-red-100 text-red-800",
-      BEAUTY: "bg-pink-100 text-pink-800",
+      PERSON_TRANSPORT: "bg-blue-100 text-blue-800",
+      AIRPORT_TRANSFER: "bg-green-100 text-green-800",
+      SHOPPING: "bg-orange-100 text-orange-800",
+      INTERNATIONAL_PURCHASE: "bg-purple-100 text-purple-800",
+      PET_CARE: "bg-red-100 text-red-800",
+      HOME_SERVICE: "bg-pink-100 text-pink-800",
+      CART_DROP: "bg-gray-100 text-gray-800",
       OTHER: "bg-gray-100 text-gray-800",
     };
     return colors[category] || "bg-gray-100 text-gray-800";
@@ -262,8 +266,8 @@ export function ServiceCatalog({ onServiceSelect }: ServiceCatalogProps) {
               <CardHeader>
                 <div className="flex justify-between items-start">
                   <CardTitle className="text-lg">{service.name}</CardTitle>
-                  <Badge className={getCategoryColor(service.category)}>
-                    {getCategoryLabel(service.category)}
+                  <Badge className={getCategoryColor(service.type)}>
+                    {getCategoryLabel(service.type)}
                   </Badge>
                 </div>
               </CardHeader>
@@ -308,7 +312,7 @@ export function ServiceCatalog({ onServiceSelect }: ServiceCatalogProps) {
 
                 <div className="flex items-center justify-between pt-2 border-t">
                   <span className="text-2xl font-bold text-primary">
-                    {service.price}€
+                    {service.basePrice}€
                   </span>
                   <Button
                     onClick={() => handleServiceSelect(service)}

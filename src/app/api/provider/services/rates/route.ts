@@ -16,27 +16,44 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
+    // Find the provider record for this user
+    const provider = await prisma.provider.findUnique({
+      where: { userId: userId },
+    });
+
+    if (!provider) {
+      return NextResponse.json({ error: "Provider not found" }, { status: 404 });
+    }
+
     // For now, return services as rates since we don't have a separate rates table
     const services = await prisma.service.findMany({
-      where: { providerId: userId },
+      where: { providerId: provider.id },
       select: {
         id: true,
         name: true,
-        price: true,
+        basePrice: true,
         duration: true,
         isActive: true,
-        category: true,
+        type: true,
         description: true,
       },
     });
 
     // Transform services to match rates interface
-    const rates = services.map((service) => ({
+    const rates = services.map((service: {
+      id: string;
+      name: string;
+      basePrice: number;
+      duration: number | null;
+      isActive: boolean;
+      type: string;
+      description: string;
+    }) => ({
       id: service.id,
       serviceName: service.name,
-      basePrice: service.price,
+      basePrice: service.basePrice,
       hourlyRate:
-        service.duration > 0 ? service.price / (service.duration / 60) : 0,
+        service.duration && service.duration > 0 ? service.basePrice / (service.duration / 60) : 0,
       currency: "EUR",
       minimumDuration: service.duration || 30,
       maximumDuration: service.duration ? service.duration * 2 : 480,
@@ -76,14 +93,23 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Find the provider record for this user
+    const provider = await prisma.provider.findUnique({
+      where: { userId: userId },
+    });
+
+    if (!provider) {
+      return NextResponse.json({ error: "Provider not found" }, { status: 404 });
+    }
+
     // Create a new service that represents this rate
     const newService = await prisma.service.create({
       data: {
-        providerId: userId,
+        providerId: provider.id, // Use the provider's id, not the user's id
         name: serviceName,
         description: `Service tarifé à ${basePrice}€`,
-        category: "OTHER",
-        price: basePrice,
+        type: "OTHER", // Required field
+        basePrice: basePrice,
         duration: minimumDuration || 30,
         isActive: true,
       },
@@ -93,7 +119,7 @@ export async function POST(request: NextRequest) {
     const newRate = {
       id: newService.id,
       serviceName: newService.name,
-      basePrice: newService.price,
+      basePrice: newService.basePrice,
       hourlyRate: hourlyRate || 0,
       currency: "EUR",
       minimumDuration: newService.duration,

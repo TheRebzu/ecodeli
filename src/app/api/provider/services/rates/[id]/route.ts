@@ -22,11 +22,20 @@ export async function PUT(
       isActive,
     } = body;
 
-    // Verify the service belongs to the current user
+    // Find the provider record for this user
+    const provider = await prisma.provider.findUnique({
+      where: { userId: currentUser.id },
+    });
+
+    if (!provider) {
+      return NextResponse.json({ error: "Provider not found" }, { status: 404 });
+    }
+
+    // Verify the service belongs to the current user's provider
     const existingService = await prisma.service.findFirst({
       where: {
         id: id,
-        providerId: currentUser.id,
+        providerId: provider.id,
       },
     });
 
@@ -39,7 +48,7 @@ export async function PUT(
       where: { id: id },
       data: {
         name: serviceName || existingService.name,
-        price: basePrice || existingService.price,
+        basePrice: basePrice || existingService.basePrice,
         duration: minimumDuration || existingService.duration,
         isActive: isActive !== undefined ? isActive : existingService.isActive,
       },
@@ -49,15 +58,15 @@ export async function PUT(
     const updatedRate = {
       id: updatedService.id,
       serviceName: updatedService.name,
-      basePrice: updatedService.price,
+      basePrice: updatedService.basePrice,
       hourlyRate:
         hourlyRate ||
-        (updatedService.duration > 0
-          ? updatedService.price / (updatedService.duration / 60)
+        (updatedService.duration && updatedService.duration > 0
+          ? updatedService.basePrice / (updatedService.duration / 60)
           : 0),
       currency: "EUR",
       minimumDuration: updatedService.duration,
-      maximumDuration: maximumDuration || updatedService.duration * 2,
+      maximumDuration: maximumDuration || (updatedService.duration ? updatedService.duration * 2 : 480),
       isActive: updatedService.isActive,
       specialRates: [],
     };
@@ -83,11 +92,20 @@ export async function DELETE(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Verify the service belongs to the current user
+    // Find the provider record for this user
+    const provider = await prisma.provider.findUnique({
+      where: { userId: currentUser.id },
+    });
+
+    if (!provider) {
+      return NextResponse.json({ error: "Provider not found" }, { status: 404 });
+    }
+
+    // Verify the service belongs to the current user's provider
     const existingService = await prisma.service.findFirst({
       where: {
         id: id,
-        providerId: currentUser.id,
+        providerId: provider.id,
       },
     });
 

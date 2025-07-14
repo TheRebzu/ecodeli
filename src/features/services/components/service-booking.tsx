@@ -38,8 +38,8 @@ interface Service {
   id: string;
   name: string;
   description: string;
-  category: string;
-  price: number;
+  type: string;
+  basePrice: number;
   duration: number;
   provider: {
     id: string;
@@ -261,9 +261,9 @@ export function ServiceBooking({
               </div>
 
               <div className="flex items-center justify-between pt-2 border-t">
-                <Badge variant="secondary">{service.category}</Badge>
+                <Badge variant="secondary">{service.type}</Badge>
                 <span className="text-2xl font-bold text-primary">
-                  {service.price}€
+                  {service.basePrice}€
                 </span>
               </div>
             </CardContent>
@@ -356,7 +356,7 @@ export function ServiceBooking({
                 <div className="flex justify-between items-center">
                   <span className="font-medium">{t("total_price")}</span>
                   <span className="text-2xl font-bold text-primary">
-                    {service.price}€
+                    {service.basePrice}€
                   </span>
                 </div>
                 <p className="text-sm text-muted-foreground mt-1">

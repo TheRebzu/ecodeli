@@ -16,6 +16,15 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
+    // Find the provider record for this user
+    const provider = await prisma.provider.findUnique({
+      where: { userId: userId },
+    });
+
+    if (!provider) {
+      return NextResponse.json({ error: "Provider not found" }, { status: 404 });
+    }
+
     // Calculate stats for the current month
     const startOfMonth = new Date();
     startOfMonth.setDate(1);
@@ -27,11 +36,11 @@ export async function GET(request: NextRequest) {
     // Get total and active services count
     const [totalServices, activeServices] = await Promise.all([
       prisma.service.count({
-        where: { providerId: userId },
+        where: { providerId: provider.id },
       }),
       prisma.service.count({
         where: {
-          providerId: userId,
+          providerId: provider.id,
           isActive: true,
         },
       }),
@@ -41,7 +50,7 @@ export async function GET(request: NextRequest) {
     const ratingsAggregate = await prisma.booking.aggregate({
       where: {
         service: {
-          providerId: userId,
+          providerId: provider.id,
         },
         rating: {
           not: null,
@@ -56,7 +65,7 @@ export async function GET(request: NextRequest) {
     const monthlyBookings = await prisma.booking.count({
       where: {
         service: {
-          providerId: userId,
+          providerId: provider.id,
         },
         createdAt: {
           gte: startOfMonth,
@@ -69,7 +78,7 @@ export async function GET(request: NextRequest) {
     const revenueAggregate = await prisma.booking.aggregate({
       where: {
         service: {
-          providerId: userId,
+          providerId: provider.id,
         },
         status: "COMPLETED",
         createdAt: {

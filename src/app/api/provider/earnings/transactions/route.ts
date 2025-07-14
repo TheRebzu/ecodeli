@@ -21,6 +21,15 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
+    // Find the provider record for this user
+    const provider = await prisma.provider.findUnique({
+      where: { userId: userId },
+    });
+
+    if (!provider) {
+      return NextResponse.json({ error: "Provider not found" }, { status: 404 });
+    }
+
     const limit = 20;
     const offset = (page - 1) * limit;
 
@@ -59,7 +68,7 @@ export async function GET(request: NextRequest) {
         {
           // Bookings as payment transactions
           service: {
-            providerId: userId,
+            providerId: provider.id,
           },
           status: "COMPLETED",
         },
