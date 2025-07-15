@@ -30,6 +30,7 @@ const ticketFiltersSchema = z.object({
   category: z.string().optional(),
   priority: z.string().optional(),
   assignedToId: z.string().optional(),
+  authorId: z.string().optional(),
   dateFrom: z
     .string()
     .transform((str) => (str ? new Date(str) : undefined))
@@ -89,7 +90,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           error: "Données invalides",
-          details: error.errors.map((e) => ({
+          details: error.issues.map((e) => ({
             field: e.path.join("."),
             message: e.message,
           })),
@@ -121,15 +122,21 @@ export async function GET(request: NextRequest) {
     }
 
     const { searchParams } = new URL(request.url);
+    // Utilitaire pour garantir string ou undefined
+    const getString = (key: string) => {
+      const value = searchParams.get(key);
+      return typeof value === "string" && value.length > 0 ? value : undefined;
+    };
     const filters = ticketFiltersSchema.parse({
-      status: searchParams.get("status"),
-      category: searchParams.get("category"),
-      priority: searchParams.get("priority"),
-      assignedToId: searchParams.get("assignedToId"),
-      dateFrom: searchParams.get("dateFrom"),
-      dateTo: searchParams.get("dateTo"),
-      page: searchParams.get("page"),
-      limit: searchParams.get("limit"),
+      status: getString("status"),
+      category: getString("category"),
+      priority: getString("priority"),
+      assignedToId: getString("assignedToId"),
+      authorId: getString("authorId"),
+      dateFrom: getString("dateFrom"),
+      dateTo: getString("dateTo"),
+      page: getString("page"),
+      limit: getString("limit"),
     });
 
     // Si l'utilisateur n'est pas admin, ne montrer que ses tickets
@@ -154,7 +161,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(
         {
           error: "Paramètres invalides",
-          details: error.errors.map((e) => ({
+          details: error.issues.map((e) => ({
             field: e.path.join("."),
             message: e.message,
           })),
