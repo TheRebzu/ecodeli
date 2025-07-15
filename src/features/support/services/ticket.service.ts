@@ -393,11 +393,11 @@ export class TicketService {
 
       for (const agent of supportTeam) {
         await NotificationService.createNotification({
-          recipientId: agent.id,
+          userId: agent.id,
           type: "NEW_SUPPORT_TICKET",
           title: `Nouveau ticket: ${ticket.title}`,
-          content: `Catégorie: ${ticket.category} - Priorité: ${ticket.priority}`,
-          metadata: { ticketId: ticket.id },
+          message: `Catégorie: ${ticket.category} - Priorité: ${ticket.priority}. Un nouveau ticket support a été créé.`,
+          data: { ticketId: ticket.id },
         });
       }
     } catch (error) {

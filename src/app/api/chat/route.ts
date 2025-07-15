@@ -2,16 +2,16 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/db';
-import { ChatContextType } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 
 const chatMessageSchema = z.object({
-  contextType: z.nativeEnum(ChatContextType),
+  contextType: z.enum(['DELIVERY','BOOKING','SUPPORT','CONTRACT','GENERAL']),
   contextId: z.string().min(1),
   message: z.string().min(1, 'Message requis'),
 });
 
 // Helper: vérifie l'accès au contexte (ex: livraison)
-async function canAccessContext(user, contextType: ChatContextType, contextId: string) {
+async function canAccessContext(user, contextType: string, contextId: string) {
   if (user.role === 'ADMIN') return true;
   if (contextType === 'DELIVERY') {
     const delivery = await prisma.delivery.findUnique({
@@ -23,7 +23,17 @@ async function canAccessContext(user, contextType: ChatContextType, contextId: s
     if (user.id === delivery.announcement.authorId) return true;
     return false;
   }
-  // TODO: autres contextes (BOOKING, SUPPORT, ...)
+  if (contextType === 'SUPPORT') {
+    const ticket = await prisma.supportTicket.findUnique({
+      where: { id: contextId },
+      select: { authorId: true, assignedToId: true },
+    });
+    if (!ticket) return false;
+    if (user.id === ticket.authorId) return true;
+    if (user.id === ticket.assignedToId) return true;
+    return false;
+  }
+  // TODO: autres contextes (BOOKING, ...)
   return false;
 }
 
@@ -74,7 +84,7 @@ export async function GET(req: NextRequest) {
     }
     const user = session.user;
     const { searchParams } = new URL(req.url);
-    const contextType = searchParams.get('contextType') as ChatContextType;
+    const contextType = searchParams.get('contextType') as string;
     const contextId = searchParams.get('contextId') || '';
     if (!contextType || !contextId) {
       return NextResponse.json({ error: 'contextType et contextId requis' }, { status: 400 });

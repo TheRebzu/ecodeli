@@ -39,6 +39,7 @@ import {
   AlertCircle,
   MessageCircle,
 } from "lucide-react";
+import ChatBox from '@/components/chat/ChatBox';
 
 interface SupportTicket {
   id: string;
@@ -126,6 +127,16 @@ const priorityLevels = [
   { value: "urgent", label: "Urgente", color: "bg-red-100 text-red-800" },
 ];
 
+// Mapping front → backend pour la catégorie
+const categoryMap: Record<string, string> = {
+  delivery: 'DELIVERY_ISSUE',
+  service: 'FEATURE_REQUEST',
+  payment: 'PAYMENT_PROBLEM',
+  account: 'ACCOUNT_ACCESS',
+  technical: 'TECHNICAL_SUPPORT',
+  other: 'GENERAL_INQUIRY',
+};
+
 export default function ClientSupportPage() {
   const { user } = useAuth();
   const t = useTranslations("client.support");
@@ -134,6 +145,7 @@ export default function ClientSupportPage() {
   const [expandedFAQ, setExpandedFAQ] = useState<string | null>(null);
   const [showTicketForm, setShowTicketForm] = useState(false);
   const [tickets, setTickets] = useState<SupportTicket[]>([]);
+  const [activeChatTicket, setActiveChatTicket] = useState<SupportTicket | null>(null);
 
   const [ticketForm, setTicketForm] = useState({
     subject: "",
@@ -157,16 +169,19 @@ export default function ClientSupportPage() {
 
   const handleCreateTicket = async () => {
     try {
-      const response = await fetch("/api/client/support/tickets", {
+      const response = await fetch("/api/support/tickets", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          ...ticketForm,
-          clientId: user?.id,
+          title: ticketForm.subject,
+          description: ticketForm.description,
+          category: categoryMap[ticketForm.category] || 'GENERAL_INQUIRY',
+          priority: ticketForm.priority.toUpperCase(),
         }),
       });
 
       if (response.ok) {
+        const data = await response.json();
         setShowTicketForm(false);
         setTicketForm({
           subject: "",
@@ -174,7 +189,20 @@ export default function ClientSupportPage() {
           priority: "medium",
           description: "",
         });
-        // Reload tickets
+        // Ajoute le ticket à la liste et ouvre le chat
+        const newTicket = {
+          id: data.ticket.id,
+          subject: data.ticket.title,
+          category: data.ticket.category?.toLowerCase() || ticketForm.category,
+          priority: data.ticket.priority?.toLowerCase() || ticketForm.priority,
+          status: data.ticket.status?.toLowerCase() || 'open',
+          description: data.ticket.description || ticketForm.description,
+          createdAt: data.ticket.createdAt,
+          updatedAt: data.ticket.updatedAt || data.ticket.createdAt,
+          responseCount: 0,
+        } as SupportTicket;
+        setTickets((prev) => [newTicket, ...prev]);
+        setActiveChatTicket(newTicket);
       }
     } catch (error) {
       console.error("Error creating ticket:", error);
@@ -204,6 +232,11 @@ export default function ClientSupportPage() {
         {config?.label}
       </Badge>
     );
+  };
+
+  // Le bouton "Démarrer le chat" ouvre simplement le formulaire de ticket
+  const handleStartChat = () => {
+    setShowTicketForm(true);
   };
 
   return (
@@ -239,7 +272,7 @@ export default function ClientSupportPage() {
               <br />
               7j/7, 24h/24
             </p>
-            <Button size="sm">Démarrer le chat</Button>
+            <Button size="sm" onClick={handleStartChat}>Démarrer le chat</Button>
           </CardContent>
         </Card>
 
@@ -258,6 +291,23 @@ export default function ClientSupportPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Affichage du chat direct si actif */}
+      {activeChatTicket && (
+        <div className="my-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Chat direct avec le support</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ChatBox contextType="SUPPORT" contextId={activeChatTicket.id} />
+              <Button className="mt-4" variant="outline" onClick={() => setActiveChatTicket(null)}>
+                Fermer le chat
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
       <Tabs defaultValue="faq" className="space-y-6">
         <TabsList className="grid w-full grid-cols-3">

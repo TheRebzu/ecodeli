@@ -155,6 +155,15 @@ export function AdminSidebar({
       category: "support",
     },
 
+    // ===== TICKETS SUPPORT =====
+    {
+      key: "support-tickets",
+      label: "Tickets Support",
+      href: "/admin/support-tickets",
+      icon: <MessageSquare className="h-4 w-4" />,
+      category: "support",
+    },
+
     // ===== MODÉRATION =====
     {
       key: "moderation",
