@@ -10,8 +10,8 @@ import dagger.hilt.android.HiltAndroidApp
 class EcoDeliApplication : Application() {
     
     companion object {
-        const val ONESIGNAL_APP_ID = "YOUR_ONESIGNAL_APP_ID"
-        const val STRIPE_PUBLIC_KEY = "YOUR_STRIPE_PUBLIC_KEY"
+        const val ONESIGNAL_APP_ID = "your-onesignal-app-id" // À configurer
+        const val STRIPE_PUBLIC_KEY = "pk_live_51..." // À configurer avec la vraie clé
     }
     
     override fun onCreate() {

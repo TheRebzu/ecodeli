@@ -1,0 +1,61 @@
+package com.ecodeli.mobile.core.interceptors
+
+import com.ecodeli.mobile.core.config.AppConfig
+import com.ecodeli.mobile.core.data.local.PreferencesManager
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
+import okhttp3.Interceptor
+import okhttp3.Response
+import javax.inject.Inject
+
+class ApiInterceptor @Inject constructor(
+    private val preferencesManager: PreferencesManager
+) : Interceptor {
+    
+    override fun intercept(chain: Interceptor.Chain): Response {
+        val originalRequest = chain.request()
+        
+        // Ajouter les headers personnalisés
+        val requestBuilder = originalRequest.newBuilder()
+            .addHeader(AppConfig.Headers.USER_AGENT, AppConfig.Headers.USER_AGENT)
+            .addHeader(AppConfig.Headers.APP_VERSION, AppConfig.APP_VERSION)
+            .addHeader(AppConfig.Headers.PLATFORM, "Android")
+            .addHeader("Accept", "application/json")
+            .addHeader("Content-Type", "application/json")
+            .addHeader("X-Requested-With", "XMLHttpRequest")
+        
+        // Ajouter le token d'authentification si disponible
+        val token = runBlocking {
+            preferencesManager.authToken.first()
+        }
+        
+        token?.let {
+            requestBuilder.addHeader("Authorization", "Bearer $it")
+        }
+        
+        // Ajouter l'ID du device si disponible
+        val deviceId = android.provider.Settings.Secure.getString(
+            null, // Context non disponible ici
+            android.provider.Settings.Secure.ANDROID_ID
+        )
+        
+        deviceId?.let {
+            requestBuilder.addHeader(AppConfig.Headers.DEVICE_ID, it)
+        }
+        
+        val request = requestBuilder.build()
+        
+        // Exécuter la requête
+        val response = chain.proceed(request)
+        
+        // Gérer les réponses d'authentification
+        if (response.code == 401) {
+            // Token expiré, nettoyer les données d'auth
+            runBlocking {
+                preferencesManager.clearAuthData()
+            }
+        }
+        
+        return response
+    }
+}

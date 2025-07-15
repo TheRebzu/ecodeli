@@ -1,0 +1,30 @@
+# Configuration locale EcoDeli Mobile
+# Copier ce fichier vers local.properties et remplir avec les vraies valeurs
+
+# SDK Android
+sdk.dir=/path/to/android/sdk
+
+# API EcoDeli
+API_BASE_URL=https://ecodeli.me/
+WEB_BASE_URL=https://ecodeli.me/
+
+# Google Maps API
+GOOGLE_MAPS_API_KEY=your_google_maps_api_key_here
+
+# Stripe
+STRIPE_PUBLIC_KEY=pk_live_51...your_stripe_public_key_here
+
+# OneSignal
+ONESIGNAL_APP_ID=your-onesignal-app-id-here
+ONESIGNAL_REST_API_KEY=your-onesignal-rest-api-key-here
+
+# Configuration de développement
+ENABLE_DEBUG_LOGGING=true
+ENABLE_NETWORK_LOGGING=true
+ENABLE_CRASH_REPORTING=false
+
+# Configuration release
+KEYSTORE_FILE=ecodeli-release.keystore
+KEYSTORE_PASSWORD=your-keystore-password
+KEY_ALIAS=ecodeli-mobile
+KEY_PASSWORD=your-key-password
