@@ -83,7 +83,7 @@ export class LabelExtractor {
       const frMessages = await import("@/messages/fr.json");
       this.collectKeys(frMessages.default, "");
     } catch (error) {
-      console.warn("Impossible de charger les clés existantes:", error);
+      // Suppression du log
     }
   }
 
@@ -358,10 +358,6 @@ export class LabelExtractor {
     // Sauvegarder le rapport Markdown
     const reportPath = path.join(this.config.outputDir, "extraction-report.md");
     fs.writeFileSync(reportPath, this.generateReport());
-
-    console.log(`Results saved to:`);
-    console.log(`   - ${jsonPath}`);
-    console.log(`   - ${reportPath}`);
   }
 }
 

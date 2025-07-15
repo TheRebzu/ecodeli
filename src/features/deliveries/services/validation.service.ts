@@ -183,7 +183,6 @@ export class DeliveryValidationService {
         earnings: result.earnings,
       };
     } catch (error) {
-      console.error("Erreur lors de la validation:", error);
       return {
         success: false,
         message: "Erreur lors de la validation de la livraison",
@@ -221,7 +220,6 @@ export class DeliveryValidationService {
 
       return validations;
     } catch (error) {
-      console.error("Erreur récupération historique:", error);
       return [];
     }
   }
@@ -255,7 +253,6 @@ export class DeliveryValidationService {
 
       return new Date() <= maxValidationTime;
     } catch (error) {
-      console.error("Erreur vérification code:", error);
       return false;
     }
   }
@@ -318,7 +315,6 @@ export class DeliveryValidationService {
         delivery: updatedDelivery,
       };
     } catch (error) {
-      console.error("Erreur mise à jour statut:", error);
       return {
         success: false,
         message: "Erreur lors de la mise à jour du statut",

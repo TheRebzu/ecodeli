@@ -97,7 +97,6 @@ export class InvoiceGeneratorService {
 
       return pdfUrl;
     } catch (error) {
-      console.error("Erreur génération facture annonce:", error);
       throw error;
     }
   }
@@ -165,7 +164,6 @@ export class InvoiceGeneratorService {
 
       return pdfUrl;
     } catch (error) {
-      console.error("Erreur génération facture prestataire:", error);
       throw error;
     }
   }
@@ -227,7 +225,6 @@ export class InvoiceGeneratorService {
 
       return pdfUrl;
     } catch (error) {
-      console.error("Erreur génération facture livraison:", error);
       throw error;
     }
   }
@@ -249,7 +246,6 @@ export class InvoiceGeneratorService {
         },
       });
     } catch (error) {
-      console.error("Erreur archivage facture:", error);
       throw error;
     }
   }
@@ -506,11 +502,8 @@ export class InvoiceGeneratorService {
       // URL relative pour accéder au fichier
       const pdfUrl = `/uploads/invoices/${fileName}`;
 
-      console.log(`📄 PDF sauvegardé: ${fileName} (${buffer.length} bytes)`);
-
       return pdfUrl;
     } catch (error) {
-      console.error("Erreur sauvegarde PDF:", error);
       throw error;
     }
   }
@@ -570,7 +563,6 @@ export class InvoiceGeneratorService {
 
       return pdfUrl;
     } catch (error) {
-      console.error("Erreur génération contrat:", error);
       throw error;
     }
   }

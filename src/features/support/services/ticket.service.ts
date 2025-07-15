@@ -84,7 +84,6 @@ export class TicketService {
 
       return ticket;
     } catch (error) {
-      console.error("Erreur lors de la création du ticket:", error);
       throw new Error("Impossible de créer le ticket");
     }
   }
@@ -146,7 +145,6 @@ export class TicketService {
         },
       };
     } catch (error) {
-      console.error("Erreur lors de la récupération des tickets:", error);
       throw new Error("Impossible de récupérer les tickets");
     }
   }
@@ -220,7 +218,6 @@ export class TicketService {
 
       return message;
     } catch (error) {
-      console.error("Erreur lors de la réponse au ticket:", error);
       throw new Error("Impossible de répondre au ticket");
     }
   }
@@ -272,7 +269,6 @@ export class TicketService {
 
       return ticket;
     } catch (error) {
-      console.error("Erreur lors de la résolution du ticket:", error);
       throw new Error("Impossible de résoudre le ticket");
     }
   }
@@ -379,7 +375,7 @@ export class TicketService {
         data: { assignedToId: availableAgent.id },
       });
     } catch (error) {
-      console.error("Erreur lors de l'auto-assignment:", error);
+      // console.error("Erreur lors de l'auto-assignment:", error);
     }
   }
 
@@ -405,7 +401,7 @@ export class TicketService {
         });
       }
     } catch (error) {
-      console.error("Erreur lors de la notification support:", error);
+      // console.error("Erreur lors de la notification support:", error);
     }
   }
 
@@ -429,7 +425,7 @@ export class TicketService {
         metadata: { ticketId },
       });
     } catch (error) {
-      console.error("Erreur lors de l'envoi de l'enquête:", error);
+      // console.error("Erreur lors de l'envoi de l'enquête:", error);
     }
   }
 
@@ -453,7 +449,7 @@ export class TicketService {
         },
       });
     } catch (error) {
-      console.error("Erreur lors de la mise à jour des métriques:", error);
+      // console.error("Erreur lors de la mise à jour des métriques:", error);
     }
   }
 
@@ -503,7 +499,6 @@ export class TicketService {
         satisfactionScore: avgSatisfaction._avg.rating || 0,
       };
     } catch (error) {
-      console.error("Erreur lors du calcul des statistiques:", error);
       throw new Error("Impossible de calculer les statistiques");
     }
   }

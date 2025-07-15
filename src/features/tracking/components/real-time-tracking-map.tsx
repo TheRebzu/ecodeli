@@ -110,7 +110,6 @@ export function RealTimeTrackingMap({
       setDelivery(data.delivery);
       setLastUpdate(new Date());
     } catch (error) {
-      console.error("Error loading delivery info:", error);
       setError(error instanceof Error ? error.message : "Erreur de chargement");
     } finally {
       setIsLoading(false);
@@ -186,11 +185,6 @@ export function RealTimeTrackingMap({
 
     // Mettre à jour les marqueurs de la carte
     // En production, utiliser l'API de la carte pour mettre à jour les marqueurs
-    console.log("Updating map markers:", {
-      currentPosition: delivery.currentPosition,
-      pickup: delivery.pickupLocation.coordinates,
-      delivery: delivery.deliveryLocation.coordinates,
-    });
   };
 
   const getStatusInfo = (status: string) => {

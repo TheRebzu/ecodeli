@@ -144,7 +144,6 @@ export class StripeService {
         status: paymentIntent.status,
       };
     } catch (error) {
-      console.error("Erreur création PaymentIntent:", error);
       throw new Error("Impossible de créer le paiement");
     }
   }
@@ -218,7 +217,6 @@ export class StripeService {
         status: paymentIntent.status,
       };
     } catch (error) {
-      console.error("Erreur création PaymentIntent abonnement:", error);
       throw error;
     }
   }
@@ -325,7 +323,6 @@ export class StripeService {
         status: paymentIntent.status,
       };
     } catch (error) {
-      console.error("Erreur création PaymentIntent réservation:", error);
       throw error;
     }
   }
@@ -385,7 +382,6 @@ export class StripeService {
         status: paymentIntent.status,
       };
     } catch (error) {
-      console.error("Erreur création PaymentIntent storage:", error);
       throw new Error("Impossible de créer le paiement pour la location");
     }
   }
@@ -409,8 +405,6 @@ export class StripeService {
         webhookSecret,
       );
 
-      console.log("Webhook Stripe reçu:", event.type);
-
       switch (event.type) {
         case "payment_intent.succeeded":
           await this.handlePaymentSuccess(
@@ -431,12 +425,11 @@ export class StripeService {
           break;
 
         default:
-          console.log(`Événement non géré: ${event.type}`);
+          // console.log(`Événement non géré: ${event.type}`); // Removed flood
       }
 
       return { processed: true, type: event.type };
     } catch (error) {
-      console.error("Erreur traitement webhook:", error);
       throw error;
     }
   }
@@ -474,10 +467,6 @@ export class StripeService {
       });
 
       if (!payment) {
-        console.error(
-          "Paiement non trouvé pour PaymentIntent:",
-          paymentIntent.id,
-        );
         return;
       }
 
@@ -524,9 +513,7 @@ export class StripeService {
         }
       });
 
-      console.log(`Paiement traité avec succès: ${payment.id}`);
     } catch (error) {
-      console.error("Erreur traitement paiement réussi:", error);
       throw error;
     }
   }
@@ -743,9 +730,7 @@ export class StripeService {
         },
       });
 
-      console.log(`Paiement location box traité: ${rental.id}`);
     } catch (error) {
-      console.error("Erreur traitement paiement location box:", error);
       throw error;
     }
   }
@@ -801,7 +786,6 @@ export class StripeService {
 
       return { success: true, refundId: refund.id };
     } catch (error) {
-      console.error("Erreur remboursement:", error);
       return { success: false };
     }
   }

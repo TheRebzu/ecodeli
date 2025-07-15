@@ -20,8 +20,8 @@ export const NOTIFICATION_TEMPLATES: Record<string, NotificationTemplate> = {
     id: "delivery_opportunity_matched",
     type: "PUSH",
     title: {
-      fr: "🚚 Nouvelle opportunité de livraison",
-      en: "🚚 New delivery opportunity",
+      fr: "Nouvelle opportunité de livraison",
+      en: "New delivery opportunity",
     },
     body: {
       fr: "Une livraison correspond à votre trajet {route}. Prix: {price}€",
@@ -46,8 +46,8 @@ export const NOTIFICATION_TEMPLATES: Record<string, NotificationTemplate> = {
     id: "delivery_validation_code",
     type: "PUSH",
     title: {
-      fr: "🔢 Code de validation",
-      en: "🔢 Validation code",
+      fr: "Code de validation",
+      en: "Validation code",
     },
     body: {
       fr: "Code de validation: {validationCode}. Montrez-le au livreur.",
@@ -60,8 +60,8 @@ export const NOTIFICATION_TEMPLATES: Record<string, NotificationTemplate> = {
     id: "client_delivery_completed",
     type: "PUSH",
     title: {
-      fr: "📦 Livraison terminée",
-      en: "📦 Delivery completed",
+      fr: "Livraison terminée",
+      en: "Delivery completed",
     },
     body: {
       fr: "Votre colis a été livré avec succès. Notez votre livreur !",
@@ -73,8 +73,8 @@ export const NOTIFICATION_TEMPLATES: Record<string, NotificationTemplate> = {
     id: "client_tutorial_reminder",
     type: "PUSH",
     title: {
-      fr: "🎓 Terminez votre tutoriel",
-      en: "🎓 Complete your tutorial",
+      fr: "Terminez votre tutoriel",
+      en: "Complete your tutorial",
     },
     body: {
       fr: "Finalisez votre tutoriel pour accéder à toutes les fonctionnalités",
@@ -87,8 +87,8 @@ export const NOTIFICATION_TEMPLATES: Record<string, NotificationTemplate> = {
     id: "admin_document_validation_required",
     type: "EMAIL",
     title: {
-      fr: "📄 Documents à valider",
-      en: "📄 Documents to validate",
+      fr: "Documents à valider",
+      en: "Documents to validate",
     },
     body: {
       fr: "Nouveaux documents à valider pour {userName} ({userRole})",
@@ -127,8 +127,8 @@ export const NOTIFICATION_TEMPLATES: Record<string, NotificationTemplate> = {
     id: "provider_booking_confirmed",
     type: "PUSH",
     title: {
-      fr: "📅 Réservation confirmée",
-      en: "📅 Booking confirmed",
+      fr: "Réservation confirmée",
+      en: "Booking confirmed",
     },
     body: {
       fr: "Nouvelle réservation le {date} à {time} - {serviceName}",
@@ -141,8 +141,8 @@ export const NOTIFICATION_TEMPLATES: Record<string, NotificationTemplate> = {
     id: "merchant_contract_signed",
     type: "EMAIL",
     title: {
-      fr: "✍️ Contrat signé",
-      en: "✍️ Contract signed",
+      fr: "Contrat signé",
+      en: "Contract signed",
     },
     body: {
       fr: "Votre contrat EcoDeli a été signé. Bienvenue dans le réseau !",
@@ -154,8 +154,8 @@ export const NOTIFICATION_TEMPLATES: Record<string, NotificationTemplate> = {
     id: "merchant_bulk_upload_completed",
     type: "PUSH",
     title: {
-      fr: "📤 Import terminé",
-      en: "📤 Import completed",
+      fr: "Import terminé",
+      en: "Import completed",
     },
     body: {
       fr: "Import de {count} annonces terminé. {success} réussies, {failed} échecs.",
@@ -168,8 +168,8 @@ export const NOTIFICATION_TEMPLATES: Record<string, NotificationTemplate> = {
     id: "referral_code_generated",
     type: "PUSH",
     title: {
-      fr: "🎁 Code de parrainage créé",
-      en: "🎁 Referral code created",
+      fr: "Code de parrainage créé",
+      en: "Referral code created",
     },
     body: {
       fr: "Votre code de parrainage {code} est prêt ! Partagez-le avec vos amis.",
@@ -181,8 +181,8 @@ export const NOTIFICATION_TEMPLATES: Record<string, NotificationTemplate> = {
     id: "referral_success",
     type: "PUSH",
     title: {
-      fr: "🎉 Parrainage réussi !",
-      en: "🎉 Referral successful!",
+      fr: "Parrainage réussi !",
+      en: "Referral successful!",
     },
     body: {
       fr: "{referredUser} s'est inscrit avec votre code ! Vous gagnez {reward}€.",
@@ -194,8 +194,8 @@ export const NOTIFICATION_TEMPLATES: Record<string, NotificationTemplate> = {
     id: "referral_welcome",
     type: "EMAIL",
     title: {
-      fr: "👋 Bienvenue chez EcoDeli !",
-      en: "👋 Welcome to EcoDeli!",
+      fr: "Bienvenue chez EcoDeli !",
+      en: "Welcome to EcoDeli!",
     },
     body: {
       fr: "Bienvenue ! Vous avez été parrainé par {referrerName}. Bonus de bienvenue: {bonus}€.",
@@ -207,8 +207,8 @@ export const NOTIFICATION_TEMPLATES: Record<string, NotificationTemplate> = {
     id: "referral_reward_earned",
     type: "PUSH",
     title: {
-      fr: "💰 Récompense de parrainage",
-      en: "💰 Referral reward",
+      fr: "Récompense de parrainage",
+      en: "Referral reward",
     },
     body: {
       fr: "Vous avez gagné {amount}€ grâce à vos parrainages ! Total: {totalEarned}€.",
@@ -220,8 +220,8 @@ export const NOTIFICATION_TEMPLATES: Record<string, NotificationTemplate> = {
     id: "referral_level_up",
     type: "PUSH",
     title: {
-      fr: "⭐ Nouveau niveau de parrainage",
-      en: "⭐ New referral level",
+      fr: "Nouveau niveau de parrainage",
+      en: "New referral level",
     },
     body: {
       fr: "Félicitations ! Vous atteignez le niveau {level}. Bonus: {bonus}€.",
@@ -233,8 +233,8 @@ export const NOTIFICATION_TEMPLATES: Record<string, NotificationTemplate> = {
     id: "influencer_application_approved",
     type: "EMAIL",
     title: {
-      fr: "🌟 Candidature influenceur approuvée",
-      en: "🌟 Influencer application approved",
+      fr: "Candidature influenceur approuvée",
+      en: "Influencer application approved",
     },
     body: {
       fr: "Votre candidature influenceur a été approuvée ! Commission: {commission}%.",
@@ -259,8 +259,8 @@ export const NOTIFICATION_TEMPLATES: Record<string, NotificationTemplate> = {
     id: "influencer_payout",
     type: "EMAIL",
     title: {
-      fr: "💸 Paiement influenceur",
-      en: "💸 Influencer payout",
+      fr: "Paiement influenceur",
+      en: "Influencer payout",
     },
     body: {
       fr: "Paiement de {amount}€ effectué pour vos performances du mois.",
@@ -272,8 +272,8 @@ export const NOTIFICATION_TEMPLATES: Record<string, NotificationTemplate> = {
     id: "campaign_launched",
     type: "PUSH",
     title: {
-      fr: "🚀 Campagne lancée",
-      en: "🚀 Campaign launched",
+      fr: "Campagne lancée",
+      en: "Campaign launched",
     },
     body: {
       fr: 'Votre campagne "{campaignName}" est maintenant active !',

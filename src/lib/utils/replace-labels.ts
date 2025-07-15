@@ -163,9 +163,9 @@ export class LabelReplacer {
         }
 
         if (!replaced) {
-          console.warn(
-            `Could not replace "${label.text}" in ${filePath}:${label.line}`,
-          );
+          // console.warn(
+          //   `Could not replace "${label.text}" in ${filePath}:${label.line}`,
+          // );
         }
       }
     }
@@ -326,7 +326,7 @@ export class LabelReplacer {
           fs.writeFileSync(filePath, JSON.stringify(translations, null, 2));
         }
       } catch (error) {
-        console.error(`Error updating ${filePath}:`, error);
+        // console.error(`Error updating ${filePath}:`, error);
       }
     }
   }
@@ -335,12 +335,7 @@ export class LabelReplacer {
    * Lancer le remplacement complet
    */
   async replace(): Promise<Replacement[]> {
-    // Suppression des logs
-    if (this.config.dryRun) {
-      // Suppression du log
-    }
     const labels = this.loadExtractedLabels();
-    // Suppression du log
     // Grouper les labels par fichier
     const fileGroups = labels.reduce(
       (acc, label) => {
@@ -360,7 +355,6 @@ export class LabelReplacer {
     }
     // Mettre à jour les fichiers de traduction
     await this.updateTranslationFiles(labels);
-    // Suppression du log
     return this.replacements;
   }
 
@@ -413,7 +407,7 @@ export class LabelReplacer {
     const reportPath = path.join(outputDir, "replacement-report.md");
 
     fs.writeFileSync(reportPath, this.generateReport());
-    console.log(`Report saved to: ${reportPath}`);
+    // console.log(`Report saved to: ${reportPath}`);
   }
 }
 

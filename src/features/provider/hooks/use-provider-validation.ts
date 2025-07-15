@@ -118,30 +118,23 @@ export function useProviderValidation(
   // Charger le statut de validation
   const loadValidationStatus = useCallback(async () => {
     if (!providerId) {
-      console.log('❌ loadValidationStatus: No providerId provided')
       return
     }
 
-    console.log('🔄 loadValidationStatus: Starting with providerId:', providerId)
     setIsLoading(true)
     setError(null)
 
     try {
       const response = await fetch(`/api/provider/validation/status?providerId=${providerId}`)
       
-      console.log('🔄 loadValidationStatus: Response status:', response.status)
-      
       if (!response.ok) {
         const errorText = await response.text()
-        console.error('❌ loadValidationStatus: Response not ok:', errorText)
         throw new Error('Erreur lors du chargement du statut')
       }
       
       const status = await response.json()
-      console.log('✅ loadValidationStatus: Success, status:', status)
       setValidationStatus(status)
     } catch (err) {
-      console.error('❌ loadValidationStatus: Error:', err)
       setError(err instanceof Error ? err.message : 'Erreur de chargement')
     } finally {
       setIsLoading(false);
@@ -150,7 +143,6 @@ export function useProviderValidation(
 
   // Charger les certifications requises
   const loadRequiredCertifications = useCallback(async (specialties: string[]) => {
-    console.log('🔄 loadRequiredCertifications: Starting with specialties:', specialties)
     setCertificationsLoading(true)
     setError(null)
 
@@ -163,19 +155,14 @@ export function useProviderValidation(
         body: JSON.stringify({ specialties })
       })
       
-      console.log('🔄 loadRequiredCertifications: Response status:', response.status)
-      
       if (!response.ok) {
         const errorText = await response.text()
-        console.error('❌ loadRequiredCertifications: Response not ok:', errorText)
         throw new Error('Erreur lors du chargement des certifications')
       }
       
       const certifications = await response.json()
-      console.log('✅ loadRequiredCertifications: Success, certifications:', certifications)
       setRequiredCertifications(certifications)
     } catch (err) {
-      console.error('❌ loadRequiredCertifications: Error:', err)
       setError(err instanceof Error ? err.message : 'Erreur de chargement des certifications')
     } finally {
       setCertificationsLoading(false)
@@ -184,7 +171,6 @@ export function useProviderValidation(
 
   // Démarrer le processus de validation
   const startValidation = useCallback(async (data: ProviderValidationData) => {
-    console.log('🔄 startValidation: Starting with data:', data)
     setIsLoading(true)
     setError(null)
 
@@ -197,16 +183,12 @@ export function useProviderValidation(
           body: JSON.stringify(data),
         });
 
-      console.log('🔄 startValidation: Response status:', response.status)
-
       if (!response.ok) {
         const errorText = await response.text()
-        console.error('❌ startValidation: Response not ok:', errorText)
         throw new Error('Erreur lors du démarrage de la validation')
       }
 
       const result = await response.json()
-      console.log('✅ startValidation: Success, result:', result)
       
       // Recharger le statut
       await loadValidationStatus()
@@ -215,7 +197,6 @@ export function useProviderValidation(
       await loadRequiredCertifications(data.profile.specialties)
 
     } catch (err) {
-      console.error('❌ startValidation: Error:', err)
       setError(err instanceof Error ? err.message : 'Erreur de validation')
     } finally {
       setIsLoading(false)
@@ -224,18 +205,15 @@ export function useProviderValidation(
 
   // Rafraîchir le statut
   const refreshStatus = useCallback(async () => {
-    console.log('🔄 refreshStatus: Called')
     await loadValidationStatus()
   }, [loadValidationStatus])
 
   // Démarrer une certification
   const startCertification = useCallback(async (certificationId: string) => {
     if (!providerId) {
-      console.log('❌ startCertification: No providerId provided')
       return
     }
 
-    console.log('🔄 startCertification: Starting with providerId:', providerId, 'certificationId:', certificationId)
     setIsLoading(true)
     setError(null)
 
@@ -251,20 +229,15 @@ export function useProviderValidation(
           }),
         });
 
-      console.log('🔄 startCertification: Response status:', response.status)
-
       if (!response.ok) {
         const errorText = await response.text()
-        console.error('❌ startCertification: Response not ok:', errorText)
         throw new Error('Erreur lors du démarrage de la certification')
       }
 
-      console.log('✅ startCertification: Success')
       // Recharger le statut
       await loadValidationStatus()
 
     } catch (err) {
-      console.error('❌ startCertification: Error:', err)
       setError(err instanceof Error ? err.message : 'Erreur de certification')
     } finally {
       setIsLoading(false)

@@ -96,7 +96,6 @@ export function useTutorial() {
       const errorMessage =
         err instanceof Error ? err.message : "Erreur inconnue";
       setError(errorMessage);
-      console.error("Erreur chargement tutoriel:", err);
     } finally {
       setLoading(false);
     }

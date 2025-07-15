@@ -125,11 +125,6 @@ export async function requireRole(
     const testUserEmail = request.headers.get("X-Test-User-Email");
 
     if (testUserEmail) {
-      console.log(
-        "🧪 Mode test détecté, utilisation de l'email:",
-        testUserEmail,
-      );
-
       const testUser = await db.user.findUnique({
         where: { email: testUserEmail },
         include: {
@@ -149,11 +144,6 @@ export async function requireRole(
           );
         }
 
-        console.log(
-          "✅ Utilisateur test authentifié:",
-          testUser.email,
-          testUser.role,
-        );
         return testUser;
       }
     }
@@ -239,11 +229,6 @@ export async function getCurrentUserAPI(request: NextRequest) {
       const testUserEmail = request.headers.get("X-Test-User-Email");
 
       if (testUserEmail) {
-        console.log(
-          "🧪 Mode test détecté dans getCurrentUserAPI, utilisation de l'email:",
-          testUserEmail,
-        );
-
         const testUser = await db.user.findUnique({
           where: { email: testUserEmail },
           include: {
@@ -257,11 +242,6 @@ export async function getCurrentUserAPI(request: NextRequest) {
         });
 
         if (testUser) {
-          console.log(
-            "✅ Utilisateur test trouvé dans getCurrentUserAPI:",
-            testUser.email,
-            testUser.role,
-          );
           return testUser;
         }
       }
@@ -306,7 +286,6 @@ export async function getCurrentUserAPI(request: NextRequest) {
 
     return user;
   } catch (error) {
-    console.error("Error in getCurrentUserAPI:", error);
     return null;
   }
 }

@@ -32,8 +32,8 @@ export class EmailServiceAlternative {
   ) {
     const subject =
       locale === "fr"
-        ? "🔑 Réinitialisation de votre mot de passe - EcoDeli"
-        : "🔑 Password reset - EcoDeli";
+        ? "Réinitialisation de votre mot de passe - EcoDeli"
+        : "Password reset - EcoDeli";
 
     const html = `
       <!DOCTYPE html>
@@ -99,10 +99,8 @@ export class EmailServiceAlternative {
 
     try {
       const result = await transporter.sendMail(mailOptions);
-      console.log("Email de reset envoyé:", result.messageId);
       return { success: true, messageId: result.messageId };
     } catch (error) {
-      console.error("Erreur envoi email:", error);
       throw error;
     }
   }
@@ -117,8 +115,8 @@ export class EmailServiceAlternative {
   ) {
     const subject =
       locale === "fr"
-        ? "🔐 Vérifiez votre email - EcoDeli"
-        : "🔐 Verify your email - EcoDeli";
+        ? "Vérifiez votre email - EcoDeli"
+        : "Verify your email - EcoDeli";
 
     const html = `
       <!DOCTYPE html>
@@ -185,10 +183,8 @@ export class EmailServiceAlternative {
 
     try {
       const result = await transporter.sendMail(mailOptions);
-      console.log("Email de vérification envoyé:", result.messageId);
       return { success: true, messageId: result.messageId };
     } catch (error) {
-      console.error("Erreur envoi email:", error);
       throw error;
     }
   }

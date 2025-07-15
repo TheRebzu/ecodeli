@@ -59,7 +59,6 @@ export function useSimpleTutorial(): UseSimpleTutorialReturn {
       const errorMessage =
         err instanceof Error ? err.message : "Unknown error occurred";
       setError(errorMessage);
-      console.error("Error fetching tutorial status:", err);
     } finally {
       setIsLoading(false);
     }
@@ -105,7 +104,6 @@ export function useSimpleTutorial(): UseSimpleTutorialReturn {
       const errorMessage =
         err instanceof Error ? err.message : "Failed to complete step";
       setError(errorMessage);
-      console.error("Error completing tutorial step:", err);
       throw err;
     }
   };

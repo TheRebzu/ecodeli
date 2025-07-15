@@ -131,8 +131,6 @@ export function CreateServiceRequestForm() {
     setIsLoading(true);
 
     try {
-      console.log("📝 Envoi des données:", data);
-
       const response = await fetch("/api/client/service-requests", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -140,7 +138,6 @@ export function CreateServiceRequestForm() {
       });
 
       const result = await response.json();
-      console.log("📝 Réponse API:", result);
 
       if (!response.ok) {
         toast({
@@ -158,7 +155,6 @@ export function CreateServiceRequestForm() {
 
       router.push("/client/service-requests");
     } catch (err) {
-      console.error("❌ Erreur lors de la soumission:", err);
       toast({
         title: "❌ Erreur",
         description: "Une erreur est survenue lors de la création",

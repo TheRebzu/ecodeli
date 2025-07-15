@@ -30,7 +30,6 @@ export async function generatePDF(
     // Retourner l'URL publique
     return `/generated-pdfs/${htmlFileName}`;
   } catch (error) {
-    console.error("Erreur génération PDF:", error);
     throw new Error("Impossible de générer le PDF");
   }
 }

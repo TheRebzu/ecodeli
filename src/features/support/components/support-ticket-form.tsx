@@ -132,7 +132,6 @@ export function SupportTicketForm({
       form.reset();
       onSuccess?.(result.ticket);
     } catch (error) {
-      console.error("Erreur lors de la création du ticket:", error);
       setSubmitMessage({
         type: "error",
         text:

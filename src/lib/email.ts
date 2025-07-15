@@ -366,10 +366,6 @@ export class EmailService {
 
     try {
       const result = await transporter.sendMail(mailOptions);
-      console.log(
-        "📧 Email de confirmation de réservation envoyé:",
-        result.messageId,
-      );
       return { success: true, messageId: result.messageId };
     } catch (error) {
       console.error("❌ Erreur envoi email de réservation:", error);
@@ -533,10 +529,6 @@ export class EmailService {
 
     try {
       const result = await transporter.sendMail(mailOptions);
-      console.log(
-        "📧 Email de nouvelle réservation envoyé au prestataire:",
-        result.messageId,
-      );
       return { success: true, messageId: result.messageId };
     } catch (error) {
       console.error("❌ Erreur envoi email prestataire:", error);

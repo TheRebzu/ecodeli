@@ -68,14 +68,12 @@ export class NotificationService {
             },
           });
         } catch (pushError) {
-          console.error("Erreur envoi push notification:", pushError);
           // La notification reste en base même si le push échoue
         }
       }
 
       return notification;
     } catch (error) {
-      console.error("Erreur création notification:", error);
       throw error;
     }
   }
@@ -119,13 +117,12 @@ export class NotificationService {
             },
           );
         } catch (pushError) {
-          console.error("Erreur envoi push notifications en masse:", pushError);
+          // Erreur envoi push notifications en masse
         }
       }
 
       return notifications;
     } catch (error) {
-      console.error("Erreur création notifications en masse:", error);
       throw error;
     }
   }
@@ -149,7 +146,7 @@ export class NotificationService {
     await this.createNotification({
       userId: delivererId,
       type: "DELIVERY_OPPORTUNITY",
-      title: "🚚 Nouvelle opportunité de livraison",
+      title: "Nouvelle opportunité de livraison",
       message: `${announcementData.title} • ${announcementData.pickupLocation} → ${announcementData.deliveryLocation} • ${announcementData.price}€`,
       data: {
         announcementId,
@@ -170,7 +167,7 @@ export class NotificationService {
         announcementData.price,
       );
     } catch (error) {
-      console.error("Erreur notification OneSignal livraison:", error);
+      // Erreur notification OneSignal livraison
     }
   }
 
@@ -216,7 +213,7 @@ export class NotificationService {
         message,
       );
     } catch (error) {
-      console.error("Erreur notification OneSignal mise à jour:", error);
+      // Erreur notification OneSignal mise à jour
     }
   }
 
@@ -234,7 +231,7 @@ export class NotificationService {
     await this.createNotification({
       userId: providerId,
       type: "NEW_BOOKING",
-      title: "📅 Nouvelle réservation",
+      title: "Nouvelle réservation",
       message: `${bookingData.serviceName} avec ${bookingData.clientName} le ${bookingData.scheduledDate}`,
       data: {
         bookingId,
@@ -255,7 +252,7 @@ export class NotificationService {
         bookingData.price,
       );
     } catch (error) {
-      console.error("Erreur notification OneSignal booking:", error);
+      // Erreur notification OneSignal booking
     }
   }
 
@@ -292,7 +289,7 @@ export class NotificationService {
       await this.createNotification({
         userId: bookingData.clientId,
         type: "BOOKING_CREATED",
-        title: "📅 Réservation créée",
+        title: "Réservation créée",
         message: `Votre réservation "${bookingData.serviceName}" a été envoyée au prestataire.`,
         data: {
           bookingId: bookingData.bookingId,
@@ -319,12 +316,7 @@ export class NotificationService {
             notes: bookingData.notes,
           },
         );
-        console.log(
-          "✅ Email de confirmation envoyé au client:",
-          bookingData.clientEmail,
-        );
       } catch (emailError) {
-        console.error("❌ Erreur envoi email client:", emailError);
         // Continuer même si l'email échoue
       }
 
@@ -344,20 +336,11 @@ export class NotificationService {
             notes: bookingData.notes,
           },
         );
-        console.log(
-          "✅ Email de notification envoyé au prestataire:",
-          bookingData.providerEmail,
-        );
       } catch (emailError) {
-        console.error("❌ Erreur envoi email prestataire:", emailError);
         // Continuer même si l'email échoue
       }
 
-      console.log(
-        "🎉 Toutes les notifications de réservation envoyées (push + email)",
-      );
     } catch (error) {
-      console.error("❌ Erreur dans notifyBookingCreated:", error);
       throw error;
     }
   }
@@ -372,7 +355,7 @@ export class NotificationService {
     await this.createNotification({
       userId,
       type: "PAYMENT_RECEIVED",
-      title: "💰 Paiement reçu",
+      title: "Paiement reçu",
       message: `Vous avez reçu ${amount}€ pour ${description}`,
       data: {
         amount,
@@ -392,7 +375,7 @@ export class NotificationService {
         type,
       );
     } catch (error) {
-      console.error("Erreur notification OneSignal paiement:", error);
+      // Erreur notification OneSignal paiement
     }
   }
 
@@ -428,7 +411,7 @@ export class NotificationService {
         notes,
       );
     } catch (error) {
-      console.error("Erreur notification OneSignal validation:", error);
+      // Erreur notification OneSignal validation
     }
   }
 
@@ -448,7 +431,7 @@ export class NotificationService {
         accountType === "deliverer"
           ? "DELIVERER_ACTIVATED"
           : "PROVIDER_ACTIVATED",
-      title: "🎉 Compte activé !",
+      title: "Compte activé !",
       message: `Félicitations ! Votre compte ${typeLabels[accountType]} a été activé. Vous pouvez maintenant commencer à travailler.`,
       data: {
         accountType,
@@ -461,7 +444,7 @@ export class NotificationService {
     try {
       await OneSignalService.notifyAccountActivated(userId, accountType);
     } catch (error) {
-      console.error("Erreur notification OneSignal activation:", error);
+      // Erreur notification OneSignal activation
     }
   }
 
@@ -606,7 +589,7 @@ export class NotificationService {
     endTime: Date,
     description?: string,
   ) {
-    const title = "🔧 Maintenance programmée";
+    const title = "Maintenance programmée";
     const message = `Maintenance du système prévue de ${startTime.toLocaleString()} à ${endTime.toLocaleString()}${description ? ". " + description : "."}`;
 
     // Notifier tous les utilisateurs actifs

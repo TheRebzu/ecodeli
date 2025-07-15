@@ -84,28 +84,28 @@ class AdvancedNotificationService {
       triggers: [
         {
           timeBeforeEvent: 30, // 30 minutes après création
-          message: "🔍 Nous cherchons activement un livreur pour votre annonce",
+          message: "Nous cherchons activement un livreur pour votre annonce",
           priority: "MEDIUM",
           channels: ["PUSH"],
         },
         {
           timeBeforeEvent: 120, // 2 heures
           message:
-            "⏰ Votre annonce n'a pas encore trouvé de livreur. Voulez-vous ajuster le prix ou les conditions ?",
+            "Votre annonce n'a pas encore trouvé de livreur. Voulez-vous ajuster le prix ou les conditions ?",
           priority: "HIGH",
           channels: ["PUSH", "EMAIL"],
         },
         {
           timeBeforeEvent: 360, // 6 heures
           message:
-            "🚨 Annonce sans livreur depuis 6h. Nous élargissons automatiquement la zone de recherche.",
+            "Annonce sans livreur depuis 6h. Nous élargissons automatiquement la zone de recherche.",
           priority: "HIGH",
           channels: ["PUSH", "EMAIL", "SMS"],
         },
         {
           timeBeforeEvent: 1440, // 24 heures
           message:
-            "📞 Votre annonce n'a toujours pas de livreur. Notre équipe va vous contacter pour vous aider.",
+            "Votre annonce n'a toujours pas de livreur. Notre équipe va vous contacter pour vous aider.",
           priority: "URGENT",
           channels: ["PUSH", "EMAIL", "SMS"],
         },
@@ -142,17 +142,17 @@ class AdvancedNotificationService {
     const deliveryReminders = [
       {
         timeBeforeEvent: 60, // 1h avant
-        message: `🚚 Rappel : votre livraison "${announcement.title}" est prévue dans 1 heure`,
+        message: `Rappel : votre livraison "${announcement.title}" est prévue dans 1 heure`,
         priority: "HIGH" as const,
       },
       {
         timeBeforeEvent: 240, // 4h avant
-        message: `📦 N'oubliez pas : livraison prévue aujourd'hui à ${announcement.pickupDate.toLocaleTimeString()}`,
+        message: `N'oubliez pas : livraison prévue aujourd'hui à ${announcement.pickupDate.toLocaleTimeString()}`,
         priority: "MEDIUM" as const,
       },
       {
         timeBeforeEvent: 1440, // 24h avant
-        message: `📅 Rappel : votre livraison est prévue demain`,
+        message: `Rappel : votre livraison est prévue demain`,
         priority: "MEDIUM" as const,
       },
     ];
@@ -198,19 +198,19 @@ class AdvancedNotificationService {
     const paymentReminders = [
       {
         timeAfterCreation: 60, // 1h après création
-        message: "💳 N'oubliez pas de finaliser le paiement pour votre annonce",
+        message: "N'oubliez pas de finaliser le paiement pour votre annonce",
         priority: "MEDIUM" as const,
       },
       {
         timeAfterCreation: 360, // 6h après
         message:
-          "⚠️ Paiement en attente : votre annonce sera suspendue dans 18h sans paiement",
+          "Paiement en attente : votre annonce sera suspendue dans 18h sans paiement",
         priority: "HIGH" as const,
       },
       {
         timeAfterCreation: 1200, // 20h après
         message:
-          "🚨 Dernières heures pour finaliser le paiement avant suspension de l'annonce",
+          "Dernières heures pour finaliser le paiement avant suspension de l'annonce",
         priority: "URGENT" as const,
       },
     ];
@@ -263,7 +263,7 @@ class AdvancedNotificationService {
           announcementId: announcement.id,
           type: "MATCH_EXPIRY",
           scheduledFor: reminderTime,
-          message: `⏰ Plus que 2h pour accepter l'opportunité "${announcement.title}"`,
+          message: `Plus que 2h pour accepter l'opportunité "${announcement.title}"`,
           priority: "HIGH",
           data: {
             matchId: match.id,
@@ -382,12 +382,10 @@ class AdvancedNotificationService {
 
         case "EMAIL":
           // TODO: Implémenter envoi email
-          console.log(`Sending email to user ${notification.userId}`);
           break;
 
         case "SMS":
           // TODO: Implémenter envoi SMS
-          console.log(`Sending SMS to user ${notification.userId}`);
           break;
       }
     }
@@ -399,17 +397,17 @@ class AdvancedNotificationService {
   private getNotificationTitle(type: string): string {
     switch (type) {
       case "REMINDER":
-        return "📋 Rappel EcoDeli";
+        return "Rappel EcoDeli";
       case "STATUS_UPDATE":
-        return "📊 Mise à jour";
+        return "Mise à jour";
       case "DEADLINE_ALERT":
-        return "⏰ Échéance proche";
+        return "Échéance proche";
       case "MATCH_EXPIRY":
-        return "⏰ Opportunité expire bientôt";
+        return "Opportunité expire bientôt";
       case "PAYMENT_DUE":
-        return "💳 Paiement en attente";
+        return "Paiement en attente";
       default:
-        return "🔔 EcoDeli";
+        return "EcoDeli";
     }
   }
 

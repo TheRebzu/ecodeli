@@ -125,7 +125,7 @@ export function ClientTutorialSteps({
         onComplete();
       }
     } catch (error) {
-      console.error("Erreur lors de la completion du tutoriel:", error);
+      // console.error("Erreur lors de la completion du tutoriel:", error);
     }
   };
 

@@ -208,7 +208,6 @@ export default function ClientTutorialSystem({
         cleanupTutorial();
       }
     } catch (error) {
-      console.error("Error checking tutorial status:", error);
       setIsActive(false);
       cleanupTutorial();
     }
@@ -231,7 +230,6 @@ export default function ClientTutorialSystem({
         setIsActive(false);
       }
     } catch (error) {
-      console.error("Error updating tutorial progress:", error);
       setIsActive(false);
     }
   };
@@ -284,11 +282,9 @@ export default function ClientTutorialSystem({
       });
 
       if (response.ok) {
-        console.log("Tutorial completed successfully");
         closeTutorial();
         onComplete?.();
       } else {
-        console.error("Failed to complete tutorial:", await response.text());
         // Fallback to old method
         await updateTutorialProgress({
           isCompleted: true,
@@ -300,7 +296,6 @@ export default function ClientTutorialSystem({
         onComplete?.();
       }
     } catch (error) {
-      console.error("Error completing tutorial:", error);
       // Fallback to old method
       await updateTutorialProgress({
         isCompleted: true,

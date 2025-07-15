@@ -90,9 +90,6 @@ export class TutorialService {
       });
 
       if (!user) {
-        console.warn(
-          `Utilisateur non trouvé pour getClientTutorialSteps: ${userId}`,
-        );
         return []; // Retourner un tableau vide au lieu d'une erreur
       }
 
@@ -186,9 +183,6 @@ export class TutorialService {
       });
 
       if (!user) {
-        console.warn(
-          `Utilisateur non trouvé pour getTutorialProgress: ${userId}`,
-        );
         // Retourner une progression par défaut
         return {
           userId,
@@ -242,9 +236,6 @@ export class TutorialService {
         !client?.tutorialCompleted &&
         !tutorialProgress?.isCompleted
       ) {
-        console.log(
-          `Auto-completing tutorial for user ${userId} - all mandatory steps completed`,
-        );
         await this.autoCompleteTutorial(userId);
       }
 
@@ -307,12 +298,10 @@ export class TutorialService {
       });
 
       if (!user) {
-        console.warn(`Utilisateur non trouvé pour tutoriel: ${userId}`);
         return; // Ne pas lancer d'erreur, juste ignorer
       }
 
       if (user.role !== "CLIENT") {
-        console.warn(`Tutoriel demandé pour un non-client: ${user.role}`);
         return; // Ne pas lancer d'erreur, juste ignorer
       }
 
@@ -351,12 +340,10 @@ export class TutorialService {
       });
 
       if (!user) {
-        console.warn(`Utilisateur non trouvé pour completeStep: ${userId}`);
         return; // Ne pas lancer d'erreur, juste ignorer
       }
 
       if (user.role !== "CLIENT") {
-        console.warn(`CompleteStep demandé pour un non-client: ${user.role}`);
         return; // Ne pas lancer d'erreur, juste ignorer
       }
 
@@ -439,9 +426,6 @@ export class TutorialService {
       ).length;
 
       if (completedMandatory < mandatorySteps.length) {
-        console.warn(
-          `Tutoriel completion demandé mais seulement ${completedMandatory}/${mandatorySteps.length} étapes obligatoires complétées`,
-        );
         // Ne pas faire échouer, mais log l'avertissement
       }
 

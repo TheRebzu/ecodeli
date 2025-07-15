@@ -26,7 +26,7 @@ export default function TutorialProvider({ children }: TutorialProviderProps) {
     try {
       await completeStep(step);
     } catch (error) {
-      console.error("Error completing tutorial step:", error);
+      // console.error("Error completing tutorial step:", error);
     }
   };
 

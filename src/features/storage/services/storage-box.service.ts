@@ -106,7 +106,6 @@ export class StorageBoxService {
 
       return availableBoxes;
     } catch (error) {
-      console.error("Error getting available boxes:", error);
       throw error;
     }
   }
@@ -192,18 +191,11 @@ export class StorageBoxService {
       // Générer le QR code
       const qrCodeData = await this.generateQRCode(rental.id, accessCode);
 
-      console.log("Rental created:", {
-        rentalId: rental.id,
-        clientId: data.clientId,
-        storageBoxId: data.storageBoxId,
-      });
-
       return {
         ...rental,
         qrCode: qrCodeData,
       };
     } catch (error) {
-      console.error("Error creating rental:", error);
       throw error;
     }
   }
@@ -267,15 +259,8 @@ export class StorageBoxService {
         },
       });
 
-      console.log("Rental extended:", {
-        rentalId,
-        newEndDate,
-        additionalPrice,
-      });
-
       return updatedRental;
     } catch (error) {
-      console.error("Error extending rental:", error);
       throw error;
     }
   }
@@ -318,11 +303,8 @@ export class StorageBoxService {
         },
       });
 
-      console.log("Rental ended:", { rentalId, endedBy });
-
       return updatedRental;
     } catch (error) {
-      console.error("Error ending rental:", error);
       throw error;
     }
   }
@@ -378,7 +360,6 @@ export class StorageBoxService {
 
       return rentalsWithQR;
     } catch (error) {
-      console.error("Error getting client rentals:", error);
       throw error;
     }
   }
@@ -424,16 +405,12 @@ export class StorageBoxService {
         throw new Error("La location a expiré");
       }
 
-      console.log("Access validated:", { rentalId: rental.id, code });
-
       return {
         valid: true,
         rental,
         message: "Accès autorisé",
       };
     } catch (error) {
-      console.error("Error validating access code:", error);
-
       return {
         valid: false,
         rental: null,
@@ -513,7 +490,6 @@ export class StorageBoxService {
         occupancyRate: Math.round(occupancyRate * 100) / 100,
       };
     } catch (error) {
-      console.error("Error getting storage stats:", error);
       throw error;
     }
   }
@@ -569,7 +545,6 @@ export class StorageBoxService {
 
       return qrCodeDataURL;
     } catch (error) {
-      console.error("Error generating QR code:", error);
       throw new Error("Erreur lors de la génération du QR code");
     }
   }
@@ -653,7 +628,6 @@ export class StorageBoxService {
 
       return nearbyBoxes;
     } catch (error) {
-      console.error("Error finding nearby boxes:", error);
       throw error;
     }
   }

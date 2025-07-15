@@ -88,7 +88,6 @@ export function ClientTutorialOverlay({
       .every((s) => s.completed);
 
     if (allMandatoryCompleted && !showFeedback) {
-      console.log("All mandatory steps completed, showing feedback form");
       setShowFeedback(true);
     }
   }, [localSteps, showFeedback]);
@@ -181,7 +180,7 @@ export function ClientTutorialOverlay({
         }
       }
     } catch (error) {
-      console.error("Error completing step:", error);
+      // console.error("Error completing step:", error);
     }
   };
 
@@ -203,7 +202,7 @@ export function ClientTutorialOverlay({
 
       onClose?.();
     } catch (error) {
-      console.error("Error completing tutorial:", error);
+      // console.error("Error completing tutorial:", error);
     } finally {
       setIsCompleting(false);
     }

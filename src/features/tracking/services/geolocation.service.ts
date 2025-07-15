@@ -80,10 +80,6 @@ export class GeolocationService {
         heading: location.heading || undefined,
       };
     } catch (error) {
-      console.error(
-        "Erreur lors de la récupération de la position actuelle:",
-        error,
-      );
       return null;
     }
   }
@@ -120,7 +116,6 @@ export class GeolocationService {
       const estimatedArrival = new Date(Date.now() + travelTimeMs);
       return estimatedArrival;
     } catch (error) {
-      console.error("Erreur lors du calcul de l'arrivée estimée:", error);
       return null;
     }
   }
@@ -221,7 +216,6 @@ export class GeolocationService {
         positions: [],
       };
     } catch (error) {
-      console.error("Erreur démarrage tracking:", error);
       throw error;
     }
   }
@@ -282,7 +276,6 @@ export class GeolocationService {
         await this.checkGeofences(session, locationData);
       }
     } catch (error) {
-      console.error("Erreur mise à jour position:", error);
       throw error;
     }
   }
@@ -346,7 +339,6 @@ export class GeolocationService {
         });
       }
     } catch (error) {
-      console.error("Erreur arrêt tracking:", error);
       throw error;
     }
   }
@@ -382,7 +374,6 @@ export class GeolocationService {
         altitude: latestPosition.altitude,
       };
     } catch (error) {
-      console.error("Erreur récupération position:", error);
       throw error;
     }
   }
@@ -421,7 +412,6 @@ export class GeolocationService {
         altitude: pos.altitude,
       }));
     } catch (error) {
-      console.error("Erreur récupération historique:", error);
       throw error;
     }
   }
@@ -665,8 +655,8 @@ export class GeolocationService {
     clientId: string,
   ): Promise<void> {
     const messages = {
-      APPROACHING_PICKUP: `🚚 Le livreur arrive au point de collecte (${Math.round(alert.distance)}m)`,
-      APPROACHING_DELIVERY: `📦 Votre livreur arrive bientôt (${Math.round(alert.distance)}m)`,
+      APPROACHING_PICKUP: `Le livreur arrive au point de collecte (${Math.round(alert.distance)}m)`,
+      APPROACHING_DELIVERY: `Votre livreur arrive bientôt (${Math.round(alert.distance)}m)`,
     };
 
     await NotificationService.createNotification({

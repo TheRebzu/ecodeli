@@ -25,11 +25,9 @@ export class ApiResponse {
 }
 
 export function handleApiError(error: any, operation: string) {
-  console.error(`Error in ${operation}:`, error);
-
   if (error instanceof z.ZodError) {
     return NextResponse.json(
-      { error: "Validation error", details: error.errors },
+      { error: "Validation error", details: error.issues },
       { status: 400 },
     );
   }
