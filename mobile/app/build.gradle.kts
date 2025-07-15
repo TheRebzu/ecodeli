@@ -1,8 +1,21 @@
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
-    id("kotlin-kapt")
+    id("com.google.devtools.ksp")
     id("com.google.dagger.hilt.android")
+}
+
+// Lire les propriétés du fichier local.properties
+fun getLocalProperty(key: String, defaultValue: String = ""): String {
+    val localPropertiesFile = rootProject.file("local.properties")
+    return if (localPropertiesFile.exists()) {
+        val content = localPropertiesFile.readText()
+        val lines = content.split("\n")
+        val property = lines.find { it.startsWith("$key=") }
+        property?.substringAfter("=")?.trim() ?: defaultValue
+    } else {
+        defaultValue
+    }
 }
 
 android {
@@ -23,12 +36,18 @@ android {
     }
 
     buildTypes {
+        debug {
+            manifestPlaceholders["MAPS_API_KEY"] = getLocalProperty("MAPS_API_KEY", "AIzaSyA1234567890abcdef_placeholder_key_here")
+            manifestPlaceholders["STRIPE_PUBLIC_KEY"] = getLocalProperty("STRIPE_PUBLIC_KEY", "pk_test_51NB2TgGOPRl4IB6wZ0123456789abcdef")
+        }
         release {
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            manifestPlaceholders["MAPS_API_KEY"] = getLocalProperty("MAPS_API_KEY", "AIzaSyA1234567890abcdef_placeholder_key_here")
+            manifestPlaceholders["STRIPE_PUBLIC_KEY"] = getLocalProperty("STRIPE_PUBLIC_KEY", "pk_test_51NB2TgGOPRl4IB6wZ0123456789abcdef")
         }
     }
     compileOptions {
@@ -41,6 +60,7 @@ android {
     buildFeatures {
         compose = true
         viewBinding = true
+        buildConfig = true
     }
     composeOptions {
         kotlinCompilerExtensionVersion = "1.5.4"
@@ -69,7 +89,7 @@ dependencies {
     
     // Dependency Injection
     implementation("com.google.dagger:hilt-android:2.48")
-    kapt("com.google.dagger:hilt-compiler:2.48")
+    ksp("com.google.dagger:hilt-compiler:2.48")
     
     // Networking
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
@@ -79,8 +99,8 @@ dependencies {
     // Coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
     
-    // NFC
-    implementation("androidx.core:core-nfc:1.0.0-alpha01")
+    // NFC - Android native NFC support (no additional dependency needed)
+    // NFC is included in Android SDK
     
     // Maps
     implementation("com.google.maps.android:maps-compose:4.3.0")
@@ -102,7 +122,7 @@ dependencies {
     // Room Database
     implementation("androidx.room:room-runtime:2.6.1")
     implementation("androidx.room:room-ktx:2.6.1")
-    kapt("androidx.room:room-compiler:2.6.1")
+    ksp("androidx.room:room-compiler:2.6.1")
     
     // Testing
     testImplementation("junit:junit:4.13.2")

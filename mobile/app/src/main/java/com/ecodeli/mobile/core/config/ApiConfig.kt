@@ -2,8 +2,8 @@ package com.ecodeli.mobile.core.config
 
 object ApiConfig {
     // URLs de base
-    const val BASE_URL = "https://ecodeli.me/"
-    const val WS_URL = "wss://ecodeli.me/ws"
+    const val BASE_URL = "http://10.0.2.2:3000/"
+    const val WS_URL = "ws://10.0.2.2:3000/ws"
     const val API_VERSION = "v1"
     
     // Endpoints principaux
@@ -76,7 +76,7 @@ object ApiConfig {
     }
     
     // Configuration actuelle
-    val currentEnvironment = Environment.PRODUCTION
+    val currentEnvironment = Environment.DEV
     
     fun getFullUrl(endpoint: String): String {
         return BASE_URL + endpoint

@@ -247,7 +247,34 @@ export async function getCurrentUserAPI(request: NextRequest) {
       }
     }
 
-    // --- PATCH: Décodage manuel du cookie JWT pour API route ---
+    // 1. Vérifier l'authentification par Bearer Token (pour l'app mobile)
+    const authHeader = request.headers.get("authorization");
+    if (authHeader && authHeader.startsWith("Bearer ")) {
+      const token = authHeader.substring(7);
+      
+      // Pour l'instant, utiliser le token mock format: mock_token_{userId}
+      if (token.startsWith("mock_token_")) {
+        const userId = token.replace("mock_token_", "");
+        
+        const user = await db.user.findUnique({
+          where: { id: userId },
+          include: {
+            profile: true,
+            client: true,
+            deliverer: true,
+            merchant: true,
+            provider: true,
+            admin: true,
+          },
+        });
+
+        if (user) {
+          return user;
+        }
+      }
+    }
+
+    // 2. --- PATCH: Décodage manuel du cookie JWT pour API route ---
     // Si la session n'est pas trouvée via auth(), on décode le cookie JWT pour extraire l'id utilisateur
     let session = await auth();
     let userId: string | null = null;

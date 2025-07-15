@@ -21,7 +21,7 @@ fun DelivererDashboardScreen(
     onLogout: () -> Unit,
     authViewModel: AuthViewModel = hiltViewModel()
 ) {
-    val currentUser by authViewModel.currentUser.collectAsState()
+    val currentUser by authViewModel.currentUser.collectAsState(initial = null)
     
     Column(
         modifier = Modifier

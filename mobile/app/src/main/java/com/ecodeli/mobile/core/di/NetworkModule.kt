@@ -21,7 +21,7 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 object NetworkModule {
     
-    private const val BASE_URL = "https://ecodeli.me/" // API URL production EcoDeli
+    private const val BASE_URL = "http://10.0.2.2:3000/" // API URL localhost (10.0.2.2 pour émulateur Android)
     
     @Provides
     @Singleton

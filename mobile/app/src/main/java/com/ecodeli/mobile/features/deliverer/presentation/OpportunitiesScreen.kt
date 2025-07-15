@@ -11,11 +11,22 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.ecodeli.mobile.core.data.models.Announcement
+import com.ecodeli.mobile.core.data.models.AnnouncementType
+import com.ecodeli.mobile.core.data.repository.AnnouncementRepository
+import com.ecodeli.mobile.core.utils.Resource
 import com.ecodeli.mobile.features.client.presentation.getTypeEmoji
 import com.ecodeli.mobile.features.client.presentation.getTypeText
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 import java.text.NumberFormat
 import java.util.*
+import javax.inject.Inject
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -72,11 +83,16 @@ fun OpportunitiesScreen(
                         containerColor = MaterialTheme.colorScheme.errorContainer
                     )
                 ) {
-                    Text(
-                        text = uiState.message,
-                        color = MaterialTheme.colorScheme.onErrorContainer,
-                        modifier = Modifier.padding(16.dp)
-                    )
+                    when (val currentState = uiState) {
+                        is OpportunityUiState.Error -> {
+                            Text(
+                                text = currentState.message,
+                                color = MaterialTheme.colorScheme.onErrorContainer,
+                                modifier = Modifier.padding(16.dp)
+                            )
+                        }
+                        else -> {}
+                    }
                 }
             }
             else -> {
@@ -145,7 +161,7 @@ fun OpportunityCard(
                 )
                 
                 Text(
-                    text = NumberFormat.getCurrencyInstance(Locale.FRANCE).format(opportunity.price),
+                    text = NumberFormat.getCurrencyInstance(Locale.FRANCE).format(opportunity.basePrice),
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.primary
@@ -169,12 +185,12 @@ fun OpportunityCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = getTypeEmoji(opportunity.type) + " " + getTypeText(opportunity.type),
+                    text = getTypeEmoji(opportunity.type ?: AnnouncementType.PACKAGE) + " " + getTypeText(opportunity.type ?: AnnouncementType.PACKAGE),
                     fontSize = 12.sp,
                     color = MaterialTheme.colorScheme.primary
                 )
                 
-                opportunity.weight?.let { weight ->
+                opportunity.packageDetails?.weight?.let { weight ->
                     Text(
                         text = "${weight}kg",
                         fontSize = 12.sp,
@@ -193,12 +209,12 @@ fun OpportunityCard(
                     modifier = Modifier.weight(1f)
                 ) {
                     Text(
-                        text = "📍 ${opportunity.pickupAddress.city}",
+                        text = "📍 ${opportunity.pickupAddress ?: "Non spécifié"}",
                         fontSize = 12.sp,
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                     )
                     Text(
-                        text = "🏁 ${opportunity.deliveryAddress.city}",
+                        text = "🏁 ${opportunity.deliveryAddress ?: "Non spécifié"}",
                         fontSize = 12.sp,
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                     )
@@ -223,16 +239,6 @@ fun OpportunityCard(
 }
 
 // ViewModel pour les opportunités
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
-import com.ecodeli.mobile.core.data.repository.AnnouncementRepository
-import com.ecodeli.mobile.core.utils.Resource
-import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 @HiltViewModel
 class DelivererOpportunitiesViewModel @Inject constructor(

@@ -1,19 +1,33 @@
 package com.ecodeli.mobile.features.delivery.presentation
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.ecodeli.mobile.core.data.models.Delivery
 import com.ecodeli.mobile.core.data.models.DeliveryStatus
 import java.text.NumberFormat
+import java.text.SimpleDateFormat
 import java.util.*
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -32,24 +46,62 @@ fun DeliveryTrackingScreen(
             .padding(16.dp)
     ) {
         // Header
-        Row(
+        Card(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.primaryContainer
+            ),
+            shape = RoundedCornerShape(16.dp)
         ) {
-            Text(
-                text = "Mes livraisons",
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold
-            )
-            
-            Row {
-                IconButton(onClick = { viewModel.loadDeliveries() }) {
-                    Text("🔄", fontSize = 20.sp)
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column {
+                    Text(
+                        text = "Mes livraisons",
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                    Text(
+                        text = "Suivez vos colis en temps réel",
+                        fontSize = 14.sp,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
+                    )
                 }
                 
-                IconButton(onClick = onNavigateBack) {
-                    Text("❌", fontSize = 20.sp)
+                Row {
+                    IconButton(
+                        onClick = { viewModel.loadDeliveries() },
+                        modifier = Modifier
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.primary)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Refresh,
+                            contentDescription = "Actualiser",
+                            tint = MaterialTheme.colorScheme.onPrimary
+                        )
+                    }
+                    
+                    Spacer(modifier = Modifier.width(8.dp))
+                    
+                    IconButton(
+                        onClick = onNavigateBack,
+                        modifier = Modifier
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.error)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.ArrowBack,
+                            contentDescription = "Retour",
+                            tint = MaterialTheme.colorScheme.onError
+                        )
+                    }
                 }
             }
         }
@@ -72,51 +124,48 @@ fun DeliveryTrackingScreen(
                         containerColor = MaterialTheme.colorScheme.errorContainer
                     )
                 ) {
-                    Text(
-                        text = trackingState.message,
-                        color = MaterialTheme.colorScheme.onErrorContainer,
-                        modifier = Modifier.padding(16.dp)
-                    )
+                    when (val currentState = trackingState) {
+                        is TrackingState.Error -> {
+                            Text(
+                                text = currentState.message,
+                                color = MaterialTheme.colorScheme.onErrorContainer,
+                                modifier = Modifier.padding(16.dp)
+                            )
+                        }
+                        else -> {}
+                    }
                 }
             }
             else -> {
+                // Summary card
+                if (deliveries.isNotEmpty()) {
+                    DeliveryStatsCard(deliveries = deliveries)
+                    
+                    Spacer(modifier = Modifier.height(16.dp))
+                }
+                
                 if (deliveries.isEmpty()) {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            Text(
-                                text = "🚚",
-                                fontSize = 48.sp
-                            )
-                            Text(
-                                text = "Aucune livraison",
-                                fontSize = 18.sp,
-                                fontWeight = FontWeight.Bold
-                            )
-                            Text(
-                                text = "Vos livraisons apparaîtront ici",
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
-                            )
-                        }
-                    }
+                    EmptyDeliveryState()
                 } else {
                     LazyColumn(
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
                         items(deliveries) { delivery ->
-                            DeliveryCard(
-                                delivery = delivery,
-                                onTrackClick = { 
-                                    viewModel.trackDelivery(delivery.id)
-                                },
-                                onValidateClick = { 
-                                    onNavigateToValidation(delivery.id)
-                                }
-                            )
+                            AnimatedVisibility(
+                                visible = true,
+                                enter = fadeIn(animationSpec = tween(300)),
+                                exit = fadeOut(animationSpec = tween(300))
+                            ) {
+                                EnhancedDeliveryCard(
+                                    delivery = delivery,
+                                    onTrackClick = { 
+                                        viewModel.trackDelivery(delivery.id)
+                                    },
+                                    onValidateClick = { 
+                                        onNavigateToValidation(delivery.id)
+                                    }
+                                )
+                            }
                         }
                     }
                 }
@@ -162,14 +211,14 @@ fun DeliveryCard(
             delivery.announcement?.let { announcement ->
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = "${announcement.pickupAddress.city} → ${announcement.deliveryAddress.city}",
+                    text = "${announcement.pickupAddress ?: "Non spécifié"} → ${announcement.deliveryAddress ?: "Non spécifié"}",
                     fontSize = 12.sp,
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                 )
                 
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = NumberFormat.getCurrencyInstance(Locale.FRANCE).format(announcement.price),
+                    text = NumberFormat.getCurrencyInstance(Locale.FRANCE).format(announcement.basePrice),
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.primary
@@ -198,6 +247,399 @@ fun DeliveryCard(
                 }
             }
         }
+    }
+}
+
+@Composable
+fun EnhancedDeliveryCard(
+    delivery: Delivery,
+    onTrackClick: () -> Unit,
+    onValidateClick: () -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
+        shape = RoundedCornerShape(16.dp)
+    ) {
+        Column(
+            modifier = Modifier.padding(20.dp)
+        ) {
+            // Header avec statut
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = delivery.announcement?.title ?: "Livraison",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Text(
+                        text = "Code: ${delivery.trackingCode}",
+                        fontSize = 12.sp,
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.padding(top = 4.dp)
+                    )
+                }
+                
+                EnhancedDeliveryStatusBadge(status = delivery.status)
+            }
+            
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            // Informations de livraison
+            delivery.announcement?.let { announcement ->
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.LocationOn,
+                        contentDescription = "Adresse",
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(16.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = "De: ${announcement.pickupAddress ?: "Non spécifié"}",
+                            fontSize = 12.sp,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                        )
+                        Text(
+                            text = "À: ${announcement.deliveryAddress ?: "Non spécifié"}",
+                            fontSize = 12.sp,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                        )
+                    }
+                }
+                
+                Spacer(modifier = Modifier.height(12.dp))
+                
+                // Prix et date
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = Icons.Default.Euro,
+                            contentDescription = "Prix",
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = NumberFormat.getCurrencyInstance(Locale.FRANCE).format(announcement.basePrice),
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                    
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = Icons.Default.Schedule,
+                            contentDescription = "Date",
+                            tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = formatDate(delivery.createdAt),
+                            fontSize = 12.sp,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                        )
+                    }
+                }
+            }
+            
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            // Barre de progression
+            DeliveryProgressBar(status = delivery.status)
+            
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            // Boutons d'action
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                OutlinedButton(
+                    onClick = onTrackClick,
+                    modifier = Modifier.weight(1f),
+                    shape = RoundedCornerShape(8.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Visibility,
+                        contentDescription = "Suivre",
+                        modifier = Modifier.size(16.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Suivre")
+                }
+                
+                if (delivery.status == DeliveryStatus.DELIVERED) {
+                    Button(
+                        onClick = onValidateClick,
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(8.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.CheckCircle,
+                            contentDescription = "Valider",
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Valider")
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun EnhancedDeliveryStatusBadge(status: DeliveryStatus) {
+    val (color, text, icon) = when (status) {
+        DeliveryStatus.PENDING_PICKUP -> Triple(
+            MaterialTheme.colorScheme.tertiary, 
+            "En attente", 
+            Icons.Default.Schedule
+        )
+        DeliveryStatus.PICKED_UP -> Triple(
+            MaterialTheme.colorScheme.primary, 
+            "Récupéré", 
+            Icons.Default.Inventory
+        )
+        DeliveryStatus.IN_TRANSIT -> Triple(
+            MaterialTheme.colorScheme.secondary, 
+            "En transit", 
+            Icons.Default.LocalShipping
+        )
+        DeliveryStatus.DELIVERED -> Triple(
+            Color(0xFF4CAF50), 
+            "Livré", 
+            Icons.Default.CheckCircle
+        )
+        DeliveryStatus.FAILED -> Triple(
+            MaterialTheme.colorScheme.error, 
+            "Échec", 
+            Icons.Default.Error
+        )
+        DeliveryStatus.CANCELLED -> Triple(
+            MaterialTheme.colorScheme.error, 
+            "Annulé", 
+            Icons.Default.Cancel
+        )
+    }
+    
+    Surface(
+        color = color,
+        shape = RoundedCornerShape(20.dp),
+        modifier = Modifier.padding(4.dp)
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = text,
+                tint = Color.White,
+                modifier = Modifier.size(12.dp)
+            )
+            Spacer(modifier = Modifier.width(4.dp))
+            Text(
+                text = text,
+                fontSize = 11.sp,
+                color = Color.White,
+                fontWeight = FontWeight.Medium
+            )
+        }
+    }
+}
+
+@Composable
+fun DeliveryProgressBar(status: DeliveryStatus) {
+    val progress = when (status) {
+        DeliveryStatus.PENDING_PICKUP -> 0.2f
+        DeliveryStatus.PICKED_UP -> 0.4f
+        DeliveryStatus.IN_TRANSIT -> 0.7f
+        DeliveryStatus.DELIVERED -> 1.0f
+        DeliveryStatus.FAILED, DeliveryStatus.CANCELLED -> 0.0f
+    }
+    
+    val color = when (status) {
+        DeliveryStatus.DELIVERED -> Color(0xFF4CAF50)
+        DeliveryStatus.FAILED, DeliveryStatus.CANCELLED -> MaterialTheme.colorScheme.error
+        else -> MaterialTheme.colorScheme.primary
+    }
+    
+    Column {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(
+                text = "Progression",
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Medium
+            )
+            Text(
+                text = "${(progress * 100).toInt()}%",
+                fontSize = 12.sp,
+                color = color
+            )
+        }
+        
+        Spacer(modifier = Modifier.height(4.dp))
+        
+        LinearProgressIndicator(
+            progress = progress,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(8.dp)
+                .clip(RoundedCornerShape(4.dp)),
+            color = color,
+            trackColor = MaterialTheme.colorScheme.surfaceVariant
+        )
+    }
+}
+
+@Composable
+fun DeliveryStatsCard(deliveries: List<Delivery>) {
+    val inProgress = deliveries.count { it.status in listOf(DeliveryStatus.PENDING_PICKUP, DeliveryStatus.PICKED_UP, DeliveryStatus.IN_TRANSIT) }
+    val delivered = deliveries.count { it.status == DeliveryStatus.DELIVERED }
+    val failed = deliveries.count { it.status in listOf(DeliveryStatus.FAILED, DeliveryStatus.CANCELLED) }
+    
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.secondaryContainer
+        ),
+        shape = RoundedCornerShape(16.dp)
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp)
+        ) {
+            Text(
+                text = "Résumé",
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSecondaryContainer
+            )
+            
+            Spacer(modifier = Modifier.height(12.dp))
+            
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                StatItem(
+                    count = inProgress,
+                    label = "En cours",
+                    color = MaterialTheme.colorScheme.primary,
+                    icon = Icons.Default.LocalShipping
+                )
+                StatItem(
+                    count = delivered,
+                    label = "Livrées",
+                    color = Color(0xFF4CAF50),
+                    icon = Icons.Default.CheckCircle
+                )
+                StatItem(
+                    count = failed,
+                    label = "Problèmes",
+                    color = MaterialTheme.colorScheme.error,
+                    icon = Icons.Default.Error
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun StatItem(count: Int, label: String, color: Color, icon: ImageVector) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier
+                .size(48.dp)
+                .clip(CircleShape)
+                .background(color.copy(alpha = 0.1f))
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = label,
+                tint = color,
+                modifier = Modifier.size(24.dp)
+            )
+        }
+        Spacer(modifier = Modifier.height(4.dp))
+        Text(
+            text = count.toString(),
+            fontSize = 18.sp,
+            fontWeight = FontWeight.Bold,
+            color = color
+        )
+        Text(
+            text = label,
+            fontSize = 12.sp,
+            color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.7f)
+        )
+    }
+}
+
+@Composable
+fun EmptyDeliveryState() {
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier.padding(32.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Default.LocalShipping,
+                contentDescription = "Aucune livraison",
+                modifier = Modifier.size(72.dp),
+                tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                text = "Aucune livraison",
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = "Vos livraisons apparaîtront ici dès que vous en aurez",
+                fontSize = 14.sp,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                textAlign = TextAlign.Center
+            )
+        }
+    }
+}
+
+fun formatDate(dateString: String): String {
+    return try {
+        val inputFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault())
+        val outputFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+        val date = inputFormat.parse(dateString)
+        outputFormat.format(date ?: Date())
+    } catch (e: Exception) {
+        "Date inconnue"
     }
 }
 

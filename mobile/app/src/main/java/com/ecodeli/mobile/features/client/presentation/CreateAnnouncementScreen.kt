@@ -230,33 +230,47 @@ fun CreateAnnouncementScreen(
                         title = title,
                         description = description,
                         type = selectedType,
-                        status = AnnouncementStatus.PENDING,
-                        pickupAddress = Address(
-                            street = pickupStreet,
-                            city = pickupCity,
-                            postalCode = pickupPostalCode,
-                            country = "France",
-                            latitude = null,
-                            longitude = null
-                        ),
-                        deliveryAddress = Address(
-                            street = deliveryStreet,
-                            city = deliveryCity,
-                            postalCode = deliveryPostalCode,
-                            country = "France",
-                            latitude = null,
-                            longitude = null
-                        ),
-                        pickupDate = "",
-                        deliveryDate = "",
-                        price = price.toDoubleOrNull() ?: 0.0,
-                        weight = weight.toDoubleOrNull(),
-                        dimensions = null,
-                        photoUrl = null,
-                        clientId = "",
-                        delivererId = null,
+                        status = AnnouncementStatus.ACTIVE,
+                        pickupAddress = "$pickupStreet, $pickupCity $pickupPostalCode",
+                        deliveryAddress = "$deliveryStreet, $deliveryCity $deliveryPostalCode",
+                        pickupDate = null,
+                        deliveryDate = null,
+                        basePrice = price.toDoubleOrNull() ?: 0.0,
+                        finalPrice = price.toDoubleOrNull() ?: 0.0,
+                        currency = "EUR",
+                        isPriceNegotiable = false,
+                        pickupLatitude = null,
+                        pickupLongitude = null,
+                        deliveryLatitude = null,
+                        deliveryLongitude = null,
+                        distance = null,
+                        isFlexibleDate = false,
+                        isUrgent = false,
+                        requiresInsurance = false,
+                        allowsPartialDelivery = false,
+                        viewCount = 0,
+                        matchCount = 0,
+                        estimatedDuration = null,
+                        specialInstructions = null,
+                        customerNotes = null,
                         createdAt = "",
-                        updatedAt = ""
+                        updatedAt = "",
+                        publishedAt = null,
+                        expiresAt = null,
+                        author = AnnouncementAuthor(
+                            id = "",
+                            name = "",
+                            avatar = null
+                        ),
+                        packageDetails = PackageDetails(
+                            weight = weight.toDoubleOrNull(),
+                            length = null,
+                            width = null,
+                            height = null,
+                            fragile = null,
+                            insuredValue = null,
+                            specialInstructions = null
+                        )
                     )
                     viewModel.createAnnouncement(announcement)
                 },
@@ -278,19 +292,22 @@ fun CreateAnnouncementScreen(
             }
         }
         
-        if (uiState is AnnouncementUiState.Error) {
-            Spacer(modifier = Modifier.height(16.dp))
-            Card(
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.errorContainer
-                )
-            ) {
-                Text(
-                    text = uiState.message,
-                    color = MaterialTheme.colorScheme.onErrorContainer,
-                    modifier = Modifier.padding(16.dp)
-                )
+        when (val currentState = uiState) {
+            is AnnouncementUiState.Error -> {
+                Spacer(modifier = Modifier.height(16.dp))
+                Card(
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.errorContainer
+                    )
+                ) {
+                    Text(
+                        text = currentState.message,
+                        color = MaterialTheme.colorScheme.onErrorContainer,
+                        modifier = Modifier.padding(16.dp)
+                    )
+                }
             }
+            else -> {}
         }
     }
 }

@@ -21,7 +21,7 @@ interface ApiService {
     
     // Client Announcements
     @GET("api/client/announcements")
-    suspend fun getClientAnnouncements(): Response<List<Announcement>>
+    suspend fun getClientAnnouncements(): Response<AnnouncementResponse>
     
     @POST("api/client/announcements")
     suspend fun createAnnouncement(@Body announcement: Announcement): Response<Announcement>
@@ -104,4 +104,37 @@ interface ApiService {
     
     @POST("api/deliverer/deliveries/{id}/generate-code")
     suspend fun generateValidationCode(@Path("id") id: String): Response<Map<String, String>>
+    
+    // NFC Validation
+    @POST("api/client/deliveries/{id}/validate-nfc")
+    suspend fun validateDeliveryWithNfc(
+        @Path("id") id: String,
+        @Body nfcData: Map<String, String>
+    ): Response<Unit>
+    
+    // Payment methods
+    @GET("api/client/payments")
+    suspend fun getUserPayments(): Response<List<Payment>>
+    
+    @GET("api/client/wallet")
+    suspend fun getUserWallet(): Response<Wallet>
+    
+    @POST("api/client/payment-methods")
+    suspend fun addPaymentMethod(@Body paymentMethod: Map<String, String>): Response<Unit>
+    
+    @POST("api/client/wallet/recharge")
+    suspend fun rechargeWallet(@Body request: Map<String, Double>): Response<Unit>
+    
+    @POST("api/client/wallet/withdraw")
+    suspend fun withdrawFromWallet(@Body request: Map<String, Double>): Response<Unit>
+    
+    // User profile
+    @GET("api/user/profile")
+    suspend fun getCurrentUser(): Response<User>
+    
+    @PUT("api/user/profile")
+    suspend fun updateProfile(@Body profile: Map<String, String>): Response<User>
+    
+    @POST("api/user/profile/avatar")
+    suspend fun uploadProfilePicture(@Body avatar: Map<String, String>): Response<User>
 }

@@ -33,6 +33,9 @@
     <color name="black">#000000</color>
     <color name="transparent">#00000000</color>
     
+    <!-- App Icon Colors -->
+    <color name="ic_launcher_background">#2E7D32</color>
+    
     <!-- Dark Theme Colors -->
     <color name="primary_dark">#4CAF50</color>
     <color name="background_dark">#121212</color>

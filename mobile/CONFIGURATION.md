@@ -9,9 +9,9 @@ cp local.properties.example local.properties
 
 ### 2. **Configurer les URLs**
 ```properties
-# URLs EcoDeli
-API_BASE_URL=https://ecodeli.me/
-WEB_BASE_URL=https://ecodeli.me/
+# URLs EcoDeli (localhost)
+API_BASE_URL=http://10.0.2.2:3000/
+WEB_BASE_URL=http://10.0.2.2:3000/
 
 # Services externes
 GOOGLE_MAPS_API_KEY=votre_cle_google_maps
@@ -21,11 +21,14 @@ ONESIGNAL_APP_ID=votre-onesignal-app-id
 
 ### 3. **Vérifier la connexion API**
 ```bash
-# Tester la connexion
-curl -X GET "https://ecodeli.me/api/public/status"
+# Tester la connexion (depuis l'hôte)
+curl -X GET "http://localhost:3000/api/public/status"
 
 # Vérifier les endpoints principaux
-curl -X GET "https://ecodeli.me/api/public/zones"
+curl -X GET "http://localhost:3000/api/public/zones"
+
+# Depuis l'émulateur Android
+adb shell curl -X GET "http://10.0.2.2:3000/api/public/status"
 ```
 
 ## 📱 Endpoints Utilisés
@@ -119,8 +122,8 @@ data class Delivery(
 ```kotlin
 // AppConfig.kt
 object AppConfig {
-    const val API_BASE_URL = "https://ecodeli.me/"
-    const val WEB_BASE_URL = "https://ecodeli.me/"
+    const val API_BASE_URL = "http://10.0.2.2:3000/"
+    const val WEB_BASE_URL = "http://10.0.2.2:3000/"
     
     object ExternalServices {
         const val STRIPE_PUBLIC_KEY = BuildConfig.STRIPE_PUBLIC_KEY
@@ -136,7 +139,7 @@ object AppConfig {
 @Provides
 @Singleton
 fun provideRetrofit(): Retrofit = Retrofit.Builder()
-    .baseUrl("https://ecodeli.me/")
+    .baseUrl("http://10.0.2.2:3000/")
     .addConverterFactory(GsonConverterFactory.create())
     .build()
 ```
@@ -152,7 +155,7 @@ fun provideRetrofit(): Retrofit = Retrofit.Builder()
 ./gradlew assembleRelease
 
 # Avec configuration custom
-./gradlew assembleRelease -PAPI_BASE_URL=https://ecodeli.me/
+./gradlew assembleRelease -PAPI_BASE_URL=http://10.0.2.2:3000/
 ```
 
 ### **Configuration Build Types**
@@ -160,11 +163,11 @@ fun provideRetrofit(): Retrofit = Retrofit.Builder()
 // build.gradle.kts
 buildTypes {
     debug {
-        buildConfigField("String", "API_BASE_URL", "\"https://ecodeli.me/\"")
+        buildConfigField("String", "API_BASE_URL", "\"http://10.0.2.2:3000/\"")
         buildConfigField("String", "STRIPE_PUBLIC_KEY", "\"${project.findProperty("STRIPE_PUBLIC_KEY")}\"")
     }
     release {
-        buildConfigField("String", "API_BASE_URL", "\"https://ecodeli.me/\"")
+        buildConfigField("String", "API_BASE_URL", "\"http://10.0.2.2:3000/\"")
         buildConfigField("String", "STRIPE_PUBLIC_KEY", "\"${project.findProperty("STRIPE_PUBLIC_KEY")}\"")
         isMinifyEnabled = true
         proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
@@ -177,7 +180,7 @@ buildTypes {
 ### **Test de Connexion**
 ```bash
 # Vérifier que l'API est accessible
-curl -I https://ecodeli.me/api/public/status
+curl -I http://localhost:3000/api/public/status
 
 # Test avec logs
 adb logcat | grep -i ecodeli
@@ -188,7 +191,7 @@ adb logcat | grep -i ecodeli
 # Dans local.properties
 ENABLE_DEBUG_LOGGING=true
 ENABLE_NETWORK_LOGGING=true
-API_BASE_URL=https://ecodeli.me/
+API_BASE_URL=http://10.0.2.2:3000/
 ```
 
 ## 🔄 Synchronisation avec le Web
@@ -213,7 +216,7 @@ API_BASE_URL=https://ecodeli.me/
 ### **Erreurs Communes**
 ```bash
 # Erreur de connexion
-# Vérifier : https://ecodeli.me/api/public/status
+# Vérifier : http://localhost:3000/api/public/status
 
 # Erreur 401
 # Vérifier le token JWT dans les headers
@@ -236,7 +239,7 @@ adb logcat | grep -i ecodeli
 
 ## ✅ Checklist Final
 
-- [ ] URL API configurée : `https://ecodeli.me/`
+- [ ] URL API configurée : `http://10.0.2.2:3000/`
 - [ ] Clés Stripe configurées
 - [ ] OneSignal configuré
 - [ ] Google Maps configuré
@@ -244,4 +247,4 @@ adb logcat | grep -i ecodeli
 - [ ] Tests de connexion passés
 - [ ] Build release fonctionnel
 
-L'application est maintenant parfaitement configurée pour **ecodeli.me** ! 🎉
+L'application est maintenant parfaitement configurée pour **localhost:3000** ! 🎉

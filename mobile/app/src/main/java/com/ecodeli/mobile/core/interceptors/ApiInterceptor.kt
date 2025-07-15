@@ -17,9 +17,9 @@ class ApiInterceptor @Inject constructor(
         
         // Ajouter les headers personnalisés
         val requestBuilder = originalRequest.newBuilder()
-            .addHeader(AppConfig.Headers.USER_AGENT, AppConfig.Headers.USER_AGENT)
-            .addHeader(AppConfig.Headers.APP_VERSION, AppConfig.APP_VERSION)
-            .addHeader(AppConfig.Headers.PLATFORM, "Android")
+            .addHeader("User-Agent", "EcoDeli-Mobile-Android")
+            .addHeader("X-App-Version", "1.0")
+            .addHeader("X-Platform", "Android")
             .addHeader("Accept", "application/json")
             .addHeader("Content-Type", "application/json")
             .addHeader("X-Requested-With", "XMLHttpRequest")
@@ -40,7 +40,7 @@ class ApiInterceptor @Inject constructor(
         )
         
         deviceId?.let {
-            requestBuilder.addHeader(AppConfig.Headers.DEVICE_ID, it)
+            requestBuilder.addHeader("X-Device-ID", it)
         }
         
         val request = requestBuilder.build()

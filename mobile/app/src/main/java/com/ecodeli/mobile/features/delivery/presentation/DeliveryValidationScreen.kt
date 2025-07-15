@@ -108,26 +108,39 @@ fun DeliveryValidationScreen(
                         }
                     }
                     is NfcState.Success -> {
-                        Text(
-                            text = "✅ Livreur reconnu: ${nfcState.delivererCard.delivererName}",
-                            color = MaterialTheme.colorScheme.primary
-                        )
+                        when (val currentState = nfcState) {
+                            is NfcState.Success -> {
+                                Text(
+                                    text = "✅ Livreur reconnu: ${currentState.delivererCard.delivererName}",
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                            }
+                            else -> {}
+                        }
                     }
                     is NfcState.Error -> {
-                        Text(
-                            text = "❌ ${nfcState.message}",
-                            color = MaterialTheme.colorScheme.error
-                        )
+                        when (val currentState = nfcState) {
+                            is NfcState.Error -> {
+                                Text(
+                                    text = "❌ ${currentState.message}",
+                                    color = MaterialTheme.colorScheme.error
+                                )
+                            }
+                            else -> {}
+                        }
                     }
                 }
                 
-                if (delivererCard != null) {
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = "ID: ${delivererCard.delivererId}",
-                        fontSize = 12.sp,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
-                    )
+                when (val currentCard = delivererCard) {
+                    null -> {}
+                    else -> {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = "ID: ${currentCard.delivererId}",
+                            fontSize = 12.sp,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                        )
+                    }
                 }
             }
         }
@@ -189,11 +202,16 @@ fun DeliveryValidationScreen(
                         containerColor = MaterialTheme.colorScheme.errorContainer
                     )
                 ) {
-                    Text(
-                        text = validationState.message,
-                        color = MaterialTheme.colorScheme.onErrorContainer,
-                        modifier = Modifier.padding(16.dp)
-                    )
+                    when (val currentState = validationState) {
+                        is ValidationState.Error -> {
+                            Text(
+                                text = currentState.message,
+                                color = MaterialTheme.colorScheme.onErrorContainer,
+                                modifier = Modifier.padding(16.dp)
+                            )
+                        }
+                        else -> {}
+                    }
                 }
             }
             is ValidationState.DelivererVerified -> {
@@ -203,11 +221,16 @@ fun DeliveryValidationScreen(
                         containerColor = MaterialTheme.colorScheme.primaryContainer
                     )
                 ) {
-                    Text(
-                        text = "✅ Livreur ${validationState.card.delivererName} vérifié avec succès",
-                        color = MaterialTheme.colorScheme.onPrimaryContainer,
-                        modifier = Modifier.padding(16.dp)
-                    )
+                    when (val currentState = validationState) {
+                        is ValidationState.DelivererVerified -> {
+                            Text(
+                                text = "✅ Livreur ${currentState.card.delivererName} vérifié avec succès",
+                                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                modifier = Modifier.padding(16.dp)
+                            )
+                        }
+                        else -> {}
+                    }
                 }
             }
             else -> {}

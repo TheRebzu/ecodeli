@@ -15,6 +15,10 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 @Singleton
 class NfcManager @Inject constructor() {
@@ -99,15 +103,25 @@ class NfcManager @Inject constructor() {
             val records = message.records
             if (records.isNotEmpty()) {
                 val payload = String(records[0].payload)
+                // Skip the first 3 bytes (language code) for text records
+                val actualPayload = if (payload.length > 3) payload.substring(3) else payload
+                
                 // Parse the payload format: "ECODELI:DELIVERER:{id}:{name}:{validUntil}"
-                val parts = payload.split(":")
+                val parts = actualPayload.split(":")
                 if (parts.size >= 4 && parts[0] == "ECODELI" && parts[1] == "DELIVERER") {
-                    DelivererCard(
+                    val card = DelivererCard(
                         delivererId = parts[2],
                         delivererName = parts[3],
                         validUntil = parts.getOrNull(4) ?: "",
-                        cardId = generateCardId(payload)
+                        cardId = generateCardId(actualPayload)
                     )
+                    
+                    // Validate the card
+                    if (validateDelivererCard(card)) {
+                        card
+                    } else {
+                        null
+                    }
                 } else {
                     null
                 }
@@ -146,6 +160,32 @@ class NfcManager @Inject constructor() {
     fun clearState() {
         _nfcState.value = NfcState.Idle
         _delivererCard.value = null
+    }
+    
+    fun simulateNfcScan(delivererCard: DelivererCard) {
+        // Simulate NFC scan for testing purposes
+        _nfcState.value = NfcState.Reading
+        CoroutineScope(Dispatchers.Main).launch {
+            delay(1000) // Simulate scanning delay
+            _delivererCard.value = delivererCard
+            _nfcState.value = NfcState.Success(delivererCard)
+        }
+    }
+    
+    fun isNfcAvailable(activity: Activity): Boolean {
+        val nfcAdapter = NfcAdapter.getDefaultAdapter(activity)
+        return nfcAdapter != null && nfcAdapter.isEnabled
+    }
+    
+    fun validateDelivererCard(card: DelivererCard): Boolean {
+        // Validate card expiry and format
+        return try {
+            val currentTime = System.currentTimeMillis()
+            val validUntilTime = card.validUntil.toLongOrNull() ?: 0
+            currentTime <= validUntilTime
+        } catch (e: Exception) {
+            false
+        }
     }
 }
 

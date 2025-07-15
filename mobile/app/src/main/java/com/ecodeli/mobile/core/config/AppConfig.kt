@@ -9,8 +9,8 @@ object AppConfig {
     const val APP_VERSION_CODE = BuildConfig.VERSION_CODE
     
     // Configuration API
-    const val API_BASE_URL = "https://ecodeli.me/"
-    const val WEB_BASE_URL = "https://ecodeli.me/"
+    const val API_BASE_URL = "http://10.0.2.2:3000/"
+    const val WEB_BASE_URL = "http://10.0.2.2:3000/"
     
     // Services externes
     object ExternalServices {
@@ -70,9 +70,9 @@ object AppConfig {
     
     // Configuration debug
     object Debug {
-        const val ENABLE_LOGGING = BuildConfig.DEBUG
-        const val ENABLE_NETWORK_LOGGING = BuildConfig.DEBUG
-        const val ENABLE_CRASH_REPORTING = !BuildConfig.DEBUG
+        val ENABLE_LOGGING = BuildConfig.DEBUG
+        val ENABLE_NETWORK_LOGGING = BuildConfig.DEBUG
+        val ENABLE_CRASH_REPORTING = !BuildConfig.DEBUG
     }
     
     // URLs importantes

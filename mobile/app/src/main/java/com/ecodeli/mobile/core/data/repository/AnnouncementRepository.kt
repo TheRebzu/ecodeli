@@ -1,6 +1,7 @@
 package com.ecodeli.mobile.core.data.repository
 
 import com.ecodeli.mobile.core.data.models.Announcement
+import com.ecodeli.mobile.core.data.models.AnnouncementResponse
 import com.ecodeli.mobile.core.data.models.PaymentIntent
 import com.ecodeli.mobile.core.data.remote.ApiService
 import com.ecodeli.mobile.core.utils.Resource
@@ -16,7 +17,7 @@ class AnnouncementRepository @Inject constructor(
         return try {
             val response = apiService.getClientAnnouncements()
             if (response.isSuccessful && response.body() != null) {
-                Resource.Success(response.body()!!)
+                Resource.Success(response.body()!!.announcements)
             } else {
                 Resource.Error("Failed to fetch announcements")
             }

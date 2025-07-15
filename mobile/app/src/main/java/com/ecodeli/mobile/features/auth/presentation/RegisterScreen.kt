@@ -248,12 +248,15 @@ fun RegisterScreen(
             Text("Déjà un compte ? Se connecter")
         }
         
-        if (authState is AuthState.Error) {
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(
-                text = authState.message,
-                color = MaterialTheme.colorScheme.error
-            )
+        when (val currentState = authState) {
+            is AuthState.Error -> {
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(
+                    text = currentState.message,
+                    color = MaterialTheme.colorScheme.error
+                )
+            }
+            else -> {}
         }
         
         if (password != confirmPassword && confirmPassword.isNotBlank()) {

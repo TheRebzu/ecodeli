@@ -11,12 +11,22 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.ecodeli.mobile.core.data.models.Delivery
 import com.ecodeli.mobile.core.data.models.DeliveryStatus
+import com.ecodeli.mobile.core.data.repository.DeliveryRepository
+import com.ecodeli.mobile.core.utils.Resource
 import com.ecodeli.mobile.features.delivery.presentation.DeliveryTrackingViewModel
 import com.ecodeli.mobile.features.delivery.presentation.TrackingState
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 import java.text.NumberFormat
 import java.util.*
+import javax.inject.Inject
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -73,11 +83,16 @@ fun ActiveDeliveriesScreen(
                         containerColor = MaterialTheme.colorScheme.errorContainer
                     )
                 ) {
-                    Text(
-                        text = uiState.message,
-                        color = MaterialTheme.colorScheme.onErrorContainer,
-                        modifier = Modifier.padding(16.dp)
-                    )
+                    when (val currentState = uiState) {
+                        is ActiveDeliveryUiState.Error -> {
+                            Text(
+                                text = currentState.message,
+                                color = MaterialTheme.colorScheme.onErrorContainer,
+                                modifier = Modifier.padding(16.dp)
+                            )
+                        }
+                        else -> {}
+                    }
                 }
             }
             else -> {
@@ -175,19 +190,19 @@ fun ActiveDeliveryCard(
                         modifier = Modifier.weight(1f)
                     ) {
                         Text(
-                            text = "📍 ${announcement.pickupAddress.city}",
+                            text = "📍 ${announcement.pickupAddress ?: "Non spécifié"}",
                             fontSize = 12.sp,
                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                         )
                         Text(
-                            text = "🏁 ${announcement.deliveryAddress.city}",
+                            text = "🏁 ${announcement.deliveryAddress ?: "Non spécifié"}",
                             fontSize = 12.sp,
                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                         )
                     }
                     
                     Text(
-                        text = NumberFormat.getCurrencyInstance(Locale.FRANCE).format(announcement.price),
+                        text = NumberFormat.getCurrencyInstance(Locale.FRANCE).format(announcement.basePrice),
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.primary
@@ -327,16 +342,6 @@ fun DeliveryStatusChip(status: DeliveryStatus) {
 }
 
 // ViewModel pour les livraisons actives
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
-import com.ecodeli.mobile.core.data.repository.DeliveryRepository
-import com.ecodeli.mobile.core.utils.Resource
-import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 @HiltViewModel
 class ActiveDeliveriesViewModel @Inject constructor(

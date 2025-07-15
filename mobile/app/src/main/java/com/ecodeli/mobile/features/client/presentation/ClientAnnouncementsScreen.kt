@@ -84,11 +84,16 @@ fun ClientAnnouncementsScreen(
                         containerColor = MaterialTheme.colorScheme.errorContainer
                     )
                 ) {
-                    Text(
-                        text = uiState.message,
-                        color = MaterialTheme.colorScheme.onErrorContainer,
-                        modifier = Modifier.padding(16.dp)
-                    )
+                    when (val currentState = uiState) {
+                        is AnnouncementUiState.Error -> {
+                            Text(
+                                text = currentState.message,
+                                color = MaterialTheme.colorScheme.onErrorContainer,
+                                modifier = Modifier.padding(16.dp)
+                            )
+                        }
+                        else -> {}
+                    }
                 }
             }
             else -> {
@@ -132,6 +137,7 @@ fun ClientAnnouncementsScreen(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AnnouncementCard(
     announcement: Announcement,
@@ -155,7 +161,7 @@ fun AnnouncementCard(
                     fontWeight = FontWeight.Bold
                 )
                 
-                StatusBadge(status = announcement.status)
+                StatusBadge(status = announcement.status ?: AnnouncementStatus.PENDING)
             }
             
             Spacer(modifier = Modifier.height(8.dp))
@@ -174,13 +180,13 @@ fun AnnouncementCard(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    text = getTypeEmoji(announcement.type) + " " + getTypeText(announcement.type),
+                    text = getTypeEmoji(announcement.type ?: AnnouncementType.PACKAGE) + " " + getTypeText(announcement.type ?: AnnouncementType.PACKAGE),
                     fontSize = 12.sp,
                     color = MaterialTheme.colorScheme.primary
                 )
                 
                 Text(
-                    text = NumberFormat.getCurrencyInstance(Locale.FRANCE).format(announcement.price),
+                    text = NumberFormat.getCurrencyInstance(Locale.FRANCE).format(announcement.basePrice),
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.primary
@@ -190,7 +196,7 @@ fun AnnouncementCard(
             Spacer(modifier = Modifier.height(4.dp))
             
             Text(
-                text = "${announcement.pickupAddress.city} → ${announcement.deliveryAddress.city}",
+                text = "${announcement.pickupAddress ?: "Non spécifié"} → ${announcement.deliveryAddress ?: "Non spécifié"}",
                 fontSize = 12.sp,
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
             )
@@ -202,6 +208,7 @@ fun AnnouncementCard(
 fun StatusBadge(status: AnnouncementStatus) {
     val (color, text) = when (status) {
         AnnouncementStatus.PENDING -> MaterialTheme.colorScheme.tertiary to "En attente"
+        AnnouncementStatus.ACTIVE -> MaterialTheme.colorScheme.primary to "Active"
         AnnouncementStatus.ACCEPTED -> MaterialTheme.colorScheme.primary to "Acceptée"
         AnnouncementStatus.IN_PROGRESS -> MaterialTheme.colorScheme.secondary to "En cours"
         AnnouncementStatus.COMPLETED -> MaterialTheme.colorScheme.primary to "Terminée"

@@ -107,7 +107,7 @@ class DeliveryTrackingViewModel @Inject constructor(
     
     private fun handleDelivererCardScanned(card: DelivererCard) {
         _selectedDelivery.value?.let { delivery ->
-            if (delivery.announcement?.delivererId == card.delivererId) {
+            if (delivery.announcement?.author?.id == card.delivererId) {
                 _validationState.value = ValidationState.DelivererVerified(card)
             } else {
                 _validationState.value = ValidationState.Error("This is not the assigned deliverer")

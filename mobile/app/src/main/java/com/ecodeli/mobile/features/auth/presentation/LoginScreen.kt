@@ -29,9 +29,9 @@ fun LoginScreen(
     val authState by viewModel.authState.collectAsState()
     
     LaunchedEffect(authState) {
-        when (authState) {
+        when (val currentState = authState) {
             is AuthState.Success -> {
-                onLoginSuccess(authState.user)
+                onLoginSuccess(currentState.user)
                 viewModel.resetState()
             }
             else -> {}
@@ -113,12 +113,15 @@ fun LoginScreen(
             Text("Pas encore de compte ? S'inscrire")
         }
         
-        if (authState is AuthState.Error) {
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(
-                text = authState.message,
-                color = MaterialTheme.colorScheme.error
-            )
+        when (val currentState = authState) {
+            is AuthState.Error -> {
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(
+                    text = currentState.message,
+                    color = MaterialTheme.colorScheme.error
+                )
+            }
+            else -> {}
         }
     }
 }

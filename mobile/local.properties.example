@@ -5,8 +5,8 @@
 sdk.dir=/path/to/android/sdk
 
 # API EcoDeli
-API_BASE_URL=https://ecodeli.me/
-WEB_BASE_URL=https://ecodeli.me/
+API_BASE_URL=http://localhost:3000/
+WEB_BASE_URL=http://localhost:3000/
 
 # Google Maps API
 GOOGLE_MAPS_API_KEY=your_google_maps_api_key_here

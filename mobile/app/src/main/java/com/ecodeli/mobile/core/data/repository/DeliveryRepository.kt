@@ -129,4 +129,25 @@ class DeliveryRepository @Inject constructor(
             Resource.Error(e.message ?: "Unknown error occurred")
         }
     }
+    
+    suspend fun validateDeliveryWithNfc(deliveryId: String, delivererCard: com.ecodeli.mobile.features.nfc.DelivererCard): Resource<Unit> {
+        return try {
+            val response = apiService.validateDeliveryWithNfc(
+                deliveryId,
+                mapOf(
+                    "delivererId" to delivererCard.delivererId,
+                    "cardId" to delivererCard.cardId,
+                    "delivererName" to delivererCard.delivererName,
+                    "validUntil" to delivererCard.validUntil
+                )
+            )
+            if (response.isSuccessful) {
+                Resource.Success(Unit)
+            } else {
+                Resource.Error("Invalid NFC card or delivery validation failed")
+            }
+        } catch (e: Exception) {
+            Resource.Error(e.message ?: "Unknown error occurred")
+        }
+    }
 }

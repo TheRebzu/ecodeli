@@ -20,7 +20,7 @@ fun ClientDashboardScreen(
     onLogout: () -> Unit,
     authViewModel: AuthViewModel = hiltViewModel()
 ) {
-    val currentUser by authViewModel.currentUser.collectAsState()
+    val currentUser by authViewModel.currentUser.collectAsState(initial = null)
     
     Column(
         modifier = Modifier
@@ -97,6 +97,7 @@ fun ClientDashboardScreen(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DashboardCard(
     title: String,
