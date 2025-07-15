@@ -76,126 +76,26 @@ export async function GET(
       );
     }
 
-    // Vérifier que la livraison est dans un état où le code est nécessaire
-    const validStatuses = ["IN_TRANSIT", "OUT_FOR_DELIVERY"];
-    if (!validStatuses.includes(announcement.delivery.status)) {
-      return NextResponse.json(
-        {
-          error: "Le code de validation n'est pas encore disponible",
-          deliveryStatus: announcement.delivery.status,
-          reason: getValidationCodeUnavailableReason(
-            announcement.delivery.status,
-          ),
-        },
-        { status: 400 },
-      );
-    }
-
-    // Récupérer ou générer le code de validation
-    let validationInfo = await ValidationCodeService.getValidationInfo(
-      announcement.delivery.id,
-    );
-
-    if (!validationInfo) {
-      // Générer un nouveau code si aucun n'existe
-      const newCode = await ValidationCodeService.generateValidationCode(
-        announcement.delivery.id,
-      );
-      validationInfo = await ValidationCodeService.getValidationInfo(
-        announcement.delivery.id,
-      );
-
-      if (!validationInfo) {
-        throw new Error("Impossible de générer le code de validation");
-      }
-
-      logger.info(
-        `Nouveau code de validation généré pour livraison ${announcement.delivery.id}`,
-      );
-    }
-
-    // Calculer le temps restant avant expiration
-    const timeRemaining = validationInfo.expiresAt.getTime() - Date.now();
-    const isExpired = timeRemaining <= 0;
-
-    if (isExpired) {
-      // Régénérer un code si celui-ci a expiré
-      const newCode = await ValidationCodeService.generateValidationCode(
-        announcement.delivery.id,
-      );
-      validationInfo = await ValidationCodeService.getValidationInfo(
-        announcement.delivery.id,
-      );
-
-      if (!validationInfo) {
-        throw new Error("Impossible de régénérer le code de validation");
-      }
-
-      logger.info(
-        `Code de validation régénéré pour livraison ${announcement.delivery.id}`,
-      );
-    }
-
-    // Préparer les informations de la livraison
-    const deliveryInfo = {
-      id: announcement.delivery.id,
-      status: announcement.delivery.status,
-      trackingNumber: announcement.delivery.trackingNumber,
-      deliverer: {
-        name: announcement.delivery.deliverer?.profile
-          ? `${announcement.delivery.deliverer.profile.firstName} ${announcement.delivery.deliverer.profile.lastName}`
-          : "Livreur",
-        phone: announcement.delivery.deliverer?.profile?.phone,
-        avatar: announcement.delivery.deliverer?.profile?.avatar,
-      },
-    };
-
-    // Créer un QR code pour faciliter la validation mobile
-    const qrCodeData = {
-      type: "ecodeli_validation",
-      announcementId,
-      deliveryId: announcement.delivery.id,
-      code: validationInfo.code,
-      expiresAt: validationInfo.expiresAt.toISOString(),
-    };
-
-    const response = {
+    // Retourner directement le code de validation de la livraison liée
+    return NextResponse.json({
       announcement: {
         id: announcement.id,
         title: announcement.title,
         status: announcement.status,
       },
-
-      delivery: deliveryInfo,
-
-      validation: {
-        code: validationInfo.code,
-        expiresAt: validationInfo.expiresAt.toISOString(),
-        timeRemaining: Math.max(
-          0,
-          validationInfo.expiresAt.getTime() - Date.now(),
-        ),
-        timeRemainingFormatted: formatTimeRemaining(
-          Math.max(0, validationInfo.expiresAt.getTime() - Date.now()),
-        ),
-        qrCodeData: Buffer.from(JSON.stringify(qrCodeData)).toString("base64"),
+      delivery: {
+        id: announcement.delivery.id,
+        status: announcement.delivery.status,
+        validationCode: announcement.delivery.validationCode,
+        deliverer: {
+          name: announcement.delivery.deliverer?.profile
+            ? `${announcement.delivery.deliverer.profile.firstName} ${announcement.delivery.deliverer.profile.lastName}`
+            : "Livreur",
+          phone: announcement.delivery.deliverer?.profile?.phone,
+          avatar: announcement.delivery.deliverer?.profile?.avatar,
+        },
       },
-
-      instructions: [
-        "Communiquez ce code au livreur lors de la réception",
-        "Le livreur saisira ce code pour confirmer la livraison",
-        "Le code expire automatiquement après 2 heures",
-        "Un nouveau code sera généré si celui-ci expire",
-      ],
-
-      actions: {
-        canValidate: true,
-        validationUrl: `/api/client/announcements/${announcementId}/validate`,
-        qrCodeUrl: `data:text/plain;base64,${Buffer.from(JSON.stringify(qrCodeData)).toString("base64")}`,
-      },
-    };
-
-    return NextResponse.json(response);
+    });
   } catch (error) {
     logger.error("Erreur récupération code validation:", error);
 

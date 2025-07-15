@@ -267,6 +267,19 @@ export default function DeliveryDetailPage({
           </div>
         </div>
 
+        {/* Ajout du bouton de liaison vers le tracking */}
+        <div className="flex justify-end mb-4">
+          <Button
+            variant="outline"
+            onClick={async () => {
+              const { id } = await params;
+              router.push(`/fr/deliverer/deliveries/${id}/tracking`);
+            }}
+          >
+            Voir le tracking temps réel
+          </Button>
+        </div>
+
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Informations de la livraison */}
           <Card>

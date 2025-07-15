@@ -49,20 +49,20 @@ export class DeliveryTrackingService {
       }
 
       // Créer l'entrée de suivi
+      const trackingData: any = {
+        deliveryId,
+        status,
+        message,
+        location: location ? JSON.stringify(location) : null,
+        isAutomatic: isAutomatic || false,
+        timestamp: new Date(),
+      };
+      // Si location contient lat/lng, ajouter coordinates
+      if (location && location.latitude !== undefined && location.longitude !== undefined) {
+        trackingData.coordinates = { lat: location.latitude, lng: location.longitude };
+      }
       const trackingUpdate = await prisma.trackingUpdate.create({
-        data: {
-          deliveryId,
-          status,
-          message,
-          location: location ? JSON.stringify(location) : null,
-          estimatedArrival: estimatedArrival
-            ? new Date(estimatedArrival)
-            : null,
-          delay: delay || null,
-          isAutomatic: isAutomatic || false,
-          timestamp: new Date(),
-          metadata: metadata ? JSON.stringify(metadata) : null,
-        },
+        data: trackingData,
       });
 
       // Si le statut change, mettre à jour la livraison

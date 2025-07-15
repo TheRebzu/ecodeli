@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getUserFromSession } from "@/lib/auth/utils";
 import { prisma } from "@/lib/db";
+import { geocodingService } from '@/features/announcements/services/geocoding.service';
 
 // GET - Données de suivi d'une livraison
 export async function GET(
@@ -58,31 +59,72 @@ export async function GET(
       );
     }
 
-    // Simuler des coordonnées pour les adresses (en production, utiliser un service de géocodage)
-    const pickupCoordinates = {
-      lat: 48.8566 + (Math.random() - 0.5) * 0.1, // Paris avec variation
-      lng: 2.3522 + (Math.random() - 0.5) * 0.1,
-    };
+    // Géocoder les adresses pour obtenir les vraies coordonnées
+    let pickupCoordinates = null;
+    let deliveryCoordinates = null;
+    try {
+      const pickupGeocode = await geocodingService.geocodeAddressWithCache(delivery.announcement.pickupAddress);
+      if (pickupGeocode) {
+        pickupCoordinates = { lat: pickupGeocode.lat, lng: pickupGeocode.lng };
+      }
+    } catch (e) { /* ignore */ }
+    try {
+      const deliveryGeocode = await geocodingService.geocodeAddressWithCache(delivery.announcement.deliveryAddress);
+      if (deliveryGeocode) {
+        deliveryCoordinates = { lat: deliveryGeocode.lat, lng: deliveryGeocode.lng };
+      }
+    } catch (e) { /* ignore */ }
+    // Fallback Paris si échec géocodage
+    if (!pickupCoordinates) {
+      pickupCoordinates = { lat: 48.8566, lng: 2.3522 };
+    }
+    if (!deliveryCoordinates) {
+      deliveryCoordinates = { lat: 48.8566, lng: 2.3522 };
+    }
 
-    const deliveryCoordinates = {
-      lat: 48.8566 + (Math.random() - 0.5) * 0.2,
-      lng: 2.3522 + (Math.random() - 0.5) * 0.2,
-    };
-
-    // Position actuelle simulée (si livraison en cours)
-    let currentLocation = null;
+    // Estimation d'arrivée (si en cours)
+    let estimatedArrival = null;
     if (delivery.status === "IN_TRANSIT") {
-      const progress = Math.random() * 0.7 + 0.1; // Entre 10% et 80% du trajet
-      currentLocation = {
-        lat:
-          pickupCoordinates.lat +
-          (deliveryCoordinates.lat - pickupCoordinates.lat) * progress,
-        lng:
-          pickupCoordinates.lng +
-          (deliveryCoordinates.lng - pickupCoordinates.lng) * progress,
-        address: `Position actuelle - ${Math.floor(progress * 100)}% du trajet`,
-        timestamp: new Date().toISOString(),
-      };
+      estimatedArrival = new Date(
+        Date.now() + Math.random() * 60 * 60 * 1000 + 30 * 60 * 1000,
+      ).toISOString(); // Entre 30 min et 1h30
+    }
+
+    // Historique réel des positions (tracking)
+    const trackingHistory = delivery.tracking
+      .map((update) => {
+        if (!update.location) return null;
+        let loc;
+        try {
+          loc = typeof update.location === 'string' ? JSON.parse(update.location) : update.location;
+        } catch {
+          return null;
+        }
+        return {
+          id: update.id,
+          location: {
+            latitude: loc.latitude ?? loc.lat,
+            longitude: loc.longitude ?? loc.lng,
+            address: loc.address || undefined,
+          },
+          timestamp: update.timestamp.toISOString(),
+          status: update.status,
+        };
+      })
+      .filter(Boolean);
+
+    // Position actuelle = dernier point réel
+    let currentLocation = null;
+    if (trackingHistory.length > 0) {
+      const last = trackingHistory[trackingHistory.length - 1];
+      if (last.location) {
+        currentLocation = {
+          latitude: last.location.latitude,
+          longitude: last.location.longitude,
+          address: last.location.address,
+          timestamp: last.timestamp,
+        };
+      }
     }
 
     // Créer des mises à jour de suivi par défaut si aucune n'existe
@@ -173,32 +215,38 @@ export async function GET(
       }
     }
 
-    // Estimation d'arrivée (si en cours)
-    let estimatedArrival = null;
-    if (delivery.status === "IN_TRANSIT") {
-      estimatedArrival = new Date(
-        Date.now() + Math.random() * 60 * 60 * 1000 + 30 * 60 * 1000,
-      ).toISOString(); // Entre 30 min et 1h30
-    }
-
     const trackingData = {
-      id: delivery.id,
-      announcementTitle: delivery.announcement.title,
+      deliveryId: delivery.id,
       status: delivery.status,
-      delivererName: delivery.deliverer?.profile
-        ? `${delivery.deliverer.profile.firstName} ${delivery.deliverer.profile.lastName}`
-        : null,
-      delivererPhone: delivery.deliverer?.profile?.phone || null,
-      delivererAvatar: delivery.deliverer?.profile?.avatar || null,
-      pickupAddress: delivery.announcement.pickupAddress,
-      deliveryAddress: delivery.announcement.deliveryAddress,
+      deliverer: delivery.deliverer?.profile
+        ? {
+            id: delivery.deliverer.id,
+            firstName: delivery.deliverer.profile.firstName || '',
+            lastName: delivery.deliverer.profile.lastName || '',
+            phone: delivery.deliverer.profile.phone || '',
+          }
+        : undefined,
+      pickupLocation: {
+        latitude: pickupCoordinates.lat,
+        longitude: pickupCoordinates.lng,
+        address: delivery.announcement.pickupAddress,
+      },
+      deliveryLocation: {
+        latitude: deliveryCoordinates.lat,
+        longitude: deliveryCoordinates.lng,
+        address: delivery.announcement.deliveryAddress,
+      },
       currentLocation,
-      estimatedArrival,
-      validationCode: delivery.validationCode,
-      route,
-      updates,
-      pickupCoordinates,
-      deliveryCoordinates,
+      estimatedDeliveryTime: estimatedArrival,
+      trackingHistory,
+      progress:
+        delivery.status === 'DELIVERED'
+          ? 100
+          : delivery.status === 'IN_TRANSIT'
+          ? 60
+          : delivery.status === 'ACCEPTED'
+          ? 20
+          : 0,
     };
 
     return NextResponse.json(trackingData);

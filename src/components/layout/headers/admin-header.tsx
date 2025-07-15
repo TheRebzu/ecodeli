@@ -33,6 +33,7 @@ import {
   CheckCircle,
   HelpCircle,
 } from "lucide-react";
+import { signOut } from "next-auth/react";
 
 interface AdminHeaderProps {
   user: {
@@ -350,7 +351,7 @@ export function AdminHeader({
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={() => signOut({ redirect: true, callbackUrl: "/login" })} className="text-red-600">
                 <LogOut className="mr-2 h-4 w-4" />
                 <span>Se déconnecter</span>
               </DropdownMenuItem>

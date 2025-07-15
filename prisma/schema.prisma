@@ -275,7 +275,7 @@ model User {
   assignedTickets      SupportTicket[]        @relation("TicketAssignee")
   escalatedFromTickets TicketEscalation[]     @relation("EscalationFrom")
   escalatedToTickets   TicketEscalation[]     @relation("EscalationTo")
-  ticketMessages       TicketMessage[]
+  ticketMessages       TicketMessage[]         @relation("UserTicketMessages")
   ticketAttachments    TicketAttachment[]
   knowledgeBaseEntries SupportKnowledgeBase[]
   supportTemplates     SupportTemplate[]
@@ -288,6 +288,9 @@ model User {
   warrantyClaims           WarrantyClaim[]
   InsuranceClaim           InsuranceClaim[]
   ClaimAssessment          ClaimAssessment[]
+
+  // Chat générique
+  chatMessages         ChatMessage[]          @relation("UserChatMessages")
 
   @@index([email])
   @@index([role])
@@ -2131,7 +2134,7 @@ model TicketMessage {
 
   // Relations
   ticket      SupportTicket       @relation(fields: [ticketId], references: [id], onDelete: Cascade)
-  author      User                @relation(fields: [authorId], references: [id])
+  author      User                @relation("UserTicketMessages", fields: [authorId], references: [id], onDelete: Cascade)
   attachments MessageAttachment[]
 
   @@index([ticketId])
@@ -3548,4 +3551,26 @@ enum ProposalStatus {
   DECLINE
   EXPIRED
   CANCELLED
+}
+
+// === Chat générique EcoDeli ===
+enum ChatContextType {
+  DELIVERY
+  BOOKING
+  SUPPORT
+  CONTRACT
+  GENERAL
+}
+
+model ChatMessage {
+  id          String          @id @default(cuid())
+  contextType ChatContextType
+  contextId   String
+  senderId    String
+  sender      User            @relation("UserChatMessages", fields: [senderId], references: [id], onDelete: Cascade)
+  message     String
+  createdAt   DateTime        @default(now())
+
+  @@index([contextType, contextId])
+  @@index([senderId])
 }

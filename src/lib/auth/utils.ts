@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { prisma } from "@/lib/db";
+import jwt from "jsonwebtoken";
 
 /**
  * Utilitaires d'authentification compatibles EcoDeli + NextAuth
@@ -266,10 +267,26 @@ export async function getCurrentUserAPI(request: NextRequest) {
       }
     }
 
-    // Utiliser NextAuth pour obtenir la session normale
-    const session = await auth();
+    // --- PATCH: Décodage manuel du cookie JWT pour API route ---
+    // Si la session n'est pas trouvée via auth(), on décode le cookie JWT pour extraire l'id utilisateur
+    let session = await auth();
+    let userId: string | null = null;
+    if (session?.user?.id) {
+      userId = session.user.id;
+    } else {
+      const cookie = request.headers.get("cookie");
+      if (cookie) {
+        const match = cookie.match(/authjs\.session-token=([^;]+)/);
+        if (match) {
+          const token = match[1];
+          // Décodage du JWT (sans vérification de signature)
+          const decoded: any = jwt.decode(token);
+          userId = decoded?.sub || null;
+        }
+      }
+    }
 
-    if (!session?.user) {
+    if (!userId) {
       return null;
     }
 
@@ -283,7 +300,7 @@ export async function getCurrentUserAPI(request: NextRequest) {
     };
 
     const user = await db.user.findUnique({
-      where: { id: session.user.id },
+      where: { id: userId },
       include: includeRelations,
     });
 

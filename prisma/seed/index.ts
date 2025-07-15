@@ -90,6 +90,10 @@ export async function seedDatabase() {
       await generateSeedReport(context);
     }
 
+    // Injection d'une annonce pour l'utilisateur demandé (manuel)
+    const { injectAnnouncementForUser } = await import("./seeds/08-announcement.seed");
+    await injectAnnouncementForUser(context.prisma, "cmcx8po9l0000plzgekbnro5b");
+
     console.log("\nDatabase seeding completed successfully!");
 
     // 4. Afficher les comptes de test créés

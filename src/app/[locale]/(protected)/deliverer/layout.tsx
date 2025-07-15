@@ -6,6 +6,7 @@ import { DelivererHeader } from "@/components/layout/headers/deliverer-header";
 import { DelivererSidebar } from "@/components/layout/sidebars/deliverer-sidebar";
 import { Toaster } from "@/components/ui/toaster";
 import { cn } from "@/lib/utils";
+import { usePathname, useRouter } from "next/navigation";
 
 interface DelivererLayoutProps {
   children: React.ReactNode;
@@ -15,6 +16,36 @@ export default function DelivererLayout({ children }: DelivererLayoutProps) {
   const { user, isLoading, isAuthenticated, signOut } = useAuth();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const pathname = usePathname();
+  const router = useRouter();
+
+  // Redirect non-validated deliverers to recruitment page, with debug logs
+  useEffect(() => {
+    if (!isLoading && user && user.role === "DELIVERER") {
+      const isValidated = user.validationStatus === "APPROVED" && user.isActive === true;
+      const isRecruitmentPage = pathname.includes("/deliverer/recruitment");
+      console.log("[DelivererLayout Debug]", {
+        user,
+        validationStatus: user.validationStatus,
+        isActive: user.isActive,
+        isValidated,
+        pathname,
+        isRecruitmentPage
+      });
+      if (!isValidated && !isRecruitmentPage) {
+        console.info("[DelivererLayout] Redirecting deliverer to http://172.21.112.1:3000/fr/deliverer/recruitment", {
+          userId: user.id,
+          validationStatus: user.validationStatus,
+          isActive: user.isActive
+        });
+        router.replace("/fr/deliverer/recruitment");
+      }
+      if (isValidated && isRecruitmentPage) {
+        console.log("[DelivererLayout Debug] Redirecting to /fr/deliverer because user is validated but on recruitment page.");
+        router.replace("/fr/deliverer");
+      }
+    }
+  }, [isLoading, user, pathname, router]);
 
   // Close mobile menu when clicking outside
   useEffect(() => {
@@ -130,7 +161,7 @@ export default function DelivererLayout({ children }: DelivererLayoutProps) {
             name: user.name || user.email.split("@")[0],
             email: user.email,
             role: user.role,
-            isValidated: true, // This would come from user profile
+            isValidated: user.validationStatus === "APPROVED" && user.isActive === true,
             rating: 4.8, // This would come from user profile
             nfcCardId: "NFC-001", // This would come from user profile
             avatar: "", // Avatar would be loaded from profile

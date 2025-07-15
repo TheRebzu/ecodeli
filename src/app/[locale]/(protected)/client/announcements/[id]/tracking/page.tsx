@@ -5,6 +5,8 @@ import { useParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import dynamic from "next/dynamic";
+import { DeliveryTrackingMap } from "@/components/maps/delivery-tracking-map";
+import ChatBox from "@/components/chat/ChatBox";
 
 // Import dynamique pour éviter les erreurs SSR avec les cartes
 const MapComponent = dynamic(
@@ -297,7 +299,9 @@ export default function AnnouncementTrackingPage() {
                     {delivery.deliverer.name}
                   </h3>
                   <div className="flex items-center space-x-2 text-sm text-gray-500">
-                    <span>⭐ {delivery.deliverer.rating.toFixed(1)}</span>
+                    <span>
+                      ⭐ {delivery.deliverer.rating != null ? delivery.deliverer.rating.toFixed(1) : "N/A"}
+                    </span>
                     <span>•</span>
                     <span>📞 {delivery.deliverer.phone}</span>
                   </div>
@@ -343,42 +347,46 @@ export default function AnnouncementTrackingPage() {
               </h2>
 
               <div className="space-y-4">
-                {delivery.tracking.map((event, index) => (
-                  <div key={event.id} className="flex space-x-4">
-                    <div className="flex flex-col items-center">
-                      <div
-                        className={`w-8 h-8 rounded-full flex items-center justify-center text-sm ${
-                          index === 0
-                            ? "bg-green-500 text-white"
-                            : "bg-gray-200 text-gray-600"
-                        }`}
-                      >
-                        {getTrackingIcon(event.type)}
+                {Array.isArray(delivery.tracking) && delivery.tracking.length > 0 ? (
+                  delivery.tracking.map((event, index) => (
+                    <div key={event.id} className="flex space-x-4">
+                      <div className="flex flex-col items-center">
+                        <div
+                          className={`w-8 h-8 rounded-full flex items-center justify-center text-sm ${
+                            index === 0
+                              ? "bg-green-500 text-white"
+                              : "bg-gray-200 text-gray-600"
+                          }`}
+                        >
+                          {getTrackingIcon(event.type)}
+                        </div>
+                        {index < delivery.tracking.length - 1 && (
+                          <div className="w-px h-6 bg-gray-200 mt-2"></div>
+                        )}
                       </div>
-                      {index < delivery.tracking.length - 1 && (
-                        <div className="w-px h-6 bg-gray-200 mt-2"></div>
-                      )}
-                    </div>
-                    <div className="flex-1 pb-4">
-                      <div className="flex items-center justify-between">
-                        <h3 className="font-medium text-gray-900">
-                          {event.title}
-                        </h3>
-                        <span className="text-sm text-gray-500">
-                          {new Date(event.timestamp).toLocaleString()}
-                        </span>
-                      </div>
-                      <p className="text-gray-600 text-sm mt-1">
-                        {event.description}
-                      </p>
-                      {event.location && (
-                        <p className="text-gray-500 text-xs mt-1">
-                          📍 {event.location.address}
+                      <div className="flex-1 pb-4">
+                        <div className="flex items-center justify-between">
+                          <h3 className="font-medium text-gray-900">
+                            {event.title}
+                          </h3>
+                          <span className="text-sm text-gray-500">
+                            {new Date(event.timestamp).toLocaleString()}
+                          </span>
+                        </div>
+                        <p className="text-gray-600 text-sm mt-1">
+                          {event.description}
                         </p>
-                      )}
+                        {event.location && (
+                          <p className="text-gray-500 text-xs mt-1">
+                            📍 {event.location.address}
+                          </p>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))
+                ) : (
+                  <div>Aucun suivi disponible</div>
+                )}
               </div>
             </div>
           </div>
@@ -390,12 +398,21 @@ export default function AnnouncementTrackingPage() {
                 Localisation en temps réel
               </h2>
 
-              <MapComponent
-                pickup={announcement.pickupAddress}
-                delivery={announcement.deliveryAddress}
-                currentLocation={delivery.currentLocation}
-                delivererName={delivery.deliverer.name}
-              />
+              {/* Affichage sécurisé de la carte */}
+              {announcement?.delivery ? (
+                <DeliveryTrackingMap
+                  deliveryId={announcement.delivery.id}
+                  apiEndpoint={`/api/client/deliveries/${announcement.delivery.id}/tracking`}
+                  showDetails={true}
+                />
+              ) : (
+                <div className="h-64 bg-gray-100 rounded-lg flex items-center justify-center">
+                  <div className="text-center">
+                    <div className="text-gray-400 text-lg mb-2">🗺️</div>
+                    <p className="text-gray-600 text-sm">Carte ou adresses de suivi indisponibles</p>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Informations de livraison */}
@@ -445,6 +462,13 @@ export default function AnnouncementTrackingPage() {
             </div>
           </div>
         </div>
+        
+        {/* Chat */}
+        {announcement?.delivery && (
+          <div className="mt-6">
+            <ChatBox contextType="DELIVERY" contextId={announcement.delivery.id} />
+          </div>
+        )}
       </div>
     </div>
   );

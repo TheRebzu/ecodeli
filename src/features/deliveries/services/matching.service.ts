@@ -1,9 +1,4 @@
 import { prisma } from "@/lib/db";
-import {
-  DeliveryStatus,
-  AnnouncementStatus,
-  AnnouncementType,
-} from "@prisma/client";
 
 export interface MatchScore {
   announcementId: string;
@@ -78,12 +73,12 @@ export class MatchingService {
 
     const availableAnnouncements = await prisma.announcement.findMany({
       where: {
-        status: AnnouncementStatus.ACTIVE,
+        status: "ACTIVE",
         type: {
           in: [
-            AnnouncementType.PACKAGE_DELIVERY,
-            AnnouncementType.SHOPPING,
-            AnnouncementType.INTERNATIONAL_PURCHASE,
+            "PACKAGE_DELIVERY",
+            "SHOPPING",
+            "INTERNATIONAL_PURCHASE",
           ],
         },
         deliveries: {
@@ -611,12 +606,12 @@ export class MatchingService {
 
     const availableAnnouncements = await prisma.announcement.findMany({
       where: {
-        status: AnnouncementStatus.ACTIVE,
+        status: "ACTIVE",
         type: {
           in: [
-            AnnouncementType.PACKAGE_DELIVERY,
-            AnnouncementType.SHOPPING,
-            AnnouncementType.INTERNATIONAL_PURCHASE,
+            "PACKAGE_DELIVERY",
+            "SHOPPING",
+            "INTERNATIONAL_PURCHASE",
           ],
         },
         deliveries: { none: {} },
@@ -789,6 +784,17 @@ export class MatchingService {
             pickupAddress: announcement.pickupAddress,
             deliveryAddress: announcement.deliveryAddress,
             scheduledAt: announcement.scheduledAt,
+          },
+        });
+
+        // Ajout: Créer l'entrée de tracking initiale
+        await tx.trackingUpdate.create({
+          data: {
+            deliveryId: delivery.id,
+            status: "ACCEPTED",
+            message: "Livraison acceptée par le livreur",
+            isAutomatic: true,
+            timestamp: new Date(),
           },
         });
 

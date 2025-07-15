@@ -201,55 +201,46 @@ export async function GET(
     }
 
     const response = {
-      announcement: {
-        id: announcement.id,
-        title: announcement.title,
-        status: announcement.status,
-        addresses: {
-          pickup: announcement.pickupAddress,
-          delivery: announcement.deliveryAddress,
-        },
-        coordinates: {
-          pickup: announcement.pickupCoordinates,
-          delivery: announcement.deliveryCoordinates,
-        },
-      },
-
+      id: announcement.id,
+      title: announcement.title,
+      description: "", // Fallback car description n'existe pas
+      pickupAddress: announcement.pickupAddress,
+      deliveryAddress: announcement.deliveryAddress,
+      status: announcement.status,
+      
       delivery: trackingData.delivery
         ? {
-            ...trackingData.delivery,
-            progress: {
-              percentage: progressPercentage,
-              currentStep: getDeliveryStepLabel(trackingData.delivery.status),
-              nextStep: getNextDeliveryStep(trackingData.delivery.status),
+            id: trackingData.delivery.id,
+            status: trackingData.delivery.status,
+            pickupDate: new Date().toISOString(), // Fallback car createdAt n'existe pas
+            deliveryDate: undefined, // completedAt n'existe pas
+            deliverer: {
+              id: "unknown", // Fallback car id n'existe pas
+              name: trackingData.delivery.deliverer.name,
+              phone: trackingData.delivery.deliverer.phone || "",
+              avatar: trackingData.delivery.deliverer.avatar,
+              rating: 0, // Fallback car rating n'existe pas
             },
+            tracking: trackingData.trackingHistory.map((event) => ({
+              id: event.id,
+              type: event.type || "update",
+              title: event.title || "Mise à jour",
+              description: event.message || "",
+              timestamp: event.timestamp.toISOString(),
+              location: event.location ? {
+                lat: event.location.latitude,
+                lng: event.location.longitude,
+                address: event.location.address || "",
+              } : undefined,
+            })),
+            validationCode: trackingData.delivery.validationCode,
+            estimatedArrival: trackingData.delivery.estimatedArrival?.toISOString(),
+            currentLocation: trackingData.delivery.currentPosition ? {
+              lat: trackingData.delivery.currentPosition.lat,
+              lng: trackingData.delivery.currentPosition.lng,
+            } : undefined,
           }
         : null,
-
-      route: routeData,
-
-      // Données pour la carte Leaflet
-      map: {
-        ...leafletData,
-        route: routeData?.polyline || [],
-        bounds: routeData?.bounds,
-      },
-
-      tracking: {
-        history: trackingData.trackingHistory,
-        deliveryUpdates: trackingData.deliveryTracking,
-        lastUpdate:
-          trackingData.deliveryTracking?.[0]?.timestamp ||
-          trackingData.trackingHistory?.[0]?.timestamp,
-      },
-
-      // Informations temps réel
-      realTime: {
-        isLive: trackingData.delivery?.status === "IN_TRANSIT",
-        refreshInterval: 30000, // 30 secondes
-        estimatedArrival: trackingData.delivery?.estimatedArrival,
-        validationCode: trackingData.delivery?.validationCode,
-      },
     };
 
     return NextResponse.json(response);

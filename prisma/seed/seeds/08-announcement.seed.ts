@@ -253,3 +253,46 @@ export async function seedAnnouncements(ctx: SeedContext) {
 
   return announcements;
 }
+
+/**
+ * Injecte une annonce PACKAGE_DELIVERY pour un client précis
+ */
+export async function injectAnnouncementForUser(prisma: any, userId: string) {
+  // Valeurs réalistes pour une annonce de livraison
+  const announcement = await prisma.announcement.create({
+    data: {
+      title: "Livraison Paris-Lyon - Ordinateur portable",
+      description: "Je souhaite envoyer un colis fragile de Paris à Lyon, prise en charge rapide.",
+      type: "PACKAGE_DELIVERY",
+      status: "ACTIVE",
+      basePrice: 35.0,
+      author: { connect: { id: userId } },
+      pickupAddress: "10 rue de Flandre, 75019 Paris",
+      pickupLatitude: 48.8841,
+      pickupLongitude: 2.3768,
+      deliveryAddress: "20 avenue Jean Jaurès, 69007 Lyon",
+      deliveryLatitude: 45.7485,
+      deliveryLongitude: 4.8521,
+      pickupDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000), // dans 2 jours
+      isUrgent: false,
+      viewCount: 0,
+    },
+  });
+
+  await prisma.packageAnnouncement.create({
+    data: {
+      announcementId: announcement.id,
+      weight: 2.5,
+      length: 30,
+      width: 20,
+      height: 15,
+      fragile: true,
+      requiresInsurance: true,
+      insuredValue: 1200,
+      specialInstructions: "Manipuler avec soin, fragile.",
+    },
+  });
+
+  console.log(`✓ Annonce injectée pour l'utilisateur ${userId} (id annonce: ${announcement.id})`);
+  return announcement;
+}

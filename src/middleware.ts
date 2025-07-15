@@ -217,7 +217,7 @@ export default async function middleware(request: NextRequest) {
       // Vérifications spécifiques par rôle
       if (user.role === 'DELIVERER') {
         // Vérifier le statut de validation pour les livreurs
-        if (user.validationStatus !== 'APPROVED') {
+        if (user.validationStatus !== 'APPROVED' && user.validationStatus !== 'VALIDATED') {
           // Permettre l'accès aux pages de validation et documents
           if (pathname.includes('/deliverer/validation') || 
               pathname.includes('/deliverer/documents') || 

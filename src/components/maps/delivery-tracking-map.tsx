@@ -51,6 +51,7 @@ interface DeliveryTrackingMapProps {
   height?: string;
   showDetails?: boolean;
   className?: string;
+  apiEndpoint?: string; // Nouvelle prop pour spécifier l'API
 }
 
 export function DeliveryTrackingMap({
@@ -59,6 +60,7 @@ export function DeliveryTrackingMap({
   height = "500px",
   showDetails = true,
   className,
+  apiEndpoint, // Nouvelle prop
 }: DeliveryTrackingMapProps) {
   const [trackingData, setTrackingData] = useState<TrackingData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -67,9 +69,9 @@ export function DeliveryTrackingMap({
   useEffect(() => {
     const fetchTracking = async () => {
       try {
-        const response = await fetch(
-          `/api/client/deliveries/${deliveryId}/tracking`,
-        );
+        // Utiliser l'API spécifiée ou l'API client par défaut
+        const endpoint = apiEndpoint || `/api/client/deliveries/${deliveryId}/tracking`;
+        const response = await fetch(endpoint);
         if (!response.ok) throw new Error("Failed to fetch tracking data");
 
         const data = await response.json();
@@ -86,7 +88,7 @@ export function DeliveryTrackingMap({
     fetchTracking();
     const interval = setInterval(fetchTracking, refreshInterval);
     return () => clearInterval(interval);
-  }, [deliveryId, refreshInterval]);
+  }, [deliveryId, refreshInterval, apiEndpoint]);
 
   if (loading) {
     return (
@@ -170,6 +172,35 @@ export function DeliveryTrackingMap({
         trackingData.pickupLocation.longitude,
       ] as [number, number]);
 
+  // Calcul de la progression basée sur la distance parcourue depuis le pickup
+  let progress = 0;
+  const status = (trackingData.status || "").toUpperCase();
+  if (status === "DELIVERED") {
+    progress = 100;
+  } else if (status === "IN_TRANSIT" || status === "PICKED_UP") {
+    const totalDistance = haversineDistance(
+      trackingData.pickupLocation.latitude,
+      trackingData.pickupLocation.longitude,
+      trackingData.deliveryLocation.latitude,
+      trackingData.deliveryLocation.longitude
+    );
+    const travelledDistance = haversineDistance(
+      trackingData.pickupLocation.latitude,
+      trackingData.pickupLocation.longitude,
+      trackingData.currentLocation?.latitude ?? trackingData.pickupLocation.latitude,
+      trackingData.currentLocation?.longitude ?? trackingData.pickupLocation.longitude
+    );
+    progress = totalDistance > 0
+      ? Math.max(0, Math.min(100, 100 * (travelledDistance / totalDistance)))
+      : 0;
+  } else {
+    progress = 0;
+  }
+
+  if (typeof window !== 'undefined') {
+    console.log(`[Tracking] Progression livraison: ${progress.toFixed(2)}%`);
+  }
+
   return (
     <div className={className}>
       {showDetails && (
@@ -184,7 +215,7 @@ export function DeliveryTrackingMap({
             </Badge>
           </div>
 
-          <Progress value={trackingData.progress} className="mb-4" />
+          <Progress value={progress} className="mb-4" />
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
@@ -285,4 +316,20 @@ function getStatusLabel(status: string): string {
     cancelled: "Annulée",
   };
   return labels[status] || status;
+}
+
+// Fonction utilitaire pour calculer la distance haversine en km
+function haversineDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const toRad = (x: number) => (x * Math.PI) / 180;
+  const R = 6371; // Rayon de la Terre en km
+  const dLat = toRad(lat2 - lat1);
+  const dLon = toRad(lon2 - lon1);
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(toRad(lat1)) *
+      Math.cos(toRad(lat2)) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
 }

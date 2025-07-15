@@ -3,6 +3,10 @@ import { getUserFromSession } from "@/lib/auth/utils";
 
 export async function GET(request: NextRequest) {
   try {
+    // DEBUG: log cookies reçus
+    const cookieHeader = request.headers.get("cookie");
+    console.log("[DEBUG /api/debug/user-role] Cookies reçus:", cookieHeader);
+
     const user = await getUserFromSession(request);
 
     if (!user) {

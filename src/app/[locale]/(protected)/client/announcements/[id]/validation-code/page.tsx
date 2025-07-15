@@ -29,13 +29,20 @@ interface ValidationCodeData {
   delivery: {
     id: string;
     status: string;
-    validationCode: string;
+    validationCode?: string;
     deliverer: {
       id: string;
       name: string;
       phone?: string;
       avatar?: string;
     };
+  };
+  validation: {
+    code: string;
+    expiresAt: string;
+    timeRemaining: number;
+    timeRemainingFormatted: string;
+    qrCodeData: string;
   };
 }
 
