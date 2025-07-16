@@ -89,7 +89,7 @@ export async function GET(
         },
         PackageAnnouncement: true,
         ServiceAnnouncement: true,
-        delivery: {
+        deliveries: {
           include: {
             payment: true, // Ajout pour inclure le paiement lié à la livraison
             deliverer: {

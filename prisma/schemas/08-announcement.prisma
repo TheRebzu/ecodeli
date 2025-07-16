@@ -68,7 +68,7 @@ model Announcement {
   // Relations
   author              User                @relation(fields: [authorId], references: [id])
   deliverer           User?               @relation("AnnouncementDeliverer", fields: [delivererId], references: [id])
-  delivery            Delivery?
+  deliveries          Delivery[]          // Changement en one-to-many pour permettre plusieurs livraisons
   payment             Payment?
   reviews             Review[]
   matches             RouteMatch[]

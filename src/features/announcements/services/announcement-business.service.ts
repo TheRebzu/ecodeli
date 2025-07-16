@@ -132,7 +132,7 @@ class AnnouncementBusinessService {
         },
         packageDetails: true,
         serviceDetails: true,
-        delivery: {
+        deliveries: {
           select: { id: true, status: true, delivererId: true },
         },
         routeMatches: {
@@ -248,12 +248,12 @@ class AnnouncementBusinessService {
           },
           packageDetails: true,
           serviceDetails: true,
-          delivery: {
+          deliveries: {
             select: { id: true, status: true, delivererId: true },
           },
           _count: {
             select: {
-              delivery: true,
+              deliveries: true,
               routeMatches: true,
             },
           },

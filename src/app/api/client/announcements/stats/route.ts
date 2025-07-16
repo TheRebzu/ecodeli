@@ -10,7 +10,7 @@ export async function GET(request: NextRequest) {
     const announcements = await db.announcement.findMany({
       where: { authorId: user.id },
       include: {
-        delivery: {
+        deliveries: {
           include: {
             payment: {
               where: { status: "COMPLETED" },

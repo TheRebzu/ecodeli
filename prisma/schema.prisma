@@ -948,7 +948,7 @@ model Announcement {
   // Relations
   author              User                       @relation(fields: [authorId], references: [id])
   deliverer           User?                      @relation("AnnouncementDeliverer", fields: [delivererId], references: [id])
-  delivery            Delivery?
+  deliveries          Delivery[] // Changement en one-to-many pour permettre plusieurs livraisons
   payment             Payment?
   reviews             Review[]
   matches             RouteMatch[]
@@ -1175,7 +1175,7 @@ model ServiceApplication {
 
 model Delivery {
   id                 String         @id @default(cuid())
-  announcementId     String         @unique
+  announcementId     String // Suppression de @unique pour permettre plusieurs livraisons par annonce
   clientId           String
   delivererId        String
   status             DeliveryStatus @default(PENDING)

@@ -163,8 +163,44 @@ export async function POST(
     }
 
     console.log(
-      "✅ Toutes les validations passées, création de la livraison...",
+      "✅ Toutes les validations passées, vérification des livraisons existantes...",
     );
+
+    // Vérifier s'il y a déjà une livraison active pour cette annonce
+    const existingDeliveries = await db.delivery.findMany({
+      where: {
+        announcementId: announcementId,
+        status: {
+          in: ["PENDING", "ACCEPTED", "PICKED_UP", "IN_TRANSIT"]
+        }
+      }
+    });
+
+    if (existingDeliveries.length > 0) {
+      console.log("❌ Livraison déjà en cours pour cette annonce");
+      return NextResponse.json(
+        { error: "Cette annonce a déjà une livraison en cours" },
+        { status: 400 },
+      );
+    }
+
+    // Vérifier si ce livreur a déjà une livraison pour cette annonce
+    const delivererExistingDelivery = await db.delivery.findFirst({
+      where: {
+        announcementId: announcementId,
+        delivererId: user.id
+      }
+    });
+
+    if (delivererExistingDelivery) {
+      console.log("❌ Ce livreur a déjà une livraison pour cette annonce");
+      return NextResponse.json(
+        { error: "Vous avez déjà une livraison pour cette annonce" },
+        { status: 400 },
+      );
+    }
+
+    console.log("✅ Aucune livraison conflictuelle trouvée, création de la livraison...");
 
     // Calculer les frais
     const basePrice = Number(announcement.basePrice);

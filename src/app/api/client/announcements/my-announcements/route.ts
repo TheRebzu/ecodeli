@@ -59,7 +59,7 @@ export async function GET(request: NextRequest) {
       prisma.announcement.findMany({
         where,
         include: {
-          delivery: {
+          deliveries: {
             select: {
               id: true,
               status: true,

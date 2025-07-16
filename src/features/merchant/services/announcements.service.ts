@@ -69,7 +69,7 @@ export class MerchantAnnouncementsService {
               profile: true,
             },
           },
-          delivery: {
+          deliveries: {
             include: {
               payment: true,
             },
@@ -104,7 +104,7 @@ export class MerchantAnnouncementsService {
     const announcements = await prisma.announcement.findMany({
       where: { authorId: userId },
       include: {
-        delivery: {
+        deliveries: {
           include: {
             payment: true,
           },
@@ -151,7 +151,7 @@ export class MerchantAnnouncementsService {
     const announcements = await prisma.announcement.findMany({
       where: { authorId: userId },
       include: {
-        delivery: {
+        deliveries: {
           include: {
             payment: true,
           },

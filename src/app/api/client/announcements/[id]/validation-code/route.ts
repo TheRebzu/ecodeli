@@ -35,7 +35,7 @@ export async function GET(
         authorId: user.id,
       },
       include: {
-        delivery: {
+        deliveries: {
           include: {
             deliverer: {
               include: {
@@ -66,7 +66,7 @@ export async function GET(
       );
     }
 
-    if (!announcement.delivery) {
+    if (!announcement.deliveries || announcement.deliveries.length === 0) {
       return NextResponse.json(
         {
           error: "Aucune livraison associée à cette annonce",
@@ -77,6 +77,7 @@ export async function GET(
     }
 
     // Retourner directement le code de validation de la livraison liée
+    const delivery = announcement.deliveries[0]; // Prendre la première livraison
     return NextResponse.json({
       announcement: {
         id: announcement.id,
@@ -84,15 +85,15 @@ export async function GET(
         status: announcement.status,
       },
       delivery: {
-        id: announcement.delivery.id,
-        status: announcement.delivery.status,
-        validationCode: announcement.delivery.validationCode,
+        id: delivery.id,
+        status: delivery.status,
+        validationCode: delivery.validationCode,
         deliverer: {
-          name: announcement.delivery.deliverer?.profile
-            ? `${announcement.delivery.deliverer.profile.firstName} ${announcement.delivery.deliverer.profile.lastName}`
+          name: delivery.deliverer?.profile
+            ? `${delivery.deliverer.profile.firstName} ${delivery.deliverer.profile.lastName}`
             : "Livreur",
-          phone: announcement.delivery.deliverer?.profile?.phone,
-          avatar: announcement.delivery.deliverer?.profile?.avatar,
+          phone: delivery.deliverer?.profile?.phone,
+          avatar: delivery.deliverer?.profile?.avatar,
         },
       },
     });

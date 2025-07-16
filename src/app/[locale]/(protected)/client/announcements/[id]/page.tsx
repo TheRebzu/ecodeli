@@ -392,17 +392,33 @@ export default function AnnouncementDetailPage() {
   const handleStripePay = async () => {
     setIsPaying(true);
     try {
+      // Calculer le montant à partir de l'annonce
+      const paymentAmount = announcement?.finalPrice || announcement?.basePrice || 0;
+      
       const res = await fetch(`/api/client/announcements/${id}/checkout-session`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          amount: paymentAmount,
+          currency: "eur"
+        }),
       });
+      
       const data = await res.json();
-      if (data.checkoutUrl) {
-        window.location.href = data.checkoutUrl;
-      } else {
+      
+      if (!res.ok) {
+        console.error("Checkout session error:", data);
         alert(data.error || "Erreur lors de la création de la session de paiement.");
+        return;
+      }
+      
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        alert("URL de paiement non reçue.");
       }
     } catch (err) {
+      console.error("Stripe payment error:", err);
       alert("Erreur lors de la redirection vers Stripe.");
     } finally {
       setIsPaying(false);

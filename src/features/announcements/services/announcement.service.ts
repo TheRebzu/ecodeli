@@ -247,7 +247,7 @@ class AnnouncementService {
             updatedAt: true,
           },
         },
-        delivery: {
+        deliveries: {
           select: { id: true, status: true, delivererId: true },
         },
         matches: {
@@ -394,7 +394,7 @@ class AnnouncementService {
           Merchant: {
             select: { id: true, companyName: true, contactEmail: true },
           },
-          delivery: {
+          deliveries: {
             select: { id: true, status: true, delivererId: true },
           },
           matches: {
@@ -1038,12 +1038,13 @@ class AnnouncementService {
         throw new Error("Non autorisé à valider cette livraison");
       }
 
-      if (!announcement.delivery) {
+      if (!announcement.deliveries || announcement.deliveries.length === 0) {
         throw new Error("Aucune livraison associée à cette annonce");
       }
 
-      // Valider avec le service de validation
-      const deliveryId = announcement.delivery.id;
+      // Valider avec le service de validation - prendre la première livraison
+      const delivery = announcement.deliveries[0];
+      const deliveryId = delivery.id;
       const isValid = await ValidationCodeService.validateCode(
         deliveryId,
         validationCode,
@@ -1141,7 +1142,7 @@ class AnnouncementService {
           authorId: userId,
         },
         include: {
-          delivery: {
+          deliveries: {
             include: {
               tracking: {
                 orderBy: { timestamp: "desc" },
@@ -1179,8 +1180,9 @@ class AnnouncementService {
 
       // Calculer la position estimée actuelle du livreur
       let currentPosition = null;
-      if (announcement.delivery?.tracking?.length > 0) {
-        const latestTracking = announcement.delivery.tracking[0];
+      const delivery = announcement.deliveries?.[0]; // Prendre la première livraison
+      if (delivery?.tracking?.length > 0) {
+        const latestTracking = delivery.tracking[0];
         if (latestTracking.coordinates) {
           currentPosition = latestTracking.coordinates;
         }
@@ -1202,24 +1204,24 @@ class AnnouncementService {
             lng: announcement.deliveryLongitude,
           },
         },
-        delivery: announcement.delivery
+        delivery: delivery
           ? {
-              id: announcement.delivery.id,
-              status: announcement.delivery.status,
-              trackingNumber: announcement.delivery.trackingNumber,
+              id: delivery.id,
+              status: delivery.status,
+              trackingNumber: delivery.trackingNumber,
               currentPosition,
               estimatedArrival: this.calculateEstimatedArrival(
-                announcement.delivery,
+                delivery,
               ),
               deliverer: {
-                name: announcement.delivery.deliverer?.profile
-                  ? `${announcement.delivery.deliverer.profile.firstName} ${announcement.delivery.deliverer.profile.lastName}`
+                name: delivery.deliverer?.profile
+                  ? `${delivery.deliverer.profile.firstName} ${delivery.deliverer.profile.lastName}`
                   : "Livreur",
-                phone: announcement.delivery.deliverer?.profile?.phone,
-                avatar: announcement.delivery.deliverer?.profile?.avatar,
+                phone: delivery.deliverer?.profile?.phone,
+                avatar: delivery.deliverer?.profile?.avatar,
               },
               validationCode:
-                announcement.delivery.validations?.[0]?.code || null,
+                delivery.validations?.[0]?.code || null,
             }
           : null,
         trackingHistory:
@@ -1230,7 +1232,7 @@ class AnnouncementService {
             isPublic: t.isPublic,
           })) || [],
         deliveryTracking:
-          announcement.delivery?.tracking?.map((t) => ({
+          delivery?.tracking?.map((t) => ({
             status: t.status,
             message: t.message,
             location: t.location,

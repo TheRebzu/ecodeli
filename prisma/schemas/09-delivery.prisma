@@ -2,7 +2,7 @@
 
 model Delivery {
   id                 String              @id @default(cuid())
-  announcementId     String              @unique
+  announcementId     String              // Suppression de @unique pour permettre plusieurs livraisons par annonce
   clientId           String
   delivererId        String
   status             DeliveryStatus      @default(PENDING)

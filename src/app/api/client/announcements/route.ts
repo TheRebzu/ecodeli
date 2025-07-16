@@ -112,7 +112,7 @@ export async function GET(request: NextRequest) {
                 specialInstructions: true,
               },
             },
-            delivery: {
+            deliveries: {
               select: {
                 id: true,
                 status: true,

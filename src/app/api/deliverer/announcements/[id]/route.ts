@@ -44,7 +44,7 @@ export async function GET(
         },
         PackageAnnouncement: true,
         ServiceAnnouncement: true,
-        delivery: {
+        deliveries: {
           include: {
             deliverer: {
               include: {
