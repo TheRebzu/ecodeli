@@ -1,39 +1,147 @@
 version: "3.8"
 
 services:
+  # Base de données PostgreSQL
   postgres:
     image: postgres:15-alpine
     container_name: ecodeli_postgres
-    restart: always
+    restart: unless-stopped
     environment:
       POSTGRES_DB: ecodeli
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
       PGDATA: /var/lib/postgresql/data/pgdata
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./prisma/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
     networks:
       - ecodeli_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d ecodeli"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
+  # Application Next.js EcoDeli
+  ecodeli-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runner
+    container_name: ecodeli_app
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD:-password}@postgres:5432/ecodeli
+      NEXTAUTH_URL: ${NEXTAUTH_URL:-http://localhost:3000}
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET:-your-secret-key-here}
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-}
+      ONESIGNAL_APP_ID: ${ONESIGNAL_APP_ID:-}
+      ONESIGNAL_API_KEY: ${ONESIGNAL_API_KEY:-}
+    ports:
+      - "3000:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - ecodeli_network
+    volumes:
+      - uploads_data:/app/uploads
+      - logs_data:/app/logs
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # PgAdmin pour la gestion de la base de données (optionnel en production)
   pgadmin:
     image: dpage/pgadmin4:latest
     container_name: ecodeli_pgadmin
-    restart: always
+    restart: unless-stopped
     environment:
-      PGADMIN_DEFAULT_EMAIL: admin@ecodeli.com
-      PGADMIN_DEFAULT_PASSWORD: admin123
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@ecodeli.com}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-admin123}
+      PGADMIN_CONFIG_SERVER_MODE: "False"
     ports:
       - "8080:80"
     depends_on:
       - postgres
     networks:
       - ecodeli_network
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    profiles:
+      - dev
+      - debug
+
+  # Nginx reverse proxy pour la production
+  nginx:
+    image: nginx:alpine
+    container_name: ecodeli_nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - ecodeli-app
+    networks:
+      - ecodeli_network
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+      - nginx_logs:/var/log/nginx
+    profiles:
+      - production
+
+  # Service de monitoring (optionnel)
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: ecodeli_prometheus
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+    networks:
+      - ecodeli_network
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    profiles:
+      - monitoring
+
+  # Service de logs (optionnel)
+  grafana:
+    image: grafana/grafana:latest
+    container_name: ecodeli_grafana
+    restart: unless-stopped
+    ports:
+      - "3001:3000"
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:-admin123}
+    networks:
+      - ecodeli_network
+    volumes:
+      - grafana_data:/var/lib/grafana
+    profiles:
+      - monitoring
 
 volumes:
   postgres_data:
+    driver: local
+  pgadmin_data:
+    driver: local
+  uploads_data:
+    driver: local
+  logs_data:
+    driver: local
+  nginx_logs:
+    driver: local
+  prometheus_data:
+    driver: local
+  grafana_data:
     driver: local
 
 networks:

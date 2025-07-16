@@ -1,0 +1,225 @@
+# Jenkins Configuration as Code for EcoDeli
+jenkins:
+  systemMessage: "EcoDeli CI/CD Jenkins Server"
+  numExecutors: 2
+  mode: NORMAL
+  scmCheckoutRetryCount: 3
+  
+  securityRealm:
+    local:
+      allowsSignup: false
+      users:
+        - id: "admin"
+          password: "${JENKINS_ADMIN_PASSWORD:-admin123}"
+          name: "Administrator"
+          email: "admin@ecodeli.com"
+        - id: "developer"
+          password: "${JENKINS_DEV_PASSWORD:-dev123}"
+          name: "Developer"
+          email: "dev@ecodeli.com"
+  
+  authorizationStrategy:
+    roleBased:
+      roles:
+        global:
+          - name: "admin"
+            description: "Jenkins administrators"
+            permissions:
+              - "Overall/Administer"
+            assignments:
+              - "admin"
+          - name: "developer"
+            description: "Developers"
+            permissions:
+              - "Overall/Read"
+              - "Job/Build"
+              - "Job/Cancel"
+              - "Job/Read"
+              - "Job/Workspace"
+              - "View/Read"
+            assignments:
+              - "developer"
+
+  nodes:
+    - permanent:
+        name: "nodejs-agent"
+        remoteFS: "/home/jenkins/agent"
+        launcher:
+          inbound:
+            webSocket: true
+
+clouds:
+  - docker:
+      name: "docker-cloud"
+      dockerApi:
+        dockerHost:
+          uri: "unix:///var/run/docker.sock"
+      templates:
+        - labelString: "docker-node"
+          dockerTemplateBase:
+            image: "node:18-alpine"
+            mounts:
+              - "type=bind,source=/var/run/docker.sock,destination=/var/run/docker.sock"
+          remoteFs: "/home/jenkins/agent"
+          connector:
+            attach:
+              user: "jenkins"
+          instanceCapStr: "10"
+          retentionStrategy:
+            idleMinutes: 5
+
+jobs:
+  - script: >
+      pipelineJob('ecodeli-ci-pipeline') {
+        displayName('EcoDeli CI Pipeline')
+        description('Main CI pipeline for EcoDeli application')
+        definition {
+          cpsScm {
+            scm {
+              git {
+                remote {
+                  url('https://github.com/ecodeli/platform.git')
+                  credentials('github-credentials')
+                }
+                branch('*/main')
+              }
+            }
+            scriptPath('ci/jenkins/Jenkinsfile')
+          }
+        }
+        triggers {
+          githubPush()
+        }
+      }
+  
+  - script: >
+      pipelineJob('ecodeli-deploy-dev') {
+        displayName('EcoDeli Deploy to Dev')
+        description('Deploy EcoDeli to development environment')
+        definition {
+          cpsScm {
+            scm {
+              git {
+                remote {
+                  url('https://github.com/ecodeli/platform.git')
+                  credentials('github-credentials')
+                }
+                branch('*/develop')
+              }
+            }
+            scriptPath('ci/jenkins/Jenkinsfile.deploy')
+          }
+        }
+        parameters {
+          stringParam('ENVIRONMENT', 'dev', 'Target environment')
+          booleanParam('SKIP_TESTS', false, 'Skip tests during deployment')
+        }
+      }
+  
+  - script: >
+      pipelineJob('ecodeli-deploy-prod') {
+        displayName('EcoDeli Deploy to Production')
+        description('Deploy EcoDeli to production environment')
+        definition {
+          cpsScm {
+            scm {
+              git {
+                remote {
+                  url('https://github.com/ecodeli/platform.git')
+                  credentials('github-credentials')
+                }
+                branch('*/main')
+              }
+            }
+            scriptPath('ci/jenkins/Jenkinsfile.deploy')
+          }
+        }
+        parameters {
+          stringParam('ENVIRONMENT', 'prod', 'Target environment')
+          booleanParam('SKIP_TESTS', false, 'Skip tests during deployment')
+          booleanParam('REQUIRE_APPROVAL', true, 'Require manual approval')
+        }
+      }
+
+credentials:
+  system:
+    domainCredentials:
+      - credentials:
+          - usernamePassword:
+              scope: GLOBAL
+              id: "github-credentials"
+              username: "${GITHUB_USERNAME}"
+              password: "${GITHUB_TOKEN}"
+              description: "GitHub credentials"
+          - string:
+              scope: GLOBAL
+              id: "sonar-token"
+              secret: "${SONAR_TOKEN}"
+              description: "SonarQube token"
+          - string:
+              scope: GLOBAL
+              id: "slack-token"
+              secret: "${SLACK_TOKEN}"
+              description: "Slack notification token"
+          - usernamePassword:
+              scope: GLOBAL
+              id: "docker-registry"
+              username: "${DOCKER_REGISTRY_USERNAME}"
+              password: "${DOCKER_REGISTRY_PASSWORD}"
+              description: "Docker registry credentials"
+
+unclassified:
+  location:
+    url: "http://jenkins:8080/"
+    adminAddress: "admin@ecodeli.com"
+  
+  mailer:
+    smtpHost: "${SMTP_HOST:-localhost}"
+    smtpPort: "${SMTP_PORT:-587}"
+    useSsl: true
+    charset: "UTF-8"
+  
+  sonarGlobalConfiguration:
+    installations:
+      - name: "SonarQube"
+        serverUrl: "http://sonarqube:9000"
+        credentialsId: "sonar-token"
+  
+  slackNotifier:
+    baseUrl: "https://hooks.slack.com/services/"
+    teamDomain: "ecodeli"
+    token: "${SLACK_TOKEN}"
+    room: "#ci-cd"
+  
+  globalLibraries:
+    libraries:
+      - name: "ecodeli-pipeline-library"
+        defaultVersion: "main"
+        retriever:
+          modernSCM:
+            scm:
+              git:
+                remote: "https://github.com/ecodeli/jenkins-pipeline-library.git"
+                credentialsId: "github-credentials"
+
+tool:
+  git:
+    installations:
+      - name: "Default"
+        home: "/usr/bin/git"
+  
+  nodejs:
+    installations:
+      - name: "NodeJS 18"
+        home: "/usr/local/node-v18.17.0-linux-x64"
+        properties:
+          - installSource:
+              installers:
+                - nodeJSInstaller:
+                    id: "18.17.0"
+                    npmPackagesRefreshHours: 72
+  
+  dockerTool:
+    installations:
+      - name: "Docker"
+        home: "/usr/bin/docker"

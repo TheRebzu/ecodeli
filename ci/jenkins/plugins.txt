@@ -1,0 +1,81 @@
+# Jenkins plugins for EcoDeli CI/CD pipeline
+# Core plugins
+ant:latest
+build-timeout:latest
+credentials-binding:latest
+timestamper:latest
+ws-cleanup:latest
+gradle:latest
+workflow-aggregator:latest
+github-branch-source:latest
+pipeline-github-lib:latest
+pipeline-stage-view:latest
+git:latest
+ssh-slaves:latest
+matrix-auth:latest
+pam-auth:latest
+ldap:latest
+email-ext:latest
+mailer:latest
+
+# Docker plugins
+docker-workflow:latest
+docker-commons:latest
+docker-build-step:latest
+kubernetes:latest
+
+# Quality and testing
+sonarqube:latest
+junit:latest
+jacoco:latest
+performance:latest
+htmlpublisher:latest
+xunit:latest
+cobertura:latest
+warnings-ng:latest
+checkstyle:latest
+pmd:latest
+findbugs:latest
+
+# Deployment and notifications
+deploy:latest
+slack:latest
+discord:latest
+msteams:latest
+webhook:latest
+
+# Utilities
+jobConfigHistory:latest
+build-name-setter:latest
+build-user-vars-plugin:latest
+envinject:latest
+conditional-buildstep:latest
+parameterized-trigger:latest
+copyartifact:latest
+archive-artifacts:latest
+artifactory:latest
+nexus-artifact-uploader:latest
+
+# Security
+role-strategy:latest
+authorize-project:latest
+script-security:latest
+
+# Monitoring
+monitoring:latest
+metrics:latest
+prometheus:latest
+
+# Node.js and JavaScript
+nodejs:latest
+nvm-wrapper:latest
+npm:latest
+
+# Database
+postgresql-api:latest
+
+# Blue Ocean (modern UI)
+blueocean:latest
+
+# Configuration as Code
+configuration-as-code:latest

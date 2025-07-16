@@ -1,0 +1,392 @@
+name: EcoDeli Manual Deployment
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Target environment'
+        required: true
+        type: choice
+        options:
+          - dev
+          - staging
+          - prod
+      version:
+        description: 'Version to deploy (tag or branch)'
+        required: true
+        default: 'main'
+      skip_tests:
+        description: 'Skip post-deployment tests'
+        required: false
+        default: false
+        type: boolean
+      rollback_on_failure:
+        description: 'Rollback on failure'
+        required: false
+        default: true
+        type: boolean
+
+env:
+  NODE_VERSION: '18.17.0'
+  DOCKER_REGISTRY: registry.ecodeli.com
+  DOCKER_IMAGE: ecodeli/platform
+
+jobs:
+  pre-deployment:
+    runs-on: ubuntu-latest
+    outputs:
+      current-version: ${{ steps.current.outputs.version }}
+      deploy-version: ${{ steps.deploy.outputs.version }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.version }}
+
+      - name: Get current version
+        id: current
+        run: |
+          CURRENT=$(docker inspect ${{ env.DOCKER_REGISTRY }}/${{ env.DOCKER_IMAGE }}:current-${{ inputs.environment }} --format='{{.Config.Labels.version}}' 2>/dev/null || echo 'none')
+          echo "version=$CURRENT" >> $GITHUB_OUTPUT
+          echo "Current version: $CURRENT"
+
+      - name: Get deploy version
+        id: deploy
+        run: |
+          VERSION="${{ github.run_number }}-$(git rev-parse --short HEAD)"
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Deploy version: $VERSION"
+
+      - name: Validate deployment
+        run: |
+          echo "Deployment validation:"
+          echo "- Environment: ${{ inputs.environment }}"
+          echo "- Version: ${{ steps.deploy.outputs.version }}"
+          echo "- Current: ${{ steps.current.outputs.version }}"
+          echo "- Skip tests: ${{ inputs.skip_tests }}"
+          echo "- Rollback on failure: ${{ inputs.rollback_on_failure }}"
+
+  backup:
+    runs-on: ubuntu-latest
+    needs: pre-deployment
+    if: inputs.environment == 'prod'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Create backup
+        run: |
+          echo "Creating backup of production environment..."
+          ./scripts/backup.sh
+          
+          # Tag current image as backup
+          docker tag ${{ env.DOCKER_REGISTRY }}/${{ env.DOCKER_IMAGE }}:current-${{ inputs.environment }} \
+                     ${{ env.DOCKER_REGISTRY }}/${{ env.DOCKER_IMAGE }}:backup-${{ inputs.environment }}-$(date +%Y%m%d%H%M%S)
+
+      - name: Upload backup artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: backup-${{ inputs.environment }}
+          path: backups/
+          retention-days: 30
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: [pre-deployment, backup]
+    if: always() && needs.pre-deployment.result == 'success' && (needs.backup.result == 'success' || needs.backup.result == 'skipped')
+    environment: 
+      name: ${{ inputs.environment }}
+      url: ${{ steps.deploy.outputs.url }}
+    outputs:
+      url: ${{ steps.deploy.outputs.url }}
+      status: ${{ steps.deploy.outputs.status }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.version }}
+
+      - name: Setup deployment environment
+        run: |
+          echo "Setting up deployment environment..."
+          export DOCKER_TAG=${{ needs.pre-deployment.outputs.deploy-version }}
+          export ENVIRONMENT=${{ inputs.environment }}
+          
+          # Update environment variables
+          cp .env.docker .env
+          sed -i "s/ENVIRONMENT=.*/ENVIRONMENT=${{ inputs.environment }}/" .env
+
+      - name: Deploy to environment
+        id: deploy
+        run: |
+          echo "Deploying to ${{ inputs.environment }}..."
+          
+          # Set deployment URL
+          case "${{ inputs.environment }}" in
+            "prod")
+              URL="https://ecodeli.com"
+              ;;
+            "staging")
+              URL="https://staging.ecodeli.com"
+              ;;
+            *)
+              URL="https://dev.ecodeli.com"
+              ;;
+          esac
+          
+          echo "url=$URL" >> $GITHUB_OUTPUT
+          
+          # Deploy using script
+          ./scripts/deploy.sh deploy ${{ inputs.environment }}
+          
+          # Wait for deployment to be ready
+          timeout 600 bash -c 'while [[ "$(curl -s -o /dev/null -w ''%{http_code}'' $URL/api/health)" != "200" ]]; do sleep 10; done'
+          
+          echo "status=success" >> $GITHUB_OUTPUT
+
+      - name: Handle deployment failure
+        if: failure() && inputs.rollback_on_failure && needs.pre-deployment.outputs.current-version != 'none'
+        run: |
+          echo "Deployment failed, initiating rollback..."
+          
+          # Rollback to previous version
+          docker-compose -f docker-compose.yml -f docker-compose.${{ inputs.environment }}.yml down
+          docker tag ${{ env.DOCKER_REGISTRY }}/${{ env.DOCKER_IMAGE }}:${{ needs.pre-deployment.outputs.current-version }} \
+                     ${{ env.DOCKER_REGISTRY }}/${{ env.DOCKER_IMAGE }}:${{ needs.pre-deployment.outputs.deploy-version }}
+          docker-compose -f docker-compose.yml -f docker-compose.${{ inputs.environment }}.yml up -d
+          
+          echo "Rollback completed"
+
+  health-check:
+    runs-on: ubuntu-latest
+    needs: deploy
+    if: needs.deploy.result == 'success'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run health check
+        run: |
+          echo "Running health check..."
+          ./scripts/health-check.sh ${{ inputs.environment }}
+
+      - name: Validate deployment
+        run: |
+          echo "Validating deployment..."
+          
+          # Check application health
+          curl -f "${{ needs.deploy.outputs.url }}/api/health" | jq '.'
+          
+          # Check database connectivity
+          curl -f "${{ needs.deploy.outputs.url }}/api/health" | jq '.services.database' | grep -q 'healthy'
+          
+          echo "Deployment validation successful"
+
+  post-deployment-tests:
+    runs-on: ubuntu-latest
+    needs: [deploy, health-check]
+    if: needs.deploy.result == 'success' && needs.health-check.result == 'success' && !inputs.skip_tests
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run smoke tests
+        run: npm run test:smoke:${{ inputs.environment }}
+        env:
+          BASE_URL: ${{ needs.deploy.outputs.url }}
+
+      - name: Run API tests
+        run: npm run test:api:${{ inputs.environment }}
+        env:
+          BASE_URL: ${{ needs.deploy.outputs.url }}
+
+      - name: Check database migrations
+        run: npm run db:migrate:status
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: post-deployment-tests-${{ inputs.environment }}
+          path: |
+            test-results/
+            *.xml
+
+  performance-baseline:
+    runs-on: ubuntu-latest
+    needs: [deploy, health-check]
+    if: needs.deploy.result == 'success' && needs.health-check.result == 'success' && inputs.environment == 'prod'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run performance baseline
+        run: npm run test:performance:baseline
+        env:
+          BASE_URL: ${{ needs.deploy.outputs.url }}
+
+      - name: Upload performance results
+        uses: actions/upload-artifact@v3
+        with:
+          name: performance-baseline-${{ inputs.environment }}
+          path: performance-baseline/
+
+  monitoring-update:
+    runs-on: ubuntu-latest
+    needs: [deploy, health-check]
+    if: needs.deploy.result == 'success' && needs.health-check.result == 'success'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Update monitoring
+        run: |
+          echo "Updating monitoring configuration..."
+          ./scripts/update-monitoring.sh ${{ inputs.environment }} ${{ needs.pre-deployment.outputs.deploy-version }}
+
+      - name: Send deployment event
+        run: |
+          # Send deployment event to monitoring
+          curl -X POST "http://prometheus:9090/api/v1/alerts" \
+               -H "Content-Type: application/json" \
+               -d '{
+                   "annotations": {
+                       "summary": "EcoDeli manual deployment to ${{ inputs.environment }}",
+                       "description": "Version ${{ needs.pre-deployment.outputs.deploy-version }} deployed to ${{ inputs.environment }} via GitHub Actions"
+                   },
+                   "labels": {
+                       "alertname": "ManualDeployment",
+                       "environment": "${{ inputs.environment }}",
+                       "version": "${{ needs.pre-deployment.outputs.deploy-version }}",
+                       "trigger": "github-actions"
+                   }
+               }' || true
+
+  cleanup:
+    runs-on: ubuntu-latest
+    needs: [deploy, post-deployment-tests]
+    if: always() && needs.deploy.result == 'success'
+    steps:
+      - name: Cleanup old versions
+        run: |
+          echo "Cleaning up old Docker images..."
+          
+          # Keep only last 5 versions
+          docker images ${{ env.DOCKER_REGISTRY }}/${{ env.DOCKER_IMAGE }} --format "table {{.Tag}}\t{{.CreatedAt}}" | \
+          grep -v "current\|latest\|backup" | \
+          sort -k2 -r | \
+          tail -n +6 | \
+          awk '{print $1}' | \
+          xargs -I {} docker rmi ${{ env.DOCKER_REGISTRY }}/${{ env.DOCKER_IMAGE }}:{} || true
+
+  notify:
+    runs-on: ubuntu-latest
+    needs: [deploy, post-deployment-tests, performance-baseline, monitoring-update]
+    if: always()
+    steps:
+      - name: Generate deployment report
+        run: |
+          cat > deployment-report.md << EOF
+          # EcoDeli Manual Deployment Report
+          
+          **Environment:** ${{ inputs.environment }}  
+          **Version:** ${{ needs.pre-deployment.outputs.deploy-version }}  
+          **Previous Version:** ${{ needs.pre-deployment.outputs.current-version }}  
+          **Triggered By:** @${{ github.actor }}  
+          **Timestamp:** $(date)  
+          **Status:** ${{ needs.deploy.result }}
+          
+          ## Configuration
+          - Skip Tests: ${{ inputs.skip_tests }}
+          - Rollback on Failure: ${{ inputs.rollback_on_failure }}
+          - Target URL: ${{ needs.deploy.outputs.url }}
+          
+          ## Results
+          - Deployment: ${{ needs.deploy.result }}
+          - Health Check: ${{ needs.health-check.result }}
+          - Post-deployment Tests: ${{ needs.post-deployment-tests.result }}
+          - Performance Baseline: ${{ needs.performance-baseline.result }}
+          - Monitoring Update: ${{ needs.monitoring-update.result }}
+          
+          ## Artifacts
+          - [Deployment Logs](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
+          - [Test Results](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
+          EOF
+
+      - name: Upload deployment report
+        uses: actions/upload-artifact@v3
+        with:
+          name: deployment-report-${{ inputs.environment }}
+          path: deployment-report.md
+
+      - name: Notify on success
+        if: needs.deploy.result == 'success'
+        uses: 8398a7/action-slack@v3
+        with:
+          status: success
+          channel: '#deployments'
+          text: |
+            🚀 *EcoDeli Manual Deployment - SUCCESS*
+            Environment: ${{ inputs.environment }}
+            Version: ${{ needs.pre-deployment.outputs.deploy-version }}
+            Previous: ${{ needs.pre-deployment.outputs.current-version }}
+            Triggered by: @${{ github.actor }}
+            URL: ${{ needs.deploy.outputs.url }}
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+      - name: Notify on failure
+        if: needs.deploy.result == 'failure'
+        uses: 8398a7/action-slack@v3
+        with:
+          status: failure
+          channel: '#deployments'
+          text: |
+            💥 *EcoDeli Manual Deployment - FAILED*
+            Environment: ${{ inputs.environment }}
+            Version: ${{ needs.pre-deployment.outputs.deploy-version }}
+            Triggered by: @${{ github.actor }}
+            
+            [View Logs](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+      - name: Send email notification
+        if: needs.deploy.result == 'failure'
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 587
+          username: ${{ secrets.EMAIL_USERNAME }}
+          password: ${{ secrets.EMAIL_PASSWORD }}
+          subject: "EcoDeli Deployment Failed - ${{ inputs.environment }}"
+          body: |
+            EcoDeli manual deployment to ${{ inputs.environment }} has failed.
+            
+            Environment: ${{ inputs.environment }}
+            Version: ${{ needs.pre-deployment.outputs.deploy-version }}
+            Triggered by: ${{ github.actor }}
+            
+            View logs: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          to: ops@ecodeli.com
+          from: noreply@ecodeli.com

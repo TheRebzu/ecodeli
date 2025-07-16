@@ -1,0 +1,108 @@
+# Docker Compose configuration for development
+# Usage: docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d
+
+version: "3.8"
+
+services:
+  # Configuration spécifique pour le développement
+  ecodeli-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: builder
+    environment:
+      NODE_ENV: development
+      LOG_LEVEL: debug
+      NEXTAUTH_URL: http://localhost:3000
+      HOT_RELOAD: "true"
+    volumes:
+      - .:/app:cached
+      - /app/node_modules
+      - /app/.next
+    command: npm run dev
+    ports:
+      - "3000:3000"
+      - "9229:9229"  # Node.js debugging port
+
+  postgres:
+    environment:
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./prisma/seed.sql:/docker-entrypoint-initdb.d/seed.sql:ro
+
+  # PgAdmin activé en développement
+  pgadmin:
+    profiles:
+      - dev
+    environment:
+      PGADMIN_DEFAULT_EMAIL: dev@ecodeli.com
+      PGADMIN_DEFAULT_PASSWORD: dev123
+
+  # Service de développement pour les tests
+  test-runner:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: deps
+    container_name: ecodeli_test
+    environment:
+      NODE_ENV: test
+      DATABASE_URL: postgresql://postgres:password@postgres:5432/ecodeli_test
+    volumes:
+      - .:/app:cached
+      - /app/node_modules
+    command: npm run test:watch
+    depends_on:
+      - postgres
+    networks:
+      - ecodeli_network
+    profiles:
+      - test
+
+  # Service de développement pour Storybook
+  storybook:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: deps
+    container_name: ecodeli_storybook
+    volumes:
+      - .:/app:cached
+      - /app/node_modules
+    command: npm run storybook
+    ports:
+      - "6006:6006"
+    networks:
+      - ecodeli_network
+    profiles:
+      - storybook
+
+  # Service de développement pour les migrations
+  prisma:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: deps
+    container_name: ecodeli_prisma
+    environment:
+      DATABASE_URL: postgresql://postgres:password@postgres:5432/ecodeli
+    volumes:
+      - .:/app:cached
+      - /app/node_modules
+    depends_on:
+      - postgres
+    networks:
+      - ecodeli_network
+    profiles:
+      - migrate
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  ecodeli_network:
+    driver: bridge

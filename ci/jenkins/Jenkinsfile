@@ -1,0 +1,462 @@
+// Jenkins Pipeline for EcoDeli CI/CD
+@Library('ecodeli-pipeline-library') _
+
+pipeline {
+    agent any
+    
+    environment {
+        NODE_VERSION = '18.17.0'
+        DOCKER_REGISTRY = 'registry.ecodeli.com'
+        DOCKER_IMAGE = 'ecodeli/platform'
+        SONAR_PROJECT_KEY = 'ecodeli-platform'
+        SLACK_CHANNEL = '#ci-cd'
+    }
+    
+    parameters {
+        choice(
+            name: 'ENVIRONMENT',
+            choices: ['dev', 'staging', 'prod'],
+            description: 'Target environment'
+        )
+        booleanParam(
+            name: 'SKIP_TESTS',
+            defaultValue: false,
+            description: 'Skip tests (use only for hotfixes)'
+        )
+        booleanParam(
+            name: 'FORCE_DEPLOY',
+            defaultValue: false,
+            description: 'Force deployment even if tests fail'
+        )
+    }
+    
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+                script {
+                    env.GIT_COMMIT_SHORT = sh(
+                        script: 'git rev-parse --short HEAD',
+                        returnStdout: true
+                    ).trim()
+                    env.BUILD_VERSION = "${env.BUILD_NUMBER}-${env.GIT_COMMIT_SHORT}"
+                }
+            }
+        }
+        
+        stage('Environment Setup') {
+            steps {
+                script {
+                    nodejs('NodeJS 18') {
+                        sh '''
+                            node --version
+                            npm --version
+                            echo "Setting up environment..."
+                            cp .env.docker .env
+                        '''
+                    }
+                }
+            }
+        }
+        
+        stage('Install Dependencies') {
+            steps {
+                script {
+                    nodejs('NodeJS 18') {
+                        sh '''
+                            echo "Installing dependencies..."
+                            npm ci --cache .npm --prefer-offline
+                        '''
+                    }
+                }
+            }
+            post {
+                always {
+                    archiveArtifacts artifacts: 'package-lock.json', allowEmptyArchive: true
+                }
+            }
+        }
+        
+        stage('Code Quality Analysis') {
+            parallel {
+                stage('Lint') {
+                    steps {
+                        script {
+                            nodejs('NodeJS 18') {
+                                sh '''
+                                    echo "Running ESLint..."
+                                    npm run lint -- --format=checkstyle -o eslint-report.xml || true
+                                    npm run lint:fix || true
+                                '''
+                            }
+                        }
+                    }
+                    post {
+                        always {
+                            publishHTML([
+                                allowMissing: false,
+                                alwaysLinkToLastBuild: true,
+                                keepAll: true,
+                                reportDir: '.',
+                                reportFiles: 'eslint-report.xml',
+                                reportName: 'ESLint Report'
+                            ])
+                        }
+                    }
+                }
+                
+                stage('Type Check') {
+                    steps {
+                        script {
+                            nodejs('NodeJS 18') {
+                                sh '''
+                                    echo "Running TypeScript type check..."
+                                    npm run type-check
+                                '''
+                            }
+                        }
+                    }
+                }
+                
+                stage('Security Scan') {
+                    steps {
+                        script {
+                            nodejs('NodeJS 18') {
+                                sh '''
+                                    echo "Running security audit..."
+                                    npm audit --audit-level=high || true
+                                    npx audit-ci --config .audit-ci.json || true
+                                '''
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
+        stage('Unit Tests') {
+            when {
+                not { params.SKIP_TESTS }
+            }
+            steps {
+                script {
+                    nodejs('NodeJS 18') {
+                        sh '''
+                            echo "Running unit tests..."
+                            npm run test:ci
+                        '''
+                    }
+                }
+            }
+            post {
+                always {
+                    publishTestResults(
+                        testResultsPattern: 'test-results.xml',
+                        mergeResults: true,
+                        failOnError: true
+                    )
+                    publishHTML([
+                        allowMissing: false,
+                        alwaysLinkToLastBuild: true,
+                        keepAll: true,
+                        reportDir: 'coverage',
+                        reportFiles: 'index.html',
+                        reportName: 'Coverage Report'
+                    ])
+                }
+            }
+        }
+        
+        stage('Integration Tests') {
+            when {
+                not { params.SKIP_TESTS }
+            }
+            steps {
+                script {
+                    sh '''
+                        echo "Starting test database..."
+                        docker-compose -f docker-compose.test.yml up -d postgres
+                        
+                        echo "Running database migrations..."
+                        npm run db:migrate:test
+                        
+                        echo "Running integration tests..."
+                        npm run test:integration
+                    '''
+                }
+            }
+            post {
+                always {
+                    sh 'docker-compose -f docker-compose.test.yml down || true'
+                    publishTestResults(
+                        testResultsPattern: 'integration-test-results.xml',
+                        mergeResults: true
+                    )
+                }
+            }
+        }
+        
+        stage('SonarQube Analysis') {
+            steps {
+                script {
+                    def scannerHome = tool 'SonarScanner'
+                    withSonarQubeEnv('SonarQube') {
+                        sh """
+                            ${scannerHome}/bin/sonar-scanner \
+                                -Dsonar.projectKey=${SONAR_PROJECT_KEY} \
+                                -Dsonar.sources=src \
+                                -Dsonar.tests=src \
+                                -Dsonar.test.inclusions=**/*.test.ts,**/*.test.tsx \
+                                -Dsonar.typescript.lcov.reportPaths=coverage/lcov.info \
+                                -Dsonar.eslint.reportPaths=eslint-report.xml \
+                                -Dsonar.projectVersion=${BUILD_VERSION}
+                        """
+                    }
+                }
+            }
+        }
+        
+        stage('Quality Gate') {
+            steps {
+                timeout(time: 5, unit: 'MINUTES') {
+                    waitForQualityGate abortPipeline: !params.FORCE_DEPLOY
+                }
+            }
+        }
+        
+        stage('Build Application') {
+            steps {
+                script {
+                    nodejs('NodeJS 18') {
+                        sh '''
+                            echo "Building application..."
+                            npm run build
+                        '''
+                    }
+                }
+            }
+            post {
+                always {
+                    archiveArtifacts artifacts: '.next/**/*', allowEmptyArchive: true
+                }
+            }
+        }
+        
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    def image = docker.build("${DOCKER_IMAGE}:${BUILD_VERSION}")
+                    docker.withRegistry("https://${DOCKER_REGISTRY}", 'docker-registry') {
+                        image.push()
+                        image.push('latest')
+                    }
+                }
+            }
+        }
+        
+        stage('Security Scan Docker Image') {
+            steps {
+                script {
+                    sh """
+                        echo "Scanning Docker image for vulnerabilities..."
+                        docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
+                            aquasec/trivy image --format template --template '@contrib/sarif.tpl' \
+                            -o trivy-report.sarif ${DOCKER_IMAGE}:${BUILD_VERSION} || true
+                    """
+                }
+            }
+            post {
+                always {
+                    archiveArtifacts artifacts: 'trivy-report.sarif', allowEmptyArchive: true
+                }
+            }
+        }
+        
+        stage('E2E Tests') {
+            when {
+                allOf {
+                    not { params.SKIP_TESTS }
+                    anyOf {
+                        branch 'main'
+                        branch 'develop'
+                    }
+                }
+            }
+            steps {
+                script {
+                    sh '''
+                        echo "Starting application for E2E tests..."
+                        docker-compose -f docker-compose.test.yml up -d
+                        
+                        echo "Waiting for application to be ready..."
+                        timeout 300 bash -c 'while [[ "$(curl -s -o /dev/null -w ''%{http_code}'' localhost:3000/api/health)" != "200" ]]; do sleep 5; done'
+                        
+                        echo "Running E2E tests..."
+                        npm run test:e2e
+                    '''
+                }
+            }
+            post {
+                always {
+                    sh 'docker-compose -f docker-compose.test.yml down || true'
+                    publishTestResults(
+                        testResultsPattern: 'e2e-test-results.xml',
+                        mergeResults: true
+                    )
+                    archiveArtifacts artifacts: 'cypress/screenshots/**/*', allowEmptyArchive: true
+                    archiveArtifacts artifacts: 'cypress/videos/**/*', allowEmptyArchive: true
+                }
+            }
+        }
+        
+        stage('Deploy to Environment') {
+            when {
+                anyOf {
+                    branch 'main'
+                    branch 'develop'
+                    params.FORCE_DEPLOY
+                }
+            }
+            steps {
+                script {
+                    def targetEnv = params.ENVIRONMENT ?: (env.BRANCH_NAME == 'main' ? 'prod' : 'dev')
+                    
+                    if (targetEnv == 'prod') {
+                        input message: 'Deploy to production?', ok: 'Deploy',
+                              parameters: [
+                                  booleanParam(defaultValue: false, name: 'CONFIRMED', description: 'Confirm production deployment')
+                              ]
+                    }
+                    
+                    sh """
+                        echo "Deploying to ${targetEnv}..."
+                        ./scripts/deploy.sh deploy ${targetEnv}
+                        
+                        echo "Running health check..."
+                        ./scripts/health-check.sh ${targetEnv}
+                    """
+                }
+            }
+        }
+        
+        stage('Smoke Tests') {
+            when {
+                anyOf {
+                    branch 'main'
+                    branch 'develop'
+                }
+            }
+            steps {
+                script {
+                    sh '''
+                        echo "Running smoke tests..."
+                        npm run test:smoke
+                    '''
+                }
+            }
+        }
+        
+        stage('Performance Tests') {
+            when {
+                branch 'main'
+            }
+            steps {
+                script {
+                    sh '''
+                        echo "Running performance tests..."
+                        npm run test:performance
+                    '''
+                }
+            }
+            post {
+                always {
+                    publishHTML([
+                        allowMissing: false,
+                        alwaysLinkToLastBuild: true,
+                        keepAll: true,
+                        reportDir: 'performance-results',
+                        reportFiles: 'index.html',
+                        reportName: 'Performance Report'
+                    ])
+                }
+            }
+        }
+    }
+    
+    post {
+        always {
+            cleanWs()
+        }
+        
+        success {
+            script {
+                slackSend(
+                    channel: env.SLACK_CHANNEL,
+                    color: 'good',
+                    message: """
+                        ✅ *EcoDeli CI/CD Pipeline - SUCCESS* 
+                        Branch: ${env.BRANCH_NAME}
+                        Build: ${env.BUILD_NUMBER}
+                        Version: ${env.BUILD_VERSION}
+                        Duration: ${currentBuild.durationString}
+                        
+                        <${env.BUILD_URL}|View Build>
+                    """
+                )
+            }
+        }
+        
+        failure {
+            script {
+                slackSend(
+                    channel: env.SLACK_CHANNEL,
+                    color: 'danger',
+                    message: """
+                        ❌ *EcoDeli CI/CD Pipeline - FAILED*
+                        Branch: ${env.BRANCH_NAME}
+                        Build: ${env.BUILD_NUMBER}
+                        Version: ${env.BUILD_VERSION}
+                        Duration: ${currentBuild.durationString}
+                        
+                        <${env.BUILD_URL}|View Build>
+                        <${env.BUILD_URL}console|View Console>
+                    """
+                )
+            }
+            
+            emailext (
+                subject: "EcoDeli CI/CD Pipeline Failed - Build ${env.BUILD_NUMBER}",
+                body: """
+                    <h2>Build Failed</h2>
+                    <p><strong>Branch:</strong> ${env.BRANCH_NAME}</p>
+                    <p><strong>Build:</strong> ${env.BUILD_NUMBER}</p>
+                    <p><strong>Version:</strong> ${env.BUILD_VERSION}</p>
+                    <p><strong>Duration:</strong> ${currentBuild.durationString}</p>
+                    
+                    <p><a href="${env.BUILD_URL}">View Build</a></p>
+                    <p><a href="${env.BUILD_URL}console">View Console Log</a></p>
+                """,
+                to: "${env.CHANGE_AUTHOR_EMAIL}",
+                mimeType: 'text/html'
+            )
+        }
+        
+        unstable {
+            script {
+                slackSend(
+                    channel: env.SLACK_CHANNEL,
+                    color: 'warning',
+                    message: """
+                        ⚠️ *EcoDeli CI/CD Pipeline - UNSTABLE*
+                        Branch: ${env.BRANCH_NAME}
+                        Build: ${env.BUILD_NUMBER}
+                        Version: ${env.BUILD_VERSION}
+                        Duration: ${currentBuild.durationString}
+                        
+                        <${env.BUILD_URL}|View Build>
+                    """
+                )
+            }
+        }
+    }
+}

@@ -1,0 +1,355 @@
+// Jenkins Deployment Pipeline for EcoDeli
+@Library('ecodeli-pipeline-library') _
+
+pipeline {
+    agent any
+    
+    parameters {
+        choice(
+            name: 'ENVIRONMENT',
+            choices: ['dev', 'staging', 'prod'],
+            description: 'Target environment for deployment'
+        )
+        string(
+            name: 'VERSION',
+            defaultValue: 'latest',
+            description: 'Version/tag to deploy'
+        )
+        booleanParam(
+            name: 'SKIP_TESTS',
+            defaultValue: false,
+            description: 'Skip post-deployment tests'
+        )
+        booleanParam(
+            name: 'ROLLBACK_ON_FAILURE',
+            defaultValue: true,
+            description: 'Automatically rollback on deployment failure'
+        )
+    }
+    
+    environment {
+        DOCKER_REGISTRY = 'registry.ecodeli.com'
+        DOCKER_IMAGE = 'ecodeli/platform'
+        SLACK_CHANNEL = '#deployments'
+    }
+    
+    stages {
+        stage('Pre-deployment Validation') {
+            steps {
+                script {
+                    echo "Validating deployment parameters..."
+                    
+                    // Validate environment
+                    if (!['dev', 'staging', 'prod'].contains(params.ENVIRONMENT)) {
+                        error("Invalid environment: ${params.ENVIRONMENT}")
+                    }
+                    
+                    // Check if image exists
+                    sh """
+                        docker pull ${DOCKER_REGISTRY}/${DOCKER_IMAGE}:${params.VERSION}
+                    """
+                    
+                    // Get current version for potential rollback
+                    env.CURRENT_VERSION = sh(
+                        script: "docker inspect ${DOCKER_REGISTRY}/${DOCKER_IMAGE}:current-${params.ENVIRONMENT} --format='{{.Config.Labels.version}}' || echo 'none'",
+                        returnStdout: true
+                    ).trim()
+                    
+                    echo "Current version: ${env.CURRENT_VERSION}"
+                    echo "Deploying version: ${params.VERSION}"
+                }
+            }
+        }
+        
+        stage('Backup Current State') {
+            when {
+                params.ENVIRONMENT == 'prod'
+            }
+            steps {
+                script {
+                    echo "Creating backup of current production state..."
+                    sh """
+                        ./scripts/backup.sh
+                        
+                        # Tag current image as backup
+                        docker tag ${DOCKER_REGISTRY}/${DOCKER_IMAGE}:current-${params.ENVIRONMENT} \
+                                   ${DOCKER_REGISTRY}/${DOCKER_IMAGE}:backup-${params.ENVIRONMENT}-\$(date +%Y%m%d%H%M%S)
+                    """
+                }
+            }
+        }
+        
+        stage('Deploy to Environment') {
+            steps {
+                script {
+                    echo "Deploying to ${params.ENVIRONMENT}..."
+                    
+                    try {
+                        sh """
+                            # Update environment variables
+                            export DOCKER_TAG=${params.VERSION}
+                            export ENVIRONMENT=${params.ENVIRONMENT}
+                            
+                            # Stop current services
+                            docker-compose -f docker-compose.yml -f docker-compose.${params.ENVIRONMENT}.yml down
+                            
+                            # Deploy new version
+                            docker-compose -f docker-compose.yml -f docker-compose.${params.ENVIRONMENT}.yml up -d
+                            
+                            # Tag as current version
+                            docker tag ${DOCKER_REGISTRY}/${DOCKER_IMAGE}:${params.VERSION} \
+                                       ${DOCKER_REGISTRY}/${DOCKER_IMAGE}:current-${params.ENVIRONMENT}
+                        """
+                        
+                        // Wait for services to be ready
+                        timeout(time: 10, unit: 'MINUTES') {
+                            sh """
+                                echo "Waiting for services to be ready..."
+                                while ! curl -f http://localhost:3000/api/health > /dev/null 2>&1; do
+                                    echo "Waiting for application..."
+                                    sleep 10
+                                done
+                                echo "Application is ready!"
+                            """
+                        }
+                        
+                    } catch (Exception e) {
+                        if (params.ROLLBACK_ON_FAILURE && env.CURRENT_VERSION != 'none') {
+                            echo "Deployment failed, initiating rollback..."
+                            sh """
+                                docker-compose -f docker-compose.yml -f docker-compose.${params.ENVIRONMENT}.yml down
+                                docker tag ${DOCKER_REGISTRY}/${DOCKER_IMAGE}:${env.CURRENT_VERSION} \
+                                           ${DOCKER_REGISTRY}/${DOCKER_IMAGE}:${params.VERSION}
+                                docker-compose -f docker-compose.yml -f docker-compose.${params.ENVIRONMENT}.yml up -d
+                            """
+                        }
+                        throw e
+                    }
+                }
+            }
+        }
+        
+        stage('Post-deployment Health Check') {
+            steps {
+                script {
+                    echo "Running health checks..."
+                    sh """
+                        ./scripts/health-check.sh ${params.ENVIRONMENT}
+                    """
+                }
+            }
+        }
+        
+        stage('Post-deployment Tests') {
+            when {
+                not { params.SKIP_TESTS }
+            }
+            parallel {
+                stage('Smoke Tests') {
+                    steps {
+                        script {
+                            sh """
+                                echo "Running smoke tests..."
+                                npm run test:smoke:${params.ENVIRONMENT}
+                            """
+                        }
+                    }
+                }
+                
+                stage('API Tests') {
+                    steps {
+                        script {
+                            sh """
+                                echo "Running API tests..."
+                                npm run test:api:${params.ENVIRONMENT}
+                            """
+                        }
+                    }
+                }
+                
+                stage('Database Migration Check') {
+                    steps {
+                        script {
+                            sh """
+                                echo "Checking database migrations..."
+                                npm run db:migrate:status
+                            """
+                        }
+                    }
+                }
+            }
+        }
+        
+        stage('Performance Baseline') {
+            when {
+                params.ENVIRONMENT == 'prod'
+            }
+            steps {
+                script {
+                    echo "Running performance baseline tests..."
+                    sh """
+                        npm run test:performance:baseline
+                    """
+                }
+            }
+            post {
+                always {
+                    publishHTML([
+                        allowMissing: false,
+                        alwaysLinkToLastBuild: true,
+                        keepAll: true,
+                        reportDir: 'performance-baseline',
+                        reportFiles: 'index.html',
+                        reportName: 'Performance Baseline Report'
+                    ])
+                }
+            }
+        }
+        
+        stage('Update Monitoring') {
+            steps {
+                script {
+                    echo "Updating monitoring configuration..."
+                    sh """
+                        # Update Prometheus configuration
+                        ./scripts/update-monitoring.sh ${params.ENVIRONMENT} ${params.VERSION}
+                        
+                        # Send deployment event to monitoring
+                        curl -X POST "http://prometheus:9090/api/v1/alerts" \
+                             -H "Content-Type: application/json" \
+                             -d '{
+                                 "annotations": {
+                                     "summary": "EcoDeli deployment to ${params.ENVIRONMENT}",
+                                     "description": "Version ${params.VERSION} deployed to ${params.ENVIRONMENT}"
+                                 },
+                                 "labels": {
+                                     "alertname": "Deployment",
+                                     "environment": "${params.ENVIRONMENT}",
+                                     "version": "${params.VERSION}"
+                                 }
+                             }' || true
+                    """
+                }
+            }
+        }
+        
+        stage('Cleanup Old Versions') {
+            steps {
+                script {
+                    echo "Cleaning up old Docker images..."
+                    sh """
+                        # Keep only last 5 versions
+                        docker images ${DOCKER_REGISTRY}/${DOCKER_IMAGE} --format "table {{.Tag}}\t{{.CreatedAt}}" | \
+                        grep -v "current\\|latest\\|backup" | \
+                        sort -k2 -r | \
+                        tail -n +6 | \
+                        awk '{print \$1}' | \
+                        xargs -I {} docker rmi ${DOCKER_REGISTRY}/${DOCKER_IMAGE}:{} || true
+                    """
+                }
+            }
+        }
+    }
+    
+    post {
+        always {
+            script {
+                // Generate deployment report
+                def deploymentReport = """
+                    **EcoDeli Deployment Report**
+                    
+                    Environment: ${params.ENVIRONMENT}
+                    Version: ${params.VERSION}
+                    Previous Version: ${env.CURRENT_VERSION}
+                    Duration: ${currentBuild.durationString}
+                    Timestamp: ${new Date()}
+                    
+                    Build: ${env.BUILD_URL}
+                """
+                
+                writeFile file: 'deployment-report.md', text: deploymentReport
+                archiveArtifacts artifacts: 'deployment-report.md'
+            }
+        }
+        
+        success {
+            script {
+                slackSend(
+                    channel: env.SLACK_CHANNEL,
+                    color: 'good',
+                    message: """
+                        🚀 *EcoDeli Deployment - SUCCESS*
+                        Environment: ${params.ENVIRONMENT}
+                        Version: ${params.VERSION}
+                        Previous: ${env.CURRENT_VERSION}
+                        Duration: ${currentBuild.durationString}
+                        
+                        <${env.BUILD_URL}|View Deployment>
+                    """
+                )
+                
+                // Send deployment notification to monitoring
+                sh """
+                    curl -X POST "http://webhook-receiver:9000/hooks/deployment-success" \
+                         -H "Content-Type: application/json" \
+                         -d '{
+                             "environment": "${params.ENVIRONMENT}",
+                             "version": "${params.VERSION}",
+                             "build_number": "${env.BUILD_NUMBER}",
+                             "duration": "${currentBuild.durationString}"
+                         }' || true
+                """
+            }
+        }
+        
+        failure {
+            script {
+                slackSend(
+                    channel: env.SLACK_CHANNEL,
+                    color: 'danger',
+                    message: """
+                        💥 *EcoDeli Deployment - FAILED*
+                        Environment: ${params.ENVIRONMENT}
+                        Version: ${params.VERSION}
+                        Duration: ${currentBuild.durationString}
+                        
+                        <${env.BUILD_URL}|View Deployment>
+                        <${env.BUILD_URL}console|View Console>
+                    """
+                )
+                
+                emailext (
+                    subject: "EcoDeli Deployment Failed - ${params.ENVIRONMENT}",
+                    body: """
+                        <h2>Deployment Failed</h2>
+                        <p><strong>Environment:</strong> ${params.ENVIRONMENT}</p>
+                        <p><strong>Version:</strong> ${params.VERSION}</p>
+                        <p><strong>Duration:</strong> ${currentBuild.durationString}</p>
+                        
+                        <p><a href="${env.BUILD_URL}">View Deployment</a></p>
+                        <p><a href="${env.BUILD_URL}console">View Console Log</a></p>
+                    """,
+                    to: "ops@ecodeli.com",
+                    mimeType: 'text/html'
+                )
+            }
+        }
+        
+        unstable {
+            script {
+                slackSend(
+                    channel: env.SLACK_CHANNEL,
+                    color: 'warning',
+                    message: """
+                        ⚠️ *EcoDeli Deployment - UNSTABLE*
+                        Environment: ${params.ENVIRONMENT}
+                        Version: ${params.VERSION}
+                        Duration: ${currentBuild.durationString}
+                        
+                        <${env.BUILD_URL}|View Deployment>
+                    """
+                )
+            }
+        }
+    }
+}

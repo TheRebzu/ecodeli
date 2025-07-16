@@ -1,0 +1,214 @@
+# Docker Compose configuration for CI/CD services
+# Usage: docker-compose -f docker-compose.yml -f docker-compose.ci.yml up -d
+
+version: "3.8"
+
+services:
+  # Jenkins Master
+  jenkins:
+    image: jenkins/jenkins:lts
+    container_name: ecodeli_jenkins
+    restart: unless-stopped
+    user: root
+    ports:
+      - "8081:8080"
+      - "50000:50000"
+    environment:
+      - JENKINS_OPTS=--httpPort=8080
+      - JAVA_OPTS=-Xmx2048m -Xms512m
+    volumes:
+      - jenkins_data:/var/jenkins_home
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./ci/jenkins/plugins.txt:/usr/share/jenkins/ref/plugins.txt
+      - ./ci/jenkins/jenkins.yaml:/var/jenkins_home/casc_configs/jenkins.yaml
+      - ./ci/jenkins/jobs:/var/jenkins_home/jobs
+      - ./ci/jenkins/scripts:/var/jenkins_home/scripts
+    networks:
+      - ecodeli_network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/login"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    depends_on:
+      - postgres
+    profiles:
+      - ci
+      - jenkins
+
+  # Jenkins Agent (Node.js)
+  jenkins-agent-nodejs:
+    image: jenkins/inbound-agent:latest
+    container_name: ecodeli_jenkins_agent_nodejs
+    restart: unless-stopped
+    environment:
+      - JENKINS_URL=http://jenkins:8080
+      - JENKINS_AGENT_NAME=nodejs-agent
+      - JENKINS_SECRET=${JENKINS_AGENT_SECRET:-}
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - agent_workspace:/home/jenkins/agent
+    networks:
+      - ecodeli_network
+    depends_on:
+      - jenkins
+    profiles:
+      - ci
+      - jenkins
+
+  # SonarQube for code quality
+  sonarqube:
+    image: sonarqube:community
+    container_name: ecodeli_sonarqube
+    restart: unless-stopped
+    ports:
+      - "9000:9000"
+    environment:
+      - sonar.jdbc.url=jdbc:postgresql://postgres:5432/sonarqube
+      - sonar.jdbc.username=postgres
+      - sonar.jdbc.password=${POSTGRES_PASSWORD:-password}
+    volumes:
+      - sonarqube_data:/opt/sonarqube/data
+      - sonarqube_extensions:/opt/sonarqube/extensions
+      - sonarqube_logs:/opt/sonarqube/logs
+    networks:
+      - ecodeli_network
+    depends_on:
+      - postgres
+    profiles:
+      - ci
+      - quality
+
+  # Nexus Repository Manager
+  nexus:
+    image: sonatype/nexus3:latest
+    container_name: ecodeli_nexus
+    restart: unless-stopped
+    ports:
+      - "8082:8081"
+    environment:
+      - NEXUS_SECURITY_RANDOMPASSWORD=false
+    volumes:
+      - nexus_data:/nexus-data
+    networks:
+      - ecodeli_network
+    profiles:
+      - ci
+      - artifacts
+
+  # GitLab Runner (alternative to Jenkins)
+  gitlab-runner:
+    image: gitlab/gitlab-runner:latest
+    container_name: ecodeli_gitlab_runner
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - gitlab_runner_config:/etc/gitlab-runner
+      - ./ci/gitlab/.gitlab-ci.yml:/builds/.gitlab-ci.yml
+    networks:
+      - ecodeli_network
+    profiles:
+      - ci
+      - gitlab
+
+  # Portainer for container management
+  portainer:
+    image: portainer/portainer-ce:latest
+    container_name: ecodeli_portainer
+    restart: unless-stopped
+    ports:
+      - "9443:9443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - portainer_data:/data
+    networks:
+      - ecodeli_network
+    profiles:
+      - ci
+      - management
+
+  # Registry for Docker images
+  registry:
+    image: registry:2
+    container_name: ecodeli_registry
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    environment:
+      - REGISTRY_STORAGE_FILESYSTEM_ROOTDIRECTORY=/data
+    volumes:
+      - registry_data:/data
+      - ./ci/registry/config.yml:/etc/docker/registry/config.yml
+    networks:
+      - ecodeli_network
+    profiles:
+      - ci
+      - registry
+
+  # Selenium Grid for E2E testing
+  selenium-hub:
+    image: selenium/hub:latest
+    container_name: ecodeli_selenium_hub
+    restart: unless-stopped
+    ports:
+      - "4444:4444"
+    networks:
+      - ecodeli_network
+    profiles:
+      - ci
+      - testing
+
+  selenium-chrome:
+    image: selenium/node-chrome:latest
+    container_name: ecodeli_selenium_chrome
+    restart: unless-stopped
+    environment:
+      - HUB_HOST=selenium-hub
+      - HUB_PORT=4444
+    networks:
+      - ecodeli_network
+    depends_on:
+      - selenium-hub
+    profiles:
+      - ci
+      - testing
+
+  # Webhook receiver for GitHub
+  webhook-receiver:
+    image: almir/webhook
+    container_name: ecodeli_webhook_receiver
+    restart: unless-stopped
+    ports:
+      - "9001:9000"
+    volumes:
+      - ./ci/webhooks/hooks.json:/etc/webhook/hooks.json
+      - ./ci/webhooks/scripts:/scripts
+    networks:
+      - ecodeli_network
+    profiles:
+      - ci
+      - webhooks
+
+volumes:
+  jenkins_data:
+    driver: local
+  agent_workspace:
+    driver: local
+  sonarqube_data:
+    driver: local
+  sonarqube_extensions:
+    driver: local
+  sonarqube_logs:
+    driver: local
+  nexus_data:
+    driver: local
+  gitlab_runner_config:
+    driver: local
+  portainer_data:
+    driver: local
+  registry_data:
+    driver: local
+
+networks:
+  ecodeli_network:
+    external: true

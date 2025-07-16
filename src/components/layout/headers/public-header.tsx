@@ -57,6 +57,12 @@ const getPublicNavigation = (t: any): NavigationItem[] => [
         href: "/services/storage",
         icon: "Package",
       },
+      {
+        key: "shipping",
+        label: t("shipping"),
+        href: "/shipping",
+        icon: "Package",
+      },
     ],
   },
   {
@@ -79,6 +85,11 @@ const getPublicNavigation = (t: any): NavigationItem[] => [
     ],
   },
   {
+    key: "become-delivery",
+    label: t("become_delivery"),
+    href: "/become-delivery",
+  },
+  {
     key: "pricing",
     label: t("pricing"),
     href: "/pricing",
@@ -89,9 +100,84 @@ const getPublicNavigation = (t: any): NavigationItem[] => [
     href: "/about",
   },
   {
-    key: "contact",
-    label: t("contact"),
-    href: "/contact",
+    key: "blog",
+    label: t("blog"),
+    href: "/blog",
+  },
+  {
+    key: "developers",
+    label: t("developers"),
+    href: "/developers",
+    children: [
+      {
+        key: "api-docs",
+        label: t("api_docs"),
+        href: "/developers/api-docs",
+        icon: "Package",
+      },
+      {
+        key: "api-keys",
+        label: t("api_keys"),
+        href: "/developers/api-keys",
+        icon: "Package",
+      },
+      {
+        key: "api-manual",
+        label: t("api_manual"),
+        href: "/developers/api-manual",
+        icon: "Package",
+      },
+    ],
+  },
+  {
+    key: "support",
+    label: t("support"),
+    href: "/support",
+    children: [
+      {
+        key: "faq",
+        label: t("faq"),
+        href: "/faq",
+        icon: "Package",
+      },
+      {
+        key: "contact",
+        label: t("contact"),
+        href: "/contact",
+        icon: "Phone",
+      },
+    ],
+  },
+  {
+    key: "legal",
+    label: t("legal"),
+    href: "/legal",
+    children: [
+      {
+        key: "terms",
+        label: t("terms"),
+        href: "/terms",
+        icon: "Package",
+      },
+      {
+        key: "privacy",
+        label: t("privacy"),
+        href: "/privacy",
+        icon: "Package",
+      },
+      {
+        key: "cgu",
+        label: t("cgu"),
+        href: "/legal/cgu",
+        icon: "Package",
+      },
+      {
+        key: "cgv",
+        label: t("cgv"),
+        href: "/legal/cgv",
+        icon: "Package",
+      },
+    ],
   },
 ];
 

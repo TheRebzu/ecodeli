@@ -1,0 +1,109 @@
+# Docker Compose configuration for production deployment
+# Usage: docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+
+version: "3.8"
+
+services:
+  # Configuration spécifique pour la production
+  ecodeli-app:
+    environment:
+      NODE_ENV: production
+      LOG_LEVEL: warn
+      NEXTAUTH_URL: ${NEXTAUTH_URL:-https://ecodeli.com}
+    deploy:
+      replicas: 2
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+        reservations:
+          cpus: '0.5'
+          memory: 256M
+
+  postgres:
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 10s
+        max_attempts: 5
+        window: 120s
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 1G
+        reservations:
+          cpus: '0.25'
+          memory: 512M
+
+  # Configuration Nginx pour production avec SSL
+  nginx:
+    profiles:
+      - production
+    environment:
+      NGINX_WORKER_PROCESSES: auto
+      NGINX_WORKER_CONNECTIONS: 1024
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 128M
+        reservations:
+          cpus: '0.1'
+          memory: 64M
+
+  # Désactiver PgAdmin en production
+  pgadmin:
+    profiles:
+      - never  # Never start in production
+
+  # Service de backup automatique
+  backup:
+    image: postgres:15-alpine
+    container_name: ecodeli_backup
+    restart: unless-stopped
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data:ro
+      - ./backups:/backups
+      - ./scripts/backup.sh:/usr/local/bin/backup.sh:ro
+    networks:
+      - ecodeli_network
+    entrypoint: |
+      sh -c '
+        apk add --no-cache dcron
+        echo "0 2 * * * /usr/local/bin/backup.sh" | crontab -
+        crond -f
+      '
+    depends_on:
+      - postgres
+    profiles:
+      - production
+
+# Configuration des volumes pour la production
+volumes:
+  postgres_data:
+    driver: local
+    driver_opts:
+      type: none
+      device: ${DATA_PATH:-./data}/postgres
+      o: bind
+
+networks:
+  ecodeli_network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
