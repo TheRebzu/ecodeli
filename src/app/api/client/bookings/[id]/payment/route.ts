@@ -73,6 +73,7 @@ export async function POST(
         currency: currency.toLowerCase(),
         status: "PENDING",
         type: "BOOKING",
+        paymentMethod: "STRIPE",
         stripePaymentId: paymentIntent.id,
       },
     });

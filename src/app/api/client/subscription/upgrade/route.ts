@@ -81,6 +81,7 @@ export async function POST(request: NextRequest) {
         currency: "EUR",
         status: "PENDING",
         type: "SUBSCRIPTION",
+        paymentMethod: "STRIPE",
         description: `Mise à niveau vers ${validatedData.plan}`,
       },
     });

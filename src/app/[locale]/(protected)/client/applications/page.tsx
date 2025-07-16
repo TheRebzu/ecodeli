@@ -40,6 +40,8 @@ interface Application {
   availableDates: string[];
   createdAt: string;
   updatedAt: string;
+  paymentStatus?: string; // <--- Ajouté
+  paidAt?: string | null; // <--- Ajouté
   provider: {
     id: string;
     businessName: string;
@@ -162,65 +164,38 @@ export default function ClientApplicationsPage() {
   const handlePayService = async (application: Application) => {
     try {
       setPaying(true);
-      const response = await fetch(
-        `/api/client/applications/${application.id}/pay`,
+      
+      // Créer une session Stripe Checkout directement
+      const checkoutResponse = await fetch(
+        "/api/client/applications/create-checkout-session",
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            paymentMethod: "CARD",
+            applicationId: application.id,
             amount: application.proposedPrice,
             currency: "EUR",
+            description: `Paiement service - ${application.serviceRequest.title}`,
           }),
         },
       );
 
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || "Erreur lors du paiement");
+      if (!checkoutResponse.ok) {
+        const error = await checkoutResponse.json();
+        throw new Error(error.error || "Erreur lors de la création de la session de paiement");
       }
 
-      const data = await response.json();
-
-      // Rediriger vers Stripe pour finaliser le paiement
-      if (data.stripe && data.stripe.paymentIntentId) {
-        // Créer une session Stripe Checkout
-        const checkoutResponse = await fetch(
-          "/api/client/applications/create-checkout-session",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              applicationId: application.id,
-              amount: application.proposedPrice,
-              currency: "EUR",
-              description: `Paiement service - ${application.serviceRequest.title}`,
-              paymentIntentId: data.stripe.paymentIntentId,
-            }),
-          },
-        );
-
-        if (checkoutResponse.ok) {
-          const checkoutData = await checkoutResponse.json();
-          if (checkoutData.checkoutUrl) {
-            // Rediriger vers Stripe Checkout
-            window.location.href = checkoutData.checkoutUrl;
-            return;
-          }
-        }
+      const checkoutData = await checkoutResponse.json();
+      
+      if (checkoutData.url) {
+        // Rediriger vers Stripe Checkout
+        window.location.href = checkoutData.url;
+        return;
+      } else {
+        throw new Error("URL de paiement non reçue");
       }
-
-      // Fallback si pas de redirection Stripe
-      toast.success(
-        "Paiement effectué avec succès ! Le prestataire a été notifié.",
-      );
-
-      // Mettre à jour la liste
-      await fetchApplications();
     } catch (error) {
       console.error("Erreur:", error);
       toast.error("Erreur lors du paiement");
@@ -437,14 +412,18 @@ export default function ClientApplicationsPage() {
 
                 {application.status === "ACCEPTED" && (
                   <div className="flex space-x-2 pt-4">
-                    <Button
-                      onClick={() => handlePayService(application)}
-                      disabled={paying}
-                      className="flex-1"
-                    >
-                      <CreditCard className="w-4 h-4 mr-2" />
-                      {paying ? "Paiement..." : "Payer le service"}
-                    </Button>
+                    {application.paymentStatus !== "PAID" ? (
+                      <Button
+                        onClick={() => handlePayService(application)}
+                        disabled={paying}
+                        className="flex-1"
+                      >
+                        <CreditCard className="w-4 h-4 mr-2" />
+                        {paying ? "Paiement..." : "Payer le service"}
+                      </Button>
+                    ) : (
+                      <Badge variant="success" className="flex-1 justify-center">Service payé</Badge>
+                    )}
                   </div>
                 )}
               </CardContent>

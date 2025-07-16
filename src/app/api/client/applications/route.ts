@@ -112,6 +112,8 @@ export async function GET(request: NextRequest) {
         availableDates: application.availableDates || [],
         createdAt: application.createdAt.toISOString(),
         updatedAt: application.updatedAt.toISOString(),
+        paymentStatus: application.paymentStatus || "PENDING",
+        paidAt: application.paidAt ? application.paidAt.toISOString() : null,
         provider: {
           id: application.provider.id,
           profile: {

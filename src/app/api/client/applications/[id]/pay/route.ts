@@ -31,7 +31,7 @@ export async function POST(
     const application = await prisma.serviceApplication.findUnique({
       where: { id },
       include: {
-        service: true,
+        announcement: true,
         provider: true,
       },
     });
@@ -43,29 +43,67 @@ export async function POST(
       );
     }
 
-    // Créer le Payment Intent
-    const paymentIntent = await stripe.paymentIntents.create({
-      amount: Math.round(amount * 100),
-      currency: "eur",
-      metadata: {
-        applicationId: id,
-        userId: user.id,
-      },
+    // Vérifier si un paiement existe déjà pour cette application
+    const existingPayment = await prisma.payment.findUnique({
+      where: { serviceApplicationId: id },
     });
 
-    // Enregistrer le paiement en base
-    await prisma.payment.create({
-      data: {
-        id: paymentIntent.id,
-        userId: user.id,
-        serviceApplicationId: id,
-        amount: amount,
+    let paymentIntent;
+    let paymentRecord;
+
+    if (existingPayment) {
+      // Si un paiement existe déjà, récupérer le Payment Intent existant
+      try {
+        paymentIntent = await stripe.paymentIntents.retrieve(existingPayment.stripePaymentId!);
+        paymentRecord = existingPayment;
+      } catch (error) {
+        // Si le Payment Intent n'existe plus, créer un nouveau
+        paymentIntent = await stripe.paymentIntents.create({
+          amount: Math.round(amount * 100),
+          currency: "eur",
+          metadata: {
+            applicationId: id,
+            userId: user.id,
+          },
+        });
+
+        // Mettre à jour le paiement existant
+        paymentRecord = await prisma.payment.update({
+          where: { id: existingPayment.id },
+          data: {
+            id: paymentIntent.id,
+            stripePaymentId: paymentIntent.id,
+            amount: amount,
+            status: "PENDING",
+          },
+        });
+      }
+    } else {
+      // Créer un nouveau Payment Intent
+      paymentIntent = await stripe.paymentIntents.create({
+        amount: Math.round(amount * 100),
         currency: "eur",
-        status: "PENDING",
-        type: "SERVICE",
-        stripePaymentId: paymentIntent.id,
-      },
-    });
+        metadata: {
+          applicationId: id,
+          userId: user.id,
+        },
+      });
+
+      // Enregistrer le nouveau paiement en base
+      paymentRecord = await prisma.payment.create({
+        data: {
+          id: paymentIntent.id,
+          userId: user.id,
+          serviceApplicationId: id,
+          amount: amount,
+          currency: "eur",
+          status: "PENDING",
+          type: "SERVICE",
+          paymentMethod: "STRIPE",
+          stripePaymentId: paymentIntent.id,
+        },
+      });
+    }
 
     return NextResponse.json({
       paymentIntentId: paymentIntent.id,

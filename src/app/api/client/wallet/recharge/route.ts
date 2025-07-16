@@ -40,6 +40,7 @@ export async function POST(request: NextRequest) {
         currency: "EUR",
         status: "PENDING",
         type: "WALLET_RECHARGE",
+        paymentMethod: "STRIPE",
       },
     });
 

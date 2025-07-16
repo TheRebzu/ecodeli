@@ -63,6 +63,7 @@ export async function POST(
         currency,
         status: "PENDING",
         type: "DELIVERY",
+        paymentMethod: "STRIPE",
         stripePaymentId: paymentIntent.id,
       },
     });

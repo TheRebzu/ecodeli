@@ -15,15 +15,17 @@ import {
   CreditCard,
   CheckCircle,
   AlertCircle,
-  Play,
-  Pause,
-  Square,
+  Euro,
+  FileText,
+  MessageSquare,
+  CalendarDays,
+  Phone,
+  Mail,
   Check,
-  X,
 } from "lucide-react";
 import { toast } from "sonner";
 
-interface Intervention {
+interface PaidApplication {
   id: string;
   providerId: string;
   clientId: string;
@@ -33,20 +35,16 @@ interface Intervention {
   scheduledDate: string;
   estimatedDuration: number;
   actualDuration?: number;
-  status:
-    | "SCHEDULED"
-    | "CONFIRMED"
-    | "PAYMENT_PENDING"
-    | "IN_PROGRESS"
-    | "COMPLETED"
-    | "CANCELLED";
+  status: string;
   notes?: string;
   rating?: number;
   review?: string;
   createdAt: string;
   updatedAt: string;
+  type: string;
   client: {
     id: string;
+    email: string; // Ajouter l'email du client
     profile: {
       firstName: string;
       lastName: string;
@@ -64,16 +62,24 @@ interface Intervention {
     pickupAddress: string;
     deliveryAddress: string;
   };
-  payment?: {
+  payment: {
     id: string;
     amount: number;
     currency: string;
     status: string;
   };
+  applicationData: {
+    proposedPrice: number;
+    message: string;
+    applicationId: string;
+    paymentStatus: string;
+    paidAt: string | null;
+    availableDates: string[];
+  };
 }
 
-interface InterventionsResponse {
-  interventions: Intervention[];
+interface ApplicationsResponse {
+  interventions: PaidApplication[];
   pagination: {
     page: number;
     limit: number;
@@ -84,107 +90,68 @@ interface InterventionsResponse {
 
 export default function ProviderInterventionsPage() {
   const t = useTranslations("ProviderInterventions");
-  const [interventions, setInterventions] = useState<Intervention[]>([]);
+  const [applications, setApplications] = useState<PaidApplication[]>([]);
   const [loading, setLoading] = useState(true);
-  const [updating, setUpdating] = useState<string | null>(null);
+  const [contactInfo, setContactInfo] = useState<{ [key: string]: boolean }>({});
 
   useEffect(() => {
-    fetchInterventions();
+    fetchApplications();
   }, []);
 
-  const fetchInterventions = async () => {
+  const fetchApplications = async () => {
     try {
       setLoading(true);
       const response = await fetch("/api/provider/interventions");
 
       if (!response.ok) {
-        throw new Error("Erreur lors de la récupération des interventions");
+        throw new Error("Erreur lors de la récupération des applications payées");
       }
 
-      const data: InterventionsResponse = await response.json();
-      setInterventions(data.interventions);
+      const data: ApplicationsResponse = await response.json();
+      setApplications(data.interventions);
     } catch (error) {
       console.error("Erreur:", error);
-      toast.error("Erreur lors du chargement des interventions");
+      toast.error("Erreur lors du chargement des applications payées");
     } finally {
       setLoading(false);
     }
   };
 
-  const updateInterventionStatus = async (
-    interventionId: string,
-    newStatus: string,
-  ) => {
+  const toggleContactInfo = (applicationId: string) => {
+    setContactInfo(prev => ({
+      ...prev,
+      [applicationId]: !prev[applicationId]
+    }));
+  };
+
+  const handleCompleteTask = async (applicationId: string) => {
     try {
-      setUpdating(interventionId);
-      const response = await fetch(
-        `/api/provider/service-interventions/${interventionId}`,
-        {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            status: newStatus,
-          }),
+      const response = await fetch(`/api/provider/interventions/${applicationId}/complete`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
         },
-      );
+      });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Erreur lors de la mise à jour");
+      if (response.ok) {
+        toast.success("Tâche terminée avec succès");
+        // Recharger les données
+        fetchApplications();
+      } else {
+        toast.error("Erreur lors de la finalisation de la tâche");
       }
-
-      await fetchInterventions();
-      toast.success(`Intervention ${newStatus.toLowerCase()} avec succès`);
     } catch (error) {
       console.error("Erreur:", error);
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : "Erreur lors de la mise à jour",
-      );
-    } finally {
-      setUpdating(null);
+      toast.error("Erreur lors de la finalisation de la tâche");
     }
   };
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case "SCHEDULED":
-        return (
-          <Badge variant="secondary">
-            <Calendar className="w-3 h-3 mr-1" /> Planifiée
-          </Badge>
-        );
-      case "CONFIRMED":
+      case "PAID":
         return (
           <Badge variant="default" className="bg-green-500">
-            <Check className="w-3 h-3 mr-1" /> Confirmée
-          </Badge>
-        );
-      case "PAYMENT_PENDING":
-        return (
-          <Badge variant="default" className="bg-yellow-500">
-            <CreditCard className="w-3 h-3 mr-1" /> En attente paiement
-          </Badge>
-        );
-      case "IN_PROGRESS":
-        return (
-          <Badge variant="default" className="bg-blue-500">
-            <Play className="w-3 h-3 mr-1" /> En cours
-          </Badge>
-        );
-      case "COMPLETED":
-        return (
-          <Badge variant="default" className="bg-green-500">
-            <CheckCircle className="w-3 h-3 mr-1" /> Terminée
-          </Badge>
-        );
-      case "CANCELLED":
-        return (
-          <Badge variant="destructive">
-            <X className="w-3 h-3 mr-1" /> Annulée
+            <CheckCircle className="w-3 h-3 mr-1" /> Payée
           </Badge>
         );
       default:
@@ -217,30 +184,13 @@ export default function ProviderInterventionsPage() {
       : `${mins}min`;
   };
 
-  const canStartIntervention = (status: string) => {
-    return ["SCHEDULED", "CONFIRMED", "PAYMENT_PENDING"].includes(status);
-  };
-
-  const canCompleteIntervention = (status: string) => {
-    return status === "IN_PROGRESS";
-  };
-
-  const canCancelIntervention = (status: string) => {
-    return [
-      "SCHEDULED",
-      "CONFIRMED",
-      "PAYMENT_PENDING",
-      "IN_PROGRESS",
-    ].includes(status);
-  };
-
   if (loading) {
     return (
-      <div className="container mx-auto py-8">
-        <div className="flex items-center justify-center h-64">
+      <div className="container mx-auto px-4 py-8">
+        <div className="flex items-center justify-center min-h-[400px]">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-            <p>Chargement des interventions...</p>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+            <p className="text-muted-foreground">Chargement des applications payées...</p>
           </div>
         </div>
       </div>
@@ -248,208 +198,197 @@ export default function ProviderInterventionsPage() {
   }
 
   return (
-    <div className="container mx-auto py-8">
+    <div className="container mx-auto px-4 py-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Mes interventions</h1>
-        <p className="text-muted-foreground">
-          Gérez vos interventions acceptées et planifiées
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">
+          Applications Payées
+        </h1>
+        <p className="text-gray-600">
+          Consultez toutes vos candidatures acceptées et payées par les clients
         </p>
       </div>
 
-      {interventions.length === 0 ? (
+      {applications.length === 0 ? (
         <Card>
-          <CardContent className="py-12">
+          <CardContent className="flex flex-col items-center justify-center py-12">
             <div className="text-center">
-              <Calendar className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-semibold mb-2">
-                Aucune intervention
+              <CreditCard className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                Aucune application payée
               </h3>
-              <p className="text-muted-foreground">
-                Vous n'avez pas encore d'interventions planifiées.
+              <p className="text-gray-600 mb-4">
+                Vous n'avez pas encore d'applications payées par les clients.
               </p>
+              <Button variant="outline" onClick={() => window.history.back()}>
+                Retour
+              </Button>
             </div>
           </CardContent>
         </Card>
       ) : (
-        <div className="space-y-6">
-          {interventions.map((intervention) => (
-            <Card key={intervention.id} className="overflow-hidden">
-              <CardHeader className="pb-4">
+        <div className="grid gap-6">
+          {applications.map((application) => (
+            <Card key={application.id} className="hover:shadow-md transition-shadow">
+              <CardHeader>
                 <div className="flex items-start justify-between">
-                  <div className="flex items-center space-x-4">
-                    <Avatar className="w-12 h-12">
-                      <AvatarImage src={intervention.client.profile.phone} />
-                      <AvatarFallback>
-                        {intervention.client.profile.firstName?.[0]}
-                        {intervention.client.profile.lastName?.[0]}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <div className="flex items-center space-x-2">
-                        <h3 className="text-lg font-semibold">
-                          {intervention.title}
-                        </h3>
-                        {getStatusBadge(intervention.status)}
-                      </div>
-                      <div className="flex items-center space-x-4 text-sm text-muted-foreground">
-                        <div className="flex items-center">
-                          <User className="w-3 h-3 mr-1" />
-                          {intervention.client.profile.firstName}{" "}
-                          {intervention.client.profile.lastName}
-                        </div>
-                        {intervention.client.profile.city && (
-                          <div className="flex items-center">
-                            <MapPin className="w-3 h-3 mr-1" />
-                            {intervention.client.profile.city}
-                          </div>
-                        )}
-                      </div>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3 mb-2">
+                      <CardTitle className="text-xl">{application.title}</CardTitle>
+                      {getStatusBadge(application.status)}
                     </div>
+                    <p className="text-gray-600 line-clamp-2">
+                      {application.description}
+                    </p>
                   </div>
                   <div className="text-right">
-                    <p className="text-lg font-semibold">
-                      {formatPrice(intervention.payment?.amount || 0)}
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      {formatDuration(intervention.estimatedDuration)}
-                    </p>
+                    <div className="text-2xl font-bold text-green-600">
+                      {formatPrice(application.payment.amount)}
+                    </div>
+                    <div className="text-sm text-gray-500">
+                      Payé le {formatDate(application.applicationData.paidAt || application.createdAt)}
+                    </div>
                   </div>
                 </div>
               </CardHeader>
 
-              <CardContent className="space-y-4">
-                <div>
-                  <h4 className="font-medium mb-2">Description</h4>
-                  <p className="text-sm text-muted-foreground">
-                    {intervention.description}
-                  </p>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Informations client */}
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-3">
+                      <User className="h-5 w-5 text-gray-500" />
+                      <div>
+                        <h4 className="font-semibold">Client</h4>
+                        <p className="text-gray-600">
+                          {application.client.profile.firstName} {application.client.profile.lastName}
+                        </p>
+                        {application.client.profile.city && (
+                          <p className="text-sm text-gray-500">
+                            {application.client.profile.city}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Adresses */}
+                    {(application.serviceRequest.pickupAddress || application.serviceRequest.deliveryAddress) && (
+                      <div className="space-y-2">
+                        {application.serviceRequest.pickupAddress && (
+                          <div className="flex items-start gap-2">
+                            <MapPin className="h-4 w-4 text-gray-500 mt-0.5" />
+                            <div>
+                              <p className="text-sm font-medium">Adresse de départ</p>
+                              <p className="text-sm text-gray-600">
+                                {application.serviceRequest.pickupAddress}
+                              </p>
+                            </div>
+                          </div>
+                        )}
+                        {application.serviceRequest.deliveryAddress && (
+                          <div className="flex items-start gap-2">
+                            <MapPin className="h-4 w-4 text-gray-500 mt-0.5" />
+                            <div>
+                              <p className="text-sm font-medium">Adresse de destination</p>
+                              <p className="text-sm text-gray-600">
+                                {application.serviceRequest.deliveryAddress}
+                              </p>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Informations service */}
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-3">
+                      <Clock className="h-5 w-5 text-gray-500" />
+                      <div>
+                        <h4 className="font-semibold">Durée estimée</h4>
+                        <p className="text-gray-600">
+                          {formatDuration(application.estimatedDuration)}
+                        </p>
+                      </div>
+                    </div>
+
+                    {application.applicationData.availableDates.length > 0 && (
+                      <div className="flex items-start gap-2">
+                        <CalendarDays className="h-4 w-4 text-gray-500 mt-0.5" />
+                        <div>
+                          <p className="text-sm font-medium">Dates disponibles</p>
+                          <div className="flex flex-wrap gap-1 mt-1">
+                            {application.applicationData.availableDates.slice(0, 3).map((date, index) => (
+                              <Badge key={index} variant="secondary" className="text-xs">
+                                {new Date(date).toLocaleDateString("fr-FR")}
+                              </Badge>
+                            ))}
+                            {application.applicationData.availableDates.length > 3 && (
+                              <Badge variant="secondary" className="text-xs">
+                                +{application.applicationData.availableDates.length - 3} autres
+                              </Badge>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {application.applicationData.message && (
+                      <div className="flex items-start gap-2">
+                        <MessageSquare className="h-4 w-4 text-gray-500 mt-0.5" />
+                        <div>
+                          <p className="text-sm font-medium">Message du client</p>
+                          <p className="text-sm text-gray-600 line-clamp-2">
+                            {application.applicationData.message}
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
 
-                <Separator />
+                <Separator className="my-4" />
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground">
-                      Date planifiée
-                    </p>
-                    <p className="text-sm">
-                      {formatDate(intervention.scheduledDate)}
-                    </p>
+                {/* Actions */}
+                <div className="flex items-center justify-between">
+                  <div className="text-sm text-gray-500">
+                    Candidature soumise le {formatDate(application.createdAt)}
                   </div>
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground">
-                      Durée estimée
-                    </p>
-                    <p className="text-sm">
-                      {formatDuration(intervention.estimatedDuration)}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground">
-                      Statut paiement
-                    </p>
-                    <div className="flex items-center">
-                      <CreditCard className="w-3 h-3 mr-1" />
-                      <span className="text-sm">
-                        {intervention.payment?.status === "COMPLETED"
-                          ? "Payé"
-                          : "En attente"}
-                      </span>
-                    </div>
+                  <div className="flex gap-2">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => toggleContactInfo(application.id)}
+                    >
+                      <MessageSquare className="h-4 w-4 mr-2" />
+                      Contacter
+                    </Button>
+                    <Button 
+                      size="sm"
+                      onClick={() => handleCompleteTask(application.id)}
+                      className="bg-green-600 hover:bg-green-700"
+                    >
+                      <Check className="h-4 w-4 mr-2" />
+                      Finir la tâche
+                    </Button>
                   </div>
                 </div>
 
-                {intervention.client.profile.address && (
-                  <>
-                    <Separator />
-                    <div>
-                      <p className="text-sm font-medium text-muted-foreground mb-2">
-                        Adresse d'intervention
-                      </p>
-                      <p className="text-sm">
-                        {intervention.client.profile.address}
-                      </p>
+                {/* Informations de contact */}
+                {contactInfo[application.id] && (
+                  <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+                    <h4 className="font-semibold mb-3">Coordonnées du client</h4>
+                    <div className="space-y-2">
+                      {application.client.profile.phone && (
+                        <div className="flex items-center gap-2">
+                          <Phone className="h-4 w-4 text-gray-500" />
+                          <span className="text-sm">{application.client.profile.phone}</span>
+                        </div>
+                      )}
+                      <div className="flex items-center gap-2">
+                        <Mail className="h-4 w-4 text-gray-500" />
+                        <span className="text-sm">{application.client.email}</span>
+                      </div>
                     </div>
-                  </>
-                )}
-
-                {/* Boutons d'action selon le statut */}
-                {canStartIntervention(intervention.status) && (
-                  <div className="flex space-x-2 pt-4">
-                    <Button
-                      className="flex-1"
-                      onClick={() =>
-                        updateInterventionStatus(intervention.id, "IN_PROGRESS")
-                      }
-                      disabled={updating === intervention.id}
-                    >
-                      {updating === intervention.id ? (
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                      ) : (
-                        <Play className="w-4 h-4 mr-2" />
-                      )}
-                      Commencer
-                    </Button>
-                    <Button
-                      variant="outline"
-                      className="flex-1"
-                      onClick={() =>
-                        updateInterventionStatus(intervention.id, "CANCELLED")
-                      }
-                      disabled={updating === intervention.id}
-                    >
-                      {updating === intervention.id ? (
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary mr-2"></div>
-                      ) : (
-                        <X className="w-4 h-4 mr-2" />
-                      )}
-                      Annuler
-                    </Button>
-                  </div>
-                )}
-
-                {intervention.status === "IN_PROGRESS" && (
-                  <div className="flex space-x-2 pt-4">
-                    <Button
-                      className="flex-1"
-                      onClick={() =>
-                        updateInterventionStatus(intervention.id, "COMPLETED")
-                      }
-                      disabled={updating === intervention.id}
-                    >
-                      {updating === intervention.id ? (
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                      ) : (
-                        <CheckCircle className="w-4 h-4 mr-2" />
-                      )}
-                      Terminer
-                    </Button>
-                    <Button
-                      variant="outline"
-                      className="flex-1"
-                      onClick={() =>
-                        updateInterventionStatus(intervention.id, "CANCELLED")
-                      }
-                      disabled={updating === intervention.id}
-                    >
-                      {updating === intervention.id ? (
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary mr-2"></div>
-                      ) : (
-                        <X className="w-4 h-4 mr-2" />
-                      )}
-                      Annuler
-                    </Button>
-                  </div>
-                )}
-
-                {(intervention.status === "COMPLETED" ||
-                  intervention.status === "CANCELLED") && (
-                  <div className="pt-4">
-                    <p className="text-sm text-muted-foreground text-center">
-                      {intervention.status === "COMPLETED"
-                        ? "Intervention terminée avec succès"
-                        : "Intervention annulée"}
-                    </p>
                   </div>
                 )}
               </CardContent>

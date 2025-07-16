@@ -195,6 +195,7 @@ export async function POST(request: NextRequest) {
         currency: "EUR",
         status: "PENDING",
         type: "SERVICE",
+        paymentMethod: "STRIPE",
         stripePaymentId: null, // Sera mis à jour lors du paiement Stripe
       },
     });

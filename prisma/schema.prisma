@@ -1151,22 +1151,26 @@ model AnnouncementNotification {
 }
 
 model ServiceApplication {
-  id                String   @id @default(cuid())
+  id                String    @id @default(cuid())
   announcementId    String
   providerId        String
-  status            String   @default("PENDING") // "PENDING", "ACCEPTED", "REJECTED", etc.
+  status            String    @default("PENDING") // "PENDING", "ACCEPTED", "REJECTED", etc.
   proposedPrice     Float?
   estimatedDuration Int? // en minutes
   message           String?
-  availableDates    String[] @default([])
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  availableDates    String[]  @default([])
+  paymentStatus     String    @default("PENDING") // "PENDING", "PAID", "FAILED", "REFUNDED"
+  paymentId         String? // ID du paiement Stripe
+  paidAt            DateTime? // Date de paiement
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
 
   announcement Announcement @relation(fields: [announcementId], references: [id], onDelete: Cascade)
   provider     User         @relation(fields: [providerId], references: [id])
 
   @@unique([announcementId, providerId])
   @@index([status])
+  @@index([paymentStatus])
   @@index([createdAt])
 }
 

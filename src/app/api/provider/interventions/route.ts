@@ -5,7 +5,7 @@ import { db } from "@/lib/db";
 export async function GET(request: NextRequest) {
   try {
     console.log(
-      "🔍 [GET /api/provider/interventions] Interventions du prestataire",
+      "🔍 [GET /api/provider/interventions] Applications payées du prestataire",
     );
 
     const user = await getUserFromSession(request);
@@ -37,209 +37,118 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get("limit") || "20");
     const status = searchParams.get("status") || undefined;
     const sortOrder = searchParams.get("sortOrder") === "asc" ? "asc" : "desc";
-    const sortBy = searchParams.get("sortBy") || "scheduledDate";
+    const sortBy = searchParams.get("sortBy") || "createdAt";
 
-    const where: any = { providerId: provider.id };
+    // Récupérer uniquement les applications payées du prestataire
+    // Utiliser user.id (userId) au lieu de provider.id car ServiceApplication.providerId = User.id
+    const where: any = { 
+      providerId: user.id, // Utiliser l'ID utilisateur, pas l'ID du profil prestataire
+      paymentStatus: "PAID" // Filtrer uniquement les applications payées
+    };
+    
     if (status) where.status = status;
 
-    // Récupérer les interventions existantes
-    const [interventions, total] = await Promise.all([
-      db.intervention.findMany({
+    console.log("🔍 Recherche avec critères:", where);
+
+    // Récupérer les applications payées
+    const [paidApplications, total] = await Promise.all([
+      db.serviceApplication.findMany({
         where,
         include: {
-          booking: {
+          announcement: {
             include: {
-              client: {
+              author: {
                 include: {
-                  user: {
-                    include: {
-                      profile: {
-                        select: {
-                          firstName: true,
-                          lastName: true,
-                          phone: true,
-                          address: true,
-                          city: true,
-                        },
-                      },
-                    },
-                  },
-                },
-              },
-              service: {
-                select: {
-                  id: true,
-                  name: true,
-                  description: true,
-                  basePrice: true,
-                },
-              },
-              payment: {
-                select: {
-                  id: true,
-                  amount: true,
-                  currency: true,
-                  status: true,
+                  profile: true,
                 },
               },
             },
           },
         },
         orderBy: {
-          createdAt: sortOrder as any,
+          [sortBy]: sortOrder as any,
         },
         skip: (page - 1) * limit,
         take: limit,
       }),
-      db.intervention.count({ where }),
+      db.serviceApplication.count({ where }),
     ]);
 
     console.log(
-      `✅ Interventions trouvées: ${interventions.length} sur un total de ${total}`,
+      `✅ Applications payées trouvées: ${paidApplications.length} sur un total de ${total}`,
     );
 
-    // Transformer les interventions existantes
-    const transformedInterventions = interventions.map((intervention) => ({
-      id: intervention.id,
-      providerId: intervention.providerId,
-      clientId: intervention.booking.clientId,
-      serviceRequestId: intervention.booking.serviceId,
-      title: intervention.booking.service.name,
-      description: intervention.booking.service.description,
-      scheduledDate: intervention.booking.scheduledDate.toISOString(),
-      estimatedDuration: intervention.booking.duration,
-      actualDuration: intervention.actualDuration,
-      status: intervention.isCompleted ? "COMPLETED" : "IN_PROGRESS",
-      notes: intervention.report,
-      rating: null, // TODO: récupérer depuis review si nécessaire
-      review: null,
-      createdAt: intervention.createdAt.toISOString(),
-      updatedAt: intervention.updatedAt.toISOString(),
-      type: "intervention",
-      client: {
-        id: intervention.booking.client.id,
-        profile: {
-          firstName: intervention.booking.client.user.profile?.firstName || "",
-          lastName: intervention.booking.client.user.profile?.lastName || "",
-          phone: intervention.booking.client.user.profile?.phone,
-          address: intervention.booking.client.user.profile?.address,
-          city: intervention.booking.client.user.profile?.city,
-        },
-      },
-      serviceRequest: {
-        id: intervention.booking.service.id,
-        title: intervention.booking.service.name,
-        description: intervention.booking.service.description,
-        basePrice: intervention.booking.service.basePrice,
-        status: intervention.booking.status,
-        pickupAddress: "", // Bookings n'ont pas ces champs
-        deliveryAddress: "",
-      },
-      payment: intervention.booking.payment
-        ? {
-            id: intervention.booking.payment.id,
-            amount: intervention.booking.payment.amount,
-            currency: intervention.booking.payment.currency,
-            status: intervention.booking.payment.status,
-          }
-        : null,
-    }));
-
-    // Récupérer les candidatures acceptées qui n'ont pas encore d'intervention
-    const acceptedApplications = await db.serviceApplication.findMany({
-      where: {
-        providerId: provider.id,
-        status: "ACCEPTED",
-      },
-      include: {
-        announcement: {
-          include: {
-            author: {
-              include: {
-                profile: true,
-              },
-            },
+    // Transformer les applications payées en format intervention
+    const transformedApplications = paidApplications.map((app) => {
+      return {
+        id: app.id,
+        providerId: app.providerId,
+        clientId: app.announcement.authorId,
+        serviceRequestId: app.announcementId,
+        title: app.announcement.title,
+        description: app.announcement.description,
+        scheduledDate: app.paidAt?.toISOString() || new Date().toISOString(),
+        estimatedDuration: app.estimatedDuration || 0,
+        actualDuration: null,
+        status: "PAID", // Statut spécifique pour les applications payées
+        notes: app.message,
+        rating: null,
+        review: null,
+        createdAt: app.createdAt.toISOString(),
+        updatedAt: app.updatedAt.toISOString(),
+        type: "paid_application",
+        client: {
+          id: app.announcement.authorId,
+          email: app.announcement.author.email, // Ajouter l'email du client
+          profile: {
+            firstName: app.announcement.author.profile?.firstName || "",
+            lastName: app.announcement.author.profile?.lastName || "",
+            phone: app.announcement.author.profile?.phone,
+            address: app.announcement.author.profile?.address,
+            city: app.announcement.author.profile?.city,
           },
         },
-      },
-      orderBy: {
-        createdAt: "desc",
-      },
+        serviceRequest: {
+          id: app.announcement.id,
+          title: app.announcement.title,
+          description: app.announcement.description,
+          basePrice: app.proposedPrice || 0,
+          status: app.announcement.status,
+          pickupAddress: app.announcement.pickupAddress || "",
+          deliveryAddress: app.announcement.deliveryAddress || "",
+        },
+        payment: {
+          id: `payment_${app.id}`,
+          amount: app.proposedPrice || 0,
+          currency: "EUR",
+          status: "COMPLETED",
+        },
+        applicationData: {
+          proposedPrice: app.proposedPrice,
+          message: app.message,
+          applicationId: app.id,
+          paymentStatus: app.paymentStatus,
+          paidAt: app.paidAt,
+          availableDates: app.availableDates,
+        },
+      };
     });
 
     console.log(
-      `✅ Candidatures acceptées trouvées: ${acceptedApplications.length}`,
-    );
-
-    // Transformer les candidatures acceptées en format intervention
-    const transformedApplications = acceptedApplications.map((app) => ({
-      id: `app_${app.id}`, // Préfixe pour distinguer des interventions
-      providerId: app.providerId,
-      clientId: app.announcement.authorId,
-      serviceRequestId: app.announcementId,
-      title: app.announcement.title,
-      description: app.announcement.description,
-      scheduledDate: new Date().toISOString(), // Date actuelle car pas encore planifiée
-      estimatedDuration: app.estimatedDuration,
-      actualDuration: null,
-      status: "ACCEPTED_PENDING_PAYMENT", // Statut spécial pour candidatures acceptées
-      notes: app.message,
-      rating: null,
-      review: null,
-      createdAt: app.createdAt.toISOString(),
-      updatedAt: app.updatedAt.toISOString(),
-      type: "application",
-      client: {
-        id: app.announcement.authorId,
-        profile: {
-          firstName: app.announcement.author.profile?.firstName || "",
-          lastName: app.announcement.author.profile?.lastName || "",
-          phone: app.announcement.author.profile?.phone,
-          address: app.announcement.author.profile?.address,
-          city: app.announcement.author.profile?.city,
-        },
-      },
-      serviceRequest: {
-        id: app.announcement.id,
-        title: app.announcement.title,
-        description: app.announcement.description,
-        basePrice: app.proposedPrice, // Utiliser le prix proposé
-        status: app.announcement.status,
-        pickupAddress: app.announcement.pickupAddress || "",
-        deliveryAddress: app.announcement.deliveryAddress || "",
-      },
-      payment: null, // Pas encore de paiement
-      applicationData: {
-        proposedPrice: app.proposedPrice,
-        message: app.message,
-        applicationId: app.id,
-      },
-    }));
-
-    // Combiner les interventions et les candidatures acceptées
-    const allItems = [...transformedInterventions, ...transformedApplications];
-
-    // Trier par date de création (plus récent en premier)
-    allItems.sort(
-      (a, b) =>
-        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
-    );
-
-    console.log(
-      `✅ Total items (interventions + candidatures acceptées): ${allItems.length}`,
+      `✅ Applications payées transformées: ${transformedApplications.length}`,
     );
 
     return NextResponse.json({
-      interventions: allItems,
+      interventions: transformedApplications,
       pagination: {
-        page: page,
-        limit: limit,
-        total: total + acceptedApplications.length,
-        totalPages: Math.ceil((total + acceptedApplications.length) / limit),
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
       },
     });
   } catch (error) {
-    console.error("❌ Erreur base de données:", error);
+    console.error("❌ Erreur lors de la récupération des applications payées:", error);
     return NextResponse.json(
       { error: "Erreur interne du serveur" },
       { status: 500 },
