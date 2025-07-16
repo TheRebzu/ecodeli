@@ -461,48 +461,29 @@ export default function AnnouncementDetailPage() {
           </Button>
         </div>
       )}
+      <PageHeader
+        title={announcement.title}
+        description={`Annonce créée le ${safeFormatDate(announcement.createdAt, "dd MMMM yyyy")}`}
+        action={
+          <Link href="/client/announcements">
+            <Button variant="outline">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Retour aux annonces
+            </Button>
+          </Link>
+        }
+      />
+      {/* Bouton de suivi de la livraison */}
+      {announcement.delivery?.id && (
+        <div className="mb-4 flex justify-end">
+          <Link href={`/client/announcements/${announcement.id}/tracking`}>
+            <Button variant="default">
+              Suivi de la livraison
+            </Button>
+          </Link>
+        </div>
+      )}
       <div className="space-y-6">
-        <PageHeader
-          title={announcement.title}
-          description={`Annonce créée le ${safeFormatDate(announcement.createdAt, "dd MMMM yyyy")}`}
-          action={
-            <div className="flex gap-2">
-              <Link href="/client/announcements">
-                <Button variant="outline">
-                  <ArrowLeft className="h-4 w-4 mr-2" />
-                  Retour
-                </Button>
-              </Link>
-              {canEdit && (
-                <Link href={`/client/announcements/${id}/edit`}>
-                  <Button variant="outline">
-                    <Edit className="h-4 w-4 mr-2" />
-                    Modifier
-                  </Button>
-                </Link>
-              )}
-              {canViewCandidates && (
-                <Link href={`/client/announcements/${id}/candidates`}>
-                  <Button>
-                    <Users className="h-4 w-4 mr-2" />
-                    Voir candidats ({announcement.routeMatches?.length})
-                  </Button>
-                </Link>
-              )}
-              {canDelete && (
-                <Button
-                  variant="destructive"
-                  onClick={handleDelete}
-                  disabled={actionLoading}
-                >
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  Supprimer
-                </Button>
-              )}
-            </div>
-          }
-        />
-
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Informations principales */}
           <div className="lg:col-span-2 space-y-6">

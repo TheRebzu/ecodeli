@@ -40,6 +40,7 @@ import {
   Heart,
   ShoppingCartIcon,
 } from "lucide-react";
+import { StorageBoxesMap } from '@/components/maps/storage-boxes-map';
 
 /**
  * Composant de création d'annonce pour clients EcoDeli
@@ -74,20 +75,6 @@ const announcementTypes = [
     color: "bg-purple-500",
   },
   {
-    value: "SHOPPING",
-    label: "Courses",
-    description: "Courses avec liste fournie au livreur",
-    icon: ShoppingCart,
-    color: "bg-orange-500",
-  },
-  {
-    value: "INTERNATIONAL_PURCHASE",
-    label: "Achats internationaux",
-    description: "Achats depuis l'étranger",
-    icon: Globe,
-    color: "bg-red-500",
-  },
-  {
     value: "HOME_SERVICE",
     label: "Services à domicile",
     description: "Ménage, jardinage, bricolage...",
@@ -102,97 +89,146 @@ const announcementTypes = [
     color: "bg-pink-500",
   },
   {
+    value: "SHOPPING",
+    label: "Livraison de courses",
+    description: "Livraison de courses et achats en ligne",
+    icon: ShoppingCart,
+    color: "bg-orange-500",
+  },
+  {
+    value: "INTERNATIONAL_PURCHASE",
+    label: "Achat international",
+    description: "Achat de produits en ligne depuis l'étranger",
+    icon: Globe,
+    color: "bg-red-500",
+  },
+  {
     value: "CART_DROP",
     label: "Lâcher de chariot",
-    description: "Livraison à domicile depuis magasin",
+    description: "Livraison de colis déposés dans un entrepôt",
     icon: ShoppingCartIcon,
     color: "bg-indigo-500",
   },
+];
+
+// Ajout d'un type local pour le formulaire client (tous les types affichés)
+type ClientAnnouncementType =
+  | "PACKAGE_DELIVERY"
+  | "PERSON_TRANSPORT"
+  | "AIRPORT_TRANSFER"
+  | "HOME_SERVICE"
+  | "PET_SITTING"
+  | "SHOPPING"
+  | "INTERNATIONAL_PURCHASE"
+  | "CART_DROP";
+
+type CreateAnnouncementFormInput = {
+  title: string;
+  description: string;
+  type: ClientAnnouncementType;
+  deliveryType: "FULL" | "FINAL" | "PARTIAL";
+  pickupAddress: string;
+  deliveryAddress: string;
+  pickupDate?: string;
+  deliveryDate?: string;
+  isFlexibleDate?: boolean;
+  basePrice?: number;
+  currency?: string;
+  isPriceNegotiable?: boolean;
+  isUrgent?: boolean;
+  requiresInsurance?: boolean;
+  allowsPartialDelivery?: boolean;
+  packageDetails?: any;
+  specialInstructions?: string;
+  customerNotes?: string;
+  warehouseId?: string; // Ajouté pour FINAL
+  cartDropDetails?: {
+    storeName?: string;
+    deliveryZone?: string;
+    orderValue?: number;
+  };
+};
+
+// Exemple de liste statique d'entrepôts/box utilisateur (à remplacer par un fetch réel plus tard)
+const userWarehouses = [
+  { id: 'w1', name: 'Box Paris Nord', address: '110 rue de Flandre, Paris' },
+  { id: 'w2', name: 'Box Lyon Centre', address: '12 rue de la République, Lyon' },
 ];
 
 export function CreateAnnouncementForm({
   onSuccess,
   initialData,
 }: CreateAnnouncementFormProps) {
+  console.log('CreateAnnouncementForm mounted');
   const [isLoading, setIsLoading] = useState(false);
-  const [selectedType, setSelectedType] = useState<string>("PACKAGE_DELIVERY");
+  const [selectedType, setSelectedType] = useState<ClientAnnouncementType>(
+    "PACKAGE_DELIVERY"
+  );
   const router = useRouter();
   const { toast } = useToast();
 
-  const form = useForm<CreateAnnouncementInput>({
-    resolver: zodResolver(createAnnouncementSchema),
+  const form = useForm<CreateAnnouncementFormInput>({
+    // Pas de resolver ici, validation côté API uniquement pour éviter les conflits de typage
     defaultValues: {
       title: "",
       description: "",
-      type: "PACKAGE_DELIVERY" as any,
-      price: 0,
+      type: "PACKAGE_DELIVERY", // ClientAnnouncementType uniquement
+      deliveryType: "FULL", // 'FULL' ou 'FINAL' uniquement
+      pickupAddress: "",
+      deliveryAddress: "",
+      pickupDate: new Date().toISOString(),
+      deliveryDate: undefined,
+      isFlexibleDate: false,
+      basePrice: 0,
       currency: "EUR",
-      urgent: false,
-      flexibleDates: false,
-      desiredDate: new Date().toISOString().slice(0, 16),
-      startLocation: {
-        address: "",
-        city: "",
-        postalCode: "",
-        country: "FR",
-      },
-      endLocation: {
-        address: "",
-        city: "",
-        postalCode: "",
-        country: "FR",
-      },
+      isPriceNegotiable: false,
+      isUrgent: false,
+      requiresInsurance: false,
+      allowsPartialDelivery: false,
+      packageDetails: undefined,
+      specialInstructions: "",
+      customerNotes: "",
+      warehouseId: undefined, // Initialisé pour le mode FINAL
+      cartDropDetails: undefined, // Initialisé pour le type CART_DROP
       ...initialData,
     },
   });
+
+  // DEBUG: Afficher tous les champs du formulaire à chaque rendu
+  console.log("form values:", form.getValues());
 
   // Synchroniser selectedType avec la valeur du formulaire
   useEffect(() => {
     const subscription = form.watch((value, { name }) => {
       if (name === "type" && value.type) {
-        setSelectedType(value.type);
+        setSelectedType(value.type as ClientAnnouncementType);
       }
     });
     return () => subscription.unsubscribe();
   }, [form]);
 
-  const onSubmit = async (data: CreateAnnouncementInput) => {
+  // Ajout d'un effet pour logger la valeur de deliveryType à chaque changement
+  useEffect(() => {
+    const subscription = form.watch((value, { name }) => {
+      if (name === "deliveryType") {
+        console.log("[DEBUG] deliveryType changed:", value.deliveryType);
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, [form]);
+
+  // DEBUG: Afficher la valeur de deliveryType à chaque rendu
+  console.log("deliveryType:", form.watch("deliveryType"));
+
+  const onSubmit = async (data: CreateAnnouncementFormInput) => {
     setIsLoading(true);
     try {
       // Préparer les données pour l'API
       const processedData = {
-        title: data.title,
-        description: data.description,
-        type: data.type,
-        pickupAddress: data.startLocation?.address || "",
-        deliveryAddress: data.endLocation?.address || "",
-        basePrice: data.price || 0,
-        price: data.price || 0,
-        currency: data.currency || "EUR",
-        urgent: data.urgent || false,
-        isUrgent: data.urgent || false,
-        requiresInsurance: data.requiresInsurance || false,
-        specialInstructions: data.specialInstructions || "",
-        // Convertir les dates si présentes
-        desiredDate: data.desiredDate
-          ? new Date(data.desiredDate).toISOString()
-          : undefined,
-        pickupDate: data.pickupDate
-          ? new Date(data.pickupDate).toISOString()
-          : undefined,
-        deliveryDate: data.deliveryDate
-          ? new Date(data.deliveryDate).toISOString()
-          : undefined,
-        // Détails du package si c'est une livraison de colis
+        ...data,
+        type: data.type as CreateAnnouncementInput["type"],
         packageDetails:
-          data.type === "PACKAGE_DELIVERY"
-            ? {
-                weight: data.packageDetails?.weight || 1,
-                dimensions: `${data.packageDetails?.length || 0}x${data.packageDetails?.width || 0}x${data.packageDetails?.height || 0}cm`,
-                fragile: data.packageDetails?.fragile || false,
-                description: data.packageDetails?.content || "Colis standard",
-              }
-            : undefined,
+          data.type === "PACKAGE_DELIVERY" ? data.packageDetails : undefined,
       };
 
       console.log("Données envoyées à l'API:", processedData);
@@ -219,7 +255,6 @@ export function CreateAnnouncementForm({
         title: "✅ Annonce créée avec succès !",
         description:
           "Votre annonce est maintenant visible par nos livreurs et prestataires.",
-        duration: 5000,
       });
 
       onSuccess?.(result.announcement.id);
@@ -233,7 +268,6 @@ export function CreateAnnouncementForm({
             ? error.message
             : "Impossible de créer l'annonce",
         variant: "destructive",
-        duration: 5000,
       });
     } finally {
       setIsLoading(false);
@@ -255,7 +289,7 @@ export function CreateAnnouncementForm({
         <CardContent>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              {/* Sélection du type d'annonce */}
+              {/* Sélection du type de service */}
               <FormField
                 control={form.control}
                 name="type"
@@ -281,7 +315,7 @@ export function CreateAnnouncementForm({
                             `}
                             onClick={() => {
                               field.onChange(type.value);
-                              setSelectedType(type.value);
+                              setSelectedType(type.value as ClientAnnouncementType);
                             }}
                           >
                             <div
@@ -304,6 +338,180 @@ export function CreateAnnouncementForm({
                 )}
               />
 
+              {/* Sélection du type de prise en charge */}
+              <FormField
+                control={form.control}
+                name="deliveryType"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Type de prise en charge</FormLabel>
+                    <FormControl>
+                      <select
+                        className="input input-bordered w-full"
+                        value={field.value || "FULL"}
+                        onChange={e => {
+                          field.onChange(e.target.value as 'FULL' | 'FINAL' | 'PARTIAL');
+                          form.setValue('deliveryType', e.target.value as 'FULL' | 'FINAL' | 'PARTIAL');
+                        }}
+                      >
+                        <option value="FULL">Prise en charge intégrale (Point A → Point B directement)</option>
+                        <option value="FINAL">Livraison finale (Depuis entrepôt → destinataire)</option>
+                        <option value="PARTIAL">Livraison partielle (Point A → Point B)</option>
+                      </select>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Affichage conditionnel selon deliveryType */}
+              {form.watch("deliveryType") === "FULL" && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="pickupAddress"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Adresse de départ</FormLabel>
+                        <FormControl>
+                          <Input placeholder="123 rue de la Paix" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="pickupDate"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Date de départ</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="datetime-local"
+                            value={field.value ? new Date(field.value).toISOString().slice(0, 16) : ""}
+                            onChange={(e) => {
+                              if (e.target.value) {
+                                const date = new Date(e.target.value);
+                                field.onChange(date.toISOString());
+                              } else {
+                                field.onChange(undefined);
+                              }
+                            }}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="deliveryAddress"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Adresse d'arrivée</FormLabel>
+                        <FormControl>
+                          <Input placeholder="456 avenue de la République" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="deliveryDate"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Date d'arrivée</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="datetime-local"
+                            value={field.value ? new Date(field.value).toISOString().slice(0, 16) : ""}
+                            onChange={(e) => {
+                              if (e.target.value) {
+                                const date = new Date(e.target.value);
+                                field.onChange(date.toISOString());
+                              } else {
+                                field.onChange(undefined);
+                              }
+                            }}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              )}
+
+              {form.watch("deliveryType") === "FINAL" && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Sélection de l'entrepôt */}
+                  <FormField
+                    control={form.control}
+                    name="warehouseId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Entrepôt de départ</FormLabel>
+                        <FormControl>
+                          <select
+                            className="input input-bordered w-full"
+                            value={field.value || ""}
+                            onChange={e => {
+                              field.onChange(e.target.value);
+                            }}
+                          >
+                            <option value="">Sélectionnez un entrepôt</option>
+                            {userWarehouses.map((w) => (
+                              <option key={w.id} value={w.id}>{w.name} - {w.address}</option>
+                            ))}
+                          </select>
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="deliveryAddress"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Adresse d'arrivée</FormLabel>
+                        <FormControl>
+                          <Input placeholder="456 avenue de la République" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="deliveryDate"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Date d'arrivée</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="datetime-local"
+                            value={field.value ? new Date(field.value).toISOString().slice(0, 16) : ""}
+                            onChange={(e) => {
+                              if (e.target.value) {
+                                const date = new Date(e.target.value);
+                                field.onChange(date.toISOString());
+                              } else {
+                                field.onChange(undefined);
+                              }
+                            }}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              )}
+
+              {/* Le reste du formulaire (prix, description, options, etc.) reste inchangé */}
+
               {/* Informations de base */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
@@ -325,7 +533,7 @@ export function CreateAnnouncementForm({
 
                 <FormField
                   control={form.control}
-                  name="price"
+                  name="basePrice"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Prix proposé (€)</FormLabel>
@@ -364,171 +572,43 @@ export function CreateAnnouncementForm({
                 )}
               />
 
-              {/* Adresses */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-4">
-                  <h3 className="font-semibold text-lg">
-                    📍 Adresse de départ
-                  </h3>
-                  <FormField
-                    control={form.control}
-                    name="startLocation.address"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Adresse complète</FormLabel>
-                        <FormControl>
-                          <Input placeholder="123 rue de la Paix" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <div className="grid grid-cols-2 gap-2">
-                    <FormField
-                      control={form.control}
-                      name="startLocation.city"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Ville</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Paris" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="startLocation.postalCode"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Code postal</FormLabel>
-                          <FormControl>
-                            <Input placeholder="75001" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-4">
-                  <h3 className="font-semibold text-lg">
-                    🎯 Adresse d'arrivée
-                  </h3>
-                  <FormField
-                    control={form.control}
-                    name="endLocation.address"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Adresse complète</FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder="456 avenue de la République"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <div className="grid grid-cols-2 gap-2">
-                    <FormField
-                      control={form.control}
-                      name="endLocation.city"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Ville</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Lyon" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="endLocation.postalCode"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Code postal</FormLabel>
-                          <FormControl>
-                            <Input placeholder="69000" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                </div>
-              </div>
-
               {/* Date et options */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
-                  name="desiredDate"
+                  name="isFlexibleDate"
                   render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Date souhaitée</FormLabel>
+                    <FormItem className="flex items-center space-x-2 space-y-0">
                       <FormControl>
-                        <Input
-                          type="datetime-local"
-                          {...field}
-                          onChange={(e) => {
-                            // Convert to ISO string for validation
-                            if (e.target.value) {
-                              const date = new Date(e.target.value);
-                              field.onChange(date.toISOString());
-                            } else {
-                              field.onChange(undefined);
-                            }
-                          }}
+                        <Checkbox
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
                         />
                       </FormControl>
-                      <FormMessage />
+                      <FormLabel className="text-sm font-medium">
+                        📅 Dates flexibles
+                      </FormLabel>
                     </FormItem>
                   )}
                 />
 
-                <div className="space-y-3">
-                  <FormField
-                    control={form.control}
-                    name="urgent"
-                    render={({ field }) => (
-                      <FormItem className="flex items-center space-x-2 space-y-0">
-                        <FormControl>
-                          <Checkbox
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                          />
-                        </FormControl>
-                        <FormLabel className="text-sm font-medium">
+                <FormField
+                  control={form.control}
+                  name="isUrgent"
+                  render={({ field }) => (
+                    <FormItem className="flex items-center space-x-2 space-y-0">
+                      <FormControl>
+                        <Checkbox
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                      <FormLabel className="text-sm font-medium">
                           🚨 Annonce urgente (+20% de tarif)
                         </FormLabel>
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="flexibleDates"
-                    render={({ field }) => (
-                      <FormItem className="flex items-center space-x-2 space-y-0">
-                        <FormControl>
-                          <Checkbox
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                          />
-                        </FormControl>
-                        <FormLabel className="text-sm font-medium">
-                          📅 Dates flexibles
-                        </FormLabel>
-                      </FormItem>
-                    )}
-                  />
-                </div>
+                    </FormItem>
+                  )}
+                />
               </div>
 
               {/* Détails spécifiques selon le type */}
@@ -671,6 +751,52 @@ export function CreateAnnouncementForm({
                 </Card>
               )}
 
+              {/* Détails spécifiques pour Lâcher de chariot (CART_DROP) */}
+              {selectedType === "CART_DROP" && (
+                <Card className="p-4 bg-indigo-50 border-indigo-200">
+                  <h3 className="font-semibold mb-3">🛒 Détails du lâcher de chariot</h3>
+                  <FormField
+                    control={form.control}
+                    name="cartDropDetails.storeName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Nom du magasin</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Ex: Super U, Auchan..." {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="cartDropDetails.deliveryZone"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Zone de livraison</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Ex: Paris 19e, Lyon centre..." {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="cartDropDetails.orderValue"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Valeur de la commande (€)</FormLabel>
+                        <FormControl>
+                          <Input type="number" min={1} {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </Card>
+              )}
+
               {/* Instructions spéciales */}
               <FormField
                 control={form.control}
@@ -703,13 +829,13 @@ export function CreateAnnouncementForm({
                     >
                       {selectedTypeInfo.label}
                     </Badge>
-                    {form.watch("urgent") && (
+                    {form.watch("isUrgent") && (
                       <Badge variant="destructive">🚨 URGENTE</Badge>
                     )}
                   </div>
                   <p className="text-sm text-gray-600">
-                    {form.watch("startLocation.city")} →{" "}
-                    {form.watch("endLocation.city")} • {form.watch("price")}€
+                    {form.watch("pickupAddress")} →{" "}
+                    {form.watch("deliveryAddress")} • {form.watch("basePrice")}€
                   </p>
                 </Card>
               )}

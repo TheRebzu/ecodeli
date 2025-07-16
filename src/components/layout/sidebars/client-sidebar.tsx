@@ -78,13 +78,6 @@ const getClientNavigation = (subscription?: string): NavigationItem[] => [
     category: "main",
     badge: 2,
   },
-  {
-    key: "tracking",
-    label: "Suivi en temps réel",
-    href: "/client/tracking",
-    icon: Truck,
-    category: "main",
-  },
   // Services
   {
     key: "services",
