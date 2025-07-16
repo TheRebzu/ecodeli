@@ -3,7 +3,6 @@ import { db } from "@/lib/db";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { prisma } from "@/lib/db";
-import jwt from "jsonwebtoken";
 import { NextResponse } from "next/server";
 
 /**
@@ -75,111 +74,76 @@ export async function getServerUser() {
 }
 
 /**
- * Vérifier les permissions selon le rôle
+ * Vérifier si un utilisateur a les permissions requises
  */
-export function hasPermission(
-  userRole: string,
-  requiredRoles: string[],
-): boolean {
-  if (!userRole || !requiredRoles?.length) {
+export async function checkUserPermissions(
+  userId: string,
+  requiredRole?: string,
+  requiredPermissions?: string[],
+) {
+  const user = await db.user.findUnique({
+    where: { id: userId },
+    include: {
+      admin: true,
+    },
+  });
+
+  if (!user) {
     return false;
   }
 
-  // ADMIN a accès à tout
-  if (userRole === "ADMIN") {
+  // Vérifier le rôle
+  if (requiredRole && user.role !== requiredRole) {
+    return false;
+  }
+
+  // Les admins ont toutes les permissions
+  if (user.role === "ADMIN") {
     return true;
   }
 
-  return requiredRoles.includes(userRole);
-}
-
-/**
- * Vérifier si l'utilisateur peut accéder à une ressource
- */
-export function canAccessResource(
-  userRole: string,
-  resourceOwner: string,
-  userId: string,
-): boolean {
-  // ADMIN peut accéder à tout
-  if (userRole === "ADMIN") {
-    return true;
-  }
-
-  // Propriétaire de la ressource
-  if (resourceOwner === userId) {
-    return true;
-  }
-
-  return false;
-}
-
-/**
- * Middleware de vérification des rôles pour API routes
- */
-export async function requireRole(
-  request: NextRequest,
-  allowedRoles: string[],
-) {
-  // En mode test, utiliser l'email de test
-  if (process.env.NODE_ENV === "development") {
-    const testUserEmail = request.headers.get("X-Test-User-Email");
-
-    if (testUserEmail) {
-      const testUser = await db.user.findUnique({
-        where: { email: testUserEmail },
-        include: {
-          profile: true,
-          client: true,
-          deliverer: true,
-          merchant: true,
-          provider: true,
-          admin: true,
-        },
-      });
-
-      if (testUser) {
-        if (!hasPermission(testUser.role, allowedRoles)) {
-          throw new Error(
-            `Accès refusé - Permissions insuffisantes. Rôle: ${testUser.role}, Requis: ${allowedRoles.join(", ")}`,
-          );
-        }
-
-        return testUser;
-      }
-    }
-  }
-
-  // Récupérer l'utilisateur via la session NextAuth normale
-  const user = await getCurrentUserAPI(request);
-
-  if (!user) {
-    // Rediriger vers /fr/login si l'utilisateur n'est pas authentifié
-    const url = new URL(request.url);
-    const locale = url.pathname.split("/")[1] || "fr";
-    return NextResponse.redirect(new URL(`/${locale}/login`, request.url));
-  }
-
-  if (!hasPermission(user.role, allowedRoles)) {
-    throw new Error(
-      `Accès refusé - Permissions insuffisantes. Rôle: ${user.role}, Requis: ${allowedRoles.join(", ")}`,
+  // Vérifier les permissions spécifiques
+  if (requiredPermissions && user.admin) {
+    const userPermissions = user.admin.permissions || [];
+    return requiredPermissions.every((perm) =>
+      userPermissions.includes(perm),
     );
   }
 
-  return user;
+  return true;
 }
 
 /**
- * Middleware simplifié pour vérifier uniquement l'authentification
+ * Wrapper pour vérifier l'authentification et permissions dans les API routes
  */
-export async function requireAuth(request: NextRequest) {
-  return await requireRole(request, [
-    "CLIENT",
-    "DELIVERER",
-    "MERCHANT",
-    "PROVIDER",
-    "ADMIN",
-  ]);
+export async function withAuth(
+  request: NextRequest,
+  handler: (user: any) => Promise<NextResponse>,
+  options?: {
+    requiredRole?: string;
+    requiredPermissions?: string[];
+  },
+) {
+  const user = await getCurrentUserAPI(request);
+
+  if (!user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  // Vérifier les permissions
+  if (options?.requiredRole || options?.requiredPermissions) {
+    const hasPermission = await checkUserPermissions(
+      user.id,
+      options.requiredRole,
+      options.requiredPermissions,
+    );
+
+    if (!hasPermission) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+  }
+
+  return handler(user);
 }
 
 /**
@@ -222,9 +186,8 @@ export const VALIDATION_STATUS = {
 } as const;
 
 /**
- * Récupère l'utilisateur courant pour API Routes
- * - Utilise NextAuth pour récupérer la session
- * - Supporte les tests avec X-Test-User-Email
+ * Récupère l'utilisateur courant pour les API routes
+ * - Version corrigée pour NextAuth v5 avec tokens chiffrés
  */
 export async function getCurrentUserAPI(request: NextRequest) {
   try {
@@ -278,29 +241,45 @@ export async function getCurrentUserAPI(request: NextRequest) {
       }
     }
 
-    // 2. --- PATCH: Décodage manuel du cookie JWT pour API route ---
-    // Si la session n'est pas trouvée via auth(), on décode le cookie JWT pour extraire l'id utilisateur
-    let session = await auth();
-    let userId: string | null = null;
-    if (session?.user?.id) {
-      userId = session.user.id;
-    } else {
+    // 2. Pour les API routes, utiliser directement auth() de NextAuth
+    // NextAuth v5 peut gérer la récupération de session même dans les API routes
+    let session = null;
+    
+    try {
+      console.log('🔍 [AUTH] Tentative de récupération session avec auth()');
+      // Utiliser auth() pour récupérer la session
+      session = await auth();
+      console.log('🔍 [AUTH] Session récupérée:', {
+        hasSession: !!session,
+        hasUser: !!session?.user,
+        userId: session?.user?.id,
+        userRole: session?.user?.role
+      });
+    } catch (authError) {
+      // Si auth() échoue dans l'API route, essayer une approche alternative
+      console.log("❌ [AUTH] Auth failed in API route, trying session check:", authError);
+      
+      // Vérifier si on a les cookies nécessaires
       const cookie = request.headers.get("cookie");
-      if (cookie) {
-        const match = cookie.match(/authjs\.session-token=([^;]+)/);
-        if (match) {
-          const token = match[1];
-          // Décodage du JWT (sans vérification de signature)
-          const decoded: any = jwt.decode(token);
-          userId = decoded?.sub || null;
-        }
+      console.log('🔍 [AUTH] Cookie check:', {
+        hasCookie: !!cookie,
+        hasSessionToken: cookie?.includes("authjs.session-token=")
+      });
+      
+      if (!cookie || !cookie.includes("authjs.session-token=")) {
+        return null;
       }
-    }
-
-    if (!userId) {
+      
+      // Si on a le cookie mais auth() échoue, il y a probablement un problème de contexte
       return null;
     }
 
+    if (!session?.user?.id) {
+      console.log('❌ [AUTH] Pas de session ou pas d\'ID utilisateur');
+      return null;
+    }
+
+    // 3. Récupérer l'utilisateur complet depuis la base de données
     const includeRelations: any = {
       profile: true,
       client: true,
@@ -311,14 +290,33 @@ export async function getCurrentUserAPI(request: NextRequest) {
     };
 
     const user = await db.user.findUnique({
-      where: { id: userId },
+      where: { id: session.user.id },
       include: includeRelations,
     });
 
     return user;
   } catch (error) {
+    console.error("Error in getCurrentUserAPI:", error);
     return null;
   }
+}
+
+/**
+ * Fonction requireRole - Vérification de l'authentification et du rôle
+ * Compatible avec les API routes existantes
+ */
+export async function requireRole(request: NextRequest, allowedRoles: string[]) {
+  const user = await getCurrentUserAPI(request);
+  
+  if (!user) {
+    throw new Error("Unauthorized");
+  }
+  
+  if (!allowedRoles.includes(user.role)) {
+    throw new Error("Forbidden");
+  }
+  
+  return user;
 }
 
 /**

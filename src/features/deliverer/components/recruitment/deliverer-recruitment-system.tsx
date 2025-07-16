@@ -128,26 +128,9 @@ export default function DelivererRecruitmentSystem({
     preferredZones: [] as string[],
   });
 
-  // Redirection automatique pour les utilisateurs déjà validés
-  useEffect(() => {
-    console.log('🔍 [RECRUITMENT] User status check:', {
-      userId: user?.id,
-      role: user?.role,
-      validationStatus: user?.validationStatus,
-      isActive: user?.isActive
-    });
-    
-    if (user && user.role === 'DELIVERER' && 
-        (user.validationStatus === 'VALIDATED' || user.validationStatus === 'APPROVED')) {
-      console.log('✅ [RECRUITMENT] Utilisateur déjà validé - redirection vers dashboard');
-      toast({
-        title: "Compte déjà validé",
-        description: "Redirection vers votre espace livreur...",
-      });
-      router.push('/fr/deliverer');
-      return;
-    }
-  }, [user, router]);
+  // Vérifier si l'utilisateur est en mode consultation (déjà validé)
+  const isConsultationMode = user && user.role === 'DELIVERER' && 
+    (user.validationStatus === 'VALIDATED' || user.validationStatus === 'APPROVED');
 
   useEffect(() => {
     fetchApplication();
@@ -431,9 +414,11 @@ export default function DelivererRecruitmentSystem({
                     <CheckCircle className="w-5 h-5" />
                     <div>
                       <p className="font-medium">
-                        {t("status.congratulations")}
+                        {isConsultationMode ? t("status.consultation_mode") : t("status.congratulations")}
                       </p>
-                      <p className="text-sm">{t("status.approved_message")}</p>
+                      <p className="text-sm">
+                        {isConsultationMode ? t("status.consultation_message") : t("status.approved_message")}
+                      </p>
                     </div>
                   </div>
                 </div>

@@ -133,11 +133,11 @@ export async function GET(request: NextRequest) {
       createdAt: deliverer.createdAt.toISOString(),
       updatedAt: deliverer.updatedAt.toISOString(),
       submittedAt:
-        deliverer.validationStatus === "APPROVED"
+        (deliverer.validationStatus === "APPROVED" || deliverer.validationStatus === "VALIDATED")
           ? deliverer.updatedAt.toISOString()
           : null,
       reviewedAt:
-        deliverer.validationStatus === "APPROVED"
+        (deliverer.validationStatus === "APPROVED" || deliverer.validationStatus === "VALIDATED")
           ? deliverer.updatedAt.toISOString()
           : null,
       rejectionReason:
@@ -272,12 +272,15 @@ export async function POST(request: NextRequest) {
 
 function getDocumentTypeName(type: string): string {
   const documentTypes = {
-    IDENTITY: "Pièce d'identité",
-    DRIVING_LICENSE: "Permis de conduire",
-    VEHICLE_REGISTRATION: "Carte grise",
-    INSURANCE: "Attestation d'assurance",
-    CERTIFICATION: "Certifications professionnelles",
-    CONTRACT: "Contrat",
+    IDENTITY: "IDENTITY_CARD",
+    IDENTITY_CARD: "IDENTITY_CARD",
+    DRIVING_LICENSE: "DRIVING_LICENSE",
+    VEHICLE_REGISTRATION: "VEHICLE_REGISTRATION",
+    INSURANCE: "INSURANCE",
+    CRIMINAL_RECORD: "CRIMINAL_RECORD",
+    BANK_RIB: "BANK_RIB",
+    CERTIFICATION: "CERTIFICATION",
+    CONTRACT: "CONTRACT",
   };
 
   return documentTypes[type as keyof typeof documentTypes] || type;

@@ -1,21 +1,45 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useParams } from "next/navigation";
+import { useState, useEffect, useCallback, useRef } from "react";
+import { useParams, useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import dynamic from "next/dynamic";
-import { DeliveryTrackingMap } from "@/components/maps/delivery-tracking-map";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import { Progress } from "@/components/ui/progress";
 import ChatBox from "@/components/chat/ChatBox";
+import { 
+  ArrowLeft, 
+  MapPin, 
+  Clock, 
+  Package,
+  Phone,
+  MessageCircle,
+  Navigation,
+  AlertCircle,
+  RefreshCw,
+  Wifi,
+  WifiOff,
+  CheckCircle2,
+  Truck,
+  User
+} from "lucide-react";
 
-// Import dynamique pour éviter les erreurs SSR avec les cartes
-const MapComponent = dynamic(
-  () => import("@/components/tracking/map-component"),
+// Import du composant de tracking robuste
+const RealTimeTrackingMap = dynamic(
+  () => import("@/features/tracking/components/real-time-tracking-map").then(mod => ({ default: mod.RealTimeTrackingMap })),
   {
     ssr: false,
     loading: () => (
-      <div className="h-64 bg-gray-200 animate-pulse rounded-lg flex items-center justify-center">
-        Chargement de la carte...
+      <div className="h-80 bg-gray-100 animate-pulse rounded-lg flex items-center justify-center">
+        <div className="text-center">
+          <RefreshCw className="h-8 w-8 animate-spin mx-auto mb-2 text-blue-500" />
+          <p className="text-gray-600">Chargement de la carte temps réel...</p>
+        </div>
       </div>
     ),
   },
@@ -28,447 +52,591 @@ interface TrackingEvent {
   description: string;
   timestamp: string;
   location?: {
-    lat: number;
-    lng: number;
+    latitude: number;
+    longitude: number;
     address: string;
   };
+  status: string;
 }
 
 interface Delivery {
   id: string;
   status: string;
+  trackingCode?: string;
   pickupDate: string;
   deliveryDate?: string;
-  deliverer: {
+  estimatedArrival?: string;
+  deliverer?: {
     id: string;
     name: string;
     phone: string;
     avatar?: string;
     rating: number;
+    vehicle?: string;
+  };
+  announcement: {
+    id: string;
+    title: string;
+    pickupAddress: string;
+    deliveryAddress: string;
+    pickupCoordinates?: { lat: number; lng: number };
+    deliveryCoordinates?: { lat: number; lng: number };
+  };
+  currentLocation?: {
+    latitude: number;
+    longitude: number;
+    timestamp: string;
+    accuracy?: number;
   };
   tracking: TrackingEvent[];
   validationCode?: string;
-  estimatedArrival?: string;
-  currentLocation?: {
-    lat: number;
-    lng: number;
-  };
+  progress: number;
 }
 
-interface Announcement {
-  id: string;
-  title: string;
-  description: string;
-  pickupAddress: string;
-  deliveryAddress: string;
-  status: string;
-  delivery?: Delivery;
-}
+// Configuration pour la mise à jour continue
+const TRACKING_CONFIG = {
+  intervals: {
+    active: 15000,      // 15 secondes pour livraisons actives
+    background: 45000,  // 45 secondes en arrière-plan
+    completed: 120000,  // 2 minutes pour livraisons terminées
+  },
+  retries: {
+    maxAttempts: 3,
+    backoffMs: 2000,
+  }
+};
 
-export default function AnnouncementTrackingPage() {
+export default function ClientTrackingPage() {
   const params = useParams();
-  const t = useTranslations();
-  const [announcement, setAnnouncement] = useState<Announcement | null>(null);
-  const [loading, setLoading] = useState(true);
+  const router = useRouter();
+  // Temporairement désactivé pour éviter l'erreur de traduction
+  // const t = useTranslations("tracking");
+  
+  const announcementId = params.id as string;
+  
+  // États de l'application
+  const [delivery, setDelivery] = useState<Delivery | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [refreshing, setRefreshing] = useState(false);
+  const [connectionStatus, setConnectionStatus] = useState<'connected' | 'connecting' | 'error'>('connecting');
+  const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
+  const [isActive, setIsActive] = useState(true);
 
-  useEffect(() => {
-    if (params.id) {
-      fetchTrackingData(params.id as string);
-    }
-  }, [params.id]);
+  // Refs pour la gestion des timers
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const retryTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
-  // Mise à jour en temps réel toutes les 30 secondes
-  useEffect(() => {
-    const interval = setInterval(() => {
-      if (params.id && !loading) {
-        refreshTrackingData(params.id as string);
-      }
-    }, 30000);
+  // Fonction de chargement avec gestion des erreurs robuste
+  const loadTrackingData = useCallback(async (isRetry = false) => {
+    if (!isActive) return;
 
-    return () => clearInterval(interval);
-  }, [params.id, loading]);
-
-  const fetchTrackingData = async (id: string) => {
     try {
-      setLoading(true);
-      const response = await fetch(`/api/client/announcements/${id}/tracking`, {
-        method: "GET",
-        credentials: "include",
+      // Annuler la requête précédente
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+
+      abortControllerRef.current = new AbortController();
+      const timeoutId = setTimeout(() => {
+        abortControllerRef.current?.abort();
+      }, 30000); // 30 secondes timeout
+
+      if (!isRetry) {
+        setConnectionStatus('connecting');
+        setError(null);
+      }
+
+      const response = await fetch(`/api/client/announcements/${announcementId}/tracking`, {
+        signal: abortControllerRef.current.signal,
         headers: {
-          "Content-Type": "application/json",
-        },
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        }
       });
 
+      clearTimeout(timeoutId);
+
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || "Données de suivi non trouvées");
+        if (response.status === 404) {
+          throw new Error("Livraison non trouvée");
+        }
+        throw new Error(`Erreur ${response.status}: ${response.statusText}`);
       }
 
       const data = await response.json();
-      setAnnouncement(data);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Erreur inconnue");
-    } finally {
-      setLoading(false);
-    }
-  };
+      
+      if (data.success && data.trackingData) {
+        setDelivery(data.trackingData);
+        setConnectionStatus('connected');
+        setLastUpdate(new Date());
+        setRetryCount(0);
 
-  const refreshTrackingData = async (id: string) => {
-    try {
-      setRefreshing(true);
-      const response = await fetch(`/api/client/announcements/${id}/tracking`, {
-        method: "GET",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setAnnouncement(data);
+        // Programmer la prochaine mise à jour selon le statut
+        const interval = getUpdateInterval(data.trackingData.status);
+        scheduleNextUpdate(interval);
+      } else {
+        throw new Error("Données de tracking invalides");
       }
-    } catch (err) {
-      // Ignorer les erreurs de rafraîchissement
+
+    } catch (error) {
+      if (error instanceof Error && error.name === 'AbortError') {
+        return; // Requête annulée, pas d'erreur
+      }
+
+      const errorMessage = error instanceof Error ? error.message : "Erreur de chargement";
+      console.warn("Erreur chargement tracking:", errorMessage);
+      
+      setConnectionStatus('error');
+      setError(errorMessage);
+
+      // Retry automatique avec backoff
+      if (retryCount < TRACKING_CONFIG.retries.maxAttempts) {
+        const retryDelay = TRACKING_CONFIG.retries.backoffMs * Math.pow(2, retryCount);
+        setRetryCount(prev => prev + 1);
+        
+        retryTimeoutRef.current = setTimeout(() => {
+          if (isActive) {
+            loadTrackingData(true);
+          }
+        }, retryDelay);
+      }
     } finally {
-      setRefreshing(false);
+      setIsLoading(false);
+    }
+  }, [announcementId, isActive, retryCount]);
+
+  // Détermine l'intervalle de mise à jour selon le statut
+  const getUpdateInterval = (status: string): number => {
+    switch (status) {
+      case 'IN_TRANSIT':
+      case 'PICKED_UP':
+        return TRACKING_CONFIG.intervals.active;
+      case 'DELIVERED':
+      case 'CANCELLED':
+        return TRACKING_CONFIG.intervals.completed;
+      default:
+        return TRACKING_CONFIG.intervals.background;
     }
   };
 
-  const getStatusColor = (status: string) => {
-    const colors = {
-      PENDING: "bg-yellow-100 text-yellow-800",
-      ACCEPTED: "bg-blue-100 text-blue-800",
-      PICKED_UP: "bg-purple-100 text-purple-800",
-      IN_TRANSIT: "bg-indigo-100 text-indigo-800",
-      DELIVERED: "bg-green-100 text-green-800",
-      COMPLETED: "bg-gray-100 text-gray-800",
-    };
-    return colors[status as keyof typeof colors] || "bg-gray-100 text-gray-800";
-  };
+  // Programme la prochaine mise à jour
+  const scheduleNextUpdate = useCallback((interval: number) => {
+    if (!isActive) return;
 
-  const getStatusLabel = (status: string) => {
-    const labels = {
-      PENDING: "En attente",
-      ACCEPTED: "Acceptée",
-      PICKED_UP: "Collectée",
-      IN_TRANSIT: "En transit",
-      DELIVERED: "Livrée",
-      COMPLETED: "Terminée",
-    };
-    return labels[status as keyof typeof labels] || status;
-  };
+    if (intervalRef.current) {
+      clearTimeout(intervalRef.current);
+    }
 
-  const getTrackingIcon = (type: string) => {
-    const icons = {
-      pickup: "📦",
-      in_transit: "🚚",
-      delivered: "✅",
-      delay: "⏰",
-      issue: "⚠️",
-      update: "📍",
-    };
-    return icons[type as keyof typeof icons] || "📍";
-  };
+    intervalRef.current = setTimeout(() => {
+      if (isActive) {
+        loadTrackingData();
+      }
+    }, interval);
+  }, [isActive, loadTrackingData]);
 
-  if (loading) {
+  // Rafraîchissement manuel
+  const handleManualRefresh = useCallback(async () => {
+    setRetryCount(0);
+    await loadTrackingData();
+  }, [loadTrackingData]);
+
+  // Gestion de la position mise à jour
+  const handleLocationUpdate = useCallback((location: any) => {
+    if (delivery) {
+      setDelivery(prev => prev ? {
+        ...prev,
+        currentLocation: {
+          latitude: location.latitude,
+          longitude: location.longitude,
+          timestamp: location.timestamp || new Date().toISOString(),
+          accuracy: location.accuracy
+        }
+      } : null);
+    }
+  }, [delivery]);
+
+  // Initialisation et nettoyage
+  useEffect(() => {
+    setIsActive(true);
+    
+    // Délai pour éviter les appels multiples
+    const initTimeout = setTimeout(() => {
+      if (isActive) {
+        loadTrackingData();
+      }
+    }, 100);
+
+    return () => {
+      setIsActive(false);
+      clearTimeout(initTimeout);
+      if (intervalRef.current) {
+        clearTimeout(intervalRef.current);
+        intervalRef.current = null;
+      }
+      if (retryTimeoutRef.current) {
+        clearTimeout(retryTimeoutRef.current);
+        retryTimeoutRef.current = null;
+      }
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+        abortControllerRef.current = null;
+      }
+    };
+  }, [announcementId]);
+
+  // Gestion de la visibilité de la page
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!isActive) return;
+      
+      if (document.hidden) {
+        // Page cachée, ralentir les mises à jour
+        if (intervalRef.current) {
+          clearTimeout(intervalRef.current);
+          intervalRef.current = null;
+        }
+        scheduleNextUpdate(TRACKING_CONFIG.intervals.background);
+      } else if (delivery) {
+        // Page visible, reprendre le rythme normal
+        if (intervalRef.current) {
+          clearTimeout(intervalRef.current);
+          intervalRef.current = null;
+        }
+        scheduleNextUpdate(getUpdateInterval(delivery.status));
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [delivery, scheduleNextUpdate, getUpdateInterval, isActive]);
+
+  // Rendu du statut de connexion
+  const renderConnectionStatus = () => {
+    const statusConfig = {
+      connecting: { icon: RefreshCw, color: 'text-yellow-600', text: 'Connexion...' },
+      connected: { icon: Wifi, color: 'text-green-600', text: 'Temps réel actif' },
+      error: { icon: WifiOff, color: 'text-red-600', text: 'Connexion interrompue' },
+    };
+
+    const { icon: Icon, color, text } = statusConfig[connectionStatus];
+
     return (
-      <div className="min-h-screen bg-gray-50 p-6">
-        <div className="max-w-6xl mx-auto">
-          <div className="animate-pulse">
-            <div className="h-8 bg-gray-200 rounded w-1/3 mb-4"></div>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div className="bg-white rounded-lg p-6 space-y-4">
-                <div className="h-6 bg-gray-200 rounded w-2/3"></div>
-                <div className="h-4 bg-gray-200 rounded w-full"></div>
-                <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-              </div>
-              <div className="bg-white rounded-lg p-6">
-                <div className="h-64 bg-gray-200 rounded"></div>
-              </div>
-            </div>
+      <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+        <div className="flex items-center gap-2">
+          <Icon className={`h-4 w-4 ${color} ${connectionStatus === 'connecting' ? 'animate-spin' : ''}`} />
+          <span className={`text-sm font-medium ${color}`}>{text}</span>
+        </div>
+        {lastUpdate && connectionStatus === 'connected' && (
+          <span className="text-xs text-gray-500">
+            Mis à jour: {lastUpdate.toLocaleTimeString()}
+          </span>
+        )}
+        {retryCount > 0 && (
+          <Badge variant="outline" className="text-xs">
+            Tentative {retryCount}
+          </Badge>
+        )}
+      </div>
+    );
+  };
+
+  // Rendu du statut de livraison
+  const getStatusConfig = (status: string) => {
+    const configs = {
+      'PENDING': { color: 'bg-gray-100 text-gray-800', icon: Package, text: 'En attente' },
+      'ACCEPTED': { color: 'bg-blue-100 text-blue-800', icon: CheckCircle2, text: 'Acceptée' },
+      'PICKED_UP': { color: 'bg-yellow-100 text-yellow-800', icon: Package, text: 'Récupérée' },
+      'IN_TRANSIT': { color: 'bg-green-100 text-green-800', icon: Truck, text: 'En cours' },
+      'DELIVERED': { color: 'bg-green-100 text-green-800', icon: CheckCircle2, text: 'Livrée' },
+      'CANCELLED': { color: 'bg-red-100 text-red-800', icon: AlertCircle, text: 'Annulée' },
+    };
+
+    return configs[status as keyof typeof configs] || configs['PENDING'];
+  };
+
+  // États de chargement et d'erreur
+  if (isLoading && !delivery) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center py-12">
+            <RefreshCw className="h-12 w-12 animate-spin mx-auto mb-4 text-blue-500" />
+            <h2 className="text-xl font-semibold mb-2">Chargement du suivi</h2>
+            <p className="text-gray-600">Récupération des informations de livraison...</p>
           </div>
         </div>
       </div>
     );
   }
 
-  if (error || !announcement) {
+  if (error && !delivery) {
     return (
-      <div className="min-h-screen bg-gray-50 p-6">
-        <div className="max-w-6xl mx-auto">
-          <div className="bg-white rounded-lg p-8 text-center">
-            <div className="text-red-600 text-lg mb-2">❌</div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">Erreur</h3>
-            <p className="text-gray-600 mb-4">{error}</p>
-            <Link
-              href="/client/announcements"
-              className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700"
-            >
-              Retour aux annonces
-            </Link>
+      <div className="container mx-auto px-4 py-8">
+        <div className="max-w-4xl mx-auto">
+          <Alert variant="destructive" className="mb-6">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription className="flex items-center justify-between">
+              <span>{error}</span>
+              <Button variant="outline" size="sm" onClick={handleManualRefresh}>
+                Réessayer
+              </Button>
+            </AlertDescription>
+          </Alert>
+          
+          <div className="text-center">
+            <Button variant="outline" onClick={() => router.back()}>
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Retour
+            </Button>
           </div>
         </div>
       </div>
     );
   }
 
-  if (!announcement.delivery) {
+  if (!delivery) {
     return (
-      <div className="min-h-screen bg-gray-50 p-6">
-        <div className="max-w-6xl mx-auto">
-          <div className="bg-white rounded-lg p-8 text-center">
-            <div className="text-yellow-600 text-lg mb-2">📦</div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">
-              Pas encore de livraison
-            </h3>
-            <p className="text-gray-600 mb-4">
-              Cette annonce n'a pas encore été acceptée par un livreur.
-            </p>
-            <Link
-              href={`/client/announcements/${announcement.id}`}
-              className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700"
-            >
-              Voir l'annonce
-            </Link>
-          </div>
+      <div className="container mx-auto px-4 py-8">
+        <div className="max-w-4xl mx-auto">
+          <Alert>
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              Aucune information de suivi disponible pour cette annonce.
+            </AlertDescription>
+          </Alert>
         </div>
       </div>
     );
   }
 
-  const delivery = announcement.delivery;
+  const statusConfig = getStatusConfig(delivery.status);
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-6xl mx-auto p-6">
-        {/* Header */}
-        <div className="mb-6">
-          <Link
-            href={`/client/announcements/${announcement.id}`}
-            className="text-green-600 hover:text-green-700 text-sm font-medium mb-4 inline-block"
-          >
-            ← Retour à l'annonce
-          </Link>
-
-          <div className="flex items-center justify-between">
+    <div className="container mx-auto px-4 py-6">
+      <div className="max-w-6xl mx-auto">
+        {/* En-tête */}
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-4">
+            <Button variant="ghost" size="sm" onClick={() => router.back()}>
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Retour
+            </Button>
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                Suivi de livraison
-              </h1>
-              <p className="text-gray-600">{announcement.title}</p>
-            </div>
-
-            <div className="flex items-center space-x-3">
-              <span
-                className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(delivery.status)}`}
-              >
-                {getStatusLabel(delivery.status)}
-              </span>
-              {refreshing && (
-                <div className="text-sm text-gray-500">🔄 Mise à jour...</div>
+              <h1 className="text-2xl font-bold">Suivi de livraison</h1>
+              {delivery.trackingCode && (
+                <p className="text-sm text-gray-600">Code: {delivery.trackingCode}</p>
               )}
             </div>
           </div>
+          
+          <div className="flex items-center gap-3">
+            <Badge className={statusConfig.color}>
+              <statusConfig.icon className="mr-1 h-4 w-4" />
+              {statusConfig.text}
+            </Badge>
+            <Button variant="outline" size="sm" onClick={handleManualRefresh} disabled={isLoading}>
+              <RefreshCw className={`mr-2 h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+              Actualiser
+            </Button>
+          </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Timeline et informations */}
-          <div className="space-y-6">
-            {/* Informations du livreur */}
-            <div className="bg-white rounded-lg p-6 shadow-sm border">
-              <h2 className="text-xl font-semibold mb-4">Votre livreur</h2>
-              <div className="flex items-center space-x-4">
-                <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
-                  {delivery.deliverer.avatar ? (
-                    <img
-                      src={delivery.deliverer.avatar}
-                      alt={delivery.deliverer.name}
-                      className="w-12 h-12 rounded-full object-cover"
-                    />
-                  ) : (
-                    <span className="text-green-600 font-medium">
-                      {delivery.deliverer.name.charAt(0)}
-                    </span>
+        {/* Statut de connexion */}
+        {renderConnectionStatus()}
+
+        {/* Messages d'erreur */}
+        {error && (
+          <Alert variant="destructive" className="my-4">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
+          {/* Colonne principale - Carte et informations */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Carte de tracking temps réel */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Navigation className="h-5 w-5" />
+                  Position en temps réel
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-6">
+                <RealTimeTrackingMap
+                  deliveryId={delivery.id}
+                  autoRefresh={true}
+                  refreshInterval={getUpdateInterval(delivery.status)}
+                  onLocationUpdate={handleLocationUpdate}
+                />
+              </CardContent>
+            </Card>
+
+            {/* Progression */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Package className="h-5 w-5" />
+                  Progression de la livraison
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium">Avancement</span>
+                    <span className="text-sm text-gray-600">{delivery.progress}%</span>
+                  </div>
+                  <Progress value={delivery.progress} className="w-full" />
+                  
+                  {delivery.estimatedArrival && (
+                    <div className="flex items-center gap-2 p-3 bg-blue-50 rounded-lg">
+                      <Clock className="h-4 w-4 text-blue-600" />
+                      <div>
+                        <span className="font-medium text-blue-900">Arrivée estimée</span>
+                        <p className="text-sm text-blue-800">
+                          {new Date(delivery.estimatedArrival).toLocaleString()}
+                        </p>
+                      </div>
+                    </div>
                   )}
                 </div>
-                <div className="flex-1">
-                  <h3 className="font-medium text-gray-900">
-                    {delivery.deliverer.name}
-                  </h3>
-                  <div className="flex items-center space-x-2 text-sm text-gray-500">
-                    <span>
-                      ⭐ {delivery.deliverer.rating != null ? delivery.deliverer.rating.toFixed(1) : "N/A"}
-                    </span>
-                    <span>•</span>
-                    <span>📞 {delivery.deliverer.phone}</span>
+              </CardContent>
+            </Card>
+
+            {/* Adresses */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Itinéraire</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="flex items-start gap-3">
+                    <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0">
+                      <Package className="w-4 h-4 text-white" />
+                    </div>
+                    <div>
+                      <p className="font-medium">Point de récupération</p>
+                      <p className="text-sm text-gray-600">{delivery.announcement.pickupAddress}</p>
+                    </div>
+                  </div>
+                  
+                  <div className="ml-4 w-0.5 h-8 bg-gray-200"></div>
+                  
+                  <div className="flex items-start gap-3">
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
+                      delivery.status === 'DELIVERED' ? 'bg-green-500' : 'bg-gray-300'
+                    }`}>
+                      <MapPin className="w-4 h-4 text-white" />
+                    </div>
+                    <div>
+                      <p className="font-medium">Point de livraison</p>
+                      <p className="text-sm text-gray-600">{delivery.announcement.deliveryAddress}</p>
+                    </div>
                   </div>
                 </div>
-                <button className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 text-sm">
-                  Contacter
-                </button>
-              </div>
-            </div>
+              </CardContent>
+            </Card>
+          </div>
 
-            {/* Code de validation */}
-            {delivery.validationCode && delivery.status === "DELIVERED" && (
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
-                <h3 className="font-medium text-blue-900 mb-2">
-                  Code de validation
-                </h3>
-                <div className="text-3xl font-bold text-blue-600 mb-2">
-                  {delivery.validationCode}
-                </div>
-                <p className="text-sm text-blue-800">
-                  Communiquez ce code au livreur pour confirmer la réception.
-                </p>
-              </div>
-            )}
-
-            {/* Estimation d'arrivée */}
-            {delivery.estimatedArrival && delivery.status === "IN_TRANSIT" && (
-              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                <div className="flex items-center space-x-2">
-                  <span className="text-green-600">🕐</span>
-                  <span className="font-medium text-green-900">
-                    Arrivée estimée:{" "}
-                    {new Date(delivery.estimatedArrival).toLocaleTimeString()}
-                  </span>
-                </div>
-              </div>
-            )}
-
-            {/* Timeline */}
-            <div className="bg-white rounded-lg p-6 shadow-sm border">
-              <h2 className="text-xl font-semibold mb-4">
-                Historique de livraison
-              </h2>
-
-              <div className="space-y-4">
-                {Array.isArray(delivery.tracking) && delivery.tracking.length > 0 ? (
-                  delivery.tracking.map((event, index) => (
-                    <div key={event.id} className="flex space-x-4">
-                      <div className="flex flex-col items-center">
-                        <div
-                          className={`w-8 h-8 rounded-full flex items-center justify-center text-sm ${
-                            index === 0
-                              ? "bg-green-500 text-white"
-                              : "bg-gray-200 text-gray-600"
-                          }`}
-                        >
-                          {getTrackingIcon(event.type)}
-                        </div>
-                        {index < delivery.tracking.length - 1 && (
-                          <div className="w-px h-6 bg-gray-200 mt-2"></div>
-                        )}
+          {/* Colonne latérale - Informations livreur et chat */}
+          <div className="space-y-6">
+            {/* Informations livreur */}
+            {delivery.deliverer && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <User className="h-5 w-5" />
+                    Votre livreur
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center">
+                        <User className="w-6 h-6 text-white" />
                       </div>
-                      <div className="flex-1 pb-4">
-                        <div className="flex items-center justify-between">
-                          <h3 className="font-medium text-gray-900">
-                            {event.title}
-                          </h3>
-                          <span className="text-sm text-gray-500">
-                            {new Date(event.timestamp).toLocaleString()}
-                          </span>
-                        </div>
-                        <p className="text-gray-600 text-sm mt-1">
-                          {event.description}
-                        </p>
-                        {event.location && (
-                          <p className="text-gray-500 text-xs mt-1">
-                            📍 {event.location.address}
-                          </p>
+                      <div>
+                        <p className="font-medium">{delivery.deliverer.name}</p>
+                        <p className="text-sm text-gray-600">{delivery.deliverer.vehicle || 'Véhicule'}</p>
+                        {delivery.deliverer.rating && (
+                          <div className="flex items-center gap-1">
+                            <span className="text-yellow-400">★</span>
+                            <span className="text-sm">{delivery.deliverer.rating}/5</span>
+                          </div>
                         )}
                       </div>
                     </div>
-                  ))
-                ) : (
-                  <div>Aucun suivi disponible</div>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Carte */}
-          <div className="space-y-6">
-            <div className="bg-white rounded-lg p-6 shadow-sm border">
-              <h2 className="text-xl font-semibold mb-4">
-                Localisation en temps réel
-              </h2>
-
-              {/* Affichage sécurisé de la carte */}
-              {announcement?.delivery ? (
-                <DeliveryTrackingMap
-                  deliveryId={announcement.delivery.id}
-                  apiEndpoint={`/api/client/deliveries/${announcement.delivery.id}/tracking`}
-                  showDetails={true}
-                />
-              ) : (
-                <div className="h-64 bg-gray-100 rounded-lg flex items-center justify-center">
-                  <div className="text-center">
-                    <div className="text-gray-400 text-lg mb-2">🗺️</div>
-                    <p className="text-gray-600 text-sm">Carte ou adresses de suivi indisponibles</p>
+                    
+                    <Separator />
+                    
+                    <div className="flex gap-2">
+                      <Button variant="outline" size="sm" className="flex-1">
+                        <Phone className="w-4 h-4 mr-2" />
+                        Appeler
+                      </Button>
+                      <Button variant="outline" size="sm" className="flex-1">
+                        <MessageCircle className="w-4 h-4 mr-2" />
+                        Message
+                      </Button>
+                    </div>
                   </div>
-                </div>
-              )}
-            </div>
+                </CardContent>
+              </Card>
+            )}
 
-            {/* Informations de livraison */}
-            <div className="bg-white rounded-lg p-6 shadow-sm border">
-              <h3 className="font-semibold mb-4">Informations de livraison</h3>
-              <div className="space-y-3 text-sm">
-                <div>
-                  <span className="text-gray-500">Collecte:</span>
-                  <p className="text-gray-900">{announcement.pickupAddress}</p>
-                  <p className="text-gray-500 text-xs">
-                    {new Date(delivery.pickupDate).toLocaleString()}
-                  </p>
-                </div>
-                <div>
-                  <span className="text-gray-500">Livraison:</span>
-                  <p className="text-gray-900">
-                    {announcement.deliveryAddress}
-                  </p>
-                  {delivery.deliveryDate && (
-                    <p className="text-gray-500 text-xs">
-                      {new Date(delivery.deliveryDate).toLocaleString()}
-                    </p>
-                  )}
-                </div>
-              </div>
-            </div>
+            {/* Chat */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <MessageCircle className="h-5 w-5" />
+                  Discussion
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ChatBox
+                  contextType="DELIVERY"
+                  contextId={delivery.id}
+                />
+              </CardContent>
+            </Card>
 
-            {/* Actions */}
-            <div className="bg-white rounded-lg p-6 shadow-sm border">
-              <h3 className="font-semibold mb-4">Actions</h3>
-              <div className="space-y-3">
-                <button className="w-full bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 text-sm">
-                  📞 Appeler le livreur
-                </button>
-                <button className="w-full bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 text-sm">
-                  💬 Envoyer un message
-                </button>
-                {delivery.status === "DELIVERED" && (
-                  <Link
-                    href={`/client/announcements/${announcement.id}/confirm`}
-                    className="w-full bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 text-sm text-center block"
-                  >
-                    ✅ Confirmer la réception
-                  </Link>
-                )}
-              </div>
-            </div>
+            {/* Historique */}
+            {delivery.tracking && delivery.tracking.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Historique</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3 max-h-60 overflow-y-auto">
+                    {delivery.tracking.slice().reverse().map((event, index) => (
+                      <div key={event.id} className="flex items-start gap-3 p-2 bg-gray-50 rounded-lg">
+                        <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium">{event.title}</p>
+                          <p className="text-xs text-gray-600">{event.description}</p>
+                          <p className="text-xs text-gray-500 mt-1">
+                            {new Date(event.timestamp).toLocaleString()}
+                          </p>
+                          {event.location && (
+                            <p className="text-xs text-gray-500">
+                              📍 {event.location.address}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </div>
         </div>
-        
-        {/* Chat */}
-        {announcement?.delivery && (
-          <div className="mt-6">
-            <ChatBox contextType="DELIVERY" contextId={announcement.delivery.id} />
-          </div>
-        )}
       </div>
     </div>
   );

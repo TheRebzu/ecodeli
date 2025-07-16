@@ -27,8 +27,11 @@ model Delivery {
   payment            Payment?
   tracking           TrackingUpdate[]
   history            DeliveryHistory[]
+  statusHistory      DeliveryStatusHistory[]
   validations        DeliveryValidation[]
   trackingSessions   TrackingSession[]
+  handovers          Handover[]
+  proofOfDelivery    ProofOfDelivery?
 
   @@index([clientId])
   @@index([delivererId])

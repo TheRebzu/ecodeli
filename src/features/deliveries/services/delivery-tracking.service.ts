@@ -154,11 +154,9 @@ export class DeliveryTrackingService {
             status,
             message: this.getStatusMessage(status),
             location: location ? JSON.stringify(location) : null,
+            coordinates: location ? { lat: location.latitude, lng: location.longitude } : null,
             isAutomatic: true,
             timestamp: timestamp ? new Date(timestamp) : new Date(),
-            metadata: notes
-              ? JSON.stringify({ notes, photos: proofPhotos })
-              : null,
           },
         });
 

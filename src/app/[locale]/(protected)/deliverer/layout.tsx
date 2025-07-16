@@ -22,7 +22,7 @@ export default function DelivererLayout({ children }: DelivererLayoutProps) {
   // Redirect non-validated deliverers to recruitment page, with debug logs
   useEffect(() => {
     if (!isLoading && user && user.role === "DELIVERER") {
-      const isValidated = user.validationStatus === "APPROVED" && user.isActive === true;
+      const isValidated = (user.validationStatus === "APPROVED" || user.validationStatus === "VALIDATED") && user.isActive === true;
       const isRecruitmentPage = pathname.includes("/deliverer/recruitment");
       console.log("[DelivererLayout Debug]", {
         user,
@@ -161,7 +161,7 @@ export default function DelivererLayout({ children }: DelivererLayoutProps) {
             name: user.name || user.email.split("@")[0],
             email: user.email,
             role: user.role,
-            isValidated: user.validationStatus === "APPROVED" && user.isActive === true,
+            isValidated: (user.validationStatus === "APPROVED" || user.validationStatus === "VALIDATED") && user.isActive === true,
             rating: 4.8, // This would come from user profile
             nfcCardId: "NFC-001", // This would come from user profile
             avatar: "", // Avatar would be loaded from profile

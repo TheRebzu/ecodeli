@@ -80,7 +80,7 @@ export async function GET(request: NextRequest) {
       opportunities,
       stats,
       canWork:
-        deliverer.validationStatus === "APPROVED" && documentStatus.allApproved,
+        (deliverer.validationStatus === "APPROVED" || deliverer.validationStatus === "VALIDATED") && documentStatus.allApproved,
     });
   } catch (error: any) {
     console.error("Erreur dashboard livreur:", error);

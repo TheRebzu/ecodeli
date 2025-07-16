@@ -1528,7 +1528,113 @@
     "documents": "Documents",
     "planning": "Planning",
     "profile": "Profile",
-    "recruitment": "Recruitment",
+    "recruitment": {
+      "page": {
+        "title": "Recruitment Process",
+        "description": "Track your application and complete your deliverer profile"
+      },
+      "auth": {
+        "required_title": "Login Required",
+        "required_description": "You must be logged in to access this page"
+      },
+      "status": {
+        "application_status": "Application Status",
+        "draft": "Draft",
+        "pending": "Pending",
+        "under_review": "Under Review",
+        "approved": "Approved",
+        "rejected": "Rejected",
+        "completion_progress": "Progress: ",
+        "congratulations": "Congratulations!",
+        "approved_message": "Your application has been approved. You can now start delivering.",
+        "consultation_mode": "Consultation Mode",
+        "consultation_message": "You are viewing your validated application file. You are now active as an EcoDeli deliverer.",
+        "rejection_reason": "Rejection Reason"
+      },
+      "tabs": {
+        "personal_info": "Personal Information",
+        "professional_info": "Professional Information",
+        "documents": "Documents"
+      },
+      "personal": {
+        "title": "Personal Information",
+        "first_name": "First Name",
+        "last_name": "Last Name",
+        "email": "Email Address",
+        "phone": "Phone",
+        "date_of_birth": "Date of Birth",
+        "nationality": "Nationality",
+        "address": "Full Address"
+      },
+      "professional": {
+        "title": "Professional Information",
+        "vehicle_type": "Vehicle Type",
+        "select_vehicle": "Select your vehicle",
+        "vehicle_model": "Vehicle Model",
+        "license_number": "License Number",
+        "experience": "Years of Experience"
+      },
+      "vehicles": {
+        "car": "Car",
+        "bike": "Bike",
+        "scooter": "Scooter",
+        "truck": "Truck",
+        "walking": "Walking"
+      },
+      "documents": {
+        "title": "Documents",
+        "empty": "No documents uploaded",
+        "uploaded_on": "Uploaded on",
+        "rejection_reason": "Rejection Reason",
+        "types": {
+          "identity_card": "Identity Card",
+          "driving_license": "Driving License",
+          "vehicle_registration": "Vehicle Registration",
+          "insurance": "Insurance Certificate",
+          "criminal_record": "Criminal Record",
+          "bank_rib": "Bank RIB"
+        },
+        "statuses": {
+          "pending": "Pending",
+          "approved": "Approved",
+          "rejected": "Rejected"
+        }
+      },
+      "upload_dialog": {
+        "title": "Upload Document",
+        "description": "Select the document type and file to upload",
+        "document_type": "Document Type",
+        "select_type": "Select type",
+        "file": "File"
+      },
+      "submit": {
+        "ready_title": "Ready to Submit",
+        "ready_description": "Your profile is complete. You can now submit your application.",
+        "requirements_not_met": "Please complete all sections before submitting"
+      },
+      "actions": {
+        "save_draft": "Save Draft",
+        "submit_application": "Submit Application",
+        "upload_document": "Upload Document",
+        "cancel": "Cancel",
+        "upload": "Upload"
+      },
+      "success": {
+        "application_submitted": "Application Submitted",
+        "application_submitted_desc": "Your application has been submitted successfully",
+        "application_saved": "Draft Saved",
+        "application_saved_desc": "Your changes have been saved",
+        "document_uploaded": "Document Uploaded",
+        "document_uploaded_desc": "The document has been uploaded successfully"
+      },
+      "error": {
+        "fetch_failed": "Loading Error",
+        "save_failed": "Save Error",
+        "upload_failed": "Upload Error",
+        "download_failed": "Download Error",
+        "generic": "An error occurred"
+      }
+    },
     "wallet": {
       "withdrawal": "Withdrawal"
     },
@@ -4401,6 +4507,58 @@
         "title": "Contracts Management",
         "description": "Manage contracts with merchants and providers"
       }
+    }
+  },
+  "tracking": {
+    "title": "Delivery Tracking",
+    "loading": "Loading tracking",
+    "error": "Tracking error",
+    "noData": "No tracking information available",
+    "status": {
+      "pending": "Pending",
+      "accepted": "Accepted",
+      "picked_up": "Picked up",
+      "in_transit": "In transit",
+      "delivered": "Delivered",
+      "cancelled": "Cancelled"
+    },
+    "connection": {
+      "connecting": "Connecting...",
+      "connected": "Real-time active",
+      "error": "Connection interrupted",
+      "lastUpdate": "Updated",
+      "retry": "Attempt"
+    },
+    "map": {
+      "title": "Real-time position",
+      "loading": "Loading real-time map..."
+    },
+    "progress": {
+      "title": "Delivery progress",
+      "advancement": "Progress",
+      "estimatedArrival": "Estimated arrival"
+    },
+    "route": {
+      "title": "Route",
+      "pickup": "Pickup point",
+      "delivery": "Delivery point"
+    },
+    "deliverer": {
+      "title": "Your delivery person",
+      "vehicle": "Vehicle",
+      "call": "Call",
+      "message": "Message"
+    },
+    "chat": {
+      "title": "Chat"
+    },
+    "history": {
+      "title": "History"
+    },
+    "buttons": {
+      "back": "Back",
+      "refresh": "Refresh",
+      "retry": "Retry"
     }
   },
   "": {

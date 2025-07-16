@@ -200,50 +200,107 @@ export async function GET(
       });
     }
 
-    const response = {
-      id: announcement.id,
-      title: announcement.title,
-      description: "", // Fallback car description n'existe pas
-      pickupAddress: announcement.pickupAddress,
-      deliveryAddress: announcement.deliveryAddress,
-      status: announcement.status,
-      
-      delivery: trackingData.delivery
-        ? {
-            id: trackingData.delivery.id,
-            status: trackingData.delivery.status,
-            pickupDate: new Date().toISOString(), // Fallback car createdAt n'existe pas
-            deliveryDate: undefined, // completedAt n'existe pas
-            deliverer: {
-              id: "unknown", // Fallback car id n'existe pas
-              name: trackingData.delivery.deliverer.name,
-              phone: trackingData.delivery.deliverer.phone || "",
-              avatar: trackingData.delivery.deliverer.avatar,
-              rating: 0, // Fallback car rating n'existe pas
-            },
-            tracking: trackingData.trackingHistory.map((event) => ({
-              id: event.id,
-              type: event.type || "update",
-              title: event.title || "Mise à jour",
-              description: event.message || "",
-              timestamp: event.timestamp.toISOString(),
-              location: event.location ? {
-                lat: event.location.latitude,
-                lng: event.location.longitude,
-                address: event.location.address || "",
-              } : undefined,
-            })),
-            validationCode: trackingData.delivery.validationCode,
-            estimatedArrival: trackingData.delivery.estimatedArrival?.toISOString(),
-            currentLocation: trackingData.delivery.currentPosition ? {
-              lat: trackingData.delivery.currentPosition.lat,
-              lng: trackingData.delivery.currentPosition.lng,
-            } : undefined,
-          }
-        : null,
+    // Format de réponse attendu par le composant client
+    const trackingResponseData = {
+      // Données de base de l'annonce toujours présentes
+      announcement: {
+        id: announcement.id,
+        title: announcement.title,
+        pickupAddress: announcement.pickupAddress,
+        deliveryAddress: announcement.deliveryAddress,
+        pickupCoordinates: announcement.pickupCoordinates.lat ? {
+          lat: announcement.pickupCoordinates.lat,
+          lng: announcement.pickupCoordinates.lng
+        } : undefined,
+        deliveryCoordinates: announcement.deliveryCoordinates.lat ? {
+          lat: announcement.deliveryCoordinates.lat,
+          lng: announcement.deliveryCoordinates.lng
+        } : undefined,
+      },
+      // Données de livraison seulement si disponible
+      ...(trackingData.delivery ? {
+      id: trackingData.delivery.id,
+      status: trackingData.delivery.status,
+      trackingCode: trackingData.delivery.trackingNumber || trackingData.delivery.validationCode,
+      pickupDate: trackingData.delivery.createdAt?.toISOString() || new Date().toISOString(),
+      deliveryDate: trackingData.delivery.completedAt?.toISOString(),
+      estimatedArrival: trackingData.delivery.estimatedArrival?.toISOString(),
+      deliverer: trackingData.delivery.deliverer ? {
+        id: trackingData.delivery.deliverer.id || "unknown",
+        name: trackingData.delivery.deliverer.name || "Livreur",
+        phone: trackingData.delivery.deliverer.phone || "",
+        avatar: trackingData.delivery.deliverer.avatar,
+        rating: trackingData.delivery.deliverer.rating || 4.5,
+        vehicle: trackingData.delivery.deliverer.vehicleType || "Véhicule"
+      } : undefined,
+      currentLocation: trackingData.delivery.currentPosition ? {
+        latitude: trackingData.delivery.currentPosition.lat || trackingData.delivery.currentPosition.latitude,
+        longitude: trackingData.delivery.currentPosition.lng || trackingData.delivery.currentPosition.longitude,
+        timestamp: new Date().toISOString(),
+        accuracy: 10
+      } : undefined,
+      tracking: [
+        // Tracking de l'annonce
+        ...trackingData.trackingHistory.map((event) => ({
+          id: `announcement-${Date.now()}-${Math.random()}`,
+          type: "announcement",
+          title: event.status || "Mise à jour",
+          description: event.message || "",
+          timestamp: event.timestamp.toISOString(),
+          status: event.status || "INFO",
+          location: undefined,
+        })),
+        // Tracking de la livraison
+        ...trackingData.deliveryTracking.map((event) => ({
+          id: `delivery-${Date.now()}-${Math.random()}`,
+          type: "delivery",
+          title: event.status || "Mise à jour livreur",
+          description: event.message || "",
+          timestamp: event.timestamp.toISOString(),
+          status: event.status || "INFO",
+          location: event.location ? {
+            latitude: event.location.latitude,
+            longitude: event.location.longitude,
+            address: event.location.address || ""
+          } : (event.coordinates ? {
+            latitude: event.coordinates.lat,
+            longitude: event.coordinates.lng,
+            address: "Position livreur"
+          } : undefined),
+        }))
+      ].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()),
+      validationCode: trackingData.delivery.validationCode,
+      progress: progressPercentage,
+      } : {
+        // Pas de livraison assignée encore
+        id: null,
+        status: "PENDING",
+        trackingCode: null,
+        pickupDate: null,
+        deliveryDate: null,
+        estimatedArrival: null,
+        deliverer: null,
+        currentLocation: null,
+        tracking: trackingData.trackingHistory.map((event) => ({
+          id: `announcement-${Date.now()}-${Math.random()}`,
+          type: "announcement",
+          title: event.status || "Mise à jour",
+          description: event.message || "",
+          timestamp: event.timestamp.toISOString(),
+          status: event.status || "INFO",
+          location: undefined,
+        })),
+        validationCode: null,
+        progress: 0,
+      })
     };
 
-    return NextResponse.json(response);
+    return NextResponse.json({
+      success: true,
+      trackingData: trackingResponseData,
+      routeData,
+      mapData: leafletData
+    });
   } catch (error) {
     logger.error("Erreur récupération tracking:", error);
 

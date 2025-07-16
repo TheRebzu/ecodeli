@@ -66,16 +66,25 @@ export async function POST(
       where: { announcementId: announcementId },
     });
 
-    // Créer le Payment en base (s'il n'existe pas déjà)
+    // Vérifier s'il existe déjà un paiement pour cette annonce (n'importe le status)
     let payment = await prisma.payment.findFirst({
       where: {
         announcementId: announcementId,
-        deliveryId: delivery?.id,
         userId: user.id,
         type: "DELIVERY",
-        status: { in: ["PENDING", "PROCESSING"] },
       },
     });
+
+    // Si un paiement existe déjà et est complété/payé, empêcher la création d'une nouvelle session
+    if (payment && ["COMPLETED", "PAID"].includes(payment.status)) {
+      return NextResponse.json({ 
+        error: "Cette annonce a déjà été payée", 
+        status: payment.status,
+        paymentId: payment.id 
+      }, { status: 400 });
+    }
+
+    // Si aucun paiement n'existe, en créer un nouveau
     if (!payment) {
       payment = await prisma.payment.create({
         data: {
@@ -87,6 +96,18 @@ export async function POST(
           status: "PENDING",
           type: "DELIVERY",
           paymentMethod: "STRIPE",
+        },
+      });
+    }
+
+    // Si le paiement existe mais est en échec, le réactiver
+    if (payment && payment.status === "FAILED") {
+      payment = await prisma.payment.update({
+        where: { id: payment.id },
+        data: {
+          status: "PENDING",
+          failedAt: null,
+          updatedAt: new Date(),
         },
       });
     }

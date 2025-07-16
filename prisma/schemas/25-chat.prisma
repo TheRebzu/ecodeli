@@ -1,0 +1,81 @@
+// Système de chat général pour EcoDeli
+
+model ChatMessage {
+  id            String                @id @default(cuid())
+  contextType   ChatContextType
+  contextId     String                // ID de l'entité liée (delivery, booking, etc.)
+  senderId      String
+  message       String
+  isSystem      Boolean               @default(false) // Message automatique du système
+  readAt        DateTime?             // Quand le message a été lu
+  editedAt      DateTime?             // Si le message a été modifié
+  createdAt     DateTime              @default(now())
+  updatedAt     DateTime              @updatedAt
+
+  // Relations
+  sender        User                  @relation(fields: [senderId], references: [id])
+  attachments   ChatAttachment[]
+
+  @@index([contextType, contextId])
+  @@index([senderId])
+  @@index([createdAt])
+}
+
+model ChatAttachment {
+  id            String                @id @default(cuid())
+  messageId     String
+  fileName      String
+  originalName  String
+  mimeType      String
+  fileSize      Int                   // en bytes
+  filePath      String
+  createdAt     DateTime              @default(now())
+
+  // Relations
+  message       ChatMessage           @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+  @@index([messageId])
+}
+
+model ChatParticipant {
+  id            String                @id @default(cuid())
+  contextType   ChatContextType
+  contextId     String
+  userId        String
+  joinedAt      DateTime              @default(now())
+  lastReadAt    DateTime?
+  isActive      Boolean               @default(true)
+
+  // Relations
+  user          User                  @relation(fields: [userId], references: [id])
+
+  @@unique([contextType, contextId, userId])
+  @@index([userId])
+  @@index([contextType, contextId])
+}
+
+model ChatContext {
+  id            String                @id @default(cuid())
+  contextType   ChatContextType
+  contextId     String
+  title         String?               // Titre optionnel du chat
+  description   String?               // Description du contexte
+  isActive      Boolean               @default(true)
+  createdAt     DateTime              @default(now())
+  updatedAt     DateTime              @updatedAt
+
+  @@unique([contextType, contextId])
+  @@index([contextType])
+  @@index([isActive])
+}
+
+enum ChatContextType {
+  DELIVERY       // Chat entre client et livreur pour une livraison
+  BOOKING        // Chat entre client et prestataire pour une réservation
+  SUPPORT        // Chat de support client
+  CONTRACT       // Chat pour négociation de contrat (commerçant)
+  GENERAL        // Chat général
+  ANNOUNCEMENT   // Chat pour une annonce
+  DISPUTE        // Chat pour gestion de litige
+  GROUP          // Chat de groupe (ex: équipe de livreurs)
+} 

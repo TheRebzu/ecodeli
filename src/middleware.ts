@@ -248,6 +248,9 @@ export default async function middleware(request: NextRequest) {
           return NextResponse.redirect(new URL(`/${locale}/deliverer/recruitment`, request.url));
         } else {
           console.log('✅ [MIDDLEWARE] Livreur validé - accès autorisé, validationStatus:', user.validationStatus);
+          
+          // Permettre aux livreurs validés d'accéder à la page de recrutement pour consultation
+          // Ils peuvent vouloir voir leurs documents ou leur historique de validation
         }
       }
       

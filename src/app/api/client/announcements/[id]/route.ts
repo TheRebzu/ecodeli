@@ -89,6 +89,7 @@ export async function GET(
         },
         PackageAnnouncement: true,
         ServiceAnnouncement: true,
+        payment: true,
         delivery: {
           include: {
             payment: true, // Ajout pour inclure le paiement lié à la livraison
@@ -258,16 +259,26 @@ export async function GET(
           }
         : null,
 
-      // Paiement lié à la livraison (pour badge Payé)
-      payment: announcement.delivery && announcement.delivery.payment
+      // Paiement (priorité au paiement direct de l'annonce, sinon celui de la livraison)
+      payment: announcement.payment
         ? {
-            id: announcement.delivery.payment.id,
-            status: announcement.delivery.payment.status,
-            amount: announcement.delivery.payment.amount,
-            currency: announcement.delivery.payment.currency,
-            completedAt: announcement.delivery.payment.completedAt,
+            id: announcement.payment.id,
+            status: announcement.payment.status,
+            amount: announcement.payment.amount,
+            currency: announcement.payment.currency,
+            paidAt: announcement.payment.paidAt,
+            createdAt: announcement.payment.createdAt,
           }
-        : null,
+        : (announcement.delivery && announcement.delivery.payment
+          ? {
+              id: announcement.delivery.payment.id,
+              status: announcement.delivery.payment.status,
+              amount: announcement.delivery.payment.amount,
+              currency: announcement.delivery.payment.currency,
+              paidAt: announcement.delivery.payment.paidAt,
+              createdAt: announcement.delivery.payment.createdAt,
+            }
+          : null),
 
       // Correspondances de trajets
       routeMatches: announcement.matches.map((match) => ({

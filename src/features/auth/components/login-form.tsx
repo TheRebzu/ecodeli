@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslations } from "next-intl";
-import { signIn } from "@/lib/auth";
+import { signIn } from "next-auth/react";
 import {
   loginSchema,
   type LoginData,
@@ -30,7 +30,7 @@ export function LoginForm() {
     setError(null);
 
     try {
-      // Utiliser Better Auth signIn
+      // Utiliser NextAuth signIn côté client
       const result = await signIn("credentials", {
         email: data.email,
         password: data.password,
@@ -38,7 +38,7 @@ export function LoginForm() {
       });
 
       if (result?.error) {
-        setError("Email ou mot de passe incorrect");
+        setError(t("auth.login.errors.generic"));
         return;
       }
 
@@ -53,6 +53,7 @@ export function LoginForm() {
         } else {
           // Rediriger vers la page d'accueil par défaut
           const locale = window.location.pathname.split("/")[1] || "fr";
+          // Forcer un rechargement pour que le middleware gère la redirection
           window.location.href = `/${locale}`;
         }
       }
@@ -115,7 +116,7 @@ export function LoginForm() {
           href="/forgot-password"
           className="text-sm text-blue-600 hover:text-blue-800 hover:underline"
         >
-          Mot de passe oublié ?
+          {t("auth.login.forgotPassword")}
         </Link>
       </div>
 

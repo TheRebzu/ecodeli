@@ -1,440 +1,502 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import {
-  MapPin,
-  Navigation,
-  Clock,
-  Truck,
-  Package,
-  RefreshCw,
-  Phone,
-  MessageCircle,
-  AlertTriangle,
-} from "lucide-react";
-
-interface LocationData {
-  latitude: number;
-  longitude: number;
-  accuracy: number;
-  timestamp: Date;
-  speed?: number;
-  heading?: number;
-}
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { MapPin, Navigation, Clock, Wifi, WifiOff, AlertCircle, RefreshCw } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
 
 interface DeliveryInfo {
   id: string;
-  trackingCode: string;
   status: string;
-  pickupLocation: {
-    address: string;
-    coordinates?: { lat: number; lng: number };
-  };
-  deliveryLocation: {
-    address: string;
-    coordinates?: { lat: number; lng: number };
-  };
-  deliverer: {
+  deliverer?: {
     id: string;
     name: string;
     phone: string;
     vehicle: string;
   };
-  estimatedArrival?: string;
-  currentPosition?: LocationData;
+  pickupLocation: {
+    address: string;
+    coordinates: { lat: number; lng: number } | null;
+  };
+  deliveryLocation: {
+    address: string;
+    coordinates: { lat: number; lng: number } | null;
+  };
+  currentLocation?: {
+    latitude: number;
+    longitude: number;
+    timestamp: string;
+  } | null;
+  estimatedArrival?: string | null;
+  trackingHistory: Array<{
+    id: string;
+    location: {
+      latitude: number;
+      longitude: number;
+      address?: string;
+    };
+    timestamp: string;
+    status: string;
+  }>;
+  progress: number;
 }
 
 interface TrackingMapProps {
   deliveryId: string;
   autoRefresh?: boolean;
   refreshInterval?: number;
+  onLocationUpdate?: (location: any) => void;
 }
+
+// Configuration pour le suivi temps réel robuste
+const TRACKING_CONFIG = {
+  intervals: {
+    active: 10000,      // 10 secondes quand livraison en cours
+    background: 30000,  // 30 secondes en arrière plan
+    retry: 5000,        // 5 secondes entre tentatives
+  },
+  retries: {
+    maxAttempts: 5,
+    backoffMultiplier: 1.5,
+  },
+  timeouts: {
+    fetch: 15000,       // 15 secondes pour les requêtes
+    connection: 30000,  // 30 secondes pour la connexion
+  }
+};
 
 export function RealTimeTrackingMap({
   deliveryId,
   autoRefresh = true,
-  refreshInterval = 30000,
+  refreshInterval = TRACKING_CONFIG.intervals.active,
+  onLocationUpdate,
 }: TrackingMapProps) {
   const [delivery, setDelivery] = useState<DeliveryInfo | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [connectionStatus, setConnectionStatus] = useState<'connected' | 'connecting' | 'disconnected' | 'error'>('connecting');
+  const [retryCount, setRetryCount] = useState(0);
   const [mapInitialized, setMapInitialized] = useState(false);
 
+  // Refs pour la gestion des timers et map
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<any>(null);
   const markersRef = useRef<any[]>([]);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const retryTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
+  const isActiveRef = useRef(true);
 
+  // Fonction de chargement avec retry et timeout
+  const loadDeliveryInfo = useCallback(async (isRetry = false) => {
+    if (!isActiveRef.current) return;
+
+    try {
+      // Annuler la requête précédente si en cours
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+
+      abortControllerRef.current = new AbortController();
+      const timeoutId = setTimeout(() => {
+        abortControllerRef.current?.abort();
+      }, TRACKING_CONFIG.timeouts.fetch);
+
+      setError(null);
+      if (!isRetry) {
+        setConnectionStatus('connecting');
+      }
+
+      const response = await fetch(
+        `/api/shared/deliveries/${deliveryId}/tracking`,
+        {
+          signal: abortControllerRef.current.signal,
+          headers: {
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
+            'Expires': '0',
+          },
+        }
+      );
+
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        throw new Error(`Erreur ${response.status}: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      
+      if (data.success && data.delivery) {
+        setDelivery(data.delivery);
+        setLastUpdate(new Date());
+        setConnectionStatus('connected');
+        setRetryCount(0);
+
+        // Notifier de la mise à jour de position
+        if (onLocationUpdate && data.delivery.currentLocation) {
+          onLocationUpdate(data.delivery.currentLocation);
+        }
+
+        // Ajuster l'intervalle selon le statut
+        const newInterval = data.delivery.status === 'IN_TRANSIT' 
+          ? TRACKING_CONFIG.intervals.active 
+          : TRACKING_CONFIG.intervals.background;
+        
+        if (intervalRef.current && autoRefresh) {
+          clearInterval(intervalRef.current);
+          scheduleNextUpdate(newInterval);
+        }
+      } else {
+        throw new Error('Données de livraison invalides');
+      }
+
+    } catch (error) {
+      if (error instanceof Error && error.name === 'AbortError') {
+        // Requête annulée, pas d'erreur
+        return;
+      }
+
+      const errorMessage = error instanceof Error ? error.message : 'Erreur de chargement';
+      console.warn('Erreur chargement tracking:', errorMessage);
+      
+      setConnectionStatus('error');
+      setError(errorMessage);
+
+      // Retry automatique avec backoff exponentiel
+      if (retryCount < TRACKING_CONFIG.retries.maxAttempts) {
+        const retryDelay = TRACKING_CONFIG.intervals.retry * 
+          Math.pow(TRACKING_CONFIG.retries.backoffMultiplier, retryCount);
+        
+        setRetryCount(prev => prev + 1);
+        
+        retryTimeoutRef.current = setTimeout(() => {
+          if (isActiveRef.current) {
+            loadDeliveryInfo(true);
+          }
+        }, retryDelay);
+      } else {
+        setConnectionStatus('disconnected');
+        
+        // Retry plus tard avec un délai plus long
+        setTimeout(() => {
+          if (isActiveRef.current) {
+            setRetryCount(0);
+            loadDeliveryInfo();
+          }
+        }, TRACKING_CONFIG.intervals.background);
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  }, [deliveryId, autoRefresh, onLocationUpdate, retryCount]);
+
+  // Programmation de la prochaine mise à jour
+  const scheduleNextUpdate = useCallback((interval: number) => {
+    if (!autoRefresh || !isActiveRef.current) return;
+
+    intervalRef.current = setTimeout(() => {
+      if (isActiveRef.current) {
+        loadDeliveryInfo();
+      }
+    }, interval);
+  }, [autoRefresh, loadDeliveryInfo]);
+
+  // Rafraîchissement manuel
+  const handleManualRefresh = useCallback(async () => {
+    if (isLoading) return;
+    
+    setRetryCount(0);
+    setError(null);
+    await loadDeliveryInfo();
+  }, [isLoading, loadDeliveryInfo]);
+
+  // Initialisation et démarrage du tracking
   useEffect(() => {
+    isActiveRef.current = true;
     loadDeliveryInfo();
 
     if (autoRefresh) {
-      intervalRef.current = setInterval(loadDeliveryInfo, refreshInterval);
+      scheduleNextUpdate(refreshInterval);
     }
 
     return () => {
+      isActiveRef.current = false;
+      
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
       }
+      
+      if (retryTimeoutRef.current) {
+        clearTimeout(retryTimeoutRef.current);
+      }
+      
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
     };
-  }, [deliveryId, autoRefresh, refreshInterval]);
+  }, [deliveryId, autoRefresh, refreshInterval, loadDeliveryInfo, scheduleNextUpdate]);
+
+  // Gestion de la visibilité de la page pour optimiser les requêtes
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        // Page cachée, ralentir les mises à jour
+        if (intervalRef.current) {
+          clearInterval(intervalRef.current);
+          scheduleNextUpdate(TRACKING_CONFIG.intervals.background);
+        }
+      } else {
+        // Page visible, reprendre le rythme normal
+        if (intervalRef.current) {
+          clearInterval(intervalRef.current);
+          scheduleNextUpdate(TRACKING_CONFIG.intervals.active);
+        }
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [scheduleNextUpdate]);
+
+  // Initialisation de la carte (optionnel - peut être remplacé par Google Maps ou autre)
+  const initializeMap = useCallback(() => {
+    if (!delivery || mapInitialized || !mapRef.current) return;
+
+    // Ici vous pouvez initialiser votre carte (Leaflet, Google Maps, etc.)
+    // Pour l'instant, on simule juste l'initialisation
+    setMapInitialized(true);
+  }, [delivery, mapInitialized]);
 
   useEffect(() => {
     if (delivery && !mapInitialized) {
       initializeMap();
     }
+  }, [delivery, mapInitialized, initializeMap]);
 
-    if (delivery && mapInitialized) {
-      updateMapMarkers();
-    }
-  }, [delivery, mapInitialized]);
-
-  const loadDeliveryInfo = async () => {
-    try {
-      setError(null);
-
-      const response = await fetch(
-        `/api/shared/deliveries/${deliveryId}/tracking`,
-      );
-
-      if (!response.ok) {
-        throw new Error("Impossible de charger les informations de livraison");
-      }
-
-      const data = await response.json();
-      setDelivery(data.delivery);
-      setLastUpdate(new Date());
-    } catch (error) {
-      setError(error instanceof Error ? error.message : "Erreur de chargement");
-    } finally {
-      setIsLoading(false);
-    }
+  // Calcul de la distance et ETA
+  const calculateDistance = (lat1: number, lng1: number, lat2: number, lng2: number): number => {
+    const R = 6371; // Rayon de la Terre en km
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLng = (lng2 - lng1) * Math.PI / 180;
+    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+      Math.sin(dLng/2) * Math.sin(dLng/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return R * c;
   };
 
-  const initializeMap = () => {
-    if (!delivery || !mapRef.current || mapInitialized) return;
-
-    // Initialisation de la carte (utilise l'API de maps disponible)
-    // Ici on simule l'initialisation - en production, utiliser Google Maps, Mapbox, etc.
-    const map = {
-      center: delivery.currentPosition
-        ? {
-            lat: delivery.currentPosition.latitude,
-            lng: delivery.currentPosition.longitude,
-          }
-        : { lat: 48.8566, lng: 2.3522 }, // Paris par défaut
-      zoom: 13,
-      markers: [],
+  // Rendu du statut de connexion
+  const renderConnectionStatus = () => {
+    const statusConfig = {
+      connecting: { icon: RefreshCw, color: 'text-yellow-500', text: 'Connexion...', bgColor: 'bg-yellow-50' },
+      connected: { icon: Wifi, color: 'text-green-500', text: 'Connecté', bgColor: 'bg-green-50' },
+      disconnected: { icon: WifiOff, color: 'text-gray-500', text: 'Hors ligne', bgColor: 'bg-gray-50' },
+      error: { icon: AlertCircle, color: 'text-red-500', text: 'Erreur', bgColor: 'bg-red-50' },
     };
 
-    mapInstanceRef.current = map;
-    setMapInitialized(true);
+    const { icon: Icon, color, text, bgColor } = statusConfig[connectionStatus];
 
-    // Créer le contenu HTML de la carte
-    if (mapRef.current) {
-      mapRef.current.innerHTML = `
-        <div class="w-full h-full bg-gray-100 rounded-lg flex items-center justify-center relative overflow-hidden">
-          <div class="absolute inset-0 bg-gradient-to-br from-blue-50 to-green-50"></div>
-          <div class="relative z-10 text-center p-4">
-            <div class="mb-4">
-              <div class="w-16 h-16 bg-blue-500 rounded-full mx-auto flex items-center justify-center mb-2">
-                <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20">
-                  <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" />
-                </svg>
-              </div>
-              <h3 class="font-semibold text-gray-900">Carte de suivi</h3>
-              <p class="text-sm text-gray-600">Position en temps réel</p>
+    return (
+      <div className={`flex items-center gap-2 p-2 rounded-md ${bgColor}`}>
+        <Icon className={`h-4 w-4 ${color} ${connectionStatus === 'connecting' ? 'animate-spin' : ''}`} />
+        <span className={`text-sm ${color}`}>{text}</span>
+        {lastUpdate && connectionStatus === 'connected' && (
+          <span className="text-xs text-gray-500 ml-auto">
+            {lastUpdate.toLocaleTimeString()}
+          </span>
+        )}
+        {retryCount > 0 && (
+          <Badge variant="outline" className="text-xs">
+            Tentative {retryCount}/{TRACKING_CONFIG.retries.maxAttempts}
+          </Badge>
+        )}
+      </div>
+    );
+  };
+
+  // Rendu des informations de livraison
+  const renderDeliveryInfo = () => {
+    if (!delivery) return null;
+
+    const distance = delivery.currentLocation && delivery.deliveryLocation.coordinates
+      ? calculateDistance(
+          delivery.currentLocation.latitude,
+          delivery.currentLocation.longitude,
+          delivery.deliveryLocation.coordinates.lat,
+          delivery.deliveryLocation.coordinates.lng
+        )
+      : null;
+
+    return (
+      <div className="space-y-4">
+        {/* Statut et progression */}
+        <div className="flex items-center justify-between">
+          <Badge variant={delivery.status === 'IN_TRANSIT' ? 'default' : 'secondary'}>
+            {delivery.status}
+          </Badge>
+          <span className="text-sm text-gray-600">{delivery.progress}% complété</span>
+        </div>
+
+        {/* Informations livreur */}
+        {delivery.deliverer && (
+          <div className="p-3 bg-blue-50 rounded-lg">
+            <h4 className="font-medium text-blue-900">Livreur</h4>
+            <p className="text-sm text-blue-800">{delivery.deliverer.name}</p>
+            <p className="text-xs text-blue-600">{delivery.deliverer.vehicle}</p>
+          </div>
+        )}
+
+        {/* Position actuelle */}
+        {delivery.currentLocation && (
+          <div className="p-3 bg-green-50 rounded-lg">
+            <div className="flex items-center gap-2 mb-2">
+              <MapPin className="h-4 w-4 text-green-600" />
+              <span className="font-medium text-green-900">Position actuelle</span>
             </div>
-            ${
-              delivery.currentPosition
-                ? `
-              <div class="space-y-2 text-sm">
-                <div class="bg-white/80 rounded-lg p-3">
-                  <div class="font-medium">Position actuelle</div>
-                  <div class="text-gray-600">
-                    ${delivery.currentPosition.latitude.toFixed(6)}, ${delivery.currentPosition.longitude.toFixed(6)}
-                  </div>
-                  <div class="text-xs text-gray-500 mt-1">
-                    Précision: ${delivery.currentPosition.accuracy}m
-                    ${delivery.currentPosition.speed ? ` • Vitesse: ${Math.round(delivery.currentPosition.speed)}km/h` : ""}
-                  </div>
-                </div>
-              </div>
-            `
-                : `
-              <div class="bg-orange-100 rounded-lg p-3">
-                <div class="text-orange-800 text-sm">
-                  Position non disponible
-                </div>
-              </div>
-            `
-            }
+            <p className="text-sm text-green-800">
+              Lat: {delivery.currentLocation.latitude.toFixed(6)}, 
+              Lng: {delivery.currentLocation.longitude.toFixed(6)}
+            </p>
+            {distance && (
+              <p className="text-xs text-green-600">
+                Distance restante: ~{distance.toFixed(1)} km
+              </p>
+            )}
+          </div>
+        )}
+
+        {/* ETA */}
+        {delivery.estimatedArrival && (
+          <div className="flex items-center gap-2 p-3 bg-orange-50 rounded-lg">
+            <Clock className="h-4 w-4 text-orange-600" />
+            <div>
+              <span className="font-medium text-orange-900">Arrivée estimée</span>
+              <p className="text-sm text-orange-800">
+                {new Date(delivery.estimatedArrival).toLocaleString()}
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Adresses */}
+        <div className="space-y-2">
+          <div className="text-sm">
+            <span className="font-medium text-gray-700">Récupération:</span>
+            <p className="text-gray-600">{delivery.pickupLocation.address}</p>
+          </div>
+          <div className="text-sm">
+            <span className="font-medium text-gray-700">Livraison:</span>
+            <p className="text-gray-600">{delivery.deliveryLocation.address}</p>
           </div>
         </div>
-      `;
-    }
-  };
-
-  const updateMapMarkers = () => {
-    if (!delivery || !mapInstanceRef.current) return;
-
-    // Mettre à jour les marqueurs de la carte
-    // En production, utiliser l'API de la carte pour mettre à jour les marqueurs
-  };
-
-  const getStatusInfo = (status: string) => {
-    const statusConfig = {
-      ACCEPTED: {
-        label: "Accepté",
-        color: "bg-blue-100 text-blue-800",
-        icon: "✅",
-      },
-      PICKED_UP: {
-        label: "Récupéré",
-        color: "bg-yellow-100 text-yellow-800",
-        icon: "📦",
-      },
-      IN_TRANSIT: {
-        label: "En cours",
-        color: "bg-green-100 text-green-800",
-        icon: "🚛",
-      },
-      DELIVERED: {
-        label: "Livré",
-        color: "bg-gray-100 text-gray-800",
-        icon: "🎉",
-      },
-    };
-
-    return (
-      statusConfig[status as keyof typeof statusConfig] || {
-        label: status,
-        color: "bg-gray-100 text-gray-800",
-        icon: "📦",
-      }
+      </div>
     );
   };
 
-  const formatTimeAgo = (date: Date) => {
-    const now = new Date();
-    const diffMs = now.getTime() - date.getTime();
-    const diffMinutes = Math.floor(diffMs / (1000 * 60));
-
-    if (diffMinutes < 1) return "À l'instant";
-    if (diffMinutes < 60) return `Il y a ${diffMinutes}min`;
-
-    const diffHours = Math.floor(diffMinutes / 60);
-    if (diffHours < 24)
-      return `Il y a ${diffHours}h${diffMinutes % 60 > 0 ? ` ${diffMinutes % 60}min` : ""}`;
-
-    return date.toLocaleDateString("fr-FR");
-  };
-
-  if (isLoading) {
+  if (isLoading && !delivery) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <MapPin className="w-5 h-5" />
-            Suivi en temps réel
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center justify-center h-64">
-            <RefreshCw className="w-8 h-8 animate-spin text-gray-400" />
-          </div>
-        </CardContent>
-      </Card>
+      <div className="p-6 text-center">
+        <RefreshCw className="h-8 w-8 animate-spin mx-auto mb-4 text-blue-500" />
+        <p className="text-gray-600">Chargement du suivi...</p>
+      </div>
     );
   }
-
-  if (error || !delivery) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <AlertTriangle className="w-5 h-5 text-red-500" />
-            Erreur de suivi
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Alert>
-            <AlertTriangle className="h-4 w-4" />
-            <AlertDescription>
-              {error || "Impossible de charger les informations de suivi"}
-            </AlertDescription>
-          </Alert>
-          <Button onClick={loadDeliveryInfo} variant="outline" className="mt-4">
-            <RefreshCw className="w-4 h-4 mr-2" />
-            Réessayer
-          </Button>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  const statusInfo = getStatusInfo(delivery.status);
 
   return (
-    <div className="space-y-6">
-      {/* En-tête avec informations principales */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center gap-2">
-              <MapPin className="w-5 h-5" />
-              Suivi {delivery.trackingCode}
-            </CardTitle>
-            <Badge className={statusInfo.color}>
-              {statusInfo.icon} {statusInfo.label}
-            </Badge>
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {/* Informations du livreur */}
-          <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
-                <Truck className="w-5 h-5 text-white" />
-              </div>
-              <div>
-                <div className="font-medium">{delivery.deliverer.name}</div>
-                <div className="text-sm text-gray-600">
-                  {delivery.deliverer.vehicle}
-                </div>
-              </div>
-            </div>
-            <div className="flex gap-2">
-              <Button size="sm" variant="outline">
-                <Phone className="w-4 h-4 mr-2" />
-                Appeler
-              </Button>
-              <Button size="sm" variant="outline">
-                <MessageCircle className="w-4 h-4 mr-2" />
-                Message
-              </Button>
-            </div>
-          </div>
+    <div className="space-y-4">
+      {/* Statut de connexion */}
+      {renderConnectionStatus()}
 
-          {/* Estimation d'arrivée */}
-          {delivery.estimatedArrival && (
-            <div className="flex items-center gap-2 p-3 bg-blue-50 rounded-lg">
-              <Clock className="w-5 h-5 text-blue-600" />
-              <div>
-                <div className="font-medium text-blue-900">
-                  Arrivée estimée :{" "}
-                  {new Date(delivery.estimatedArrival).toLocaleTimeString(
-                    "fr-FR",
-                    {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    },
-                  )}
-                </div>
-                <div className="text-sm text-blue-700">
-                  Dans environ{" "}
-                  {Math.round(
-                    (new Date(delivery.estimatedArrival).getTime() -
-                      Date.now()) /
-                      (1000 * 60),
-                  )}{" "}
-                  minutes
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Dernière mise à jour */}
-          <div className="flex items-center justify-between text-sm text-gray-600">
-            <span>Dernière mise à jour :</span>
-            <div className="flex items-center gap-2">
-              <span>{lastUpdate ? formatTimeAgo(lastUpdate) : "Jamais"}</span>
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={loadDeliveryInfo}
-                disabled={isLoading}
-              >
-                <RefreshCw
-                  className={`w-4 h-4 ${isLoading ? "animate-spin" : ""}`}
-                />
-              </Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      {/* Messages d'erreur */}
+      {error && (
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription className="flex items-center justify-between">
+            <span>{error}</span>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={handleManualRefresh}
+              disabled={isLoading}
+            >
+              Réessayer
+            </Button>
+          </AlertDescription>
+        </Alert>
+      )}
 
       {/* Carte */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Navigation className="w-5 h-5" />
-            Position en temps réel
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div ref={mapRef} className="w-full h-96 rounded-lg border" />
-        </CardContent>
-      </Card>
-
-      {/* Étapes du trajet */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Package className="w-5 h-5" />
-            Étapes de livraison
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {/* Point de collecte */}
-            <div className="flex items-start gap-3">
-              <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0">
-                <Package className="w-4 h-4 text-white" />
-              </div>
-              <div className="flex-1">
-                <div className="font-medium">Point de collecte</div>
-                <div className="text-sm text-gray-600">
-                  {delivery.pickupLocation.address}
-                </div>
-                <Badge variant="outline" className="mt-1">
-                  {delivery.status === "ACCEPTED" ? "En attente" : "Terminé"}
-                </Badge>
-              </div>
-            </div>
-
-            {/* Ligne de connexion */}
-            <div className="ml-4 w-0.5 h-8 bg-gray-200"></div>
-
-            {/* Point de livraison */}
-            <div className="flex items-start gap-3">
-              <div
-                className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
-                  delivery.status === "DELIVERED"
-                    ? "bg-green-500"
-                    : "bg-gray-300"
-                }`}
-              >
-                <MapPin className="w-4 h-4 text-white" />
-              </div>
-              <div className="flex-1">
-                <div className="font-medium">Point de livraison</div>
-                <div className="text-sm text-gray-600">
-                  {delivery.deliveryLocation.address}
-                </div>
-                <Badge variant="outline" className="mt-1">
-                  {delivery.status === "DELIVERED" ? "Livré" : "En cours"}
-                </Badge>
-              </div>
-            </div>
+      <div 
+        ref={mapRef} 
+        className="w-full h-80 bg-gray-100 rounded-lg border"
+        style={{ minHeight: '320px' }}
+      >
+        {/* Ici sera rendue la carte interactive */}
+        <div className="flex items-center justify-center h-full text-gray-500">
+          <div className="text-center">
+            <Navigation className="h-12 w-12 mx-auto mb-2" />
+            <p>Carte interactive en cours de développement</p>
+            <p className="text-sm">Position mise à jour en temps réel</p>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
+
+      {/* Informations de livraison */}
+      {renderDeliveryInfo()}
+
+      {/* Contrôles */}
+      <div className="flex gap-2">
+        <Button 
+          variant="outline" 
+          onClick={handleManualRefresh}
+          disabled={isLoading}
+          className="flex-1"
+        >
+          <RefreshCw className={`mr-2 h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+          Actualiser
+        </Button>
+        
+        {autoRefresh && (
+          <Button 
+            variant="outline" 
+            onClick={() => window.location.reload()}
+            className="flex-1"
+          >
+            <Navigation className="mr-2 h-4 w-4" />
+            Recharger
+          </Button>
+        )}
+      </div>
+
+      {/* Historique des positions (optionnel) */}
+      {delivery?.trackingHistory && delivery.trackingHistory.length > 0 && (
+        <div className="mt-6">
+          <h4 className="font-medium mb-3">Historique du trajet</h4>
+          <div className="space-y-2 max-h-40 overflow-y-auto">
+            {delivery.trackingHistory.slice(-5).reverse().map((update) => (
+              <div key={update.id} className="flex items-center gap-3 p-2 bg-gray-50 rounded text-sm">
+                <MapPin className="h-3 w-3 text-gray-400" />
+                <div className="flex-1">
+                  <span className="text-gray-600">
+                    {new Date(update.timestamp).toLocaleTimeString()}
+                  </span>
+                  <p className="text-xs text-gray-500">
+                    {update.location.address || `${update.location.latitude.toFixed(4)}, ${update.location.longitude.toFixed(4)}`}
+                  </p>
+                </div>
+                <Badge variant="outline" className="text-xs">
+                  {update.status}
+                </Badge>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -79,6 +79,10 @@ model User {
   clientDeliveryWarranties DeliveryWarranty[] @relation("ClientDeliveryWarranties")
   warrantyClaims    WarrantyClaim[]
   
+  // Chat system relations
+  chatMessages      ChatMessage[]
+  chatParticipants  ChatParticipant[]
+  
   @@index([email])
   @@index([role])
 }

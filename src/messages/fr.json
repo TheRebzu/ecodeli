@@ -1521,25 +1521,131 @@
     "subscription": "Subscription"
   },
   "deliverer": {
-    "announcements": "Announcements",
+    "announcements": "Annonces",
     "deliveries": {
-      "history": "History"
+      "history": "Historique"
     },
-      "documents": "Documents",
+    "documents": "Documents",
     "planning": "Planning",
     "profile": "Profil",
-    "recruitment": "Recruitment",
+    "recruitment": {
+      "page": {
+        "title": "Processus de Recrutement",
+        "description": "Suivez votre candidature et complétez votre dossier de livreur"
+      },
+      "auth": {
+        "required_title": "Connexion requise",
+        "required_description": "Vous devez être connecté pour accéder à cette page"
+      },
+      "status": {
+        "application_status": "Statut de la candidature",
+        "draft": "Brouillon",
+        "pending": "En attente",
+        "under_review": "En cours d'examen",
+        "approved": "Approuvé",
+        "rejected": "Rejeté",
+        "completion_progress": "Progression : ",
+        "congratulations": "Félicitations !",
+        "approved_message": "Votre candidature a été approuvée. Vous pouvez maintenant commencer à livrer.",
+        "consultation_mode": "Mode consultation",
+        "consultation_message": "Vous consultez votre dossier de candidature validé. Vous êtes maintenant actif en tant que livreur EcoDeli.",
+        "rejection_reason": "Raison du refus"
+      },
+      "tabs": {
+        "personal_info": "Informations personnelles",
+        "professional_info": "Informations professionnelles",
+        "documents": "Documents"
+      },
+      "personal": {
+        "title": "Informations personnelles",
+        "first_name": "Prénom",
+        "last_name": "Nom",
+        "email": "Adresse email",
+        "phone": "Téléphone",
+        "date_of_birth": "Date de naissance",
+        "nationality": "Nationalité",
+        "address": "Adresse complète"
+      },
+      "professional": {
+        "title": "Informations professionnelles",
+        "vehicle_type": "Type de véhicule",
+        "select_vehicle": "Sélectionnez votre véhicule",
+        "vehicle_model": "Modèle du véhicule",
+        "license_number": "Numéro de permis",
+        "experience": "Années d'expérience"
+      },
+      "vehicles": {
+        "car": "Voiture",
+        "bike": "Vélo",
+        "scooter": "Scooter",
+        "truck": "Camionnette",
+        "walking": "À pied"
+      },
+      "documents": {
+        "title": "Documents",
+        "empty": "Aucun document téléchargé",
+        "uploaded_on": "Téléchargé le",
+        "rejection_reason": "Raison du refus",
+        "types": {
+          "identity_card": "Pièce d'identité",
+          "driving_license": "Permis de conduire",
+          "vehicle_registration": "Carte grise",
+          "insurance": "Attestation d'assurance",
+          "criminal_record": "Extrait de casier judiciaire",
+          "bank_rib": "RIB bancaire"
+        },
+        "statuses": {
+          "pending": "En attente",
+          "approved": "Approuvé",
+          "rejected": "Refusé"
+        }
+      },
+      "upload_dialog": {
+        "title": "Télécharger un document",
+        "description": "Sélectionnez le type de document et le fichier à télécharger",
+        "document_type": "Type de document",
+        "select_type": "Sélectionnez le type",
+        "file": "Fichier"
+      },
+      "submit": {
+        "ready_title": "Prêt à soumettre",
+        "ready_description": "Votre dossier est complet. Vous pouvez maintenant soumettre votre candidature.",
+        "requirements_not_met": "Veuillez compléter toutes les sections avant de soumettre"
+      },
+      "actions": {
+        "save_draft": "Sauvegarder le brouillon",
+        "submit_application": "Soumettre la candidature",
+        "upload_document": "Télécharger un document",
+        "cancel": "Annuler",
+        "upload": "Télécharger"
+      },
+      "success": {
+        "application_submitted": "Candidature soumise",
+        "application_submitted_desc": "Votre candidature a été soumise avec succès",
+        "application_saved": "Brouillon sauvegardé",
+        "application_saved_desc": "Vos modifications ont été sauvegardées",
+        "document_uploaded": "Document téléchargé",
+        "document_uploaded_desc": "Le document a été téléchargé avec succès"
+      },
+      "error": {
+        "fetch_failed": "Erreur de chargement",
+        "save_failed": "Erreur de sauvegarde",
+        "upload_failed": "Erreur de téléchargement",
+        "download_failed": "Erreur de téléchargement",
+        "generic": "Une erreur est survenue"
+      }
+    },
     "wallet": {
-      "withdrawal": "Withdrawal"
+      "withdrawal": "Retrait"
     },
     "title": "Titre",
-    "completed": "Completed",
+    "completed": "Terminé",
     "routes": {
       "notifications": "Notifications"
     },
     "dashboard": "Tableau de bord",
-    "delivery": "Delivery",
-    "opportunities": "Opportunities"
+    "delivery": "Livraison",
+    "opportunities": "Opportunités"
   },
   "delivery": {
     "title": "Titre",
@@ -4401,6 +4507,58 @@
         "title": "Gestion des Contrats",
         "description": "Gérer les contrats avec les commerçants et prestataires"
       }
+    }
+  },
+  "tracking": {
+    "title": "Suivi de livraison",
+    "loading": "Chargement du suivi",
+    "error": "Erreur de tracking",
+    "noData": "Aucune information de suivi disponible",
+    "status": {
+      "pending": "En attente",
+      "accepted": "Acceptée",
+      "picked_up": "Récupérée",
+      "in_transit": "En cours",
+      "delivered": "Livrée",
+      "cancelled": "Annulée"
+    },
+    "connection": {
+      "connecting": "Connexion...",
+      "connected": "Temps réel actif",
+      "error": "Connexion interrompue",
+      "lastUpdate": "Mis à jour",
+      "retry": "Tentative"
+    },
+    "map": {
+      "title": "Position en temps réel",
+      "loading": "Chargement de la carte temps réel..."
+    },
+    "progress": {
+      "title": "Progression de la livraison",
+      "advancement": "Avancement",
+      "estimatedArrival": "Arrivée estimée"
+    },
+    "route": {
+      "title": "Itinéraire",
+      "pickup": "Point de récupération",
+      "delivery": "Point de livraison"
+    },
+    "deliverer": {
+      "title": "Votre livreur",
+      "vehicle": "Véhicule",
+      "call": "Appeler",
+      "message": "Message"
+    },
+    "chat": {
+      "title": "Discussion"
+    },
+    "history": {
+      "title": "Historique"
+    },
+    "buttons": {
+      "back": "Retour",
+      "refresh": "Actualiser",
+      "retry": "Réessayer"
     }
   },
   "": {

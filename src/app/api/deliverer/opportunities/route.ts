@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getUserFromSession } from "@/lib/auth/utils";
+import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { z } from "zod";
 
@@ -51,10 +52,53 @@ const DEFAULT_PAGE = 1;
 const DEFAULT_LIMIT = 20;
 
 export async function GET(request: NextRequest) {
-  const user = await getUserFromSession(request);
-  if (!user || user.role !== "DELIVERER") {
+  console.log('🔍 [API] /api/deliverer/opportunities - Tentative de récupération utilisateur');
+  
+  // Essayer d'abord la méthode standard
+  let user = await getUserFromSession(request);
+  
+  // Si la première méthode échoue, essayer directement avec auth()
+  if (!user) {
+    console.log('🔍 [API] Première méthode échouée, essai avec auth() direct');
+    try {
+      const session = await auth();
+      if (session?.user?.id) {
+        user = await db.user.findUnique({
+          where: { id: session.user.id },
+          include: {
+            profile: true,
+            deliverer: true
+          }
+        });
+        console.log('🔍 [API] Utilisateur récupéré via auth() direct:', !!user);
+      }
+    } catch (error) {
+      console.log('❌ [API] Erreur avec auth() direct:', error);
+    }
+  }
+  
+  console.log('🔍 [API] Utilisateur final récupéré:', {
+    user: user ? { id: user.id, role: user.role, email: user.email } : null,
+    hasUser: !!user,
+    userRole: user?.role
+  });
+  
+  if (!user) {
+    console.log('❌ [API] Unauthorized - pas d\'utilisateur');
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+  
+  // Vérification du rôle avec logs détaillés
+  if (user.role !== "DELIVERER") {
+    console.log('❌ [API] Forbidden - rôle incorrect:', {
+      currentRole: user.role,
+      expectedRole: "DELIVERER",
+      userId: user.id
+    });
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+  
+  console.log('✅ [API] Utilisateur autorisé, traitement de la requête');
 
   try {
     const { searchParams } = new URL(request.url);
