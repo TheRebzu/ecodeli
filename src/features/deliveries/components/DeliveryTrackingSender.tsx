@@ -158,7 +158,7 @@ export const DeliveryTrackingSender: React.FC<DeliveryTrackingSenderProps> = ({ 
 
   // Empêche la navigation tant que la livraison n'est pas terminée
   useEffect(() => {
-    if (trackingActive) {
+    if (trackingActive && typeof window !== 'undefined') {
       const handleBeforeUnload = (e: BeforeUnloadEvent) => {
         e.preventDefault();
         e.returnValue = '';
@@ -176,7 +176,7 @@ export const DeliveryTrackingSender: React.FC<DeliveryTrackingSenderProps> = ({ 
     if (!trackingActive) return;
     const handleRouteChange = (url: string) => {
       // Si on tente de naviguer ailleurs, afficher le dialog
-      if (window.location.pathname !== url) {
+      if (typeof window !== 'undefined' && window.location.pathname !== url) {
         setShowDialog(true);
         pendingNavigation.current = url;
         // Empêche la navigation
