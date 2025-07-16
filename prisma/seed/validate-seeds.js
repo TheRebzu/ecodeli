@@ -106,7 +106,7 @@ console.log(
 
 if (missingInDeps.length === 0 && missingFiles.length === 0) {
   console.log("\n🎉 Le système de seeding est complet et cohérent !");
-  console.log("💡 Vous pouvez maintenant exécuter: npm run seed");
+  console.log("💡 Vous pouvez maintenant exécuter: pnpm run seed");
 } else {
   console.log(
     "\n⚠️  Veuillez corriger les incohérences avant d'exécuter le seeding.",

@@ -81,6 +81,9 @@ COPY --from=builder /app/pnpm-workspace.yaml ./
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/scripts ./scripts
 
+# Copie des node_modules depuis l'étape de build
+COPY --from=builder /app/node_modules ./node_modules
+
 # Copie du build de l'application Next.js
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
@@ -108,6 +111,7 @@ ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
+ENV PATH="/app/node_modules/.bin:$PATH"
 
 # Utilisation de dumb-init pour gérer correctement les signaux
 ENTRYPOINT ["/usr/bin/dumb-init", "--"]

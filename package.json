@@ -16,6 +16,7 @@
     "fix-ts": "node fix-ts-simple.js && pnpm run type-check",
     "prisma:merge": "node prisma/merge-schemas.js",
     "prisma:generate": "pnpm run prisma:merge && prisma generate",
+    "prisma:migrate": "pnpm run prisma:merge && prisma migrate deploy",
     "i18n:extract": "node scripts/extract-i18n-labels.js",
     "i18n:clean": "node scripts/clean-i18n.js",
     "i18n:fix-specific": "node scripts/fix-specific-keys.js",

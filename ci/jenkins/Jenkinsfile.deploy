@@ -150,7 +150,7 @@ pipeline {
                         script {
                             sh """
                                 echo "Running smoke tests..."
-                                npm run test:smoke:${params.ENVIRONMENT}
+                                pnpm run test:smoke:${params.ENVIRONMENT}
                             """
                         }
                     }
@@ -161,7 +161,7 @@ pipeline {
                         script {
                             sh """
                                 echo "Running API tests..."
-                                npm run test:api:${params.ENVIRONMENT}
+                                pnpm run test:api:${params.ENVIRONMENT}
                             """
                         }
                     }
@@ -172,7 +172,7 @@ pipeline {
                         script {
                             sh """
                                 echo "Checking database migrations..."
-                                npm run db:migrate:status
+                                pnpm run db:migrate:status
                             """
                         }
                     }
@@ -188,7 +188,7 @@ pipeline {
                 script {
                     echo "Running performance baseline tests..."
                     sh """
-                        npm run test:performance:baseline
+                        pnpm run test:performance:baseline
                     """
                 }
             }
