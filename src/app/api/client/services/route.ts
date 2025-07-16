@@ -12,7 +12,11 @@ export async function GET(request: NextRequest) {
       "🔍 [GET /api/client/services] Début de la requête - SERVICES À LA PERSONNE UNIQUEMENT",
     );
 
-    const user = await requireRole(request, ["CLIENT"]);
+    const userOrResponse = await requireRole(request, ["CLIENT"]);
+    if (userOrResponse instanceof NextResponse) {
+      return userOrResponse;
+    }
+    const user = userOrResponse;
 
     console.log("✅ Utilisateur authentifié:", user.id, user.role);
 
@@ -145,7 +149,11 @@ export async function POST(request: NextRequest) {
       "🔍 [POST /api/client/services] Demande de service - PRESTATIONS À LA PERSONNE UNIQUEMENT",
     );
 
-    const user = await requireRole(request, ["CLIENT"]);
+    const userOrResponse = await requireRole(request, ["CLIENT"]);
+    if (userOrResponse instanceof NextResponse) {
+      return userOrResponse;
+    }
+    const user = userOrResponse;
 
     console.log("✅ Utilisateur authentifié:", user.id, user.role);
 

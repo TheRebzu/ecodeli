@@ -42,18 +42,14 @@ export async function POST(
       const application = await db.serviceApplication.findUnique({
         where: { id: applicationId },
         include: {
-          serviceRequest: {
+          announcement: {
             include: {
               author: true,
             },
           },
           provider: {
             include: {
-              user: {
-                include: {
-                  profile: true,
-                },
-              },
+              profile: true,
             },
           },
         },
@@ -68,7 +64,7 @@ export async function POST(
       }
 
       // Vérifier que le client est bien l'auteur de la demande de service
-      if (application.serviceRequest.authorId !== user.id) {
+      if (application.announcement.authorId !== user.id) {
         console.log("❌ Accès non autorisé à cette candidature");
         return NextResponse.json(
           { error: "Accès non autorisé" },
@@ -120,13 +116,13 @@ export async function POST(
         },
         metadata: {
           applicationId: applicationId,
-          serviceRequestId: application.serviceRequestId,
+          announcementId: application.announcementId,
           providerId: application.providerId,
-          proposedPrice: application.proposedPrice.toString(),
-          estimatedDuration: application.estimatedDuration.toString(),
+          proposedPrice: application.proposedPrice?.toString() || "0",
+          estimatedDuration: application.estimatedDuration?.toString() || "0",
           type: "service_payment",
         },
-        description: `Paiement service - ${application.serviceRequest.title}`,
+        description: `Paiement service - ${application.announcement.title}`,
         receipt_email: user.email,
       });
 
@@ -142,7 +138,7 @@ export async function POST(
           stripePaymentId: paymentIntent.id,
           metadata: {
             applicationId: applicationId,
-            serviceRequestId: application.serviceRequestId,
+            announcementId: application.announcementId,
             providerId: application.providerId,
             proposedPrice: application.proposedPrice,
             estimatedDuration: application.estimatedDuration,
@@ -167,13 +163,13 @@ export async function POST(
       // Créer une notification pour le prestataire
       await db.notification.create({
         data: {
-          userId: application.provider.user.id,
+          userId: application.provider.id,
           title: "Paiement en cours",
-          message: `Le client a initié le paiement pour le service "${application.serviceRequest.title}".`,
+          message: `Le client a initié le paiement pour le service "${application.announcement.title}".`,
           type: "SERVICE_PAYMENT_PENDING",
           data: {
             applicationId: applicationId,
-            serviceRequestId: application.serviceRequestId,
+            announcementId: application.announcementId,
             paymentId: payment.id,
             amount: validatedData.amount,
           },
@@ -182,22 +178,40 @@ export async function POST(
 
       console.log("✅ Notification créée pour le prestataire");
 
-      // Créer une intervention pour le prestataire (en attente de confirmation)
-      const intervention = await db.serviceIntervention.create({
+      // Créer d'abord un booking après validation du paiement
+      const booking = await db.booking.create({
         data: {
-          providerId: application.providerId,
           clientId: user.id,
-          serviceRequestId: application.serviceRequestId,
-          title: application.serviceRequest.title,
-          description: application.serviceRequest.description,
+          providerId: application.providerId,
+          serviceId: application.announcementId, // Utiliser l'annonce comme service
+          status: "CONFIRMED",
           scheduledDate: new Date(), // À adapter selon les besoins
-          estimatedDuration: application.estimatedDuration,
-          status: "PAYMENT_PENDING",
-          paymentId: payment.id,
+          scheduledTime: "09:00", // Heure par défaut, à adapter
+          duration: application.estimatedDuration || 60,
+          address: {
+            address: "À définir",
+            city: "À définir", 
+            postalCode: "00000",
+            lat: 0,
+            lng: 0
+          },
+          totalPrice: validatedData.amount,
+          notes: `Réservation automatique suite au paiement de la candidature ${applicationId}`,
         },
       });
 
-      console.log("✅ Intervention créée (en attente):", intervention.id);
+      console.log("✅ Booking créé:", booking.id);
+
+      // Créer l'intervention liée au booking
+      const intervention = await db.intervention.create({
+        data: {
+          bookingId: booking.id,
+          providerId: application.providerId,
+          isCompleted: false,
+        },
+      });
+
+      console.log("✅ Intervention créée (liée au booking):", intervention.id);
 
       return NextResponse.json({
         success: true,
@@ -211,9 +225,14 @@ export async function POST(
           paymentIntentId: paymentIntent.id,
           clientSecret: paymentIntent.client_secret,
         },
+        booking: {
+          id: booking.id,
+          status: booking.status,
+          scheduledDate: booking.scheduledDate,
+        },
         intervention: {
           id: intervention.id,
-          status: intervention.status,
+          isCompleted: intervention.isCompleted,
         },
       });
     } catch (validationError) {

@@ -36,8 +36,7 @@ export async function GET(
                 firstName: true,
                 lastName: true,
                 avatar: true,
-                phone: true,
-                email: true,
+                phone: true
               },
             },
           },
@@ -46,43 +45,16 @@ export async function GET(
           include: {
             provider: {
               include: {
-                user: {
-                  include: {
-                    profile: {
-                      select: {
-                        firstName: true,
-                        lastName: true,
-                        avatar: true,
-                        phone: true,
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
-          orderBy: {
-            createdAt: "desc",
-          },
-        },
-        bookings: {
-          include: {
-            provider: {
-              include: {
-                user: {
-                  include: {
-                    profile: {
-                      select: {
-                        firstName: true,
-                        lastName: true,
-                        avatar: true,
-                        phone: true,
-                      },
-                    },
-                  },
-                },
-              },
-            },
+                profile: {
+                  select: {
+                    firstName: true,
+                    lastName: true,
+                    avatar: true,
+                    phone: true
+                  }
+                }
+              }
+            }
           },
           orderBy: {
             createdAt: "desc",
@@ -91,8 +63,7 @@ export async function GET(
         _count: {
           select: {
             applications: true,
-            bookings: true,
-            reviews: true,
+            reviews: true
           },
         },
       },
@@ -154,9 +125,9 @@ export async function GET(
         id: app.id,
         provider: {
           id: app.provider.id,
-          name: `${app.provider.user.profile?.firstName || ""} ${app.provider.user.profile?.lastName || ""}`.trim(),
-          avatar: app.provider.user.profile?.avatar,
-          phone: app.provider.user.profile?.phone,
+          name: `${app.provider.profile?.firstName || ""} ${app.provider.profile?.lastName || ""}`.trim(),
+          avatar: app.provider.profile?.avatar,
+          phone: app.provider.profile?.phone,
           rating: app.provider.averageRating || 0,
         },
         price: app.price,
@@ -166,26 +137,12 @@ export async function GET(
         createdAt: app.createdAt.toISOString(),
       })),
 
-      // Réservations
-      bookings: serviceRequest.bookings.map((booking) => ({
-        id: booking.id,
-        provider: {
-          id: booking.provider.id,
-          name: `${booking.provider.user.profile?.firstName || ""} ${booking.provider.user.profile?.lastName || ""}`.trim(),
-          avatar: booking.provider.user.profile?.avatar,
-          phone: booking.provider.user.profile?.phone,
-        },
-        status: booking.status,
-        scheduledDate: booking.scheduledDate?.toISOString(),
-        totalPrice: booking.totalPrice,
-        notes: booking.notes,
-        createdAt: booking.createdAt.toISOString(),
-      })),
+      // Réservations (vides pour l'instant car pas de relation directe)
+      bookings: [],
 
       // Statistiques
       stats: {
         applicationsCount: serviceRequest._count.applications,
-        bookingsCount: serviceRequest._count.bookings,
         reviewsCount: serviceRequest._count.reviews,
       },
     };

@@ -44,18 +44,35 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Créer une intervention de test pour le prestataire connecté
-    const intervention = await db.serviceIntervention.create({
+    // Créer d'abord un booking de test
+    const booking = await db.booking.create({
       data: {
-        providerId: provider.id, // Utiliser l'ID du prestataire connecté
         clientId: client.id,
-        serviceRequestId: serviceRequest.id,
-        title: "Test Intervention - Ménage",
-        description: "Intervention de test pour vérifier l'affichage",
+        providerId: provider.id,
+        serviceId: serviceRequest.id,
+        status: "CONFIRMED",
         scheduledDate: new Date(Date.now() + 24 * 60 * 60 * 1000), // Demain
-        estimatedDuration: 120, // 2 heures
-        status: "SCHEDULED",
-        notes: "Intervention créée pour test",
+        scheduledTime: "10:00",
+        duration: 120, // 2 heures
+        address: {
+          address: "123 Rue de Test",
+          city: "Paris",
+          postalCode: "75001",
+          lat: 48.8566,
+          lng: 2.3522
+        },
+        totalPrice: 50.0,
+        notes: "Booking de test pour l'intervention",
+      },
+    });
+
+    // Créer une intervention de test liée au booking
+    const intervention = await db.intervention.create({
+      data: {
+        bookingId: booking.id,
+        providerId: provider.id,
+        isCompleted: false,
+        report: "Intervention créée pour test",
       },
     });
 
@@ -63,12 +80,18 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
+      booking: {
+        id: booking.id,
+        status: booking.status,
+        scheduledDate: booking.scheduledDate,
+        duration: booking.duration,
+      },
       intervention: {
         id: intervention.id,
-        title: intervention.title,
-        status: intervention.status,
-        scheduledDate: intervention.scheduledDate,
+        bookingId: intervention.bookingId,
         providerId: intervention.providerId,
+        isCompleted: intervention.isCompleted,
+        createdAt: intervention.createdAt,
       },
     });
   } catch (error) {

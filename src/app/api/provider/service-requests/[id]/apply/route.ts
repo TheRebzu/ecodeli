@@ -27,7 +27,7 @@ export async function POST(
 
     console.log("✅ Prestataire authentifié:", user.id, user.role);
 
-    const { id: serviceRequestId } = await params;
+    const { id: announcementId } = await params;
     const body = await request.json();
 
     try {
@@ -50,7 +50,7 @@ export async function POST(
       // Vérifier que la demande de service existe et est active
       const serviceRequest = await db.announcement.findUnique({
         where: {
-          id: serviceRequestId,
+          id: announcementId,
           type: "HOME_SERVICE",
           status: "ACTIVE",
         },
@@ -74,8 +74,8 @@ export async function POST(
       // Vérifier que le prestataire n'a pas déjà candidaté
       const existingApplication = await db.serviceApplication.findFirst({
         where: {
-          serviceRequestId: serviceRequestId,
-          providerId: provider.id,
+          announcementId: announcementId,
+          providerId: provider.userId, // Utiliser userId car la relation ServiceApplication.provider -> User
         },
       });
 
@@ -94,8 +94,8 @@ export async function POST(
       // Créer la candidature
       const application = await db.serviceApplication.create({
         data: {
-          serviceRequestId: serviceRequestId,
-          providerId: provider.id,
+          announcementId: announcementId,
+          providerId: provider.userId, // Utiliser userId car la relation ServiceApplication.provider -> User
           proposedPrice: validatedData.price,
           estimatedDuration: validatedData.estimatedDuration,
           message: validatedData.message,
@@ -105,14 +105,10 @@ export async function POST(
         include: {
           provider: {
             include: {
-              user: {
-                include: {
-                  profile: true,
-                },
-              },
+              profile: true,
             },
           },
-          serviceRequest: {
+          announcement: {
             include: {
               author: {
                 include: {
@@ -134,9 +130,9 @@ export async function POST(
           message: `Un prestataire a candidaté à votre demande "${serviceRequest.title}"`,
           type: "SERVICE_APPLICATION",
           data: {
-            serviceRequestId: serviceRequestId,
+            announcementId: announcementId,
             applicationId: application.id,
-            providerId: provider.id,
+            providerId: provider.userId,
           },
         },
       });
@@ -167,7 +163,7 @@ export async function POST(
       console.error("❌ Erreur de validation:", validationError);
       if (validationError instanceof z.ZodError) {
         return NextResponse.json(
-          { error: "Données invalides", details: validationError.errors },
+          { error: "Données invalides", details: validationError.issues },
           { status: 400 },
         );
       }

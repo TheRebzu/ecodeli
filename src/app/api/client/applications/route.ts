@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
 
     // Construction des filtres - candidatures pour les demandes du client
     const where: any = {
-      serviceRequest: {
+      announcement: {
         authorId: user.id,
       },
     };
@@ -45,7 +45,7 @@ export async function GET(request: NextRequest) {
     }
 
     if (params.serviceRequestId) {
-      where.serviceRequestId = (await params).serviceRequestId;
+      where.announcementId = (await params).serviceRequestId;
     }
 
     console.log("🔍 Requête base de données candidatures avec filtres...");
@@ -56,22 +56,27 @@ export async function GET(request: NextRequest) {
           where,
           include: {
             provider: {
-              include: {
-                user: {
-                  include: {
-                    profile: {
-                      select: {
-                        firstName: true,
-                        lastName: true,
-                        avatar: true,
-                        city: true,
-                      },
-                    },
+              select: {
+                id: true,
+                profile: {
+                  select: {
+                    firstName: true,
+                    lastName: true,
+                    avatar: true,
+                    city: true,
+                  },
+                },
+                provider: {
+                  select: {
+                    id: true,
+                    businessName: true,
+                    averageRating: true,
+                    specialties: true,
                   },
                 },
               },
             },
-            serviceRequest: {
+            announcement: {
               select: {
                 id: true,
                 title: true,
@@ -98,7 +103,7 @@ export async function GET(request: NextRequest) {
       // Transformer les données pour correspondre à l'interface frontend
       const transformedApplications = applications.map((application) => ({
         id: application.id,
-        serviceRequestId: application.serviceRequestId,
+        serviceRequestId: application.announcementId,
         providerId: application.providerId,
         proposedPrice: application.proposedPrice,
         estimatedDuration: application.estimatedDuration,
@@ -109,27 +114,23 @@ export async function GET(request: NextRequest) {
         updatedAt: application.updatedAt.toISOString(),
         provider: {
           id: application.provider.id,
-          businessName: application.provider.businessName,
-          hourlyRate: application.provider.hourlyRate,
-          averageRating: application.provider.averageRating,
-          totalBookings: application.provider.totalBookings,
-          user: {
-            id: application.provider.user.id,
-            profile: {
-              firstName: application.provider.user.profile?.firstName || "",
-              lastName: application.provider.user.profile?.lastName || "",
-              avatar: application.provider.user.profile?.avatar,
-              city: application.provider.user.profile?.city,
-            },
+          profile: {
+            firstName: application.provider.profile?.firstName || "",
+            lastName: application.provider.profile?.lastName || "",
+            avatar: application.provider.profile?.avatar,
+            city: application.provider.profile?.city,
           },
+          businessName: application.provider.provider?.businessName,
+          averageRating: application.provider.provider?.averageRating || 0,
+          specialties: application.provider.provider?.specialties || [],
         },
         serviceRequest: {
-          id: application.serviceRequest.id,
-          title: application.serviceRequest.title,
-          description: application.serviceRequest.description,
-          basePrice: application.serviceRequest.basePrice,
-          status: application.serviceRequest.status,
-          createdAt: application.serviceRequest.createdAt.toISOString(),
+          id: application.announcement.id,
+          title: application.announcement.title,
+          description: application.announcement.description,
+          basePrice: application.announcement.basePrice,
+          status: application.announcement.status,
+          createdAt: application.announcement.createdAt.toISOString(),
         },
       }));
 

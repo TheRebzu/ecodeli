@@ -10,27 +10,33 @@ export async function GET(
   try {
     const session = await auth();
     if (!session || session.user.role !== "PROVIDER") {
+      console.log('[API] GET intervention: Unauthorized session', session);
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const { id: interventionId } = await params;
+    console.log('[API] GET intervention: id reçu =', interventionId);
 
-    const intervention = await prisma.booking.findUnique({
+    // Chercher l'intervention par id (et non un booking)
+    const intervention = await prisma.intervention.findUnique({
       where: { id: interventionId },
       include: {
-        client: {
+        booking: {
           include: {
-            user: {
+            client: {
               include: {
-                profile: true,
+                user: {
+                  include: { profile: true },
+                },
               },
             },
+            service: true,
+            review: true,
           },
         },
-        service: true,
-        review: true,
       },
     });
+    console.log('[API] GET intervention: intervention trouvée =', intervention);
 
     if (!intervention) {
       return NextResponse.json(
@@ -39,47 +45,24 @@ export async function GET(
       );
     }
 
-    // Vérifier que l'intervention appartient au provider
+    // Vérifier que l'intervention appartient au provider courant
     const provider = await prisma.provider.findUnique({
       where: { userId: session.user.id },
     });
+    console.log('[API] GET intervention: provider trouvé =', provider);
 
-    if (!provider || intervention.service.providerId !== provider.id) {
+    if (!provider || intervention.providerId !== provider.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 
-    const formattedIntervention = {
+    // Retourner les infos utiles
+    return NextResponse.json({
       id: intervention.id,
-      title: intervention.service?.name || "Intervention",
-      description: intervention.notes || "",
-      status: intervention.status.toLowerCase(),
-      type: intervention.service?.category || "Service",
-      scheduledDate: intervention.scheduledDate,
-      startTime: intervention.timeSlot || "09:00",
-      endTime: intervention.endTime || "10:00",
-      client: {
-        id: intervention.client.id,
-        name:
-          `${intervention.client.user.profile?.firstName || ""} ${intervention.client.user.profile?.lastName || ""}`.trim() ||
-          intervention.client.email,
-        email: intervention.client.email,
-        phone: intervention.client.user.profile?.phone,
-      },
-      location: {
-        address: intervention.address || "",
-        city: intervention.city || "",
-        zipCode: intervention.zipCode || "",
-      },
-      price: Number(intervention.price) || 0,
-      duration: intervention.duration || 60,
-      notes: intervention.notes,
-      completionReport: intervention.completionReport,
-      rating: intervention.review?.rating,
-      createdAt: intervention.createdAt,
-      updatedAt: intervention.updatedAt,
-    };
-
-    return NextResponse.json({ intervention: formattedIntervention });
+      booking: intervention.booking,
+      status: intervention.isCompleted ? 'completed' : 'in_progress',
+      providerId: intervention.providerId,
+      // ... autres champs utiles ...
+    });
   } catch (error) {
     console.error("Error fetching intervention:", error);
     return NextResponse.json(

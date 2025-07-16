@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
       const application = await db.serviceApplication.findUnique({
         where: { id: validatedData.applicationId },
         include: {
-          serviceRequest: {
+          announcement: {
             include: {
               author: true,
             },
@@ -66,7 +66,7 @@ export async function POST(request: NextRequest) {
       }
 
       // Vérifier que le client est bien l'auteur de la demande de service
-      if (application.serviceRequest.authorId !== user.id) {
+      if (application.announcement.authorId !== user.id) {
         console.log("❌ Accès non autorisé à cette candidature");
         return NextResponse.json(
           { error: "Accès non autorisé" },

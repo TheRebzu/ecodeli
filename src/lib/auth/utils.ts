@@ -4,6 +4,7 @@ import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { prisma } from "@/lib/db";
 import jwt from "jsonwebtoken";
+import { NextResponse } from "next/server";
 
 /**
  * Utilitaires d'authentification compatibles EcoDeli + NextAuth
@@ -153,7 +154,10 @@ export async function requireRole(
   const user = await getCurrentUserAPI(request);
 
   if (!user) {
-    throw new Error("Accès refusé - Authentification requise");
+    // Rediriger vers /fr/login si l'utilisateur n'est pas authentifié
+    const url = new URL(request.url);
+    const locale = url.pathname.split("/")[1] || "fr";
+    return NextResponse.redirect(new URL(`/${locale}/login`, request.url));
   }
 
   if (!hasPermission(user.role, allowedRoles)) {

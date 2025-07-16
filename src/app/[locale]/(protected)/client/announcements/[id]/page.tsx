@@ -475,10 +475,15 @@ export default function AnnouncementDetailPage() {
       />
       {/* Bouton de suivi de la livraison */}
       {announcement.delivery?.id && (
-        <div className="mb-4 flex justify-end">
+        <div className="mb-4 flex justify-end gap-2">
           <Link href={`/client/announcements/${announcement.id}/tracking`}>
             <Button variant="default">
               Suivi de la livraison
+            </Button>
+          </Link>
+          <Link href={`/client/announcements/${announcement.id}/validation-code`}>
+            <Button variant="secondary">
+              Code de validation
             </Button>
           </Link>
         </div>

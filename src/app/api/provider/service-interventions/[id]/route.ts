@@ -28,7 +28,7 @@ export async function GET(
 
     const { id: interventionId } = await params;
 
-    const intervention = await prisma.serviceIntervention.findUnique({
+    const intervention = await prisma.intervention.findUnique({
       where: { id: interventionId },
       include: {
         client: {
@@ -91,7 +91,7 @@ export async function PATCH(
     const validatedData = updateServiceInterventionSchema.parse(body);
 
     // Vérifier que l'intervention existe et appartient au prestataire
-    const existingIntervention = await prisma.serviceIntervention.findUnique({
+    const existingIntervention = await prisma.intervention.findUnique({
       where: { id: interventionId },
       include: {
         client: true,
@@ -240,7 +240,7 @@ export async function PATCH(
       });
     }
 
-    const updatedIntervention = await prisma.serviceIntervention.update({
+    const updatedIntervention = await prisma.intervention.update({
       where: { id: interventionId },
       data: updateData,
       include: {

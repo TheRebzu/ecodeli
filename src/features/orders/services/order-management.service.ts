@@ -399,7 +399,7 @@ export class OrderManagementService {
             bookingId: booking.id,
             providerId: booking.providerId,
             startTime: new Date(),
-            status: "IN_PROGRESS",
+            isCompleted: false,
           },
         });
         break;
