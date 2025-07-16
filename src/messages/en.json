@@ -1528,7 +1528,36 @@
     "documents": "Documents",
     "planning": "Planning",
     "profile": "Profile",
-    "recruitment": "Recruitment",
+    "recruitment": {
+      "page": {
+        "title": "Deliverer Application",
+        "description": "Track the status of your application to become an EcoDeli deliverer"
+      },
+      "status": {
+        "application_status": "Application Status",
+        "approved": "Approved",
+        "completion_progress": "Progress",
+        "congratulations": "Congratulations!",
+        "approved_message": "Your application has been approved. You can now start delivering with EcoDeli."
+      },
+      "documents": {
+        "title": "Required Documents",
+        "uploaded_on": "Uploaded on",
+        "statuses": {
+          "approved": "Approved",
+          "pending": "Pending",
+          "rejected": "Rejected"
+        },
+        "types": {
+          "identity": "Identity Document",
+          "driving_license": "Driving License",
+          "insurance": "Insurance Certificate",
+          "certification": "Certification",
+          "contract": "Contract",
+          "other": "Other"
+        }
+      }
+    },
     "wallet": {
       "withdrawal": "Withdrawal"
     },

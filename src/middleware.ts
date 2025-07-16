@@ -55,6 +55,8 @@ function isUserActive(userRole: string, isActive: boolean): boolean {
   return true; // Les autres rôles n'ont pas besoin de validation active
 }
 
+
+
 // Fonction pour détecter si une route est protégée
 function isProtectedRoute(pathname: string): boolean {
   const protectedPatterns = [
@@ -224,18 +226,22 @@ export default async function middleware(request: NextRequest) {
 
       // Vérifications spécifiques par rôle
       if (user.role === 'DELIVERER') {
+        // Utiliser le validationStatus du profil deliverer si disponible
+        const delivererValidationStatus = session.user.profileData?.validationStatus || user.validationStatus;
+        
         // DEBUG: Logs pour identifier le problème de redirection
         console.log('🔍 [MIDDLEWARE DEBUG] Livreur validation check:', {
           userId: user.id,
-          validationStatus: user.validationStatus,
+          userValidationStatus: user.validationStatus,
+          delivererValidationStatus: delivererValidationStatus,
           isActive: user.isActive,
           pathname: pathname,
-          shouldRedirect: user.validationStatus !== 'APPROVED' && user.validationStatus !== 'VALIDATED'
+          shouldRedirect: delivererValidationStatus !== 'APPROVED' && delivererValidationStatus !== 'VALIDATED'
         });
         
-        // Vérifier le statut de validation pour les livreurs
-        if (user.validationStatus !== 'APPROVED' && user.validationStatus !== 'VALIDATED') {
-          console.log('❌ [MIDDLEWARE] Redirection vers recruitment - validationStatus:', user.validationStatus);
+        // Vérifier le statut de validation pour les livreurs (utiliser le profil deliverer)
+        if (delivererValidationStatus !== 'APPROVED' && delivererValidationStatus !== 'VALIDATED') {
+          console.log('❌ [MIDDLEWARE] Statut validation deliverer non approuvé:', delivererValidationStatus);
           
           // Permettre l'accès aux pages de validation et documents
           if (pathname.includes('/deliverer/validation') || 
@@ -245,15 +251,30 @@ export default async function middleware(request: NextRequest) {
             return NextResponse.next();
           }
           
-          return NextResponse.redirect(new URL(`/${locale}/deliverer/recruitment`, request.url));
+          // Rediriger vers la page de recrutement avec sync check
+          const redirectUrl = new URL(`/${locale}/deliverer/recruitment`, request.url);
+          redirectUrl.searchParams.set('sync-validation', 'true');
+          return NextResponse.redirect(redirectUrl);
         } else {
-          console.log('✅ [MIDDLEWARE] Livreur validé - accès autorisé, validationStatus:', user.validationStatus);
+          console.log('✅ [MIDDLEWARE] Livreur validé - accès autorisé, delivererValidationStatus:', delivererValidationStatus);
         }
       }
       
       if (user.role === 'PROVIDER') {
-        // Permettre l'accès mais vérifier validation côté client si nécessaire
-        return NextResponse.next();
+        // Utiliser le validationStatus du profil provider si disponible
+        const providerValidationStatus = session.user.profileData?.validationStatus || user.validationStatus;
+        
+        if (providerValidationStatus !== 'APPROVED' && providerValidationStatus !== 'VALIDATED') {
+          // Permettre l'accès aux pages de validation pour les prestataires
+          if (pathname.includes('/provider/validation') || 
+              pathname.includes('/provider/documents') || 
+              pathname.includes('/provider/recruitment')) {
+            return NextResponse.next();
+          }
+          
+          // Rediriger vers la page de recrutement prestataire
+          return NextResponse.redirect(new URL(`/${locale}/provider/recruitment`, request.url));
+        }
       }
 
       return NextResponse.next();

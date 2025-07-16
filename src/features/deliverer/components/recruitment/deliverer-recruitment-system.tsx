@@ -137,21 +137,112 @@ export default function DelivererRecruitmentSystem({
       isActive: user?.isActive
     });
     
-    if (user && user.role === 'DELIVERER' && 
-        (user.validationStatus === 'VALIDATED' || user.validationStatus === 'APPROVED')) {
-      console.log('✅ [RECRUITMENT] Utilisateur déjà validé - redirection vers dashboard');
-      toast({
-        title: "Compte déjà validé",
-        description: "Redirection vers votre espace livreur...",
-      });
-      router.push('/fr/deliverer');
-      return;
+    // Auto-sync validation status for deliverers
+    const syncValidationStatus = async () => {
+      if (user && user.role === 'DELIVERER' && user.validationStatus === 'PENDING') {
+        console.log('🔄 [RECRUITMENT] Tentative de synchronisation du statut de validation...');
+        try {
+          const response = await fetch('/api/auth/sync-validation', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          });
+          
+          if (response.ok) {
+            const result = await response.json();
+            console.log('📋 [RECRUITMENT] Résultat sync:', result);
+            
+                         if (result.updated && result.newStatus === 'VALIDATED') {
+               console.log('✅ [RECRUITMENT] Statut synchronisé - redirection vers dashboard');
+               toast({
+                 title: "Validation terminée !",
+                 description: "Votre compte a été automatiquement validé. Redirection en cours...",
+               });
+               
+               // Attendre un peu pour que l'utilisateur voie le toast
+               setTimeout(() => {
+                 if (result.requiresSessionRefresh) {
+                   // Forcer un rechargement complet pour rafraîchir la session NextAuth
+                   window.location.replace('/fr/deliverer');
+                 } else {
+                   // Simple redirection
+                   window.location.href = '/fr/deliverer';
+                 }
+               }, 1500);
+               return;
+             }
+          }
+        } catch (error) {
+          console.error('❌ [RECRUITMENT] Erreur sync validation:', error);
+        }
+      }
+    };
+    
+    if (user && user.role === 'DELIVERER') {
+      if (user.validationStatus === 'VALIDATED' || user.validationStatus === 'APPROVED') {
+        console.log('✅ [RECRUITMENT] Utilisateur déjà validé - redirection vers dashboard');
+        toast({
+          title: "Compte déjà validé",
+          description: "Redirection vers votre espace livreur...",
+        });
+        router.push('/fr/deliverer');
+        return;
+      } else {
+        // Tenter la synchronisation pour les utilisateurs en attente
+        syncValidationStatus();
+      }
     }
   }, [user, router]);
 
   useEffect(() => {
     fetchApplication();
+    
+    // Vérifier le paramètre URL pour forcer la synchronisation
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('check-validation') === 'true') {
+      console.log('🔄 [RECRUITMENT] Paramètre check-validation détecté - synchronisation forcée');
+      // Nettoyer l'URL
+      const newUrl = new URL(window.location.href);
+      newUrl.searchParams.delete('check-validation');
+      window.history.replaceState({}, '', newUrl.toString());
+      
+      // Forcer une synchronisation immédiate
+      forceSyncValidation();
+    }
   }, [userId]);
+
+  const forceSyncValidation = async () => {
+    console.log('🔄 [RECRUITMENT] Synchronisation forcée du statut de validation...');
+    try {
+      const response = await fetch('/api/auth/sync-validation', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      if (response.ok) {
+        const result = await response.json();
+        console.log('📋 [RECRUITMENT] Résultat sync forcée:', result);
+        
+        if (result.updated && result.newStatus === 'VALIDATED') {
+          console.log('✅ [RECRUITMENT] Statut synchronisé - redirection immédiate vers dashboard');
+          toast({
+            title: "Validation terminée !",
+            description: "Votre compte a été automatiquement validé. Redirection en cours...",
+          });
+          
+          // Redirection immédiate
+          setTimeout(() => {
+            window.location.replace('/fr/deliverer');
+          }, 1000);
+        }
+      }
+    } catch (error) {
+      console.error('❌ [RECRUITMENT] Erreur sync validation forcée:', error);
+    }
+  };
 
   const fetchApplication = async () => {
     setLoading(true);

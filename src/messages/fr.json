@@ -1525,10 +1525,39 @@
     "deliveries": {
       "history": "History"
     },
-      "documents": "Documents",
+    "documents": "Documents",
     "planning": "Planning",
     "profile": "Profil",
-    "recruitment": "Recruitment",
+    "recruitment": {
+      "page": {
+        "title": "Candidature Livreur",
+        "description": "Suivez l'état de votre candidature pour devenir livreur EcoDeli"
+      },
+      "status": {
+        "application_status": "Statut de votre candidature",
+        "approved": "Approuvé",
+        "completion_progress": "Progression",
+        "congratulations": "Félicitations !",
+        "approved_message": "Votre candidature a été approuvée. Vous pouvez maintenant commencer à livrer avec EcoDeli."
+      },
+      "documents": {
+        "title": "Documents requis",
+        "uploaded_on": "Téléchargé le",
+        "statuses": {
+          "approved": "Approuvé",
+          "pending": "En attente",
+          "rejected": "Rejeté"
+        },
+        "types": {
+          "identity": "Pièce d'identité",
+          "driving_license": "Permis de conduire",
+          "insurance": "Attestation d'assurance",
+          "certification": "Certification",
+          "contract": "Contrat",
+          "other": "Autre"
+        }
+      }
+    },
     "wallet": {
       "withdrawal": "Withdrawal"
     },

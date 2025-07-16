@@ -71,6 +71,10 @@ export const config = {
           throw new Error("Compte en attente de validation")
         }
 
+        // Obtenir le validationStatus spécifique au rôle
+        const roleSpecificValidationStatus = getRoleValidationStatus(user)
+        const effectiveValidationStatus = roleSpecificValidationStatus || user.validationStatus
+
         return {
           id: user.id,
           email: user.email,
@@ -78,7 +82,7 @@ export const config = {
           image: user.image || user.profile?.avatar,
           role: user.role,
           isActive: user.isActive,
-          validationStatus: user.validationStatus,
+          validationStatus: effectiveValidationStatus,
           profileData: getProfileData(user)
         }
       }
@@ -114,9 +118,55 @@ export const config = {
       if (token && token.sub) {
         session.user.id = token.sub // Utiliser l'ID réel stocké dans sub
         session.user.role = token.role as UserRole
-        session.user.isActive = token.isActive as boolean
-        session.user.validationStatus = token.validationStatus as string
-        session.user.profileData = token.profileData
+        
+        // Détecter si on est dans un environnement edge (middleware)
+        const isEdgeRuntime = process.env.NEXT_RUNTIME === 'edge'
+        
+        // Dans le middleware (edge runtime), utiliser uniquement les données du token
+        if (isEdgeRuntime) {
+          session.user.isActive = token.isActive as boolean
+          session.user.validationStatus = token.validationStatus as string
+          session.user.profileData = token.profileData
+        } else {
+          // Dans les autres contextes, récupérer les données fraîches
+          try {
+            const freshUser = await db.user.findUnique({
+              where: { id: token.sub },
+              select: {
+                isActive: true,
+                validationStatus: true,
+                role: true,
+                profile: true,
+                client: true,
+                deliverer: true,
+                merchant: true,
+                provider: true,
+                admin: true
+              }
+            })
+            
+            if (freshUser) {
+              session.user.isActive = freshUser.isActive
+              session.user.role = freshUser.role as UserRole
+              session.user.profileData = getProfileData(freshUser)
+              
+              // Utiliser le validationStatus spécifique au rôle si disponible
+              const roleSpecificValidationStatus = getRoleValidationStatus(freshUser)
+              session.user.validationStatus = roleSpecificValidationStatus || freshUser.validationStatus
+            } else {
+              // Fallback vers les données du token si l'utilisateur n'existe plus
+              session.user.isActive = token.isActive as boolean
+              session.user.validationStatus = token.validationStatus as string
+              session.user.profileData = token.profileData
+            }
+          } catch (error) {
+            // En cas d'erreur DB, utiliser les données du token
+            console.error('❌ [AUTH SESSION] Erreur récupération données fraîches:', error)
+            session.user.isActive = token.isActive as boolean
+            session.user.validationStatus = token.validationStatus as string
+            session.user.profileData = token.profileData
+          }
+        }
       }
       return session
     },
@@ -145,6 +195,19 @@ export const config = {
     }
   }
 } satisfies NextAuthConfig
+
+function getRoleValidationStatus(user: any): string | null {
+  switch (user.role) {
+    case "DELIVERER":
+      return user.deliverer?.validationStatus || null
+    case "PROVIDER":
+      return user.provider?.validationStatus || null
+    case "MERCHANT":
+      return user.merchant?.validationStatus || null
+    default:
+      return null
+  }
+}
 
 function getProfileData(user: any) {
   switch (user.role) {
