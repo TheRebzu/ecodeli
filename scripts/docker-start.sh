@@ -1,39 +1,34 @@
 #!/bin/bash
 
 # Script de démarrage Docker pour EcoDeli
-# Lance l'initialisation puis démarre l'application
+# Gère l'initialisation de la base de données et le démarrage du serveur
 
-echo "🚀 Démarrage de EcoDeli..."
+set -e
 
-# Vérifier les variables d'environnement critiques
-if [ -z "$DATABASE_URL" ]; then
-  echo "❌ DATABASE_URL n'est pas définie"
-  exit 1
+echo "🚀 Démarrage de l'application EcoDeli..."
+
+# Attendre que PostgreSQL soit prêt
+echo "⏳ Attente de la base de données PostgreSQL..."
+until pg_isready -h postgres -p 5432 > /dev/null 2>&1; do
+  echo "🔄 PostgreSQL n'est pas encore prêt - attente..."
+  sleep 2
+done
+
+echo "✅ PostgreSQL est prêt"
+
+# Générer le client Prisma avec fusion des schémas
+echo "🔧 Génération du client Prisma..."
+pnpm run prisma:generate
+
+# Exécuter les migrations
+echo "🗄️ Exécution des migrations Prisma..."
+pnpm run prisma:migrate
+
+# Exécuter le seeding si nécessaire
+if [ "$NODE_ENV" = "development" ] || [ "$SEED_DB" = "true" ]; then
+  echo "🌱 Seeding de la base de données..."
+  pnpm run db:seed || echo "⚠️ Seeding terminé avec des avertissements"
 fi
 
-if [ -z "$NEXTAUTH_SECRET" ]; then
-  echo "❌ NEXTAUTH_SECRET n'est pas définie"
-  exit 1
-fi
-
-echo "✅ Variables d'environnement OK"
-
-# Exécuter l'initialisation
-echo "🔄 Initialisation..."
-bash /app/scripts/docker-init.sh
-
-if [ $? -ne 0 ]; then
-  echo "❌ Erreur lors de l'initialisation"
-  exit 1
-fi
-
-echo "✅ Initialisation terminée"
-
-# Démarrer l'application Next.js
-echo "🚀 Démarrage de l'application Next.js..."
-echo "📍 Application disponible sur : http://localhost:3000"
-echo "💾 PgAdmin disponible sur : http://localhost:8080"
-echo "📊 Grafana disponible sur : http://localhost:3001"
-
-# Démarrer l'application
+echo "🎯 Démarrage du serveur Next.js..."
 exec node server.js 
