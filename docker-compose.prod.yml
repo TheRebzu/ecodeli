@@ -8,37 +8,25 @@ services:
       NODE_ENV: production
       LOG_LEVEL: warn
       NEXTAUTH_URL: ${NEXTAUTH_URL:-https://ecodeli.me}
-    deploy:
-      replicas: 2
-      restart_policy:
-        condition: on-failure
-        delay: 5s
-        max_attempts: 3
-        window: 120s
-      resources:
-        limits:
-          cpus: '1.0'
-          memory: 512M
-        reservations:
-          cpus: '0.5'
-          memory: 256M
+    # Supprimé deploy.replicas pour éviter les conflits avec container_name
+    resources:
+      limits:
+        cpus: '1.0'
+        memory: 512M
+      reservations:
+        cpus: '0.5'
+        memory: 256M
 
   postgres:
     environment:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-    deploy:
-      restart_policy:
-        condition: on-failure
-        delay: 10s
-        max_attempts: 5
-        window: 120s
-      resources:
-        limits:
-          cpus: '0.5'
-          memory: 1G
-        reservations:
-          cpus: '0.25'
-          memory: 512M
+    resources:
+      limits:
+        cpus: '0.5'
+        memory: 1G
+      reservations:
+        cpus: '0.25'
+        memory: 512M
 
   # Configuration Nginx pour production avec SSL
   nginx:
@@ -47,19 +35,13 @@ services:
     environment:
       NGINX_WORKER_PROCESSES: auto
       NGINX_WORKER_CONNECTIONS: 1024
-    deploy:
-      restart_policy:
-        condition: on-failure
-        delay: 5s
-        max_attempts: 3
-        window: 120s
-      resources:
-        limits:
-          cpus: '0.5'
-          memory: 128M
-        reservations:
-          cpus: '0.1'
-          memory: 64M
+    resources:
+      limits:
+        cpus: '0.5'
+        memory: 128M
+      reservations:
+        cpus: '0.1'
+        memory: 64M
 
   # Désactiver PgAdmin en production
   pgadmin:

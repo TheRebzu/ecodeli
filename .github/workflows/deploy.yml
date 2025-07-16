@@ -197,20 +197,20 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        run: npm ci
+        run: pnpm ci
 
       - name: Run smoke tests
-        run: npm run test:smoke:${{ inputs.environment }}
+        run: pnpm run test:smoke:${{ inputs.environment }}
         env:
           BASE_URL: ${{ needs.deploy.outputs.url }}
 
       - name: Run API tests
-        run: npm run test:api:${{ inputs.environment }}
+        run: pnpm run test:api:${{ inputs.environment }}
         env:
           BASE_URL: ${{ needs.deploy.outputs.url }}
 
       - name: Check database migrations
-        run: npm run db:migrate:status
+        run: pnpm run db:migrate:status
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
@@ -238,10 +238,10 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        run: npm ci
+        run: pnpm ci
 
       - name: Run performance baseline
-        run: npm run test:performance:baseline
+        run: pnpm run test:performance:baseline
         env:
           BASE_URL: ${{ needs.deploy.outputs.url }}
 

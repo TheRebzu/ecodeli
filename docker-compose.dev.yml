@@ -17,7 +17,7 @@ services:
       - .:/app:cached
       - /app/node_modules
       - /app/.next
-    command: npm run dev
+    command: pnpm run dev
     ports:
       - "3000:3000"
       - "9229:9229"  # Node.js debugging port
@@ -52,7 +52,7 @@ services:
     volumes:
       - .:/app:cached
       - /app/node_modules
-    command: npm run test:watch
+    command: pnpm run test:watch
     depends_on:
       - postgres
     networks:
@@ -70,7 +70,7 @@ services:
     volumes:
       - .:/app:cached
       - /app/node_modules
-    command: npm run storybook
+    command: pnpm run storybook
     ports:
       - "6006:6006"
     networks:

@@ -46,7 +46,7 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        run: npm ci
+        run: pnpm ci
 
       - name: Generate version
         id: version
@@ -56,13 +56,13 @@ jobs:
           echo "VERSION=$VERSION" >> $GITHUB_ENV
 
       - name: Lint code
-        run: npm run lint
+        run: pnpm run lint
 
       - name: Type check
-        run: npm run type-check
+        run: pnpm run type-check
 
       - name: Security audit
-        run: npm audit --audit-level=high
+        run: pnpm audit --audit-level=high
 
       - name: Cache build artifacts
         uses: actions/cache@v3
@@ -104,15 +104,15 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        run: npm ci
+        run: pnpm ci
 
       - name: Run database migrations
-        run: npm run db:migrate:test
+        run: pnpm run db:migrate:test
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/ecodeli_test
 
       - name: Run unit tests
-        run: npm run test:ci
+        run: pnpm run test:ci
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/ecodeli_test
 
@@ -162,15 +162,15 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        run: npm ci
+        run: pnpm ci
 
       - name: Run database migrations
-        run: npm run db:migrate:test
+        run: pnpm run db:migrate:test
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/ecodeli_test
 
       - name: Run integration tests
-        run: npm run test:integration
+        run: pnpm run test:integration
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/ecodeli_test
 
@@ -199,7 +199,7 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        run: npm ci
+        run: pnpm ci
 
       - name: Download test results
         uses: actions/download-artifact@v3
@@ -234,10 +234,10 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        run: npm ci
+        run: pnpm ci
 
       - name: Build application
-        run: npm run build
+        run: pnpm run build
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -314,7 +314,7 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        run: npm ci
+        run: pnpm ci
 
       - name: Start application
         run: |
@@ -322,7 +322,7 @@ jobs:
           timeout 300 bash -c 'while [[ "$(curl -s -o /dev/null -w ''%{http_code}'' localhost:3000/api/health)" != "200" ]]; do sleep 5; done'
 
       - name: Run E2E tests
-        run: npm run test:e2e
+        run: pnpm run test:e2e
 
       - name: Upload E2E test results
         uses: actions/upload-artifact@v3
@@ -377,7 +377,7 @@ jobs:
 
       - name: Run smoke tests
         if: ${{ !inputs.skip_tests }}
-        run: npm run test:smoke:${{ steps.env.outputs.environment }}
+        run: pnpm run test:smoke:${{ steps.env.outputs.environment }}
 
   # Performance tests (production only)
   performance-tests:
@@ -395,10 +395,10 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        run: npm ci
+        run: pnpm ci
 
       - name: Run performance tests
-        run: npm run test:performance
+        run: pnpm run test:performance
 
       - name: Upload performance results
         uses: actions/upload-artifact@v3
