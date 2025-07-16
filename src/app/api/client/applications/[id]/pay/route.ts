@@ -31,6 +31,15 @@ export async function POST(
 
     console.log("✅ Client authentifié:", user.id, user.role);
 
+    // Vérifier que le profil client existe
+    if (!user.client) {
+      console.log("❌ Profil client introuvable");
+      return NextResponse.json(
+        { error: "Profil client introuvable" },
+        { status: 400 },
+      );
+    }
+
     const { id: applicationId } = await params;
     const body = await request.json();
 
@@ -45,6 +54,7 @@ export async function POST(
           announcement: {
             include: {
               author: true,
+              ServiceAnnouncement: true,
             },
           },
           provider: {
@@ -72,18 +82,19 @@ export async function POST(
         );
       }
 
-      // Vérifier que la candidature a été acceptée
-      if (application.status !== "ACCEPTED") {
-        console.log("❌ Candidature non acceptée");
+      // Vérifier que la candidature a été acceptée ou est en attente de paiement (retry)
+      console.log("🔍 Statut actuel de la candidature:", application.status);
+      if (!["ACCEPTED", "PAYMENT_PENDING"].includes(application.status)) {
+        console.log("❌ Candidature non acceptée - statut:", application.status);
         return NextResponse.json(
           {
-            error: "Cette candidature n'a pas été acceptée",
+            error: `Cette candidature n'a pas été acceptée (statut: ${application.status})`,
           },
           { status: 400 },
         );
       }
 
-      // Vérifier que le service n'a pas déjà été payé
+      // Vérifier que le service n'a pas déjà été payé avec succès
       const existingPayment = await db.payment.findFirst({
         where: {
           userId: user.id,
@@ -95,14 +106,22 @@ export async function POST(
         },
       });
 
-      if (existingPayment) {
-        console.log("❌ Service déjà payé");
+      if (existingPayment && existingPayment.status === "COMPLETED") {
+        console.log("❌ Service déjà payé avec succès");
         return NextResponse.json(
           {
             error: "Ce service a déjà été payé",
           },
           { status: 400 },
         );
+      }
+
+      // Si un paiement existe mais n'est pas completed, le supprimer pour permettre un retry propre
+      if (existingPayment && existingPayment.status !== "COMPLETED") {
+        console.log("🔍 Suppression du paiement existant non completed pour retry propre");
+        await db.payment.delete({
+          where: { id: existingPayment.id },
+        });
       }
 
       console.log("🔍 Création du paiement Stripe...");
@@ -178,12 +197,59 @@ export async function POST(
 
       console.log("✅ Notification créée pour le prestataire");
 
+      // Récupérer le Provider correspondant au User
+      const providerProfile = await db.provider.findUnique({
+        where: { userId: application.providerId }
+      });
+
+      if (!providerProfile) {
+        console.error("❌ Aucun profil prestataire trouvé pour l'utilisateur:", application.providerId);
+        return NextResponse.json(
+          { 
+            success: false, 
+            error: "PROVIDER_NOT_FOUND",
+            message: "Profil prestataire introuvable" 
+          },
+          { status: 404 }
+        );
+      }
+
+      console.log("✅ Profil prestataire trouvé:", providerProfile.id);
+
+      // Créer ou récupérer un service basé sur l'annonce
+      let service = await db.service.findFirst({
+        where: {
+          providerId: providerProfile.id,
+          name: application.announcement.title,
+          type: application.announcement.ServiceAnnouncement?.serviceType || "HOME_SERVICE"
+        }
+      });
+
+      if (!service) {
+        // Créer un service temporaire basé sur l'annonce
+        service = await db.service.create({
+          data: {
+            providerId: providerProfile.id,
+            name: application.announcement.title,
+            description: application.announcement.description || "Service basé sur une demande client",
+            type: application.announcement.ServiceAnnouncement?.serviceType || "HOME_SERVICE",
+            basePrice: validatedData.amount,
+            priceUnit: "FLAT",
+            duration: application.estimatedDuration || 60,
+            isActive: true,
+          }
+        });
+        console.log("✅ Service temporaire créé:", service.id);
+      } else {
+        console.log("✅ Service existant trouvé:", service.id);
+      }
+
       // Créer d'abord un booking après validation du paiement
       const booking = await db.booking.create({
         data: {
-          clientId: user.id,
-          providerId: application.providerId,
-          serviceId: application.announcementId, // Utiliser l'annonce comme service
+          clientId: user.client.id,
+          providerId: providerProfile.id, // Utiliser l'ID du Provider, pas du User
+          serviceId: service.id, // Utiliser l'ID du Service créé ou trouvé
           status: "CONFIRMED",
           scheduledDate: new Date(), // À adapter selon les besoins
           scheduledTime: "09:00", // Heure par défaut, à adapter
@@ -202,11 +268,23 @@ export async function POST(
 
       console.log("✅ Booking créé:", booking.id);
 
+      // Trouver le provider correspondant au user de l'application
+      const provider = await db.provider.findUnique({
+        where: { userId: application.providerId },
+      });
+
+      if (!provider) {
+        console.log("❌ Provider non trouvé pour userId:", application.providerId);
+        throw new Error(`Provider non trouvé pour l'utilisateur ${application.providerId}`);
+      }
+
+      console.log("✅ Provider trouvé:", provider.id);
+
       // Créer l'intervention liée au booking
       const intervention = await db.intervention.create({
         data: {
           bookingId: booking.id,
-          providerId: application.providerId,
+          providerId: provider.id,
           isCompleted: false,
         },
       });

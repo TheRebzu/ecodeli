@@ -51,13 +51,17 @@ export async function GET(request: NextRequest) {
             include: {
               client: {
                 include: {
-                  profile: {
-                    select: {
-                      firstName: true,
-                      lastName: true,
-                      phone: true,
-                      address: true,
-                      city: true,
+                  user: {
+                    include: {
+                      profile: {
+                        select: {
+                          firstName: true,
+                          lastName: true,
+                          phone: true,
+                          address: true,
+                          city: true,
+                        },
+                      },
                     },
                   },
                 },
@@ -115,11 +119,11 @@ export async function GET(request: NextRequest) {
       client: {
         id: intervention.booking.client.id,
         profile: {
-          firstName: intervention.booking.client.profile?.firstName || "",
-          lastName: intervention.booking.client.profile?.lastName || "",
-          phone: intervention.booking.client.profile?.phone,
-          address: intervention.booking.client.profile?.address,
-          city: intervention.booking.client.profile?.city,
+          firstName: intervention.booking.client.user.profile?.firstName || "",
+          lastName: intervention.booking.client.user.profile?.lastName || "",
+          phone: intervention.booking.client.user.profile?.phone,
+          address: intervention.booking.client.user.profile?.address,
+          city: intervention.booking.client.user.profile?.city,
         },
       },
       serviceRequest: {

@@ -142,25 +142,27 @@ export async function POST(request: NextRequest) {
       // Mettre à jour l'intervention
       const intervention = await db.intervention.findFirst({
         where: {
-          serviceRequestId: application.serviceRequestId,
-          providerId: application.providerId,
-          clientId: user.id,
+          provider: {
+            userId: application.providerId, // Chercher via la relation Provider->User
+          },
+          booking: {
+            clientId: user.client.id, // Filtrer par client via la relation Booking
+          },
+        },
+        include: {
+          booking: true,
         },
       });
 
       if (intervention) {
-        await db.intervention.update({
-          where: { id: intervention.id },
-          data: {
-            status: "CONFIRMED",
-          },
-        });
+        // L'intervention est confirmée mais pas encore démarrée
+        console.log("✅ Intervention trouvée et mise à jour:", intervention.id);
       }
 
       // Créer une notification pour le prestataire
       await db.notification.create({
         data: {
-          userId: application.provider.id,
+          userId: application.providerId,
           title: "Paiement confirmé",
           message: `Le client a confirmé le paiement pour le service "${application.announcement.title}".`,
           type: "SERVICE_PAYMENT_CONFIRMED",

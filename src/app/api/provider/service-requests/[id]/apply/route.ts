@@ -91,18 +91,20 @@ export async function POST(
 
       console.log("🔍 Création de la candidature...");
 
-      // Créer la candidature
-      const application = await db.serviceApplication.create({
-        data: {
-          announcementId: announcementId,
-          providerId: provider.userId, // Utiliser userId car la relation ServiceApplication.provider -> User
-          proposedPrice: validatedData.price,
-          estimatedDuration: validatedData.estimatedDuration,
-          message: validatedData.message,
-          status: "PENDING",
-          availableDates: validatedData.availableDates || [],
-        },
-        include: {
+      // Créer la candidature avec gestion des doublons
+      let application;
+      try {
+        application = await db.serviceApplication.create({
+          data: {
+            announcementId: announcementId,
+            providerId: provider.userId, // Utiliser userId car la relation ServiceApplication.provider -> User
+            proposedPrice: validatedData.price,
+            estimatedDuration: validatedData.estimatedDuration,
+            message: validatedData.message,
+            status: "PENDING",
+            availableDates: validatedData.availableDates || [],
+          },
+          include: {
           provider: {
             include: {
               profile: true,
@@ -119,6 +121,20 @@ export async function POST(
           },
         },
       });
+      } catch (error: any) {
+        // Gérer l'erreur de contrainte unique (candidature déjà existante)
+        if (error.code === 'P2002') {
+          console.log("❌ Candidature déjà existante (contrainte unique)");
+          return NextResponse.json(
+            {
+              error: "Vous avez déjà candidaté à cette demande de service",
+            },
+            { status: 400 },
+          );
+        }
+        // Re-lancer les autres erreurs
+        throw error;
+      }
 
       console.log("✅ Candidature créée avec succès");
 

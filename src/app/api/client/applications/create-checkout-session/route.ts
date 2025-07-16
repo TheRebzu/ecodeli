@@ -47,11 +47,8 @@ export async function POST(request: NextRequest) {
           },
           provider: {
             include: {
-              user: {
-                include: {
-                  profile: true,
-                },
-              },
+              profile: true,
+              provider: true,
             },
           },
         },
@@ -85,7 +82,7 @@ export async function POST(request: NextRequest) {
               currency: validatedData.currency.toLowerCase(),
               product_data: {
                 name: validatedData.description,
-                description: `Service avec ${application.provider.user.profile?.firstName} ${application.provider.user.profile?.lastName}`,
+                description: `Service avec ${application.provider.profile?.firstName} ${application.provider.profile?.lastName}`,
               },
               unit_amount: Math.round(validatedData.amount * 100), // Montant en centimes
             },

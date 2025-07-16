@@ -5,9 +5,8 @@ import { z } from "zod";
 
 const updateServiceInterventionSchema = z.object({
   status: z.enum([
-    "SCHEDULED",
-    "CONFIRMED",
-    "PAYMENT_PENDING",
+    "PENDING",
+    "CONFIRMED", 
     "IN_PROGRESS",
     "COMPLETED",
     "CANCELLED",
@@ -31,13 +30,21 @@ export async function GET(
     const intervention = await prisma.intervention.findUnique({
       where: { id: interventionId },
       include: {
-        client: {
+        booking: {
           include: {
-            profile: true,
+            client: {
+              include: {
+                user: {
+                  include: {
+                    profile: true,
+                  },
+                },
+              },
+            },
+            service: true,
+            payment: true,
           },
         },
-        serviceRequest: true,
-        payment: true,
         provider: {
           include: {
             user: {
@@ -47,6 +54,7 @@ export async function GET(
             },
           },
         },
+        invoiceItems: true,
       },
     });
 
@@ -94,14 +102,19 @@ export async function PATCH(
     const existingIntervention = await prisma.intervention.findUnique({
       where: { id: interventionId },
       include: {
-        client: true,
-        serviceRequest: true,
-        payment: true,
+        booking: {
+          include: {
+            client: true,
+            service: true,
+            payment: true,
+          },
+        },
         provider: {
           include: {
             user: true,
           },
         },
+        invoiceItems: true,
       },
     });
 
@@ -122,15 +135,14 @@ export async function PATCH(
 
     // Vérifier les transitions de statut autorisées
     const allowedTransitions = {
-      SCHEDULED: ["IN_PROGRESS", "CANCELLED"],
-      CONFIRMED: ["IN_PROGRESS", "CANCELLED"],
-      PAYMENT_PENDING: ["IN_PROGRESS", "CANCELLED"],
+      PENDING: ["CONFIRMED", "IN_PROGRESS", "CANCELLED"],
+      CONFIRMED: ["IN_PROGRESS", "COMPLETED", "CANCELLED"],
       IN_PROGRESS: ["COMPLETED", "CANCELLED"],
-      COMPLETED: [], // État final
-      CANCELLED: [], // État final
+      COMPLETED: ["COMPLETED"], // Permet de rester COMPLETED
+      CANCELLED: ["CANCELLED"], // Permet de rester CANCELLED
     };
 
-    const currentStatus = existingIntervention.status;
+    const currentStatus = existingIntervention.booking.status;
     const newStatus = validatedData.status;
 
     if (!allowedTransitions[currentStatus]?.includes(newStatus)) {
@@ -142,32 +154,55 @@ export async function PATCH(
       );
     }
 
-    // Mettre à jour l'intervention
-    const updateData: any = {
-      status: validatedData.status,
+    // Mettre à jour l'intervention et le booking
+    const interventionUpdateData: any = {
       updatedAt: new Date(),
     };
 
     if (validatedData.notes !== undefined) {
-      updateData.notes = validatedData.notes;
+      interventionUpdateData.report = validatedData.notes;
     }
 
     if (validatedData.actualDuration !== undefined) {
-      updateData.actualDuration = validatedData.actualDuration;
+      interventionUpdateData.actualDuration = validatedData.actualDuration;
     }
+
+    // Si l'intervention démarre, mettre à jour le timestamp de début
+    if (validatedData.status === "IN_PROGRESS" && !existingIntervention.startTime) {
+      interventionUpdateData.startTime = new Date();
+    }
+
+    // Si l'intervention est terminée, mettre à jour les timestamps
+    if (validatedData.status === "COMPLETED") {
+      interventionUpdateData.isCompleted = true;
+      interventionUpdateData.completedAt = new Date();
+      if (!existingIntervention.endTime) {
+        interventionUpdateData.endTime = new Date();
+      }
+      // Si l'intervention n'avait pas de startTime, l'ajouter maintenant
+      if (!existingIntervention.startTime) {
+        interventionUpdateData.startTime = new Date(Date.now() - (validatedData.actualDuration || 60) * 60 * 1000);
+      }
+    }
+
+    // Mettre à jour le statut du booking
+    await prisma.booking.update({
+      where: { id: existingIntervention.bookingId },
+      data: { status: validatedData.status },
+    });
 
     // Si l'intervention est annulée, annuler le paiement
     if (
       validatedData.status === "CANCELLED" &&
-      existingIntervention.paymentId
+      existingIntervention.booking.payment?.id
     ) {
       await prisma.payment.update({
-        where: { id: existingIntervention.paymentId },
+        where: { id: existingIntervention.booking.payment.id },
         data: {
           status: "REFUNDED",
           refundedAt: new Date(),
           metadata: {
-            ...existingIntervention.payment?.metadata,
+            ...existingIntervention.booking.payment?.metadata,
             cancelledBy: session.user.id,
             cancelledAt: new Date().toISOString(),
             reason: "Service intervention cancelled",
@@ -178,14 +213,14 @@ export async function PATCH(
       // Créer une notification pour le client
       await prisma.notification.create({
         data: {
-          userId: existingIntervention.clientId,
+          userId: existingIntervention.booking.clientId,
           type: "SERVICE_CANCELLED",
           title: "Service annulé",
-          message: `Votre service "${existingIntervention.title}" a été annulé. Le remboursement sera traité.`,
+          message: `Votre service "${existingIntervention.booking.service.name}" a été annulé. Le remboursement sera traité.`,
           data: {
             interventionId: interventionId,
-            paymentId: existingIntervention.paymentId,
-            refundAmount: existingIntervention.payment?.amount,
+            paymentId: existingIntervention.booking.payment.id,
+            refundAmount: existingIntervention.booking.payment?.amount,
           },
         },
       });
@@ -194,15 +229,15 @@ export async function PATCH(
     // Si l'intervention est terminée, débloquer le paiement
     if (
       validatedData.status === "COMPLETED" &&
-      existingIntervention.paymentId
+      existingIntervention.booking.payment?.id
     ) {
       await prisma.payment.update({
-        where: { id: existingIntervention.paymentId },
+        where: { id: existingIntervention.booking.payment.id },
         data: {
           status: "COMPLETED",
           paidAt: new Date(),
           metadata: {
-            ...existingIntervention.payment?.metadata,
+            ...existingIntervention.booking.payment?.metadata,
             completedAt: new Date().toISOString(),
             actualDuration: validatedData.actualDuration,
           },
@@ -212,13 +247,13 @@ export async function PATCH(
       // Créer une notification pour le client
       await prisma.notification.create({
         data: {
-          userId: existingIntervention.clientId,
+          userId: existingIntervention.booking.clientId,
           type: "SERVICE_COMPLETED",
           title: "Service terminé",
-          message: `Votre service "${existingIntervention.title}" a été terminé avec succès.`,
+          message: `Votre service "${existingIntervention.booking.service.name}" a été terminé avec succès.`,
           data: {
             interventionId: interventionId,
-            paymentId: existingIntervention.paymentId,
+            paymentId: existingIntervention.booking.payment.id,
           },
         },
       });
@@ -228,10 +263,10 @@ export async function PATCH(
     if (validatedData.status === "IN_PROGRESS") {
       await prisma.notification.create({
         data: {
-          userId: existingIntervention.clientId,
+          userId: existingIntervention.booking.clientId,
           type: "SERVICE_STARTED",
           title: "Service commencé",
-          message: `Votre prestataire a commencé le service "${existingIntervention.title}".`,
+          message: `Votre prestataire a commencé le service "${existingIntervention.booking.service.name}".`,
           data: {
             interventionId: interventionId,
             providerId: provider.id,
@@ -242,15 +277,23 @@ export async function PATCH(
 
     const updatedIntervention = await prisma.intervention.update({
       where: { id: interventionId },
-      data: updateData,
+      data: interventionUpdateData,
       include: {
-        client: {
+        booking: {
           include: {
-            profile: true,
+            client: {
+              include: {
+                user: {
+                  include: {
+                    profile: true,
+                  },
+                },
+              },
+            },
+            service: true,
+            payment: true,
           },
         },
-        serviceRequest: true,
-        payment: true,
         provider: {
           include: {
             user: {
@@ -260,6 +303,7 @@ export async function PATCH(
             },
           },
         },
+        invoiceItems: true,
       },
     });
 
