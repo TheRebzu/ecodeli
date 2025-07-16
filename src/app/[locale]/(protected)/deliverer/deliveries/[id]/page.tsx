@@ -519,23 +519,22 @@ export default function DeliveryDetailPage({
             </Card>
           )}
 
-        {/* Affichage du code de validation si disponible */}
-        {delivery.validationCode && delivery.status !== "DELIVERED" && (
-          <Card className="border-2 border-blue-200 bg-blue-50">
+        {/* DEBUG - Code de validation (pour développement uniquement) */}
+        {delivery.validationCode && delivery.status !== "DELIVERED" && process.env.NODE_ENV === "development" && (
+          <Card className="border-2 border-orange-200 bg-orange-50">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-blue-800">
+              <CardTitle className="flex items-center gap-2 text-orange-800">
                 <QrCode className="h-5 w-5" />
-                Code de validation disponible (DEBUG)
+                DEBUG - Code de validation
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-center">
-                <div className="text-3xl font-mono font-bold text-blue-900 mb-2">
+                <div className="text-2xl font-mono font-bold text-orange-900 mb-2">
                   {delivery.validationCode}
                 </div>
-                <p className="text-sm text-blue-700">
-                  <strong>DEBUG :</strong> Ce code sera demandé au client lors
-                  de la remise
+                <p className="text-xs text-orange-700">
+                  <strong>DEBUG :</strong> Le client doit vous donner ce code pour valider la livraison
                 </p>
               </div>
             </CardContent>
@@ -546,9 +545,15 @@ export default function DeliveryDetailPage({
         <Alert>
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>
-            <strong>Instructions :</strong> Une fois arrivé chez le client,
-            demandez le code de validation à 6 chiffres. Saisissez ce code pour
-            confirmer la livraison et débloquer le paiement.
+            <strong>Instructions de validation :</strong>
+            <br />
+            1. Une fois arrivé chez le client, demandez-lui son code de validation
+            <br />
+            2. Le client vous donne le code à 6 chiffres affiché sur son interface
+            <br />
+            3. Saisissez ce code dans le formulaire ci-dessus pour confirmer la livraison
+            <br />
+            4. Le paiement sera automatiquement débloqué
           </AlertDescription>
         </Alert>
       </div>

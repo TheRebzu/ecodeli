@@ -49,11 +49,6 @@ export async function GET(
                 },
               },
             },
-            validations: {
-              where: { isUsed: false },
-              orderBy: { createdAt: "desc" },
-              take: 1,
-            },
           },
         },
       },
@@ -78,6 +73,18 @@ export async function GET(
 
     // Retourner directement le code de validation de la livraison liée
     const delivery = announcement.deliveries[0]; // Prendre la première livraison
+    
+    // Vérifier si le code de validation existe
+    if (!delivery.validationCode) {
+      return NextResponse.json(
+        {
+          error: "Code de validation non disponible",
+          reason: getValidationCodeUnavailableReason(delivery.status),
+        },
+        { status: 400 },
+      );
+    }
+
     return NextResponse.json({
       announcement: {
         id: announcement.id,
@@ -145,6 +152,9 @@ export async function POST(
         id: announcementId,
         authorId: user.id,
       },
+      include: {
+        deliveries: true,
+      },
     });
 
     if (!announcement) {
@@ -154,20 +164,22 @@ export async function POST(
       );
     }
 
-    if (!announcement.delivery) {
+    if (!announcement.deliveries || announcement.deliveries.length === 0) {
       return NextResponse.json(
         { error: "Aucune livraison associée à cette annonce" },
         { status: 400 },
       );
     }
 
+    const delivery = announcement.deliveries[0];
+
     // Vérifier que la livraison est dans un état valide
     const validStatuses = ["IN_TRANSIT", "OUT_FOR_DELIVERY"];
-    if (!validStatuses.includes(announcement.delivery.status)) {
+    if (!validStatuses.includes(delivery.status)) {
       return NextResponse.json(
         {
           error: "Impossible de régénérer le code dans ce statut",
-          deliveryStatus: announcement.delivery.status,
+          deliveryStatus: delivery.status,
         },
         { status: 400 },
       );
@@ -175,10 +187,10 @@ export async function POST(
 
     // Régénérer le code
     const newCode = await ValidationCodeService.generateValidationCode(
-      announcement.delivery.id,
+      delivery.id,
     );
     const validationInfo = await ValidationCodeService.getValidationInfo(
-      announcement.delivery.id,
+      delivery.id,
     );
 
     if (!validationInfo) {
@@ -189,7 +201,7 @@ export async function POST(
     await prisma.announcementTracking.create({
       data: {
         announcementId,
-        status: "CODE_REGENERATED",
+        status: "ACTIVE", // Utiliser un statut valide
         message: `Code de validation régénéré: ${reason}`,
         createdBy: user.id,
         isPublic: false, // Information sensible
@@ -201,7 +213,7 @@ export async function POST(
     });
 
     logger.info(
-      `Code de validation régénéré pour livraison ${announcement.delivery.id}`,
+      `Code de validation régénéré pour livraison ${delivery.id}`,
     );
 
     return NextResponse.json({
@@ -248,15 +260,11 @@ function getValidationCodeUnavailableReason(status: string): string {
  * Formate le temps restant en format lisible
  */
 function formatTimeRemaining(ms: number): string {
-  if (ms <= 0) return "Expiré";
-
-  const totalMinutes = Math.floor(ms / (1000 * 60));
-  const hours = Math.floor(totalMinutes / 60);
-  const minutes = totalMinutes % 60;
-
+  const hours = Math.floor(ms / (1000 * 60 * 60));
+  const minutes = Math.floor((ms % (1000 * 60 * 60)) / (1000 * 60));
+  
   if (hours > 0) {
-    return `${hours}h ${minutes}min`;
+    return `${hours}h ${minutes}m`;
   }
-
-  return `${minutes}min`;
+  return `${minutes}m`;
 }

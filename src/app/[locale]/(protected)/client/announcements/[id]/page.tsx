@@ -209,6 +209,7 @@ interface AnnouncementDetails {
         phone?: string;
       };
     };
+    validationCode?: string; // Added for direct display
   };
 
   // Évaluations et pièces jointes
@@ -223,6 +224,11 @@ interface AnnouncementDetails {
     id: string;
     status: string;
     paymentDate?: string;
+  }>;
+  deliveries?: Array<{ // Added for direct display
+    id: string;
+    status: string;
+    validationCode?: string;
   }>;
 }
 
@@ -272,6 +278,8 @@ export default function AnnouncementDetailPage() {
   const [error, setError] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
   const [isPaying, setIsPaying] = useState(false);
+  const [validationCode, setValidationCode] = useState<string | null>(null);
+  const [loadingValidationCode, setLoadingValidationCode] = useState(false);
   const searchParams = useSearchParams();
   const paymentSuccess = searchParams.get('payment') === 'success';
 
@@ -299,6 +307,31 @@ export default function AnnouncementDetailPage() {
   useEffect(() => {
     fetchAnnouncement();
   }, [id]);
+
+  // Récupérer le code de validation si une livraison est en cours
+  const fetchValidationCode = async () => {
+    if (!announcement?.deliveries || announcement.deliveries.length === 0) {
+      return;
+    }
+
+    // Prendre la première livraison
+    const delivery = announcement.deliveries[0];
+    if (delivery.status === 'DELIVERED') {
+      return;
+    }
+
+    // Utiliser directement le code de validation de la livraison
+    if (delivery.validationCode) {
+      setValidationCode(delivery.validationCode);
+    }
+  };
+
+  // Récupérer le code quand l'annonce est chargée et qu'il y a une livraison
+  useEffect(() => {
+    if (announcement?.deliveries && announcement.deliveries.length > 0 && !validationCode) {
+      fetchValidationCode();
+    }
+  }, [announcement?.deliveries, validationCode]);
 
   // Rafraîchir automatiquement si on détecte un retour de paiement
   useEffect(() => {
@@ -453,7 +486,9 @@ export default function AnnouncementDetailPage() {
   }
 
   // Use delivery.status if available, otherwise fallback to announcement.status
-  const unifiedStatus = announcement.delivery?.status || announcement.status;
+  const unifiedStatus = announcement.deliveries && announcement.deliveries.length > 0 
+    ? announcement.deliveries[0].status 
+    : announcement.status;
   const statusInfo = statusLabels[unifiedStatus as keyof typeof statusLabels];
   const typeInfo = typeLabels[announcement.type as keyof typeof typeLabels];
   const TypeIcon = typeInfo?.icon || Package;
@@ -465,9 +500,7 @@ export default function AnnouncementDetailPage() {
     unifiedStatus === "ACTIVE" &&
     announcement.routeMatches &&
     announcement.routeMatches.length > 0;
-  const hasDelivery = ["MATCHED", "IN_PROGRESS", "COMPLETED"].includes(
-    unifiedStatus,
-  );
+  const hasDelivery = announcement.deliveries && announcement.deliveries.length > 0;
 
   return (
     <>
@@ -496,7 +529,7 @@ export default function AnnouncementDetailPage() {
         }
       />
       {/* Bouton de suivi de la livraison */}
-      {announcement.delivery?.id && (
+      {announcement.deliveries && announcement.deliveries.length > 0 && (
         <div className="mb-4 flex justify-end gap-2">
           <Link href={`/client/announcements/${announcement.id}/tracking`}>
             <Button variant="default">
@@ -1200,7 +1233,7 @@ export default function AnnouncementDetailPage() {
             </Card>
 
             {/* Livraison en cours */}
-            {hasDelivery && announcement.delivery && (
+            {hasDelivery && announcement.deliveries && announcement.deliveries.length > 0 && (
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
@@ -1216,6 +1249,35 @@ export default function AnnouncementDetailPage() {
                       page de suivi pour plus de détails.
                     </AlertDescription>
                   </Alert>
+
+                  {/* Code de validation pour le client */}
+                  {announcement.deliveries[0].validationCode && announcement.deliveries[0].status !== 'DELIVERED' && (
+                    <Card className="border-2 border-blue-200 bg-blue-50">
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2 text-blue-800 text-lg">
+                          <AlertCircle className="h-5 w-5" />
+                          Code de validation
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="text-center space-y-4">
+                          <div className="bg-white rounded-lg p-6 border-2 border-blue-300">
+                            <div className="text-5xl font-mono font-bold text-blue-900 mb-2 tracking-wider">
+                              {announcement.deliveries[0].validationCode}
+                            </div>
+                          </div>
+                          <div className="space-y-2">
+                            <p className="text-sm font-medium text-blue-800">
+                              🚚 <strong>Donnez ce code au livreur</strong>
+                            </p>
+                            <p className="text-xs text-blue-700">
+                              Le livreur vous demandera ce code pour valider la réception de votre commande
+                            </p>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
 
                   <Link
                     href={`/client/announcements/${id}/tracking`}

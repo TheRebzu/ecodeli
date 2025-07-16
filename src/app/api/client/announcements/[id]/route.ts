@@ -255,19 +255,18 @@ export async function GET(
         : null,
 
       // Informations de livraison
-      delivery: announcement.delivery
-        ? {
-            id: announcement.delivery.id,
-            status: announcement.delivery.status,
-            trackingNumber: announcement.delivery.trackingNumber,
-            deliverer: announcement.delivery.deliverer
-              ? {
-                  id: announcement.delivery.deliverer.id,
-                  profile: announcement.delivery.deliverer.profile,
-                }
-              : null,
-          }
-        : null,
+      deliveries: announcement.deliveries.map((delivery) => ({
+        id: delivery.id,
+        status: delivery.status,
+        trackingNumber: delivery.trackingNumber,
+        validationCode: delivery.validationCode,
+        deliverer: delivery.deliverer
+          ? {
+              id: delivery.deliverer.id,
+              profile: delivery.deliverer.profile,
+            }
+          : null,
+      })),
 
       // Paiement lié à la livraison (pour badge Payé)
       payment: payment
