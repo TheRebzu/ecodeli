@@ -24,10 +24,11 @@ const nextConfig: NextConfig = {
     },
     // Fix pour le client-reference-manifest
     optimizePackageImports: ["lucide-react", "@radix-ui/*"],
+    // Fix pour le build Vercel
+    turbotrace: {
+      logLevel: "bug",
+    },
   },
-
-  // Output configuration pour Vercel
-  output: "standalone",
 
   // Images optimization
   images: {
