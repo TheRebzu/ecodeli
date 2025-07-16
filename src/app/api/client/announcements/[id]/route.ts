@@ -148,6 +148,17 @@ export async function GET(
       );
     }
 
+    // Récupérer le paiement séparément
+    const payment = await prisma.payment.findFirst({
+      where: {
+        announcementId: id,
+        status: {
+          in: ["COMPLETED", "PROCESSING"],
+        },
+      },
+      orderBy: { createdAt: "desc" },
+    });
+
     // Transformer les données pour correspondre au format attendu par le frontend
     const transformedAnnouncement = {
       id: announcement.id,
@@ -259,13 +270,13 @@ export async function GET(
         : null,
 
       // Paiement lié à la livraison (pour badge Payé)
-      payment: announcement.delivery && announcement.delivery.payment
+      payment: payment
         ? {
-            id: announcement.delivery.payment.id,
-            status: announcement.delivery.payment.status,
-            amount: announcement.delivery.payment.amount,
-            currency: announcement.delivery.payment.currency,
-            completedAt: announcement.delivery.payment.completedAt,
+            id: payment.id,
+            status: payment.status,
+            amount: payment.amount,
+            currency: payment.currency,
+            completedAt: payment.completedAt,
           }
         : null,
 

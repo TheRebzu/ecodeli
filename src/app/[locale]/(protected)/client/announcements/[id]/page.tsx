@@ -219,6 +219,11 @@ interface AnnouncementDetails {
     status: string;
     paymentDate?: string;
   };
+  payments?: Array<{
+    id: string;
+    status: string;
+    paymentDate?: string;
+  }>;
 }
 
 const statusLabels = {
@@ -270,40 +275,41 @@ export default function AnnouncementDetailPage() {
   const searchParams = useSearchParams();
   const paymentSuccess = searchParams.get('payment') === 'success';
 
-  useEffect(() => {
-    if (id && user) {
-      fetchAnnouncement();
-    }
-  }, [id, user]);
-
   const fetchAnnouncement = async () => {
     try {
       setLoading(true);
       const response = await fetch(`/api/client/announcements/${id}`, {
-        method: "GET",
-        credentials: "include", // Important : inclure les cookies de session
         headers: {
           "Content-Type": "application/json",
         },
+        cache: 'no-store', // Force refresh
       });
-
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || "Annonce non trouvée");
+        throw new Error("Erreur lors du chargement de l'annonce");
       }
-
       const data = await response.json();
-      console.log("📡 Données reçues de l'API:", data);
-
-      // L'API retourne directement l'annonce transformée
       setAnnouncement(data);
-    } catch (err: any) {
-      console.error("❌ Erreur chargement annonce:", err);
-      setError(err.message || "Erreur de chargement");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Erreur inconnue");
     } finally {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchAnnouncement();
+  }, [id]);
+
+  // Rafraîchir automatiquement si on détecte un retour de paiement
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('payment_success') === 'true') {
+      // Attendre un peu puis rafraîchir pour laisser le temps au webhook
+      setTimeout(() => {
+        fetchAnnouncement();
+      }, 2000);
+    }
+  }, []);
 
   const handleDelete = async () => {
     if (
@@ -425,8 +431,8 @@ export default function AnnouncementDetailPage() {
     }
   };
 
-  // Trouver la variable qui contient le paiement de l'annonce (ex: announcement.payment ou payment)
-  const isPaymentCompleted = announcement?.payment?.status === "COMPLETED" || announcement?.payment?.status === "PAID";
+  // Vérifier si le paiement a été effectué
+  const isPaymentCompleted = announcement?.payment?.status === "COMPLETED";
 
   if (loading) {
     return <div>Chargement…</div>;

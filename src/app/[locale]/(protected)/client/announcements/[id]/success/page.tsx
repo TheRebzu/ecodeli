@@ -76,7 +76,7 @@ export default function PaymentSuccessPage() {
 
   const handleContinue = () => {
     if (result?.success) {
-      router.push(`/client/announcements/${announcementId}`);
+      router.push(`/client/announcements/${announcementId}?payment_success=true`);
     } else {
       router.push("/client/announcements");
     }
