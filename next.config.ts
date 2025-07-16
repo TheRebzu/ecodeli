@@ -14,8 +14,20 @@ const nextConfig: NextConfig = {
   },
   eslint: {
     ignoreDuringBuilds: true,
-    
   },
+
+  // Fix pour Next.js 15 avec next-intl
+  experimental: {
+    // Nécessaire pour next-intl avec App Router
+    serverActions: {
+      bodySizeLimit: "2mb",
+    },
+    // Fix pour le client-reference-manifest
+    optimizePackageImports: ["lucide-react", "@radix-ui/*"],
+  },
+
+  // Output configuration pour Vercel
+  output: "standalone",
 
   // Images optimization
   images: {
@@ -59,6 +71,21 @@ const nextConfig: NextConfig = {
         permanent: false,
       },
     ];
+  },
+
+  // Webpack configuration pour gérer les modules problématiques
+  webpack: (config, { isServer }) => {
+    // Fix pour les modules qui causent des problèmes
+    if (!isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        fs: false,
+        net: false,
+        tls: false,
+      };
+    }
+
+    return config;
   },
 };
 
