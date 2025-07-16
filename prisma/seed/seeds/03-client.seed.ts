@@ -17,9 +17,9 @@ export async function seedClient(ctx: SeedContext) {
     const index = clients.indexOf(client);
 
     // Mettre à jour le client avec quelques données supplémentaires
-    await prisma.client.update({
+    await prisma.client.upsert({
       where: { id: client.client.id },
-      data: {
+      update: {
         tutorialCompleted: index < 3, // Les 3 premiers ont terminé le tutoriel
         tutorialCompletedAt:
           index < 3
@@ -28,6 +28,17 @@ export async function seedClient(ctx: SeedContext) {
         emailNotifications: true,
         pushNotifications: index % 2 === 0,
         smsNotifications: index < 2, // Seulement les 2 premiers
+      },
+      create: {
+        userId: client.id,
+        tutorialCompleted: index < 3,
+        tutorialCompletedAt:
+          index < 3
+            ? new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000)
+            : null,
+        emailNotifications: true,
+        pushNotifications: index % 2 === 0,
+        smsNotifications: index < 2,
       },
     });
 
