@@ -1,126 +1,119 @@
-# Utilisation d'une base Alpine pour la taille optimale
+# syntax=docker/dockerfile:1.4
 FROM node:18-alpine AS base
 
-# Installation des dépendances système et des outils nécessaires
-RUN apk add --no-cache \
-    libc6-compat \
-    postgresql-client \
-    bash \
-    curl \
-    && rm -rf /var/cache/apk/*
+# Install dependencies only when needed
+FROM base AS deps
+RUN apk add --no-cache libc6-compat postgresql-client bash git
 
-# Définition du répertoire de travail
 WORKDIR /app
 
-# Copie des fichiers de configuration des dépendances
-COPY package.json pnpm-lock.yaml ./
-COPY pnpm-workspace.yaml ./
-
-# Copie des fichiers Prisma nécessaires pour le script postinstall
+# Copy package files
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY prisma ./prisma
 
-# Installation de pnpm
+# Install pnpm
 RUN npm install -g pnpm
 
-# Stage 2: Installation des dépendances
-FROM base AS deps
+# Install dependencies with cache mount
+RUN --mount=type=cache,target=/root/.local/share/pnpm/store \
+    pnpm install --frozen-lockfile
 
-# Installation des dépendances de production et de développement
-RUN pnpm install --frozen-lockfile
-
-# Stage 3: Build de l'application
+# Rebuild the source code only when needed
 FROM base AS builder
+WORKDIR /app
 
-# Copie des dépendances depuis l'étape précédente
+# Variables d'environnement pour le build
+ARG DATABASE_URL
+ARG NEXTAUTH_URL
+ARG NEXTAUTH_SECRET
+ARG STRIPE_SECRET_KEY
+ARG STRIPE_WEBHOOK_SECRET
+ARG STRIPE_PUBLISHABLE_KEY
+ARG ONESIGNAL_APP_ID
+ARG ONESIGNAL_API_KEY
+ARG NODE_ENV
+ARG DOCKER
+
+# Passer les variables comme variables d'environnement
+ENV DATABASE_URL=$DATABASE_URL
+ENV NEXTAUTH_URL=$NEXTAUTH_URL
+ENV NEXTAUTH_SECRET=$NEXTAUTH_SECRET
+ENV STRIPE_SECRET_KEY=$STRIPE_SECRET_KEY
+ENV STRIPE_WEBHOOK_SECRET=$STRIPE_WEBHOOK_SECRET
+ENV STRIPE_PUBLISHABLE_KEY=$STRIPE_PUBLISHABLE_KEY
+ENV ONESIGNAL_APP_ID=$ONESIGNAL_APP_ID
+ENV ONESIGNAL_API_KEY=$ONESIGNAL_API_KEY
+ENV NODE_ENV=$NODE_ENV
+ENV DOCKER=$DOCKER
+
+# Copy dependencies
 COPY --from=deps /app/node_modules ./node_modules
-
-# Copie de tous les fichiers source
 COPY . .
 
-# Configuration des variables d'environnement pour le build
-ENV NODE_ENV=production
-ENV NEXT_TELEMETRY_DISABLED=1
+# Install pnpm for builder
+RUN npm install -g pnpm
 
-# Variables d'environnement placeholder (à remplacer en runtime)
-ENV DATABASE_URL="placeholder"
-ENV NEXTAUTH_SECRET="placeholder"
-ENV NEXTAUTH_URL="placeholder"
+# Générer le client Prisma
+RUN pnpm prisma generate
 
-# Build de l'application Next.js
-RUN pnpm build
+# Build with cache optimization
+ENV NEXT_TELEMETRY_DISABLED 1
+ENV SKIP_ENV_VALIDATION 1
 
-# Stage 4: Image finale de production
-FROM node:18-alpine AS runner
+RUN --mount=type=cache,target=/app/.next/cache \
+    pnpm build
 
-# Installation des dépendances système nécessaires en runtime
+# Production image, copy all the files and run next
+FROM base AS runner
+WORKDIR /app
+
 RUN apk add --no-cache \
     dumb-init \
     curl \
     tzdata \
     postgresql-client \
-    bash \
-    && rm -rf /var/cache/apk/*
+    bash
 
-# Création d'un utilisateur non-root pour la sécurité
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
+
+# Create user and group
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
-# Définition du répertoire de travail
-WORKDIR /app
-
-# Installation de pnpm
+# Install pnpm
 RUN npm install -g pnpm
 
-# Copie des fichiers de configuration
+# Copy built application
 COPY --from=builder /app/next.config.* ./
 COPY --from=builder /app/package.json ./
 COPY --from=builder /app/pnpm-lock.yaml ./
 COPY --from=builder /app/pnpm-workspace.yaml ./
-
-# Copie des fichiers de base de données et scripts
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/scripts ./scripts
 
-# Copie des node_modules depuis l'étape de build
-COPY --from=builder /app/node_modules ./node_modules
+# Copy the built application
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+COPY --from=builder --chown=nextjs:nodejs /app/public ./public
 
-# Copie du build de l'application Next.js
-COPY --from=builder /app/.next/standalone ./
-COPY --from=builder /app/.next/static ./.next/static
+# Copy messages for i18n
+COPY --from=builder --chown=nextjs:nodejs /app/src/messages ./src/messages
 
-# Copie des assets publics
-COPY --from=builder /app/public ./public
-
-# Copie des fichiers de traduction
-COPY --from=builder /app/src/messages ./src/messages
-
-# Création des répertoires nécessaires
+# Create necessary directories
 RUN mkdir -p ./public/uploads ./logs
-
-# Changement du propriétaire des fichiers
 RUN chown -R nextjs:nodejs /app
 
-# Changement vers l'utilisateur non-root
 USER nextjs
 
-# Exposition du port de l'application
 EXPOSE 3000
 
-# Configuration des variables d'environnement
-ENV NODE_ENV=production
-ENV NEXT_TELEMETRY_DISABLED=1
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
-ENV PATH="/app/node_modules/.bin:$PATH"
 
-# Utilisation de dumb-init pour gérer correctement les signaux
+# Copy and make executable the startup script
+COPY --from=builder --chown=nextjs:nodejs /app/scripts/docker-start.sh /usr/local/bin/docker-start.sh
+RUN chmod +x /usr/local/bin/docker-start.sh
+
 ENTRYPOINT ["/usr/bin/dumb-init", "--"]
-
-# Commande de démarrage utilisant le script d'initialisation
-CMD ["/app/scripts/docker-start.sh"]
-
-# Labels pour la métadonnée
-LABEL maintainer="EcoDeli Team <dev@ecodeli.fr>"
-LABEL description="EcoDeli - Plateforme de crowdshipping et services collaboratifs"
-LABEL version="1.0.0"
-LABEL org.opencontainers.image.source="https://github.com/ecodeli/platform"
+CMD ["/usr/local/bin/docker-start.sh"]
