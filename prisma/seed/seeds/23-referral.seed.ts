@@ -37,11 +37,19 @@ export async function seedReferrals(ctx: SeedContext) {
 
   for (let i = 0; i < clients.length; i++) {
     const client = clients[i];
-    const code = await prisma.referralCode.create({
-      data: {
+    const codeString = `ECO${String(i + 1).padStart(3, "0")}REF`;
+    const code = await prisma.referralCode.upsert({
+      where: { code: codeString },
+      update: {
+        isActive: true,
+        usageLimit: 10,
+        usageCount: Math.floor(Math.random() * 3),
+        expiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
+      },
+      create: {
         programId: mainProgram.id,
         referrerId: client.id,
-        code: `ECO${String(i + 1).padStart(3, "0")}REF`,
+        code: codeString,
         isActive: true,
         usageLimit: 10,
         usageCount: Math.floor(Math.random() * 3),

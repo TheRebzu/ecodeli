@@ -1,10 +1,13 @@
 {
-    "buildCommand": "pnpm run prisma:generate && pnpm run build",
+    "buildCommand": "pnpm run prisma:generate && pnpm run build && node scripts/post-build.js",
     "installCommand": "pnpm install",
     "framework": "nextjs",
     "functions": {
       "app/api/*/route.ts": {
         "maxDuration": 60
       }
+    },
+    "env": {
+      "NODE_ENV": "production"
     }
   }

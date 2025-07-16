@@ -5,9 +5,12 @@
   "scripts": {
     "postinstall": "pnpm run prisma:generate",
     "build": "next build",
+    "postbuild": "node scripts/post-build.js",
     "dev": "next dev",
     "lint": "next lint",
     "start": "next start",
+    "seed": "tsx prisma/seed.ts",
+    "db:seed": "tsx prisma/seed.ts",
     "format": "prettier --write .",
     "type-check": "tsc --noEmit",
     "fix-ts": "node fix-ts-simple.js && pnpm run type-check",

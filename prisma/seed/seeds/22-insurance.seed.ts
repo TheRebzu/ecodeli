@@ -68,8 +68,15 @@ export async function seedInsurance(ctx: SeedContext) {
     );
     const endDate = new Date(startDate.getTime() + 365 * 24 * 60 * 60 * 1000);
 
-    const policy = await prisma.insurancePolicy.create({
-      data: {
+    const policy = await prisma.insurancePolicy.upsert({
+      where: { policyNumber: policyData.policyNumber },
+      update: {
+        category: policyData.category as any,
+        startDate,
+        endDate,
+        isActive: endDate > new Date(),
+      },
+      create: {
         ...policyData,
         category: policyData.category as any,
         startDate,
@@ -209,8 +216,26 @@ export async function seedInsurance(ctx: SeedContext) {
     if (riskScore > 70) riskLevel = "HIGH";
     else if (riskScore > 40) riskLevel = "MEDIUM";
 
-    await prisma.riskAssessment.create({
-      data: {
+    await prisma.riskAssessment.upsert({
+      where: {
+        entityType_entityId: {
+          entityType: "user",
+          entityId: user.id,
+        }
+      },
+      update: {
+        riskLevel: riskLevel as any,
+        riskFactors: [
+          { factor: "Activity level", weight: 0.3 },
+          { factor: "Past claims", weight: 0.4 },
+          { factor: "Account age", weight: 0.3 },
+        ],
+        score: riskScore,
+        recommendations: [
+          { type: "monitoring", description: "Regular activity monitoring" },
+        ],
+      },
+      create: {
         entityType: "user",
         entityId: user.id,
         riskLevel: riskLevel as any,

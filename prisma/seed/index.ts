@@ -90,9 +90,15 @@ export async function seedDatabase() {
       await generateSeedReport(context);
     }
 
-    // Injection d'une annonce pour l'utilisateur demandé (manuel)
-    const { injectAnnouncementForUser } = await import("./seeds/08-announcement.seed");
-    await injectAnnouncementForUser(context.prisma, "cmcx8po9l0000plzgekbnro5b");
+    // Injection d'une annonce pour un utilisateur client (utilise le premier client disponible)
+    const firstClient = await context.prisma.user.findFirst({
+      where: { role: "CLIENT" }
+    });
+    
+    if (firstClient) {
+      const { injectAnnouncementForUser } = await import("./seeds/08-announcement.seed");
+      await injectAnnouncementForUser(context.prisma, firstClient.id);
+    }
 
     console.log("\nDatabase seeding completed successfully!");
 

@@ -82,9 +82,40 @@ export async function seedProviders(ctx: SeedContext) {
       serviceCategories[category as keyof typeof serviceCategories];
 
     const radius = 10 + Math.floor(Math.random() * 20); // 10-30 km
-    const provider = await prisma.provider.update({
+    const provider = await prisma.provider.upsert({
       where: { userId: user.id },
-      data: {
+      update: {
+        businessName: `${user.name} Services`,
+        siret:
+          user.validationStatus === "VALIDATED"
+            ? `${Math.floor(10000000 + Math.random() * 90000000)}00021`
+            : null,
+        specialties: [categoryData.specialty],
+        hourlyRate:
+          categoryData.pricing.min +
+          Math.random() * (categoryData.pricing.max - categoryData.pricing.min),
+        description: `Service professionnel de ${categoryData.name.toLowerCase()}`,
+        averageRating:
+          user.validationStatus === "VALIDATED" ? 4 + Math.random() : 0,
+        totalBookings:
+          user.validationStatus === "VALIDATED"
+            ? Math.floor(Math.random() * 200)
+            : 0,
+        activatedAt:
+          user.validationStatus === "VALIDATED"
+            ? new Date(Date.now() - Math.random() * 180 * 24 * 60 * 60 * 1000)
+            : null,
+        lastActiveAt:
+          user.validationStatus === "VALIDATED"
+            ? new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000)
+            : null,
+        zone: {
+          coordinates: [[48.8566, 2.3522]], // Paris par défaut
+          radius,
+        },
+      },
+      create: {
+        userId: user.id,
         businessName: `${user.name} Services`,
         siret:
           user.validationStatus === "VALIDATED"

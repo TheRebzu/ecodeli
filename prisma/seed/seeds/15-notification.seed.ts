@@ -119,8 +119,18 @@ export async function seedNotifications(ctx: SeedContext) {
 
   // 1. Créer les préférences de notification pour tous les utilisateurs
   for (const user of users) {
-    await prisma.notificationPreference.create({
-      data: {
+    await prisma.notificationPreference.upsert({
+      where: { userId: user.id },
+      update: {
+        emailNotifications: true,
+        pushNotifications: user.role !== "ADMIN", // Admins n'ont pas besoin de push
+        smsNotifications: user.role === "DELIVERER" || user.role === "PROVIDER",
+        announcementMatch: user.role === "DELIVERER",
+        deliveryUpdates: user.role === "CLIENT" || user.role === "DELIVERER",
+        paymentUpdates: true,
+        marketingEmails: user.role === "CLIENT" && Math.random() > 0.5,
+      },
+      create: {
         userId: user.id,
         emailNotifications: true,
         pushNotifications: user.role !== "ADMIN", // Admins n'ont pas besoin de push
