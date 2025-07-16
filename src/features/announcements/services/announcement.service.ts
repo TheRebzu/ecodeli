@@ -213,27 +213,50 @@ class AnnouncementService {
     const announcement = await prisma.announcement.findUnique({
       where: { id },
       include: {
-        client: {
-          include: {
+        author: {
+          select: {
+            id: true,
+            email: true,
             profile: {
               select: { firstName: true, lastName: true, avatar: true },
             },
           },
         },
-        merchant: {
-          select: { id: true, companyName: true, contactEmail: true },
+        deliverer: {
+          select: {
+            id: true,
+            email: true,
+            profile: {
+              select: { firstName: true, lastName: true, avatar: true },
+            },
+          },
         },
-        packageDetails: true,
-        serviceDetails: true,
+        Merchant: {
+          select: {
+            id: true,
+            userId: true,
+            companyName: true,
+            siret: true,
+            vatNumber: true,
+            contractStatus: true,
+            contractStartDate: true,
+            contractEndDate: true,
+            commissionRate: true,
+            rating: true,
+            createdAt: true,
+            updatedAt: true,
+          },
+        },
         delivery: {
           select: { id: true, status: true, delivererId: true },
         },
-        routeMatches: {
+        matches: {
           include: {
             route: {
               include: {
                 deliverer: {
-                  include: {
+                  select: {
+                    id: true,
                     profile: {
                       select: { firstName: true, lastName: true, avatar: true },
                     },
@@ -242,14 +265,35 @@ class AnnouncementService {
               },
             },
           },
-          orderBy: { matchScore: "desc" },
+          orderBy: {
+            globalScore: "desc"
+          },
         },
         _count: {
           select: {
-            delivery: true,
-            routeMatches: true,
-          },
+            matches: true,
+            // Add other valid relations if needed, e.g.:
+            // reviews: true,
+            // attachments: true,
+            // notifications: true,
+            // tracking: true,
+            // Dispute: true,
+            // AnnouncementGroup: true,
+            // GroupingProposal: true,
+          }
         },
+        attachments: true,
+        notifications: true,
+        tracking: true,
+        PackageAnnouncement: true,
+        ServiceAnnouncement: true,
+        payment: true,
+        reviews: true,
+        Dispute: true,
+        ReverseAuction: true,
+        AnnouncementGroup: true,
+        GroupingProposal: true,
+        Order: true,
       },
     });
 
@@ -329,27 +373,65 @@ class AnnouncementService {
         take: limit,
         orderBy: { [sortBy]: sortOrder },
         include: {
-          client: {
-            include: {
+          author: {
+            select: {
+              id: true,
+              email: true,
               profile: {
                 select: { firstName: true, lastName: true, avatar: true },
               },
             },
           },
-          merchant: {
+          deliverer: {
+            select: {
+              id: true,
+              email: true,
+              profile: {
+                select: { firstName: true, lastName: true, avatar: true },
+              },
+            },
+          },
+          Merchant: {
             select: { id: true, companyName: true, contactEmail: true },
           },
-          packageDetails: true,
-          serviceDetails: true,
           delivery: {
             select: { id: true, status: true, delivererId: true },
           },
+          matches: {
+            include: {
+              route: {
+                include: {
+                  deliverer: {
+                    select: {
+                      id: true,
+                      profile: {
+                        select: { firstName: true, lastName: true, avatar: true },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+            orderBy: { matchScore: "desc" },
+          },
           _count: {
             select: {
-              delivery: true,
-              routeMatches: true,
+              deliveries: true,
+              matches: true,
             },
           },
+          attachments: true,
+          notifications: true,
+          tracking: true,
+          PackageAnnouncement: true,
+          ServiceAnnouncement: true,
+          payment: true,
+          reviews: true,
+          Dispute: true,
+          ReverseAuction: true,
+          AnnouncementGroup: true,
+          GroupingProposal: true,
+          Order: true,
         },
       }),
 

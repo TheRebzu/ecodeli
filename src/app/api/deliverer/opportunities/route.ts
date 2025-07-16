@@ -98,6 +98,23 @@ export async function GET(request: NextRequest) {
       },
     });
 
+    // Pour chaque opportunité, récupérer le statut de paiement
+    const opportunitiesWithPayment = await Promise.all(
+      opportunities.map(async (opportunity) => {
+        const payment = await db.payment.findFirst({
+          where: {
+            announcementId: opportunity.id,
+            type: "DELIVERY",
+          },
+          select: { status: true },
+        });
+        return {
+          ...opportunity,
+          payment: payment ? { status: payment.status } : null,
+        };
+      })
+    );
+
     // (Optionnel) Matching géographique :
     // Si vous avez les coordonnées du livreur et des annonces, calculez la distance ici
     // const deliverer = await db.deliverer.findUnique({ where: { userId: user.id } })
@@ -119,7 +136,7 @@ export async function GET(request: NextRequest) {
         : 0;
 
     return NextResponse.json({
-      opportunities,
+      opportunities: opportunitiesWithPayment,
       pagination: {
         page,
         limit,

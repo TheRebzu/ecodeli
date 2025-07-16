@@ -487,8 +487,7 @@ export default function DeliveryManager({ delivererId }: DeliveryManagerProps) {
 
                         {/* Status-specific actions */}
                         {/* Debug: Status = {delivery.status} */}
-                        {(delivery.status === "accepted" ||
-                          delivery.status === "ACCEPTED") && (
+                        {delivery.status === "ACCEPTED" && (
                           <>
                             <div className="bg-blue-50 p-3 rounded-lg border border-blue-200 mb-3">
                               <div className="flex items-center space-x-2 mb-2">
@@ -498,24 +497,24 @@ export default function DeliveryManager({ delivererId }: DeliveryManagerProps) {
                                 </span>
                               </div>
                               <p className="text-xs text-blue-700">
-                                Rendez-vous à l'adresse de collecte pour
-                                récupérer le colis
+                                Rendez-vous à l'adresse de collecte pour récupérer le colis
                               </p>
                             </div>
 
                             <Button
                               size="sm"
                               className="bg-yellow-600 hover:bg-yellow-700 w-full"
-                              onClick={() =>
-                                updateDeliveryStatus(delivery.id, "picked_up")
-                              }
-                              disabled={actionLoading === delivery.id}
+                              onClick={() => updateDeliveryStatus(delivery.id, "picked_up")}
+                              disabled={actionLoading === delivery.id || delivery.payment?.status !== "COMPLETED"}
                             >
                               <Play className="w-4 h-4 mr-2" />
-                              {actionLoading === delivery.id
-                                ? "Mise à jour..."
-                                : "Colis récupéré"}
+                              {actionLoading === delivery.id ? "Mise à jour..." : "Colis récupéré"}
                             </Button>
+                            {delivery.payment?.status !== "COMPLETED" && (
+                              <div className="text-xs text-red-600 mt-1">
+                                En attente de paiement du client avant de pouvoir démarrer la livraison.
+                              </div>
+                            )}
                           </>
                         )}
 
@@ -535,19 +534,25 @@ export default function DeliveryManager({ delivererId }: DeliveryManagerProps) {
                               </p>
                             </div>
 
-                            <Button
-                              size="sm"
-                              className="bg-purple-600 hover:bg-purple-700 w-full"
-                              onClick={() =>
-                                updateDeliveryStatus(delivery.id, "in_transit")
-                              }
-                              disabled={actionLoading === delivery.id}
-                            >
-                              <Truck className="w-4 h-4 mr-2" />
-                              {actionLoading === delivery.id
-                                ? "Démarrage..."
-                                : "Démarrer la livraison"}
-                            </Button>
+                            {delivery.payment?.status === "COMPLETED" ? (
+                              <Button
+                                size="sm"
+                                className="bg-purple-600 hover:bg-purple-700 w-full"
+                                onClick={() =>
+                                  updateDeliveryStatus(delivery.id, "in_transit")
+                                }
+                                disabled={actionLoading === delivery.id}
+                              >
+                                <Truck className="w-4 h-4 mr-2" />
+                                {actionLoading === delivery.id
+                                  ? "Démarrage..."
+                                  : "Démarrer la livraison"}
+                              </Button>
+                            ) : (
+                              <div className="text-xs text-red-600 mt-1">
+                                En attente de paiement du client avant de pouvoir démarrer la livraison.
+                              </div>
+                            )}
                           </>
                         )}
 

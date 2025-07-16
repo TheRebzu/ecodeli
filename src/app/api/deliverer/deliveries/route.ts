@@ -171,54 +171,54 @@ export async function GET(request: NextRequest) {
     }
 
     // Formater les données
-    const formattedDeliveries = deliveries.map((delivery) => ({
-      id: delivery.id,
-      status: delivery.status,
-      pickupDate: delivery.pickupDate?.toISOString(),
-      deliveryDate: delivery.deliveryDate?.toISOString(),
-      actualDeliveryDate: delivery.actualDeliveryDate?.toISOString(),
-      price: delivery.price,
-      delivererFee: delivery.delivererFee,
-      platformFee: delivery.platformFee,
-      insuranceFee: delivery.insuranceFee,
-      createdAt: delivery.createdAt.toISOString(),
-      updatedAt: delivery.updatedAt.toISOString(),
-
-      announcement: {
-        id: delivery.announcement.id,
-        title: delivery.announcement.title,
-        description: delivery.announcement.description,
-        type: delivery.announcement.type,
-        basePrice: delivery.announcement.basePrice,
-        finalPrice:
-          delivery.announcement.finalPrice || delivery.announcement.basePrice,
-        currency: delivery.announcement.currency,
-        isUrgent: delivery.announcement.isUrgent,
-        pickupAddress: delivery.announcement.pickupAddress,
-        deliveryAddress: delivery.announcement.deliveryAddress,
-        packageDetails: delivery.announcement.PackageAnnouncement,
-
-        client: {
-          id: delivery.announcement.author.id,
-          name: delivery.announcement.author.profile
-            ? `${delivery.announcement.author.profile.firstName || ""} ${delivery.announcement.author.profile.lastName || ""}`.trim()
-            : delivery.announcement.author.email,
-          avatar: delivery.announcement.author.profile?.avatar,
-          phone: delivery.announcement.author.profile?.phone,
+    const formattedDeliveries = deliveries.map((delivery) => {
+      // Debug: log payment status for each delivery
+      console.log(`Delivery ${delivery.id} payment status:`, delivery.payment?.status);
+      return {
+        id: delivery.id,
+        status: delivery.status,
+        pickupDate: delivery.pickupDate?.toISOString(),
+        deliveryDate: delivery.deliveryDate?.toISOString(),
+        actualDeliveryDate: delivery.actualDeliveryDate?.toISOString(),
+        price: delivery.price,
+        delivererFee: delivery.delivererFee,
+        platformFee: delivery.platformFee,
+        insuranceFee: delivery.insuranceFee,
+        createdAt: delivery.createdAt.toISOString(),
+        updatedAt: delivery.updatedAt.toISOString(),
+        announcement: {
+          id: delivery.announcement.id,
+          title: delivery.announcement.title,
+          description: delivery.announcement.description,
+          type: delivery.announcement.type,
+          basePrice: delivery.announcement.basePrice,
+          finalPrice:
+            delivery.announcement.finalPrice || delivery.announcement.basePrice,
+          currency: delivery.announcement.currency,
+          isUrgent: delivery.announcement.isUrgent,
+          pickupAddress: delivery.announcement.pickupAddress,
+          deliveryAddress: delivery.announcement.deliveryAddress,
+          packageDetails: delivery.announcement.PackageAnnouncement,
+          client: {
+            id: delivery.announcement.author.id,
+            name: delivery.announcement.author.profile
+              ? `${delivery.announcement.author.profile.firstName || ""} ${delivery.announcement.author.profile.lastName || ""}`.trim()
+              : delivery.announcement.author.email,
+            avatar: delivery.announcement.author.profile?.avatar,
+            phone: delivery.announcement.author.profile?.phone,
+          },
         },
-      },
-
-      payment: delivery.payment
-        ? {
-            amount: delivery.payment.amount,
-            status: delivery.payment.status,
-            paidAt: delivery.payment.paidAt?.toISOString(),
-          }
-        : null,
-
-      proofOfDelivery: delivery.ProofOfDelivery,
-      tracking: delivery.tracking,
-    }));
+        payment: delivery.payment
+          ? {
+              amount: delivery.payment.amount,
+              status: delivery.payment.status,
+              paidAt: delivery.payment.paidAt?.toISOString(),
+            }
+          : null,
+        proofOfDelivery: delivery.ProofOfDelivery,
+        tracking: delivery.tracking,
+      };
+    });
 
     const total = await db.delivery.count({ where });
 
@@ -253,6 +253,12 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     console.error("❌ Erreur récupération livraisons:", error);
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        { error: "Invalid request data", details: error.issues },
+        { status: 400 },
+      );
+    }
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 },
@@ -330,6 +336,23 @@ export async function POST(request: NextRequest) {
           error: "Cette annonce n'est plus disponible",
         },
         { status: 400 },
+      );
+    }
+
+    // NOUVEAU: Vérifier que le paiement de l'annonce est effectué
+    const payment = await db.payment.findFirst({
+      where: {
+        announcementId: validatedData.announcementId,
+        status: "COMPLETED",
+        type: "DELIVERY",
+      },
+    });
+    if (!payment) {
+      return NextResponse.json(
+        {
+          error: "Le client n'a pas encore payé cette annonce. Vous ne pouvez pas l'accepter tant que le paiement n'est pas effectué.",
+        },
+        { status: 403 },
       );
     }
 
@@ -460,7 +483,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           error: "Données invalides",
-          details: error.errors,
+          details: error.issues,
         },
         { status: 400 },
       );

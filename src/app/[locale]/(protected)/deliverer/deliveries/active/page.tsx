@@ -353,23 +353,28 @@ function ActiveDeliveriesContent() {
                   </Button>
 
                   {delivery.status === "ACCEPTED" && (
-                    <Button
-                      variant="outline"
-                      className="flex-1"
-                      onClick={() =>
-                        handleUpdateStatus(delivery.id, delivery.status)
-                      }
-                      disabled={updatingStatus === delivery.id}
-                    >
-                      {updatingStatus === delivery.id ? (
-                        <>
-                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                          Mise à jour...
-                        </>
-                      ) : (
-                        t("actions.startDelivery")
+                    <>
+                      <Button
+                        variant="outline"
+                        className="flex-1"
+                        onClick={() => handleUpdateStatus(delivery.id, delivery.status)}
+                        disabled={updatingStatus === delivery.id || !delivery.payment || delivery.payment.status !== "COMPLETED"}
+                      >
+                        {updatingStatus === delivery.id ? (
+                          <>
+                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                            Mise à jour...
+                          </>
+                        ) : (
+                          t("actions.startDelivery")
+                        )}
+                      </Button>
+                      {(!delivery.payment || delivery.payment.status !== "COMPLETED") && (
+                        <div className="text-xs text-red-600 mt-1">
+                          En attente de paiement du client avant de pouvoir démarrer la livraison.
+                        </div>
                       )}
-                    </Button>
+                    </>
                   )}
 
                   {delivery.status === "IN_TRANSIT" && (

@@ -673,23 +673,39 @@ export function DelivererDeliveriesPage() {
                           </Button>
 
                           {delivery.status === "ACCEPTED" && (
-                            <Button
-                              size="sm"
-                              onClick={() => handleMarkAsPickedUp(delivery.id)}
-                              className="bg-orange-600 hover:bg-orange-700"
-                            >
-                              📦 Marquer récupéré
-                            </Button>
+                            <>
+                              <Button
+                                size="sm"
+                                onClick={() => handleMarkAsPickedUp(delivery.id)}
+                                className="bg-orange-600 hover:bg-orange-700"
+                                disabled={!delivery.payment || delivery.payment.status !== "COMPLETED"}
+                              >
+                                📦 Marquer récupéré
+                              </Button>
+                              {(!delivery.payment || delivery.payment.status !== "COMPLETED") && (
+                                <div className="text-xs text-red-600 mt-1">
+                                  En attente de paiement du client avant de pouvoir démarrer la livraison.
+                                </div>
+                              )}
+                            </>
                           )}
 
-                          {delivery.status === "PICKED_UP" && (
-                            <Button
-                              size="sm"
-                              onClick={() => handleMarkAsInTransit(delivery.id)}
-                              className="bg-yellow-600 hover:bg-yellow-700"
-                            >
-                              🚚 Démarrer livraison
-                            </Button>
+                          {delivery.status === "ACCEPTED" && (
+                            <>
+                              {delivery.payment && delivery.payment.status === "COMPLETED" ? (
+                                <Button
+                                  size="sm"
+                                  onClick={() => handleMarkAsInTransit(delivery.id)}
+                                  className="bg-yellow-600 hover:bg-yellow-700"
+                                >
+                                  🚚 Démarrer livraison
+                                </Button>
+                              ) : (
+                                <div className="text-xs text-red-600 mt-1">
+                                  En attente de paiement du client avant de pouvoir démarrer la livraison.
+                                </div>
+                              )}
+                            </>
                           )}
 
                           {delivery.status === "IN_TRANSIT" && (

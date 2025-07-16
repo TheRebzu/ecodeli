@@ -59,6 +59,11 @@ interface Delivery {
   startedAt?: string;
   completedAt?: string;
   trackingEvents: TrackingEvent[];
+  payment?: {
+    amount: number;
+    status: string;
+    paidAt?: string;
+  };
 }
 
 interface TrackingEvent {
@@ -262,9 +267,19 @@ export default function AdvancedDeliveryManager({
     switch (delivery.status) {
       case "assigned":
         return (
-          <Button onClick={() => handleStartDelivery(delivery.id)}>
-            {t("actions.start_delivery")}
-          </Button>
+          <>
+            <Button
+              onClick={() => handleStartDelivery(delivery.id)}
+              disabled={!delivery.payment || delivery.payment.status !== "COMPLETED"}
+            >
+              {t("actions.start_delivery")}
+            </Button>
+            {(!delivery.payment || delivery.payment.status !== "COMPLETED") && (
+              <div className="text-xs text-red-600 mt-1">
+                En attente de paiement du client avant de pouvoir démarrer la livraison.
+              </div>
+            )}
+          </>
         );
       case "picked_up":
         return (

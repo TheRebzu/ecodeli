@@ -97,10 +97,20 @@ export class DeliveryTrackingService {
         // Vérifier la livraison
         const existingDelivery = await tx.delivery.findUnique({
           where: { id: deliveryId },
+          include: { payment: true },
         });
 
         if (!existingDelivery) {
           throw new Error("Livraison introuvable");
+        }
+
+        // BLOQUER LE DÉMARRAGE SI PAIEMENT NON EFFECTUÉ
+        if ((status === "PICKED_UP" || status === "IN_TRANSIT") &&
+          (!existingDelivery.payment || existingDelivery.payment.status !== "COMPLETED")
+        ) {
+          throw new Error(
+            "Le paiement du client doit être complété avant de démarrer la livraison."
+          );
         }
 
         // Valider la transition de statut
