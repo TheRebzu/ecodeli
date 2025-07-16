@@ -13,7 +13,15 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.filled.AccountBalance
+import androidx.compose.material.icons.filled.AccountBalanceWallet
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.CreditCard
+import androidx.compose.material.icons.filled.Error
+import androidx.compose.material.icons.filled.Payment
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -87,7 +95,7 @@ fun PaymentScreen(
                 }
             }
             is PaymentState.Error -> {
-                ErrorCard(message = paymentState.message)
+                ErrorCard(message = (paymentState as PaymentState.Error).message)
             }
             else -> {
                 PaymentHistorySection(payments = payments)
@@ -243,7 +251,7 @@ fun WalletBalanceCard(
                     shape = RoundedCornerShape(8.dp)
                 ) {
                     Icon(
-                        imageVector = Icons.Default.RemoveCircle,
+                        imageVector = Icons.Default.Remove,
                         contentDescription = "Retirer",
                         modifier = Modifier.size(16.dp)
                     )

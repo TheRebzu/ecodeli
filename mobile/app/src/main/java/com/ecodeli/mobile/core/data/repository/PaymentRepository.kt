@@ -59,7 +59,7 @@ class PaymentRepository @Inject constructor(
     
     suspend fun rechargeWallet(amount: Double): Resource<Unit> {
         return try {
-            val response = apiService.rechargeWallet(
+            val response = apiService.rechargeWalletBalance(
                 mapOf("amount" to amount)
             )
             if (response.isSuccessful) {

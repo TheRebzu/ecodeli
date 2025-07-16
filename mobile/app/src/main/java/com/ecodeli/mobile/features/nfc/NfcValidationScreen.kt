@@ -11,7 +11,14 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.CreditCard
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.BugReport
+import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -224,7 +231,7 @@ fun NfcStatusCard(
             Tuple5(
                 MaterialTheme.colorScheme.errorContainer,
                 MaterialTheme.colorScheme.error,
-                Icons.Default.Error,
+                Icons.Default.Close,
                 "Erreur de validation",
                 validationState.message
             )
@@ -260,7 +267,7 @@ fun NfcStatusCard(
             Tuple5(
                 MaterialTheme.colorScheme.errorContainer,
                 MaterialTheme.colorScheme.error,
-                Icons.Default.Error,
+                Icons.Default.Close,
                 "Erreur NFC",
                 nfcState.message
             )
@@ -394,7 +401,7 @@ fun DelivererCardInfo(card: DelivererCard) {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Icon(
-                    imageVector = Icons.Default.Verified,
+                    imageVector = Icons.Default.CheckCircle,
                     contentDescription = "Vérifié",
                     tint = Color(0xFF4CAF50),
                     modifier = Modifier.size(16.dp)
@@ -534,7 +541,7 @@ fun NfcUnavailableCard() {
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Icon(
-                imageVector = Icons.Default.NearMeDisabled,
+                imageVector = Icons.Default.NearMe,
                 contentDescription = "NFC indisponible",
                 tint = MaterialTheme.colorScheme.error,
                 modifier = Modifier.size(48.dp)

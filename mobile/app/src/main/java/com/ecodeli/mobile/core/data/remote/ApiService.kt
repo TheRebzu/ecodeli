@@ -113,17 +113,17 @@ interface ApiService {
     ): Response<Unit>
     
     // Payment methods
-    @GET("api/client/payments")
+    @GET("api/client/payments/history")
     suspend fun getUserPayments(): Response<List<Payment>>
     
-    @GET("api/client/wallet")
+    @GET("api/client/wallet/balance")
     suspend fun getUserWallet(): Response<Wallet>
     
     @POST("api/client/payment-methods")
     suspend fun addPaymentMethod(@Body paymentMethod: Map<String, String>): Response<Unit>
     
-    @POST("api/client/wallet/recharge")
-    suspend fun rechargeWallet(@Body request: Map<String, Double>): Response<Unit>
+    @POST("api/client/wallet/recharge-balance")
+    suspend fun rechargeWalletBalance(@Body request: Map<String, Double>): Response<Unit>
     
     @POST("api/client/wallet/withdraw")
     suspend fun withdrawFromWallet(@Body request: Map<String, Double>): Response<Unit>

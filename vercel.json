@@ -1,13 +1,25 @@
 {
-    "buildCommand": "pnpm run prisma:generate && pnpm run build && node scripts/post-build.js",
-    "installCommand": "pnpm install",
-    "framework": "nextjs",
-    "functions": {
-      "app/api/*/route.ts": {
-        "maxDuration": 60
-      }
-    },
+  "buildCommand": "pnpm run prisma:generate && pnpm run build",
+  "installCommand": "pnpm install",
+  "framework": "nextjs",
+  "build": {
     "env": {
-      "NODE_ENV": "production"
+      "NODE_OPTIONS": "--max-old-space-size=8192"
     }
+  },
+  "functions": {
+    "app/api/*/route.ts": {
+      "maxDuration": 60
+    },
+    "app/api/*/*/route.ts": {
+      "maxDuration": 60
+    },
+    "app/api/*/*/*/route.ts": {
+      "maxDuration": 60
+    }
+  },
+  "env": {
+    "NODE_ENV": "production",
+    "PRISMA_HIDE_UPDATE_MESSAGE": "1"
   }
+}

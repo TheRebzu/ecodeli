@@ -11,6 +11,7 @@ data class User(
     val avatar: String?,
     val role: UserRole,
     val isValidated: Boolean,
+    val isVerified: Boolean = false,
     val createdAt: String,
     val updatedAt: String
 )

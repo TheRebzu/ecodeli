@@ -11,7 +11,16 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.MonetizationOn
+import androidx.compose.material.icons.filled.Business
+import androidx.compose.material.icons.filled.DirectionsCar
+import androidx.compose.material.icons.filled.RemoveRedEye
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -327,7 +336,7 @@ fun EnhancedDeliveryCard(
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(
-                            imageVector = Icons.Default.Euro,
+                            imageVector = Icons.Default.MonetizationOn,
                             contentDescription = "Prix",
                             tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.size(16.dp)
@@ -343,7 +352,7 @@ fun EnhancedDeliveryCard(
                     
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(
-                            imageVector = Icons.Default.Schedule,
+                            imageVector = Icons.Default.Add,
                             contentDescription = "Date",
                             tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                             modifier = Modifier.size(16.dp)
@@ -376,7 +385,7 @@ fun EnhancedDeliveryCard(
                     shape = RoundedCornerShape(8.dp)
                 ) {
                     Icon(
-                        imageVector = Icons.Default.Visibility,
+                        imageVector = Icons.Default.RemoveRedEye,
                         contentDescription = "Suivre",
                         modifier = Modifier.size(16.dp)
                     )
@@ -410,17 +419,17 @@ fun EnhancedDeliveryStatusBadge(status: DeliveryStatus) {
         DeliveryStatus.PENDING_PICKUP -> Triple(
             MaterialTheme.colorScheme.tertiary, 
             "En attente", 
-            Icons.Default.Schedule
+            Icons.Default.Add
         )
         DeliveryStatus.PICKED_UP -> Triple(
             MaterialTheme.colorScheme.primary, 
             "Récupéré", 
-            Icons.Default.Inventory
+            Icons.Default.Business
         )
         DeliveryStatus.IN_TRANSIT -> Triple(
             MaterialTheme.colorScheme.secondary, 
             "En transit", 
-            Icons.Default.LocalShipping
+            Icons.Default.DirectionsCar
         )
         DeliveryStatus.DELIVERED -> Triple(
             Color(0xFF4CAF50), 
@@ -430,12 +439,12 @@ fun EnhancedDeliveryStatusBadge(status: DeliveryStatus) {
         DeliveryStatus.FAILED -> Triple(
             MaterialTheme.colorScheme.error, 
             "Échec", 
-            Icons.Default.Error
+            Icons.Default.Close
         )
         DeliveryStatus.CANCELLED -> Triple(
             MaterialTheme.colorScheme.error, 
             "Annulé", 
-            Icons.Default.Cancel
+            Icons.Default.Close
         )
     }
     
@@ -545,7 +554,7 @@ fun DeliveryStatsCard(deliveries: List<Delivery>) {
                     count = inProgress,
                     label = "En cours",
                     color = MaterialTheme.colorScheme.primary,
-                    icon = Icons.Default.LocalShipping
+                    icon = Icons.Default.DirectionsCar
                 )
                 StatItem(
                     count = delivered,
@@ -557,7 +566,7 @@ fun DeliveryStatsCard(deliveries: List<Delivery>) {
                     count = failed,
                     label = "Problèmes",
                     color = MaterialTheme.colorScheme.error,
-                    icon = Icons.Default.Error
+                    icon = Icons.Default.Close
                 )
             }
         }
@@ -609,7 +618,7 @@ fun EmptyDeliveryState() {
             modifier = Modifier.padding(32.dp)
         ) {
             Icon(
-                imageVector = Icons.Default.LocalShipping,
+                imageVector = Icons.Default.DirectionsCar,
                 contentDescription = "Aucune livraison",
                 modifier = Modifier.size(72.dp),
                 tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)

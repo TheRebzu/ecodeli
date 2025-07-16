@@ -32,6 +32,28 @@ services:
     networks:
       - ecodeli_network
 
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ecodeli_web
+    restart: always
+    depends_on:
+      - postgres
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgres://postgres:password@postgres:5432/ecodeli
+      # Ajouter d'autres variables depuis .env
+    env_file:
+      - .env
+    volumes:
+      - ./uploads:/app/uploads
+      - ./logs:/app/logs
+    networks:
+      - ecodeli_network
+
 volumes:
   postgres_data:
     driver: local

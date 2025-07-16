@@ -1,0 +1,22 @@
+# Ignore heavy development dependencies
+mobile/
+scripts/post-build.js
+.cursor/
+.idea/
+rules/
+
+# Ignore test and development files
+*.test.ts
+*.test.tsx
+*.spec.ts
+*.spec.tsx
+**/__tests__/
+**/__mocks__/
+
+# Ignore documentation
+*.md
+!README.md
+
+# Ignore build artifacts that might cause issues
+.turbo/
+.next/cache/

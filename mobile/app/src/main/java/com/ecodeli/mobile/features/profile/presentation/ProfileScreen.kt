@@ -11,7 +11,25 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.filled.AdminPanelSettings
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowForward
+import androidx.compose.material.icons.filled.Description
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Error
+import androidx.compose.material.icons.filled.AttachMoney
+import androidx.compose.material.icons.filled.LocalShipping
+import androidx.compose.material.icons.filled.ExitToApp
+import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.AccountBalanceWallet
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Store
+import androidx.compose.material.icons.filled.Help
+import androidx.compose.material.icons.filled.TrendingUp
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material.icons.filled.Work
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -64,7 +82,7 @@ fun ProfileScreen(
                 }
             }
             is ProfileState.Error -> {
-                ErrorCard(message = profileState.message)
+                ErrorCard(message = (profileState as ProfileState.Error).message)
             }
             else -> {
                 user?.let { userData ->
@@ -339,7 +357,7 @@ fun ProfileStatsSection(user: User) {
                 StatCard(
                     title = "Économisé",
                     value = "120€",
-                    icon = Icons.Default.Savings,
+                    icon = Icons.Default.AccountBalanceWallet,
                     color = Color(0xFF4CAF50),
                     modifier = Modifier.weight(1f)
                 )
@@ -355,7 +373,7 @@ fun ProfileStatsSection(user: User) {
                 StatCard(
                     title = "Gains",
                     value = "1,250€",
-                    icon = Icons.Default.Euro,
+                    icon = Icons.Default.AttachMoney,
                     color = Color(0xFF4CAF50),
                     modifier = Modifier.weight(1f)
                 )
@@ -450,7 +468,7 @@ fun QuickActionsSection(
             )
             
             QuickActionItem(
-                icon = Icons.Default.Support,
+                icon = Icons.Default.Help,
                 title = "Support",
                 subtitle = "Contacter l'équipe",
                 onClick = onSupportClick
@@ -459,7 +477,7 @@ fun QuickActionsSection(
             Divider(modifier = Modifier.padding(vertical = 8.dp))
             
             QuickActionItem(
-                icon = Icons.Default.Logout,
+                icon = Icons.Default.ExitToApp,
                 title = "Déconnexion",
                 subtitle = "Se déconnecter du compte",
                 onClick = onLogoutClick,
@@ -520,7 +538,7 @@ fun QuickActionItem(
         }
         
         Icon(
-            imageVector = Icons.Default.ChevronRight,
+            imageVector = Icons.Default.ArrowForward,
             contentDescription = "Aller à",
             tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
         )
@@ -542,7 +560,7 @@ fun VerificationStatusCard(user: User) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
-                imageVector = if (user.isVerified) Icons.Default.Verified
+                imageVector = if (user.isVerified) Icons.Default.CheckCircle
                 else Icons.Default.Warning,
                 contentDescription = if (user.isVerified) "Vérifié" else "Non vérifié",
                 tint = if (user.isVerified) Color(0xFF4CAF50)
