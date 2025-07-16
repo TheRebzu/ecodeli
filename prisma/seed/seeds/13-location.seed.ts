@@ -10,7 +10,7 @@ const warehouseData = [
     postalCode: "75019",
     capacity: 1000,
     managerName: "François Dubois",
-    managerEmail: "f.dubois@ecodeli.com",
+    managerEmail: "f.dubois@ecodeli.me",
     boxCount: 50,
   },
   {
@@ -20,7 +20,7 @@ const warehouseData = [
     postalCode: "13002",
     capacity: 800,
     managerName: "Marie Santini",
-    managerEmail: "m.santini@ecodeli.com",
+    managerEmail: "m.santini@ecodeli.me",
     boxCount: 40,
   },
   {
@@ -30,7 +30,7 @@ const warehouseData = [
     postalCode: "69003",
     capacity: 750,
     managerName: "Pierre Mercier",
-    managerEmail: "p.mercier@ecodeli.com",
+    managerEmail: "p.mercier@ecodeli.me",
     boxCount: 35,
   },
   {
@@ -40,7 +40,7 @@ const warehouseData = [
     postalCode: "59000",
     capacity: 600,
     managerName: "Sophie Lefebvre",
-    managerEmail: "s.lefebvre@ecodeli.com",
+    managerEmail: "s.lefebvre@ecodeli.me",
     boxCount: 30,
   },
   {
@@ -50,7 +50,7 @@ const warehouseData = [
     postalCode: "35000",
     capacity: 500,
     managerName: "Jean-Marc Breizh",
-    managerEmail: "jm.breizh@ecodeli.com",
+    managerEmail: "jm.breizh@ecodeli.me",
     boxCount: 25,
   },
   {
@@ -60,7 +60,7 @@ const warehouseData = [
     postalCode: "34000",
     capacity: 550,
     managerName: "Isabelle Soleil",
-    managerEmail: "i.soleil@ecodeli.com",
+    managerEmail: "i.soleil@ecodeli.me",
     boxCount: 28,
   },
 ];

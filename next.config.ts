@@ -8,6 +8,9 @@ const nextConfig: NextConfig = {
   // Configuration pour EcoDeli
   serverExternalPackages: ["@prisma/client", "bcryptjs"],
 
+  // Mode standalone pour Docker
+  output: "standalone",
+
   // Ignorer les erreurs TypeScript pendant le build
   typescript: {
     ignoreBuildErrors: true,
@@ -24,10 +27,6 @@ const nextConfig: NextConfig = {
     },
     // Fix pour le client-reference-manifest
     optimizePackageImports: ["lucide-react", "@radix-ui/*"],
-    // Fix pour le build Vercel
-    turbotrace: {
-      logLevel: "bug",
-    },
   },
 
   // Images optimization

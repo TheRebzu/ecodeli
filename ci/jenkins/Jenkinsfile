@@ -6,7 +6,7 @@ pipeline {
     
     environment {
         NODE_VERSION = '18.17.0'
-        DOCKER_REGISTRY = 'registry.ecodeli.com'
+        DOCKER_REGISTRY = 'registry.ecodeli.me'
         DOCKER_IMAGE = 'ecodeli/platform'
         SONAR_PROJECT_KEY = 'ecodeli-platform'
         SLACK_CHANNEL = '#ci-cd'

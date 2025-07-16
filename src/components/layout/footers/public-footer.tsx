@@ -236,10 +236,10 @@ export function PublicFooter({
               <div className="flex items-center space-x-2">
                 <Mail className="h-4 w-4 text-green-600" />
                 <a
-                  href="mailto:contact@ecodeli.com"
+                  href="mailto:contact@ecodeli.me"
                   className="text-sm hover:text-white transition-colors"
                 >
-                  contact@ecodeli.com
+                  contact@ecodeli.me
                 </a>
               </div>
               <div className="flex items-center space-x-2">

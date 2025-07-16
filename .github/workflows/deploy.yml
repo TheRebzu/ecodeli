@@ -28,7 +28,7 @@ on:
 
 env:
   NODE_VERSION: '18.17.0'
-  DOCKER_REGISTRY: registry.ecodeli.com
+  DOCKER_REGISTRY: registry.ecodeli.me
   DOCKER_IMAGE: ecodeli/platform
 
 jobs:
@@ -124,13 +124,13 @@ jobs:
           # Set deployment URL
           case "${{ inputs.environment }}" in
             "prod")
-              URL="https://ecodeli.com"
+              URL="https://ecodeli.me"
               ;;
             "staging")
-              URL="https://staging.ecodeli.com"
+              URL="https://staging.ecodeli.me"
               ;;
             *)
-              URL="https://dev.ecodeli.com"
+              URL="https://dev.ecodeli.me"
               ;;
           esac
           
@@ -388,5 +388,5 @@ jobs:
             Triggered by: ${{ github.actor }}
             
             View logs: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
-          to: ops@ecodeli.com
-          from: noreply@ecodeli.com
+          to: ops@ecodeli.me
+          from: noreply@ecodeli.me

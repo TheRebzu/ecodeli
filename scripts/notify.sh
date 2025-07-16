@@ -208,7 +208,7 @@ notify_deployment() {
             ],
             "text": "$message",
             "footer": "EcoDeli CI/CD",
-            "footer_icon": "https://ecodeli.com/favicon.ico"
+            "footer_icon": "https://ecodeli.me/favicon.ico"
         }
     ]
 }

@@ -92,7 +92,7 @@ export class EmailService {
     `;
 
     const mailOptions = {
-      from: process.env.GMAIL_USER || "noreply@ecodeli.com",
+      from: process.env.GMAIL_USER || "noreply@ecodeli.me",
       to: email,
       subject,
       html,
@@ -177,7 +177,7 @@ export class EmailService {
     `;
 
     const mailOptions = {
-      from: process.env.GMAIL_USER || "noreply@ecodeli.com",
+      from: process.env.GMAIL_USER || "noreply@ecodeli.me",
       to: email,
       subject,
       html,
@@ -198,7 +198,7 @@ export class EmailService {
    */
   static async sendGenericEmail(email: string, subject: string, html: string) {
     const mailOptions = {
-      from: process.env.GMAIL_USER || "noreply@ecodeli.com",
+      from: process.env.GMAIL_USER || "noreply@ecodeli.me",
       to: email,
       subject,
       html,
@@ -349,7 +349,7 @@ export class EmailService {
               locale === "fr"
                 ? "Besoin d'aide ? Contactez notre support à"
                 : "Need help? Contact our support at"
-            } <a href="mailto:support@ecodeli.com">support@ecodeli.com</a></p>
+            } <a href="mailto:support@ecodeli.me">support@ecodeli.me</a></p>
             <p>© 2025 EcoDeli - ${locale === "fr" ? "Livraison écologique" : "Eco-friendly delivery"}</p>
           </div>
         </div>
@@ -358,7 +358,7 @@ export class EmailService {
     `;
 
     const mailOptions = {
-      from: process.env.GMAIL_USER || "noreply@ecodeli.com",
+      from: process.env.GMAIL_USER || "noreply@ecodeli.me",
       to: clientEmail,
       subject,
       html,
@@ -512,7 +512,7 @@ export class EmailService {
               locale === "fr"
                 ? "Questions ? Contactez notre support à"
                 : "Questions? Contact our support at"
-            } <a href="mailto:support@ecodeli.com">support@ecodeli.com</a></p>
+            } <a href="mailto:support@ecodeli.me">support@ecodeli.me</a></p>
             <p>© 2025 EcoDeli - ${locale === "fr" ? "Services écologiques" : "Eco-friendly services"}</p>
           </div>
         </div>
@@ -521,7 +521,7 @@ export class EmailService {
     `;
 
     const mailOptions = {
-      from: process.env.GMAIL_USER || "noreply@ecodeli.com",
+      from: process.env.GMAIL_USER || "noreply@ecodeli.me",
       to: providerEmail,
       subject,
       html,

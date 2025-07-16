@@ -1,73 +1,80 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
-import { db } from "@/lib/db";
-import Stripe from "stripe";
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2024-11-20.acacia",
-});
+import { getUserFromSession } from "@/lib/auth/utils";
+import { prisma } from "@/lib/db";
+import { getStripe } from "@/lib/stripe";
 
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const session = await auth();
-    if (!session?.user) {
+    const user = await getUserFromSession(request);
+    if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { id } = await params;
+    // Vérifier si Stripe est configuré
+    let stripe;
+    try {
+      stripe = getStripe();
+    } catch (error) {
+      return NextResponse.json(
+        { error: "Payment system not configured" },
+        { status: 503 }
+      );
+    }
 
-    // Vérifier que la booking existe et appartient au client
-    const booking = await db.booking.findFirst({
-      where: {
-        id: id,
-        client: {
-          userId: session.user.id,
-        },
-      },
-      include: {
-        service: {
-          select: {
-            name: true,
-          },
-        },
-      },
+    const { id } = await params;
+    const { amount, currency = "eur" } = await request.json();
+
+    // Vérifier que la réservation existe
+    const booking = await prisma.booking.findUnique({
+      where: { id },
+      include: { service: true },
     });
 
     if (!booking) {
-      return NextResponse.json({ error: "Booking not found" }, { status: 404 });
-    }
-
-    if (booking.status !== "CONFIRMED") {
       return NextResponse.json(
-        { error: "Booking not ready for payment" },
-        { status: 400 },
+        { error: "Booking not found" },
+        { status: 404 }
       );
     }
 
     // Créer le Payment Intent
     const paymentIntent = await stripe.paymentIntents.create({
-      amount: Math.round(booking.totalPrice * 100), // Convert to cents
-      currency: "eur",
+      amount: Math.round(amount * 100), // Convertir en centimes
+      currency,
       metadata: {
-        bookingId: booking.id,
-        clientId: session.user.id,
-        serviceName: booking.service?.name || "Service",
+        bookingId: id,
+        userId: user.id,
       },
-      description: `Payment for booking ${booking.id}`,
+    });
+
+    // Enregistrer le paiement en base
+    await prisma.payment.create({
+      data: {
+        id: paymentIntent.id,
+        userId: user.id,
+        bookingId: id,
+        amount: amount,
+        currency,
+        status: "PENDING",
+        type: "BOOKING",
+        stripePaymentId: paymentIntent.id,
+      },
     });
 
     return NextResponse.json({
-      clientSecret: paymentIntent.client_secret,
       paymentIntentId: paymentIntent.id,
+      clientSecret: paymentIntent.client_secret,
+      amount,
+      status: paymentIntent.status,
     });
   } catch (error) {
     console.error("Error creating payment intent:", error);
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }

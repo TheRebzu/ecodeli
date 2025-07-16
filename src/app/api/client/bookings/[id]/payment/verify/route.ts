@@ -1,11 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getUserFromSession } from "@/lib/auth/utils";
-import { db } from "@/lib/db";
-import Stripe from "stripe";
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2024-06-20",
-});
+import { prisma } from "@/lib/db";
+import { getStripe } from "@/lib/stripe";
 
 export async function POST(
   request: NextRequest,
@@ -15,6 +11,17 @@ export async function POST(
     const user = await getUserFromSession(request);
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    // Vérifier si Stripe est configuré
+    let stripe;
+    try {
+      stripe = getStripe();
+    } catch (error) {
+      return NextResponse.json(
+        { error: "Payment system not configured" },
+        { status: 503 }
+      );
     }
 
     const { id } = await params;
@@ -27,130 +34,61 @@ export async function POST(
       );
     }
 
-    // Récupérer le profil client
-    const client = await db.client.findUnique({
-      where: { userId: user.id },
-    });
-
-    if (!client) {
-      return NextResponse.json(
-        { error: "Client profile not found" },
-        { status: 404 },
-      );
-    }
-
-    // Vérifier la session Stripe
+    // Récupérer la session Stripe
     const session = await stripe.checkout.sessions.retrieve(sessionId);
 
     if (!session || session.payment_status !== "paid") {
       return NextResponse.json(
-        { error: "Payment not completed" },
-        { status: 400 },
+        { error: "Payment not successful" },
+        { status: 400 }
       );
     }
 
-    // Récupérer les détails du paiement
-    const paymentIntent = await stripe.paymentIntents.retrieve(
-      session.payment_intent as string,
-    );
-
-    // Récupérer la réservation
-    const booking = await db.booking.findFirst({
-      where: {
-        id: id,
-        clientId: client.id,
-      },
-      include: {
-        provider: {
-          include: {
-            user: {
-              select: {
-                id: true,
-                profile: {
-                  select: {
-                    firstName: true,
-                    lastName: true,
-                  },
-                },
-              },
-            },
-          },
-        },
-        service: {
-          select: {
-            name: true,
-          },
-        },
-        payment: true,
-      },
+    // Vérifier que la réservation existe
+    const booking = await prisma.booking.findUnique({
+      where: { id },
     });
 
     if (!booking) {
-      return NextResponse.json({ error: "Booking not found" }, { status: 404 });
+      return NextResponse.json(
+        { error: "Booking not found" },
+        { status: 404 }
+      );
     }
 
-    // Mettre à jour le paiement et synchroniser automatiquement
-    await db.$transaction(async (tx) => {
-      // Mettre à jour le paiement
-      const updatedPayment = await tx.payment.update({
-        where: { bookingId: booking.id },
-        data: {
-          status: "COMPLETED",
-          stripePaymentId: paymentIntent.id,
-          paidAt: new Date(),
-          metadata: {
-            stripeSessionId: sessionId,
-            stripePaymentIntentId: paymentIntent.id,
-          },
-        },
-      });
-
-      // Import du service de synchronisation
-      const { BookingSyncService } = await import(
-        "@/features/bookings/services/booking-sync.service"
-      );
-
-      // Synchroniser automatiquement le statut de la réservation
-      await BookingSyncService.syncBookingOnPaymentChange(
-        updatedPayment.id,
-        "COMPLETED",
-      );
+    // Mettre à jour le statut de la réservation
+    await prisma.booking.update({
+      where: { id },
+      data: {
+        status: "CONFIRMED",
+        updatedAt: new Date(),
+      },
     });
 
-    // Préparer les détails du paiement pour le frontend
-    const paymentDetails = {
-      bookingId: booking.id,
-      amount: session.amount_total! / 100,
-      currency: session.currency!,
-      status: "COMPLETED",
-      paidAt: new Date().toISOString(),
-      sessionId: sessionId,
-      booking: {
-        id: booking.id,
-        providerName: booking.provider.user.profile
-          ? `${booking.provider.user.profile.firstName || ""} ${booking.provider.user.profile.lastName || ""}`.trim()
-          : "Prestataire",
-        serviceName: booking.service?.name || "Service",
-        scheduledDate: booking.scheduledDate.toISOString().split("T")[0],
-        scheduledTime: booking.scheduledTime,
-        location:
-          typeof booking.address === "object" &&
-          booking.address &&
-          "address" in booking.address
-            ? `${booking.address.address}, ${booking.address.city}`
-            : booking.address?.toString() || "Non spécifié",
+    // Mettre à jour le statut du paiement
+    await prisma.payment.updateMany({
+      where: { 
+        bookingId: id,
+        userId: user.id,
       },
-    };
+      data: {
+        status: "COMPLETED",
+        updatedAt: new Date(),
+      },
+    });
 
     return NextResponse.json({
       success: true,
-      payment: paymentDetails,
+      booking: {
+        id: booking.id,
+        status: "CONFIRMED",
+      },
     });
   } catch (error) {
     console.error("Error verifying payment:", error);
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }

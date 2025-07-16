@@ -91,7 +91,7 @@ export class EmailServiceAlternative {
     `;
 
     const mailOptions = {
-      from: process.env.GMAIL_USER || "noreply@ecodeli.com",
+      from: process.env.GMAIL_USER || "noreply@ecodeli.me",
       to: email,
       subject,
       html,
@@ -175,7 +175,7 @@ export class EmailServiceAlternative {
     `;
 
     const mailOptions = {
-      from: process.env.GMAIL_USER || "noreply@ecodeli.com",
+      from: process.env.GMAIL_USER || "noreply@ecodeli.me",
       to: email,
       subject,
       html,

@@ -1,224 +1,78 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
-import { z } from "zod";
+import { getUserFromSession } from "@/lib/auth/utils";
 import { prisma } from "@/lib/db";
-import { StorageBoxService } from "@/features/storage/services/storage-box.service";
-import { StripeService } from "@/features/payments/services/stripe.service";
-import Stripe from "stripe";
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2025-06-30.basil",
-});
+import { getStripe } from "@/lib/stripe";
 
-const rentalSchema = z.object({
-  storageBoxId: z.string().cuid(),
-  duration: z.number().positive(),
-  durationType: z.enum(["hours", "days", "weeks", "months"]),
-  startDate: z.string(), // Date au format YYYY-MM-DD
-  startTime: z.string(), // Heure au format HH:MM
-  autoExtend: z.boolean().default(false),
-  items: z
-    .array(
-      z.object({
-        name: z.string(),
-        description: z.string().optional(),
-        value: z.number().min(0),
-        fragile: z.boolean(),
-        category: z.string(),
-      }),
-    )
-    .default([]),
-});
-
-/**
- * POST - Créer une location de box de stockage avec paiement Stripe
- */
 export async function POST(request: NextRequest) {
   try {
-    const session = await auth();
-
-    if (!session?.user || session.user.role !== "CLIENT") {
+    const user = await getUserFromSession(request);
+    if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Récupérer le client avec les informations utilisateur
-    const client = await prisma.client.findUnique({
-      where: { userId: session.user.id },
-      include: { user: true },
-    });
-
-    if (!client) {
+    // Vérifier si Stripe est configuré
+    let stripe;
+    try {
+      stripe = getStripe();
+    } catch (error) {
       return NextResponse.json(
-        { error: "Profil client non trouvé" },
-        { status: 404 },
+        { error: "Payment system not configured" },
+        { status: 503 }
       );
     }
 
-    const body = await request.json();
-    const validatedData = rentalSchema.parse(body);
+    const { storageBoxId, duration } = await request.json();
 
-    // Calculer la date de début complète
-    const startDateTime = new Date(
-      `${validatedData.startDate}T${validatedData.startTime}`,
-    );
-
-    // Calculer la date de fin basée sur la durée
-    let endDateTime: Date;
-    switch (validatedData.durationType) {
-      case "hours":
-        endDateTime = new Date(
-          startDateTime.getTime() + validatedData.duration * 60 * 60 * 1000,
-        );
-        break;
-      case "days":
-        endDateTime = new Date(
-          startDateTime.getTime() +
-            validatedData.duration * 24 * 60 * 60 * 1000,
-        );
-        break;
-      case "weeks":
-        endDateTime = new Date(
-          startDateTime.getTime() +
-            validatedData.duration * 7 * 24 * 60 * 60 * 1000,
-        );
-        break;
-      case "months":
-        endDateTime = new Date(
-          startDateTime.getTime() +
-            validatedData.duration * 30 * 24 * 60 * 60 * 1000,
-        );
-        break;
-      default:
-        endDateTime = new Date(
-          startDateTime.getTime() +
-            validatedData.duration * 24 * 60 * 60 * 1000,
-        );
-    }
-
-    // Récupérer les informations de la storage box pour calculer le prix
+    // Vérifier que la box existe et est disponible
     const storageBox = await prisma.storageBox.findUnique({
-      where: { id: validatedData.storageBoxId },
-      include: { location: true },
+      where: { id: storageBoxId },
+      include: { warehouse: true },
     });
 
     if (!storageBox) {
-      return NextResponse.json(
-        { error: "Box de stockage non trouvée" },
-        { status: 404 },
-      );
+      return NextResponse.json({ error: "Storage box not found" }, { status: 404 });
     }
 
-    if (!storageBox.isAvailable) {
-      return NextResponse.json(
-        { error: "Box de stockage non disponible" },
-        { status: 400 },
-      );
+    if (storageBox.status !== "AVAILABLE") {
+      return NextResponse.json({ error: "Storage box not available" }, { status: 400 });
     }
 
-    // Calculer le prix total
-    const daysDiff = Math.ceil(
-      (endDateTime.getTime() - startDateTime.getTime()) / (1000 * 60 * 60 * 24),
-    );
-    const totalPrice = daysDiff * storageBox.pricePerDay;
+    // Calculer le montant
+    const amount = storageBox.monthlyPrice * duration;
 
-    // Créer l'entrée Payment en base d'abord
-    const payment = await prisma.payment.create({
-      data: {
-        userId: session.user.id,
-        clientId: client.id,
-        amount: totalPrice,
-        currency: "EUR",
-        status: "PENDING",
-        type: "STORAGE_RENTAL",
-        paymentMethod: "CARD",
-        metadata: {
-          storageBoxId: validatedData.storageBoxId,
-          startDate: startDateTime.toISOString(),
-          endDate: endDateTime.toISOString(),
-          items: validatedData.items,
-        },
-      },
-    });
-
-    // Générer un code d'accès unique pour la location
-    const accessCode = Math.random().toString(36).substring(2, 8).toUpperCase();
-
-    // Créer la location StorageBoxRental avec statut PENDING_PAYMENT
-    const storageRental = await prisma.storageBoxRental.create({
-      data: {
-        clientId: client.id,
-        storageBoxId: validatedData.storageBoxId,
-        startDate: startDateTime,
-        endDate: endDateTime,
-        totalPrice: totalPrice,
-        accessCode: accessCode,
-      },
-    });
-
-    // Créer la session Stripe Checkout après avoir créé la location
-    const sessionStripe = await stripe.checkout.sessions.create({
-      payment_method_types: ["card"],
-      line_items: [
-        {
-          price_data: {
-            currency: "eur",
-            product_data: {
-              name: `Location box ${storageBox.boxNumber}`,
-              description: `Location du ${startDateTime.toLocaleDateString()} au ${endDateTime.toLocaleDateString()}`,
-            },
-            unit_amount: Math.round(totalPrice * 100), // en centimes
-          },
-          quantity: 1,
-        },
-      ],
-      mode: "payment",
-      success_url: `${process.env.NEXTAUTH_URL || "http://localhost:3000"}/fr/client/storage?success=true&rentalId=${storageRental.id}`,
-      cancel_url: `${process.env.NEXTAUTH_URL || "http://localhost:3000"}/fr/client/storage?cancelled=true`,
+    // Créer le Payment Intent
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount: Math.round(amount * 100),
+      currency: "eur",
       metadata: {
-        storageBoxId: validatedData.storageBoxId,
-        startDate: startDateTime.toISOString(),
-        endDate: endDateTime.toISOString(),
-        clientId: client.id,
-        userId: session.user.id,
-        rentalId: storageRental.id,
-        paymentId: payment.id,
+        storageBoxId,
+        userId: user.id,
+        duration: duration.toString(),
       },
     });
 
-    // Mettre à jour le payment avec l'ID de session Stripe
-    await prisma.payment.update({
-      where: { id: payment.id },
-      data: { stripeSessionId: sessionStripe.id },
+    // Enregistrer la location
+    await prisma.storageBox.update({
+      where: { id: storageBoxId },
+      data: {
+        status: "OCCUPIED",
+        clientId: user.id,
+        rentStartDate: new Date(),
+        rentEndDate: new Date(Date.now() + duration * 30 * 24 * 60 * 60 * 1000),
+      },
     });
 
-    // Retourner l'URL Stripe Checkout au front
     return NextResponse.json({
-      success: true,
-      url: sessionStripe.url,
-      rentalId: storageRental.id,
+      paymentIntentId: paymentIntent.id,
+      clientSecret: paymentIntent.client_secret,
+      amount,
+      status: paymentIntent.status,
     });
   } catch (error) {
-    console.error("Error creating rental:", error);
-
-    if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        {
-          error: "Données invalides",
-          details: error.issues.map((e: any) => ({
-            field: e.path.join("."),
-            message: e.message,
-          })),
-        },
-        { status: 400 },
-      );
-    }
-
-    if (error instanceof Error) {
-      return NextResponse.json({ error: error.message }, { status: 400 });
-    }
-
+    console.error("Error renting storage box:", error);
     return NextResponse.json(
-      { error: "Erreur lors de la création de la location" },
-      { status: 500 },
+      { error: "Internal server error" },
+      { status: 500 }
     );
   }
 }

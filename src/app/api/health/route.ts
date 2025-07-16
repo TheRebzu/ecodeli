@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { prisma } from '@/lib/db';
 
 export async function GET() {
   try {
@@ -19,13 +19,12 @@ export async function GET() {
     
     if (missingEnvVars.length > 0) {
       return NextResponse.json(
-        { 
+        {
           status: 'error',
           message: 'Missing environment variables',
-          missing: missingEnvVars,
-          timestamp: new Date().toISOString()
+          details: missingEnvVars
         },
-        { status: 503 }
+        { status: 500 }
       );
     }
     
@@ -41,16 +40,10 @@ export async function GET() {
     return NextResponse.json({
       status: 'healthy',
       timestamp: new Date().toISOString(),
-      version: process.env.npm_package_version || '1.0.0',
-      environment: process.env.NODE_ENV || 'development',
-      uptime: process.uptime(),
-      memory: memoryUsageMB,
+      environment: process.env.NODE_ENV,
       database: 'connected',
-      services: {
-        database: 'healthy',
-        auth: 'healthy',
-        api: 'healthy'
-      }
+      memory: memoryUsageMB,
+      uptime: process.uptime()
     });
     
   } catch (error) {
@@ -60,10 +53,10 @@ export async function GET() {
       {
         status: 'error',
         message: 'Health check failed',
-        error: error instanceof Error ? error.message : 'Unknown error',
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
+        error: error instanceof Error ? error.message : 'Unknown error'
       },
-      { status: 503 }
+      { status: 500 }
     );
   }
 }

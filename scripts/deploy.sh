@@ -8,7 +8,7 @@ set -e
 # Configuration
 ENVIRONMENT=${1:-dev}
 PROJECT_NAME="ecodeli"
-DOCKER_REGISTRY="registry.ecodeli.com"
+DOCKER_REGISTRY="registry.ecodeli.me"
 VERSION=${VERSION:-latest}
 
 # Couleurs pour les logs

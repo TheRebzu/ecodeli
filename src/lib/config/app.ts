@@ -11,20 +11,20 @@ export const env = {
   NEXTAUTH_URL: process.env.NEXTAUTH_URL!,
 
   // Stripe
-  STRIPE_PUBLISHABLE_KEY: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!,
+  STRIPE_PUBLISHABLE_KEY: process.env.STRIPE_PUBLISHABLE_KEY!,
   STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY!,
   STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET!,
 
-  // OneSignal
-  ONESIGNAL_APP_ID: process.env.NEXT_PUBLIC_ONESIGNAL_APP_ID!,
-  ONESIGNAL_API_KEY: process.env.ONESIGNAL_API_KEY!,
+  // OneSignal (optionnel)
+  ONESIGNAL_APP_ID: process.env.ONESIGNAL_APP_ID || "",
+  ONESIGNAL_API_KEY: process.env.ONESIGNAL_API_KEY || "",
 
   // Storage
   UPLOAD_DIR: process.env.UPLOAD_DIR || "./uploads",
   MAX_FILE_SIZE: parseInt(process.env.MAX_FILE_SIZE || "10485760"), // 10MB
 
   // Maps (optionnel, pour les coordonnées)
-  MAPS_API_KEY: process.env.NEXT_PUBLIC_MAPS_API_KEY,
+  MAPS_API_KEY: process.env.MAPS_API_KEY,
 } as const;
 
 /**
@@ -36,15 +36,19 @@ function validateEnv() {
     "NEXTAUTH_SECRET",
     "STRIPE_PUBLISHABLE_KEY",
     "STRIPE_SECRET_KEY",
-    "ONESIGNAL_APP_ID",
   ] as const;
 
   const missing = required.filter((key) => !env[key]);
-
+  
   if (missing.length > 0) {
     throw new Error(
-      `Variables d'environnement manquantes: ${missing.join(", ")}`,
+      `Missing required environment variables: ${missing.join(", ")}`
     );
+  }
+
+  // Vérifier si OneSignal est configuré (optionnel)
+  if (!env.ONESIGNAL_APP_ID || !env.ONESIGNAL_API_KEY) {
+    console.warn("OneSignal not configured, push notifications will be disabled");
   }
 }
 

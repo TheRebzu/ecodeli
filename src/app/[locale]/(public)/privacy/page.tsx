@@ -131,10 +131,10 @@ export default function Page() {
               {t("section7.content") ||
                 "Pour exercer vos droits ou pour toute question concernant cette politique, contactez-nous à : "}
               <a
-                href="mailto:privacy@ecodeli.com"
+                href="mailto:privacy@ecodeli.me"
                 className="text-primary hover:underline ml-1"
               >
-                privacy@ecodeli.com
+                privacy@ecodeli.me
               </a>
             </p>
           </section>

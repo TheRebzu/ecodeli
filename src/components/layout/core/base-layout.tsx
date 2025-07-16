@@ -135,10 +135,10 @@ export function ErrorLayout({
             <p className="text-sm text-muted-foreground">
               Si le problème persiste, contactez notre support à{" "}
               <a
-                href="mailto:support@ecodeli.com"
+                href="mailto:support@ecodeli.me"
                 className="text-primary hover:underline font-medium"
               >
-                support@ecodeli.com
+                support@ecodeli.me
               </a>
             </p>
           </div>

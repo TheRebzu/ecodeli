@@ -38,7 +38,7 @@ services:
     profiles:
       - dev
     environment:
-      PGADMIN_DEFAULT_EMAIL: dev@ecodeli.com
+      PGADMIN_DEFAULT_EMAIL: dev@ecodeli.me
       PGADMIN_DEFAULT_PASSWORD: dev123
 
   # Service de développement pour les tests

@@ -1,11 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getUserFromSession } from "@/lib/auth/utils";
-import { db } from "@/lib/db";
-import Stripe from "stripe";
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2024-06-20",
-});
+import { prisma } from "@/lib/db";
+import { getStripe } from "@/lib/stripe";
 
 export async function POST(
   request: NextRequest,
@@ -13,14 +9,23 @@ export async function POST(
 ) {
   try {
     console.log("🔍 [Payment API] Starting payment creation...");
-    console.log(
-      "🔍 [Payment API] Stripe Secret Key configured:",
-      !!process.env.STRIPE_SECRET_KEY,
-    );
 
     const user = await getUserFromSession(request);
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    // Vérifier si Stripe est configuré
+    let stripe;
+    try {
+      stripe = getStripe();
+      console.log("🔍 [Payment API] Stripe configured successfully");
+    } catch (error) {
+      console.log("❌ [Payment API] Stripe not configured:", error.message);
+      return NextResponse.json(
+        { error: "Payment system not configured" },
+        { status: 503 }
+      );
     }
 
     const { id } = await params;
@@ -28,140 +33,61 @@ export async function POST(
 
     console.log("🔍 [Payment API] Booking ID:", id);
     console.log("🔍 [Payment API] Amount:", amount);
-    console.log("🔍 [Payment API] Currency:", currency);
 
-    // Récupérer le profil client
-    const client = await db.client.findUnique({
-      where: { userId: user.id },
-    });
-
-    if (!client) {
-      return NextResponse.json(
-        { error: "Client profile not found" },
-        { status: 404 },
-      );
-    }
-
-    console.log("🔍 [Payment API] Client found:", client.id);
-
-    // Récupérer la réservation
-    const booking = await db.booking.findFirst({
+    // Vérifier que la réservation existe et appartient à l'utilisateur
+    const booking = await prisma.booking.findFirst({
       where: {
         id: id,
-        clientId: client.id,
+        clientId: user.id,
       },
       include: {
-        payment: true,
-        provider: {
-          include: {
-            user: {
-              select: {
-                profile: {
-                  select: {
-                    firstName: true,
-                    lastName: true,
-                  },
-                },
-              },
-            },
-          },
-        },
-        service: {
-          select: {
-            name: true,
-          },
-        },
+        service: true,
+        provider: true,
       },
     });
 
     if (!booking) {
-      return NextResponse.json({ error: "Booking not found" }, { status: 404 });
-    }
-
-    console.log("🔍 [Payment API] Booking found:", booking.id);
-
-    // Vérifier si déjà payé
-    if (booking.payment && booking.payment.status === "COMPLETED") {
       return NextResponse.json(
-        { error: "Booking already paid" },
-        { status: 400 },
+        { error: "Booking not found or access denied" },
+        { status: 404 }
       );
     }
 
-    console.log("🔍 [Payment API] Creating Stripe session...");
-
-    // Utiliser les variables d'environnement pour les URLs
-    const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
-    const successUrl = `${baseUrl}/fr/client/bookings/${booking.id}/payment/success?session_id={CHECKOUT_SESSION_ID}`;
-    const cancelUrl = `${baseUrl}/fr/client/bookings/${booking.id}/payment?cancelled=true`;
-
-    console.log("🔍 [Payment API] Success URL:", successUrl);
-    console.log("🔍 [Payment API] Cancel URL:", cancelUrl);
-
-    // Créer une session de paiement Stripe
-    const session = await stripe.checkout.sessions.create({
-      payment_method_types: ["card"],
-      line_items: [
-        {
-          price_data: {
-            currency: currency.toLowerCase(),
-            product_data: {
-              name: `Service: ${booking.service?.name || "Service à la personne"}`,
-              description: `Réservation avec ${booking.provider.user.profile?.firstName} ${booking.provider.user.profile?.lastName}`,
-            },
-            unit_amount: Math.round(amount * 100), // Montant en centimes
-          },
-          quantity: 1,
-        },
-      ],
-      mode: "payment",
-      success_url: successUrl,
-      cancel_url: cancelUrl,
+    // Créer le Payment Intent
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount: Math.round(amount * 100), // Convertir en centimes
+      currency: currency.toLowerCase(),
       metadata: {
-        bookingId: booking.id,
-        clientId: client.id,
-        providerId: booking.providerId,
+        bookingId: id,
         userId: user.id,
       },
-      customer_email: user.email || undefined,
-      billing_address_collection: "required",
     });
 
-    console.log("🔍 [Payment API] Stripe session created:", session.id);
-
-    // Créer ou mettre à jour l'enregistrement de paiement
-    const payment = await db.payment.upsert({
-      where: { bookingId: booking.id },
-      update: {
-        stripeSessionId: session.id,
-        status: "PENDING",
-        updatedAt: new Date(),
-      },
-      create: {
+    // Enregistrer le paiement en base
+    await prisma.payment.create({
+      data: {
+        id: paymentIntent.id,
         userId: user.id,
-        bookingId: booking.id,
-        clientId: client.id,
+        bookingId: id,
         amount: amount,
-        currency: currency,
+        currency: currency.toLowerCase(),
         status: "PENDING",
-        type: "SERVICE",
-        paymentMethod: "STRIPE",
-        stripeSessionId: session.id,
+        type: "BOOKING",
+        stripePaymentId: paymentIntent.id,
       },
     });
-
-    console.log("🔍 [Payment API] Payment record created/updated:", payment.id);
 
     return NextResponse.json({
-      success: true,
-      checkoutUrl: session.url,
-      sessionId: session.id,
+      paymentIntentId: paymentIntent.id,
+      clientSecret: paymentIntent.client_secret,
+      amount,
+      status: paymentIntent.status,
     });
   } catch (error) {
-    console.error("Error creating payment session:", error);
+    console.error("❌ [Payment API] Error:", error);
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }

@@ -44,7 +44,7 @@ export class TestsService {
           // Utilisation d'un envoi générique
           result = await EmailService.sendVerificationEmail(
             email,
-            "https://ecodeli.com/verify?token=test",
+            "https://ecodeli.me/verify?token=test",
             "fr",
           );
           break;
@@ -55,7 +55,7 @@ export class TestsService {
           html = `<h2>Vérifiez votre compte</h2><p>Cliquez sur le lien ci-dessous pour vérifier votre compte :</p>`;
           result = await EmailService.sendVerificationEmail(
             email,
-            "https://ecodeli.com/verify?token=test",
+            "https://ecodeli.me/verify?token=test",
             "fr",
           );
           break;
@@ -67,7 +67,7 @@ export class TestsService {
           html = `<h2>Réinitialisation du mot de passe</h2><p>Cliquez sur le lien ci-dessous pour réinitialiser votre mot de passe :</p>`;
           result = await EmailService.sendPasswordResetEmail(
             email,
-            "https://ecodeli.com/reset-password?token=test",
+            "https://ecodeli.me/reset-password?token=test",
             "fr",
           );
           break;

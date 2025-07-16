@@ -63,15 +63,85 @@ export interface ImportField {
   example?: string;
 }
 
+// Interface pour les fichiers compatibles serveur et client
+export interface FileData {
+  name: string;
+  size: number;
+  type: string;
+  content: string | ArrayBuffer;
+}
+
 export class BulkImportService {
   /**
    * Parse un fichier CSV/Excel en données d'annonces
+   * Compatible côté serveur et client
    */
-  static async parseFile(file: File): Promise<{
+  static async parseFileData(fileData: FileData): Promise<{
     data: any[];
     headers: string[];
     errors: string[];
   }> {
+    const errors: string[] = [];
+
+    try {
+      // Vérifier le type de fichier
+      const allowedTypes = [
+        "text/csv",
+        "application/vnd.ms-excel",
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      ];
+
+      if (!allowedTypes.includes(fileData.type)) {
+        errors.push(
+          "Type de fichier non supporté. Utilisez CSV ou Excel (.xlsx)",
+        );
+      }
+
+      // Vérifier la taille (max 10MB)
+      if (fileData.size > 10 * 1024 * 1024) {
+        errors.push("Fichier trop volumineux. Maximum 10MB autorisé");
+      }
+
+      if (errors.length > 0) {
+        return { data: [], headers: [], errors };
+      }
+
+      // Pour CSV
+      if (fileData.type === "text/csv") {
+        const text = typeof fileData.content === "string" 
+          ? fileData.content 
+          : new TextDecoder().decode(fileData.content);
+        return this.parseCSV(text);
+      }
+
+      // Pour Excel, on simule le parsing (dans une vraie app, utiliser une lib comme xlsx)
+      return this.parseExcelData(fileData);
+    } catch (error) {
+      errors.push(
+        `Erreur lors du parsing: ${error instanceof Error ? error.message : "Erreur inconnue"}`,
+      );
+      return { data: [], headers: [], errors };
+    }
+  }
+
+  /**
+   * Parse un fichier côté client (Browser API)
+   * Cette fonction ne doit être utilisée que côté client
+   */
+  static async parseFile(file: any): Promise<{
+    data: any[];
+    headers: string[];
+    errors: string[];
+  }> {
+    // Vérifier qu'on est côté client
+    if (typeof window === "undefined") {
+      return {
+        data: [],
+        headers: [],
+        errors: ["Cette fonction ne peut être utilisée que côté client"],
+      };
+    }
+
     const errors: string[] = [];
 
     try {
@@ -163,9 +233,26 @@ export class BulkImportService {
   }
 
   /**
-   * Parse un fichier Excel (simulé)
+   * Parse un fichier Excel (côté client)
    */
-  private static async parseExcel(file: File): Promise<{
+  private static async parseExcel(file: any): Promise<{
+    data: any[];
+    headers: string[];
+    errors: string[];
+  }> {
+    // Dans une vraie implémentation, utiliser une librairie comme 'xlsx'
+    // Pour l'instant, on simule
+    return {
+      data: [],
+      headers: [],
+      errors: ["Parsing Excel non implémenté dans cette version de démo"],
+    };
+  }
+
+  /**
+   * Parse un fichier Excel à partir de FileData
+   */
+  private static async parseExcelData(fileData: FileData): Promise<{
     data: any[];
     headers: string[];
     errors: string[];
@@ -342,22 +429,30 @@ export class BulkImportService {
       try {
         const announcement = announcements[i];
 
+        // Préparer les détails spécifiques selon le type
+        let packageDetails = null;
+        if (announcement.type === "PACKAGE_DELIVERY" && announcement.weight) {
+          packageDetails = {
+            weight: announcement.weight,
+            dimensions: announcement.dimensions || "",
+            fragile: announcement.tags?.includes("fragile") || false,
+          };
+        }
+
         const created = await prisma.announcement.create({
           data: {
             title: announcement.title,
             description: announcement.description,
             type: announcement.type as any,
-            price: announcement.price,
+            basePrice: announcement.price,
             pickupAddress: announcement.pickupAddress || "",
             deliveryAddress: announcement.deliveryAddress || "",
-            scheduledAt: announcement.scheduledAt,
+            pickupDate: announcement.scheduledAt,
             weight: announcement.weight,
-            dimensions: announcement.dimensions,
-            category: announcement.category,
-            tags: announcement.tags || [],
+            specialInstructions: announcement.dimensions,
             status: announcement.isActive ? "ACTIVE" : "DRAFT",
             authorId: userId,
-            merchantId: merchant.id,
+            packageDetails: packageDetails,
           },
         });
 
@@ -702,8 +797,8 @@ export class BulkImportService {
   }
 }
 
-// Schémas de validation Zod
-export const importFileSchema = z.object({
+// Schémas de validation Zod conditionnels
+export const importFileSchema = typeof window !== "undefined" ? z.object({
   file: z
     .instanceof(File)
     .refine(
@@ -719,6 +814,14 @@ export const importFileSchema = z.object({
         ].includes(file.type),
       "Type de fichier non supporté",
     ),
+}) : z.object({
+  // Schema côté serveur sans File
+  fileData: z.object({
+    name: z.string(),
+    size: z.number(),
+    type: z.string(),
+    content: z.union([z.string(), z.instanceof(ArrayBuffer)]),
+  }),
 });
 
 export const importAnnouncementSchema = z.object({

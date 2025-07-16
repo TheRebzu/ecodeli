@@ -289,7 +289,7 @@ export default function DelivererHelpPage() {
                   <Mail className="h-5 w-5 text-green-600" />
                   <div>
                     <p className="font-medium">Support email</p>
-                    <p className="text-sm text-gray-600">support@ecodeli.com</p>
+                    <p className="text-sm text-gray-600">support@ecodeli.me</p>
                   </div>
                 </div>
               </CardContent>

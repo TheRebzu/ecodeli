@@ -11,6 +11,15 @@ const path = require('path');
 async function runPostBuild() {
   console.log('🚀 Running post-build script...');
   
+  // Vérifier si on est en environnement Docker
+  const isDocker = fs.existsSync('/.dockerenv');
+  
+  if (isDocker) {
+    console.log('🐳 Running in Docker environment, skipping post-build seeding');
+    console.log('ℹ️  Docker containers use docker-init.sh for database initialization');
+    return;
+  }
+  
   // Vérifier si on est en environnement Vercel
   const isVercel = process.env.VERCEL === '1';
   const vercelEnv = process.env.VERCEL_ENV; // 'production', 'preview', 'development'

@@ -1,4 +1,4 @@
-import { stripe } from "@/lib/stripe";
+import { getStripe } from "@/lib/stripe";
 import { prisma } from "@/lib/db";
 import { logger } from "@/lib/logger";
 import { NotificationService } from "@/features/notifications/services/notification.service";
@@ -30,367 +30,229 @@ export interface SubscriptionPricing {
  * Service de gestion des paiements Stripe pour les annonces EcoDeli
  * Gère le workflow de paiement en séquestre selon le cahier des charges
  */
-export class AnnouncementPaymentService {
+class AnnouncementPaymentService {
+  private notificationService: NotificationService;
+
+  constructor() {
+    this.notificationService = new NotificationService();
+  }
+
   /**
-   * Crée un PaymentIntent Stripe pour une annonce
-   * Le paiement est mis en séquestre jusqu'à validation de livraison
+   * Créer un Payment Intent pour une annonce
    */
-  static async createPaymentIntent(
-    input: CreatePaymentIntentInput,
+  async createPaymentIntent(
+    input: CreatePaymentIntentInput
   ): Promise<PaymentIntentResult> {
-    const {
-      announcementId,
-      amount,
-      currency = "EUR",
-      clientId,
-      metadata = {},
-    } = input;
-
     try {
-      logger.info(
-        `Création PaymentIntent pour annonce ${announcementId}, montant: ${amount}€`,
-      );
+      // Vérifier si Stripe est configuré
+      let stripe;
+      try {
+        stripe = getStripe();
+      } catch (error) {
+        logger.error("Stripe not configured", { error: error.message });
+        throw new Error("Payment system not configured");
+      }
 
-      // Vérifier que l'annonce existe et appartient au client
-      const announcement = await prisma.announcement.findFirst({
-        where: {
-          id: announcementId,
-          authorId: clientId,
+      const { announcementId, amount, currency = "eur", clientId, metadata } = input;
+
+      // Vérifier que l'annonce existe
+      const announcement = await prisma.announcement.findUnique({
+        where: { id: announcementId },
+        include: { author: true },
+      });
+
+      if (!announcement) {
+        throw new Error("Announcement not found");
+      }
+
+      // Créer le Payment Intent
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: Math.round(amount * 100), // Convertir en centimes
+        currency,
+        metadata: {
+          announcementId,
+          clientId,
+          ...metadata,
         },
+      });
+
+      // Enregistrer le paiement en base
+      await prisma.payment.create({
+        data: {
+          id: paymentIntent.id,
+          userId: clientId,
+          announcementId,
+          amount: amount,
+          currency,
+          status: "PENDING",
+          type: "DELIVERY",
+          stripePaymentId: paymentIntent.id,
+        },
+      });
+
+      logger.info("Payment intent created", {
+        paymentIntentId: paymentIntent.id,
+        announcementId,
+        amount,
+      });
+
+      return {
+        paymentIntentId: paymentIntent.id,
+        clientSecret: paymentIntent.client_secret!,
+        amount,
+        status: paymentIntent.status,
+      };
+    } catch (error) {
+      logger.error("Error creating payment intent", { error, input });
+      throw error;
+    }
+  }
+
+  /**
+   * Confirmer un paiement
+   */
+  async confirmPayment(paymentIntentId: string): Promise<void> {
+    try {
+      // Vérifier si Stripe est configuré
+      let stripe;
+      try {
+        stripe = getStripe();
+      } catch (error) {
+        logger.error("Stripe not configured", { error: error.message });
+        throw new Error("Payment system not configured");
+      }
+
+      // Récupérer le Payment Intent depuis Stripe
+      const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
+
+      if (paymentIntent.status === "succeeded") {
+        // Mettre à jour le statut en base
+        await prisma.payment.update({
+          where: { id: paymentIntentId },
+          data: { status: "COMPLETED" },
+        });
+
+        // Notifier le succès
+        const payment = await prisma.payment.findUnique({
+          where: { id: paymentIntentId },
+          include: { announcement: true, user: true },
+        });
+
+        if (payment?.user) {
+          await this.notificationService.notifyPaymentReceived(
+            payment.user.id,
+            payment.amount,
+            `Votre paiement de ${payment.amount}€ a été confirmé`,
+            "payment"
+          );
+        }
+
+        logger.info("Payment confirmed", { paymentIntentId });
+      }
+    } catch (error) {
+      logger.error("Error confirming payment", { error, paymentIntentId });
+      throw error;
+    }
+  }
+
+  /**
+   * Annuler un paiement
+   */
+  async cancelPayment(paymentIntentId: string): Promise<void> {
+    try {
+      // Vérifier si Stripe est configuré
+      let stripe;
+      try {
+        stripe = getStripe();
+      } catch (error) {
+        logger.error("Stripe not configured", { error: error.message });
+        throw new Error("Payment system not configured");
+      }
+
+      // Annuler le Payment Intent
+      await stripe.paymentIntents.cancel(paymentIntentId);
+
+      // Mettre à jour le statut en base
+      await prisma.payment.update({
+        where: { id: paymentIntentId },
+        data: { status: "CANCELLED" },
+      });
+
+      logger.info("Payment cancelled", { paymentIntentId });
+    } catch (error) {
+      logger.error("Error cancelling payment", { error, paymentIntentId });
+      throw error;
+    }
+  }
+
+  /**
+   * Récupérer les paiements d'une annonce
+   */
+  async getAnnouncementPayments(announcementId: string) {
+    try {
+      const payments = await prisma.payment.findMany({
+        where: { announcementId },
         include: {
-          author: {
-            include: {
-              client: {
-                include: { subscription: true },
+          user: {
+            select: {
+              id: true,
+              email: true,
+              profile: {
+                select: {
+                  firstName: true,
+                  lastName: true,
+                },
+              },
+            },
+          },
+        },
+        orderBy: { createdAt: "desc" },
+      });
+
+      return payments;
+    } catch (error) {
+      logger.error("Error getting announcement payments", { error, announcementId });
+      throw error;
+    }
+  }
+
+  /**
+   * Récupérer le statut d'un paiement
+   */
+  async getPaymentStatus(paymentIntentId: string) {
+    try {
+      const payment = await prisma.payment.findUnique({
+        where: { id: paymentIntentId },
+        include: {
+          announcement: {
+            select: {
+              id: true,
+              title: true,
+              description: true,
+            },
+          },
+          user: {
+            select: {
+              id: true,
+              email: true,
+              profile: {
+                select: {
+                  firstName: true,
+                  lastName: true,
+                },
               },
             },
           },
         },
       });
 
-      if (!announcement) {
-        throw new Error("Annonce introuvable ou non autorisée");
-      }
-
-      // Vérifier qu'il n'y a pas déjà un paiement en cours
-      const existingPayment = await prisma.payment.findFirst({
-        where: {
-          announcementId,
-          status: { in: ["PENDING", "PROCESSING"] },
-        },
-      });
-
-      if (existingPayment) {
-        throw new Error("Un paiement est déjà en cours pour cette annonce");
-      }
-
-      // Calculer le montant final avec les réductions d'abonnement
-      const subscription = announcement.author.client?.subscription;
-      const finalAmount = this.calculateFinalAmount(
-        amount,
-        subscription?.plan || "FREE",
-        announcement.isUrgent || false,
-      );
-
-      // Créer le PaymentIntent Stripe avec capture manuelle
-      const paymentIntent = await stripe.paymentIntents.create({
-        amount: Math.round(finalAmount * 100), // Stripe utilise les centimes
-        currency: currency.toLowerCase(),
-        capture_method: "manual", // CRITIQUE : capture manuelle pour séquestre
-        confirmation_method: "manual",
-        metadata: {
-          announcementId,
-          clientId,
-          originalAmount: amount.toString(),
-          finalAmount: finalAmount.toString(),
-          subscriptionPlan: subscription?.plan || "FREE",
-          isUrgent: announcement.isUrgent?.toString() || "false",
-          ...metadata,
-        },
-        description: `EcoDeli - ${announcement.title}`,
-        receipt_email: announcement.author.email,
-      });
-
-      // Sauvegarder en base de données
-      const payment = await prisma.payment.create({
-        data: {
-          userId: clientId,
-          announcementId,
-          amount: finalAmount,
-          currency,
-          status: "PENDING",
-          paymentMethod: "STRIPE",
-          stripePaymentId: paymentIntent.id,
-          metadata: {
-            originalAmount: amount,
-            discountApplied: amount - finalAmount,
-            subscriptionPlan: subscription?.plan || "FREE",
-            paymentIntentStatus: paymentIntent.status,
-          },
-        },
-      });
-
-      logger.info(
-        `PaymentIntent créé: ${paymentIntent.id}, montant final: ${finalAmount}€`,
-      );
-
-      return {
-        paymentIntentId: paymentIntent.id,
-        clientSecret: paymentIntent.client_secret!,
-        amount: finalAmount,
-        status: paymentIntent.status,
-      };
-    } catch (error) {
-      logger.error(`Erreur création PaymentIntent:`, error);
-      throw error;
-    }
-  }
-
-  /**
-   * Confirme un PaymentIntent après saisie des informations de paiement
-   */
-  static async confirmPaymentIntent(
-    paymentIntentId: string,
-    paymentMethodId: string,
-    clientId: string,
-  ): Promise<{
-    success: boolean;
-    requiresAction?: boolean;
-    clientSecret?: string;
-  }> {
-    try {
-      logger.info(`Confirmation PaymentIntent: ${paymentIntentId}`);
-
-      // Vérifier que le paiement appartient au client
-      const payment = await prisma.payment.findFirst({
-        where: {
-          stripePaymentId: paymentIntentId,
-          userId: clientId,
-          status: "PENDING",
-        },
-        include: { announcement: true },
-      });
-
       if (!payment) {
-        throw new Error("Paiement introuvable ou non autorisé");
+        throw new Error("Payment not found");
       }
 
-      // Confirmer le PaymentIntent avec Stripe
-      const paymentIntent = await stripe.paymentIntents.confirm(
-        paymentIntentId,
-        {
-          payment_method: paymentMethodId,
-          return_url: `${process.env.NEXT_PUBLIC_APP_URL}/client/announcements/${payment.announcementId}/payment-success`,
-        },
-      );
-
-      // Mettre à jour le statut en base
-      if (paymentIntent.status === "requires_action") {
-        await prisma.payment.update({
-          where: { id: payment.id },
-          data: {
-            status: "REQUIRES_ACTION",
-            metadata: {
-              ...(payment.metadata as any),
-              paymentIntentStatus: paymentIntent.status,
-              nextAction: paymentIntent.next_action?.type,
-            },
-          },
-        });
-
-        return {
-          success: false,
-          requiresAction: true,
-          clientSecret: paymentIntent.client_secret!,
-        };
-      }
-
-      if (paymentIntent.status === "succeeded") {
-        // Le paiement est confirmé mais pas encore capturé (séquestre)
-        await this.handlePaymentConfirmed(payment.id, paymentIntent);
-        return { success: true };
-      }
-
-      throw new Error(
-        `Statut PaymentIntent inattendu: ${paymentIntent.status}`,
-      );
+      return payment;
     } catch (error) {
-      logger.error(`Erreur confirmation PaymentIntent:`, error);
-      throw error;
-    }
-  }
-
-  /**
-   * Capture le paiement après validation de livraison
-   * CRITIQUE : débloque l'argent du séquestre
-   */
-  static async capturePayment(
-    paymentId: string,
-    deliveryId?: string,
-  ): Promise<void> {
-    try {
-      logger.info(`Capture du paiement: ${paymentId}`);
-
-      const payment = await prisma.payment.findUnique({
-        where: { id: paymentId },
-        include: {
-          announcement: true,
-          delivery: true,
-        },
-      });
-
-      if (!payment) {
-        throw new Error("Paiement introuvable");
-      }
-
-      if (payment.status !== "CONFIRMED") {
-        throw new Error(
-          `Impossible de capturer un paiement en statut: ${payment.status}`,
-        );
-      }
-
-      if (!payment.stripePaymentId) {
-        throw new Error("ID PaymentIntent Stripe manquant");
-      }
-
-      // Capturer le paiement sur Stripe
-      const paymentIntent = await stripe.paymentIntents.capture(
-        payment.stripePaymentId,
-      );
-
-      if (paymentIntent.status !== "succeeded") {
-        throw new Error(`Échec de la capture: ${paymentIntent.status}`);
-      }
-
-      // Mettre à jour le statut en base
-      await prisma.payment.update({
-        where: { id: paymentId },
-        data: {
-          status: "COMPLETED",
-          paidAt: new Date(),
-          metadata: {
-            ...(payment.metadata as any),
-            capturedAt: new Date().toISOString(),
-            deliveryId: deliveryId || payment.delivery?.id,
-          },
-        },
-      });
-
-      // Calculer et transférer vers le wallet du livreur
-      if (payment.delivery) {
-        await this.transferToDelivererWallet(
-          payment.delivery.delivererId,
-          payment,
-        );
-      }
-
-      // Envoyer notifications
-      await Promise.all([
-        NotificationService.notifyPaymentReceived(
-          payment.userId,
-          payment.amount,
-          "Paiement annonce débité avec succès",
-          "delivery",
-        ),
-        payment.delivery
-          ? NotificationService.notifyPaymentReceived(
-              payment.delivery.delivererId,
-              this.calculateDelivererFee(payment.amount),
-              "Paiement de livraison reçu",
-              "delivery",
-            )
-          : Promise.resolve(),
-      ]);
-
-      logger.info(
-        `Paiement capturé avec succès: ${paymentId}, montant: ${payment.amount}€`,
-      );
-    } catch (error) {
-      logger.error(`Erreur capture paiement:`, error);
-      throw error;
-    }
-  }
-
-  /**
-   * Rembourse un paiement en cas d'annulation
-   */
-  static async refundPayment(
-    paymentId: string,
-    reason: string = "Annulation de la livraison",
-    amount?: number,
-  ): Promise<void> {
-    try {
-      logger.info(`Remboursement du paiement: ${paymentId}`);
-
-      const payment = await prisma.payment.findUnique({
-        where: { id: paymentId },
-        include: { announcement: true },
-      });
-
-      if (!payment) {
-        throw new Error("Paiement introuvable");
-      }
-
-      if (!["CONFIRMED", "COMPLETED"].includes(payment.status)) {
-        throw new Error(
-          `Impossible de rembourser un paiement en statut: ${payment.status}`,
-        );
-      }
-
-      if (!payment.stripePaymentId) {
-        throw new Error("ID PaymentIntent Stripe manquant");
-      }
-
-      const refundAmount = amount || payment.amount;
-
-      // Créer le remboursement sur Stripe
-      const refund = await stripe.refunds.create({
-        payment_intent: payment.stripePaymentId,
-        amount: Math.round(refundAmount * 100), // Convertir en centimes
-        reason: "requested_by_customer",
-        metadata: {
-          paymentId,
-          announcementId: payment.announcementId!,
-          reason,
-        },
-      });
-
-      // Mettre à jour le statut en base
-      await prisma.payment.update({
-        where: { id: paymentId },
-        data: {
-          status: "REFUNDED",
-          refundedAt: new Date(),
-          refundAmount: refundAmount,
-          metadata: {
-            ...(payment.metadata as any),
-            refundId: refund.id,
-            refundReason: reason,
-            refundedAt: new Date().toISOString(),
-          },
-        },
-      });
-
-      // Notifier le client
-      await NotificationService.createNotification({
-        userId: payment.userId,
-        type: "PAYMENT_REFUNDED",
-        title: "Remboursement effectué",
-        message: `Votre paiement de ${refundAmount}€ pour "${payment.announcement?.title}" a été remboursé`,
-        data: {
-          paymentId,
-          refundAmount,
-          reason,
-        },
-        sendPush: true,
-        priority: "medium",
-      });
-
-      logger.info(
-        `Remboursement effectué: ${refund.id}, montant: ${refundAmount}€`,
-      );
-    } catch (error) {
-      logger.error(`Erreur remboursement:`, error);
+      logger.error("Error getting payment status", { error, paymentIntentId });
       throw error;
     }
   }
@@ -564,7 +426,7 @@ export class AnnouncementPaymentService {
   static async checkPaymentStatus(stripePaymentId: string): Promise<string> {
     try {
       const paymentIntent =
-        await stripe.paymentIntents.retrieve(stripePaymentId);
+        await getStripe().paymentIntents.retrieve(stripePaymentId);
       return paymentIntent.status;
     } catch (error) {
       logger.error(`Erreur vérification statut paiement:`, error);
@@ -622,8 +484,20 @@ export class AnnouncementPaymentService {
       },
     };
   }
+
+  /**
+   * Récupérer le statut d'un paiement via Stripe
+   */
+  async getStripePaymentStatus(stripePaymentId: string) {
+    try {
+      const paymentIntent =
+        await getStripe().paymentIntents.retrieve(stripePaymentId);
+      return paymentIntent.status;
+    } catch (error) {
+      logger.error("Error getting Stripe payment status", { error, stripePaymentId });
+      throw error;
+    }
+  }
 }
 
-// Export du service
-export const announcementPaymentService = AnnouncementPaymentService;
-export default AnnouncementPaymentService;
+export const announcementPaymentService = new AnnouncementPaymentService();

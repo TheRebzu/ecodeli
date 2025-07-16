@@ -28,7 +28,7 @@ pipeline {
     }
     
     environment {
-        DOCKER_REGISTRY = 'registry.ecodeli.com'
+        DOCKER_REGISTRY = 'registry.ecodeli.me'
         DOCKER_IMAGE = 'ecodeli/platform'
         SLACK_CHANNEL = '#deployments'
     }
@@ -329,7 +329,7 @@ pipeline {
                         <p><a href="${env.BUILD_URL}">View Deployment</a></p>
                         <p><a href="${env.BUILD_URL}console">View Console Log</a></p>
                     """,
-                    to: "ops@ecodeli.com",
+                    to: "ops@ecodeli.me",
                     mimeType: 'text/html'
                 )
             }

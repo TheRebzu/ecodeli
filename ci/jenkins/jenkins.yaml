@@ -12,11 +12,11 @@ jenkins:
         - id: "admin"
           password: "${JENKINS_ADMIN_PASSWORD:-admin123}"
           name: "Administrator"
-          email: "admin@ecodeli.com"
+          email: "admin@ecodeli.me"
         - id: "developer"
           password: "${JENKINS_DEV_PASSWORD:-dev123}"
           name: "Developer"
-          email: "dev@ecodeli.com"
+          email: "dev@ecodeli.me"
   
   authorizationStrategy:
     roleBased:
@@ -171,7 +171,7 @@ credentials:
 unclassified:
   location:
     url: "http://jenkins:8080/"
-    adminAddress: "admin@ecodeli.com"
+    adminAddress: "admin@ecodeli.me"
   
   mailer:
     smtpHost: "${SMTP_HOST:-localhost}"

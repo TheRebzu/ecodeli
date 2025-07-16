@@ -1,10 +1,34 @@
 import Stripe from "stripe";
 
-if (!process.env.STRIPE_SECRET_KEY) {
-  throw new Error("STRIPE_SECRET_KEY is not set");
+// Fonction pour créer l'instance Stripe de manière sécurisée
+function createStripeInstance() {
+  const secretKey = process.env.STRIPE_SECRET_KEY;
+  
+  if (!secretKey || secretKey === "sk_test_your_stripe_secret_key") {
+    throw new Error("Stripe secret key is not configured");
+  }
+  
+  return new Stripe(secretKey, {
+    apiVersion: "2025-06-30.basil",
+  });
 }
 
-export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-  apiVersion: "2023-10-16",
-  typescript: true,
-});
+// Instance Stripe lazy-loaded
+let stripeInstance: Stripe | null = null;
+
+export function getStripe(): Stripe {
+  if (!stripeInstance) {
+    stripeInstance = createStripeInstance();
+  }
+  return stripeInstance;
+}
+
+// Export pour compatibilité avec le code existant
+export const stripe = {
+  get instance() {
+    return getStripe();
+  }
+};
+
+// Export par défaut pour compatibilité
+export default stripe;

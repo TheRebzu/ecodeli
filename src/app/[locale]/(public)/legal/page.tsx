@@ -69,7 +69,7 @@ export default function LegalPage() {
             <p className="text-sm">
               {t(
                 "dataProtection.content",
-                "Conformément au RGPD, vous disposez d'un droit d'accès, de rectification, de suppression et d'opposition aux données vous concernant. Pour exercer ces droits, contactez-nous à dpo@ecodeli.com",
+                "Conformément au RGPD, vous disposez d'un droit d'accès, de rectification, de suppression et d'opposition aux données vous concernant. Pour exercer ces droits, contactez-nous à dpo@ecodeli.me",
               )}
             </p>
           </section>

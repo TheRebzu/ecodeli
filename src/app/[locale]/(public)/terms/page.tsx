@@ -90,10 +90,10 @@ export default function Page() {
               Pour toute question concernant ces conditions, vous pouvez nous
               contacter à l'adresse :
               <a
-                href="mailto:contact@ecodeli.com"
+                href="mailto:contact@ecodeli.me"
                 className="text-primary hover:underline ml-1"
               >
-                contact@ecodeli.com
+                contact@ecodeli.me
               </a>
             </p>
           </section>

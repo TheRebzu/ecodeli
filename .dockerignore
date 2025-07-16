@@ -1,0 +1,122 @@
+# Fichiers de développement
+node_modules/
+.next/
+.git/
+.github/
+.vscode/
+.idea/
+.cursor/
+.claude/
+
+# Fichiers de logs et temporaires
+logs/
+*.log
+tmp/
+temp/
+.tmp/
+
+# Fichiers de configuration locaux
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Fichiers de cache
+.cache/
+.parcel-cache/
+.npm/
+.yarn/
+.pnpm/
+
+# Fichiers de build
+dist/
+build/
+out/
+coverage/
+
+# Fichiers de test
+test/
+tests/
+__tests__/
+*.test.ts
+*.test.js
+*.spec.ts
+*.spec.js
+
+# Fichiers de documentation
+*.md
+docs/
+documentation/
+
+# Fichiers volumineux
+*.pdf
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.svg
+*.ico
+*.mp4
+*.mov
+*.avi
+*.mkv
+*.webm
+*.zip
+*.tar
+*.gz
+*.7z
+*.rar
+
+# Fichiers de configuration IDEs
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Autres dossiers non nécessaires
+ci/
+nginx/
+mobile/
+
+# Fichiers de base de données
+*.db
+*.sqlite
+*.sqlite3
+
+# Fichiers de sauvegarde
+*.backup
+*.bak
+*.old
+
+# Fichiers de monitoring
+monitoring/
+grafana/
+prometheus/
+
+# Fichiers TypeScript générés
+*.tsbuildinfo
+tsconfig.tsbuildinfo
+
+# Fichiers de lock (garder pnpm-lock.yaml pour Docker)
+package-lock.json
+yarn.lock
+
+# Fichiers de configuration Docker (gardés sur l'hôte)
+docker-compose*.yml
+Dockerfile
+docker.env
+docker.env.example
+
+# Fichiers de règles
+rules/
+*.mdc
+
+# Fichiers de configuration spécifiques
+components.json
+cookies.txt
+build.txt
+dev.txt
+tree.txt
+typecheck.txt 

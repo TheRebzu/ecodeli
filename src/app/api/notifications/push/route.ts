@@ -1,83 +1,58 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getCurrentUser } from "@/lib/auth/utils";
-import { oneSignalService } from "@/features/notifications/services/onesignal.service";
-import { z } from "zod";
+import { auth } from "@/lib/auth";
 
-const notificationSchema = z.object({
-  userId: z.string().min(1, "User ID is required"),
-  title: z.string().min(1, "Title is required"),
-  message: z.string().min(1, "Message is required"),
-  type: z.enum([
-    "DELIVERY_UPDATE",
-    "PAYMENT",
-    "BOOKING",
-    "SUBSCRIPTION",
-    "MATCHING",
-    "DOCUMENT_VALIDATION",
-  ]),
-  data: z.record(z.any()).optional(),
-  priority: z.enum(["high", "normal", "low"]).optional(),
-});
-
-const bulkNotificationSchema = z.object({
-  userIds: z.array(z.string()).min(1, "At least one user ID is required"),
-  title: z.string().min(1, "Title is required"),
-  message: z.string().min(1, "Message is required"),
-  data: z.record(z.any()).optional(),
-});
-
-// POST - Envoyer une notification push
 export async function POST(request: NextRequest) {
   try {
-    const user = await getCurrentUser();
-
-    if (!user) {
+    const session = await auth();
+    if (!session?.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Vérifier que l'utilisateur est un admin
-    if (user.role !== "ADMIN") {
+    const { userId, title, message, data } = await request.json();
+
+    if (!userId || !title || !message) {
       return NextResponse.json(
-        { error: "Only admins can send push notifications" },
-        { status: 403 },
+        { error: "Missing required fields" },
+        { status: 400 }
       );
     }
 
-    const body = await request.json();
-    const validatedData = notificationSchema.parse(body);
+    // Vérifier si OneSignal est configuré
+    if (!process.env.ONESIGNAL_APP_ID || !process.env.ONESIGNAL_API_KEY) {
+      return NextResponse.json(
+        { error: "OneSignal not configured" },
+        { status: 503 }
+      );
+    }
 
-    const success = await oneSignalService.sendNotification({
-      userId: validatedData.userId,
-      title: validatedData.title,
-      message: validatedData.message,
-      type: validatedData.type,
-      data: validatedData.data,
-      priority: validatedData.priority,
-    });
+    // Import conditionnel pour éviter les erreurs si OneSignal n'est pas configuré
+    try {
+      const { getOneSignalService } = await import("@/features/notifications/services/onesignal.service");
+      
+      const oneSignalService = getOneSignalService();
+      
+      const result = await oneSignalService.sendToUser(userId, {
+        title,
+        message,
+        data: data || {},
+      });
 
-    if (success) {
       return NextResponse.json({
         success: true,
-        message: "Notification sent successfully",
+        result,
       });
-    } else {
+    } catch (error) {
+      console.error("Error sending notification:", error);
       return NextResponse.json(
         { error: "Failed to send notification" },
-        { status: 500 },
+        { status: 500 }
       );
     }
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { error: "Validation error", details: error.errors },
-        { status: 400 },
-      );
-    }
-
-    console.error("Error sending push notification:", error);
+    console.error("Error in push notification route:", error);
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }
@@ -85,7 +60,7 @@ export async function POST(request: NextRequest) {
 // POST - Envoyer des notifications en lot
 export async function PUT(request: NextRequest) {
   try {
-    const user = await getCurrentUser();
+    const user = await auth();
 
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -140,7 +115,7 @@ export async function PUT(request: NextRequest) {
 // GET - Get notification history (admin only)
 export async function GET(request: NextRequest) {
   try {
-    const user = await getCurrentUser();
+    const user = await auth();
 
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

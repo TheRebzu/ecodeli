@@ -9,7 +9,7 @@ services:
     environment:
       NODE_ENV: production
       LOG_LEVEL: warn
-      NEXTAUTH_URL: ${NEXTAUTH_URL:-https://ecodeli.com}
+      NEXTAUTH_URL: ${NEXTAUTH_URL:-https://ecodeli.me}
     deploy:
       replicas: 2
       restart_policy:

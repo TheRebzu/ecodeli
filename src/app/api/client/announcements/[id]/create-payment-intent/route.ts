@@ -1,11 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import { db } from "@/lib/db";
-import Stripe from "stripe";
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2024-06-20",
-});
+import { prisma } from "@/lib/db";
+import { getStripe } from "@/lib/stripe";
 
 export async function POST(
   request: NextRequest,
@@ -17,11 +13,22 @@ export async function POST(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    // Vérifier si Stripe est configuré
+    let stripe;
+    try {
+      stripe = getStripe();
+    } catch (error) {
+      return NextResponse.json(
+        { error: "Payment system not configured" },
+        { status: 503 }
+      );
+    }
+
     const { amount, currency = "eur" } = await request.json();
 
     // Vérifier que l'annonce appartient à l'utilisateur
     const { id } = await params;
-    const announcement = await db.announcement.findFirst({
+    const announcement = await prisma.announcement.findFirst({
       where: {
         id: id,
         authorId: session.user.id,
@@ -31,47 +38,46 @@ export async function POST(
 
     if (!announcement) {
       return NextResponse.json(
-        { error: "Announcement not found" },
-        { status: 404 },
+        { error: "Announcement not found or not accessible" },
+        { status: 404 }
       );
     }
 
-    // Créer l'intent de paiement Stripe
+    // Créer le Payment Intent
     const paymentIntent = await stripe.paymentIntents.create({
-      amount,
+      amount: Math.round(amount * 100), // Convertir en centimes
       currency,
-      automatic_payment_methods: {
-        enabled: true,
-      },
       metadata: {
-        announcementId: announcement.id,
+        announcementId: id,
         userId: session.user.id,
-        type: "announcement_payment",
       },
     });
 
-    // Enregistrer l'intent en base
-    await db.payment.create({
+    // Enregistrer le paiement en base
+    await prisma.payment.create({
       data: {
         id: paymentIntent.id,
-        announcementId: announcement.id,
         userId: session.user.id,
-        amount: amount / 100, // Convertir de centimes en euros
+        announcementId: id,
+        amount: amount,
         currency,
         status: "PENDING",
-        stripePaymentIntentId: paymentIntent.id,
-        method: "STRIPE",
+        type: "DELIVERY",
+        stripePaymentId: paymentIntent.id,
       },
     });
 
     return NextResponse.json({
-      client_secret: paymentIntent.client_secret,
+      paymentIntentId: paymentIntent.id,
+      clientSecret: paymentIntent.client_secret,
+      amount,
+      status: paymentIntent.status,
     });
   } catch (error) {
     console.error("Error creating payment intent:", error);
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }
