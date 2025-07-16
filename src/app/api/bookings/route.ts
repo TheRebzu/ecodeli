@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
 
     // Construire les conditions de filtrage
     const whereConditions: any = {
-      clientId: user.id,
+      clientId: user.client.id,
     };
 
     if (status) {
@@ -168,7 +168,7 @@ export async function POST(request: NextRequest) {
     const booking = await prisma.booking.create({
       data: {
         serviceId: validatedData.serviceId,
-        clientId: user.id,
+        clientId: user.client.id,
         scheduledAt: scheduledDate,
         address: validatedData.address,
         notes: validatedData.notes || "",

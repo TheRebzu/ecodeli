@@ -44,50 +44,54 @@ export async function GET(request: NextRequest) {
 
     // Récupérer les interventions existantes
     const [interventions, total] = await Promise.all([
-      db.serviceIntervention.findMany({
+      db.intervention.findMany({
         where,
         include: {
-          client: {
-            select: {
-              id: true,
-              profile: {
+          booking: {
+            include: {
+              client: {
+                include: {
+                  user: {
+                    include: {
+                      profile: {
+                        select: {
+                          firstName: true,
+                          lastName: true,
+                          phone: true,
+                          address: true,
+                          city: true,
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+              service: {
                 select: {
-                  firstName: true,
-                  lastName: true,
-                  phone: true,
-                  address: true,
-                  city: true,
+                  id: true,
+                  name: true,
+                  description: true,
+                  basePrice: true,
+                },
+              },
+              payment: {
+                select: {
+                  id: true,
+                  amount: true,
+                  currency: true,
+                  status: true,
                 },
               },
             },
           },
-          serviceRequest: {
-            select: {
-              id: true,
-              title: true,
-              description: true,
-              basePrice: true,
-              status: true,
-              pickupAddress: true,
-              deliveryAddress: true,
-            },
-          },
-          payment: {
-            select: {
-              id: true,
-              amount: true,
-              currency: true,
-              status: true,
-            },
-          },
         },
         orderBy: {
-          scheduledDate: sortOrder,
+          createdAt: sortOrder as any,
         },
         skip: (page - 1) * limit,
         take: limit,
       }),
-      db.serviceIntervention.count({ where }),
+      db.intervention.count({ where }),
     ]);
 
     console.log(
@@ -98,47 +102,45 @@ export async function GET(request: NextRequest) {
     const transformedInterventions = interventions.map((intervention) => ({
       id: intervention.id,
       providerId: intervention.providerId,
-      clientId: intervention.clientId,
-      serviceRequestId: intervention.serviceRequestId,
-      title: intervention.title,
-      description: intervention.description,
-      scheduledDate:
-        intervention.scheduledDate?.toISOString() ||
-        intervention.createdAt.toISOString(),
-      estimatedDuration: intervention.estimatedDuration,
+      clientId: intervention.booking.clientId,
+      serviceRequestId: intervention.booking.serviceId,
+      title: intervention.booking.service.name,
+      description: intervention.booking.service.description,
+      scheduledDate: intervention.booking.scheduledDate.toISOString(),
+      estimatedDuration: intervention.booking.duration,
       actualDuration: intervention.actualDuration,
-      status: intervention.status,
-      notes: intervention.notes,
-      rating: intervention.rating,
-      review: intervention.review,
+      status: intervention.isCompleted ? "COMPLETED" : "IN_PROGRESS",
+      notes: intervention.report,
+      rating: null, // TODO: récupérer depuis review si nécessaire
+      review: null,
       createdAt: intervention.createdAt.toISOString(),
       updatedAt: intervention.updatedAt.toISOString(),
       type: "intervention",
       client: {
-        id: intervention.client.id,
+        id: intervention.booking.client.id,
         profile: {
-          firstName: intervention.client.profile?.firstName || "",
-          lastName: intervention.client.profile?.lastName || "",
-          phone: intervention.client.profile?.phone,
-          address: intervention.client.profile?.address,
-          city: intervention.client.profile?.city,
+          firstName: intervention.booking.client.user.profile?.firstName || "",
+          lastName: intervention.booking.client.user.profile?.lastName || "",
+          phone: intervention.booking.client.user.profile?.phone,
+          address: intervention.booking.client.user.profile?.address,
+          city: intervention.booking.client.user.profile?.city,
         },
       },
       serviceRequest: {
-        id: intervention.serviceRequest.id,
-        title: intervention.serviceRequest.title,
-        description: intervention.serviceRequest.description,
-        basePrice: intervention.serviceRequest.basePrice,
-        status: intervention.serviceRequest.status,
-        pickupAddress: intervention.serviceRequest.pickupAddress,
-        deliveryAddress: intervention.serviceRequest.deliveryAddress,
+        id: intervention.booking.service.id,
+        title: intervention.booking.service.name,
+        description: intervention.booking.service.description,
+        basePrice: intervention.booking.service.basePrice,
+        status: intervention.booking.status,
+        pickupAddress: "", // Bookings n'ont pas ces champs
+        deliveryAddress: "",
       },
-      payment: intervention.payment
+      payment: intervention.booking.payment
         ? {
-            id: intervention.payment.id,
-            amount: intervention.payment.amount,
-            currency: intervention.payment.currency,
-            status: intervention.payment.status,
+            id: intervention.booking.payment.id,
+            amount: intervention.booking.payment.amount,
+            currency: intervention.booking.payment.currency,
+            status: intervention.booking.payment.status,
           }
         : null,
     }));
@@ -150,7 +152,7 @@ export async function GET(request: NextRequest) {
         status: "ACCEPTED",
       },
       include: {
-        serviceRequest: {
+        announcement: {
           include: {
             author: {
               include: {
@@ -173,10 +175,10 @@ export async function GET(request: NextRequest) {
     const transformedApplications = acceptedApplications.map((app) => ({
       id: `app_${app.id}`, // Préfixe pour distinguer des interventions
       providerId: app.providerId,
-      clientId: app.serviceRequest.authorId,
-      serviceRequestId: app.serviceRequestId,
-      title: app.serviceRequest.title,
-      description: app.serviceRequest.description,
+      clientId: app.announcement.authorId,
+      serviceRequestId: app.announcementId,
+      title: app.announcement.title,
+      description: app.announcement.description,
       scheduledDate: new Date().toISOString(), // Date actuelle car pas encore planifiée
       estimatedDuration: app.estimatedDuration,
       actualDuration: null,
@@ -188,23 +190,23 @@ export async function GET(request: NextRequest) {
       updatedAt: app.updatedAt.toISOString(),
       type: "application",
       client: {
-        id: app.serviceRequest.authorId,
+        id: app.announcement.authorId,
         profile: {
-          firstName: app.serviceRequest.author.profile?.firstName || "",
-          lastName: app.serviceRequest.author.profile?.lastName || "",
-          phone: app.serviceRequest.author.profile?.phone,
-          address: app.serviceRequest.author.profile?.address,
-          city: app.serviceRequest.author.profile?.city,
+          firstName: app.announcement.author.profile?.firstName || "",
+          lastName: app.announcement.author.profile?.lastName || "",
+          phone: app.announcement.author.profile?.phone,
+          address: app.announcement.author.profile?.address,
+          city: app.announcement.author.profile?.city,
         },
       },
       serviceRequest: {
-        id: app.serviceRequest.id,
-        title: app.serviceRequest.title,
-        description: app.serviceRequest.description,
+        id: app.announcement.id,
+        title: app.announcement.title,
+        description: app.announcement.description,
         basePrice: app.proposedPrice, // Utiliser le prix proposé
-        status: app.serviceRequest.status,
-        pickupAddress: app.serviceRequest.pickupAddress || "",
-        deliveryAddress: app.serviceRequest.deliveryAddress || "",
+        status: app.announcement.status,
+        pickupAddress: app.announcement.pickupAddress || "",
+        deliveryAddress: app.announcement.deliveryAddress || "",
       },
       payment: null, // Pas encore de paiement
       applicationData: {

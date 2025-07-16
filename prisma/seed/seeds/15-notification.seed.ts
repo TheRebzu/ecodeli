@@ -168,7 +168,7 @@ export async function seedNotifications(ctx: SeedContext) {
             deliveryId: delivery.id,
             trackingNumber: delivery.trackingNumber,
             delivererName: delivery.deliverer.name,
-          },
+          } as Record<string, any>,
         },
       });
       notifications.push(notification);
@@ -204,7 +204,7 @@ export async function seedNotifications(ctx: SeedContext) {
             bookingId: booking.id,
             serviceType: booking.service?.type,
             clientName: booking.client?.name,
-          },
+          } as Record<string, any>,
         },
       });
       notifications.push(notification);
@@ -226,10 +226,10 @@ export async function seedNotifications(ctx: SeedContext) {
         priority: notificationTemplates.SYSTEM.WELCOME.priority,
         status: 'READ', // Anciennes notifications déjà lues
         readAt: new Date(user.createdAt.getTime() + 60 * 60 * 1000), // Lue 1h après inscription
-        metadata: {
+        data: {
           category: 'welcome',
           actionUrl: '/dashboard'
-        }
+        } as Record<string, any>
       }
     })
     notifications.push(notification)
@@ -260,10 +260,10 @@ export async function seedNotifications(ctx: SeedContext) {
           readAt: new Date(delivery.createdAt.getTime() + 30 * 60 * 1000),
           relatedEntityId: delivery.id,
           relatedEntityType: 'DELIVERY',
-          metadata: {
+          data: {
             deliveryId: delivery.id,
             trackingNumber: delivery.trackingNumber
-          }
+          } as Record<string, any>
         }
       })
       notifications.push(acceptNotif)
@@ -282,10 +282,10 @@ export async function seedNotifications(ctx: SeedContext) {
           readAt: delivery.actualPickupAt || new Date(),
           relatedEntityId: delivery.id,
           relatedEntityType: 'DELIVERY',
-          metadata: {
+          data: {
             deliveryId: delivery.id,
             trackingNumber: delivery.trackingNumber
-          }
+          } as Record<string, any>
         }
       })
       notifications.push(collectNotif)
@@ -305,10 +305,10 @@ export async function seedNotifications(ctx: SeedContext) {
           readAt: delivery.actualDeliveryAt || new Date(),
           relatedEntityId: delivery.id,
           relatedEntityType: 'DELIVERY',
-          metadata: {
+          data: {
             deliveryId: delivery.id,
             validationCode: delivery.validationCode
-          }
+          } as Record<string, any>
         }
       })
       notifications.push(completedNotif)
@@ -324,10 +324,10 @@ export async function seedNotifications(ctx: SeedContext) {
           priority: 'normal',
           status: Math.random() > 0.3 ? 'READ' : 'UNREAD',
           readAt: Math.random() > 0.3 ? new Date() : null,
-          metadata: {
+          data: {
             amount: delivery.delivererEarnings,
             deliveryId: delivery.id
-          }
+          } as Record<string, any>
         }
       })
       notifications.push(delivererNotif)
@@ -360,10 +360,10 @@ export async function seedNotifications(ctx: SeedContext) {
           readAt: booking.status === 'COMPLETED' ? booking.confirmedAt : null,
           relatedEntityId: booking.id,
           relatedEntityType: 'BOOKING',
-          metadata: {
+          data: {
             bookingId: booking.id,
             serviceId: booking.serviceId
-          }
+          } as Record<string, any>
         }
       })
       notifications.push(newBookingNotif)
@@ -385,9 +385,9 @@ export async function seedNotifications(ctx: SeedContext) {
           readAt: booking.confirmedAt || new Date(),
           relatedEntityId: booking.id,
           relatedEntityType: 'BOOKING',
-          metadata: {
+          data: {
             bookingId: booking.id
-          }
+          } as Record<string, any>
         }
       })
       notifications.push(confirmNotif)
@@ -407,9 +407,9 @@ export async function seedNotifications(ctx: SeedContext) {
           priority: 'high',
           status: 'READ',
           readAt: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000),
-          metadata: {
+          data: {
             validationType: 'account_activation'
-          }
+          } as Record<string, any>
         }
       })
       notifications.push(activationNotif)
@@ -425,10 +425,10 @@ export async function seedNotifications(ctx: SeedContext) {
           priority: 'high',
           status: 'READ',
           readAt: new Date(Date.now() - Math.random() * 15 * 24 * 60 * 60 * 1000),
-          metadata: {
+          data: {
             documentType: 'DRIVING_LICENSE',
             reason: 'Document illisible'
-          }
+          } as Record<string, any>
         }
       })
       notifications.push(rejectionNotif)
@@ -452,11 +452,11 @@ export async function seedNotifications(ctx: SeedContext) {
           priority: 'normal',
           status: Math.random() > 0.7 ? 'UNREAD' : 'READ',
           readAt: Math.random() > 0.7 ? null : new Date(Date.now() - Math.random() * 5 * 24 * 60 * 60 * 1000),
-          metadata: {
+          data: {
             invoiceType: 'monthly',
             month: currentMonth - 1,
             year: new Date().getFullYear()
-          }
+          } as Record<string, any>
         }
       })
       notifications.push(invoiceNotif)

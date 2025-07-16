@@ -77,6 +77,7 @@ model Announcement {
   tracking            AnnouncementTracking[]
   PackageAnnouncement PackageAnnouncement?
   ServiceAnnouncement ServiceAnnouncement?
+  applications        ServiceApplication[]
   
   @@index([authorId])
   @@index([delivererId])
@@ -258,6 +259,26 @@ model AnnouncementNotification {
   @@index([announcementId])
   @@index([userId])
   @@index([sentAt])
+}
+
+model ServiceApplication {
+  id                String       @id @default(cuid())
+  announcementId    String
+  providerId        String
+  status            String       @default("PENDING") // "PENDING", "ACCEPTED", "REJECTED", etc.
+  proposedPrice     Float?
+  estimatedDuration Int?         // en minutes
+  message           String?
+  availableDates    String[]     @default([])
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+
+  announcement      Announcement @relation(fields: [announcementId], references: [id], onDelete: Cascade)
+  provider          User         @relation(fields: [providerId], references: [id])
+
+  @@unique([announcementId, providerId])
+  @@index([status])
+  @@index([createdAt])
 }
 
 

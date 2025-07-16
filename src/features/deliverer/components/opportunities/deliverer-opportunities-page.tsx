@@ -76,6 +76,9 @@ interface Opportunity {
     avatar?: string;
     rating?: number;
   };
+  payment?: {
+    status: string;
+  };
 }
 
 interface OpportunitiesResponse {
@@ -615,7 +618,7 @@ export function DelivererOpportunitiesPage() {
                       </Button>
                       <Button
                         onClick={() => handleAcceptOpportunity(opportunity.id)}
-                        disabled={accepting === opportunity.id}
+                        disabled={accepting === opportunity.id || opportunity.payment?.status !== 'COMPLETED'}
                         className="bg-green-600 hover:bg-green-700"
                         size="sm"
                       >
@@ -631,6 +634,11 @@ export function DelivererOpportunitiesPage() {
                           </>
                         )}
                       </Button>
+                      {opportunity.payment?.status !== 'COMPLETED' && (
+                        <div className="text-xs text-red-600 mt-1">
+                          Le client doit payer cette annonce avant que vous puissiez l'accepter.
+                        </div>
+                      )}
                     </div>
                   </div>
                 </CardContent>

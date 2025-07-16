@@ -18,7 +18,7 @@ export async function GET(
     const payment = await db.payment.findFirst({
       where: {
         id: paymentId,
-        OR: [{ userId: user.id }, { clientId: user.id }],
+        OR: [{ userId: user.id }, { clientId: user.client.id }],
       },
       include: {
         user: {

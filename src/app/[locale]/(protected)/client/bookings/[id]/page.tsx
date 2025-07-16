@@ -160,7 +160,10 @@ export default function BookingDetailPage() {
                 {booking.serviceType}
               </h1>
               <p className="text-gray-600 mt-1">
-                Réservation #{booking.id.slice(-8)}
+                {booking?.id
+                  ? <>Réservation #{booking.id.slice(-8)}</>
+                  : <>Réservation inconnue</>
+                }
               </p>
             </div>
 
@@ -311,7 +314,9 @@ export default function BookingDetailPage() {
                     />
                   ) : (
                     <span className="text-green-600 font-medium">
-                      {booking.providerName.charAt(0)}
+                      {booking?.providerName
+                        ? booking.providerName.charAt(0).toUpperCase() + booking.providerName.slice(1)
+                        : 'Prestataire inconnu'}
                     </span>
                   )}
                 </div>
@@ -322,7 +327,9 @@ export default function BookingDetailPage() {
                   <div className="flex items-center space-x-1">
                     <span className="text-yellow-500">⭐</span>
                     <span className="text-sm text-gray-600">
-                      {booking.providerRating.toFixed(1)}
+                      {typeof booking?.providerRating === 'number'
+                        ? booking.providerRating.toFixed(1)
+                        : '—'}
                     </span>
                   </div>
                 </div>

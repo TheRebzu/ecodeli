@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/use-auth";
 import { useTranslations } from "next-intl";
@@ -56,25 +56,26 @@ const announcementTypes = [
     description:
       "Transport d'un colis d'un point A à un point B (ex: Paris → Marseille)",
   },
-  {
-    value: "SHOPPING",
-    label: "Courses",
-    icon: ShoppingCart,
-    description: "Courses effectuées par un livreur selon une liste fournie",
-  },
-  {
-    value: "INTERNATIONAL_PURCHASE",
-    label: "Achat international",
-    icon: Package,
-    description:
-      "Achat et livraison de produits étrangers (ex: Jelly d'Angleterre)",
-  },
-  {
-    value: "CART_DROP",
-    label: "Lâcher de chariot",
-    icon: Package,
-    description: "Livraison à domicile depuis un magasin partenaire EcoDeli",
-  },
+  // Types désactivés temporairement :
+  // {
+  //   value: "SHOPPING",
+  //   label: "Courses",
+  //   icon: ShoppingCart,
+  //   description: "Courses effectuées par un livreur selon une liste fournie",
+  // },
+  // {
+  //   value: "INTERNATIONAL_PURCHASE",
+  //   label: "Achat international",
+  //   icon: Package,
+  //   description:
+  //     "Achat et livraison de produits étrangers (ex: Jelly d'Angleterre)",
+  // },
+  // {
+  //   value: "CART_DROP",
+  //   label: "Lâcher de chariot",
+  //   icon: Package,
+  //   description: "Livraison à domicile depuis un magasin partenaire EcoDeli",
+  // },
 ] as const;
 
 const deliveryTypes = [
@@ -83,11 +84,12 @@ const deliveryTypes = [
     label: "Prise en charge intégrale",
     description: "Point A → Point B directement",
   },
-  {
-    value: "PARTIAL",
-    label: "Prise en charge partielle",
-    description: "Avec relais entrepôts EcoDeli",
-  },
+  // Option désactivée temporairement :
+  // {
+  //   value: "PARTIAL",
+  //   label: "Prise en charge partielle",
+  //   description: "Avec relais entrepôts EcoDeli",
+  // },
   {
     value: "FINAL",
     label: "Livraison finale",
@@ -102,6 +104,50 @@ export default function CreateAnnouncementPage() {
 
   const [isLoading, setIsLoading] = useState(false);
   const [saveAsDraft, setSaveAsDraft] = useState(false);
+
+  // Ajout pour charger les entrepôts réels
+  const [warehouses, setWarehouses] = useState([]);
+  const [loadingWarehouses, setLoadingWarehouses] = useState(true);
+  const [warehouseError, setWarehouseError] = useState(null);
+
+  // Ajout pour charger les box loués par l'utilisateur connecté
+  const [userBoxes, setUserBoxes] = useState([]);
+  const [loadingBoxes, setLoadingBoxes] = useState(true);
+  const [boxError, setBoxError] = useState(null);
+
+  useEffect(() => {
+    async function fetchWarehouses() {
+      setLoadingWarehouses(true);
+      try {
+        const res = await fetch("/api/admin/locations");
+        if (!res.ok) throw new Error("Erreur lors du chargement des entrepôts");
+        const data = await res.json();
+        setWarehouses(data.warehouses || []);
+      } catch (err) {
+        setWarehouseError(err.message || "Erreur inconnue");
+      } finally {
+        setLoadingWarehouses(false);
+      }
+    }
+    fetchWarehouses();
+  }, []);
+
+  useEffect(() => {
+    async function fetchUserBoxes() {
+      setLoadingBoxes(true);
+      try {
+        const res = await fetch("/api/client/storage-boxes");
+        if (!res.ok) throw new Error("Erreur lors du chargement de vos box");
+        const data = await res.json();
+        setUserBoxes(data.rentals || []); // Correction ici : on utilise rentals
+      } catch (err) {
+        setBoxError(err.message || "Erreur inconnue");
+      } finally {
+        setLoadingBoxes(false);
+      }
+    }
+    fetchUserBoxes();
+  }, []);
 
   const {
     register,
@@ -130,6 +176,20 @@ export default function CreateAnnouncementPage() {
   const isShopping = selectedType === "SHOPPING";
   const isInternationalPurchase = selectedType === "INTERNATIONAL_PURCHASE";
   const isCartDrop = selectedType === "CART_DROP";
+
+  // Ajout d'un effet pour mettre à jour pickupAddress automatiquement si FINAL
+  useEffect(() => {
+    if (selectedDeliveryType === "FINAL" && userBoxes.length > 0) {
+      // Si un box est déjà sélectionné, on force la valeur pickupAddress
+      const selectedWarehouseId = watch("warehouseId");
+      if (selectedWarehouseId) {
+        const selectedRental = userBoxes.find(r => r.storageBox.id === selectedWarehouseId);
+        if (selectedRental) {
+          setValue("pickupAddress", selectedRental.storageBox.location.address || "");
+        }
+      }
+    }
+  }, [selectedDeliveryType, watch("warehouseId"), userBoxes, setValue]);
 
   const onSubmit = async (data: FormData, isDraft = false) => {
     if (!user) return;
@@ -371,35 +431,75 @@ export default function CreateAnnouncementPage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div>
-              <Label htmlFor="pickupAddress">Adresse de récupération *</Label>
-              <Input
-                id="pickupAddress"
-                {...register("pickupAddress")}
-                placeholder="Adresse complète (rue, ville, code postal)"
-                className={errors.pickupAddress ? "border-red-500" : ""}
-              />
-              {errors.pickupAddress && (
-                <p className="text-red-500 text-sm mt-1">
-                  {errors.pickupAddress.message}
-                </p>
-              )}
-            </div>
-
-            <div>
-              <Label htmlFor="deliveryAddress">Adresse de livraison *</Label>
-              <Input
-                id="deliveryAddress"
-                {...register("deliveryAddress")}
-                placeholder="Adresse complète (rue, ville, code postal)"
-                className={errors.deliveryAddress ? "border-red-500" : ""}
-              />
-              {errors.deliveryAddress && (
-                <p className="text-red-500 text-sm mt-1">
-                  {errors.deliveryAddress.message}
-                </p>
-              )}
-            </div>
+            {selectedDeliveryType === "FULL" && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="pickupAddress">Adresse de départ</Label>
+                  <Input id="pickupAddress" {...register("pickupAddress", { required: true })} placeholder="123 rue de la Paix" />
+                  {errors.pickupAddress && <span className="text-red-500 text-xs">Adresse de départ requise</span>}
+                </div>
+                <div>
+                  <Label htmlFor="pickupDate">Date de départ</Label>
+                  <Input id="pickupDate" type="datetime-local" {...register("pickupDate", { required: true })} />
+                  {errors.pickupDate && <span className="text-red-500 text-xs">Date de départ requise</span>}
+                </div>
+                <div>
+                  <Label htmlFor="deliveryAddress">Adresse d'arrivée</Label>
+                  <Input id="deliveryAddress" {...register("deliveryAddress", { required: true })} placeholder="456 avenue de la République" />
+                  {errors.deliveryAddress && <span className="text-red-500 text-xs">Adresse d'arrivée requise</span>}
+                </div>
+                <div>
+                  <Label htmlFor="deliveryDate">Date d'arrivée</Label>
+                  <Input id="deliveryDate" type="datetime-local" {...register("deliveryDate")} />
+                </div>
+              </div>
+            )}
+            {selectedDeliveryType === "FINAL" && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="warehouseId">Box de départ (loué par vous)</Label>
+                  {loadingBoxes ? (
+                    <div>Chargement de vos box...</div>
+                  ) : boxError ? (
+                    <div className="text-red-500">{boxError}</div>
+                  ) : userBoxes.length === 0 ? (
+                    <div className="text-gray-500">Aucun box loué actuellement.</div>
+                  ) : (
+                    <select
+                      id="warehouseId"
+                      {...register("warehouseId", { required: true })}
+                      className="input input-bordered w-full"
+                      onChange={e => {
+                        const selectedRental = userBoxes.find(r => r.storageBox.id === e.target.value);
+                        setValue("warehouseId", e.target.value);
+                        if (selectedRental) {
+                          setValue("pickupAddress", selectedRental.storageBox.location.address || "");
+                        }
+                      }}
+                    >
+                      <option value="">Sélectionnez un box</option>
+                      {userBoxes.map((rental) => (
+                        <option key={rental.storageBox.id} value={rental.storageBox.id}>
+                          {rental.storageBox.location?.name} - {rental.storageBox.location?.address} (Box {rental.storageBox.boxNumber})
+                        </option>
+                      ))}
+                    </select>
+                  )}
+                  {errors.warehouseId && <span className="text-red-500 text-xs">Box requis</span>}
+                </div>
+                {/* Champ pickupAddress masqué mais présent dans le form pour validation */}
+                <input type="hidden" {...register("pickupAddress", { required: true })} />
+                <div>
+                  <Label htmlFor="deliveryAddress">Adresse d'arrivée</Label>
+                  <Input id="deliveryAddress" {...register("deliveryAddress", { required: true })} placeholder="456 avenue de la République" />
+                  {errors.deliveryAddress && <span className="text-red-500 text-xs">Adresse d'arrivée requise</span>}
+                </div>
+                <div>
+                  <Label htmlFor="deliveryDate">Date d'arrivée</Label>
+                  <Input id="deliveryDate" type="datetime-local" {...register("deliveryDate")} />
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
 

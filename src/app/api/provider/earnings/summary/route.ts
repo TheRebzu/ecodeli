@@ -42,7 +42,7 @@ export async function GET(request: NextRequest) {
     const yearStart = new Date(now.getFullYear(), 0, 1);
 
     // Get current month interventions
-    const currentMonthInterventions = await prisma.serviceIntervention.findMany(
+    const currentMonthInterventions = await prisma.intervention.findMany(
       {
         where: {
           providerId: provider.id,
@@ -60,7 +60,7 @@ export async function GET(request: NextRequest) {
 
     // Get previous month interventions
     const previousMonthInterventions =
-      await prisma.serviceIntervention.findMany({
+      await prisma.intervention.findMany({
         where: {
           providerId: provider.id,
           status: { in: ["COMPLETED"] },
@@ -75,7 +75,7 @@ export async function GET(request: NextRequest) {
       });
 
     // Get year to date interventions
-    const yearInterventions = await prisma.serviceIntervention.findMany({
+    const yearInterventions = await prisma.intervention.findMany({
       where: {
         providerId: provider.id,
         status: { in: ["COMPLETED"] },
@@ -90,7 +90,7 @@ export async function GET(request: NextRequest) {
     });
 
     // Get pending payments (interventions with payments not yet completed)
-    const pendingInterventions = await prisma.serviceIntervention.findMany({
+    const pendingInterventions = await prisma.intervention.findMany({
       where: {
         providerId: provider.id,
         status: { in: ["PAYMENT_PENDING", "IN_PROGRESS"] },

@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/db";
+import { EmailService } from "@/lib/email";
 
 export interface MatchScore {
   announcementId: string;
@@ -755,7 +756,10 @@ export class MatchingService {
       // Vérifier que l'annonce est toujours disponible
       const announcement = await prisma.announcement.findUnique({
         where: { id: announcementId },
-        include: { deliveries: true },
+        include: {
+          deliveries: true,
+          author: true, // Get the author's email
+        },
       });
 
       if (
@@ -830,6 +834,25 @@ export class MatchingService {
             },
           },
         });
+
+        // ENVOI EMAIL SIMPLE AU CLIENT POUR PAIEMENT
+        if (announcement.author?.email) {
+          const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+          const paymentLink = `${appUrl}/client/deliveries/${delivery.id}/payment`;
+          const subject = "Paiement requis pour votre livraison EcoDeli";
+          const html = `
+            <p>Bonjour,</p>
+            <p>Votre livraison <b>${announcement.title}</b> a été acceptée par un livreur.</p>
+            <p>Pour démarrer la livraison, merci de procéder au paiement en cliquant sur le lien ci-dessous :</p>
+            <p><a href="${paymentLink}">Payer ma livraison</a></p>
+            <p>Ou copiez ce lien dans votre navigateur :<br>${paymentLink}</p>
+            <p>Merci pour votre confiance.<br>L'équipe EcoDeli</p>
+          `;
+          // Envoi email (hors transaction pour éviter blocage si SMTP down)
+          setTimeout(() => {
+            EmailService.sendGenericEmail(announcement.author.email, subject, html).catch(() => {});
+          }, 0);
+        }
 
         return delivery;
       });

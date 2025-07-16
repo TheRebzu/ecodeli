@@ -87,23 +87,6 @@ export function DelivererSidebar({ collapsed, user }: DelivererSidebarProps) {
       badge: undefined,
     },
     {
-      label: "Trajets",
-      href: "/deliverer/routes",
-      icon: Route,
-      submenu: [
-        {
-          label: "Mes trajets",
-          href: "/deliverer/routes/my-routes",
-          icon: MapPin,
-        },
-        {
-          label: "Planification",
-          href: "/deliverer/planning",
-          icon: Calendar,
-        },
-      ],
-    },
-    {
       label: "Portefeuille",
       href: "/deliverer/wallet",
       icon: Wallet,

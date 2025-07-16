@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/hooks/use-auth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -101,6 +103,8 @@ export default function DelivererRecruitmentSystem({
   userId,
 }: DelivererRecruitmentSystemProps) {
   const t = useTranslations("deliverer.recruitment");
+  const router = useRouter();
+  const { user } = useAuth();
   const [application, setApplication] = useState<RecruitmentApplication | null>(
     null,
   );
@@ -123,6 +127,27 @@ export default function DelivererRecruitmentSystem({
     availability: [] as string[],
     preferredZones: [] as string[],
   });
+
+  // Redirection automatique pour les utilisateurs déjà validés
+  useEffect(() => {
+    console.log('🔍 [RECRUITMENT] User status check:', {
+      userId: user?.id,
+      role: user?.role,
+      validationStatus: user?.validationStatus,
+      isActive: user?.isActive
+    });
+    
+    if (user && user.role === 'DELIVERER' && 
+        (user.validationStatus === 'VALIDATED' || user.validationStatus === 'APPROVED')) {
+      console.log('✅ [RECRUITMENT] Utilisateur déjà validé - redirection vers dashboard');
+      toast({
+        title: "Compte déjà validé",
+        description: "Redirection vers votre espace livreur...",
+      });
+      router.push('/fr/deliverer');
+      return;
+    }
+  }, [user, router]);
 
   useEffect(() => {
     fetchApplication();

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/hooks/use-auth";
 import { useTranslations } from "next-intl";
 import { PageHeader } from "@/components/layout/page-header";
@@ -214,6 +214,11 @@ interface AnnouncementDetails {
   // Évaluations et pièces jointes
   reviews?: Array<any>;
   attachments?: Array<any>;
+  payment?: {
+    id: string;
+    status: string;
+    paymentDate?: string;
+  };
 }
 
 const statusLabels = {
@@ -223,6 +228,11 @@ const statusLabels = {
   IN_PROGRESS: { label: "En cours", color: "bg-orange-100 text-orange-800" },
   COMPLETED: { label: "Terminée", color: "bg-green-100 text-green-800" },
   CANCELLED: { label: "Annulée", color: "bg-red-100 text-red-800" },
+  // Delivery status values:
+  ACCEPTED: { label: "Acceptée", color: "bg-blue-100 text-blue-800" },
+  PICKED_UP: { label: "Colis récupéré", color: "bg-yellow-100 text-yellow-800" },
+  IN_TRANSIT: { label: "En cours de livraison", color: "bg-orange-100 text-orange-800" },
+  DELIVERED: { label: "Livrée", color: "bg-green-100 text-green-800" },
 };
 
 const typeLabels = {
@@ -256,6 +266,9 @@ export default function AnnouncementDetailPage() {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
+  const [isPaying, setIsPaying] = useState(false);
+  const searchParams = useSearchParams();
+  const paymentSuccess = searchParams.get('payment') === 'success';
 
   useEffect(() => {
     if (id && user) {
@@ -375,807 +388,826 @@ export default function AnnouncementDetailPage() {
     return typeInfo ? typeInfo.label : type;
   };
 
+  // Add this function to handle Stripe Checkout redirection
+  const handleStripePay = async () => {
+    setIsPaying(true);
+    try {
+      const res = await fetch(`/api/client/announcements/${id}/checkout-session`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+      const data = await res.json();
+      if (data.checkoutUrl) {
+        window.location.href = data.checkoutUrl;
+      } else {
+        alert(data.error || "Erreur lors de la création de la session de paiement.");
+      }
+    } catch (err) {
+      alert("Erreur lors de la redirection vers Stripe.");
+    } finally {
+      setIsPaying(false);
+    }
+  };
+
+  // Trouver la variable qui contient le paiement de l'annonce (ex: announcement.payment ou payment)
+  const isPaymentCompleted = announcement?.payment?.status === "COMPLETED" || announcement?.payment?.status === "PAID";
+
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Chargement de l'annonce...</p>
-        </div>
-      </div>
-    );
+    return <div>Chargement…</div>;
   }
 
-  if (error || !announcement) {
+  if (!announcement) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <AlertTriangle className="h-12 w-12 text-red-500 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">
-            Annonce non trouvée
-          </h2>
-          <p className="text-gray-600 mb-4">
-            {error || "Cette annonce n'existe pas ou a été supprimée."}
-          </p>
+        <div className="bg-white p-8 rounded-lg shadow-md text-center">
+          <h2 className="text-2xl font-bold mb-4">Annonce introuvable</h2>
+          <p className="text-gray-600 mb-4">Cette annonce n'existe pas ou a été supprimée.</p>
           <Link href="/client/announcements">
-            <Button variant="outline">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Retour aux annonces
-            </Button>
+            <Button>Retour à la liste</Button>
           </Link>
         </div>
       </div>
     );
   }
 
-  const statusInfo =
-    statusLabels[announcement.status as keyof typeof statusLabels];
+  // Use delivery.status if available, otherwise fallback to announcement.status
+  const unifiedStatus = announcement.delivery?.status || announcement.status;
+  const statusInfo = statusLabels[unifiedStatus as keyof typeof statusLabels];
   const typeInfo = typeLabels[announcement.type as keyof typeof typeLabels];
   const TypeIcon = typeInfo?.icon || Package;
 
   // Actions disponibles selon le statut
-  const canEdit = announcement.status === "DRAFT";
-  const canDelete = ["DRAFT", "ACTIVE"].includes(announcement.status);
+  const canEdit = unifiedStatus === "DRAFT";
+  const canDelete = ["DRAFT", "ACTIVE"].includes(unifiedStatus);
   const canViewCandidates =
-    announcement.status === "ACTIVE" &&
+    unifiedStatus === "ACTIVE" &&
     announcement.routeMatches &&
     announcement.routeMatches.length > 0;
   const hasDelivery = ["MATCHED", "IN_PROGRESS", "COMPLETED"].includes(
-    announcement.status,
+    unifiedStatus,
   );
 
   return (
-    <div className="space-y-6">
+    <>
+      {/* Payment alert and button at the very top of the page */}
+      {!isPaymentCompleted && (
+        <div style={{ marginTop: 24, marginBottom: 24 }}>
+          <div className="mb-4 flex items-center bg-yellow-100 border border-yellow-400 rounded-lg p-4 shadow-sm">
+            <AlertCircle className="h-7 w-7 mr-3 text-yellow-600 flex-shrink-0" />
+            <span className="font-bold text-lg text-yellow-900">Le paiement doit être effectué pour lancer la livraison.</span>
+          </div>
+          <Button onClick={handleStripePay} disabled={isPaying} size="lg" className="w-full max-w-xs mx-auto block">
+            {isPaying ? "Redirection..." : "Payer avec Stripe"}
+          </Button>
+        </div>
+      )}
       <PageHeader
         title={announcement.title}
         description={`Annonce créée le ${safeFormatDate(announcement.createdAt, "dd MMMM yyyy")}`}
         action={
-          <div className="flex gap-2">
-            <Link href="/client/announcements">
-              <Button variant="outline">
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Retour
-              </Button>
-            </Link>
-            {canEdit && (
-              <Link href={`/client/announcements/${id}/edit`}>
-                <Button variant="outline">
-                  <Edit className="h-4 w-4 mr-2" />
-                  Modifier
-                </Button>
-              </Link>
-            )}
-            {canViewCandidates && (
-              <Link href={`/client/announcements/${id}/candidates`}>
-                <Button>
-                  <Users className="h-4 w-4 mr-2" />
-                  Voir candidats ({announcement.routeMatches?.length})
-                </Button>
-              </Link>
-            )}
-            {canDelete && (
-              <Button
-                variant="destructive"
-                onClick={handleDelete}
-                disabled={actionLoading}
-              >
-                <Trash2 className="h-4 w-4 mr-2" />
-                Supprimer
-              </Button>
-            )}
-          </div>
+          <Link href="/client/announcements">
+            <Button variant="outline">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Retour aux annonces
+            </Button>
+          </Link>
         }
       />
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Informations principales */}
-        <div className="lg:col-span-2 space-y-6">
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle className="flex items-center gap-2">
-                  <TypeIcon className="h-5 w-5" />
-                  Détails de l'annonce
-                </CardTitle>
-                <div className="flex items-center gap-2">
-                  <Badge className={getStatusColor(announcement.status)}>
-                    {getStatusIcon(announcement.status)}
-                    <span className="ml-1">
-                      {statusInfo?.label || announcement.status}
-                    </span>
-                  </Badge>
-                  <Badge variant="outline">
-                    {getTypeLabel(announcement.type)}
-                  </Badge>
-                  {announcement.urgent && (
-                    <Badge variant="destructive">Urgent</Badge>
-                  )}
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <h4 className="font-medium mb-2">Description</h4>
-                <p className="text-gray-600">{announcement.description}</p>
-              </div>
-
-              {announcement.specialInstructions && (
-                <div>
-                  <h4 className="font-medium mb-2">Instructions spéciales</h4>
-                  <p className="text-gray-600">
-                    {announcement.specialInstructions}
-                  </p>
-                </div>
-              )}
-
-              <Separator />
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="flex items-center gap-2">
-                  <Calendar className="h-4 w-4 text-gray-500" />
-                  <div>
-                    <p className="text-sm font-medium">Date souhaitée</p>
-                    <p className="text-sm text-gray-600">
-                      {safeFormatDate(
-                        announcement.desiredDate,
-                        "dd MMMM yyyy à HH:mm",
-                      )}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <DollarSign className="h-4 w-4 text-gray-500" />
-                  <div>
-                    <p className="text-sm font-medium">Prix</p>
-                    <p className="text-sm text-gray-600">
-                      {announcement.price || 0} {announcement.currency || "EUR"}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <Eye className="h-4 w-4 text-gray-500" />
-                  <div>
-                    <p className="text-sm font-medium">Type de service</p>
-                    <p className="text-sm text-gray-600">
+      {/* Bouton de suivi de la livraison */}
+      {announcement.delivery?.id && (
+        <div className="mb-4 flex justify-end gap-2">
+          <Link href={`/client/announcements/${announcement.id}/tracking`}>
+            <Button variant="default">
+              Suivi de la livraison
+            </Button>
+          </Link>
+          <Link href={`/client/announcements/${announcement.id}/validation-code`}>
+            <Button variant="secondary">
+              Code de validation
+            </Button>
+          </Link>
+        </div>
+      )}
+      <div className="space-y-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Informations principales */}
+          <div className="lg:col-span-2 space-y-6">
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="flex items-center gap-2">
+                    <TypeIcon className="h-5 w-5" />
+                    Détails de l'annonce
+                  </CardTitle>
+                  <div className="flex items-center gap-2">
+                    {announcement.payment?.status === "COMPLETED" ? (
+                      <Badge className="bg-green-600 text-white">Payé</Badge>
+                    ) : announcement.payment?.status === "PENDING" ? (
+                      <Badge className="bg-yellow-400 text-gray-900">En attente de paiement</Badge>
+                    ) : (
+                      <Badge className={statusInfo?.color || "bg-gray-100 text-gray-800"}>
+                        {statusInfo?.label || unifiedStatus}
+                      </Badge>
+                    )}
+                    <Badge variant="outline">
                       {getTypeLabel(announcement.type)}
-                    </p>
+                    </Badge>
+                    {announcement.urgent && (
+                      <Badge variant="destructive">Urgent</Badge>
+                    )}
                   </div>
                 </div>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <h4 className="font-medium mb-2">Description</h4>
+                  <p className="text-gray-600">{announcement.description}</p>
+                </div>
 
-                <div className="flex items-center gap-2">
-                  <Clock className="h-4 w-4 text-gray-500" />
+                {announcement.specialInstructions && (
                   <div>
-                    <p className="text-sm font-medium">Dates flexibles</p>
-                    <p className="text-sm text-gray-600">
-                      {announcement.flexibleDates ? "Oui" : "Non"}
+                    <h4 className="font-medium mb-2">Instructions spéciales</h4>
+                    <p className="text-gray-600">
+                      {announcement.specialInstructions}
                     </p>
                   </div>
+                )}
+
+                <Separator />
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="flex items-center gap-2">
+                    <Calendar className="h-4 w-4 text-gray-500" />
+                    <div>
+                      <p className="text-sm font-medium">Date souhaitée</p>
+                      <p className="text-sm text-gray-600">
+                        {safeFormatDate(
+                          announcement.desiredDate,
+                          "dd MMMM yyyy à HH:mm",
+                        )}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <DollarSign className="h-4 w-4 text-gray-500" />
+                    <div>
+                      <p className="text-sm font-medium">Prix</p>
+                      <p className="text-sm text-gray-600">
+                        {announcement.price || 0} {announcement.currency || "EUR"}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <Eye className="h-4 w-4 text-gray-500" />
+                    <div>
+                      <p className="text-sm font-medium">Type de service</p>
+                      <p className="text-sm text-gray-600">
+                        {getTypeLabel(announcement.type)}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <Clock className="h-4 w-4 text-gray-500" />
+                    <div>
+                      <p className="text-sm font-medium">Dates flexibles</p>
+                      <p className="text-sm text-gray-600">
+                        {announcement.flexibleDates ? "Oui" : "Non"}
+                      </p>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
 
-          {/* Adresses */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <MapPin className="h-5 w-5" />
-                Itinéraire
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <h4 className="font-medium mb-2 text-green-600">
-                  📍 Point de départ
-                </h4>
-                <p className="text-gray-600">
-                  {announcement.startLocation?.address ||
-                    "Adresse non renseignée"}
-                </p>
-              </div>
-
-              <div className="flex items-center justify-center py-2">
-                <Route className="h-6 w-6 text-blue-500" />
-              </div>
-
-              <div>
-                <h4 className="font-medium mb-2 text-red-600">
-                  📍 Point d'arrivée
-                </h4>
-                <p className="text-gray-600">
-                  {announcement.endLocation?.address ||
-                    "Adresse non renseignée"}
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Détails du colis si applicable */}
-          {[
-            "PACKAGE_DELIVERY",
-            "SHOPPING",
-            "INTERNATIONAL_PURCHASE",
-            "CART_DROP",
-          ].includes(announcement.type) && (
+            {/* Adresses */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Package className="h-5 w-5" />
-                  Détails du colis
+                  <MapPin className="h-5 w-5" />
+                  Itinéraire
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                {announcement.packageDetails ? (
-                  <>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {announcement.packageDetails.weight && (
-                        <div>
-                          <h4 className="font-medium mb-2">Poids</h4>
-                          <p className="text-gray-600">
-                            {announcement.packageDetails.weight} kg
-                          </p>
-                        </div>
-                      )}
-                      {announcement.packageDetails.length &&
-                        announcement.packageDetails.width &&
-                        announcement.packageDetails.height && (
+                <div>
+                  <h4 className="font-medium mb-2 text-green-600">
+                    📍 Point de départ
+                  </h4>
+                  <p className="text-gray-600">
+                    {announcement.startLocation?.address ||
+                      "Adresse non renseignée"}
+                  </p>
+                </div>
+
+                <div className="flex items-center justify-center py-2">
+                  <Route className="h-6 w-6 text-blue-500" />
+                </div>
+
+                <div>
+                  <h4 className="font-medium mb-2 text-red-600">
+                    📍 Point d'arrivée
+                  </h4>
+                  <p className="text-gray-600">
+                    {announcement.endLocation?.address ||
+                      "Adresse non renseignée"}
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Détails du colis si applicable */}
+            {[
+              "PACKAGE_DELIVERY",
+              "SHOPPING",
+              "INTERNATIONAL_PURCHASE",
+              "CART_DROP",
+            ].includes(announcement.type) && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Package className="h-5 w-5" />
+                    Détails du colis
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {announcement.packageDetails ? (
+                    <>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {announcement.packageDetails.weight && (
                           <div>
-                            <h4 className="font-medium mb-2">Dimensions</h4>
+                            <h4 className="font-medium mb-2">Poids</h4>
                             <p className="text-gray-600">
-                              {announcement.packageDetails.length} x{" "}
-                              {announcement.packageDetails.width} x{" "}
-                              {announcement.packageDetails.height} cm
+                              {announcement.packageDetails.weight} kg
                             </p>
                           </div>
                         )}
-                      {announcement.packageDetails.content && (
+                        {announcement.packageDetails.length &&
+                          announcement.packageDetails.width &&
+                          announcement.packageDetails.height && (
+                            <div>
+                              <h4 className="font-medium mb-2">Dimensions</h4>
+                              <p className="text-gray-600">
+                                {announcement.packageDetails.length} x{" "}
+                                {announcement.packageDetails.width} x{" "}
+                                {announcement.packageDetails.height} cm
+                              </p>
+                            </div>
+                          )}
+                        {announcement.packageDetails.content && (
+                          <div>
+                            <h4 className="font-medium mb-2">Contenu</h4>
+                            <p className="text-gray-600">
+                              {announcement.packageDetails.content}
+                            </p>
+                          </div>
+                        )}
                         <div>
-                          <h4 className="font-medium mb-2">Contenu</h4>
+                          <h4 className="font-medium mb-2">Fragile</h4>
                           <p className="text-gray-600">
-                            {announcement.packageDetails.content}
+                            {announcement.packageDetails.fragile ? "Oui" : "Non"}
+                          </p>
+                        </div>
+                      </div>
+
+                      {announcement.packageDetails.requiresInsurance && (
+                        <div>
+                          <h4 className="font-medium mb-2">Assurance</h4>
+                          <p className="text-gray-600">
+                            Valeur assurée:{" "}
+                            {announcement.packageDetails.insuredValue || 0} €
                           </p>
                         </div>
                       )}
-                      <div>
-                        <h4 className="font-medium mb-2">Fragile</h4>
-                        <p className="text-gray-600">
-                          {announcement.packageDetails.fragile ? "Oui" : "Non"}
-                        </p>
-                      </div>
-                    </div>
-
-                    {announcement.packageDetails.requiresInsurance && (
-                      <div>
-                        <h4 className="font-medium mb-2">Assurance</h4>
-                        <p className="text-gray-600">
-                          Valeur assurée:{" "}
-                          {announcement.packageDetails.insuredValue || 0} €
-                        </p>
-                      </div>
-                    )}
-                  </>
-                ) : (
-                  <div className="text-center py-4">
-                    <Package className="h-12 w-12 text-gray-400 mx-auto mb-2" />
-                    <p className="text-gray-600 mb-2">
-                      Détails du colis non renseignés
-                    </p>
-                    <p className="text-sm text-gray-500">
-                      Les informations détaillées du colis (poids, dimensions,
-                      contenu) n'ont pas été précisées lors de la création de
-                      l'annonce.
-                    </p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Détails du service si applicable */}
-          {announcement.serviceDetails && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Users className="h-5 w-5" />
-                  Détails du service
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <h4 className="font-medium mb-2">Type de service</h4>
-                    <p className="text-gray-600">
-                      {announcement.serviceDetails.serviceType}
-                    </p>
-                  </div>
-                  {announcement.serviceDetails.numberOfPeople && (
-                    <div>
-                      <h4 className="font-medium mb-2">Nombre de personnes</h4>
-                      <p className="text-gray-600">
-                        {announcement.serviceDetails.numberOfPeople} personnes
+                    </>
+                  ) : (
+                    <div className="text-center py-4">
+                      <Package className="h-12 w-12 text-gray-400 mx-auto mb-2" />
+                      <p className="text-gray-600 mb-2">
+                        Détails du colis non renseignés
+                      </p>
+                      <p className="text-sm text-gray-500">
+                        Les informations détaillées du colis (poids, dimensions,
+                        contenu) n'ont pas été précisées lors de la création de
+                        l'annonce.
                       </p>
                     </div>
                   )}
-                  {announcement.serviceDetails.duration && (
-                    <div>
-                      <h4 className="font-medium mb-2">Durée</h4>
-                      <p className="text-gray-600">
-                        {announcement.serviceDetails.duration} minutes
-                      </p>
-                    </div>
-                  )}
-                  {announcement.serviceDetails.recurringService && (
-                    <div>
-                      <h4 className="font-medium mb-2">Service récurrent</h4>
-                      <p className="text-gray-600">
-                        {announcement.serviceDetails.recurringPattern || "Oui"}
-                      </p>
-                    </div>
-                  )}
-                </div>
+                </CardContent>
+              </Card>
+            )}
 
-                {announcement.serviceDetails.specialRequirements && (
-                  <div>
-                    <h4 className="font-medium mb-2">Exigences spéciales</h4>
-                    <p className="text-gray-600">
-                      {announcement.serviceDetails.specialRequirements}
-                    </p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Pièces jointes si disponibles */}
-          {announcement.attachments && announcement.attachments.length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Package className="h-5 w-5" />
-                  Pièces jointes ({announcement.attachments.length})
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  {announcement.attachments.map(
-                    (attachment: any, index: number) => (
-                      <div
-                        key={index}
-                        className="flex items-center gap-3 p-3 border rounded-lg"
-                      >
-                        <Package className="h-4 w-4 text-gray-500" />
-                        <div className="flex-1">
-                          <p className="text-sm font-medium">
-                            {attachment.filename || `Fichier ${index + 1}`}
-                          </p>
-                          <p className="text-xs text-gray-500">
-                            {attachment.type || "Type inconnu"}
-                          </p>
-                        </div>
-                        {attachment.url && (
-                          <Button variant="ghost" size="sm">
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                        )}
-                      </div>
-                    ),
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Évaluations si disponibles */}
-          {announcement.reviews && announcement.reviews.length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Star className="h-5 w-5" />
-                  Évaluations ({announcement.reviews.length})
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {announcement.reviews
-                    .slice(0, 3)
-                    .map((review: any, index: number) => (
-                      <div key={index} className="p-3 border rounded-lg">
-                        <div className="flex items-center gap-2 mb-2">
-                          <div className="flex">
-                            {[1, 2, 3, 4, 5].map((star) => (
-                              <Star
-                                key={star}
-                                className={`h-4 w-4 ${star <= (review.rating || 0) ? "fill-yellow-400 text-yellow-400" : "text-gray-300"}`}
-                              />
-                            ))}
-                          </div>
-                          <span className="text-sm font-medium">
-                            {review.rating}/5
-                          </span>
-                        </div>
-                        {review.comment && (
-                          <p className="text-sm text-gray-600">
-                            "{review.comment}"
-                          </p>
-                        )}
-                        <p className="text-xs text-gray-500 mt-2">
-                          {new Date(review.createdAt).toLocaleDateString(
-                            "fr-FR",
-                          )}
-                        </p>
-                      </div>
-                    ))}
-                  {announcement.reviews.length > 3 && (
-                    <p className="text-sm text-gray-500 text-center">
-                      +{announcement.reviews.length - 3} autres évaluations
-                    </p>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          )}
-        </div>
-
-        {/* Sidebar */}
-        <div className="space-y-6">
-          {/* Debug - Données de l'API (temporaire) */}
-          {process.env.NODE_ENV === "development" && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-xs text-red-600">
-                  🐛 DEBUG - Données API (dev only)
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <details className="text-xs">
-                  <summary className="cursor-pointer font-medium">
-                    Voir les données brutes
-                  </summary>
-                  <pre className="mt-2 p-2 bg-gray-100 rounded text-xs overflow-auto">
-                    {JSON.stringify(announcement, null, 2)}
-                  </pre>
-                </details>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Informations supplémentaires */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <TrendingUp className="h-5 w-5" />
-                Informations
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <p className="text-sm font-medium">Publié le</p>
-                <p className="text-sm text-gray-600">
-                  {new Date(announcement.createdAt).toLocaleDateString("fr-FR")}
-                </p>
-              </div>
-
-              <div className="space-y-2">
-                <p className="text-sm font-medium">Type de service</p>
-                <p className="text-sm text-gray-600">
-                  {getTypeLabel(announcement.type)}
-                </p>
-              </div>
-
-              {announcement.urgent && (
-                <div className="space-y-2">
-                  <p className="text-sm font-medium">Priorité</p>
-                  <Badge variant="destructive" className="text-xs">
-                    Urgent
-                  </Badge>
-                </div>
-              )}
-
-              {announcement.viewCount !== undefined &&
-                announcement.viewCount > 0 && (
-                  <div className="space-y-2">
-                    <p className="text-sm font-medium">Vues</p>
-                    <p className="text-sm text-gray-600">
-                      {announcement.viewCount} vues
-                    </p>
-                  </div>
-                )}
-
-              <div className="space-y-2">
-                <p className="text-sm font-medium">Statut actuel</p>
-                <Badge className={statusInfo.color}>{statusInfo.label}</Badge>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Informations sur l'auteur */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Users className="h-5 w-5" />
-                Informations auteur
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {announcement.author?.profile ? (
-                <div className="flex items-center gap-3">
-                  <Avatar>
-                    <AvatarImage src={announcement.author.profile.avatar} />
-                    <AvatarFallback>
-                      {announcement.author.profile.firstName?.[0] || "U"}
-                      {announcement.author.profile.lastName?.[0] || "E"}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <p className="font-medium">
-                      {announcement.author.profile.firstName &&
-                      announcement.author.profile.lastName
-                        ? `${announcement.author.profile.firstName} ${announcement.author.profile.lastName}`
-                        : "Utilisateur anonyme"}
-                    </p>
-                    <p className="text-sm text-gray-600">Auteur de l'annonce</p>
-                  </div>
-                </div>
-              ) : announcement.client?.profile ? (
-                <div className="flex items-center gap-3">
-                  <Avatar>
-                    <AvatarImage src={announcement.client.profile.avatar} />
-                    <AvatarFallback>
-                      {announcement.client.profile.firstName?.[0] || "C"}
-                      {announcement.client.profile.lastName?.[0] || "L"}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <p className="font-medium">
-                      {announcement.client.profile.firstName &&
-                      announcement.client.profile.lastName
-                        ? `${announcement.client.profile.firstName} ${announcement.client.profile.lastName}`
-                        : "Client anonyme"}
-                    </p>
-                    <p className="text-sm text-gray-600">Client particulier</p>
-                  </div>
-                </div>
-              ) : announcement.merchant?.profile ? (
-                <div className="flex items-center gap-3">
-                  <Avatar>
-                    <AvatarImage src={announcement.merchant.profile.avatar} />
-                    <AvatarFallback>
-                      {announcement.merchant.profile.businessName?.[0] ||
-                        announcement.merchant.profile.firstName?.[0] ||
-                        "M"}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <p className="font-medium">
-                      {announcement.merchant.profile.businessName ||
-                        (announcement.merchant.profile.firstName &&
-                        announcement.merchant.profile.lastName
-                          ? `${announcement.merchant.profile.firstName} ${announcement.merchant.profile.lastName}`
-                          : "Commerçant")}
-                    </p>
-                    <p className="text-sm text-gray-600">
-                      Commerçant partenaire
-                    </p>
-                  </div>
-                </div>
-              ) : (
-                <div className="flex items-center gap-3">
-                  <Avatar>
-                    <AvatarFallback>EC</AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <p className="font-medium">Utilisateur EcoDeli</p>
-                    <p className="text-sm text-gray-600">
-                      Profil non disponible
-                    </p>
-                  </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Candidats (si statut ACTIVE) */}
-          {canViewCandidates &&
-            announcement.routeMatches &&
-            announcement.routeMatches.length > 0 && (
+            {/* Détails du service si applicable */}
+            {announcement.serviceDetails && (
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Users className="h-5 w-5" />
-                    Correspondances de trajets (
-                    {announcement.routeMatches.length})
+                    Détails du service
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <h4 className="font-medium mb-2">Type de service</h4>
+                      <p className="text-gray-600">
+                        {announcement.serviceDetails.serviceType}
+                      </p>
+                    </div>
+                    {announcement.serviceDetails.numberOfPeople && (
+                      <div>
+                        <h4 className="font-medium mb-2">Nombre de personnes</h4>
+                        <p className="text-gray-600">
+                          {announcement.serviceDetails.numberOfPeople} personnes
+                        </p>
+                      </div>
+                    )}
+                    {announcement.serviceDetails.duration && (
+                      <div>
+                        <h4 className="font-medium mb-2">Durée</h4>
+                        <p className="text-gray-600">
+                          {announcement.serviceDetails.duration} minutes
+                        </p>
+                      </div>
+                    )}
+                    {announcement.serviceDetails.recurringService && (
+                      <div>
+                        <h4 className="font-medium mb-2">Service récurrent</h4>
+                        <p className="text-gray-600">
+                          {announcement.serviceDetails.recurringPattern || "Oui"}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+
+                  {announcement.serviceDetails.specialRequirements && (
+                    <div>
+                      <h4 className="font-medium mb-2">Exigences spéciales</h4>
+                      <p className="text-gray-600">
+                        {announcement.serviceDetails.specialRequirements}
+                      </p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Pièces jointes si disponibles */}
+            {announcement.attachments && announcement.attachments.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Package className="h-5 w-5" />
+                    Pièces jointes ({announcement.attachments.length})
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
-                    <p className="text-sm text-gray-600">
-                      {announcement.routeMatches.length} trajets compatibles
-                      trouvés.
-                    </p>
-                    <Link
-                      href={`/client/announcements/${id}/candidates`}
-                      className="w-full"
-                    >
-                      <Button className="w-full">
-                        <Users className="h-4 w-4 mr-2" />
-                        Voir tous les candidats
-                      </Button>
-                    </Link>
+                  <div className="space-y-2">
+                    {announcement.attachments.map(
+                      (attachment: any, index: number) => (
+                        <div
+                          key={index}
+                          className="flex items-center gap-3 p-3 border rounded-lg"
+                        >
+                          <Package className="h-4 w-4 text-gray-500" />
+                          <div className="flex-1">
+                            <p className="text-sm font-medium">
+                              {attachment.filename || `Fichier ${index + 1}`}
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              {attachment.type || "Type inconnu"}
+                            </p>
+                          </div>
+                          {attachment.url && (
+                            <Button variant="ghost" size="sm">
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                          )}
+                        </div>
+                      ),
+                    )}
                   </div>
                 </CardContent>
               </Card>
             )}
 
-          {/* Actions rapides */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Package className="h-5 w-5" />
-                Actions disponibles
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {/* Boutons selon le statut */}
-              {announcement.status === "DRAFT" && (
-                <div className="space-y-2">
-                  <Link
-                    href={`/client/announcements/${id}/edit`}
-                    className="w-full"
-                  >
-                    <Button variant="outline" className="w-full">
-                      <Edit className="h-4 w-4 mr-2" />
-                      Modifier l'annonce
-                    </Button>
-                  </Link>
-                  <Link
-                    href={`/client/announcements/${id}/payment`}
-                    className="w-full"
-                  >
-                    <Button className="w-full">
-                      <DollarSign className="h-4 w-4 mr-2" />
-                      Procéder au paiement
-                    </Button>
-                  </Link>
-                </div>
-              )}
+            {/* Évaluations si disponibles */}
+            {announcement.reviews && announcement.reviews.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Star className="h-5 w-5" />
+                    Évaluations ({announcement.reviews.length})
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {announcement.reviews
+                      .slice(0, 3)
+                      .map((review: any, index: number) => (
+                        <div key={index} className="p-3 border rounded-lg">
+                          <div className="flex items-center gap-2 mb-2">
+                            <div className="flex">
+                              {[1, 2, 3, 4, 5].map((star) => (
+                                <Star
+                                  key={star}
+                                  className={`h-4 w-4 ${star <= (review.rating || 0) ? "fill-yellow-400 text-yellow-400" : "text-gray-300"}`}
+                                />
+                              ))}
+                            </div>
+                            <span className="text-sm font-medium">
+                              {review.rating}/5
+                            </span>
+                          </div>
+                          {review.comment && (
+                            <p className="text-sm text-gray-600">
+                              "{review.comment}"
+                            </p>
+                          )}
+                          <p className="text-xs text-gray-500 mt-2">
+                            {new Date(review.createdAt).toLocaleDateString(
+                              "fr-FR",
+                            )}
+                          </p>
+                        </div>
+                      ))}
+                    {announcement.reviews.length > 3 && (
+                      <p className="text-sm text-gray-500 text-center">
+                        +{announcement.reviews.length - 3} autres évaluations
+                      </p>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </div>
 
-              {announcement.status === "ACTIVE" && (
+          {/* Sidebar */}
+          <div className="space-y-6">
+            {/* Debug - Données de l'API (temporaire) */}
+            {process.env.NODE_ENV === "development" && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-xs text-red-600">
+                    🐛 DEBUG - Données API (dev only)
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <details className="text-xs">
+                    <summary className="cursor-pointer font-medium">
+                      Voir les données brutes
+                    </summary>
+                    <pre className="mt-2 p-2 bg-gray-100 rounded text-xs overflow-auto">
+                      {JSON.stringify(announcement, null, 2)}
+                    </pre>
+                  </details>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Informations supplémentaires */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <TrendingUp className="h-5 w-5" />
+                  Informations
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
                 <div className="space-y-2">
-                  {canViewCandidates && (
-                    <Link
-                      href={`/client/announcements/${id}/candidates`}
-                      className="w-full"
-                    >
-                      <Button className="w-full">
-                        <Users className="h-4 w-4 mr-2" />
-                        Voir candidats ({announcement.routeMatches?.length || 0}
-                        )
-                      </Button>
-                    </Link>
+                  <p className="text-sm font-medium">Publié le</p>
+                  <p className="text-sm text-gray-600">
+                    {new Date(announcement.createdAt).toLocaleDateString("fr-FR")}
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <p className="text-sm font-medium">Type de service</p>
+                  <p className="text-sm text-gray-600">
+                    {getTypeLabel(announcement.type)}
+                  </p>
+                </div>
+
+                {announcement.urgent && (
+                  <div className="space-y-2">
+                    <p className="text-sm font-medium">Priorité</p>
+                    <Badge variant="destructive" className="text-xs">
+                      Urgent
+                    </Badge>
+                  </div>
+                )}
+
+                {announcement.viewCount !== undefined &&
+                  announcement.viewCount > 0 && (
+                    <div className="space-y-2">
+                      <p className="text-sm font-medium">Vues</p>
+                      <p className="text-sm text-gray-600">
+                        {announcement.viewCount} vues
+                      </p>
+                    </div>
                   )}
-                  <Link
-                    href={`/client/announcements/${id}/tracking`}
-                    className="w-full"
-                  >
-                    <Button variant="outline" className="w-full">
-                      <MapPin className="h-4 w-4 mr-2" />
-                      Suivi en temps réel
-                    </Button>
-                  </Link>
-                </div>
-              )}
 
-              {["MATCHED", "IN_PROGRESS"].includes(announcement.status) && (
                 <div className="space-y-2">
-                  <Link
-                    href={`/client/announcements/${id}/tracking`}
-                    className="w-full"
-                  >
-                    <Button className="w-full">
-                      <MapPin className="h-4 w-4 mr-2" />
-                      Suivre la livraison
-                    </Button>
-                  </Link>
-                  <Link
-                    href={`/client/announcements/${id}/validation-code`}
-                    className="w-full"
-                  >
-                    <Button variant="outline" className="w-full">
-                      <Eye className="h-4 w-4 mr-2" />
-                      Code de validation
-                    </Button>
-                  </Link>
-                  {announcement.status === "MATCHED" && (
-                    <Link
-                      href={`/client/announcements/${id}/payment`}
-                      className="w-full"
-                    >
-                      <Button variant="outline" className="w-full">
-                        <DollarSign className="h-4 w-4 mr-2" />
-                        Gérer le paiement
-                      </Button>
-                    </Link>
+                  <p className="text-sm font-medium">Statut actuel</p>
+                  {announcement.payment?.status === "COMPLETED" ? (
+                    <Badge className="bg-green-600 text-white">Payé</Badge>
+                  ) : announcement.payment?.status === "PENDING" ? (
+                    <Badge className="bg-yellow-400 text-gray-900">En attente de paiement</Badge>
+                  ) : (
+                    <Badge className={statusInfo.color}>{statusInfo.label}</Badge>
                   )}
                 </div>
+              </CardContent>
+            </Card>
+
+            {/* Informations sur l'auteur */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Users className="h-5 w-5" />
+                  Informations auteur
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {announcement.author?.profile ? (
+                  <div className="flex items-center gap-3">
+                    <Avatar>
+                      <AvatarImage src={announcement.author.profile.avatar} />
+                      <AvatarFallback>
+                        {announcement.author.profile.firstName?.[0] || "U"}
+                        {announcement.author.profile.lastName?.[0] || "E"}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <p className="font-medium">
+                        {announcement.author.profile.firstName &&
+                        announcement.author.profile.lastName
+                          ? `${announcement.author.profile.firstName} ${announcement.author.profile.lastName}`
+                          : "Utilisateur anonyme"}
+                      </p>
+                      <p className="text-sm text-gray-600">Auteur de l'annonce</p>
+                    </div>
+                  </div>
+                ) : announcement.client?.profile ? (
+                  <div className="flex items-center gap-3">
+                    <Avatar>
+                      <AvatarImage src={announcement.client.profile.avatar} />
+                      <AvatarFallback>
+                        {announcement.client.profile.firstName?.[0] || "C"}
+                        {announcement.client.profile.lastName?.[0] || "L"}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <p className="font-medium">
+                        {announcement.client.profile.firstName &&
+                        announcement.client.profile.lastName
+                          ? `${announcement.client.profile.firstName} ${announcement.client.profile.lastName}`
+                          : "Client anonyme"}
+                      </p>
+                      <p className="text-sm text-gray-600">Client particulier</p>
+                    </div>
+                  </div>
+                ) : announcement.merchant?.profile ? (
+                  <div className="flex items-center gap-3">
+                    <Avatar>
+                      <AvatarImage src={announcement.merchant.profile.avatar} />
+                      <AvatarFallback>
+                        {announcement.merchant.profile.businessName?.[0] ||
+                          announcement.merchant.profile.firstName?.[0] ||
+                          "M"}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <p className="font-medium">
+                        {announcement.merchant.profile.businessName ||
+                          (announcement.merchant.profile.firstName &&
+                          announcement.merchant.profile.lastName
+                            ? `${announcement.merchant.profile.firstName} ${announcement.merchant.profile.lastName}`
+                            : "Commerçant")}
+                      </p>
+                      <p className="text-sm text-gray-600">
+                        Commerçant partenaire
+                      </p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-3">
+                    <Avatar>
+                      <AvatarFallback>EC</AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <p className="font-medium">Utilisateur EcoDeli</p>
+                      <p className="text-sm text-gray-600">
+                        Profil non disponible
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Candidats (si statut ACTIVE) */}
+            {canViewCandidates &&
+              announcement.routeMatches &&
+              announcement.routeMatches.length > 0 && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Users className="h-5 w-5" />
+                      Correspondances de trajets (
+                      {announcement.routeMatches.length})
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      <p className="text-sm text-gray-600">
+                        {announcement.routeMatches.length} trajets compatibles
+                        trouvés.
+                      </p>
+                      <Link
+                        href={`/client/announcements/${id}/candidates`}
+                        className="w-full"
+                      >
+                        <Button className="w-full">
+                          <Users className="h-4 w-4 mr-2" />
+                          Voir tous les candidats
+                        </Button>
+                      </Link>
+                    </div>
+                  </CardContent>
+                </Card>
               )}
 
-              {announcement.status === "COMPLETED" && (
-                <div className="space-y-2">
-                  <Link
-                    href={`/client/announcements/${id}/tracking`}
-                    className="w-full"
-                  >
-                    <Button variant="outline" className="w-full">
-                      <MapPin className="h-4 w-4 mr-2" />
-                      Voir l'historique
-                    </Button>
-                  </Link>
-                  <Link
-                    href={`/client/announcements/${id}/review`}
-                    className="w-full"
-                  >
-                    <Button className="w-full">
-                      <Star className="h-4 w-4 mr-2" />
-                      Évaluer le livreur
-                    </Button>
-                  </Link>
-                </div>
-              )}
-
-              {announcement.status === "CANCELLED" && (
-                <div className="space-y-2">
-                  <Link
-                    href={`/client/announcements/${id}/tracking`}
-                    className="w-full"
-                  >
-                    <Button variant="outline" className="w-full">
-                      <MapPin className="h-4 w-4 mr-2" />
-                      Voir l'historique
-                    </Button>
-                  </Link>
-                  <Alert>
-                    <AlertTriangle className="h-4 w-4" />
-                    <AlertDescription>
-                      Cette annonce a été annulée. Aucune action n'est possible.
-                    </AlertDescription>
-                  </Alert>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Livraison en cours */}
-          {hasDelivery && announcement.delivery && (
+            {/* Actions rapides */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Package className="h-5 w-5" />
-                  Livraison en cours
+                  Actions disponibles
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <Alert>
-                  <AlertTriangle className="h-4 w-4" />
-                  <AlertDescription>
-                    Une livraison est associée à cette annonce. Consultez la
-                    page de suivi pour plus de détails.
-                  </AlertDescription>
-                </Alert>
+              <CardContent className="space-y-3">
+                {/* Boutons selon le statut */}
+                {unifiedStatus === "DRAFT" && (
+                  <div className="space-y-2">
+                    <Link
+                      href={`/client/announcements/${id}/edit`}
+                      className="w-full"
+                    >
+                      <Button variant="outline" className="w-full">
+                        <Edit className="h-4 w-4 mr-2" />
+                        Modifier l'annonce
+                      </Button>
+                    </Link>
+                    <Link
+                      href={`/client/announcements/${id}/payment`}
+                      className="w-full"
+                    >
+                      <Button className="w-full">
+                        <DollarSign className="h-4 w-4 mr-2" />
+                        Procéder au paiement
+                      </Button>
+                    </Link>
+                  </div>
+                )}
 
-                <Link
-                  href={`/client/announcements/${id}/tracking`}
-                  className="w-full"
-                >
-                  <Button className="w-full">
-                    <MapPin className="h-4 w-4 mr-2" />
-                    Voir le suivi de livraison
-                  </Button>
-                </Link>
+                {unifiedStatus === "ACTIVE" && (
+                  <div className="space-y-2">
+                    {canViewCandidates && (
+                      <Link
+                        href={`/client/announcements/${id}/candidates`}
+                        className="w-full"
+                      >
+                        <Button className="w-full">
+                          <Users className="h-4 w-4 mr-2" />
+                          Voir candidats ({announcement.routeMatches?.length || 0}
+                          )
+                        </Button>
+                      </Link>
+                    )}
+                    <Link
+                      href={`/client/announcements/${id}/tracking`}
+                      className="w-full"
+                    >
+                      <Button variant="outline" className="w-full">
+                        <MapPin className="h-4 w-4 mr-2" />
+                        Suivi en temps réel
+                      </Button>
+                    </Link>
+                  </div>
+                )}
+
+                {["MATCHED", "IN_PROGRESS"].includes(unifiedStatus) && (
+                  <div className="space-y-2">
+                    <Link
+                      href={`/client/announcements/${id}/tracking`}
+                      className="w-full"
+                    >
+                      <Button className="w-full">
+                        <MapPin className="h-4 w-4 mr-2" />
+                        Suivre la livraison
+                      </Button>
+                    </Link>
+                    <Link
+                      href={`/client/announcements/${id}/validation-code`}
+                      className="w-full"
+                    >
+                      <Button variant="outline" className="w-full">
+                        <Eye className="h-4 w-4 mr-2" />
+                        Code de validation
+                      </Button>
+                    </Link>
+                    {unifiedStatus === "MATCHED" && (
+                      <Link
+                        href={`/client/announcements/${id}/payment`}
+                        className="w-full"
+                      >
+                        <Button variant="outline" className="w-full">
+                          <DollarSign className="h-4 w-4 mr-2" />
+                          Gérer le paiement
+                        </Button>
+                      </Link>
+                    )}
+                  </div>
+                )}
+
+                {unifiedStatus === "COMPLETED" && (
+                  <div className="space-y-2">
+                    <Link
+                      href={`/client/announcements/${id}/tracking`}
+                      className="w-full"
+                    >
+                      <Button variant="outline" className="w-full">
+                        <MapPin className="h-4 w-4 mr-2" />
+                        Voir l'historique
+                      </Button>
+                    </Link>
+                    <Link
+                      href={`/client/announcements/${id}/review`}
+                      className="w-full"
+                    >
+                      <Button className="w-full">
+                        <Star className="h-4 w-4 mr-2" />
+                        Évaluer le livreur
+                      </Button>
+                    </Link>
+                  </div>
+                )}
+
+                {unifiedStatus === "CANCELLED" && (
+                  <div className="space-y-2">
+                    <Link
+                      href={`/client/announcements/${id}/tracking`}
+                      className="w-full"
+                    >
+                      <Button variant="outline" className="w-full">
+                        <MapPin className="h-4 w-4 mr-2" />
+                        Voir l'historique
+                      </Button>
+                    </Link>
+                    <Alert>
+                      <AlertTriangle className="h-4 w-4" />
+                      <AlertDescription>
+                        Cette annonce a été annulée. Aucune action n'est possible.
+                      </AlertDescription>
+                    </Alert>
+                  </div>
+                )}
               </CardContent>
             </Card>
-          )}
+
+            {/* Livraison en cours */}
+            {hasDelivery && announcement.delivery && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Package className="h-5 w-5" />
+                    Livraison en cours
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <Alert>
+                    <AlertTriangle className="h-4 w-4" />
+                    <AlertDescription>
+                      Une livraison est associée à cette annonce. Consultez la
+                      page de suivi pour plus de détails.
+                    </AlertDescription>
+                  </Alert>
+
+                  <Link
+                    href={`/client/announcements/${id}/tracking`}
+                    className="w-full"
+                  >
+                    <Button className="w-full">
+                      <MapPin className="h-4 w-4 mr-2" />
+                      Voir le suivi de livraison
+                    </Button>
+                  </Link>
+                </CardContent>
+              </Card>
+            )}
+          </div>
         </div>
       </div>
 
@@ -1201,6 +1233,6 @@ export default function AnnouncementDetailPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+    </>
   );
 }

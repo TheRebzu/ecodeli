@@ -275,22 +275,20 @@ model User {
   assignedTickets      SupportTicket[]        @relation("TicketAssignee")
   escalatedFromTickets TicketEscalation[]     @relation("EscalationFrom")
   escalatedToTickets   TicketEscalation[]     @relation("EscalationTo")
-  ticketMessages       TicketMessage[]         @relation("UserTicketMessages")
+  ticketMessages       TicketMessage[]
   ticketAttachments    TicketAttachment[]
   knowledgeBaseEntries SupportKnowledgeBase[]
   supportTemplates     SupportTemplate[]
   clientOrders         Order[]                @relation("ClientOrders")
 
   // Insurance and warranty relations
-  serviceWarranties        ServiceWarranty[]  @relation("ClientServiceWarranties")
-  delivererWarranties      DeliveryWarranty[] @relation("DelivererWarranties")
-  clientDeliveryWarranties DeliveryWarranty[] @relation("ClientDeliveryWarranties")
+  serviceWarranties        ServiceWarranty[]    @relation("ClientServiceWarranties")
+  delivererWarranties      DeliveryWarranty[]   @relation("DelivererWarranties")
+  clientDeliveryWarranties DeliveryWarranty[]   @relation("ClientDeliveryWarranties")
   warrantyClaims           WarrantyClaim[]
+  ServiceApplication       ServiceApplication[]
   InsuranceClaim           InsuranceClaim[]
   ClaimAssessment          ClaimAssessment[]
-
-  // Chat générique
-  chatMessages         ChatMessage[]          @relation("UserChatMessages")
 
   @@index([email])
   @@index([role])
@@ -959,6 +957,7 @@ model Announcement {
   tracking            AnnouncementTracking[]
   PackageAnnouncement PackageAnnouncement?
   ServiceAnnouncement ServiceAnnouncement?
+  applications        ServiceApplication[]
   Client              Client?                    @relation(fields: [clientId], references: [id])
   clientId            String?
   Merchant            Merchant?                  @relation(fields: [merchantId], references: [id])
@@ -1149,6 +1148,26 @@ model AnnouncementNotification {
   @@index([announcementId])
   @@index([userId])
   @@index([sentAt])
+}
+
+model ServiceApplication {
+  id                String   @id @default(cuid())
+  announcementId    String
+  providerId        String
+  status            String   @default("PENDING") // "PENDING", "ACCEPTED", "REJECTED", etc.
+  proposedPrice     Float?
+  estimatedDuration Int? // en minutes
+  message           String?
+  availableDates    String[] @default([])
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  announcement Announcement @relation(fields: [announcementId], references: [id], onDelete: Cascade)
+  provider     User         @relation(fields: [providerId], references: [id])
+
+  @@unique([announcementId, providerId])
+  @@index([status])
+  @@index([createdAt])
 }
 
 // From 09-delivery.prisma
@@ -2134,7 +2153,7 @@ model TicketMessage {
 
   // Relations
   ticket      SupportTicket       @relation(fields: [ticketId], references: [id], onDelete: Cascade)
-  author      User                @relation("UserTicketMessages", fields: [authorId], references: [id], onDelete: Cascade)
+  author      User                @relation(fields: [authorId], references: [id])
   attachments MessageAttachment[]
 
   @@index([ticketId])
@@ -3551,26 +3570,4 @@ enum ProposalStatus {
   DECLINE
   EXPIRED
   CANCELLED
-}
-
-// === Chat générique EcoDeli ===
-enum ChatContextType {
-  DELIVERY
-  BOOKING
-  SUPPORT
-  CONTRACT
-  GENERAL
-}
-
-model ChatMessage {
-  id          String          @id @default(cuid())
-  contextType ChatContextType
-  contextId   String
-  senderId    String
-  sender      User            @relation("UserChatMessages", fields: [senderId], references: [id], onDelete: Cascade)
-  message     String
-  createdAt   DateTime        @default(now())
-
-  @@index([contextType, contextId])
-  @@index([senderId])
 }

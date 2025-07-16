@@ -91,6 +91,7 @@ export async function GET(
         ServiceAnnouncement: true,
         delivery: {
           include: {
+            payment: true, // Ajout pour inclure le paiement lié à la livraison
             deliverer: {
               include: {
                 profile: true,
@@ -257,6 +258,17 @@ export async function GET(
           }
         : null,
 
+      // Paiement lié à la livraison (pour badge Payé)
+      payment: announcement.delivery && announcement.delivery.payment
+        ? {
+            id: announcement.delivery.payment.id,
+            status: announcement.delivery.payment.status,
+            amount: announcement.delivery.payment.amount,
+            currency: announcement.delivery.payment.currency,
+            completedAt: announcement.delivery.payment.completedAt,
+          }
+        : null,
+
       // Correspondances de trajets
       routeMatches: announcement.matches.map((match) => ({
         id: match.id,
@@ -380,7 +392,7 @@ export async function PUT(
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: "Données invalides", details: error.errors },
+        { error: "Données invalides", details: error.issues },
         { status: 400 },
       );
     }

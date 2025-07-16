@@ -43,6 +43,13 @@ export async function GET(request: NextRequest) {
             },
           },
         },
+        payment: {
+          select: {
+            status: true,
+            amount: true,
+            paidAt: true,
+          },
+        },
       },
       orderBy: {
         createdAt: "asc",
@@ -70,31 +77,55 @@ export async function GET(request: NextRequest) {
     });
 
     // Formatter les données pour le frontend
-    const formattedDeliveries = activeDeliveries.map((delivery) => ({
-      id: delivery.id,
-      announcement: {
-        id: delivery.announcement.id,
-        title: delivery.announcement.title,
-        description: delivery.announcement.description,
-        type: delivery.announcement.type,
-      },
-      pickupAddress: delivery.announcement.pickupAddress,
-      deliveryAddress: delivery.announcement.deliveryAddress,
-      scheduledPickupDate: delivery.pickupDate,
-      scheduledDeliveryDate: delivery.deliveryDate,
-      actualPickupDate: delivery.actualPickupDate,
-      actualDeliveryDate: delivery.actualDeliveryDate,
-      status: delivery.status,
-      price: delivery.price,
-      validationCode: delivery.validationCode,
-      client: {
-        id: delivery.announcement.author.id,
-        firstName: delivery.announcement.author.profile?.firstName || "",
-        lastName: delivery.announcement.author.profile?.lastName || "",
-        phone: delivery.announcement.author.profile?.phone || "",
-      },
-      createdAt: delivery.createdAt,
-      updatedAt: delivery.updatedAt,
+    const formattedDeliveries = await Promise.all(activeDeliveries.map(async (delivery) => {
+      let payment = delivery.payment
+      if (!payment) {
+        // Try to find payment by announcement if not linked to delivery
+        payment = await db.payment.findFirst({
+          where: {
+            announcementId: delivery.announcement.id,
+            type: "DELIVERY",
+          },
+          select: {
+            status: true,
+            amount: true,
+            paidAt: true,
+          },
+        });
+      }
+      return {
+        id: delivery.id,
+        announcement: {
+          id: delivery.announcement.id,
+          title: delivery.announcement.title,
+          description: delivery.announcement.description,
+          type: delivery.announcement.type,
+        },
+        pickupAddress: delivery.announcement.pickupAddress,
+        deliveryAddress: delivery.announcement.deliveryAddress,
+        scheduledPickupDate: delivery.pickupDate,
+        scheduledDeliveryDate: delivery.deliveryDate,
+        actualPickupDate: delivery.actualPickupDate,
+        actualDeliveryDate: delivery.actualDeliveryDate,
+        status: delivery.status,
+        price: delivery.price,
+        validationCode: delivery.validationCode,
+        client: {
+          id: delivery.announcement.author.id,
+          firstName: delivery.announcement.author.profile?.firstName || "",
+          lastName: delivery.announcement.author.profile?.lastName || "",
+          phone: delivery.announcement.author.profile?.phone || "",
+        },
+        createdAt: delivery.createdAt,
+        updatedAt: delivery.updatedAt,
+        payment: payment
+          ? {
+              status: payment.status,
+              amount: payment.amount,
+              paidAt: payment.paidAt,
+            }
+          : null,
+      };
     }));
 
     return NextResponse.json({

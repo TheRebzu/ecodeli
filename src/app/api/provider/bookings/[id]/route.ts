@@ -107,7 +107,6 @@ export async function PUT(
         status: body.status,
         notes: body.notes,
         scheduledAt: body.scheduledAt ? new Date(body.scheduledAt) : undefined,
-        completedAt: body.status === "COMPLETED" ? new Date() : undefined,
       },
       include: {
         client: {

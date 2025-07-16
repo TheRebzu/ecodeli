@@ -235,7 +235,7 @@ export async function POST(request: NextRequest) {
       const booking = await db.booking.findFirst({
         where: {
           id: validatedData.bookingId,
-          clientId: user.id,
+          clientId: user.client.id,
         },
       });
 

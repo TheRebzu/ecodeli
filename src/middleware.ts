@@ -179,8 +179,8 @@ export default async function middleware(request: NextRequest) {
     // 1. Utilisateur NON connecté
     if (!isLoggedIn) {
       if (isProtectedRoute(pathname)) {
-        // Tentative d'accès à une route protégée -> redirection vers home
-        return NextResponse.redirect(new URL(`/${locale}/home`, request.url));
+        // Tentative d'accès à une route protégée -> redirection vers login
+        return NextResponse.redirect(new URL(`/${locale}/login`, request.url));
       }
       
       // Route publique -> autoriser l'accès
@@ -194,6 +194,14 @@ export default async function middleware(request: NextRequest) {
       isActive: session.user.isActive,
       validationStatus: session.user.validationStatus,
     };
+
+    // DEBUG: Log complet de la session pour le débogage
+    console.log('🔍 [MIDDLEWARE DEBUG] Session utilisateur:', {
+      sessionExists: !!session,
+      sessionUser: session.user,
+      extractedUser: user,
+      pathname: pathname
+    });
 
     // Vérifier si l'utilisateur devrait être redirigé vers son espace
     if (shouldRedirectToUserSpace(pathname, user.role)) {
@@ -216,16 +224,30 @@ export default async function middleware(request: NextRequest) {
 
       // Vérifications spécifiques par rôle
       if (user.role === 'DELIVERER') {
+        // DEBUG: Logs pour identifier le problème de redirection
+        console.log('🔍 [MIDDLEWARE DEBUG] Livreur validation check:', {
+          userId: user.id,
+          validationStatus: user.validationStatus,
+          isActive: user.isActive,
+          pathname: pathname,
+          shouldRedirect: user.validationStatus !== 'APPROVED' && user.validationStatus !== 'VALIDATED'
+        });
+        
         // Vérifier le statut de validation pour les livreurs
         if (user.validationStatus !== 'APPROVED' && user.validationStatus !== 'VALIDATED') {
+          console.log('❌ [MIDDLEWARE] Redirection vers recruitment - validationStatus:', user.validationStatus);
+          
           // Permettre l'accès aux pages de validation et documents
           if (pathname.includes('/deliverer/validation') || 
               pathname.includes('/deliverer/documents') || 
               pathname.includes('/deliverer/recruitment')) {
+            console.log('✅ [MIDDLEWARE] Accès autorisé à la page de validation/recruitment');
             return NextResponse.next();
           }
           
           return NextResponse.redirect(new URL(`/${locale}/deliverer/recruitment`, request.url));
+        } else {
+          console.log('✅ [MIDDLEWARE] Livreur validé - accès autorisé, validationStatus:', user.validationStatus);
         }
       }
       
@@ -241,8 +263,8 @@ export default async function middleware(request: NextRequest) {
     return NextResponse.next();
 
   } catch (error) {
-    // En cas d'erreur, rediriger vers home (pas login pour éviter les boucles)
-    return NextResponse.redirect(new URL(`/${locale}/home`, request.url));
+    // En cas d'erreur, rediriger vers login (pas home pour éviter les boucles)
+    return NextResponse.redirect(new URL(`/${locale}/login`, request.url));
   }
 }
 

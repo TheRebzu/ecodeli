@@ -15,6 +15,7 @@ import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/use-auth";
+import { toast } from '@/components/ui/use-toast';
 
 interface UpcomingBooking {
   id: string;
@@ -92,8 +93,32 @@ export default function UpcomingBookingsPage() {
     router.push(`/provider/bookings/${bookingId}`);
   };
 
-  const handleStartIntervention = (bookingId: string) => {
-    router.push(`/provider/interventions/${bookingId}`);
+  const handleStartIntervention = async (bookingId: string) => {
+    try {
+      // 1. Chercher l'intervention existante
+      const res = await fetch(`/api/provider/interventions/by-booking/${bookingId}`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data && data.id) {
+          router.push(`/provider/interventions/${data.id}`);
+          return;
+        }
+      }
+      // 2. Si non trouvée, la créer
+      const createRes = await fetch(`/api/provider/interventions/by-booking/${bookingId}`, {
+        method: "POST",
+      });
+      if (createRes.ok) {
+        const created = await createRes.json();
+        if (created && created.id) {
+          router.push(`/provider/interventions/${created.id}`);
+          return;
+        }
+      }
+      toast({ title: "Erreur", description: "Impossible de créer l'intervention." });
+    } catch (e) {
+      toast({ title: "Erreur", description: "Erreur lors de la création de l'intervention." });
+    }
   };
 
   if (loading) {

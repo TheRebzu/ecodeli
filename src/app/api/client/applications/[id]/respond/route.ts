@@ -36,18 +36,14 @@ export async function POST(
       const application = await db.serviceApplication.findUnique({
         where: { id: applicationId },
         include: {
-          serviceRequest: {
+          announcement: {
             include: {
               author: true,
             },
           },
           provider: {
             include: {
-              user: {
-                include: {
-                  profile: true,
-                },
-              },
+              profile: true,
             },
           },
         },
@@ -62,7 +58,7 @@ export async function POST(
       }
 
       // Vérifier que le client est bien l'auteur de la demande de service
-      if (application.serviceRequest.authorId !== user.id) {
+      if (application.announcement.authorId !== user.id) {
         console.log("❌ Accès non autorisé à cette candidature");
         return NextResponse.json(
           { error: "Accès non autorisé" },
@@ -88,8 +84,6 @@ export async function POST(
         where: { id: applicationId },
         data: {
           status: validatedData.action === "ACCEPT" ? "ACCEPTED" : "REJECTED",
-          clientResponse: validatedData.message || null,
-          respondedAt: new Date(),
         },
       });
 
@@ -100,7 +94,7 @@ export async function POST(
       // Si acceptée, mettre à jour le statut de la demande de service
       if (validatedData.action === "ACCEPT") {
         await db.announcement.update({
-          where: { id: application.serviceRequestId },
+          where: { id: application.announcementId },
           data: {
             status: "IN_PROGRESS",
           },
@@ -116,12 +110,12 @@ export async function POST(
 
       const notificationMessage =
         validatedData.action === "ACCEPT"
-          ? `Votre candidature pour "${application.serviceRequest.title}" a été acceptée !`
-          : `Votre candidature pour "${application.serviceRequest.title}" a été refusée.`;
+          ? `Votre candidature pour "${application.announcement.title}" a été acceptée !`
+          : `Votre candidature pour "${application.announcement.title}" a été refusée.`;
 
       await db.notification.create({
         data: {
-          userId: application.provider.user.id,
+          userId: application.provider.id,
           title: notificationTitle,
           message: notificationMessage,
           type:

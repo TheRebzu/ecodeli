@@ -315,18 +315,18 @@ export default function ClientApplicationsPage() {
                   <div className="flex items-center space-x-4">
                     <Avatar className="w-12 h-12">
                       <AvatarImage
-                        src={application.provider.user.profile.avatar}
+                        src={application.provider.profile?.avatar}
                       />
                       <AvatarFallback>
-                        {application.provider.user.profile.firstName?.[0]}
-                        {application.provider.user.profile.lastName?.[0]}
+                        {application.provider.profile?.firstName?.[0]}
+                        {application.provider.profile?.lastName?.[0]}
                       </AvatarFallback>
                     </Avatar>
                     <div>
                       <div className="flex items-center space-x-2">
                         <h3 className="text-lg font-semibold">
                           {application.provider.businessName ||
-                            `${application.provider.user.profile.firstName} ${application.provider.user.profile.lastName}`}
+                            `${application.provider.profile?.firstName || ''} ${application.provider.profile?.lastName || ''}`.trim()}
                         </h3>
                         {application.provider.averageRating > 0 && (
                           <div className="flex items-center space-x-1">
@@ -338,14 +338,14 @@ export default function ClientApplicationsPage() {
                         )}
                       </div>
                       <div className="flex items-center space-x-4 text-sm text-muted-foreground">
-                        {application.provider.user.profile.city && (
+                        {application.provider.profile?.city && (
                           <div className="flex items-center">
                             <MapPin className="w-3 h-3 mr-1" />
-                            {application.provider.user.profile.city}
+                            {application.provider.profile.city}
                           </div>
                         )}
                         <span>
-                          {application.provider.totalBookings} interventions
+                          {(application.provider as any).totalBookings || 0} interventions
                         </span>
                       </div>
                     </div>

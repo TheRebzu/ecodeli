@@ -102,7 +102,7 @@ export async function GET(request: NextRequest) {
     where.NOT = {
       applications: {
         some: {
-          providerId: provider.id,
+          providerId: provider.userId, // Utiliser userId car ServiceApplication.provider -> User
         },
       },
     };

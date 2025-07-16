@@ -163,6 +163,9 @@ export const createAnnouncementSchema = z
     internationalPurchaseDetails: internationalPurchaseDetailsSchema.optional(),
     cartDropDetails: cartDropDetailsSchema.optional(),
 
+    // Entrepôt de départ (optionnel, pour livraison finale)
+    warehouseId: z.string().optional(),
+
     // Instructions spéciales
     specialInstructions: z.string().max(500).optional(),
     customerNotes: z.string().max(300).optional(),

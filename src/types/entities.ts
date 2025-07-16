@@ -1,69 +1,69 @@
 // Types d'entités EcoDeli basés sur le schéma Prisma
-import type {
-  User,
-  Profile,
-  Client,
-  Deliverer,
-  Merchant,
-  Provider,
-  Announcement,
-  Delivery,
-  Payment,
-  Wallet,
-  Document,
-  Notification,
-  Review,
-} from "@prisma/client";
+// import type {
+//   User,
+//   Profile,
+//   Client,
+//   Deliverer,
+//   Merchant,
+//   Provider,
+//   Announcement,
+//   Delivery,
+//   Payment,
+//   Wallet,
+//   Document,
+//   Notification,
+//   Review,
+// } from "@prisma/client";
 
 // Alias pour la compatibilité avec l'ancien code
-export type ClientProfile = Client;
-export type DelivererProfile = Deliverer;
-export type MerchantProfile = Merchant;
-export type ProviderProfile = Provider;
+// export type ClientProfile = Client;
+// export type DelivererProfile = Deliverer;
+// export type MerchantProfile = Merchant;
+// export type ProviderProfile = Provider;
 
 // Re-export des types Prisma
-export type {
-  User,
-  Profile,
-  Client,
-  Deliverer,
-  Merchant,
-  Provider,
-  Announcement,
-  Delivery,
-  Payment,
-  Wallet,
-  Document,
-  Notification,
-  Review,
-};
+// export type {
+//   User,
+//   Profile,
+//   Client,
+//   Deliverer,
+//   Merchant,
+//   Provider,
+//   Announcement,
+//   Delivery,
+//   Payment,
+//   Wallet,
+//   Document,
+//   Notification,
+//   Review,
+// };
 
 // Types avec relations
-export type UserWithProfile = User & {
-  profile?: Profile | null;
-  client?: Client | null;
-  deliverer?: Deliverer | null;
-  merchant?: Merchant | null;
-  provider?: Provider | null;
-};
+// export type UserWithProfile = User & {
+//   profile?: Profile | null;
+//   client?: Client | null;
+//   deliverer?: Deliverer | null;
+//   merchant?: Merchant | null;
+//   provider?: Provider | null;
+// };
 
-export type DeliveryWithDetails = Delivery & {
-  announcement?: Announcement | null;
-  client?: Client | null;
-  deliverer?: Deliverer | null;
-  payment?: Payment | null;
-};
+// export type DeliveryWithDetails = Delivery & {
+//   announcement?: Announcement | null;
+//   client?: Client | null;
+//   deliverer?: Deliverer | null;
+//   payment?: Payment | null;
+// };
 
-export type AnnouncementWithUser = Announcement & {
-  user?: User | null;
-  client?: Client | null;
-};
+// export type AnnouncementWithUser = Announcement & {
+//   user?: User | null;
+//   client?: Client | null;
+// };
 
-export type PaymentWithDetails = Payment & {
-  user?: User | null;
-  delivery?: Delivery | null;
-  booking?: any | null; // À définir selon les besoins
-};
+// export type PaymentWithDetails = Payment & {
+//   user?: User | null;
+//   delivery?: Delivery | null;
+//   booking?: any | null; // À définir selon les besoins
+// };
 
 // Types de rôles et statuts
 export type UserRole =
@@ -376,4 +376,37 @@ export interface DeliveryLocationUpdate {
   timestamp: Date;
   speed?: number;
   heading?: number;
+}
+
+// Ajout du type pour les livraisons actives avec paiement pour le front deliverer
+export interface ActiveDelivery {
+  id: string;
+  announcement: {
+    id: string;
+    title: string;
+    description: string;
+    type: string;
+  };
+  pickupAddress: string;
+  deliveryAddress: string;
+  scheduledPickupDate: string | null;
+  scheduledDeliveryDate: string | null;
+  actualPickupDate?: string | null;
+  actualDeliveryDate?: string | null;
+  status: string;
+  price: number;
+  validationCode?: string;
+  client: {
+    id: string;
+    firstName?: string;
+    lastName?: string;
+    phone?: string;
+  };
+  createdAt: string;
+  updatedAt: string;
+  payment?: {
+    status: string;
+    amount?: number;
+    paidAt?: string;
+  } | null;
 }

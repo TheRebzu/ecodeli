@@ -12,7 +12,11 @@ export async function GET(request: NextRequest) {
       "🔍 [GET /api/client/services] Début de la requête - SERVICES À LA PERSONNE UNIQUEMENT",
     );
 
-    const user = await requireRole(request, ["CLIENT"]);
+    const userOrResponse = await requireRole(request, ["CLIENT"]);
+    if (userOrResponse instanceof NextResponse) {
+      return userOrResponse;
+    }
+    const user = userOrResponse;
 
     console.log("✅ Utilisateur authentifié:", user.id, user.role);
 
@@ -80,7 +84,7 @@ export async function GET(request: NextRequest) {
             },
             bookings: {
               where: {
-                clientId: user.id,
+                clientId: user.client.id,
               },
               include: {
                 client: {
@@ -145,7 +149,11 @@ export async function POST(request: NextRequest) {
       "🔍 [POST /api/client/services] Demande de service - PRESTATIONS À LA PERSONNE UNIQUEMENT",
     );
 
-    const user = await requireRole(request, ["CLIENT"]);
+    const userOrResponse = await requireRole(request, ["CLIENT"]);
+    if (userOrResponse instanceof NextResponse) {
+      return userOrResponse;
+    }
+    const user = userOrResponse;
 
     console.log("✅ Utilisateur authentifié:", user.id, user.role);
 
@@ -200,7 +208,7 @@ export async function POST(request: NextRequest) {
       // Ensuite créer une réservation pour ce service
       const booking = await db.booking.create({
         data: {
-          clientId: user.id,
+          clientId: user.client.id,
           serviceId: service.id,
           providerId: service.providerId, // Le prestataire sera assigné plus tard via matching
           status: "PENDING",

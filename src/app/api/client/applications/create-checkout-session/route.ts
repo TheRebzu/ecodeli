@@ -40,18 +40,15 @@ export async function POST(request: NextRequest) {
       const application = await db.serviceApplication.findUnique({
         where: { id: validatedData.applicationId },
         include: {
-          serviceRequest: {
+          announcement: {
             include: {
               author: true,
             },
           },
           provider: {
             include: {
-              user: {
-                include: {
-                  profile: true,
-                },
-              },
+              profile: true,
+              provider: true,
             },
           },
         },
@@ -66,7 +63,7 @@ export async function POST(request: NextRequest) {
       }
 
       // Vérifier que le client est bien l'auteur de la demande de service
-      if (application.serviceRequest.authorId !== user.id) {
+      if (application.announcement.authorId !== user.id) {
         console.log("❌ Accès non autorisé à cette candidature");
         return NextResponse.json(
           { error: "Accès non autorisé" },
@@ -85,7 +82,7 @@ export async function POST(request: NextRequest) {
               currency: validatedData.currency.toLowerCase(),
               product_data: {
                 name: validatedData.description,
-                description: `Service avec ${application.provider.user.profile?.firstName} ${application.provider.user.profile?.lastName}`,
+                description: `Service avec ${application.provider.profile?.firstName} ${application.provider.profile?.lastName}`,
               },
               unit_amount: Math.round(validatedData.amount * 100), // Montant en centimes
             },

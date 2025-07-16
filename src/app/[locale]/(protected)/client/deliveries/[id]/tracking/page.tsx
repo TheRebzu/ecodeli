@@ -34,6 +34,9 @@ export default function DeliveryTrackingPage() {
     <div className="max-w-3xl mx-auto py-8">
       <h1 className="text-2xl font-bold mb-4">Suivi de livraison</h1>
       <DeliveryTrackingMap deliveryId={deliveryId} showDetails={true} height="400px" />
+      <div className="mt-8">
+        <ChatBox contextType="DELIVERY" contextId={deliveryId} />
+      </div>
     </div>
   );
 }
