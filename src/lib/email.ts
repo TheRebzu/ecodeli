@@ -6,8 +6,8 @@ import nodemailer from "nodemailer";
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST || "mail.celian-vf.fr",
   port: parseInt(process.env.SMTP_PORT || "587"),
-  secure: process.env.SMTP_SECURE === "true", // true pour 465, false pour 587 (STARTTLS)
-  requireTLS: true, // Force TLS
+  secure: process.env.SMTP_SECURE === "false", // true pour 465, false pour 587 (STARTTLS)
+  requireTLS: false, // Force TLS
   auth: {
     user: process.env.GMAIL_USER || "",
     pass: process.env.GMAIL_APP_PASSWORD || "",
