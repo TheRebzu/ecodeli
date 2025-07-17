@@ -229,6 +229,16 @@ interface AnnouncementDetails {
     id: string;
     status: string;
     validationCode?: string;
+    trackingNumber?: string;
+    deliverer?: {
+      id: string;
+      profile?: {
+        firstName?: string;
+        lastName?: string;
+        avatar?: string;
+        phone?: string;
+      };
+    };
   }>;
 }
 
@@ -1228,13 +1238,51 @@ export default function AnnouncementDetailPage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <Alert>
-                    <AlertTriangle className="h-4 w-4" />
-                    <AlertDescription>
-                      Une livraison est associée à cette annonce. Consultez la
-                      page de suivi pour plus de détails.
-                    </AlertDescription>
-                  </Alert>
+                  {/* Code de validation pour livraisons en cours */}
+                  {announcement.deliveries[0]?.validationCode && 
+                   announcement.deliveries[0]?.status !== "DELIVERED" && (
+                    <div className="bg-yellow-50 border-2 border-yellow-200 rounded-lg p-4">
+                      <div className="flex items-center gap-2 mb-2">
+                        <CheckCircle className="h-5 w-5 text-yellow-600" />
+                        <h4 className="font-semibold text-yellow-800">Code de validation</h4>
+                      </div>
+                      <div className="text-center">
+                        <code className="inline-block text-2xl font-mono font-bold bg-white px-4 py-2 rounded border text-yellow-900 tracking-wider">
+                          {announcement.deliveries[0].validationCode}
+                        </code>
+                      </div>
+                      <p className="text-sm text-yellow-700 mt-2 text-center">
+                        💡 Communiquez ce code au livreur lors de la remise
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Statut de la livraison */}
+                  {announcement.deliveries[0] && (
+                    <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+                      <div>
+                        <p className="text-sm font-medium text-blue-800">Statut de livraison</p>
+                        <div className="flex items-center gap-2 mt-1">
+                          <Badge variant="secondary">
+                            {statusLabels[announcement.deliveries[0].status as keyof typeof statusLabels]?.label || announcement.deliveries[0].status}
+                          </Badge>
+                          {announcement.deliveries[0].trackingNumber && (
+                            <span className="text-xs text-blue-600">
+                              #{announcement.deliveries[0].trackingNumber}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      {announcement.deliveries[0].deliverer && (
+                        <div className="text-right">
+                          <p className="text-xs text-blue-600">Livreur</p>
+                          <p className="text-sm font-medium text-blue-800">
+                            {announcement.deliveries[0].deliverer.profile?.firstName || "Livreur"} {announcement.deliveries[0].deliverer.profile?.lastName || ""}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  )}
 
                   <Link
                     href={`/client/announcements/${id}/tracking`}
