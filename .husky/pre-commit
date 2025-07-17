@@ -1,0 +1,12 @@
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+echo "🔍 Validation des traductions..."
+npm run i18n:validate || {
+  echo "❌ Des traductions sont manquantes. Correction automatique..."
+  npm run i18n:fix-missing
+  echo "✅ Traductions corrigées. Veuillez réessayer le commit."
+  exit 1
+}
+
+echo "✅ Toutes les traductions sont présentes !"

@@ -2918,7 +2918,21 @@
     "partners": "Partenaires",
     "merchants": "Commerçants",
     "providers": "Prestataires",
-    "contact": "Contact"
+    "contact": "Contact",
+    "shipping": "Expédition",
+    "become_delivery": "Devenir livreur",
+    "blog": "Blog",
+    "developers": "Développeurs",
+    "api_docs": "Documentation API",
+    "api_keys": "Clés API",
+    "api_manual": "Manuel API",
+    "support": "Support",
+    "faq": "FAQ",
+    "legal": "Mentions légales",
+    "terms": "Conditions d'utilisation",
+    "privacy": "Politique de confidentialité",
+    "cgu": "CGU",
+    "cgv": "CGV"
   },
     "dashboard": {
     "welcome": "Welcome",

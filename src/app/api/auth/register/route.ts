@@ -31,6 +31,9 @@ const registerSchema = z.object({
   specialties: z.array(z.string()).optional(),
   hourlyRate: z.number().optional(),
   description: z.string().optional(),
+  // Champs spécifiques commerçants
+  siret: z.string().optional(),
+  businessType: z.string().optional(),
 });
 
 export async function POST(request: NextRequest) {
@@ -116,9 +119,10 @@ export async function POST(request: NextRequest) {
           await tx.merchant.create({
             data: {
               userId: user.id,
-              companyName: `${validatedData.firstName} ${validatedData.lastName}`,
-              siret: `SIRET_${Date.now()}`, // À remplacer par un vrai SIRET
+              companyName: validatedData.businessName || `${validatedData.firstName} ${validatedData.lastName}`,
+              siret: validatedData.siret || `SIRET_${Date.now()}`,
               contractStatus: "PENDING",
+              businessType: validatedData.businessType || "RETAIL",
             },
           });
           break;

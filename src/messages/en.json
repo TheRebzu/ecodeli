@@ -2918,7 +2918,21 @@
     "partners": "Partners",
     "merchants": "Merchants",
     "providers": "Providers",
-    "contact": "Contact"
+    "contact": "Contact",
+    "shipping": "Shipping",
+    "become_delivery": "Become Delivery",
+    "blog": "Blog",
+    "developers": "Developers",
+    "api_docs": "API Documentation",
+    "api_keys": "API Keys",
+    "api_manual": "API Manual",
+    "support": "Support",
+    "faq": "FAQ",
+    "legal": "Legal Notice",
+    "terms": "Terms of Service",
+    "privacy": "Privacy Policy",
+    "cgu": "Terms of Use",
+    "cgv": "Terms of Sale"
   },
     "dashboard": {
     "welcome": "Welcome",

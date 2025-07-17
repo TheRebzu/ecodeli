@@ -127,25 +127,25 @@ export default function CompleteProfilePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 py-8 px-4">
-      <div className="max-w-4xl mx-auto">
+    <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 padding-responsive">
+      <div className="container-responsive">
         {/* Header */}
-        <div className="text-center mb-8">
-          <div className="h-12 w-12 rounded-full bg-green-600 mx-auto mb-4 flex items-center justify-center">
-            <User className="h-6 w-6 text-white" />
+        <div className="text-center margin-responsive-y">
+          <div className="h-10 w-10 md:h-12 md:w-12 rounded-full bg-green-600 mx-auto mb-4 flex items-center justify-center">
+            <User className="h-5 w-5 md:h-6 md:w-6 text-white" />
           </div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+          <h1 className="text-responsive-3xl font-bold text-gray-900 mb-2">
             Finalisation de votre profil
           </h1>
-          <p className="text-gray-600">
+          <p className="text-responsive-base text-gray-600 padding-responsive-sm">
             Bonjour {session.user.name}, merci de compléter votre profil pour commencer à utiliser EcoDeli
           </p>
         </div>
 
         {/* Status Card */}
-        <Card className="mb-6">
+        <Card className="card-responsive mb-6">
           <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
+            <CardTitle className="flex items-center gap-responsive">
               <FileText className="h-5 w-5" />
               <span>Statut de validation</span>
             </CardTitle>
@@ -177,10 +177,11 @@ export default function CompleteProfilePage() {
         />
 
         {/* Actions */}
-        <div className="mt-8 flex justify-between">
+        <div className="mt-8 flex-stack justify-responsive gap-responsive">
           <Button
             variant="outline"
             onClick={handleSkipForNow}
+            className="button-responsive"
           >
             Passer pour l'instant
           </Button>
@@ -188,14 +189,14 @@ export default function CompleteProfilePage() {
           <Button
             onClick={handleSubmitForValidation}
             disabled={!profileComplete || submitting}
-            className="bg-green-600 hover:bg-green-700"
+            className="button-responsive bg-green-600 hover:bg-green-700"
           >
             {submitting ? "Soumission en cours..." : "Soumettre pour validation"}
           </Button>
         </div>
 
         {/* Info */}
-        <div className="mt-6 text-center text-sm text-gray-500">
+        <div className="mt-6 center-responsive text-responsive-sm text-gray-500 padding-responsive-sm">
           <p>
             Après soumission, vos documents seront vérifiés par nos équipes sous 24-48h. 
             Vous recevrez une notification par email une fois la validation terminée.

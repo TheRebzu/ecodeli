@@ -217,10 +217,10 @@ export function DocumentValidation({ userRole, userId, onDocumentsChange }: Docu
   }
 
   return (
-    <div className="space-y-6">
-      <Card>
+    <div className="form-responsive">
+      <Card className="card-responsive">
         <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
+          <CardTitle className="flex items-center gap-responsive">
             <FileText className="h-5 w-5" />
             <span>Documents de validation</span>
           </CardTitle>
@@ -241,23 +241,23 @@ export function DocumentValidation({ userRole, userId, onDocumentsChange }: Docu
             </Alert>
           )}
 
-          <div className="space-y-6">
+          <div className="form-responsive">
             {requirements.map((requirement) => {
               const existingDocument = documents.find(doc => doc.type === requirement.type);
               
               return (
-                <div key={requirement.type} className="border rounded-lg p-4">
-                  <div className="flex items-start justify-between mb-3">
-                    <div>
-                      <h3 className="font-medium flex items-center space-x-2">
+                <div key={requirement.type} className="border rounded-lg padding-responsive">
+                  <div className="flex-responsive items-responsive justify-responsive mb-3">
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-medium flex items-center gap-responsive">
                         <span>{requirement.label}</span>
                         {requirement.required && <span className="text-red-500">*</span>}
                       </h3>
-                      <p className="text-sm text-gray-600">{requirement.description}</p>
+                      <p className="text-responsive-sm text-gray-600">{requirement.description}</p>
                     </div>
                     {existingDocument && (
-                      <Badge variant={getStatusVariant(existingDocument.validationStatus)}>
-                        <div className="flex items-center space-x-1">
+                      <Badge variant={getStatusVariant(existingDocument.validationStatus)} className="mobile-full md:w-auto">
+                        <div className="flex items-center gap-responsive">
                           {getStatusIcon(existingDocument.validationStatus)}
                           <span>{getStatusText(existingDocument.validationStatus)}</span>
                         </div>
@@ -266,12 +266,12 @@ export function DocumentValidation({ userRole, userId, onDocumentsChange }: Docu
                   </div>
 
                   {existingDocument ? (
-                    <div className="bg-gray-50 rounded-lg p-3 flex items-center justify-between">
-                      <div className="flex items-center space-x-3">
-                        <FileText className="h-4 w-4 text-gray-500" />
-                        <div>
-                          <p className="text-sm font-medium">{existingDocument.originalName}</p>
-                          <p className="text-xs text-gray-500">
+                    <div className="bg-gray-50 rounded-lg padding-responsive-sm flex-responsive items-responsive justify-responsive">
+                      <div className="flex items-center gap-responsive flex-1 min-w-0">
+                        <FileText className="h-4 w-4 text-gray-500 flex-shrink-0" />
+                        <div className="min-w-0">
+                          <p className="text-responsive-sm font-medium truncate">{existingDocument.originalName}</p>
+                          <p className="text-responsive-xs text-gray-500">
                             Téléchargé le {new Date(existingDocument.uploadedAt).toLocaleDateString()}
                           </p>
                         </div>
@@ -279,6 +279,7 @@ export function DocumentValidation({ userRole, userId, onDocumentsChange }: Docu
                       <Button
                         variant="outline"
                         size="sm"
+                        className="button-responsive"
                         onClick={() => {
                           // Remplacer le document existant
                           const fileInput = document.createElement("input");

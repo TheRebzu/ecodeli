@@ -1,0 +1,305 @@
+/* Global Responsive Utilities */
+
+/* Container responsive */
+.container-responsive {
+  @apply w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+}
+
+/* Grid responsive */
+.grid-responsive-1 {
+  @apply grid grid-cols-1;
+}
+
+.grid-responsive-2 {
+  @apply grid grid-cols-1 md:grid-cols-2;
+}
+
+.grid-responsive-3 {
+  @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3;
+}
+
+.grid-responsive-4 {
+  @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4;
+}
+
+.grid-responsive-auto {
+  @apply grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4;
+}
+
+/* Flex responsive */
+.flex-responsive {
+  @apply flex flex-col md:flex-row;
+}
+
+.flex-responsive-reverse {
+  @apply flex flex-col-reverse md:flex-row;
+}
+
+/* Spacing responsive */
+.spacing-responsive {
+  @apply space-y-4 md:space-y-0 md:space-x-6;
+}
+
+.gap-responsive {
+  @apply gap-4 md:gap-6;
+}
+
+/* Text responsive */
+.text-responsive-xs {
+  @apply text-xs sm:text-sm;
+}
+
+.text-responsive-sm {
+  @apply text-sm md:text-base;
+}
+
+.text-responsive-base {
+  @apply text-base md:text-lg;
+}
+
+.text-responsive-lg {
+  @apply text-lg md:text-xl;
+}
+
+.text-responsive-xl {
+  @apply text-xl md:text-2xl;
+}
+
+.text-responsive-2xl {
+  @apply text-2xl md:text-3xl;
+}
+
+.text-responsive-3xl {
+  @apply text-3xl md:text-4xl;
+}
+
+/* Padding responsive */
+.padding-responsive {
+  @apply p-4 md:p-6;
+}
+
+.padding-responsive-sm {
+  @apply p-2 md:p-4;
+}
+
+.padding-responsive-lg {
+  @apply p-6 md:p-8;
+}
+
+/* Margin responsive */
+.margin-responsive {
+  @apply m-4 md:m-6;
+}
+
+.margin-responsive-y {
+  @apply my-4 md:my-6;
+}
+
+.margin-responsive-x {
+  @apply mx-4 md:mx-6;
+}
+
+/* Button responsive */
+.button-responsive {
+  @apply w-full sm:w-auto px-4 py-2 md:px-6 md:py-3;
+}
+
+.button-responsive-full {
+  @apply w-full px-4 py-2 md:px-6 md:py-3;
+}
+
+/* Card responsive */
+.card-responsive {
+  @apply rounded-lg md:rounded-xl p-4 md:p-6;
+}
+
+.card-responsive-sm {
+  @apply rounded-lg p-3 md:p-4;
+}
+
+/* Modal responsive */
+.modal-responsive {
+  @apply w-full max-w-sm sm:max-w-md md:max-w-lg lg:max-w-xl xl:max-w-2xl;
+}
+
+/* Table responsive */
+.table-responsive {
+  @apply w-full overflow-x-auto;
+}
+
+.table-responsive table {
+  @apply w-full min-w-full;
+}
+
+.table-responsive th,
+.table-responsive td {
+  @apply px-2 py-3 md:px-6 md:py-4;
+}
+
+/* Form responsive */
+.form-responsive {
+  @apply space-y-4 md:space-y-6;
+}
+
+.form-group-responsive {
+  @apply grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6;
+}
+
+.form-input-responsive {
+  @apply w-full px-3 py-2 md:px-4 md:py-3;
+}
+
+/* Navigation responsive */
+.nav-responsive {
+  @apply flex flex-col md:flex-row items-start md:items-center space-y-2 md:space-y-0 md:space-x-6;
+}
+
+.nav-item-responsive {
+  @apply w-full md:w-auto;
+}
+
+/* Dashboard responsive */
+.dashboard-grid {
+  @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6;
+}
+
+.dashboard-stat-card {
+  @apply p-4 md:p-6 rounded-lg border bg-white;
+}
+
+/* Image responsive */
+.image-responsive {
+  @apply w-full h-auto max-w-full;
+}
+
+.image-responsive-square {
+  @apply w-full aspect-square object-cover;
+}
+
+.image-responsive-video {
+  @apply w-full aspect-video object-cover;
+}
+
+/* Hide/Show responsive */
+.hidden-mobile {
+  @apply hidden md:block;
+}
+
+.hidden-desktop {
+  @apply block md:hidden;
+}
+
+.visible-mobile {
+  @apply block md:hidden;
+}
+
+.visible-desktop {
+  @apply hidden md:block;
+}
+
+/* Sidebar responsive */
+.sidebar-responsive {
+  @apply w-full md:w-64 lg:w-72;
+}
+
+.sidebar-mobile {
+  @apply fixed inset-y-0 left-0 z-50 w-full sm:w-80 md:relative md:w-64 lg:w-72;
+}
+
+/* Content responsive */
+.content-responsive {
+  @apply flex-1 min-w-0 p-4 md:p-6;
+}
+
+.content-main-responsive {
+  @apply flex-1 min-w-0 max-w-full md:max-w-4xl lg:max-w-6xl xl:max-w-7xl;
+}
+
+/* Fixed responsive breakpoint overrides */
+@media (max-width: 640px) {
+  .container {
+    @apply px-4;
+  }
+  
+  .text-3xl {
+    @apply text-2xl;
+  }
+  
+  .text-2xl {
+    @apply text-xl;
+  }
+  
+  .text-xl {
+    @apply text-lg;
+  }
+  
+  .p-8 {
+    @apply p-4;
+  }
+  
+  .p-6 {
+    @apply p-4;
+  }
+  
+  .m-8 {
+    @apply m-4;
+  }
+  
+  .m-6 {
+    @apply m-4;
+  }
+  
+  .gap-8 {
+    @apply gap-4;
+  }
+  
+  .gap-6 {
+    @apply gap-4;
+  }
+  
+  .space-x-6 > :not([hidden]) ~ :not([hidden]) {
+    @apply ml-4;
+  }
+  
+  .space-y-6 > :not([hidden]) ~ :not([hidden]) {
+    @apply mt-4;
+  }
+}
+
+/* Utilities for common responsive patterns */
+.flex-stack {
+  @apply flex flex-col space-y-4 md:flex-row md:space-y-0 md:space-x-4;
+}
+
+.flex-stack-reverse {
+  @apply flex flex-col-reverse space-y-reverse space-y-4 md:flex-row md:space-y-0 md:space-x-4;
+}
+
+.center-responsive {
+  @apply text-center md:text-left;
+}
+
+.justify-responsive {
+  @apply justify-center md:justify-start;
+}
+
+.items-responsive {
+  @apply items-center md:items-start;
+}
+
+/* Mobile-first approach utilities */
+.mobile-first {
+  @apply block md:flex;
+}
+
+.mobile-stack {
+  @apply flex flex-col md:flex-row;
+}
+
+.mobile-center {
+  @apply text-center md:text-left;
+}
+
+.mobile-full {
+  @apply w-full md:w-auto;
+}

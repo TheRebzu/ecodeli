@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "postinstall": "pnpm run prisma:generate",
-    "build": "next build",
+    "build": "pnpm run i18n:fix-missing && next build",
     "build:fast": "NEXT_TELEMETRY_DISABLED=1 NODE_ENV=production next build",
     "build:minimal": "NEXT_TELEMETRY_DISABLED=1 NODE_ENV=production NEXT_SHARP_PATH=0 next build",
     "build:no-cache": "rm -rf .next && npm run build:fast",
@@ -13,6 +13,7 @@
     "build:no-cache-win": "if exist .next rmdir /s /q .next && npm run build:fast-win",
     "postbuild": "node scripts/post-build.js",
     "dev": "next dev",
+    "dev:watch": "concurrently \"npm run dev\" \"npm run i18n:watch\"",
     "lint": "next lint",
     "start": "next start",
     "seed": "tsx prisma/seed.ts",
@@ -27,7 +28,10 @@
     "i18n:clean": "node scripts/clean-i18n.js",
     "i18n:fix-specific": "node scripts/fix-specific-keys.js",
     "i18n:fix-legal": "node scripts/fix-legal-keys.js",
-    "i18n:fix": "pnpm run i18n:extract && pnpm run i18n:clean",
+    "i18n:fix-missing": "node scripts/fix-missing-translations.js",
+    "i18n:validate": "node scripts/fix-missing-translations.js --validate",
+    "i18n:watch": "node scripts/watch-translations.js",
+    "i18n:fix": "pnpm run i18n:extract && pnpm run i18n:clean && pnpm run i18n:fix-missing",
     "i18n:fix-all": "pnpm run i18n:extract && pnpm run i18n:fix-specific && pnpm run i18n:fix-legal && pnpm run i18n:clean",
     "i18n:build": "pnpm run i18n:fix-all && pnpm run build"
   },

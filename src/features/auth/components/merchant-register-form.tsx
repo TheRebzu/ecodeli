@@ -43,6 +43,9 @@ export function MerchantRegisterForm() {
           role: "MERCHANT",
           phone: data.phone,
           address: data.address,
+          businessName: data.businessName,
+          siret: data.siret,
+          businessType: data.businessType,
         }),
       });
 
