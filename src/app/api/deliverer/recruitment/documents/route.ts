@@ -30,8 +30,15 @@ export async function POST(request: NextRequest) {
     }
 
     // Vérifier que la candidature existe
-    const application = await db.delivererRecruitment.findFirst({
+    const application = await db.deliverer.findFirst({
       where: { userId },
+      include: {
+        user: {
+          include: {
+            profile: true,
+          },
+        },
+      },
     });
 
     if (!application) {
@@ -78,30 +85,30 @@ export async function POST(request: NextRequest) {
     await writeFile(filePath, buffer);
 
     // Supprimer l'ancien document du même type s'il existe
-    const existingDoc = await db.delivererRecruitmentDocument.findFirst({
+    const existingDoc = await db.document.findFirst({
       where: {
-        recruitmentId: application.id,
-        type,
+        userId,
+        type: type as any,
       },
     });
 
     if (existingDoc) {
-      await db.delivererRecruitmentDocument.delete({
+      await db.document.delete({
         where: { id: existingDoc.id },
       });
     }
 
     // Enregistrer en base de données
-    const document = await db.delivererRecruitmentDocument.create({
+    const document = await db.document.create({
       data: {
-        recruitmentId: application.id,
-        type,
-        name: file.name,
-        fileName: fileName,
-        filePath: filePath,
-        fileSize: file.size,
+        userId,
+        type: type as any,
+        filename: fileName,
+        originalName: file.name,
         mimeType: file.type,
-        status: "PENDING",
+        size: file.size,
+        url: filePath,
+        validationStatus: "PENDING",
       },
     });
 
@@ -115,9 +122,8 @@ export async function POST(request: NextRequest) {
       userId: admin.id,
       type: "SYSTEM" as const,
       title: "Nouveau document de candidature",
-      message: `Un nouveau document a été uploadé pour la candidature de ${application.firstName} ${application.lastName}`,
-      priority: "MEDIUM" as const,
-      metadata: {
+      message: `Un nouveau document a été uploadé pour la candidature de ${application.user.profile?.firstName || application.user.name || application.user.email}`,
+      data: {
         applicationId: application.id,
         documentId: document.id,
         documentType: type,
@@ -133,9 +139,9 @@ export async function POST(request: NextRequest) {
       document: {
         id: document.id,
         type: document.type,
-        name: document.name,
-        status: document.status,
-        uploadedAt: document.uploadedAt.toISOString(),
+        name: document.originalName,
+        status: document.validationStatus,
+        uploadedAt: document.createdAt.toISOString(),
       },
     });
   } catch (error) {

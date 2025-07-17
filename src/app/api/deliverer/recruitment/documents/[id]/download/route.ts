@@ -16,14 +16,18 @@ export async function GET(
     const { id: documentId } = await params;
 
     // Récupérer le document
-    const document = await db.delivererRecruitmentDocument.findUnique({
+    const document = await db.document.findUnique({
       where: { id: documentId },
       include: {
-        recruitment: {
+        user: {
           select: {
-            userId: true,
-            firstName: true,
-            lastName: true,
+            id: true,
+            profile: {
+              select: {
+                firstName: true,
+                lastName: true,
+              },
+            },
           },
         },
       },
@@ -37,19 +41,19 @@ export async function GET(
     }
 
     // Vérifier les permissions
-    if (document.recruitment.userId !== user.id && user.role !== "ADMIN") {
+    if (document.userId !== user.id && user.role !== "ADMIN") {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
     // Lire le fichier
-    const fileBuffer = await readFile(document.filePath);
+    const fileBuffer = await readFile(document.url);
 
     // Retourner le fichier
     return new NextResponse(fileBuffer, {
       headers: {
         "Content-Type": document.mimeType,
-        "Content-Disposition": `attachment; filename="${document.name}"`,
-        "Content-Length": document.fileSize.toString(),
+        "Content-Disposition": `attachment; filename="${document.originalName}"`,
+        "Content-Length": document.size.toString(),
       },
     });
   } catch (error) {

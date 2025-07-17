@@ -46,6 +46,7 @@ import {
   Shield,
   Eye,
   Download,
+  RefreshCw,
 } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
 
@@ -137,48 +138,6 @@ export default function DelivererRecruitmentSystem({
       isActive: user?.isActive
     });
     
-    // Auto-sync validation status for deliverers
-    const syncValidationStatus = async () => {
-      if (user && user.role === 'DELIVERER' && user.validationStatus === 'PENDING') {
-        console.log('🔄 [RECRUITMENT] Tentative de synchronisation du statut de validation...');
-        try {
-          const response = await fetch('/api/auth/sync-validation', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-          });
-          
-          if (response.ok) {
-            const result = await response.json();
-            console.log('📋 [RECRUITMENT] Résultat sync:', result);
-            
-                         if (result.updated && result.newStatus === 'VALIDATED') {
-               console.log('✅ [RECRUITMENT] Statut synchronisé - redirection vers dashboard');
-               toast({
-                 title: "Validation terminée !",
-                 description: "Votre compte a été automatiquement validé. Redirection en cours...",
-               });
-               
-               // Attendre un peu pour que l'utilisateur voie le toast
-               setTimeout(() => {
-                 if (result.requiresSessionRefresh) {
-                   // Forcer un rechargement complet pour rafraîchir la session NextAuth
-                   window.location.replace('/fr/deliverer');
-                 } else {
-                   // Simple redirection
-                   window.location.href = '/fr/deliverer';
-                 }
-               }, 1500);
-               return;
-             }
-          }
-        } catch (error) {
-          console.error('❌ [RECRUITMENT] Erreur sync validation:', error);
-        }
-      }
-    };
-    
     if (user && user.role === 'DELIVERER') {
       if (user.validationStatus === 'VALIDATED' || user.validationStatus === 'APPROVED') {
         console.log('✅ [RECRUITMENT] Utilisateur déjà validé - redirection vers dashboard');
@@ -188,9 +147,6 @@ export default function DelivererRecruitmentSystem({
         });
         router.push('/fr/deliverer');
         return;
-      } else {
-        // Tenter la synchronisation pour les utilisateurs en attente
-        syncValidationStatus();
       }
     }
   }, [user, router]);
@@ -510,6 +466,32 @@ export default function DelivererRecruitmentSystem({
 
   return (
     <div className="space-y-6">
+      {/* Manual Sync Button - Only for pending users */}
+      {user?.validationStatus === 'PENDING' && (
+        <Card className="border-yellow-200 bg-yellow-50">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="font-medium text-yellow-800">
+                  Statut de validation en attente
+                </h3>
+                <p className="text-sm text-yellow-700">
+                  Si votre candidature a été approuvée par un administrateur, vous pouvez forcer une synchronisation.
+                </p>
+              </div>
+              <Button
+                onClick={forceSyncValidation}
+                variant="outline"
+                className="bg-white hover:bg-yellow-100 border-yellow-300"
+              >
+                <RefreshCw className="mr-2 h-4 w-4" />
+                Vérifier le statut
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Status Overview */}
       {application && (
         <Card

@@ -19,15 +19,15 @@ export function useValidationSync() {
       const needsSync = searchParams.get('sync-validation') === 'true' || 
                        searchParams.get('check-validation') === 'true'
 
-      // Éviter les synchronisations multiples rapprochées
+      // Éviter les synchronisations multiples rapprochées (augmenter à 2 minutes)
       const now = Date.now().toString()
-      if (lastSyncCheck && (parseInt(now) - parseInt(lastSyncCheck)) < 30000) {
-        console.log('⏳ [VALIDATION SYNC] Sync récente, attente...')
+      if (lastSyncCheck && (parseInt(now) - parseInt(lastSyncCheck)) < 120000) {
+        console.log('⏳ [VALIDATION SYNC] Sync récente, attente... (2 minutes)')
         return
       }
 
-      // Synchroniser si nécessaire ou si demandé par l'URL
-      if (needsSync || shouldCheckValidation()) {
+      // NE synchroniser QUE si explicitement demandé par l'URL
+      if (needsSync) {
         setIsLoading(true)
         setLastSyncCheck(now)
 
@@ -47,21 +47,18 @@ export function useValidationSync() {
             // Forcer une mise à jour de la session
             await update()
             
-            // Recharger la page pour appliquer les changements
-            if (needsSync) {
-              // Supprimer les paramètres de sync de l'URL
-              const url = new URL(window.location.href)
-              url.searchParams.delete('sync-validation')
-              url.searchParams.delete('check-validation')
-              
-              // Rediriger vers l'URL nettoyée
-              window.history.replaceState({}, '', url.toString())
-              
-              // Attendre un peu puis recharger
-              setTimeout(() => {
-                window.location.reload()
-              }, 1000)
-            }
+            // Supprimer les paramètres de sync de l'URL
+            const url = new URL(window.location.href)
+            url.searchParams.delete('sync-validation')
+            url.searchParams.delete('check-validation')
+            
+            // Rediriger vers l'URL nettoyée
+            window.history.replaceState({}, '', url.toString())
+            
+            // Attendre un peu puis recharger
+            setTimeout(() => {
+              window.location.reload()
+            }, 1000)
           } else {
             console.error('❌ [VALIDATION SYNC] Erreur de synchronisation')
           }
@@ -73,21 +70,9 @@ export function useValidationSync() {
       }
     }
 
-    // Fonction pour déterminer si une vérification est nécessaire
-    function shouldCheckValidation(): boolean {
-      if (!session?.user) return false
-
-      // Pour les livreurs et prestataires, vérifier s'il y a une incohérence
-      if (session.user.role === 'DELIVERER' || session.user.role === 'PROVIDER') {
-        // Si le statut de validation semble incorrect, synchroniser
-        return session.user.validationStatus === 'PENDING' && session.user.isActive
-      }
-
-      return false
-    }
-
+    // Seulement si l'URL demande une synchronisation
     syncValidation()
-  }, [session, searchParams, lastSyncCheck, update])
+  }, [searchParams, lastSyncCheck, update])
 
   return {
     isLoading,

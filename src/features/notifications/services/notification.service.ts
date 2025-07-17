@@ -37,7 +37,7 @@ function createOneSignalService() {
     
     // Importer dynamiquement OneSignal seulement si configuré
     const { OneSignalService } = require("@/lib/onesignal");
-    return new OneSignalService();
+    return OneSignalService; // Retourner la classe statique
   } catch (error) {
     console.warn("OneSignal service not available:", error.message);
     return null;
@@ -78,11 +78,7 @@ export class NotificationService {
       // Envoyer la notification push si demandé et OneSignal configuré
       if (sendPush && this.oneSignalService) {
         try {
-          await this.oneSignalService.sendToUser(userId, {
-            title,
-            message,
-            data,
-          });
+          await this.oneSignalService.sendToUser(userId, title, message, data);
         } catch (error) {
           console.error("Failed to send push notification:", error);
         }
@@ -125,11 +121,11 @@ export class NotificationService {
       // Envoyer les notifications push si demandé et OneSignal configuré
       if (sendPush && this.oneSignalService) {
         try {
-          await this.oneSignalService.sendToUsers(userIds, {
-            title,
-            message,
-            data,
-          });
+          // Envoyer individuellement pour chaque utilisateur
+          const notificationPromises = userIds.map(userId => 
+            this.oneSignalService.sendToUser(userId, title, message, data)
+          );
+          await Promise.all(notificationPromises);
         } catch (error) {
           console.error("Failed to send bulk push notifications:", error);
         }
@@ -269,3 +265,29 @@ export class NotificationService {
     });
   }
 }
+
+// Instance singleton du service
+let notificationServiceInstance: NotificationService | null = null;
+
+function getNotificationService(): NotificationService {
+  if (!notificationServiceInstance) {
+    notificationServiceInstance = new NotificationService();
+  }
+  return notificationServiceInstance;
+}
+
+// Export des fonctions directes pour compatibilité
+export const createNotification = async (notificationData: NotificationData) => {
+  const service = getNotificationService();
+  return service.createNotification(notificationData);
+};
+
+export const sendNotification = async (notificationData: NotificationData) => {
+  const service = getNotificationService();
+  return service.sendNotification(notificationData);
+};
+
+export const sendBulkNotification = async (bulkData: BulkNotificationData) => {
+  const service = getNotificationService();
+  return service.sendBulkNotification(bulkData);
+};

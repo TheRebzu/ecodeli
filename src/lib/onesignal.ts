@@ -35,7 +35,7 @@ interface OneSignalResponse {
 
 export class OneSignalService {
   private static config: OneSignalConfig = {
-    appId: process.env.NEXT_PUBLIC_ONESIGNAL_APP_ID || "your-onesignal-app-id",
+    appId: process.env.ONESIGNAL_APP_ID || "your-onesignal-app-id",
     restApiKey: process.env.ONESIGNAL_API_KEY || "your-onesignal-api-key",
     userAuthKey: process.env.ONESIGNAL_USER_AUTH_KEY,
   };

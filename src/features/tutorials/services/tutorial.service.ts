@@ -494,11 +494,11 @@ export class TutorialService {
   ): Promise<void> {
     try {
       // Notifier le client de la completion
-      const { NotificationService } = await import(
+      const { createNotification } = await import(
         "@/features/notifications/services/notification.service"
       );
 
-      await NotificationService.createNotification({
+      await createNotification({
         userId,
         type: "TUTORIAL_COMPLETED",
         title: "Tutoriel terminé !",

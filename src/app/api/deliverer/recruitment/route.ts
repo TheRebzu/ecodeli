@@ -229,8 +229,8 @@ export async function POST(request: NextRequest) {
         maxWeight: professionalInfo.maxWeight || 50,
         maxVolume: professionalInfo.maxVolume || 100,
         validationStatus: submit ? "PENDING" : "PENDING",
-        availability: professionalInfo.availability || [],
-        preferredZones: professionalInfo.preferredZones || [],
+        // Supprimer les champs qui n'existent pas dans le schéma
+        // availability et preferredZones seront gérés séparément si nécessaire
       };
 
       if (deliverer) {
@@ -246,10 +246,44 @@ export async function POST(request: NextRequest) {
           where: { id: deliverer.id },
           data: delivererData,
         });
+        
+        // Mettre à jour les disponibilités si elles sont fournies
+        if (professionalInfo.availability && professionalInfo.availability.length > 0) {
+          // Supprimer les anciennes disponibilités
+          await db.delivererAvailability.deleteMany({
+            where: { delivererId: deliverer.id },
+          });
+          
+          // Créer les nouvelles disponibilités
+          const availabilityData = professionalInfo.availability.map((avail: any) => ({
+            delivererId: deliverer.id,
+            dayOfWeek: avail.dayOfWeek,
+            startTime: avail.startTime,
+            endTime: avail.endTime,
+          }));
+          
+          await db.delivererAvailability.createMany({
+            data: availabilityData,
+          });
+        }
       } else {
         deliverer = await db.deliverer.create({
           data: delivererData,
         });
+        
+        // Créer les disponibilités si elles sont fournies
+        if (professionalInfo.availability && professionalInfo.availability.length > 0) {
+          const availabilityData = professionalInfo.availability.map((avail: any) => ({
+            delivererId: deliverer.id,
+            dayOfWeek: avail.dayOfWeek,
+            startTime: avail.startTime,
+            endTime: avail.endTime,
+          }));
+          
+          await db.delivererAvailability.createMany({
+            data: availabilityData,
+          });
+        }
       }
 
       // Si soumis, créer une notification pour les admins
