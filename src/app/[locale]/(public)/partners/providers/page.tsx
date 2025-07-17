@@ -3,7 +3,7 @@
 import { useTranslations } from "next-intl";
 import { PageHeader } from "@/components/layout/page-header";
 import { Card } from "@/components/ui/card";
-import ProviderRegisterForm from "@/features/auth/components/provider-register-form";
+import { ProviderRegisterForm } from "@/features/auth/components/provider-register-form";
 
 export default function BecomeProviderPage() {
   const t = useTranslations();

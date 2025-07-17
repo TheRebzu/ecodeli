@@ -41,8 +41,8 @@ export class EmailService {
   ) {
     const subject =
       locale === "fr"
-        ? "🔐 Vérifiez votre email - EcoDeli"
-        : "🔐 Verify your email - EcoDeli";
+        ? "Vérifiez votre email - EcoDeli"
+        : "Verify your email - EcoDeli";
 
     const html = `
       <!DOCTYPE html>
@@ -63,7 +63,7 @@ export class EmailService {
       <body>
         <div class="container">
           <div class="header">
-            <div class="logo">🌱 EcoDeli</div>
+            <div class="logo">EcoDeli</div>
           </div>
           
           <h2>${locale === "fr" ? "Vérifiez votre adresse email" : "Verify your email address"}</h2>
@@ -76,7 +76,7 @@ export class EmailService {
           
           <div style="text-align: center;">
             <a href="${verificationUrl}" class="button">
-              ${locale === "fr" ? "✅ Vérifier mon email" : "✅ Verify my email"}
+              ${locale === "fr" ? "Vérifier mon email" : "Verify my email"}
             </a>
           </div>
           
@@ -109,10 +109,10 @@ export class EmailService {
 
     try {
       const result = await transporter.sendMail(mailOptions);
-      console.log(`✅ Email de vérification envoyé à ${email} (${result.messageId})`);
+      // Email de vérification envoyé
       return { success: true, messageId: result.messageId };
     } catch (error: any) {
-      console.error("❌ Erreur envoi email vérification:", error);
+      console.error("Erreur envoi email vérification:", error);
       throw this.handleEmailError(error);
     }
   }
@@ -127,8 +127,8 @@ export class EmailService {
   ) {
     const subject =
       locale === "fr"
-        ? "🔑 Réinitialisation de votre mot de passe - EcoDeli"
-        : "🔑 Password reset - EcoDeli";
+        ? "Réinitialisation de votre mot de passe - EcoDeli"
+        : "Password reset - EcoDeli";
 
     const html = `
       <!DOCTYPE html>
@@ -149,7 +149,7 @@ export class EmailService {
       <body>
         <div class="container">
           <div class="header">
-            <div class="logo">🌱 EcoDeli</div>
+            <div class="logo">EcoDeli</div>
           </div>
           
           <h2>${locale === "fr" ? "Réinitialisation de votre mot de passe" : "Password reset"}</h2>
@@ -162,7 +162,7 @@ export class EmailService {
           
           <div style="text-align: center;">
             <a href="${resetUrl}" class="button">
-              ${locale === "fr" ? "🔑 Réinitialiser mon mot de passe" : "🔑 Reset my password"}
+              ${locale === "fr" ? "Réinitialiser mon mot de passe" : "Reset my password"}
             </a>
           </div>
           
@@ -194,10 +194,10 @@ export class EmailService {
 
     try {
       const result = await transporter.sendMail(mailOptions);
-      console.log(`✅ Email de reset envoyé à ${email} (${result.messageId})`);
+      // Email de reset envoyé
       return { success: true, messageId: result.messageId };
     } catch (error: any) {
-      console.error("❌ Erreur envoi email reset:", error);
+      console.error("Erreur envoi email reset:", error);
       throw this.handleEmailError(error);
     }
   }
@@ -243,8 +243,8 @@ export class EmailService {
   ) {
     const subject =
       locale === "fr"
-        ? "📅 Confirmation de réservation - EcoDeli"
-        : "📅 Booking confirmation - EcoDeli";
+        ? "Confirmation de réservation - EcoDeli"
+        : "Booking confirmation - EcoDeli";
 
     const html = `
       <!DOCTYPE html>
@@ -273,11 +273,11 @@ export class EmailService {
       <body>
         <div class="container">
           <div class="header">
-            <div class="logo">🌱 EcoDeli</div>
+            <div class="logo">EcoDeli</div>
             <div class="subtitle">${locale === "fr" ? "Votre plateforme de services éco-responsables" : "Your eco-friendly services platform"}</div>
           </div>
           
-          <h2>${locale === "fr" ? "✅ Réservation confirmée !" : "✅ Booking confirmed!"}</h2>
+          <h2>${locale === "fr" ? "Réservation confirmée !" : "Booking confirmed!"}</h2>
           
           <p>${
             locale === "fr"
@@ -335,17 +335,17 @@ export class EmailService {
           </div>
           
           <div class="price">
-            💰 ${locale === "fr" ? "Prix total :" : "Total price:"} ${bookingData.totalPrice.toFixed(2)}€
+            ${locale === "fr" ? "Prix total :" : "Total price:"} ${bookingData.totalPrice.toFixed(2)}€
           </div>
           
           <div style="text-align: center;">
             <a href="${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/client/bookings/${bookingData.bookingId}" class="button">
-              ${locale === "fr" ? "📱 Voir ma réservation" : "📱 View my booking"}
+              ${locale === "fr" ? "Voir ma réservation" : "View my booking"}
             </a>
           </div>
           
           <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 15px; margin: 20px 0;">
-            <h4 style="margin-top: 0; color: #1e40af;">${locale === "fr" ? "📋 Prochaines étapes" : "📋 Next steps"}</h4>
+            <h4 style="margin-top: 0; color: #1e40af;">${locale === "fr" ? "Prochaines étapes" : "Next steps"}</h4>
             <ul style="margin: 0; padding-left: 20px; color: #374151;">
               <li>${locale === "fr" ? "Le prestataire va confirmer votre réservation" : "The provider will confirm your booking"}</li>
               <li>${locale === "fr" ? "Vous recevrez une notification de confirmation" : "You will receive a confirmation notification"}</li>
@@ -377,7 +377,7 @@ export class EmailService {
       const result = await transporter.sendMail(mailOptions);
       return { success: true, messageId: result.messageId };
     } catch (error) {
-      console.error("❌ Erreur envoi email de réservation:", error);
+      console.error("Erreur envoi email de réservation:", error);
       throw error;
     }
   }
@@ -402,8 +402,8 @@ export class EmailService {
   ) {
     const subject =
       locale === "fr"
-        ? "🔔 Nouvelle réservation reçue - EcoDeli"
-        : "🔔 New booking received - EcoDeli";
+        ? "Nouvelle réservation reçue - EcoDeli"
+        : "New booking received - EcoDeli";
 
     const html = `
       <!DOCTYPE html>
@@ -434,11 +434,11 @@ export class EmailService {
       <body>
         <div class="container">
           <div class="header">
-            <div class="logo">🌱 EcoDeli</div>
+            <div class="logo">EcoDeli</div>
             <div class="subtitle">${locale === "fr" ? "Espace Prestataire" : "Provider Dashboard"}</div>
           </div>
           
-          <h2>${locale === "fr" ? "🎉 Nouvelle réservation !" : "🎉 New booking!"}</h2>
+          <h2>${locale === "fr" ? "Nouvelle réservation !" : "New booking!"}</h2>
           
           <p>${
             locale === "fr"
@@ -496,17 +496,17 @@ export class EmailService {
           </div>
           
           <div class="price">
-            💰 ${locale === "fr" ? "Montant de la réservation :" : "Booking amount:"} ${bookingData.totalPrice.toFixed(2)}€
+            ${locale === "fr" ? "Montant de la réservation :" : "Booking amount:"} ${bookingData.totalPrice.toFixed(2)}€
           </div>
           
           <div style="text-align: center;">
             <a href="${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/provider/bookings/${bookingData.bookingId}" class="button btn-view">
-              ${locale === "fr" ? "📱 Voir la réservation" : "📱 View booking"}
+              ${locale === "fr" ? "Voir la réservation" : "View booking"}
             </a>
           </div>
           
           <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 15px; margin: 20px 0;">
-            <h4 style="margin-top: 0; color: #166534;">${locale === "fr" ? "⚡ Actions rapides" : "⚡ Quick actions"}</h4>
+            <h4 style="margin-top: 0; color: #166534;">${locale === "fr" ? "Actions rapides" : "Quick actions"}</h4>
             <p style="margin: 10px 0; color: #374151;">
               ${
                 locale === "fr"
@@ -540,7 +540,7 @@ export class EmailService {
       const result = await transporter.sendMail(mailOptions);
       return { success: true, messageId: result.messageId };
     } catch (error) {
-      console.error("❌ Erreur envoi email prestataire:", error);
+      console.error("Erreur envoi email prestataire:", error);
       throw error;
     }
   }
@@ -563,8 +563,8 @@ export class EmailService {
   ) {
     const subject =
       locale === "fr"
-        ? "🚀 Votre service a commencé - EcoDeli"
-        : "🚀 Your service has started - EcoDeli";
+        ? "Votre service a commencé - EcoDeli"
+        : "Your service has started - EcoDeli";
 
     const html = `
       <!DOCTYPE html>
@@ -592,11 +592,11 @@ export class EmailService {
       <body>
         <div class="container">
           <div class="header">
-            <div class="logo">🌱 EcoDeli</div>
+            <div class="logo">EcoDeli</div>
             <div class="subtitle">${locale === "fr" ? "Votre plateforme de services éco-responsables" : "Your eco-friendly services platform"}</div>
           </div>
           
-          <h2>${locale === "fr" ? "🚀 Votre service a commencé !" : "🚀 Your service has started!"}</h2>
+          <h2>${locale === "fr" ? "Votre service a commencé !" : "Your service has started!"}</h2>
           
           <p>${
             locale === "fr"
@@ -613,7 +613,7 @@ export class EmailService {
           <div class="service-card">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
               <h3 style="margin: 0; color: #1e40af;">${serviceData.serviceName}</h3>
-              <span class="status-badge">${locale === "fr" ? "🟢 EN COURS" : "🟢 IN PROGRESS"}</span>
+              <span class="status-badge">${locale === "fr" ? "EN COURS" : "IN PROGRESS"}</span>
             </div>
             
             <div class="service-detail">
@@ -649,7 +649,7 @@ export class EmailService {
           </div>
           
           <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 15px; margin: 20px 0;">
-            <h4 style="margin-top: 0; color: #166534;">${locale === "fr" ? "📋 Informations importantes" : "📋 Important information"}</h4>
+            <h4 style="margin-top: 0; color: #166534;">${locale === "fr" ? "Informations importantes" : "Important information"}</h4>
             <ul style="margin: 0; padding-left: 20px; color: #374151;">
               <li>${locale === "fr" ? "Votre prestataire travaille maintenant sur votre demande" : "Your provider is now working on your request"}</li>
               <li>${locale === "fr" ? "Vous recevrez une notification une fois le service terminé" : "You will receive a notification once the service is completed"}</li>
@@ -659,7 +659,7 @@ export class EmailService {
           
           <div style="text-align: center;">
             <a href="${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/client/services/${serviceData.serviceId}" class="button">
-              ${locale === "fr" ? "📱 Suivre mon service" : "📱 Track my service"}
+              ${locale === "fr" ? "Suivre mon service" : "Track my service"}
             </a>
           </div>
           
@@ -687,7 +687,7 @@ export class EmailService {
       const result = await transporter.sendMail(mailOptions);
       return { success: true, messageId: result.messageId };
     } catch (error) {
-      console.error("❌ Erreur envoi email service commencé:", error);
+      console.error("Erreur envoi email service commencé:", error);
       throw error;
     }
   }
@@ -710,8 +710,8 @@ export class EmailService {
   ) {
     const subject =
       locale === "fr"
-        ? "✅ Votre service est terminé - EcoDeli"
-        : "✅ Your service is completed - EcoDeli";
+        ? "Votre service est terminé - EcoDeli"
+        : "Your service is completed - EcoDeli";
 
     const html = `
       <!DOCTYPE html>
@@ -742,11 +742,11 @@ export class EmailService {
       <body>
         <div class="container">
           <div class="header">
-            <div class="logo">🌱 EcoDeli</div>
+            <div class="logo">EcoDeli</div>
             <div class="subtitle">${locale === "fr" ? "Votre plateforme de services éco-responsables" : "Your eco-friendly services platform"}</div>
           </div>
           
-          <h2>${locale === "fr" ? "🎉 Service terminé avec succès !" : "🎉 Service completed successfully!"}</h2>
+          <h2>${locale === "fr" ? "Service terminé avec succès !" : "Service completed successfully!"}</h2>
           
           <p>${
             locale === "fr"
@@ -763,7 +763,7 @@ export class EmailService {
           <div class="service-card">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
               <h3 style="margin: 0; color: #166534;">${serviceData.serviceName}</h3>
-              <span class="status-badge">${locale === "fr" ? "✅ TERMINÉ" : "✅ COMPLETED"}</span>
+              <span class="status-badge">${locale === "fr" ? "TERMINÉ" : "COMPLETED"}</span>
             </div>
             
             <div class="service-detail">
@@ -799,7 +799,7 @@ export class EmailService {
           </div>
           
           <div class="rating-section">
-            <h3 style="margin-top: 0; color: #92400e;">${locale === "fr" ? "⭐ Évaluez votre expérience" : "⭐ Rate your experience"}</h3>
+            <h3 style="margin-top: 0; color: #92400e;">${locale === "fr" ? "Évaluez votre expérience" : "Rate your experience"}</h3>
             <p style="margin: 10px 0; color: #374151;">
               ${
                 locale === "fr"
@@ -808,18 +808,18 @@ export class EmailService {
               }
             </p>
             <a href="${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/client/services/${serviceData.serviceId}/review" class="button btn-rate">
-              ${locale === "fr" ? "⭐ Donner mon avis" : "⭐ Leave a review"}
+              ${locale === "fr" ? "Donner mon avis" : "Leave a review"}
             </a>
           </div>
           
           <div style="text-align: center;">
             <a href="${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/client/services/${serviceData.serviceId}" class="button btn-view">
-              ${locale === "fr" ? "📱 Voir les détails" : "📱 View details"}
+              ${locale === "fr" ? "Voir les détails" : "View details"}
             </a>
           </div>
           
           <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 15px; margin: 20px 0;">
-            <h4 style="margin-top: 0; color: #1e40af;">${locale === "fr" ? "💝 Merci pour votre confiance" : "💝 Thank you for your trust"}</h4>
+            <h4 style="margin-top: 0; color: #1e40af;">${locale === "fr" ? "Merci pour votre confiance" : "Thank you for your trust"}</h4>
             <p style="margin: 10px 0; color: #374151;">
               ${
                 locale === "fr"
@@ -853,7 +853,7 @@ export class EmailService {
       const result = await transporter.sendMail(mailOptions);
       return { success: true, messageId: result.messageId };
     } catch (error) {
-      console.error("❌ Erreur envoi email service terminé:", error);
+      console.error("Erreur envoi email service terminé:", error);
       throw error;
     }
   }
@@ -864,10 +864,10 @@ export class EmailService {
   static async testConnection() {
     try {
       await transporter.verify();
-      console.log("✅ Connexion SMTP réussie");
+      // Connexion SMTP réussie
       return { success: true };
     } catch (error: any) {
-      console.error("❌ Erreur connexion SMTP:", error);
+      console.error("Erreur connexion SMTP:", error);
       throw this.handleEmailError(error);
     }
   }
@@ -947,11 +947,11 @@ export class EmailService {
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
         const result = await transporter.sendMail(mailOptions);
-        console.log(`✅ Email envoyé avec succès après ${attempt} tentative(s) (${result.messageId})`);
+        // Email envoyé avec succès
         return { success: true, messageId: result.messageId };
       } catch (error: any) {
         lastError = error;
-        console.warn(`⚠️ Tentative ${attempt}/${maxRetries} échouée:`, error.message);
+        console.warn(`Tentative ${attempt}/${maxRetries} échouée:`, error.message);
         
         // Si ce n'est pas la dernière tentative, attendre avant de retry
         if (attempt < maxRetries) {
@@ -1047,7 +1047,7 @@ export class EmailService {
         <div class="container">
           <div class="email-wrapper">
             <div class="header">
-              <div class="logo">🌱 EcoDeli</div>
+              <div class="logo">EcoDeli</div>
               <div>Livraison éco-responsable</div>
             </div>
             <div class="content">

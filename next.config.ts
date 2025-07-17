@@ -20,7 +20,6 @@ const nextConfig: NextConfig = {
   },
 
   // Optimisations pour accélérer le build
-  swcMinify: true,
   compress: true,
   poweredByHeader: false,
 

@@ -3,6 +3,8 @@ import { z } from "zod";
 import bcrypt from "bcryptjs";
 import { db } from "@/lib/db";
 import { UserRole } from "@prisma/client";
+import { EmailService } from "@/lib/email";
+import { randomUUID } from "crypto";
 
 // Schéma de validation pour l'inscription
 const registerSchema = z.object({
@@ -24,6 +26,11 @@ const registerSchema = z.object({
   city: z.string().optional(),
   postalCode: z.string().optional(),
   country: z.string().default("FR"),
+  // Champs spécifiques prestataires
+  businessName: z.string().optional(),
+  specialties: z.array(z.string()).optional(),
+  hourlyRate: z.number().optional(),
+  description: z.string().optional(),
 });
 
 export async function POST(request: NextRequest) {
@@ -50,6 +57,10 @@ export async function POST(request: NextRequest) {
 
     // Créer l'utilisateur avec transaction
     const result = await db.$transaction(async (tx) => {
+      // Générer un token de vérification email
+      const emailVerificationToken = randomUUID();
+      const emailVerificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 heures
+      
       // Créer l'utilisateur principal
       const user = await tx.user.create({
         data: {
@@ -57,12 +68,11 @@ export async function POST(request: NextRequest) {
           password: hashedPassword,
           name: `${validatedData.firstName} ${validatedData.lastName}`,
           role: validatedData.role as UserRole,
-          isActive:
-            validatedData.role === "CLIENT" || validatedData.role === "ADMIN", // Clients et admins actifs par défaut
-          validationStatus:
-            validatedData.role === "CLIENT" || validatedData.role === "ADMIN"
-              ? "APPROVED"
-              : "PENDING",
+          isActive: false, // Tous les utilisateurs sont inactifs jusqu'à vérification email
+          emailVerified: null, // Email non vérifié
+          validationStatus: "PENDING", // Tous en attente de vérification
+          emailVerificationToken,
+          emailVerificationExpires,
         },
       });
 
@@ -77,8 +87,7 @@ export async function POST(request: NextRequest) {
           city: validatedData.city,
           postalCode: validatedData.postalCode,
           country: validatedData.country,
-          isVerified:
-            validatedData.role === "CLIENT" || validatedData.role === "ADMIN",
+          isVerified: false, // Tous les profils doivent être vérifiés
         },
       });
 
@@ -119,6 +128,10 @@ export async function POST(request: NextRequest) {
             data: {
               userId: user.id,
               validationStatus: "PENDING",
+              businessName: validatedData.businessName || `${validatedData.firstName} ${validatedData.lastName}`,
+              specialties: validatedData.specialties || [],
+              hourlyRate: validatedData.hourlyRate || 25.0,
+              description: validatedData.description || "",
             },
           });
           break;
@@ -136,16 +149,30 @@ export async function POST(request: NextRequest) {
       return { user, profile };
     });
 
+    // Envoyer l'email de vérification
+    try {
+      const verificationUrl = `${process.env.NEXTAUTH_URL}/api/auth/verify-email?token=${result.user.emailVerificationToken}`;
+      await EmailService.sendVerificationEmail(
+        result.user.email,
+        verificationUrl,
+        "fr"
+      );
+    } catch (emailError) {
+      console.error("Erreur envoi email de vérification:", emailError);
+      // Ne pas faire échouer l'inscription si l'email ne peut pas être envoyé
+    }
+
     return NextResponse.json(
       {
         success: true,
-        message: "Utilisateur créé avec succès",
+        message: "Compte créé avec succès ! Vérifiez votre email pour activer votre compte.",
         user: {
           id: result.user.id,
           email: result.user.email,
           role: result.user.role,
           isActive: result.user.isActive,
           validationStatus: result.user.validationStatus,
+          emailVerified: result.user.emailVerified,
         },
       },
       { status: 201 },

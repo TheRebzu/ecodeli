@@ -2,7 +2,6 @@ import NextAuth from "next-auth"
 import { PrismaAdapter } from "@auth/prisma-adapter"
 import { NextAuthConfig } from "next-auth"
 import CredentialsProvider from "next-auth/providers/credentials"
-import EmailProvider from "next-auth/providers/email"
 import { db } from "@/lib/db"
 import bcrypt from "bcryptjs"
 import type { UserRole } from "@prisma/client"
@@ -17,18 +16,6 @@ const config = {
     maxAge: 60 * 60 * 24 * 30, // 30 days
   },
   providers: [
-    EmailProvider({
-      server: {
-        host: process.env.SMTP_HOST,
-        port: Number(process.env.SMTP_PORT),
-        auth: {
-          user: process.env.GMAIL_USER,
-          pass: process.env.GMAIL_APP_PASSWORD,
-        },
-        secure: process.env.SMTP_SECURE === "true",
-      },
-      from: process.env.GMAIL_USER,
-    }),
     CredentialsProvider({
       name: "credentials",
       credentials: {
@@ -78,8 +65,8 @@ const config = {
           }
         }
 
-        // CORRECTION : Permettre la connexion même si inactif
-        // La gestion se fera côté frontend avec email de vérification
+        // Permettre la connexion même si email non vérifié
+        // La vérification se fera côté frontend
         const roleSpecificValidationStatus = getRoleValidationStatus(user);
         const effectiveValidationStatus = roleSpecificValidationStatus || user.validationStatus;
 
@@ -93,6 +80,7 @@ const config = {
           role: user.role,
           isActive: user.isActive,
           validationStatus: effectiveValidationStatus,
+          emailVerified: user.emailVerified,
           profileData: getProfileData(user)
         };
       }
@@ -114,6 +102,7 @@ const config = {
         token.role = user.role
         token.isActive = user.isActive
         token.validationStatus = user.validationStatus
+        token.emailVerified = user.emailVerified
         token.profileData = user.profileData
       }
 
@@ -136,6 +125,7 @@ const config = {
         if (isEdgeRuntime) {
           session.user.isActive = token.isActive as boolean
           session.user.validationStatus = token.validationStatus as string
+          session.user.emailVerified = token.emailVerified as Date | null
           session.user.profileData = token.profileData
         } else {
           // Dans les autres contextes, récupérer les données fraîches
@@ -145,6 +135,7 @@ const config = {
               select: {
                 isActive: true,
                 validationStatus: true,
+                emailVerified: true,
                 role: true,
                 profile: true,
                 client: true,
@@ -158,6 +149,7 @@ const config = {
             if (freshUser) {
               session.user.isActive = freshUser.isActive
               session.user.role = freshUser.role as UserRole
+              session.user.emailVerified = freshUser.emailVerified
               session.user.profileData = getProfileData(freshUser)
               
               // Utiliser le validationStatus spécifique au rôle si disponible
@@ -167,6 +159,7 @@ const config = {
               // Fallback vers les données du token si l'utilisateur n'existe plus
               session.user.isActive = token.isActive as boolean
               session.user.validationStatus = token.validationStatus as string
+              session.user.emailVerified = token.emailVerified as Date | null
               session.user.profileData = token.profileData
             }
           } catch (error) {
@@ -174,6 +167,7 @@ const config = {
             console.error('[AUTH SESSION] Erreur récupération données fraîches:', error)
             session.user.isActive = token.isActive as boolean
             session.user.validationStatus = token.validationStatus as string
+            session.user.emailVerified = token.emailVerified as Date | null
             session.user.profileData = token.profileData
           }
         }
@@ -246,6 +240,7 @@ declare module "next-auth" {
     role: UserRole
     isActive: boolean
     validationStatus: string
+    emailVerified?: Date | null
     profileData?: any
   }
   
@@ -258,6 +253,7 @@ declare module "next-auth" {
       role: UserRole
       isActive: boolean
       validationStatus: string
+      emailVerified?: Date | null
       profileData?: any
     }
   }
@@ -268,6 +264,7 @@ declare module "next-auth/jwt" {
     role: UserRole
     isActive: boolean
     validationStatus: string
+    emailVerified?: Date | null
     profileData?: any
   }
 }

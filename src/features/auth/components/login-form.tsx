@@ -17,12 +17,10 @@ import { Mail, CheckCircle, AlertTriangle } from "lucide-react";
 export function LoginForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [isSendingVerification, setIsSendingVerification] = useState(false);
-  const [isSendingMagicLink, setIsSendingMagicLink] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showVerificationButton, setShowVerificationButton] = useState(false);
   const [verificationEmail, setVerificationEmail] = useState("");
   const [verificationSent, setVerificationSent] = useState(false);
-  const [magicLinkSent, setMagicLinkSent] = useState(false);
   const router = useRouter();
   const t = useTranslations();
 
@@ -49,18 +47,34 @@ export function LoginForm() {
       });
 
       if (result?.error) {
-        // Vérifier si c'est un utilisateur inactif
-        if (result.error.includes("Account pending validation") || result.error.includes("inactive")) {
-          setShowVerificationButton(true);
-          setVerificationEmail(data.email);
-          setError("Votre compte n'est pas encore activé. Veuillez vérifier votre email.");
-        } else {
-          setError("Email ou mot de passe incorrect");
-        }
+        setError("Email ou mot de passe incorrect");
         return;
       }
 
       if (result?.ok) {
+        // Vérifier le statut de vérification email après connexion
+        const sessionResponse = await fetch("/api/auth/session");
+        const session = await sessionResponse.json();
+        
+        if (session?.user && !session.user.emailVerified) {
+          setShowVerificationButton(true);
+          setVerificationEmail(data.email);
+          setError("Votre email n'est pas encore vérifié. Veuillez vérifier votre boîte mail.");
+          return;
+        }
+
+        // Vérifier si l'utilisateur a besoin de compléter son profil
+        if (session?.user && ["DELIVERER", "PROVIDER", "MERCHANT"].includes(session.user.role)) {
+          const profileResponse = await fetch("/api/auth/profile-status");
+          const profileData = await profileResponse.json();
+          
+          if (profileData.needsCompletion) {
+            const locale = window.location.pathname.split("/")[1] || "fr";
+            window.location.href = `/${locale}/complete-profile`;
+            return;
+          }
+        }
+
         // Récupérer le paramètre redirect de l'URL
         const urlParams = new URLSearchParams(window.location.search);
         const redirectUrl = urlParams.get("redirect");
@@ -89,7 +103,7 @@ export function LoginForm() {
     setError(null);
 
     try {
-      const response = await fetch("/api/auth/send-verification-email", {
+      const response = await fetch("/api/auth/resend-verification", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -113,35 +127,6 @@ export function LoginForm() {
     }
   };
 
-  const handleSendMagicLink = async () => {
-    const email = getValues("email");
-    
-    if (!email) {
-      setError("Veuillez saisir votre email");
-      return;
-    }
-
-    setIsSendingMagicLink(true);
-    setError(null);
-
-    try {
-      const result = await signIn("email", {
-        email,
-        redirect: false,
-      });
-
-      if (result?.error) {
-        setError("Erreur lors de l'envoi du lien de connexion");
-      } else {
-        setMagicLinkSent(true);
-      }
-    } catch (error) {
-      console.error("Erreur envoi lien magique:", error);
-      setError("Erreur de connexion au serveur");
-    } finally {
-      setIsSendingMagicLink(false);
-    }
-  };
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -161,14 +146,6 @@ export function LoginForm() {
         </Alert>
       )}
 
-      {magicLinkSent && (
-        <Alert>
-          <CheckCircle className="h-4 w-4" />
-          <AlertDescription>
-            Lien de connexion envoyé ! Vérifiez votre boîte de réception et cliquez sur le lien pour vous connecter.
-          </AlertDescription>
-        </Alert>
-      )}
 
       {showVerificationButton && (
         <Alert>
@@ -183,7 +160,7 @@ export function LoginForm() {
                 className="w-full"
                 variant="outline"
               >
-                {isSendingVerification ? "Envoi en cours..." : "📧 Envoyer email de vérification"}
+                {isSendingVerification ? "Envoi en cours..." : "Envoyer email de vérification"}
               </Button>
             </div>
           </AlertDescription>
@@ -244,28 +221,6 @@ export function LoginForm() {
       >
         {isLoading ? t("auth.login.signing") : t("auth.login.loginButton")}
       </button>
-
-      {/* Séparateur */}
-      <div className="relative">
-        <div className="absolute inset-0 flex items-center">
-          <div className="w-full border-t border-gray-300" />
-        </div>
-        <div className="relative flex justify-center text-sm">
-          <span className="px-2 bg-white text-gray-500">ou</span>
-        </div>
-      </div>
-
-      {/* Bouton de connexion par email magique */}
-      <Button
-        type="button"
-        onClick={handleSendMagicLink}
-        disabled={isSendingMagicLink}
-        variant="outline"
-        className="w-full"
-      >
-        <Mail className="mr-2 h-4 w-4" />
-        {isSendingMagicLink ? "Envoi en cours..." : "Se connecter par email"}
-      </Button>
     </form>
   );
 }

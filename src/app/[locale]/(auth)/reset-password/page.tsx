@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -32,7 +32,7 @@ interface TokenValidation {
   };
 }
 
-export default function ResetPasswordPage() {
+function ResetPasswordForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [isValidatingToken, setIsValidatingToken] = useState(true);
   const [tokenValidation, setTokenValidation] = useState<TokenValidation | null>(null);
@@ -283,5 +283,24 @@ export default function ResetPasswordPage() {
         </Card>
       </div>
     </div>
+  );
+}
+
+export default function ResetPasswordPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 flex items-center justify-center p-4">
+        <div className="w-full max-w-md">
+          <div className="bg-white rounded-xl shadow-sm border p-6">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600 mx-auto mb-4"></div>
+              <p className="text-gray-600">Chargement...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    }>
+      <ResetPasswordForm />
+    </Suspense>
   );
 }
