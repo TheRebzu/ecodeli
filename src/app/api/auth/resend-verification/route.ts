@@ -34,21 +34,30 @@ export async function POST(request: NextRequest) {
     }
 
     // Générer un nouveau token
-    const emailVerificationToken = randomUUID();
-    const emailVerificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 heures
+    const token = randomUUID();
+    const expires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 heures
 
-    // Mettre à jour le token dans la base de données
-    await db.user.update({
-      where: { id: user.id },
-      data: {
-        emailVerificationToken,
-        emailVerificationExpires,
+    // Stocker le token dans la table VerificationToken
+    await db.verificationToken.upsert({
+      where: { 
+        identifier_token: {
+          identifier: user.email,
+          token: token
+        }
       },
+      update: {
+        expires
+      },
+      create: {
+        identifier: user.email,
+        token,
+        expires
+      }
     });
 
     // Envoyer l'email de vérification
     try {
-      const verificationUrl = `${process.env.NEXTAUTH_URL}/api/auth/verify-email?token=${emailVerificationToken}`;
+      const verificationUrl = `${process.env.NEXTAUTH_URL}/api/auth/verify-email?token=${token}`;
       await EmailService.sendVerificationEmail(
         user.email,
         verificationUrl,
@@ -74,7 +83,7 @@ export async function POST(request: NextRequest) {
 
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: "Données invalides", details: error.errors },
+        { error: "Données invalides", details: error.format() },
         { status: 400 }
       );
     }

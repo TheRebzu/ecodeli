@@ -68,8 +68,8 @@ export async function POST(request: NextRequest) {
       data: { lastLoginAt: new Date() }
     });
 
-    // Retourner les données utilisateur formatées pour l'app mobile
-    return NextResponse.json({
+    // Créer la réponse
+    const response = NextResponse.json({
       success: true,
       message: "Connexion réussie",
       user: {
@@ -87,6 +87,27 @@ export async function POST(request: NextRequest) {
       token: `mock_token_${user.id}`, // Token temporaire pour l'app mobile
       refreshToken: `mock_refresh_token_${user.id}`
     });
+    
+    // Ajouter des cookies de secours pour récupérer l'utilisateur en cas de problème avec les cookies de session
+    response.cookies.set('userId', user.id, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 60 * 60 * 24 * 7, // 7 jours
+      path: '/'
+    });
+    
+    response.cookies.set('userEmail', user.email, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 60 * 60 * 24 * 7, // 7 jours
+      path: '/'
+    });
+    
+    console.log('🍪 [LOGIN] Cookies de secours ajoutés pour:', user.email);
+    
+    return response;
 
   } catch (error) {
     console.error("Erreur lors de la connexion:", error);

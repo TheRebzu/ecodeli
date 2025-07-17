@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import bcrypt from "bcryptjs";
 import { db } from "@/lib/db";
-import { UserRole } from "@prisma/client";
+import { UserRole, User, Profile } from "@prisma/client";
 import { EmailService } from "@/lib/email";
 import { randomUUID } from "crypto";
 
@@ -36,6 +36,13 @@ const registerSchema = z.object({
   businessType: z.string().optional(),
 });
 
+// Type pour le résultat de la transaction
+type TransactionResult = {
+  user: User;
+  profile: Profile;
+  verificationToken: string;
+};
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
@@ -60,10 +67,6 @@ export async function POST(request: NextRequest) {
 
     // Créer l'utilisateur avec transaction
     const result = await db.$transaction(async (tx) => {
-      // Générer un token de vérification email
-      const emailVerificationToken = randomUUID();
-      const emailVerificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 heures
-      
       // Créer l'utilisateur principal
       const user = await tx.user.create({
         data: {
@@ -72,10 +75,8 @@ export async function POST(request: NextRequest) {
           name: `${validatedData.firstName} ${validatedData.lastName}`,
           role: validatedData.role as UserRole,
           isActive: false, // Tous les utilisateurs sont inactifs jusqu'à vérification email
-          emailVerified: null, // Email non vérifié
+          emailVerified: false, // Email non vérifié
           validationStatus: "PENDING", // Tous en attente de vérification
-          emailVerificationToken,
-          emailVerificationExpires,
         },
       });
 
@@ -149,12 +150,24 @@ export async function POST(request: NextRequest) {
           break;
       }
 
-      return { user, profile };
+      // Créer un token de vérification dans la table VerificationToken
+      const token = randomUUID();
+      const expires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 heures
+      
+      await tx.verificationToken.create({
+        data: {
+          identifier: user.email,
+          token,
+          expires,
+        },
+      });
+
+      return { user, profile, verificationToken: token } as TransactionResult;
     });
 
     // Envoyer l'email de vérification
     try {
-      const verificationUrl = `${process.env.NEXTAUTH_URL}/api/auth/verify-email?token=${result.user.emailVerificationToken}`;
+      const verificationUrl = `${process.env.NEXTAUTH_URL}/api/auth/verify-email?token=${result.verificationToken}`;
       await EmailService.sendVerificationEmail(
         result.user.email,
         verificationUrl,
@@ -185,7 +198,7 @@ export async function POST(request: NextRequest) {
 
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: "Données invalides", details: error.errors },
+        { error: "Données invalides", details: error.format() },
         { status: 400 },
       );
     }

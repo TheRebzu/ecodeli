@@ -6,8 +6,8 @@ import nodemailer from "nodemailer";
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST || "mail.celian-vf.fr",
   port: parseInt(process.env.SMTP_PORT || "587"),
-  secure: process.env.SMTP_SECURE === "false", // true pour 465, false pour 587 (STARTTLS)
-  requireTLS: false, // Force TLS
+  secure: false, // false pour 587 (STARTTLS)
+  requireTLS: true, // Utiliser STARTTLS
   auth: {
     user: process.env.GMAIL_USER || "",
     pass: process.env.GMAIL_APP_PASSWORD || "",
@@ -15,6 +15,7 @@ const transporter = nodemailer.createTransport({
   tls: {
     // Ne pas échouer sur les certificats invalides en dev
     rejectUnauthorized: process.env.NODE_ENV === "production",
+    minVersion: 'TLSv1.2' // Forcer TLSv1.2 minimum
   },
 });
 
@@ -1069,5 +1070,4 @@ export class EmailService {
 export const sendEmail = EmailService.sendGenericEmail;
 
 // Export des types et fonctions utilitaires
-export type { EmailError };
 export const { validateEmail, createResponsiveTemplate, testConnection } = EmailService;

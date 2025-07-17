@@ -13,20 +13,31 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Chercher l'utilisateur avec ce token
-    const user = await db.user.findFirst({
+    // Chercher le token dans la table VerificationToken
+    const verificationToken = await db.verificationToken.findUnique({
       where: {
-        emailVerificationToken: token,
-        emailVerificationExpires: {
-          gt: new Date(),
-        },
-      },
+        token
+      }
+    });
+
+    if (!verificationToken || verificationToken.expires < new Date()) {
+      return NextResponse.json(
+        { error: "Token invalide ou expiré" },
+        { status: 400 }
+      );
+    }
+
+    // Chercher l'utilisateur avec cet email
+    const user = await db.user.findUnique({
+      where: {
+        email: verificationToken.identifier
+      }
     });
 
     if (!user) {
       return NextResponse.json(
-        { error: "Token invalide ou expiré" },
-        { status: 400 }
+        { error: "Utilisateur non trouvé" },
+        { status: 404 }
       );
     }
 
@@ -36,10 +47,9 @@ export async function GET(request: NextRequest) {
       await tx.user.update({
         where: { id: user.id },
         data: {
-          emailVerified: new Date(),
+          emailVerified: true,
+          emailVerifiedAt: new Date(),
           isActive: true,
-          emailVerificationToken: null,
-          emailVerificationExpires: null,
           validationStatus: user.role === "CLIENT" || user.role === "ADMIN" ? "APPROVED" : "PENDING",
         },
       });
@@ -50,6 +60,13 @@ export async function GET(request: NextRequest) {
         data: {
           isVerified: user.role === "CLIENT" || user.role === "ADMIN",
         },
+      });
+
+      // Supprimer le token utilisé
+      await tx.verificationToken.delete({
+        where: {
+          token
+        }
       });
     });
 

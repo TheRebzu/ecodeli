@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { fr } from "date-fns/locale";
+import { downloadFile, openFileInNewTab } from "@/lib/utils/download";
 
 interface DocumentViewerProps {
   document: any;
@@ -334,7 +335,7 @@ export function DocumentViewer({
                     <Button
                       size="sm"
                       variant="outline"
-                      onClick={() => window.open(document.url, "_blank")}
+                      onClick={() => openFileInNewTab(document.url)}
                     >
                       <ExternalLink className="w-4 h-4 mr-2" />
                       Ouvrir
@@ -342,12 +343,7 @@ export function DocumentViewer({
                     <Button
                       size="sm"
                       variant="outline"
-                      onClick={() => {
-                        const link = document.createElement("a");
-                        link.href = document.url;
-                        link.download = document.name;
-                        link.click();
-                      }}
+                      onClick={() => downloadFile(document.url, document.name)}
                     >
                       <Download className="w-4 h-4 mr-2" />
                       Télécharger
@@ -392,19 +388,14 @@ export function DocumentViewer({
                         </p>
                         <div className="flex gap-2 justify-center">
                           <Button
-                            onClick={() => window.open(document.url, "_blank")}
+                            onClick={() => openFileInNewTab(document.url)}
                           >
                             <ExternalLink className="w-4 h-4 mr-2" />
                             Ouvrir le PDF
                           </Button>
                           <Button
                             variant="outline"
-                            onClick={() => {
-                              const link = document.createElement("a");
-                              link.href = document.url;
-                              link.download = document.name;
-                              link.click();
-                            }}
+                            onClick={() => downloadFile(document.url, document.name)}
                           >
                             <Download className="w-4 h-4 mr-2" />
                             Télécharger
@@ -423,7 +414,7 @@ export function DocumentViewer({
                       </p>
                       <Button
                         className="mt-4"
-                        onClick={() => window.open(document.url, "_blank")}
+                        onClick={() => openFileInNewTab(document.url)}
                       >
                         <ExternalLink className="w-4 h-4 mr-2" />
                         Ouvrir le document

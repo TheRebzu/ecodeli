@@ -153,7 +153,7 @@ export default function DelivererRecruitmentSystem({
             const result = await response.json();
             console.log('📋 [RECRUITMENT] Résultat sync:', result);
             
-                         if (result.updated && result.newStatus === 'VALIDATED') {
+            if (result.updated && result.freshValidationStatus === 'VALIDATED') {
                console.log('✅ [RECRUITMENT] Statut synchronisé - redirection vers dashboard');
                toast({
                  title: "Validation terminée !",
@@ -162,7 +162,7 @@ export default function DelivererRecruitmentSystem({
                
                // Attendre un peu pour que l'utilisateur voie le toast
                setTimeout(() => {
-                 if (result.requiresSessionRefresh) {
+                 if (result.needsRefresh) {
                    // Forcer un rechargement complet pour rafraîchir la session NextAuth
                    window.location.replace('/fr/deliverer');
                  } else {
@@ -226,7 +226,7 @@ export default function DelivererRecruitmentSystem({
         const result = await response.json();
         console.log('📋 [RECRUITMENT] Résultat sync forcée:', result);
         
-        if (result.updated && result.newStatus === 'VALIDATED') {
+        if (result.updated && result.freshValidationStatus === 'VALIDATED') {
           console.log('✅ [RECRUITMENT] Statut synchronisé - redirection immédiate vers dashboard');
           toast({
             title: "Validation terminée !",
@@ -248,62 +248,162 @@ export default function DelivererRecruitmentSystem({
     setLoading(true);
     try {
       console.log('🔍 [RECRUITMENT] Récupération des données de candidature...');
-      const response = await fetch(
-        `/api/deliverer/recruitment?userId=${userId}`,
-        {
-          credentials: 'include', // S'assurer que les cookies sont envoyés
-          headers: {
-            'Cache-Control': 'no-cache',
-          },
-        }
-      );
       
-      if (!response.ok) {
-        if (response.status === 401) {
-          console.error('❌ [RECRUITMENT] Erreur d\'authentification:', response.status);
-          toast({
-            title: "Erreur d'authentification",
-            description: "Veuillez vous reconnecter pour continuer.",
-            variant: "destructive",
-          });
-          return;
+      // Première tentative avec l'API normale
+      let response = await fetch(`/api/deliverer/recruitment?userId=${userId}`, {
+        credentials: 'include',
+        headers: {
+          'Cache-Control': 'no-cache'
         }
-        throw new Error(`Erreur ${response.status}: ${response.statusText}`);
+      });
+      
+      // Si erreur, essayer l'API de secours
+      if (!response.ok) {
+        console.warn('⚠️ [RECRUITMENT] Échec de la récupération via API normale, tentative via API de secours...');
+        
+        // Essayer l'API de secours qui récupère directement depuis la base de données
+        response = await fetch('/api/auth/user-data', {
+          credentials: 'include',
+          headers: {
+            'Cache-Control': 'no-cache'
+          }
+        });
+        
+        if (response.ok) {
+          const userData = await response.json();
+          console.log('✅ [RECRUITMENT] Données utilisateur récupérées via API de secours:', userData);
+          
+          // Convertir les données utilisateur en format d'application
+          if (userData.user && userData.user.profileData) {
+            const delivererData = userData.user.profileData;
+            const profile = userData.user.profile || {};
+            
+            // Construire un objet application compatible
+            const applicationFromUserData = {
+              id: delivererData.id || userId,
+              status: delivererData.validationStatus || 'PENDING',
+              personalInfo: {
+                firstName: profile.firstName || '',
+                lastName: profile.lastName || '',
+                email: userData.user.email || '',
+                phone: profile.phone || '',
+                address: profile.address || '',
+                dateOfBirth: profile.dateOfBirth ? new Date(profile.dateOfBirth).toISOString().split('T')[0] : '',
+                nationality: profile.country || 'FR',
+              },
+              professionalInfo: {
+                vehicleType: delivererData.vehicleType || '',
+                vehicleModel: delivererData.licensePlate || '',
+                licenseNumber: delivererData.licensePlate || '',
+                experience: delivererData.totalDeliveries || 0,
+                availability: delivererData.availability || [],
+                preferredZones: delivererData.preferredZones || [],
+              },
+              documents: (userData.user.documents || []).map((doc: any) => ({
+                id: doc.id,
+                type: doc.type,
+                name: getDocumentTypeName(doc.type),
+                fileName: doc.filename,
+                status: doc.validationStatus,
+                uploadedAt: doc.createdAt,
+                rejectionReason: doc.rejectionReason,
+                downloadUrl: `/api/documents/${doc.id}/download`,
+              })),
+              createdAt: delivererData.createdAt || new Date().toISOString(),
+              updatedAt: delivererData.updatedAt || new Date().toISOString(),
+              validationProgress: calculateValidationProgress(userData.user.documents || []),
+            };
+            
+            setApplication(applicationFromUserData);
+            setFormData({
+              firstName: applicationFromUserData.personalInfo.firstName,
+              lastName: applicationFromUserData.personalInfo.lastName,
+              email: applicationFromUserData.personalInfo.email,
+              phone: applicationFromUserData.personalInfo.phone,
+              address: applicationFromUserData.personalInfo.address,
+              dateOfBirth: applicationFromUserData.personalInfo.dateOfBirth,
+              nationality: applicationFromUserData.personalInfo.nationality,
+              vehicleType: applicationFromUserData.professionalInfo.vehicleType,
+              vehicleModel: applicationFromUserData.professionalInfo.vehicleModel,
+              licenseNumber: applicationFromUserData.professionalInfo.licenseNumber,
+              experience: applicationFromUserData.professionalInfo.experience,
+              availability: applicationFromUserData.professionalInfo.availability,
+              preferredZones: applicationFromUserData.professionalInfo.preferredZones,
+            });
+            setLoading(false);
+            return;
+          }
+        }
       }
       
+      // Continuer avec l'API normale si la réponse est OK ou si l'API de secours a échoué
       const data = await response.json();
-      console.log('📋 [RECRUITMENT] Données récupérées:', data);
+      console.log('📋 [RECRUITMENT] Données reçues:', data);
       
       if (data.application) {
         setApplication(data.application);
-        
-        // Pré-remplir le formulaire avec les données existantes
         setFormData({
-          firstName: data.application.personalInfo.firstName || "",
-          lastName: data.application.personalInfo.lastName || "",
-          email: data.application.personalInfo.email || "",
-          phone: data.application.personalInfo.phone || "",
-          address: data.application.personalInfo.address || "",
-          dateOfBirth: data.application.personalInfo.dateOfBirth || "",
-          nationality: data.application.personalInfo.nationality || "FR",
-          vehicleType: data.application.professionalInfo.vehicleType || "",
-          vehicleModel: data.application.professionalInfo.vehicleModel || "",
-          licenseNumber: data.application.professionalInfo.licenseNumber || "",
-          experience: data.application.professionalInfo.experience || 0,
-          availability: data.application.professionalInfo.availability || [],
-          preferredZones: data.application.professionalInfo.preferredZones || [],
+          firstName: data.application.personalInfo.firstName,
+          lastName: data.application.personalInfo.lastName,
+          email: data.application.personalInfo.email,
+          phone: data.application.personalInfo.phone,
+          address: data.application.personalInfo.address,
+          dateOfBirth: data.application.personalInfo.dateOfBirth,
+          nationality: data.application.personalInfo.nationality,
+          vehicleType: data.application.professionalInfo.vehicleType,
+          vehicleModel: data.application.professionalInfo.vehicleModel,
+          licenseNumber: data.application.professionalInfo.licenseNumber,
+          experience: data.application.professionalInfo.experience,
+          availability: data.application.professionalInfo.availability,
+          preferredZones: data.application.professionalInfo.preferredZones,
         });
       }
     } catch (error) {
-      console.error('❌ [RECRUITMENT] Erreur lors de la récupération des données:', error);
+      console.error('❌ [RECRUITMENT] Erreur récupération données:', error);
       toast({
         title: "Erreur",
-        description: "Impossible de récupérer vos informations de candidature. Veuillez réessayer.",
+        description: "Impossible de récupérer vos données de candidature. Veuillez réessayer.",
         variant: "destructive",
       });
     } finally {
       setLoading(false);
     }
+  };
+
+  // Fonction pour calculer le progrès de validation à partir des documents
+  const calculateValidationProgress = (documents: any[]) => {
+    // Documents obligatoires seulement
+    const requiredDocuments = ["IDENTITY", "DRIVING_LICENSE", "INSURANCE"];
+    const optionalDocuments = ["OTHER", "CERTIFICATION"];
+
+    // Compter les documents requis uploadés et approuvés
+    const uploadedRequiredDocs = documents.filter((d) =>
+      requiredDocuments.includes(d.type)
+    ).length;
+    const approvedRequiredDocs = documents.filter(
+      (d) =>
+        requiredDocuments.includes(d.type) && d.validationStatus === "APPROVED"
+    ).length;
+
+    // Compter les documents optionnels approuvés (bonus)
+    const approvedOptionalDocs = documents.filter(
+      (d) =>
+        optionalDocuments.includes(d.type) && d.validationStatus === "APPROVED"
+    ).length;
+
+    // Calcul de la progression
+    let validationProgress = 0;
+    validationProgress +=
+      Math.min(uploadedRequiredDocs / requiredDocuments.length, 1) * 50; // 50% pour upload
+    validationProgress +=
+      (approvedRequiredDocs / requiredDocuments.length) * 50; // 50% pour approbation
+
+    // Bonus pour documents optionnels approuvés (max 10%)
+    const optionalBonus = Math.min(approvedOptionalDocs * 5, 10); // 5% par document optionnel, max 10%
+    validationProgress += optionalBonus;
+
+    // Limiter à 100%
+    return Math.min(Math.round(validationProgress), 100);
   };
 
   const saveApplication = async (submit = false) => {

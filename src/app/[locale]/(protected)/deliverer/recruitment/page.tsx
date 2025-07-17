@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useSession, signOut, signIn } from 'next-auth/react'
 import { useSearchParams } from 'next/navigation'
 import { useAuth } from "@/hooks/use-auth";
@@ -11,7 +11,7 @@ import { useTranslations } from "next-intl";
 import { toast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertCircle, RefreshCw } from "lucide-react";
+import { AlertCircle, RefreshCw, Database } from "lucide-react";
 
 export default function DelivererRecruitmentPage() {
   // Déplacer TOUS les hooks au début du composant
@@ -24,24 +24,83 @@ export default function DelivererRecruitmentPage() {
   // États locaux
   const [isValidating, setIsValidating] = useState(false)
   const [cookieError, setCookieError] = useState(false)
-  const shouldSync = searchParams.get('sync-validation') === 'true'
+  const [isLoadingDbData, setIsLoadingDbData] = useState(false)
+  const [dbUserData, setDbUserData] = useState(null)
+  const hasProcessedSync = useRef(false)
+
+  // Vérification immédiate : si on a une session, pas d'erreur de cookies
+  useEffect(() => {
+    if (session?.user) {
+      console.log('✅ [COOKIES] Session active détectée, cookies OK');
+      setCookieError(false);
+    }
+  }, [session?.user]);
 
   // Vérifier si les cookies sont activés
   useEffect(() => {
-    // Essayer de définir un cookie test
-    document.cookie = "cookieTest=1; path=/; SameSite=Lax";
-    const cookiesEnabled = document.cookie.indexOf("cookieTest=") !== -1;
-    
-    if (!cookiesEnabled) {
-      console.error('❌ [COOKIES] Les cookies semblent désactivés');
-      setCookieError(true);
-    } else {
-      console.log('✅ [COOKIES] Les cookies sont activés');
-    }
+    // Vérification améliorée des cookies
+    const checkCookies = () => {
+      try {
+        // Essayer de définir un cookie test
+        document.cookie = "cookieTest=1; path=/; SameSite=Lax";
+        
+        // Attendre un court moment pour que le cookie soit défini
+        setTimeout(() => {
+          const cookiesEnabled = document.cookie.indexOf("cookieTest=") !== -1;
+          
+          if (!cookiesEnabled) {
+            // Vérification alternative : si on a une session, les cookies fonctionnent
+            const hasAuthCookies = document.cookie.includes('authjs.') || document.cookie.includes('next-auth');
+            
+            if (!hasAuthCookies && !session?.user) {
+              console.error('❌ [COOKIES] Les cookies semblent désactivés');
+              setCookieError(true);
+            } else {
+              console.log('✅ [COOKIES] Les cookies sont activés (session détectée)');
+              setCookieError(false);
+            }
+          } else {
+            console.log('✅ [COOKIES] Les cookies sont activés');
+            setCookieError(false);
+            // Nettoyer le cookie test
+            document.cookie = "cookieTest=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/";
+          }
+        }, 100);
+      } catch (error) {
+        console.error('❌ [COOKIES] Erreur lors de la vérification des cookies:', error);
+        // Si on a une session malgré l'erreur, les cookies fonctionnent
+        if (session?.user) {
+          setCookieError(false);
+        } else {
+          setCookieError(true);
+        }
+      }
+    };
+
+    checkCookies();
     
     // Vérifier l'état de la session
     checkSessionStatus();
-  }, []);
+  }, [session?.user]);
+
+  // Traiter la synchronisation UNE SEULE FOIS au montage
+  useEffect(() => {
+    const shouldSync = searchParams.get('sync-validation') === 'true'
+    
+    if (session?.user && shouldSync && !hasProcessedSync.current && !isValidating) {
+      hasProcessedSync.current = true
+      
+      // Nettoyer l'URL immédiatement pour éviter les redirections en boucle
+      if (typeof window !== 'undefined' && window.history) {
+        const url = new URL(window.location.href);
+        url.searchParams.delete('sync-validation');
+        window.history.replaceState({}, '', url.toString());
+      }
+      
+      // Synchroniser le statut de validation
+      syncValidationStatus()
+    }
+  }, [session?.user?.id]) // Seulement l'ID de l'utilisateur comme dépendance
   
   // Fonction pour vérifier l'état de la session
   const checkSessionStatus = async () => {
@@ -57,26 +116,82 @@ export default function DelivererRecruitmentPage() {
         const data = await response.json();
         console.log('📊 [DEBUG] État de la session:', data);
         
-        // Vérifier si les cookies de session sont présents
-        const hasSessionCookies = data.cookies.list.some(
-          cookie => cookie.name?.includes('next-auth.session')
+        // Si on a une session utilisateur active, les cookies fonctionnent
+        if (session?.user) {
+          console.log('✅ [COOKIES] Session utilisateur active, cookies OK');
+          setCookieError(false);
+          return;
+        }
+        
+        // Vérifier si les cookies de session sont présents seulement si pas de session
+        const hasSessionCookies = data.cookies?.list?.some(
+          cookie => cookie.name?.includes('next-auth.session') || cookie.name?.includes('authjs.')
         );
         
-        if (!hasSessionCookies) {
-          console.warn('⚠️ [COOKIES] Cookie de session NextAuth non trouvé');
+        if (!hasSessionCookies && !session?.user) {
+          console.warn('⚠️ [COOKIES] Aucun cookie de session trouvé et pas de session active');
           setCookieError(true);
+        } else {
+          setCookieError(false);
         }
       }
     } catch (error) {
       console.error('❌ [DEBUG] Erreur vérification session:', error);
+      // Si on a une session malgré l'erreur, les cookies fonctionnent
+      if (session?.user) {
+        setCookieError(false);
+      }
     }
   };
 
-  useEffect(() => {
-    if (session?.user && shouldSync && !isValidating) {
-      syncValidationStatus()
+  // Fonction pour récupérer les données utilisateur directement depuis la base de données
+  const loadUserDataFromDb = async () => {
+    if (isLoadingDbData) return;
+    
+    setIsLoadingDbData(true);
+    try {
+      console.log('🔄 [DB] Tentative de récupération des données utilisateur depuis la base de données...');
+      
+      const response = await fetch('/api/auth/user-data', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Cache-Control': 'no-cache'
+        },
+        credentials: 'include'
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        console.log('✅ [DB] Données utilisateur récupérées avec succès:', data);
+        setDbUserData(data.user);
+        setCookieError(false); // Réinitialiser l'erreur de cookies si les données sont récupérées
+        console.log('✅ [COOKIES] Données utilisateur chargées, cookies fonctionnels');
+        
+        // Mettre à jour la session si possible
+        if (update) {
+          await update(data.user);
+        }
+        
+        toast({
+          title: "Données récupérées",
+          description: "Vos informations ont été chargées depuis la base de données.",
+          variant: "default"
+        });
+      } else {
+        console.error('❌ [DB] Échec de récupération des données utilisateur:', await response.json());
+        toast({
+          title: "Échec de récupération",
+          description: "Impossible de charger vos données. Veuillez vous reconnecter.",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      console.error('❌ [DB] Erreur lors de la récupération des données:', error);
+    } finally {
+      setIsLoadingDbData(false);
     }
-  }, [session, shouldSync, isValidating])
+  };
 
   const syncValidationStatus = async () => {
     if (isValidating) return
@@ -95,18 +210,33 @@ export default function DelivererRecruitmentPage() {
       const result = await response.json()
       console.log('📊 [CLIENT] Résultat de la synchronisation:', result)
 
+      // Vérifier si une mise à jour est nécessaire
       if (result.needsRefresh && result.freshValidationStatus === 'VALIDATED') {
         console.log('🔄 [CLIENT] Token JWT obsolète, forçage de la reconnexion...')
         
-        // Sauvegarder les données de connexion
-        const email = session?.user?.email
+        // Mettre à jour la session si possible
+        if (update) {
+          await update()
+          console.log('✅ [CLIENT] Session mise à jour')
+          
+          // Vérifier si la mise à jour a résolu le problème
+          const updatedSession = await fetch('/api/auth/session')
+          const sessionData = await updatedSession.json()
+          
+          if (sessionData?.user?.validationStatus === 'VALIDATED') {
+            console.log('✅ [CLIENT] Session correctement mise à jour, pas besoin de déconnexion')
+            window.location.href = '/fr/deliverer'
+            return
+          }
+        }
         
-        // Se déconnecter et se reconnecter automatiquement
+        // Si la mise à jour de session n'a pas fonctionné, déconnexion/reconnexion
+        console.log('🔄 [CLIENT] Déconnexion/reconnexion nécessaire')
         await signOut({ redirect: false })
         
-        // Petit délai avant reconnexion
-        setTimeout(async () => {
-          window.location.reload()
+        // Petit délai avant rechargement
+        setTimeout(() => {
+          window.location.href = '/fr/login?callbackUrl=/fr/deliverer'
         }, 1000)
       }
     } catch (error) {
@@ -161,6 +291,15 @@ export default function DelivererRecruitmentPage() {
             <RefreshCw className="h-4 w-4" /> Rafraîchir la session
           </Button>
           
+          <Button 
+            onClick={loadUserDataFromDb} 
+            className="flex items-center gap-2"
+            disabled={isLoadingDbData}
+          >
+            <Database className="h-4 w-4" /> 
+            {isLoadingDbData ? "Chargement..." : "Charger depuis la base de données"}
+          </Button>
+          
           <Button variant="outline" onClick={() => window.location.href = '/fr/login'}>
             Retour à la connexion
           </Button>
@@ -169,20 +308,24 @@ export default function DelivererRecruitmentPage() {
     );
   }
 
-  if (status === 'loading' || isValidating) {
+  if (status === 'loading' || isValidating || isLoadingDbData) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
           <p className="text-gray-600">
-            {isValidating ? 'Synchronisation du statut de validation...' : 'Chargement...'}
+            {isValidating ? 'Synchronisation du statut de validation...' : 
+             isLoadingDbData ? 'Chargement depuis la base de données...' : 'Chargement...'}
           </p>
         </div>
       </div>
     )
   }
 
-  if (!user) {
+  // Utiliser les données de la base de données si disponibles, sinon utiliser les données de session
+  const effectiveUser = dbUserData || user;
+
+  if (!effectiveUser) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
@@ -190,12 +333,20 @@ export default function DelivererRecruitmentPage() {
             {t("auth.required_title")}
           </h2>
           <p className="text-gray-600">{t("auth.required_description")}</p>
-          <Button 
-            onClick={() => window.location.href = '/fr/login'} 
-            className="mt-4"
-          >
-            Se connecter
-          </Button>
+          <div className="flex flex-col gap-2 mt-4">
+            <Button 
+              onClick={loadUserDataFromDb} 
+              className="flex items-center gap-2"
+            >
+              <Database className="h-4 w-4" /> Charger depuis la base de données
+            </Button>
+            <Button 
+              onClick={() => window.location.href = '/fr/login'} 
+              className="mt-2"
+            >
+              Se connecter
+            </Button>
+          </div>
         </div>
       </div>
     );
@@ -216,7 +367,7 @@ export default function DelivererRecruitmentPage() {
         </div>
       )}
 
-      <DelivererRecruitmentSystem userId={user.id} />
+      <DelivererRecruitmentSystem userId={effectiveUser.id} />
     </div>
   );
 }

@@ -5,6 +5,8 @@ model User {
   email             String              @unique
   emailVerified     Boolean             @default(false)
   emailVerifiedAt   DateTime?
+  emailVerificationToken String?        // Added for email verification
+  emailVerificationExpires DateTime?    // Added for email verification expiration
   name              String?
   image             String?
   password          String?             // Mot de passe pour credentials
