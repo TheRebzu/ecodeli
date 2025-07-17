@@ -87,7 +87,7 @@ export function LoginForm({
           } else if (statusCheck.role === "DELIVERER") {
             router.push("/deliverer/validation");
           } else {
-            router.push("/onboarding/documents");
+            router.push("/client/documents");
           }
           return;
         }
@@ -97,7 +97,7 @@ export function LoginForm({
           } else if (statusCheck.role === "DELIVERER") {
             router.push("/deliverer/validation");
           } else {
-            router.push("/onboarding/pending");
+            router.push("/client/dashboard");
           }
           return;
         }

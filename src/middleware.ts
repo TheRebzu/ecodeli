@@ -220,7 +220,38 @@ export default async function middleware(request: NextRequest) {
 
       // Vérifier si le compte est actif selon le rôle
       if (!isUserActive(user.role, user.isActive)) {
-        return NextResponse.redirect(new URL(`/${locale}/onboarding`, request.url));
+        // For DELIVERER and PROVIDER, check if they're already validated at profile level
+        if (user.role === "DELIVERER") {
+          const delivererValidationStatus = session.user.profileData?.validationStatus;
+          const delivererIsActive = session.user.profileData?.isActive;
+          
+          // If profile is validated and active, allow access to deliverer pages
+          if (delivererValidationStatus === "VALIDATED" && delivererIsActive) {
+            console.log('✅ [MIDDLEWARE] Deliverer profile is validated and active, allowing access');
+            return NextResponse.next();
+          }
+          
+          // Otherwise redirect to recruitment
+          return NextResponse.redirect(new URL(`/${locale}/deliverer/recruitment`, request.url));
+        }
+        
+        if (user.role === "PROVIDER") {
+          const providerValidationStatus = session.user.profileData?.validationStatus;
+          const providerIsActive = session.user.profileData?.isActive;
+          
+          // If profile is validated and active, allow access to provider pages
+          if (providerValidationStatus === "VALIDATED" && providerIsActive) {
+            console.log('✅ [MIDDLEWARE] Provider profile is validated and active, allowing access');
+            return NextResponse.next();
+          }
+          
+          // Otherwise redirect to recruitment
+          return NextResponse.redirect(new URL(`/${locale}/provider/recruitment`, request.url));
+        }
+        
+        // For other roles (CLIENT, MERCHANT, ADMIN), redirect to their dashboard
+        const defaultRoute = getDefaultRouteForRole(user.role, locale);
+        return NextResponse.redirect(new URL(defaultRoute, request.url));
       }
 
       // Vérifications spécifiques par rôle
