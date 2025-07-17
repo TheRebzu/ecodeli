@@ -35,7 +35,7 @@ interface NavigationItem {
   key: string;
   label: string;
   href: string;
-  icon?: any;
+  icon?: ReactNode;
   category?: string;
   badge?: string;
   children?: NavigationItem[];
@@ -50,12 +50,6 @@ interface BaseSidebarProps {
   onToggle?: () => void;
   className?: string;
 }
-
-// Configuration des icônes
-const getIcon = (iconName?: string) => {
-  // Retourne l'icône correspondante - à implémenter selon vos besoins
-  return iconName ? <Circle className="h-4 w-4" /> : null;
-};
 
 export function BaseSidebar({
   role,
@@ -220,7 +214,7 @@ function NavigationMenuItem({
   onToggle,
   pathname,
 }: {
-  item: any;
+  item: NavigationItem;
   isActive: boolean;
   isExpanded: boolean;
   onToggle: () => void;
@@ -241,7 +235,7 @@ function NavigationMenuItem({
               item.disabled && "opacity-50 pointer-events-none"
             )}
           >
-            {getIcon(item.icon)}
+            {item.icon}
             <span className="flex-1">{item.label}</span>
 
             {/* Badge de notification */}
@@ -266,7 +260,7 @@ function NavigationMenuItem({
                     className={cn(child.disabled && "opacity-50 pointer-events-none")}
                   >
                     <Link href={child.disabled ? "#" : child.href}>
-                      {getIcon(child.icon)}
+                      {child.icon}
                       <span>{child.label}</span>
                       {child.badge && (
                         <span className="ml-auto bg-primary/10 text-primary text-xs px-1.5 py-0.5 rounded">
@@ -290,7 +284,7 @@ function NavigationMenuItem({
             className={cn(item.disabled && "opacity-50 pointer-events-none")}
           >
             <Link href={item.disabled ? "#" : item.href}>
-              {getIcon(item.icon)}
+              {item.icon}
               <span>{item.label}</span>
               {item.badge && <SidebarMenuBadge>{item.badge}</SidebarMenuBadge>}
             </Link>

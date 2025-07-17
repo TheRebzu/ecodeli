@@ -4,8 +4,10 @@ import { AdminDashboard } from "@/features/admin/components/dashboard/admin-dash
 
 export default function AdminDashboardPage() {
   return (
-    <div className="container mx-auto py-6">
-      <AdminDashboard />
+    <div className="w-full h-full">
+      <div className="p-6">
+        <AdminDashboard />
+      </div>
     </div>
   );
 }

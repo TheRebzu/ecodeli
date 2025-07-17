@@ -7,7 +7,6 @@ import { AdminHeader } from "@/components/layout/headers/admin-header";
 import { AdminSidebar } from "@/components/layout/sidebars/admin-sidebar";
 import { Toaster } from "@/components/ui/toaster";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
-import { cn } from "@/lib/utils";
 import { type EcoDeliUser } from "@/components/layout/types/layout.types";
 
 interface AdminLayoutProps {
@@ -17,7 +16,6 @@ interface AdminLayoutProps {
 export default function AdminLayout({ children }: AdminLayoutProps) {
   const router = useRouter();
   const { user, isLoading: authLoading } = useAuth();
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // Close mobile menu when clicking outside
@@ -126,7 +124,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen bg-background dark:bg-background flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin h-8 w-8 border-4 border-red-600 border-t-transparent rounded-full mx-auto" />
           <p className="mt-4 text-muted-foreground">
@@ -139,7 +137,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
 
   if (!user || !ecoDeliUser) {
     return (
-      <div className="min-h-screen bg-background dark:bg-background flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
           <div className="h-12 w-12 text-red-600 mx-auto text-2xl">⚠️</div>
           <p className="mt-4 text-muted-foreground">
@@ -152,7 +150,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
 
   if (user.role !== "ADMIN") {
     return (
-      <div className="min-h-screen bg-background dark:bg-background flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
           <div className="h-12 w-12 text-red-600 mx-auto text-2xl">🚫</div>
           <p className="mt-4 text-muted-foreground">
@@ -164,51 +162,53 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   }
 
   return (
-    <SidebarProvider defaultOpen={!sidebarCollapsed}>
-      <div className="flex h-screen bg-background dark:bg-background">
-        {/* Desktop Sidebar */}
-        <AdminSidebar user={ecoDeliUser} collapsed={sidebarCollapsed} />
+    <div className="min-h-screen bg-background">
+      <SidebarProvider>
+        <div className="flex h-screen w-full">
+          {/* Desktop Sidebar */}
+          <AdminSidebar user={ecoDeliUser} />
 
-        {/* Mobile Sidebar Overlay */}
-        {mobileMenuOpen && (
-          <div className="fixed inset-0 z-50 md:hidden">
-            <div
-              className="absolute inset-0 bg-black/50"
-              onClick={() => setMobileMenuOpen(false)}
-            />
-            <aside className="absolute left-0 top-0 h-full w-64 bg-background border-r border-border">
-              <AdminSidebar user={ecoDeliUser} collapsed={false} />
-            </aside>
-          </div>
-        )}
-
-        {/* Main Content */}
-        <SidebarInset className="flex-1 flex flex-col min-w-0">
-          {/* Header */}
-          <AdminHeader
-            user={{
-              id: user.id,
-              name: user.email.split("@")[0], // Use email prefix as name fallback
-              email: user.email,
-              role: user.role,
-              adminLevel: "SUPER_ADMIN", // This would come from user profile
-              avatar: "", // Avatar would be loaded from profile
-            }}
-            onSidebarToggle={toggleMobileMenu}
-            notifications={mockNotifications}
-          />
-
-          {/* Page Content */}
-          <main className="flex-1 overflow-auto bg-background dark:bg-background">
-            <div className="p-6">
-              <div className="mx-auto max-w-7xl">{children}</div>
+          {/* Mobile Sidebar Overlay */}
+          {mobileMenuOpen && (
+            <div className="fixed inset-0 z-50 md:hidden">
+              <div
+                className="absolute inset-0 bg-black/50"
+                onClick={() => setMobileMenuOpen(false)}
+              />
+              <aside className="absolute left-0 top-0 h-full w-64 bg-background border-r border-border">
+                <AdminSidebar user={ecoDeliUser} />
+              </aside>
             </div>
-          </main>
-        </SidebarInset>
+          )}
+
+          {/* Main Content Area */}
+          <SidebarInset className="flex-1 flex flex-col min-w-0 overflow-hidden">
+            {/* Header */}
+            <AdminHeader
+              user={{
+                id: user.id,
+                name: user.email.split("@")[0],
+                email: user.email,
+                role: user.role,
+                adminLevel: "SUPER_ADMIN",
+                avatar: "",
+              }}
+              onSidebarToggle={toggleMobileMenu}
+              notifications={mockNotifications}
+            />
+
+            {/* Page Content */}
+            <main className="flex-1 overflow-y-auto">
+              <div className="h-full w-full">
+                {children}
+              </div>
+            </main>
+          </SidebarInset>
+        </div>
 
         {/* Toast Notifications */}
         <Toaster />
-      </div>
-    </SidebarProvider>
+      </SidebarProvider>
+    </div>
   );
 }

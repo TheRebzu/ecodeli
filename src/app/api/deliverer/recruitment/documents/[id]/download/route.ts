@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getUserFromSession } from "@/lib/auth/utils";
 import { db } from "@/lib/db";
-import { readFile } from "fs/promises";
-import { getDocumentSystemPath } from "@/lib/utils/file-path";
 
 export async function GET(
   request: NextRequest,
@@ -50,39 +48,21 @@ export async function GET(
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    // Construire le chemin système du fichier
-    const systemPath = getDocumentSystemPath(document.url);
-    
-    console.log('🔍 [DOCUMENT DOWNLOAD] Chemins:', {
-      documentUrl: document.url,
-      systemPath: systemPath,
-      documentId: documentId
-    });
-
-    // Lire le fichier
-    const fileBuffer = await readFile(systemPath);
-
-    // Vérifier que le fichier a bien été lu
-    if (!fileBuffer || fileBuffer.length === 0) {
-      console.error('❌ [DOCUMENT DOWNLOAD] Fichier vide ou non lu');
+    // Vérifier que le contenu existe
+    if (!document.content) {
       return NextResponse.json(
-        { error: "File is empty or could not be read" },
-        { status: 500 }
+        { error: "Document content not found" },
+        { status: 404 },
       );
     }
 
-    // S'assurer que le Content-Type est correct pour les PDF
-    let contentType = document.mimeType;
-    if (document.originalName.toLowerCase().endsWith('.pdf')) {
-      contentType = 'application/pdf';
-    }
+    // Convertir le contenu base64 en buffer
+    const fileBuffer = Buffer.from(document.content, 'base64');
 
     // Retourner le fichier
     const headers: Record<string, string> = {
-      "Content-Type": contentType,
+      "Content-Type": document.mimeType,
       "Content-Length": fileBuffer.length.toString(),
-      "Cache-Control": "no-cache",
-      "Accept-Ranges": "bytes",
     };
 
     // Si download=true, forcer le téléchargement, sinon afficher dans le navigateur
@@ -93,7 +73,7 @@ export async function GET(
     }
 
     console.log('✅ [DOCUMENT DOWNLOAD] Fichier servi:', {
-      contentType,
+      contentType: document.mimeType,
       fileSize: fileBuffer.length,
       originalName: document.originalName,
       isDownload: download

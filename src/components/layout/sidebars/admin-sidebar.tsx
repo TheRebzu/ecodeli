@@ -115,7 +115,7 @@ export function AdminSidebar({
     {
       key: "documents",
       label: t("documents"),
-      href: "/admin/documents",
+      href: "/admin/documents/validation",
       icon: <FileImage className="h-4 w-4" />,
       category: "validation",
     },
@@ -135,7 +135,6 @@ export function AdminSidebar({
       href: "/admin/deliveries-monitoring",
       icon: <Monitor className="h-4 w-4" />,
       category: "operations",
-      disabled: true,
     },
 
     // ===== ANNONCES =====
@@ -154,7 +153,6 @@ export function AdminSidebar({
       href: "/admin/disputes",
       icon: <MessageSquare className="h-4 w-4" />,
       category: "support",
-      disabled: true,
     },
 
     // ===== TICKETS SUPPORT =====
@@ -164,7 +162,6 @@ export function AdminSidebar({
       href: "/admin/support-tickets",
       icon: <MessageSquare className="h-4 w-4" />,
       category: "support",
-      disabled: true,
     },
 
     // ===== MODÉRATION =====
@@ -174,7 +171,6 @@ export function AdminSidebar({
       href: "/admin/moderation",
       icon: <Shield className="h-4 w-4" />,
       category: "content",
-      disabled: true,
     },
 
     // ===== FINANCE =====
@@ -184,7 +180,6 @@ export function AdminSidebar({
       href: "/admin/finance",
       icon: <DollarSign className="h-4 w-4" />,
       category: "finance",
-      disabled: true,
     },
 
     {
@@ -193,7 +188,6 @@ export function AdminSidebar({
       href: "/admin/billing",
       icon: <CreditCard className="h-4 w-4" />,
       category: "finance",
-      disabled: true,
     },
 
     // ===== FACTURATION PRESTATAIRES =====
@@ -203,7 +197,6 @@ export function AdminSidebar({
       href: "/admin/provider-billing",
       icon: <TrendingUp className="h-4 w-4" />,
       category: "finance",
-      disabled: true,
     },
 
     // ===== CONTRATS =====
@@ -213,7 +206,6 @@ export function AdminSidebar({
       href: "/admin/contracts",
       icon: <Handshake className="h-4 w-4" />,
       category: "business",
-      disabled: true,
     },
 
     // ===== ENTREPÔTS =====
@@ -223,7 +215,6 @@ export function AdminSidebar({
       href: "/admin/locations",
       icon: <Building className="h-4 w-4" />,
       category: "infrastructure",
-      disabled: true,
     },
 
     // ===== ASSURANCE =====
@@ -233,7 +224,6 @@ export function AdminSidebar({
       href: "/admin/insurance",
       icon: <Heart className="h-4 w-4" />,
       category: "business",
-      disabled: true,
     },
 
     // ===== PARRAINAGE =====
@@ -243,7 +233,6 @@ export function AdminSidebar({
       href: "/admin/referrals",
       icon: <UserCheck className="h-4 w-4" />,
       category: "marketing",
-      disabled: true,
     },
 
     // ===== MONITORING =====
@@ -253,7 +242,6 @@ export function AdminSidebar({
       href: "/admin/monitoring",
       icon: <Activity className="h-4 w-4" />,
       category: "system",
-      disabled: true,
     },
 
     // ===== CONFIGURATION SYSTÈME =====
@@ -263,7 +251,6 @@ export function AdminSidebar({
       href: "/admin/system-config",
       icon: <Settings className="h-4 w-4" />,
       category: "system",
-      disabled: true,
     },
 
     // ===== PARAMÈTRES =====
@@ -273,7 +260,6 @@ export function AdminSidebar({
       href: "/admin/settings",
       icon: <Settings className="h-4 w-4" />,
       category: "system",
-      disabled: true,
     },
 
     // ===== TESTS =====
@@ -283,7 +269,6 @@ export function AdminSidebar({
       href: "/admin/tests",
       icon: <TestTube className="h-4 w-4" />,
       category: "development",
-      disabled: true,
     },
   ];
 
