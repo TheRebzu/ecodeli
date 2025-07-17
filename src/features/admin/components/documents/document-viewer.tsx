@@ -48,6 +48,12 @@ export function DocumentViewer({
   const [validationNotes, setValidationNotes] = useState("");
   const [validating, setValidating] = useState(false);
 
+  // Générer l'URL d'accès au document via l'API
+  const getDocumentUrl = (download: boolean = false) => {
+    const baseUrl = `/api/deliverer/recruitment/documents/${document.id}/download`;
+    return download ? `${baseUrl}?download=true` : baseUrl;
+  };
+
   const handleValidation = async (status: "APPROVED" | "REJECTED") => {
     setValidating(true);
     try {
@@ -78,25 +84,25 @@ export function DocumentViewer({
     return labels[role] || role;
   };
 
-  const isImage = (url: string) => {
-    return /\.(jpg|jpeg|png|gif|webp)$/i.test(url);
+  const isImage = (filename: string) => {
+    return /\.(jpg|jpeg|png|gif|webp)$/i.test(filename);
   };
 
-  const isPdf = (url: string) => {
-    return /\.pdf$/i.test(url);
+  const isPdf = (filename: string) => {
+    return /\.pdf$/i.test(filename);
   };
 
   return (
     <Dialog open={true} onOpenChange={onClose}>
-      <DialogContent className="max-w-5xl sm:max-w-5xl md:max-w-5xl lg:max-w-5xl xl:max-w-5xl max-h-[95vh] overflow-y-auto w-[90vw]">
+      <DialogContent className="max-w-5xl max-h-[95vh] overflow-y-auto w-[95vw] sm:w-[90vw]">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <FileText className="w-5 h-5" />
-            Validation de document
+          <DialogTitle className="flex items-center gap-2 text-base sm:text-lg">
+            <FileText className="w-4 h-4 sm:w-5 sm:h-5" />
+            <span className="truncate">Validation de document</span>
           </DialogTitle>
         </DialogHeader>
 
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
           {/* Informations du document */}
           <div className="space-y-4">
             <Card>
@@ -284,7 +290,7 @@ export function DocumentViewer({
                     />
                   </div>
 
-                  <div className="flex gap-2">
+                  <div className="flex flex-col sm:flex-row gap-2">
                     <Button
                       onClick={() => handleValidation("APPROVED")}
                       disabled={validating}
@@ -329,33 +335,33 @@ export function DocumentViewer({
           <div className="space-y-4">
             <Card className="h-full">
               <CardHeader>
-                <CardTitle className="text-base flex items-center justify-between">
+                <CardTitle className="text-base flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                   <span>Aperçu du document</span>
-                  <div className="flex gap-2">
+                  <div className="flex flex-wrap gap-2">
                     <Button
                       size="sm"
                       variant="outline"
-                      onClick={() => openFileInNewTab(document.url)}
+                      onClick={() => openFileInNewTab(getDocumentUrl())}
                     >
                       <ExternalLink className="w-4 h-4 mr-2" />
-                      Ouvrir
+                      <span className="hidden sm:inline">Ouvrir</span>
                     </Button>
                     <Button
                       size="sm"
                       variant="outline"
-                      onClick={() => downloadFile(document.url, document.name)}
+                      onClick={() => downloadFile(getDocumentUrl(true), document.name)}
                     >
                       <Download className="w-4 h-4 mr-2" />
-                      Télécharger
+                      <span className="hidden sm:inline">Télécharger</span>
                     </Button>
                   </div>
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-2">
-                <div className="border rounded-lg overflow-hidden bg-gray-50 min-h-[500px] max-h-[600px] flex items-center justify-center">
-                  {isImage(document.url) ? (
+                <div className="border rounded-lg overflow-hidden bg-gray-50 min-h-[300px] sm:min-h-[400px] lg:min-h-[500px] max-h-[600px] flex items-center justify-center">
+                  {isImage(document.name) ? (
                     <img
-                      src={document.url}
+                      src={getDocumentUrl()}
                       alt={document.name}
                       className="max-w-full max-h-full object-contain"
                       onError={(e) => {
@@ -371,9 +377,9 @@ export function DocumentViewer({
                         `;
                       }}
                     />
-                  ) : isPdf(document.url) ? (
+                  ) : isPdf(document.name) ? (
                     <object
-                      data={document.url}
+                      data={getDocumentUrl()}
                       type="application/pdf"
                       className="w-full h-[500px]"
                       title={document.name}
@@ -386,16 +392,17 @@ export function DocumentViewer({
                         <p className="text-sm text-muted-foreground mb-4">
                           {document.name}
                         </p>
-                        <div className="flex gap-2 justify-center">
+                        <div className="flex flex-col sm:flex-row gap-2 justify-center">
                           <Button
-                            onClick={() => openFileInNewTab(document.url)}
+                            onClick={() => openFileInNewTab(getDocumentUrl())}
                           >
                             <ExternalLink className="w-4 h-4 mr-2" />
-                            Ouvrir le PDF
+                            <span className="hidden sm:inline">Ouvrir le PDF</span>
+                            <span className="sm:hidden">Ouvrir</span>
                           </Button>
                           <Button
                             variant="outline"
-                            onClick={() => downloadFile(document.url, document.name)}
+                            onClick={() => downloadFile(getDocumentUrl(true), document.name)}
                           >
                             <Download className="w-4 h-4 mr-2" />
                             Télécharger
@@ -414,7 +421,7 @@ export function DocumentViewer({
                       </p>
                       <Button
                         className="mt-4"
-                        onClick={() => openFileInNewTab(document.url)}
+                        onClick={() => openFileInNewTab(getDocumentUrl())}
                       >
                         <ExternalLink className="w-4 h-4 mr-2" />
                         Ouvrir le document

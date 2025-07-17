@@ -88,11 +88,7 @@ export async function POST(request: NextRequest) {
     const existingDoc = await db.document.findFirst({
       where: {
         userId,
-<<<<<<< HEAD
-        type: type as any,
-=======
         type: type as any, // Type de document (IDENTITY, DRIVING_LICENSE, etc.)
->>>>>>> 23ec1e6c76e4f3fa50a5e81f01887c15e16ea94d
       },
     });
 
@@ -114,40 +110,12 @@ export async function POST(request: NextRequest) {
         originalName: file.name,
         mimeType: file.type,
         size: file.size,
-<<<<<<< HEAD
-        url: filePath,
-=======
         url: fileUrl,
->>>>>>> 23ec1e6c76e4f3fa50a5e81f01887c15e16ea94d
         validationStatus: "PENDING",
       },
     });
 
-<<<<<<< HEAD
-    // Notifier les admins qu'un nouveau document a été uploadé
-    const admins = await db.user.findMany({
-      where: { role: "ADMIN" },
-      select: { id: true },
-    });
-
-    const notifications = admins.map((admin) => ({
-      userId: admin.id,
-      type: "SYSTEM" as const,
-      title: "Nouveau document de candidature",
-      message: `Un nouveau document a été uploadé pour la candidature de ${application.user.profile?.firstName || application.user.name || application.user.email}`,
-      data: {
-        applicationId: application.id,
-        documentId: document.id,
-        documentType: type,
-      },
-    }));
-
-    await db.notification.createMany({
-      data: notifications,
-    });
-=======
     // Les notifications ont été retirées selon les demandes du client
->>>>>>> 23ec1e6c76e4f3fa50a5e81f01887c15e16ea94d
 
     return NextResponse.json({
       success: true,

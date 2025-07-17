@@ -303,3 +303,69 @@
 .mobile-full {
   @apply w-full md:w-auto;
 }
+
+/* Admin components responsive */
+.admin-dashboard-container {
+  @apply space-y-6 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+}
+
+.admin-stats-grid {
+  @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4;
+}
+
+.admin-filters-grid {
+  @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4;
+}
+
+.admin-actions-flex {
+  @apply flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4;
+}
+
+.admin-buttons-flex {
+  @apply flex flex-col sm:flex-row gap-2;
+}
+
+.admin-table-container {
+  @apply border rounded-lg overflow-hidden;
+}
+
+.admin-table-wrapper {
+  @apply overflow-x-auto;
+}
+
+.admin-dialog-content {
+  @apply max-w-5xl max-h-[95vh] overflow-y-auto w-[95vw] sm:w-[90vw];
+}
+
+.admin-document-grid {
+  @apply grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6;
+}
+
+.admin-document-preview {
+  @apply min-h-[300px] sm:min-h-[400px] lg:min-h-[500px] max-h-[600px];
+}
+
+/* Mobile-first responsive utilities */
+.mobile-stack {
+  @apply flex flex-col space-y-2 sm:flex-row sm:space-y-0 sm:space-x-4;
+}
+
+.mobile-center {
+  @apply text-center sm:text-left;
+}
+
+.mobile-hide {
+  @apply hidden sm:block;
+}
+
+.mobile-show {
+  @apply block sm:hidden;
+}
+
+.tablet-hide {
+  @apply hidden lg:block;
+}
+
+.tablet-show {
+  @apply block lg:hidden;
+}

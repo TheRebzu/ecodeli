@@ -229,3 +229,30 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Amélioration responsive pour les tables */
+@media (max-width: 640px) {
+  .admin-table-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  .admin-table-wrapper table {
+    min-width: 600px;
+  }
+  
+  .admin-table-wrapper th,
+  .admin-table-wrapper td {
+    padding: 8px 12px;
+    white-space: nowrap;
+  }
+}
+
+/* Amélioration des dialog sur mobile */
+@media (max-width: 768px) {
+  .admin-dialog-content {
+    margin: 10px;
+    width: calc(100vw - 20px);
+    max-height: calc(100vh - 20px);
+  }
+}

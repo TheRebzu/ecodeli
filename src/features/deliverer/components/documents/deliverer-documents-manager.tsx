@@ -346,7 +346,7 @@ export default function DelivererDocumentsManager({
                     <div className="flex gap-2">
                       <Button variant="outline" size="sm" asChild>
                         <a
-                          href={document.url}
+                          href={`/api/deliverer/recruitment/documents/${document.id}/download`}
                           target="_blank"
                           rel="noopener noreferrer"
                         >
@@ -355,7 +355,7 @@ export default function DelivererDocumentsManager({
                         </a>
                       </Button>
                       <Button variant="outline" size="sm" asChild>
-                        <a href={document.url} download>
+                        <a href={`/api/deliverer/recruitment/documents/${document.id}/download?download=true`} download>
                           <Download className="h-3 w-3 mr-1" />
                           {t("actions.download")}
                         </a>

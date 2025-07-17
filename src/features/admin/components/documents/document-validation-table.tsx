@@ -159,11 +159,11 @@ export function DocumentValidationTable({
     <div className="space-y-4">
       {/* Actions en lot */}
       {selectedDocs.length > 0 && (
-        <div className="flex items-center gap-2 p-4 bg-blue-50 rounded-lg border">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2 p-4 bg-blue-50 rounded-lg border">
           <span className="text-sm font-medium">
             {selectedDocs.length} document(s) sélectionné(s)
           </span>
-          <div className="flex gap-2 ml-auto">
+          <div className="flex flex-wrap gap-2 sm:ml-auto">
             <Button
               size="sm"
               variant="outline"
@@ -172,7 +172,8 @@ export function DocumentValidationTable({
               className="text-green-600 hover:text-green-700"
             >
               <Check className="w-4 h-4 mr-1" />
-              Approuver tout
+              <span className="hidden sm:inline">Approuver tout</span>
+              <span className="sm:hidden">Approuver</span>
             </Button>
             <Button
               size="sm"
@@ -182,7 +183,8 @@ export function DocumentValidationTable({
               className="text-red-600 hover:text-red-700"
             >
               <X className="w-4 h-4 mr-1" />
-              Rejeter tout
+              <span className="hidden sm:inline">Rejeter tout</span>
+              <span className="sm:hidden">Rejeter</span>
             </Button>
             <Button
               size="sm"
@@ -196,8 +198,9 @@ export function DocumentValidationTable({
       )}
 
       {/* Table */}
-      <div className="border rounded-lg">
-        <Table>
+      <div className="border rounded-lg overflow-hidden">
+        <div className="overflow-x-auto">
+          <Table>
           <TableHeader>
             <TableRow>
               <TableHead className="w-12">
@@ -329,7 +332,7 @@ export function DocumentValidationTable({
                             Voir les détails
                           </DropdownMenuItem>
                           <DropdownMenuItem
-                            onClick={() => window.open(document.url, "_blank")}
+                            onClick={() => window.open(`/api/deliverer/recruitment/documents/${document.id}/download?download=true`, "_blank")}
                           >
                             <Download className="w-4 h-4 mr-2" />
                             Télécharger
@@ -355,6 +358,7 @@ export function DocumentValidationTable({
             })}
           </TableBody>
         </Table>
+        </div>
       </div>
     </div>
   );
