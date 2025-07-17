@@ -378,38 +378,69 @@ export function DocumentViewer({
                       }}
                     />
                   ) : isPdf(document.name) ? (
-                    <object
-                      data={getDocumentUrl()}
-                      type="application/pdf"
-                      className="w-full h-[500px]"
-                      title={document.name}
-                    >
-                      <div className="text-center p-8">
-                        <FileText className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                        <p className="text-muted-foreground mb-2">
-                          Impossible d'afficher le PDF
-                        </p>
-                        <p className="text-sm text-muted-foreground mb-4">
-                          {document.name}
-                        </p>
-                        <div className="flex flex-col sm:flex-row gap-2 justify-center">
-                          <Button
-                            onClick={() => openFileInNewTab(getDocumentUrl())}
-                          >
-                            <ExternalLink className="w-4 h-4 mr-2" />
-                            <span className="hidden sm:inline">Ouvrir le PDF</span>
-                            <span className="sm:hidden">Ouvrir</span>
-                          </Button>
-                          <Button
-                            variant="outline"
-                            onClick={() => downloadFile(getDocumentUrl(true), document.name)}
-                          >
-                            <Download className="w-4 h-4 mr-2" />
-                            Télécharger
-                          </Button>
+                    <div className="w-full h-[500px] relative">
+                      <iframe
+                        src={getDocumentUrl()}
+                        className="w-full h-full border-0 rounded"
+                        title={document.name}
+                        onError={(e) => {
+                          console.error('Erreur chargement PDF:', e);
+                          const fallbackDiv = document.createElement('div');
+                          fallbackDiv.className = 'text-center p-8 flex flex-col items-center justify-center h-full';
+                          fallbackDiv.innerHTML = `
+                            <div class="text-center p-8">
+                              <div class="w-12 h-12 text-muted-foreground mx-auto mb-4">📄</div>
+                              <p class="text-muted-foreground mb-2">
+                                Impossible d'afficher le PDF
+                              </p>
+                              <p class="text-sm text-muted-foreground mb-4">
+                                ${document.name}
+                              </p>
+                              <div class="flex flex-col sm:flex-row gap-2 justify-center">
+                                <button onclick="window.open('${getDocumentUrl()}', '_blank')" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+                                  Ouvrir dans un nouvel onglet
+                                </button>
+                                <button onclick="window.open('${getDocumentUrl(true)}', '_blank')" class="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700">
+                                  Télécharger
+                                </button>
+                              </div>
+                            </div>
+                          `;
+                          if (e.target.parentElement) {
+                            e.target.parentElement.appendChild(fallbackDiv);
+                            e.target.style.display = 'none';
+                          }
+                        }}
+                      />
+                      {/* Fallback pour les navigateurs qui ne supportent pas les iframes PDF */}
+                      <noscript>
+                        <div className="text-center p-8">
+                          <FileText className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                          <p className="text-muted-foreground mb-2">
+                            JavaScript requis pour afficher le PDF
+                          </p>
+                          <p className="text-sm text-muted-foreground mb-4">
+                            {document.name}
+                          </p>
+                          <div className="flex flex-col sm:flex-row gap-2 justify-center">
+                            <Button
+                              onClick={() => openFileInNewTab(getDocumentUrl())}
+                            >
+                              <ExternalLink className="w-4 h-4 mr-2" />
+                              <span className="hidden sm:inline">Ouvrir le PDF</span>
+                              <span className="sm:hidden">Ouvrir</span>
+                            </Button>
+                            <Button
+                              variant="outline"
+                              onClick={() => downloadFile(getDocumentUrl(true), document.name)}
+                            >
+                              <Download className="w-4 h-4 mr-2" />
+                              Télécharger
+                            </Button>
+                          </div>
                         </div>
-                      </div>
-                    </object>
+                      </noscript>
+                    </div>
                   ) : (
                     <div className="text-center p-8">
                       <FileText className="w-12 h-12 text-muted-foreground mx-auto mb-4" />

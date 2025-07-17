@@ -2,6 +2,27 @@
 @import "tw-animate-css";
 @import "../styles/responsive.css";
 
+/* Forcer l'utilisation de tout l'écran */
+html, body {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+}
+
+#__next {
+  height: 100%;
+  width: 100%;
+}
+
+/* Styles pour l'admin plein écran */
+.admin-layout {
+  min-height: 100vh;
+  width: 100vw;
+  max-width: 100vw;
+}
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {

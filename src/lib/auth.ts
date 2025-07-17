@@ -128,15 +128,11 @@ const config = {
           session.user.emailVerified = token.emailVerified as Date | null
           session.user.profileData = token.profileData
         } else {
-          // Dans les autres contextes, récupérer les données fraîches
+          // Dans les autres contextes, TOUJOURS récupérer les données fraîches
           try {
             const freshUser = await db.user.findUnique({
               where: { id: token.sub },
-              select: {
-                isActive: true,
-                validationStatus: true,
-                emailVerified: true,
-                role: true,
+              include: {
                 profile: true,
                 client: true,
                 deliverer: true,
@@ -147,14 +143,43 @@ const config = {
             })
             
             if (freshUser) {
-              session.user.isActive = freshUser.isActive
+              // Calculer le validationStatus effectif selon le rôle
+              let effectiveValidationStatus = freshUser.validationStatus
+              let effectiveIsActive = freshUser.isActive
+              
+              switch (freshUser.role) {
+                case "DELIVERER":
+                  effectiveValidationStatus = freshUser.deliverer?.validationStatus || freshUser.validationStatus
+                  effectiveIsActive = freshUser.deliverer?.isActive || freshUser.isActive
+                  break
+                case "PROVIDER":
+                  effectiveValidationStatus = freshUser.provider?.validationStatus || freshUser.validationStatus
+                  effectiveIsActive = freshUser.provider?.isActive || freshUser.isActive
+                  break
+                case "MERCHANT":
+                  effectiveValidationStatus = freshUser.merchant?.validationStatus || freshUser.validationStatus
+                  effectiveIsActive = freshUser.merchant?.isActive || freshUser.isActive
+                  break
+                case "CLIENT":
+                  effectiveValidationStatus = freshUser.client?.validationStatus || freshUser.validationStatus
+                  effectiveIsActive = freshUser.client?.isActive || freshUser.isActive
+                  break
+                case "ADMIN":
+                  effectiveValidationStatus = 'VALIDATED' // Admins toujours validés
+                  effectiveIsActive = true
+                  break
+              }
+
+              session.user.isActive = effectiveIsActive
               session.user.role = freshUser.role as UserRole
               session.user.emailVerified = freshUser.emailVerified
+              session.user.validationStatus = effectiveValidationStatus
               session.user.profileData = getProfileData(freshUser)
               
-              // Utiliser le validationStatus spécifique au rôle si disponible
-              const roleSpecificValidationStatus = getRoleValidationStatus(freshUser)
-              session.user.validationStatus = roleSpecificValidationStatus || freshUser.validationStatus
+              // Mettre à jour le token pour le middleware
+              token.isActive = effectiveIsActive
+              token.validationStatus = effectiveValidationStatus
+              token.profileData = getProfileData(freshUser)
             } else {
               // Fallback vers les données du token si l'utilisateur n'existe plus
               session.user.isActive = token.isActive as boolean

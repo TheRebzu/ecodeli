@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getUserFromSession } from "@/lib/auth/utils";
 import { db } from "@/lib/db";
 import { readFile } from "fs/promises";
+import { getDocumentSystemPath } from "@/lib/utils/file-path";
 
 export async function GET(
   request: NextRequest,
@@ -49,21 +50,54 @@ export async function GET(
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
+    // Construire le chemin système du fichier
+    const systemPath = getDocumentSystemPath(document.url);
+    
+    console.log('🔍 [DOCUMENT DOWNLOAD] Chemins:', {
+      documentUrl: document.url,
+      systemPath: systemPath,
+      documentId: documentId
+    });
+
     // Lire le fichier
-    const fileBuffer = await readFile(document.url);
+    const fileBuffer = await readFile(systemPath);
+
+    // Vérifier que le fichier a bien été lu
+    if (!fileBuffer || fileBuffer.length === 0) {
+      console.error('❌ [DOCUMENT DOWNLOAD] Fichier vide ou non lu');
+      return NextResponse.json(
+        { error: "File is empty or could not be read" },
+        { status: 500 }
+      );
+    }
+
+    // S'assurer que le Content-Type est correct pour les PDF
+    let contentType = document.mimeType;
+    if (document.originalName.toLowerCase().endsWith('.pdf')) {
+      contentType = 'application/pdf';
+    }
 
     // Retourner le fichier
     const headers: Record<string, string> = {
-      "Content-Type": document.mimeType,
-      "Content-Length": document.size.toString(),
+      "Content-Type": contentType,
+      "Content-Length": fileBuffer.length.toString(),
+      "Cache-Control": "no-cache",
+      "Accept-Ranges": "bytes",
     };
 
     // Si download=true, forcer le téléchargement, sinon afficher dans le navigateur
     if (download) {
-      headers["Content-Disposition"] = `attachment; filename="${document.originalName}"`;
+      headers["Content-Disposition"] = `attachment; filename="${encodeURIComponent(document.originalName)}"`;
     } else {
-      headers["Content-Disposition"] = `inline; filename="${document.originalName}"`;
+      headers["Content-Disposition"] = `inline; filename="${encodeURIComponent(document.originalName)}"`;
     }
+
+    console.log('✅ [DOCUMENT DOWNLOAD] Fichier servi:', {
+      contentType,
+      fileSize: fileBuffer.length,
+      originalName: document.originalName,
+      isDownload: download
+    });
 
     return new NextResponse(fileBuffer, { headers });
   } catch (error) {

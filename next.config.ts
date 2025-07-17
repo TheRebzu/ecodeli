@@ -43,9 +43,9 @@ const nextConfig: NextConfig = {
     ],
   },
 
-  // Headers de sécurité
+  // Headers de sécurité et CORS
   async headers() {
-    return [
+    const headers = [
       {
         source: "/(.*)",
         headers: [
@@ -64,6 +64,29 @@ const nextConfig: NextConfig = {
         ],
       },
     ];
+
+    // En développement, ajouter des headers CORS permissifs
+    if (process.env.NODE_ENV === "development") {
+      headers.push({
+        source: "/_next/:path*",
+        headers: [
+          {
+            key: "Access-Control-Allow-Origin",
+            value: "*",
+          },
+          {
+            key: "Access-Control-Allow-Methods",
+            value: "GET, POST, PUT, DELETE, OPTIONS",
+          },
+          {
+            key: "Access-Control-Allow-Headers",
+            value: "Content-Type, Authorization",
+          },
+        ],
+      });
+    }
+
+    return headers;
   },
 
   // Redirections

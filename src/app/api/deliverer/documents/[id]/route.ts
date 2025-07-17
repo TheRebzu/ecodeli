@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { unlink } from "fs/promises";
-import { join } from "path";
+import { getDocumentSystemPath } from "@/lib/utils/file-path";
 
 export async function DELETE(
   request: NextRequest,
@@ -37,8 +37,15 @@ export async function DELETE(
 
     // Supprimer le fichier physique
     try {
-      const filePath = join(process.cwd(), document.url.replace(/^\//, ""));
-      await unlink(filePath);
+      const systemPath = getDocumentSystemPath(document.url);
+      
+      console.log('🔍 [DOCUMENT DELETE] Chemins:', {
+        documentUrl: document.url,
+        systemPath: systemPath,
+        documentId: documentId
+      });
+      
+      await unlink(systemPath);
     } catch (error) {
       console.warn("Could not delete physical file:", error);
     }

@@ -201,43 +201,26 @@ export default function DelivererRecruitmentPage() {
     try {
       console.log('🔄 [CLIENT] Tentative de synchronisation du statut de validation...')
       
-      // Vérifier la cohérence avec l'API
-      const response = await fetch('/api/auth/sync-validation', {
+      // Utiliser la nouvelle API pour forcer la mise à jour complète
+      const response = await fetch('/api/auth/refresh-session', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include'
       })
       
       const result = await response.json()
-      console.log('📊 [CLIENT] Résultat de la synchronisation:', result)
+      console.log('📊 [CLIENT] Résultat de la mise à jour de session:', result)
 
-      // Vérifier si une mise à jour est nécessaire
-      if (result.needsRefresh && result.freshValidationStatus === 'VALIDATED') {
-        console.log('🔄 [CLIENT] Token JWT obsolète, forçage de la reconnexion...')
+      // Si la mise à jour a réussi et qu'une redirection est nécessaire
+      if (result.success && result.needsRedirect) {
+        console.log('✅ [CLIENT] Session mise à jour avec succès, redirection vers:', result.redirectUrl)
         
-        // Mettre à jour la session si possible
-        if (update) {
-          await update()
-          console.log('✅ [CLIENT] Session mise à jour')
-          
-          // Vérifier si la mise à jour a résolu le problème
-          const updatedSession = await fetch('/api/auth/session')
-          const sessionData = await updatedSession.json()
-          
-          if (sessionData?.user?.validationStatus === 'VALIDATED') {
-            console.log('✅ [CLIENT] Session correctement mise à jour, pas besoin de déconnexion')
-            window.location.href = '/fr/deliverer'
-            return
-          }
-        }
-        
-        // Si la mise à jour de session n'a pas fonctionné, déconnexion/reconnexion
-        console.log('🔄 [CLIENT] Déconnexion/reconnexion nécessaire')
+        // Forcer la déconnexion et reconnexion pour recharger complètement la session
         await signOut({ redirect: false })
         
         // Petit délai avant rechargement
         setTimeout(() => {
-          window.location.href = '/fr/login?callbackUrl=/fr/deliverer'
+          window.location.href = '/fr/login?callbackUrl=' + encodeURIComponent(result.redirectUrl)
         }, 1000)
       }
     } catch (error) {
