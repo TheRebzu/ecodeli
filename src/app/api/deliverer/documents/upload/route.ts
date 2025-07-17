@@ -32,12 +32,14 @@ export async function POST(request: NextRequest) {
       "IDENTITY",
       "DRIVING_LICENSE",
       "INSURANCE",
-      "VEHICLE_REGISTRATION",
       "CERTIFICATION",
+      "CONTRACT",
+      "OTHER"
     ];
+    
     if (!allowedTypes.includes(typeId)) {
       return NextResponse.json(
-        { error: "Invalid document type" },
+        { error: "Invalid document type. Allowed types: " + allowedTypes.join(", ") },
         { status: 400 },
       );
     }
@@ -81,7 +83,7 @@ export async function POST(request: NextRequest) {
     await prisma.document.deleteMany({
       where: {
         userId: session.user.id,
-        type: typeId,
+        type: typeId as any,
       },
     });
 

@@ -50,9 +50,9 @@ export function DocumentValidationStats({
       IDENTITY: "Pièces d'identité",
       DRIVING_LICENSE: "Permis de conduire",
       INSURANCE: "Assurances",
-      VEHICLE_REGISTRATION: "Cartes grises",
+      OTHER: "Cartes grises",
       CERTIFICATION: "Certifications",
-      OTHER: "Autres",
+      CONTRACT: "Contrats",
     };
     return labels[type] || type;
   };

@@ -18,6 +18,12 @@ const ROLE_ROUTES = {
   PROVIDER: "/provider",
 } as const;
 
+// Routes spéciales qui doivent toujours être accessibles par rôle, même sans validation
+const ROLE_SPECIAL_ROUTES = {
+  DELIVERER: ["/deliverer/recruitment"],
+  PROVIDER: ["/provider/recruitment"],
+} as const;
+
 // Fonction pour obtenir la route par défaut selon le rôle
 function getDefaultRouteForRole(role: UserRole, locale: string = 'fr'): string {
   const basePath = ROLE_ROUTES[role] || '/home';
@@ -42,6 +48,13 @@ function hasRequiredRole(userRole: string, pathname: string): boolean {
   const userAllowedPaths = rolePermissions[userRole as UserRole] || [];
   const pathAfterLocale = pathname.replace(/^\/[a-z]{2}/, "");
   return userAllowedPaths.some((path) => pathAfterLocale.startsWith(path));
+}
+
+// Fonction pour vérifier si une route est une route spéciale pour un rôle
+function isSpecialRouteForRole(pathname: string, userRole: string): boolean {
+  const specialRoutes = ROLE_SPECIAL_ROUTES[userRole as keyof typeof ROLE_SPECIAL_ROUTES] || [];
+  const pathAfterLocale = pathname.replace(/^\/[a-z]{2}/, "");
+  return specialRoutes.some(route => pathAfterLocale === route);
 }
 
 // Fonction pour vérifier si l'utilisateur est actif selon son rôle
@@ -220,6 +233,12 @@ export default async function middleware(request: NextRequest) {
 
       // Vérifier si le compte est actif selon le rôle
       if (!isUserActive(user.role, user.isActive)) {
+        // Vérifier si c'est une route spéciale qui doit être accessible même sans validation
+        if (isSpecialRouteForRole(pathname, user.role)) {
+          console.log('✅ [MIDDLEWARE] Route spéciale détectée, accès autorisé:', pathname);
+          return NextResponse.next();
+        }
+        
         // For DELIVERER and PROVIDER, check if they're already validated at profile level
         if (user.role === "DELIVERER") {
           const delivererValidationStatus = session.user.profileData?.validationStatus;
@@ -231,7 +250,15 @@ export default async function middleware(request: NextRequest) {
             return NextResponse.next();
           }
           
+          // Check if the user is already on the recruitment page to avoid redirect loop
+          const pathAfterLocale = pathname.replace(/^\/[a-z]{2}/, "");
+          if (pathAfterLocale === "/deliverer/recruitment") {
+            console.log('✅ [MIDDLEWARE] Déjà sur la page de recrutement, permettre l\'accès');
+            return NextResponse.next();
+          }
+          
           // Otherwise redirect to recruitment
+          console.log('🔄 [MIDDLEWARE] Redirection vers recrutement livreur');
           return NextResponse.redirect(new URL(`/${locale}/deliverer/recruitment`, request.url));
         }
         

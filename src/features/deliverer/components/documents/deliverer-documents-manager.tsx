@@ -62,7 +62,7 @@ const REQUIRED_DOCUMENTS = [
   { type: "IDENTITY", name: "Pièce d'identité", required: true },
   { type: "DRIVING_LICENSE", name: "Permis de conduire", required: true },
   { type: "INSURANCE", name: "Attestation d'assurance", required: true },
-  { type: "VEHICLE_REGISTRATION", name: "Carte grise", required: false },
+  { type: "OTHER", name: "Carte grise", required: false },
   {
     type: "CERTIFICATION",
     name: "Certifications professionnelles",

@@ -85,12 +85,12 @@ interface RecruitmentApplication {
 interface RecruitmentDocument {
   id: string;
   type:
-    | "IDENTITY_CARD"
+    | "IDENTITY"
     | "DRIVING_LICENSE"
-    | "VEHICLE_REGISTRATION"
     | "INSURANCE"
-    | "CRIMINAL_RECORD"
-    | "BANK_RIB";
+    | "CERTIFICATION"
+    | "CONTRACT"
+    | "OTHER";
   name: string;
   fileName: string;
   status: "PENDING" | "APPROVED" | "REJECTED";
@@ -247,26 +247,58 @@ export default function DelivererRecruitmentSystem({
   const fetchApplication = async () => {
     setLoading(true);
     try {
+      console.log('🔍 [RECRUITMENT] Récupération des données de candidature...');
       const response = await fetch(
         `/api/deliverer/recruitment?userId=${userId}`,
-      );
-      if (response.ok) {
-        const data = await response.json();
-        if (data.application) {
-          setApplication(data.application);
-          setFormData({
-            ...data.application.personalInfo,
-            ...data.application.professionalInfo,
-            availability: data.application.professionalInfo.availability || [],
-            preferredZones:
-              data.application.professionalInfo.preferredZones || [],
-          });
+        {
+          credentials: 'include', // S'assurer que les cookies sont envoyés
+          headers: {
+            'Cache-Control': 'no-cache',
+          },
         }
+      );
+      
+      if (!response.ok) {
+        if (response.status === 401) {
+          console.error('❌ [RECRUITMENT] Erreur d\'authentification:', response.status);
+          toast({
+            title: "Erreur d'authentification",
+            description: "Veuillez vous reconnecter pour continuer.",
+            variant: "destructive",
+          });
+          return;
+        }
+        throw new Error(`Erreur ${response.status}: ${response.statusText}`);
+      }
+      
+      const data = await response.json();
+      console.log('📋 [RECRUITMENT] Données récupérées:', data);
+      
+      if (data.application) {
+        setApplication(data.application);
+        
+        // Pré-remplir le formulaire avec les données existantes
+        setFormData({
+          firstName: data.application.personalInfo.firstName || "",
+          lastName: data.application.personalInfo.lastName || "",
+          email: data.application.personalInfo.email || "",
+          phone: data.application.personalInfo.phone || "",
+          address: data.application.personalInfo.address || "",
+          dateOfBirth: data.application.personalInfo.dateOfBirth || "",
+          nationality: data.application.personalInfo.nationality || "FR",
+          vehicleType: data.application.professionalInfo.vehicleType || "",
+          vehicleModel: data.application.professionalInfo.vehicleModel || "",
+          licenseNumber: data.application.professionalInfo.licenseNumber || "",
+          experience: data.application.professionalInfo.experience || 0,
+          availability: data.application.professionalInfo.availability || [],
+          preferredZones: data.application.professionalInfo.preferredZones || [],
+        });
       }
     } catch (error) {
-      console.error("Error fetching application:", error);
+      console.error('❌ [RECRUITMENT] Erreur lors de la récupération des données:', error);
       toast({
-        title: t("error.fetch_failed"),
+        title: "Erreur",
+        description: "Impossible de récupérer vos informations de candidature. Veuillez réessayer.",
         variant: "destructive",
       });
     } finally {
@@ -423,12 +455,12 @@ export default function DelivererRecruitmentSystem({
 
   const getDocumentTypeName = (type: string) => {
     const types: Record<string, string> = {
-      IDENTITY_CARD: t("documents.types.identity_card"),
+      IDENTITY: t("documents.types.identity_card"),
       DRIVING_LICENSE: t("documents.types.driving_license"),
-      VEHICLE_REGISTRATION: t("documents.types.vehicle_registration"),
+      OTHER: t("documents.types.vehicle_registration"),
       INSURANCE: t("documents.types.insurance"),
-      CRIMINAL_RECORD: t("documents.types.criminal_record"),
-      BANK_RIB: t("documents.types.bank_rib"),
+      CERTIFICATION: t("documents.types.certification"),
+      CONTRACT: t("documents.types.contract"),
     };
     return types[type] || type;
   };
@@ -897,23 +929,23 @@ export default function DelivererRecruitmentSystem({
                   <SelectValue placeholder={t("upload_dialog.select_type")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="IDENTITY_CARD">
-                    {getDocumentTypeName("IDENTITY_CARD")}
+                  <SelectItem value="IDENTITY">
+                    {getDocumentTypeName("IDENTITY")}
                   </SelectItem>
                   <SelectItem value="DRIVING_LICENSE">
                     {getDocumentTypeName("DRIVING_LICENSE")}
                   </SelectItem>
-                  <SelectItem value="VEHICLE_REGISTRATION">
-                    {getDocumentTypeName("VEHICLE_REGISTRATION")}
+                  <SelectItem value="OTHER">
+                    {getDocumentTypeName("OTHER")}
                   </SelectItem>
                   <SelectItem value="INSURANCE">
                     {getDocumentTypeName("INSURANCE")}
                   </SelectItem>
-                  <SelectItem value="CRIMINAL_RECORD">
-                    {getDocumentTypeName("CRIMINAL_RECORD")}
+                  <SelectItem value="CERTIFICATION">
+                    {getDocumentTypeName("CERTIFICATION")}
                   </SelectItem>
-                  <SelectItem value="BANK_RIB">
-                    {getDocumentTypeName("BANK_RIB")}
+                  <SelectItem value="CONTRACT">
+                    {getDocumentTypeName("CONTRACT")}
                   </SelectItem>
                 </SelectContent>
               </Select>

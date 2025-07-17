@@ -112,13 +112,12 @@ export type BookingStatus =
   | "CANCELLED";
 
 export type DocumentType =
-  | "IDENTITY_CARD"
-  | "DRIVER_LICENSE"
-  | "VEHICLE_REGISTRATION"
+  | "IDENTITY"
+  | "DRIVING_LICENSE"
   | "INSURANCE"
-  | "PROOF_OF_ADDRESS"
   | "CERTIFICATION"
-  | "CONTRACT";
+  | "CONTRACT"
+  | "OTHER";
 export type SubscriptionPlan = "FREE" | "STARTER" | "PREMIUM";
 export type NotificationType =
   | "ANNOUNCEMENT_MATCH"

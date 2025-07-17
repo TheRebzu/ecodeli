@@ -39,6 +39,7 @@ interface NavigationItem {
   category?: string;
   badge?: string;
   children?: NavigationItem[];
+  disabled?: boolean;
 }
 
 interface BaseSidebarProps {
@@ -235,7 +236,10 @@ function NavigationMenuItem({
           <SidebarMenuButton
             onClick={onToggle}
             isActive={isActive}
-            className="group/menu-item"
+            className={cn(
+              "group/menu-item",
+              item.disabled && "opacity-50 pointer-events-none"
+            )}
           >
             {getIcon(item.icon)}
             <span className="flex-1">{item.label}</span>
@@ -259,8 +263,9 @@ function NavigationMenuItem({
                   <SidebarMenuSubButton
                     asChild
                     isActive={pathname === child.href}
+                    className={cn(child.disabled && "opacity-50 pointer-events-none")}
                   >
-                    <Link href={child.href}>
+                    <Link href={child.disabled ? "#" : child.href}>
                       {getIcon(child.icon)}
                       <span>{child.label}</span>
                       {child.badge && (
@@ -278,8 +283,13 @@ function NavigationMenuItem({
       ) : (
         <>
           {/* Élément simple */}
-          <SidebarMenuButton asChild isActive={isActive} tooltip={item.label}>
-            <Link href={item.href}>
+          <SidebarMenuButton 
+            asChild 
+            isActive={isActive} 
+            tooltip={item.label}
+            className={cn(item.disabled && "opacity-50 pointer-events-none")}
+          >
+            <Link href={item.disabled ? "#" : item.href}>
               {getIcon(item.icon)}
               <span>{item.label}</span>
               {item.badge && <SidebarMenuBadge>{item.badge}</SidebarMenuBadge>}

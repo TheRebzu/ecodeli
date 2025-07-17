@@ -224,9 +224,9 @@ export function DocumentValidationDashboard({
       IDENTITY: "Pièce d'identité",
       DRIVING_LICENSE: "Permis de conduire",
       INSURANCE: "Assurance",
-      VEHICLE_REGISTRATION: "Carte grise",
+      OTHER: "Carte grise",
       CERTIFICATION: "Certification",
-      OTHER: "Autre",
+      CONTRACT: "Contrat",
     };
     return labels[type] || type;
   };
@@ -385,11 +385,9 @@ export function DocumentValidationDashboard({
                   Permis de conduire
                 </SelectItem>
                 <SelectItem value="INSURANCE">Assurance</SelectItem>
-                <SelectItem value="VEHICLE_REGISTRATION">
-                  Carte grise
-                </SelectItem>
+                <SelectItem value="OTHER">Carte grise</SelectItem>
                 <SelectItem value="CERTIFICATION">Certification</SelectItem>
-                <SelectItem value="OTHER">Autre</SelectItem>
+                <SelectItem value="CONTRACT">Contrat</SelectItem>
               </SelectContent>
             </Select>
 

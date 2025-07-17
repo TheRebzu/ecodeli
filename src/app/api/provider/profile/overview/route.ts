@@ -20,11 +20,8 @@ export async function GET(request: NextRequest) {
     const user = await prisma.user.findUnique({
       where: { id: userId },
       include: {
-        profile: {
-          include: {
-            documents: true,
-          },
-        },
+        profile: true,
+        documents: true,
       },
     });
 
@@ -33,7 +30,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Count documents by status
-    const documents = user.profile?.documents || [];
+    const documents = user.documents || [];
     const documentsStatus = {
       total: documents.length,
       approved: documents.filter((d) => d.status === "APPROVED").length,
