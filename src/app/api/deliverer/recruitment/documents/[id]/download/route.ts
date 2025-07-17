@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getUserFromSession } from "@/lib/auth/utils";
 import { db } from "@/lib/db";
-import { readFile } from "fs/promises";
 
 export async function GET(
   request: NextRequest,
@@ -49,13 +48,21 @@ export async function GET(
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    // Lire le fichier
-    const fileBuffer = await readFile(document.url);
+    // Vérifier que le contenu existe
+    if (!document.content) {
+      return NextResponse.json(
+        { error: "Document content not found" },
+        { status: 404 },
+      );
+    }
+
+    // Convertir le contenu base64 en buffer
+    const fileBuffer = Buffer.from(document.content, 'base64');
 
     // Retourner le fichier
     const headers: Record<string, string> = {
       "Content-Type": document.mimeType,
-      "Content-Length": document.size.toString(),
+      "Content-Length": fileBuffer.length.toString(),
     };
 
     // Si download=true, forcer le téléchargement, sinon afficher dans le navigateur
