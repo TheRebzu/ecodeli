@@ -111,7 +111,7 @@ export function StorageBoxManager() {
   // Filtres
   const [filters, setFilters] = useState({
     city: "",
-    size: "",
+    size: "all",
     maxPrice: "",
     sortBy: "distance",
   });
@@ -174,7 +174,7 @@ export function StorageBoxManager() {
       });
 
       if (filters.city) params.append("city", filters.city);
-      if (filters.size) params.append("size", filters.size);
+      if (filters.size && filters.size !== "all") params.append("size", filters.size);
       if (filters.maxPrice) params.append("maxPrice", filters.maxPrice);
 
       const response = await fetch(
@@ -213,7 +213,7 @@ export function StorageBoxManager() {
       const params = new URLSearchParams();
 
       if (filters.city) params.append("city", filters.city);
-      if (filters.size) params.append("size", filters.size);
+      if (filters.size && filters.size !== "all") params.append("size", filters.size);
       if (filters.maxPrice) params.append("maxPrice", filters.maxPrice);
 
       const response = await fetch(`/api/client/storage-boxes?${params}`);
@@ -425,7 +425,7 @@ export function StorageBoxManager() {
                       <SelectValue placeholder="Toutes les tailles" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">Toutes les tailles</SelectItem>
+                      <SelectItem value="all">Toutes les tailles</SelectItem>
                       <SelectItem value="SMALL">Petit</SelectItem>
                       <SelectItem value="MEDIUM">Moyen</SelectItem>
                       <SelectItem value="LARGE">Grand</SelectItem>

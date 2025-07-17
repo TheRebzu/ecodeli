@@ -59,7 +59,7 @@ export default function DelivererAnnouncementsPage() {
   );
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
-  const [typeFilter, setTypeFilter] = useState("");
+  const [typeFilter, setTypeFilter] = useState("all");
   const [cityFilter, setCityFilter] = useState("");
   const [sortBy, setSortBy] = useState("createdAt");
   const [sortOrder, setSortOrder] = useState("desc");
@@ -88,7 +88,7 @@ export default function DelivererAnnouncementsPage() {
         page: page.toString(),
         limit: "12",
         ...(searchTerm && { search: searchTerm }),
-        ...(typeFilter && { type: typeFilter }),
+        ...(typeFilter && typeFilter !== "all" && { type: typeFilter }),
         ...(cityFilter && { city: cityFilter }),
         sortBy,
         sortOrder,
@@ -326,7 +326,7 @@ export default function DelivererAnnouncementsPage() {
                     <SelectValue placeholder="Tous les types" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Tous les types</SelectItem>
+                    <SelectItem value="all">Tous les types</SelectItem>
                     <SelectItem value="PACKAGE_DELIVERY">
                       Transport de colis
                     </SelectItem>
@@ -453,7 +453,7 @@ export default function DelivererAnnouncementsPage() {
                     </div>
                     <div className="flex flex-col items-end gap-1">
                       <div className="text-2xl font-bold text-green-600">
-                        {announcement.price.toFixed(0)}€
+                        {announcement.basePrice ? announcement.basePrice.toFixed(0) : '0'}€
                       </div>
                       <div className="text-xs text-gray-500">
                         {matchScore}% match

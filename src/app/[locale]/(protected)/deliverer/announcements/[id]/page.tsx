@@ -502,7 +502,7 @@ export default function DelivererAnnouncementDetailPage() {
               <div>
                 <p className="text-sm text-gray-600">Prix client</p>
                 <p className="text-xl font-bold text-gray-900">
-                  {announcement.price.toFixed(2)} €
+                  {announcement.basePrice ? announcement.basePrice.toFixed(2) : '0.00'} €
                 </p>
               </div>
 

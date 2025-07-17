@@ -22,6 +22,7 @@ import {
   Phone,
   Mail,
   Check,
+  Play,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -124,9 +125,31 @@ export default function ProviderInterventionsPage() {
     }));
   };
 
+  const handleStartTask = async (applicationId: string) => {
+    try {
+      const response = await fetch(`/api/provider/service-applications/${applicationId}/start`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.ok) {
+        toast.success("Tâche commencée avec succès");
+        // Recharger les données
+        fetchApplications();
+      } else {
+        toast.error("Erreur lors du démarrage de la tâche");
+      }
+    } catch (error) {
+      console.error("Erreur:", error);
+      toast.error("Erreur lors du démarrage de la tâche");
+    }
+  };
+
   const handleCompleteTask = async (applicationId: string) => {
     try {
-      const response = await fetch(`/api/provider/interventions/${applicationId}/complete`, {
+      const response = await fetch(`/api/provider/service-applications/${applicationId}/complete`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -152,6 +175,18 @@ export default function ProviderInterventionsPage() {
         return (
           <Badge variant="default" className="bg-green-500">
             <CheckCircle className="w-3 h-3 mr-1" /> Payée
+          </Badge>
+        );
+      case "IN_PROGRESS":
+        return (
+          <Badge variant="default" className="bg-blue-500">
+            <Clock className="w-3 h-3 mr-1" /> En cours
+          </Badge>
+        );
+      case "COMPLETED":
+        return (
+          <Badge variant="default" className="bg-emerald-600">
+            <CheckCircle className="w-3 h-3 mr-1" /> Terminée
           </Badge>
         );
       default:
@@ -184,6 +219,9 @@ export default function ProviderInterventionsPage() {
       : `${mins}min`;
   };
 
+  // Afficher toutes les applications récupérées (PAID, IN_PROGRESS, COMPLETED)
+  const paidApplications = applications;
+
   if (loading) {
     return (
       <div className="container mx-auto px-4 py-8">
@@ -199,58 +237,25 @@ export default function ProviderInterventionsPage() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">
-          Applications Payées
-        </h1>
-        <p className="text-gray-600">
-          Consultez toutes vos candidatures acceptées et payées par les clients
-        </p>
-      </div>
-
-      {applications.length === 0 ? (
-        <Card>
-          <CardContent className="flex flex-col items-center justify-center py-12">
-            <div className="text-center">
-              <CreditCard className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                Aucune application payée
-              </h3>
-              <p className="text-gray-600 mb-4">
-                Vous n'avez pas encore d'applications payées par les clients.
-              </p>
-              <Button variant="outline" onClick={() => window.history.back()}>
-                Retour
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+      <h1 className="text-2xl font-bold mb-6">Mes Interventions</h1>
+      <p className="mb-8 text-muted-foreground">
+        Gérez toutes vos interventions : démarrez les tâches payées et terminez-les une fois accomplies
+      </p>
+      {paidApplications.length === 0 ? (
+        <div className="flex flex-col items-center justify-center min-h-[200px]">
+          <CheckCircle className="w-12 h-12 text-muted-foreground mb-2" />
+          <p className="text-muted-foreground">Vous n'avez pas encore d'interventions disponibles.</p>
+        </div>
       ) : (
         <div className="grid gap-6">
-          {applications.map((application) => (
-            <Card key={application.id} className="hover:shadow-md transition-shadow">
+          {paidApplications.map((application) => (
+            <Card key={application.id}>
               <CardHeader>
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                      <CardTitle className="text-xl">{application.title}</CardTitle>
-                      {getStatusBadge(application.status)}
-                    </div>
-                    <p className="text-gray-600 line-clamp-2">
-                      {application.description}
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-2xl font-bold text-green-600">
-                      {formatPrice(application.payment.amount)}
-                    </div>
-                    <div className="text-sm text-gray-500">
-                      Payé le {formatDate(application.applicationData.paidAt || application.createdAt)}
-                    </div>
-                  </div>
-                </div>
+                <CardTitle className="flex items-center gap-2">
+                  {application.title}
+                  {getStatusBadge(application.status)}
+                </CardTitle>
               </CardHeader>
-
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* Informations client */}
@@ -362,14 +367,36 @@ export default function ProviderInterventionsPage() {
                       <MessageSquare className="h-4 w-4 mr-2" />
                       Contacter
                     </Button>
-                    <Button 
-                      size="sm"
-                      onClick={() => handleCompleteTask(application.id)}
-                      className="bg-green-600 hover:bg-green-700"
-                    >
-                      <Check className="h-4 w-4 mr-2" />
-                      Finir la tâche
-                    </Button>
+                    
+                    {/* Boutons d'action selon le statut */}
+                    {application.status === "PAID" && (
+                      <Button 
+                        size="sm"
+                        onClick={() => handleStartTask(application.id)}
+                        className="bg-blue-600 hover:bg-blue-700"
+                      >
+                        <Clock className="h-4 w-4 mr-2" />
+                        Commencer la tâche
+                      </Button>
+                    )}
+                    
+                    {application.status === "IN_PROGRESS" && (
+                      <Button 
+                        size="sm"
+                        onClick={() => handleCompleteTask(application.id)}
+                        className="bg-green-600 hover:bg-green-700"
+                      >
+                        <Check className="h-4 w-4 mr-2" />
+                        Finir la tâche
+                      </Button>
+                    )}
+                    
+                    {application.status === "COMPLETED" && (
+                      <Badge variant="default" className="bg-emerald-600">
+                        <CheckCircle className="w-3 h-3 mr-1" />
+                        Tâche terminée
+                      </Badge>
+                    )}
                   </div>
                 </div>
 
