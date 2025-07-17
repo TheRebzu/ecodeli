@@ -62,7 +62,7 @@ export async function POST(request: NextRequest) {
     });
 
     // Construire l'URL de vérification
-    const verificationUrl = `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/fr/verify-email?token=${verificationToken}`;
+            const verificationUrl = `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/fr/login?message=Email de vérification envoyé`;
 
     // Envoyer l'email de vérification
     const result = await EmailService.sendVerificationEmail(

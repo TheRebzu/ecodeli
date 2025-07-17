@@ -54,8 +54,8 @@ export function DelivererRegisterForm() {
         return;
       }
 
-      // Redirection vers la page de vérification email
-      router.push("/verify-email?email=" + encodeURIComponent(data.email));
+      // Redirection vers la page de connexion
+      router.push("/login?message=Inscription réussie ! Veuillez vous connecter.");
     } catch (err) {
       setError("Une erreur est survenue lors de l'inscription");
     } finally {

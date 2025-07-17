@@ -72,7 +72,7 @@ export function useValidation(): ValidationStatus {
     if (status.needsEmailVerification) {
       status.canLogin = false;
       status.validationMessage = "Vérification email requise";
-      status.nextStepUrl = "/verify-email";
+              status.nextStepUrl = "/login";
     } else if (status.needsDocumentUpload) {
       status.canLogin = false;
       status.validationMessage = getDocumentUploadMessage(

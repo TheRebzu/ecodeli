@@ -19,6 +19,11 @@ const nextConfig: NextConfig = {
     ignoreDuringBuilds: true,
   },
 
+  // Optimisations pour accélérer le build
+  swcMinify: true,
+  compress: true,
+  poweredByHeader: false,
+
   // Fix pour Next.js 15 avec next-intl
   experimental: {
     // Nécessaire pour next-intl avec App Router

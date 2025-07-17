@@ -102,7 +102,7 @@ export function VerificationNotice({ className }: VerificationNoticeProps) {
 
           <Button
             variant="outline"
-            onClick={() => window.location.href = "/fr/verify-email"}
+            onClick={() => window.location.href = "/fr/login"}
             className="border-orange-300 text-orange-700 hover:bg-orange-100"
           >
             <CheckCircle className="h-4 w-4 mr-2" />

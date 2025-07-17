@@ -114,7 +114,6 @@ const PUBLIC_ROUTES = [
   "/register/merchant",
   "/forgot-password",
   "/reset-password",
-  "/verify-email",
   "/validate-user",
   "/403",
   "/unauthorized",

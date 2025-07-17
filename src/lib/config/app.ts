@@ -232,7 +232,7 @@ export const routes = {
     register: "/register",
     forgotPassword: "/forgot-password",
     resetPassword: "/reset-password",
-    verifyEmail: "/verify-email",
+
   },
   client: {
     dashboard: "/client",

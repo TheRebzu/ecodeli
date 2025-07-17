@@ -52,7 +52,7 @@ export default function ProviderRegisterForm() {
         return;
       }
 
-      router.push("/verify-email?email=" + encodeURIComponent(data.email));
+      router.push("/login?message=Inscription réussie ! Veuillez vous connecter.");
     } catch (err) {
       setError("Une erreur est survenue lors de l'inscription");
     } finally {

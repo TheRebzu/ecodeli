@@ -78,7 +78,7 @@ export function LoginForm({
       if (!statusCheck.canLogin) {
         // Rediriger vers l'étape appropriée selon le statut
         if (statusCheck.needsAction.includes("EMAIL_VERIFICATION")) {
-          router.push(`/verify-email?email=${encodeURIComponent(data.email)}`);
+          router.push(`/login?message=Inscription réussie ! Veuillez vous connecter.`);
           return;
         }
         if (statusCheck.needsAction.includes("DOCUMENT_UPLOAD")) {

@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
     switch (type) {
       case "verification":
         // Test email de vérification
-        const verificationUrl = `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/fr/verify-email?token=test-token-123`;
+        const verificationUrl = `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/fr/login?message=Test email envoyé`;
         result = await EmailService.sendVerificationEmail(email, verificationUrl, "fr");
         break;
 

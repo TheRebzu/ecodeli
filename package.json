@@ -5,6 +5,12 @@
   "scripts": {
     "postinstall": "pnpm run prisma:generate",
     "build": "next build",
+    "build:fast": "NEXT_TELEMETRY_DISABLED=1 NODE_ENV=production next build",
+    "build:minimal": "NEXT_TELEMETRY_DISABLED=1 NODE_ENV=production NEXT_SHARP_PATH=0 next build",
+    "build:no-cache": "rm -rf .next && npm run build:fast",
+    "build:fast-win": "set NEXT_TELEMETRY_DISABLED=1 && set NODE_ENV=production && next build",
+    "build:minimal-win": "set NEXT_TELEMETRY_DISABLED=1 && set NODE_ENV=production && set NEXT_SHARP_PATH=0 && next build",
+    "build:no-cache-win": "if exist .next rmdir /s /q .next && npm run build:fast-win",
     "postbuild": "node scripts/post-build.js",
     "dev": "next dev",
     "lint": "next lint",

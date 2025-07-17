@@ -87,7 +87,7 @@ export function LoginForm() {
     setError(null);
 
     try {
-      const response = await fetch("/api/auth/verify-email", {
+      const response = await fetch("/api/auth/send-verification-email", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
