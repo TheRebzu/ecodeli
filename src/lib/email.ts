@@ -19,7 +19,16 @@ const transporter = nodemailer.createTransport({
 });
 
 /**
- * Service d'envoi d'emails SMTP
+ * Interface pour les erreurs d'email
+ */
+export interface EmailError {
+  code: string;
+  message: string;
+  details?: any;
+}
+
+/**
+ * Service d'envoi d'emails SMTP avec gestion d'erreurs avancée
  */
 export class EmailService {
   /**
@@ -100,11 +109,11 @@ export class EmailService {
 
     try {
       const result = await transporter.sendMail(mailOptions);
-      // Email de vérification envoyé
+      console.log(`✅ Email de vérification envoyé à ${email} (${result.messageId})`);
       return { success: true, messageId: result.messageId };
-    } catch (error) {
-      console.error("Erreur envoi email:", error);
-      throw error;
+    } catch (error: any) {
+      console.error("❌ Erreur envoi email vérification:", error);
+      throw this.handleEmailError(error);
     }
   }
 
@@ -185,11 +194,11 @@ export class EmailService {
 
     try {
       const result = await transporter.sendMail(mailOptions);
-      // Email de reset envoyé
+      console.log(`✅ Email de reset envoyé à ${email} (${result.messageId})`);
       return { success: true, messageId: result.messageId };
-    } catch (error) {
-      console.error("Erreur envoi email:", error);
-      throw error;
+    } catch (error: any) {
+      console.error("❌ Erreur envoi email reset:", error);
+      throw this.handleEmailError(error);
     }
   }
 
@@ -542,11 +551,210 @@ export class EmailService {
   static async testConnection() {
     try {
       await transporter.verify();
-      // Connexion SMTP réussie
+      console.log("✅ Connexion SMTP réussie");
       return { success: true };
-    } catch (error) {
-      console.error("Erreur connexion SMTP:", error);
-      throw error;
+    } catch (error: any) {
+      console.error("❌ Erreur connexion SMTP:", error);
+      throw this.handleEmailError(error);
     }
   }
+
+  /**
+   * Gérer les erreurs d'email avec messages explicites
+   */
+  private static handleEmailError(error: any): EmailError {
+    // Erreurs de connexion SMTP
+    if (error.code === 'ECONNREFUSED') {
+      return {
+        code: 'SMTP_CONNECTION_REFUSED',
+        message: 'Impossible de se connecter au serveur SMTP',
+        details: error
+      };
+    }
+
+    if (error.code === 'EAUTH') {
+      return {
+        code: 'SMTP_AUTH_FAILED',
+        message: 'Échec de l\'authentification SMTP',
+        details: error
+      };
+    }
+
+    if (error.code === 'ETIMEDOUT') {
+      return {
+        code: 'SMTP_TIMEOUT',
+        message: 'Timeout de connexion SMTP',
+        details: error
+      };
+    }
+
+    // Erreurs de validation email
+    if (error.responseCode === 554) {
+      return {
+        code: 'EMAIL_REJECTED',
+        message: 'Email rejeté par le serveur',
+        details: error
+      };
+    }
+
+    if (error.responseCode === 550) {
+      return {
+        code: 'EMAIL_NOT_FOUND',
+        message: 'Adresse email non trouvée',
+        details: error
+      };
+    }
+
+    if (error.responseCode === 552) {
+      return {
+        code: 'EMAIL_QUOTA_EXCEEDED',
+        message: 'Quota de boîte mail dépassé',
+        details: error
+      };
+    }
+
+    // Erreur générique
+    return {
+      code: 'EMAIL_UNKNOWN_ERROR',
+      message: error.message || 'Erreur inconnue lors de l\'envoi d\'email',
+      details: error
+    };
+  }
+
+  /**
+   * Envoyer un email avec retry automatique
+   */
+  static async sendEmailWithRetry(
+    mailOptions: any,
+    maxRetries: number = 3,
+    delay: number = 1000
+  ): Promise<{ success: boolean; messageId?: string }> {
+    let lastError: any;
+
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        const result = await transporter.sendMail(mailOptions);
+        console.log(`✅ Email envoyé avec succès après ${attempt} tentative(s) (${result.messageId})`);
+        return { success: true, messageId: result.messageId };
+      } catch (error: any) {
+        lastError = error;
+        console.warn(`⚠️ Tentative ${attempt}/${maxRetries} échouée:`, error.message);
+        
+        // Si ce n'est pas la dernière tentative, attendre avant de retry
+        if (attempt < maxRetries) {
+          await new Promise(resolve => setTimeout(resolve, delay * attempt));
+        }
+      }
+    }
+
+    // Toutes les tentatives ont échoué
+    throw this.handleEmailError(lastError);
+  }
+
+  /**
+   * Valider une adresse email
+   */
+  static validateEmail(email: string): boolean {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  }
+
+  /**
+   * Créer un template HTML responsive
+   */
+  static createResponsiveTemplate(content: string, title: string): string {
+    return `
+      <!DOCTYPE html>
+      <html lang="fr">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>${title}</title>
+        <style>
+          * { margin: 0; padding: 0; box-sizing: border-box; }
+          body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6; 
+            color: #333; 
+            background-color: #f8fafc;
+          }
+          .container { 
+            max-width: 600px; 
+            margin: 0 auto; 
+            padding: 20px;
+          }
+          .email-wrapper {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+          }
+          .header {
+            background: linear-gradient(135deg, #059669, #10b981);
+            color: white;
+            padding: 30px;
+            text-align: center;
+          }
+          .logo {
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 8px;
+          }
+          .content {
+            padding: 30px;
+          }
+          .footer {
+            background: #f1f5f9;
+            padding: 20px;
+            text-align: center;
+            color: #64748b;
+            font-size: 14px;
+          }
+          .button {
+            display: inline-block;
+            background: #059669;
+            color: white !important;
+            text-decoration: none;
+            padding: 12px 30px;
+            border-radius: 6px;
+            font-weight: 600;
+            margin: 20px 0;
+          }
+          .button:hover {
+            background: #047857;
+          }
+          @media only screen and (max-width: 600px) {
+            .container { padding: 10px; }
+            .content { padding: 20px; }
+            .header { padding: 20px; }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="email-wrapper">
+            <div class="header">
+              <div class="logo">🌱 EcoDeli</div>
+              <div>Livraison éco-responsable</div>
+            </div>
+            <div class="content">
+              ${content}
+            </div>
+            <div class="footer">
+              <p>© 2025 EcoDeli - Tous droits réservés</p>
+              <p>Cet email a été envoyé automatiquement, merci de ne pas y répondre.</p>
+            </div>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+  }
 }
+
+// Fonction sendEmail pour compatibilité avec le code existant
+export const sendEmail = EmailService.sendGenericEmail;
+
+// Export des types et fonctions utilitaires
+export type { EmailError };
+export const { validateEmail, createResponsiveTemplate, testConnection } = EmailService;
