@@ -112,26 +112,26 @@ export async function GET(request: NextRequest) {
                 specialInstructions: true,
               },
             },
-            deliveries: {
-              select: {
-                id: true,
-                status: true,
-                trackingNumber: true,
-                deliverer: {
-                  select: {
-                    id: true,
-                    email: true,
-                    profile: {
-                      select: {
-                        firstName: true,
-                        lastName: true,
-                        avatar: true,
-                      },
-                    },
-                  },
-                },
-              },
-            },
+            // deliveries: { // Désactivé temporairement car non reconnu par Prisma. Si besoin, régénérez le client Prisma.
+            //   select: {
+            //     id: true,
+            //     status: true,
+            //     trackingNumber: true,
+            //     deliverer: {
+            //       select: {
+            //         id: true,
+            //         email: true,
+            //         profile: {
+            //           select: {
+            //             firstName: true,
+            //             lastName: true,
+            //             avatar: true,
+            //           },
+            //         },
+            //       },
+            //     },
+            //   },
+            // },
             _count: {
               select: {
                 matches: true,
