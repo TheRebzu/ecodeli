@@ -6,7 +6,7 @@ import { db } from "@/lib/db"
 import bcrypt from "bcryptjs"
 import type { UserRole } from "@prisma/client"
 
-export const config = {
+const config = {
   adapter: PrismaAdapter(db), // Activer l'adapter pour synchroniser avec la DB
   trustHost: true, // Correction pour NextAuth v5
   experimental: {
@@ -229,7 +229,9 @@ function getProfileData(user: any) {
   }
 }
 
-export const { handlers, auth, signIn, signOut } = NextAuth(config)
+const { handlers, auth, signIn, signOut } = NextAuth(config)
+
+export { handlers, auth, signIn, signOut }
 
 // Types étendus pour NextAuth
 declare module "next-auth" {
@@ -315,4 +317,4 @@ export const USER_ROLES = [
 ] as const
 
 // Export de la config NextAuth pour les routes API
-export const authOptions = config
+export { config as authOptions }
