@@ -2,9 +2,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getUserFromSession } from "@/lib/auth/utils";
 import { prisma } from "@/lib/db";
-import { writeFile, mkdir } from "fs/promises";
-import { join } from "path";
-import { existsSync } from "fs";
 import { z } from "zod";
 
 const uploadSchema = z.object({
@@ -92,26 +89,13 @@ export async function POST(request: NextRequest) {
     const extension = file.name.split(".").pop();
     const filename = `${user.id}_${timestamp}_${randomId}.${extension}`;
 
-    // Correction : upload dans public/uploads
-    const uploadDir = join(
-      process.cwd(),
-      "public",
-      "uploads",
-      category,
-      user.role.toLowerCase(),
-    );
-    if (!existsSync(uploadDir)) {
-      await mkdir(uploadDir, { recursive: true });
-    }
-
-    // Sauvegarde du fichier
-    const filepath = join(uploadDir, filename);
+    // Convertir le fichier en base64 pour stockage en base de données
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
-    await writeFile(filepath, buffer);
+    const base64Content = buffer.toString('base64');
 
-    // URL relative pour servir le fichier
-    const url = `/uploads/${category}/${user.role.toLowerCase()}/${filename}`;
+    // URL pour servir le fichier via l'API
+    const url = `/api/documents/${user.id}/${filename}`;
 
     // Enregistrement ou mise à jour en base de données
     let document;
@@ -134,6 +118,7 @@ export async function POST(request: NextRequest) {
             mimeType: file.type,
             size: file.size,
             url,
+            content: base64Content, // Stocker le contenu en base64
             validationStatus: "PENDING",
             updatedAt: new Date(),
           },
@@ -149,6 +134,7 @@ export async function POST(request: NextRequest) {
             mimeType: file.type,
             size: file.size,
             url,
+            content: base64Content, // Stocker le contenu en base64
             validationStatus: "PENDING",
           },
         });
@@ -164,6 +150,7 @@ export async function POST(request: NextRequest) {
           mimeType: file.type,
           size: file.size,
           url,
+          content: base64Content, // Stocker le contenu en base64
           validationStatus: "PENDING",
         },
       });

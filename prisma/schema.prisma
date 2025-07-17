@@ -1217,6 +1217,7 @@ model Document {
   validationStatus ValidationStatus @default(PENDING)
   size             Int
   url              String
+  content          String?          // Base64 content pour stockage serverless
   validatedAt      DateTime?
   validatedBy      String?
   rejectionReason  String?
