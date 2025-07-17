@@ -122,7 +122,6 @@ export async function POST(request: NextRequest) {
               companyName: validatedData.businessName || `${validatedData.firstName} ${validatedData.lastName}`,
               siret: validatedData.siret || `SIRET_${Date.now()}`,
               contractStatus: "PENDING",
-              businessType: validatedData.businessType || "RETAIL",
             },
           });
           break;
