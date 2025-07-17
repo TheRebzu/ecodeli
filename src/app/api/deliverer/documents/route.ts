@@ -53,12 +53,12 @@ export async function GET(request: NextRequest) {
         id: "INSURANCE",
         name: "Attestation d'assurance",
         required: true,
-        description: "Attestation d'assurance responsabilité civile véhicule",
+        description: "Attestation responsabilité civile véhicule",
         allowedFormats: ["pdf", "jpg", "jpeg", "png"],
         maxSize: 5 * 1024 * 1024, // 5MB
       },
       {
-        id: "VEHICLE_REGISTRATION",
+        id: "OTHER",
         name: "Carte grise",
         required: false,
         description: "Certificat d'immatriculation du véhicule",

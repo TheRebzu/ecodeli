@@ -206,7 +206,7 @@ export default function ClientAnnouncementsList() {
                     </div>
                     <div>
                       <span className="font-medium">Prix:</span>{" "}
-                                              {announcement.basePrice || 0}€
+                      {announcement.price || 0}€
                     </div>
                   </div>
 

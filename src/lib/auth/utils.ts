@@ -228,11 +228,16 @@ export const VALIDATION_STATUS = {
  */
 export async function getCurrentUserAPI(request: NextRequest) {
   try {
+    // Vérifier et logger les cookies pour le débogage
+    const cookieHeader = request.headers.get('cookie');
+    console.log('🔍 [AUTH] Cookies reçus:', cookieHeader ? `${cookieHeader.substring(0, 50)}...` : 'Aucun cookie');
+    
     // En mode test, utiliser l'email de test
     if (process.env.NODE_ENV === "development") {
       const testUserEmail = request.headers.get("X-Test-User-Email");
 
       if (testUserEmail) {
+        console.log('🧪 [AUTH] Mode test avec email:', testUserEmail);
         const testUser = await db.user.findUnique({
           where: { email: testUserEmail },
           include: {
@@ -251,72 +256,42 @@ export async function getCurrentUserAPI(request: NextRequest) {
       }
     }
 
-    // 1. Vérifier l'authentification par Bearer Token (pour l'app mobile)
-    const authHeader = request.headers.get("authorization");
-    if (authHeader && authHeader.startsWith("Bearer ")) {
-      const token = authHeader.substring(7);
+    // Utiliser NextAuth pour récupérer la session
+    try {
+      const session = await auth();
       
-      // Pour l'instant, utiliser le token mock format: mock_token_{userId}
-      if (token.startsWith("mock_token_")) {
-        const userId = token.replace("mock_token_", "");
-        
-        const user = await db.user.findUnique({
-          where: { id: userId },
-          include: {
-            profile: true,
-            client: true,
-            deliverer: true,
-            merchant: true,
-            provider: true,
-            admin: true,
-          },
-        });
-
-        if (user) {
-          return user;
-        }
+      if (!session?.user?.id) {
+        console.log('❌ [AUTH] Aucune session trouvée');
+        return null;
       }
-    }
+      
+      console.log('✅ [AUTH] Session trouvée pour:', session.user.email);
 
-    // 2. --- PATCH: Décodage manuel du cookie JWT pour API route ---
-    // Si la session n'est pas trouvée via auth(), on décode le cookie JWT pour extraire l'id utilisateur
-    let session = await auth();
-    let userId: string | null = null;
-    if (session?.user?.id) {
-      userId = session.user.id;
-    } else {
-      const cookie = request.headers.get("cookie");
-      if (cookie) {
-        const match = cookie.match(/authjs\.session-token=([^;]+)/);
-        if (match) {
-          const token = match[1];
-          // Décodage du JWT (sans vérification de signature)
-          const decoded: any = jwt.decode(token);
-          userId = decoded?.sub || null;
-        }
+      // Récupérer l'utilisateur complet avec ses relations
+      const user = await db.user.findUnique({
+        where: { id: session.user.id },
+        include: {
+          profile: true,
+          client: true,
+          deliverer: true,
+          merchant: true,
+          provider: true,
+          admin: true,
+        },
+      });
+
+      if (!user) {
+        console.log('❌ [AUTH] Utilisateur non trouvé en DB:', session.user.id);
+        return null;
       }
-    }
 
-    if (!userId) {
+      return user;
+    } catch (error) {
+      console.error('❌ [AUTH] Erreur lors de la récupération de la session:', error);
       return null;
     }
-
-    const includeRelations: any = {
-      profile: true,
-      client: true,
-      deliverer: true,
-      merchant: true,
-      provider: true,
-      admin: true,
-    };
-
-    const user = await db.user.findUnique({
-      where: { id: userId },
-      include: includeRelations,
-    });
-
-    return user;
   } catch (error) {
+    console.error('❌ [AUTH] Erreur critique dans getCurrentUserAPI:', error);
     return null;
   }
 }

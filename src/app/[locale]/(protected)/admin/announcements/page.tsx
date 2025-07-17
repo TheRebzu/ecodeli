@@ -737,21 +737,23 @@ export default function AdminAnnouncementsPage() {
                                 <div>
                                   <p className="font-medium">Départ:</p>
                                   <p className="text-sm">
-                                    {announcement.startLocation.address}
+                                    {announcement.startLocation?.address || announcement.pickupAddress || "Non spécifié"}
                                   </p>
                                   <p className="text-sm text-gray-600">
-                                    {announcement.startLocation.city},{" "}
-                                    {announcement.startLocation.postalCode}
+                                    {announcement.startLocation?.city && announcement.startLocation?.postalCode ? 
+                                      `${announcement.startLocation.city}, ${announcement.startLocation.postalCode}` : 
+                                      ""}
                                   </p>
                                 </div>
                                 <div>
                                   <p className="font-medium">Arrivée:</p>
                                   <p className="text-sm">
-                                    {announcement.endLocation.address}
+                                    {announcement.endLocation?.address || announcement.deliveryAddress || "Non spécifié"}
                                   </p>
                                   <p className="text-sm text-gray-600">
-                                    {announcement.endLocation.city},{" "}
-                                    {announcement.endLocation.postalCode}
+                                    {announcement.endLocation?.city && announcement.endLocation?.postalCode ? 
+                                      `${announcement.endLocation.city}, ${announcement.endLocation.postalCode}` : 
+                                      ""}
                                   </p>
                                 </div>
                               </div>
@@ -947,11 +949,11 @@ export default function AdminAnnouncementsPage() {
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
                     <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                    <span>{selectedAnnouncement.startLocation.address}</span>
+                    <span>{selectedAnnouncement.startLocation?.address || "Non spécifié"}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-                    <span>{selectedAnnouncement.endLocation.address}</span>
+                    <span>{selectedAnnouncement.endLocation?.address || "Non spécifié"}</span>
                   </div>
                 </div>
               </div>

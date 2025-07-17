@@ -141,7 +141,7 @@ export class DocumentValidationService {
                 "IDENTITY",
                 "DRIVING_LICENSE",
                 "INSURANCE",
-                "VEHICLE_REGISTRATION",
+                "OTHER",
               ],
             },
           },
