@@ -17,10 +17,12 @@ import { Mail, CheckCircle, AlertTriangle } from "lucide-react";
 export function LoginForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [isSendingVerification, setIsSendingVerification] = useState(false);
+  const [isSendingMagicLink, setIsSendingMagicLink] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showVerificationButton, setShowVerificationButton] = useState(false);
   const [verificationEmail, setVerificationEmail] = useState("");
   const [verificationSent, setVerificationSent] = useState(false);
+  const [magicLinkSent, setMagicLinkSent] = useState(false);
   const router = useRouter();
   const t = useTranslations();
 
@@ -111,6 +113,36 @@ export function LoginForm() {
     }
   };
 
+  const handleSendMagicLink = async () => {
+    const email = getValues("email");
+    
+    if (!email) {
+      setError("Veuillez saisir votre email");
+      return;
+    }
+
+    setIsSendingMagicLink(true);
+    setError(null);
+
+    try {
+      const result = await signIn("email", {
+        email,
+        redirect: false,
+      });
+
+      if (result?.error) {
+        setError("Erreur lors de l'envoi du lien de connexion");
+      } else {
+        setMagicLinkSent(true);
+      }
+    } catch (error) {
+      console.error("Erreur envoi lien magique:", error);
+      setError("Erreur de connexion au serveur");
+    } finally {
+      setIsSendingMagicLink(false);
+    }
+  };
+
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       {error && (
@@ -125,6 +157,15 @@ export function LoginForm() {
           <CheckCircle className="h-4 w-4" />
           <AlertDescription>
             Email de vérification envoyé ! Vérifiez votre boîte de réception et cliquez sur le lien pour activer votre compte.
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {magicLinkSent && (
+        <Alert>
+          <CheckCircle className="h-4 w-4" />
+          <AlertDescription>
+            Lien de connexion envoyé ! Vérifiez votre boîte de réception et cliquez sur le lien pour vous connecter.
           </AlertDescription>
         </Alert>
       )}
@@ -203,6 +244,28 @@ export function LoginForm() {
       >
         {isLoading ? t("auth.login.signing") : t("auth.login.loginButton")}
       </button>
+
+      {/* Séparateur */}
+      <div className="relative">
+        <div className="absolute inset-0 flex items-center">
+          <div className="w-full border-t border-gray-300" />
+        </div>
+        <div className="relative flex justify-center text-sm">
+          <span className="px-2 bg-white text-gray-500">ou</span>
+        </div>
+      </div>
+
+      {/* Bouton de connexion par email magique */}
+      <Button
+        type="button"
+        onClick={handleSendMagicLink}
+        disabled={isSendingMagicLink}
+        variant="outline"
+        className="w-full"
+      >
+        <Mail className="mr-2 h-4 w-4" />
+        {isSendingMagicLink ? "Envoi en cours..." : "Se connecter par email"}
+      </Button>
     </form>
   );
 }

@@ -2,6 +2,7 @@ import NextAuth from "next-auth"
 import { PrismaAdapter } from "@auth/prisma-adapter"
 import { NextAuthConfig } from "next-auth"
 import CredentialsProvider from "next-auth/providers/credentials"
+import EmailProvider from "next-auth/providers/email"
 import { db } from "@/lib/db"
 import bcrypt from "bcryptjs"
 import type { UserRole } from "@prisma/client"
@@ -16,6 +17,18 @@ const config = {
     maxAge: 60 * 60 * 24 * 30, // 30 days
   },
   providers: [
+    EmailProvider({
+      server: {
+        host: process.env.SMTP_HOST,
+        port: Number(process.env.SMTP_PORT),
+        auth: {
+          user: process.env.GMAIL_USER,
+          pass: process.env.GMAIL_APP_PASSWORD,
+        },
+        secure: process.env.SMTP_SECURE === "true",
+      },
+      from: process.env.GMAIL_USER,
+    }),
     CredentialsProvider({
       name: "credentials",
       credentials: {
@@ -23,9 +36,9 @@ const config = {
         password: { label: "Password", type: "password" }
       },
       async authorize(credentials) {
-        console.log("[AUTH] authorize: start", credentials);
+        // [AUTH] authorize: start
         if (!credentials?.email || !credentials?.password) {
-          console.log("[AUTH] authorize: missing credentials");
+          // [AUTH] authorize: missing credentials
           return null;
         }
 
@@ -43,10 +56,10 @@ const config = {
           }
         });
 
-        console.log("[AUTH] authorize: user found?", !!user, user && { id: user.id, email: user.email, isActive: user.isActive, role: user.role });
+        // [AUTH] authorize: user found?
 
         if (!user) {
-          console.log("[AUTH] authorize: user not found");
+          // [AUTH] authorize: user not found
           return null;
         }
 
@@ -57,26 +70,20 @@ const config = {
             user.password
           );
 
-          console.log("[AUTH] authorize: password valid?", isPasswordValid);
+          // [AUTH] authorize: password valid?
 
           if (!isPasswordValid) {
-            console.log("[AUTH] authorize: invalid password");
+            // [AUTH] authorize: invalid password
             return null;
           }
         }
 
-        // ✅ CORRECTION : Permettre la connexion même si inactif
+        // CORRECTION : Permettre la connexion même si inactif
         // La gestion se fera côté frontend avec email de vérification
         const roleSpecificValidationStatus = getRoleValidationStatus(user);
         const effectiveValidationStatus = roleSpecificValidationStatus || user.validationStatus;
 
-        console.log("[AUTH] authorize: returning user", {
-          id: user.id,
-          email: user.email,
-          role: user.role,
-          isActive: user.isActive,
-          validationStatus: effectiveValidationStatus
-        });
+        // [AUTH] authorize: returning user
 
         return {
           id: user.id,
@@ -164,7 +171,7 @@ const config = {
             }
           } catch (error) {
             // En cas d'erreur DB, utiliser les données du token
-            console.error('❌ [AUTH SESSION] Erreur récupération données fraîches:', error)
+            console.error('[AUTH SESSION] Erreur récupération données fraîches:', error)
             session.user.isActive = token.isActive as boolean
             session.user.validationStatus = token.validationStatus as string
             session.user.profileData = token.profileData
@@ -174,8 +181,8 @@ const config = {
       return session
     },
     async signIn({ user, account, profile }) {
-      // ✅ CORRECTION : Permettre la connexion, gestion côté frontend
-      console.log(`✅ [AUTH] Connexion autorisée pour ${user.email} (${user.role}) - isActive: ${user.isActive}`)
+      // CORRECTION : Permettre la connexion, gestion côté frontend
+      // [AUTH] Connexion autorisée
       
       // Mettre à jour la date de dernière connexion
       if (user.id) {
@@ -185,11 +192,11 @@ const config = {
             data: { lastLoginAt: new Date() }
           })
         } catch (error) {
-          console.error('❌ [AUTH] Erreur mise à jour lastLoginAt:', error)
+          console.error('[AUTH] Erreur mise à jour lastLoginAt:', error)
         }
       }
 
-      return true // ✅ Toujours autoriser la connexion
+      return true // Toujours autoriser la connexion
     }
   },
   events: {
