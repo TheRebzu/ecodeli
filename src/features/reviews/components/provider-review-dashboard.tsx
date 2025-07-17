@@ -103,7 +103,7 @@ export default function ProviderReviewDashboard({
   const [responseText, setResponseText] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [filters, setFilters] = useState({
-    rating: "",
+    rating: "all",
     startDate: "",
     endDate: "",
   });
@@ -116,7 +116,7 @@ export default function ProviderReviewDashboard({
     setLoading(true);
     try {
       const params = new URLSearchParams();
-      if (filters.rating) params.append("rating", filters.rating);
+      if (filters.rating && filters.rating !== "all") params.append("rating", filters.rating);
       if (filters.startDate) params.append("startDate", filters.startDate);
       if (filters.endDate) params.append("endDate", filters.endDate);
 
@@ -347,7 +347,7 @@ export default function ProviderReviewDashboard({
                     <SelectValue placeholder={t("filters.rating")} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">{t("filters.all_ratings")}</SelectItem>
+                    <SelectItem value="all">{t("filters.all_ratings")}</SelectItem>
                     <SelectItem value="5">5 étoiles</SelectItem>
                     <SelectItem value="4">4 étoiles</SelectItem>
                     <SelectItem value="3">3 étoiles</SelectItem>

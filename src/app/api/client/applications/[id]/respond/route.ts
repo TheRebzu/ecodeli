@@ -92,6 +92,7 @@ export async function POST(
       );
 
       // Si acceptée, mettre à jour le statut de la demande de service
+      let createdBooking = null;
       if (validatedData.action === "ACCEPT") {
         await db.announcement.update({
           where: { id: application.announcementId },
@@ -100,6 +101,90 @@ export async function POST(
           },
         });
         console.log("✅ Demande de service mise à jour: IN_PROGRESS");
+
+        // Récupérer le clientId réel (table Client) à partir de l'userId de l'auteur de l'annonce
+        const client = await db.client.findUnique({
+          where: { userId: application.announcement.authorId },
+        });
+        if (!client) {
+          return NextResponse.json({ error: "Client introuvable pour l'annonce." }, { status: 400 });
+        }
+
+        // Récupérer le providerId réel (table Provider) à partir de l'userId du provider de l'application
+        const provider = await db.provider.findUnique({
+          where: { userId: application.providerId },
+        });
+        if (!provider) {
+          return NextResponse.json({ error: "Provider introuvable pour la candidature." }, { status: 400 });
+        }
+
+        // Récupérer le serviceId réel à partir de l'annonce (serviceDetails.serviceId ou announcement.serviceId)
+        let serviceId = undefined;
+        if (application.announcement.serviceDetails?.serviceId) {
+          serviceId = application.announcement.serviceDetails.serviceId;
+        } else if (application.announcement.serviceId) {
+          serviceId = application.announcement.serviceId;
+        }
+        
+        // Si pas de serviceId et que c'est une annonce de type service, créer un service temporaire
+        if (!serviceId && application.announcement.type === "HOME_SERVICE") {
+          // Créer un service temporaire pour ce provider
+          const tempService = await db.service.create({
+            data: {
+              providerId: provider.id,
+              name: `Service temporaire - ${application.announcement.title}`,
+              description: application.announcement.description,
+              type: "HOME_SERVICE",
+              basePrice: application.proposedPrice || application.announcement.budget || 0,
+              priceUnit: "HOUR",
+              duration: application.estimatedDuration || 60,
+              isActive: true,
+              minAdvanceBooking: 24,
+              maxAdvanceBooking: 720,
+            },
+          });
+          serviceId = tempService.id;
+        }
+        
+        if (!serviceId) {
+          return NextResponse.json({ error: "Service introuvable pour l'annonce." }, { status: 400 });
+        }
+
+        // Créer le booking (réservation) pour ce provider et ce client
+        // Vérifier qu'il n'existe pas déjà un booking pour cette annonce/provider/service
+        const existingBooking = await db.booking.findFirst({
+          where: {
+            clientId: client.id,
+            providerId: provider.id,
+            serviceId,
+          },
+        });
+        let createdBooking = null;
+        if (!existingBooking) {
+          createdBooking = await db.booking.create({
+            data: {
+              clientId: client.id,
+              providerId: provider.id,
+              serviceId,
+              status: "PENDING",
+              scheduledDate: application.announcement.location?.scheduledAt
+                ? new Date(application.announcement.location.scheduledAt)
+                : new Date(),
+              scheduledTime: application.announcement.location?.scheduledAt
+                ? new Date(application.announcement.location.scheduledAt).toISOString().slice(11, 19)
+                : "00:00:00",
+              duration: application.estimatedDuration || 60,
+              address: application.announcement.location
+                ? {
+                    address: application.announcement.location.address,
+                    city: application.announcement.location.city,
+                  }
+                : {},
+              totalPrice: application.proposedPrice || application.announcement.budget || 0,
+              notes: application.message || undefined,
+            },
+          });
+        }
       }
 
       // Créer une notification pour le prestataire
@@ -124,7 +209,7 @@ export async function POST(
               : "APPLICATION_REJECTED",
           data: {
             applicationId: applicationId,
-            serviceRequestId: application.serviceRequestId,
+            // serviceRequestId: application.serviceRequestId, // <-- supprimé car non présent
             clientMessage: validatedData.message,
           },
         },
@@ -137,14 +222,23 @@ export async function POST(
         application: {
           id: updatedApplication.id,
           status: updatedApplication.status,
-          respondedAt: updatedApplication.respondedAt?.toISOString(),
+          respondedAt: ("respondedAt" in updatedApplication && updatedApplication.respondedAt)
+            ? updatedApplication.respondedAt.toISOString()
+            : undefined,
         },
+        booking: createdBooking ? {
+          id: createdBooking.id,
+          status: createdBooking.status,
+          scheduledDate: createdBooking.scheduledDate,
+          providerId: createdBooking.providerId,
+          serviceId: createdBooking.serviceId,
+        } : undefined,
       });
     } catch (validationError) {
       console.error("❌ Erreur de validation:", validationError);
       if (validationError instanceof z.ZodError) {
         return NextResponse.json(
-          { error: "Données invalides", details: validationError.errors },
+          { error: "Données invalides", details: validationError.issues || validationError.message },
           { status: 400 },
         );
       }

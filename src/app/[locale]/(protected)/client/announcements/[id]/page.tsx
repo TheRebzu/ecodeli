@@ -536,11 +536,6 @@ export default function AnnouncementDetailPage() {
               Suivi de la livraison
             </Button>
           </Link>
-          <Link href={`/client/announcements/${announcement.id}/validation-code`}>
-            <Button variant="secondary">
-              Code de validation
-            </Button>
-          </Link>
         </div>
       )}
       <div className="space-y-6">
@@ -1164,15 +1159,6 @@ export default function AnnouncementDetailPage() {
                         Suivre la livraison
                       </Button>
                     </Link>
-                    <Link
-                      href={`/client/announcements/${id}/validation-code`}
-                      className="w-full"
-                    >
-                      <Button variant="outline" className="w-full">
-                        <Eye className="h-4 w-4 mr-2" />
-                        Code de validation
-                      </Button>
-                    </Link>
                     {unifiedStatus === "MATCHED" && (
                       <Link
                         href={`/client/announcements/${id}/payment`}
@@ -1249,35 +1235,6 @@ export default function AnnouncementDetailPage() {
                       page de suivi pour plus de détails.
                     </AlertDescription>
                   </Alert>
-
-                  {/* Code de validation pour le client */}
-                  {announcement.deliveries[0].validationCode && announcement.deliveries[0].status !== 'DELIVERED' && (
-                    <Card className="border-2 border-blue-200 bg-blue-50">
-                      <CardHeader>
-                        <CardTitle className="flex items-center gap-2 text-blue-800 text-lg">
-                          <AlertCircle className="h-5 w-5" />
-                          Code de validation
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="text-center space-y-4">
-                          <div className="bg-white rounded-lg p-6 border-2 border-blue-300">
-                            <div className="text-5xl font-mono font-bold text-blue-900 mb-2 tracking-wider">
-                              {announcement.deliveries[0].validationCode}
-                            </div>
-                          </div>
-                          <div className="space-y-2">
-                            <p className="text-sm font-medium text-blue-800">
-                              🚚 <strong>Donnez ce code au livreur</strong>
-                            </p>
-                            <p className="text-xs text-blue-700">
-                              Le livreur vous demandera ce code pour valider la réception de votre commande
-                            </p>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  )}
 
                   <Link
                     href={`/client/announcements/${id}/tracking`}

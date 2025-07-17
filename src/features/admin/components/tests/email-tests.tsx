@@ -38,18 +38,13 @@ interface EmailTestResult {
 
 export function EmailTests() {
   const [email, setEmail] = useState("");
-  const [emailType, setEmailType] = useState("welcome");
+  const [emailType, setEmailType] = useState("verification");
   const [customSubject, setCustomSubject] = useState("");
   const [customMessage, setCustomMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [results, setResults] = useState<EmailTestResult[]>([]);
 
   const emailTemplates = [
-    {
-      value: "welcome",
-      label: "Email de bienvenue",
-      description: "Email envoyé lors de l'inscription",
-    },
     {
       value: "verification",
       label: "Vérification email",
@@ -61,19 +56,14 @@ export function EmailTests() {
       description: "Email de récupération",
     },
     {
-      value: "delivery-confirmation",
-      label: "Confirmation livraison",
-      description: "Email de confirmation de livraison",
+      value: "booking-confirmation",
+      label: "Confirmation de réservation",
+      description: "Email de confirmation de réservation client",
     },
     {
-      value: "payment-success",
-      label: "Paiement réussi",
-      description: "Email de confirmation de paiement",
-    },
-    {
-      value: "document-approved",
-      label: "Document approuvé",
-      description: "Email de validation document",
+      value: "new-booking-notification",
+      label: "Notification nouvelle réservation",
+      description: "Email de notification pour le prestataire",
     },
     {
       value: "custom",

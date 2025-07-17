@@ -134,7 +134,7 @@ export function AnnouncementList({
 
               {/* Type Filter */}
               <Select
-                value={filters.type || ""}
+                value={filters.type || "all"}
                 onValueChange={(value) =>
                   handleFilterChange({
                     type: (value as AnnouncementType) || undefined,
@@ -145,7 +145,7 @@ export function AnnouncementList({
                   <SelectValue placeholder={t("filters.type")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">{t("filters.allTypes")}</SelectItem>
+                  <SelectItem value="all">{t("filters.allTypes")}</SelectItem>
                   <SelectItem value="PACKAGE_DELIVERY">
                     {t("types.packageDelivery")}
                   </SelectItem>
@@ -175,7 +175,7 @@ export function AnnouncementList({
 
               {/* Status Filter */}
               <Select
-                value={filters.status || ""}
+                value={filters.status || "all"}
                 onValueChange={(value) =>
                   handleFilterChange({
                     status: (value as AnnouncementStatus) || undefined,
@@ -186,7 +186,7 @@ export function AnnouncementList({
                   <SelectValue placeholder={t("filters.status")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">{t("filters.allStatuses")}</SelectItem>
+                  <SelectItem value="all">{t("filters.allStatuses")}</SelectItem>
                   <SelectItem value="DRAFT">{t("status.draft")}</SelectItem>
                   <SelectItem value="ACTIVE">{t("status.active")}</SelectItem>
                   <SelectItem value="IN_PROGRESS">
@@ -204,7 +204,7 @@ export function AnnouncementList({
 
               {/* Urgent Filter */}
               <Select
-                value={filters.urgent?.toString() || ""}
+                value={filters.urgent?.toString() || "all"}
                 onValueChange={(value) =>
                   handleFilterChange({
                     urgent:
@@ -220,7 +220,7 @@ export function AnnouncementList({
                   <SelectValue placeholder={t("filters.urgency")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">{t("filters.allUrgencies")}</SelectItem>
+                  <SelectItem value="all">{t("filters.allUrgencies")}</SelectItem>
                   <SelectItem value="true">
                     {t("filters.urgentOnly")}
                   </SelectItem>

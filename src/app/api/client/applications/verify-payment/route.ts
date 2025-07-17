@@ -58,6 +58,24 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    // PATCH: Lier le paiement à l'annonce pour affichage côté provider
+    // 1. Récupérer l'application et son annonce
+    const application = await prisma.serviceApplication.findUnique({
+      where: { id: applicationId },
+      include: { announcement: true },
+    });
+    // 2. Récupérer le paiement pour cette application
+    const payment = await prisma.payment.findFirst({
+      where: { serviceApplicationId: applicationId },
+    });
+    // 3. Lier le paiement à l'annonce si ce n'est pas déjà fait
+    if (application && payment && application.announcementId) {
+      await prisma.announcement.update({
+        where: { id: application.announcementId },
+        data: { payment: { connect: { id: payment.id } } },
+      });
+    }
+
     return NextResponse.json({
       success: true,
       applicationId,

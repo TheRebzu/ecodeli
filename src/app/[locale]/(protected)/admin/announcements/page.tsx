@@ -88,9 +88,9 @@ export default function AdminAnnouncementsPage() {
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState("");
-  const [typeFilter, setTypeFilter] = useState("");
-  const [userRoleFilter, setUserRoleFilter] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [typeFilter, setTypeFilter] = useState("all");
+  const [userRoleFilter, setUserRoleFilter] = useState("all");
   const [sortBy, setSortBy] = useState("createdAt");
   const [sortOrder, setSortOrder] = useState("desc");
   const [page, setPage] = useState(1);
@@ -126,9 +126,9 @@ export default function AdminAnnouncementsPage() {
         page: page.toString(),
         limit: "25",
         ...(searchTerm && { search: searchTerm }),
-        ...(statusFilter && { status: statusFilter }),
-        ...(typeFilter && { type: typeFilter }),
-        ...(userRoleFilter && { userRole: userRoleFilter }),
+        ...(statusFilter && statusFilter !== "all" && { status: statusFilter }),
+        ...(typeFilter && typeFilter !== "all" && { type: typeFilter }),
+        ...(userRoleFilter && userRoleFilter !== "all" && { userRole: userRoleFilter }),
         sortBy,
         sortOrder,
         includeUser: "true",
@@ -480,7 +480,7 @@ export default function AdminAnnouncementsPage() {
                 <SelectValue placeholder="Statut" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Tous les statuts</SelectItem>
+                <SelectItem value="all">Tous les statuts</SelectItem>
                 <SelectItem value="DRAFT">Brouillon</SelectItem>
                 <SelectItem value="ACTIVE">Active</SelectItem>
                 <SelectItem value="MATCHED">Matchée</SelectItem>
@@ -495,7 +495,7 @@ export default function AdminAnnouncementsPage() {
                 <SelectValue placeholder="Type" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Tous les types</SelectItem>
+                <SelectItem value="all">Tous les types</SelectItem>
                 <SelectItem value="PACKAGE_DELIVERY">
                   Transport de colis
                 </SelectItem>
@@ -518,7 +518,7 @@ export default function AdminAnnouncementsPage() {
                 <SelectValue placeholder="Utilisateur" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Tous les rôles</SelectItem>
+                <SelectItem value="all">Tous les rôles</SelectItem>
                 <SelectItem value="CLIENT">Clients</SelectItem>
                 <SelectItem value="MERCHANT">Commerçants</SelectItem>
                 <SelectItem value="PROVIDER">Prestataires</SelectItem>
@@ -685,7 +685,7 @@ export default function AdminAnnouncementsPage() {
                       </Select>
                     </TableCell>
                     <TableCell className="font-bold text-green-600">
-                      {announcement.price.toFixed(2)} €
+                      {announcement.basePrice ? announcement.basePrice.toFixed(2) : '0.00'} €
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-1">

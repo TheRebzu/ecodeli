@@ -74,7 +74,7 @@ export function AdminSidebar({
     // ===== GESTION DES UTILISATEURS =====
     {
       key: "users",
-      label: "Gestion Utilisateurs",
+      label: t("users"),
       href: "/admin/users",
       icon: <Users className="h-4 w-4" />,
       category: "users",
@@ -83,7 +83,7 @@ export function AdminSidebar({
     // ===== VÉRIFICATIONS ET DOCUMENTS =====
     {
       key: "verifications",
-      label: "Vérifications",
+      label: t("verifications"),
       href: "/admin/verifications",
       icon: <CheckCircle className="h-4 w-4" />,
       category: "validation",
@@ -91,20 +91,20 @@ export function AdminSidebar({
       children: [
         {
           key: "verifications-pending",
-          label: "En attente",
+          label: t("pending"),
           href: "/admin/verifications/pending",
           icon: <Clock className="h-4 w-4" />,
           badge: "3",
         },
         {
           key: "verifications-approved",
-          label: "Approuvées",
+          label: t("approved"),
           href: "/admin/verifications/approved",
           icon: <CheckCircle className="h-4 w-4" />,
         },
         {
           key: "verifications-rejected",
-          label: "Rejetées",
+          label: t("rejected"),
           href: "/admin/verifications/rejected",
           icon: <FileX className="h-4 w-4" />,
         },
@@ -114,7 +114,7 @@ export function AdminSidebar({
     // ===== DOCUMENTS =====
     {
       key: "documents",
-      label: "Documents",
+      label: t("documents"),
       href: "/admin/documents",
       icon: <FileImage className="h-4 w-4" />,
       category: "validation",
@@ -123,7 +123,7 @@ export function AdminSidebar({
     // ===== LIVRAISONS =====
     {
       key: "deliveries",
-      label: "Livraisons",
+      label: t("deliveries"),
       href: "/admin/deliveries",
       icon: <Package className="h-4 w-4" />,
       category: "operations",
@@ -131,7 +131,7 @@ export function AdminSidebar({
 
     {
       key: "deliveries-monitoring",
-      label: "Monitoring Livraisons",
+      label: t("deliveriesMonitoring"),
       href: "/admin/deliveries-monitoring",
       icon: <Monitor className="h-4 w-4" />,
       category: "operations",
@@ -140,7 +140,7 @@ export function AdminSidebar({
     // ===== ANNONCES =====
     {
       key: "announcements",
-      label: "Annonces",
+      label: t("announcements"),
       href: "/admin/announcements",
       icon: <FileText className="h-4 w-4" />,
       category: "content",
@@ -149,7 +149,7 @@ export function AdminSidebar({
     // ===== LITIGES =====
     {
       key: "disputes",
-      label: "Litiges",
+      label: t("disputes"),
       href: "/admin/disputes",
       icon: <MessageSquare className="h-4 w-4" />,
       category: "support",
@@ -158,7 +158,7 @@ export function AdminSidebar({
     // ===== TICKETS SUPPORT =====
     {
       key: "support-tickets",
-      label: "Tickets Support",
+      label: t("supportTickets"),
       href: "/admin/support-tickets",
       icon: <MessageSquare className="h-4 w-4" />,
       category: "support",
@@ -167,7 +167,7 @@ export function AdminSidebar({
     // ===== MODÉRATION =====
     {
       key: "moderation",
-      label: "Modération",
+      label: t("moderation"),
       href: "/admin/moderation",
       icon: <Shield className="h-4 w-4" />,
       category: "content",
@@ -176,7 +176,7 @@ export function AdminSidebar({
     // ===== FINANCE =====
     {
       key: "finance",
-      label: "Finance",
+      label: t("finance"),
       href: "/admin/finance",
       icon: <DollarSign className="h-4 w-4" />,
       category: "finance",
@@ -184,7 +184,7 @@ export function AdminSidebar({
 
     {
       key: "billing",
-      label: "Facturation",
+      label: t("billing"),
       href: "/admin/billing",
       icon: <CreditCard className="h-4 w-4" />,
       category: "finance",
@@ -193,7 +193,7 @@ export function AdminSidebar({
     // ===== FACTURATION PRESTATAIRES =====
     {
       key: "provider-billing",
-      label: "Facturation Prestataires",
+      label: t("providerBilling"),
       href: "/admin/provider-billing",
       icon: <TrendingUp className="h-4 w-4" />,
       category: "finance",
@@ -202,7 +202,7 @@ export function AdminSidebar({
     // ===== CONTRATS =====
     {
       key: "contracts",
-      label: "Contrats",
+      label: t("contracts"),
       href: "/admin/contracts",
       icon: <Handshake className="h-4 w-4" />,
       category: "business",
@@ -211,7 +211,7 @@ export function AdminSidebar({
     // ===== ENTREPÔTS =====
     {
       key: "locations",
-      label: "Entrepôts",
+      label: t("locations"),
       href: "/admin/locations",
       icon: <Building className="h-4 w-4" />,
       category: "infrastructure",
@@ -220,7 +220,7 @@ export function AdminSidebar({
     // ===== ASSURANCE =====
     {
       key: "insurance",
-      label: "Assurance",
+      label: t("insurance"),
       href: "/admin/insurance",
       icon: <Heart className="h-4 w-4" />,
       category: "business",
@@ -229,7 +229,7 @@ export function AdminSidebar({
     // ===== PARRAINAGE =====
     {
       key: "referrals",
-      label: "Parrainage",
+      label: t("referrals"),
       href: "/admin/referrals",
       icon: <UserCheck className="h-4 w-4" />,
       category: "marketing",
@@ -238,7 +238,7 @@ export function AdminSidebar({
     // ===== MONITORING =====
     {
       key: "monitoring",
-      label: "Monitoring",
+      label: t("monitoring"),
       href: "/admin/monitoring",
       icon: <Activity className="h-4 w-4" />,
       category: "system",
@@ -247,7 +247,7 @@ export function AdminSidebar({
     // ===== CONFIGURATION SYSTÈME =====
     {
       key: "system-config",
-      label: "Configuration Système",
+      label: t("systemConfig"),
       href: "/admin/system-config",
       icon: <Settings className="h-4 w-4" />,
       category: "system",
@@ -256,7 +256,7 @@ export function AdminSidebar({
     // ===== PARAMÈTRES =====
     {
       key: "settings",
-      label: "Paramètres",
+      label: t("settings"),
       href: "/admin/settings",
       icon: <Settings className="h-4 w-4" />,
       category: "system",
@@ -265,7 +265,7 @@ export function AdminSidebar({
     // ===== TESTS =====
     {
       key: "tests",
-      label: "Tests Admin",
+      label: t("tests"),
       href: "/admin/tests",
       icon: <TestTube className="h-4 w-4" />,
       category: "development",

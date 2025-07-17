@@ -255,18 +255,33 @@ export async function GET(
         : null,
 
       // Informations de livraison
-      deliveries: announcement.deliveries.map((delivery) => ({
-        id: delivery.id,
-        status: delivery.status,
-        trackingNumber: delivery.trackingNumber,
-        validationCode: delivery.validationCode,
-        deliverer: delivery.deliverer
-          ? {
-              id: delivery.deliverer.id,
-              profile: delivery.deliverer.profile,
-            }
-          : null,
-      })),
+      deliveries: announcement.deliveries 
+        ? Array.isArray(announcement.deliveries)
+          ? announcement.deliveries.map((delivery) => ({
+              id: delivery.id,
+              status: delivery.status,
+              trackingNumber: delivery.trackingNumber,
+              validationCode: delivery.validationCode,
+              deliverer: delivery.deliverer
+                ? {
+                    id: delivery.deliverer.id,
+                    profile: delivery.deliverer.profile,
+                  }
+                : null,
+            }))
+          : [{
+              id: announcement.deliveries.id,
+              status: announcement.deliveries.status,
+              trackingNumber: announcement.deliveries.trackingNumber,
+              validationCode: announcement.deliveries.validationCode,
+              deliverer: announcement.deliveries.deliverer
+                ? {
+                    id: announcement.deliveries.deliverer.id,
+                    profile: announcement.deliveries.deliverer.profile,
+                  }
+                : null,
+            }]
+        : [],
 
       // Paiement lié à la livraison (pour badge Payé)
       payment: payment

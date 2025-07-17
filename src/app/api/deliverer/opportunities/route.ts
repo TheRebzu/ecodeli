@@ -74,7 +74,7 @@ export async function GET(request: NextRequest) {
     // Préparer le filtre principal
     const where: any = {
       status: "ACTIVE",
-      delivery: null,
+      delivererId: null,
     };
     if (type) where.type = type;
     if (urgentOnly) where.isUrgent = true;

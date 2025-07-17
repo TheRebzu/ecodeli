@@ -30,9 +30,7 @@ export async function GET(request: NextRequest) {
 
     const bookings = await prisma.booking.findMany({
       where: {
-        service: {
-          providerId: provider.id,
-        },
+        providerId: provider.id, // Utiliser directement providerId
         OR: [
           { status: "COMPLETED" },
           { status: "CANCELLED" },
@@ -65,7 +63,7 @@ export async function GET(request: NextRequest) {
           select: {
             id: true,
             name: true,
-            category: true,
+            type: true, // Corriger 'category' en 'type' selon le schéma
           },
         },
       },
@@ -95,11 +93,13 @@ export async function GET(request: NextRequest) {
         clientName: clientName || "Client",
         clientEmail: booking.client.user.email,
         serviceName: booking.service.name,
+        serviceType: booking.service.type, // Ajouter le type de service
         status: status,
         scheduledAt: booking.scheduledDate.toISOString(),
+        scheduledTime: booking.scheduledTime,
         completedAt: booking.completedAt?.toISOString(),
         duration: booking.duration || 60, // Default duration if not set
-        location: booking.location || "À domicile",
+        address: booking.address || { address: "À domicile" }, // Corriger 'location' en 'address'
         totalAmount: booking.totalPrice || 0,
         rating: booking.rating,
         review: booking.review,

@@ -59,13 +59,7 @@ export async function POST(
             },
           },
         },
-        delivery: {
-          select: {
-            id: true,
-            status: true,
-            delivererId: true,
-          },
-        },
+        deliveries: true,
         matches: {
           where: {
             delivererId: user.id,
@@ -80,12 +74,12 @@ export async function POST(
 
     console.log("📋 Annonce trouvée:", announcement ? "OUI" : "NON");
     if (announcement) {
-      console.log("📊 Statut annonce:", announcement.status);
-      console.log(
-        "🚚 Livraison existante:",
-        announcement.delivery ? "OUI" : "NON",
-      );
-      console.log("🎯 Matches existants:", announcement.matches.length);
+          console.log("📊 Statut annonce:", announcement.status);
+    console.log(
+      "🚚 Livraison existante:",
+      announcement.deliveries ? "OUI" : "NON",
+    );
+    console.log("🎯 Matches existants:", announcement.matches.length);
     }
 
     if (!announcement) {
@@ -106,8 +100,8 @@ export async function POST(
     }
 
     // Vérifier que l'annonce n'a pas déjà une livraison en cours
-    if (announcement.delivery) {
-      if (announcement.delivery.delivererId === user.id) {
+    if (announcement.deliveries) {
+      if (announcement.deliveries.delivererId === user.id) {
         console.log("❌ Livreur a déjà accepté cette livraison");
         return NextResponse.json(
           { error: "Vous avez déjà accepté cette livraison" },
@@ -115,7 +109,7 @@ export async function POST(
         );
       }
 
-      if (["ACCEPTED", "IN_PROGRESS"].includes(announcement.delivery.status)) {
+      if (["ACCEPTED", "IN_PROGRESS"].includes(announcement.deliveries.status)) {
         console.log("❌ Livraison déjà acceptée par un autre livreur");
         return NextResponse.json(
           { error: "Cette livraison a déjà été acceptée par un autre livreur" },

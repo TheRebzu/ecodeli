@@ -119,7 +119,7 @@ export function AnnouncementCard({
         </div>
         <div className="text-right">
           <div className="text-2xl font-bold text-green-600 mb-1">
-            {formatPrice(announcement.price)}
+                                  {formatPrice(announcement.basePrice || 0)}
           </div>
           <div className="text-sm text-gray-500">
             {formatDistanceToNow(new Date(announcement.createdAt), {

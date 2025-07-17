@@ -39,14 +39,18 @@ export async function GET(request: NextRequest) {
     const sortOrder = searchParams.get("sortOrder") === "asc" ? "asc" : "desc";
     const sortBy = searchParams.get("sortBy") || "createdAt";
 
-    // Récupérer uniquement les applications payées du prestataire
-    // Utiliser user.id (userId) au lieu de provider.id car ServiceApplication.providerId = User.id
-    const where: any = { 
-      providerId: user.id, // Utiliser l'ID utilisateur, pas l'ID du profil prestataire
-      paymentStatus: "PAID" // Filtrer uniquement les applications payées
+    // Rechercher les applications PAYÉES, EN COURS et TERMINÉES du prestataire
+    const where: any = {
+      providerId: user.id,
+      status: {
+        in: ["PAID", "IN_PROGRESS", "COMPLETED"]
+      }
     };
-    
-    if (status) where.status = status;
+
+    // Filtrer par statut supplémentaire si spécifié
+    if (status) {
+      where.status = status;
+    }
 
     console.log("🔍 Recherche avec critères:", where);
 
@@ -87,10 +91,10 @@ export async function GET(request: NextRequest) {
         serviceRequestId: app.announcementId,
         title: app.announcement.title,
         description: app.announcement.description,
-        scheduledDate: app.paidAt?.toISOString() || new Date().toISOString(),
+        scheduledDate: app.paidAt?.toISOString() || app.updatedAt.toISOString(),
         estimatedDuration: app.estimatedDuration || 0,
         actualDuration: null,
-        status: "PAID", // Statut spécifique pour les applications payées
+        status: app.status,
         notes: app.message,
         rating: null,
         review: null,
@@ -99,7 +103,7 @@ export async function GET(request: NextRequest) {
         type: "paid_application",
         client: {
           id: app.announcement.authorId,
-          email: app.announcement.author.email, // Ajouter l'email du client
+          email: app.announcement.author.email,
           profile: {
             firstName: app.announcement.author.profile?.firstName || "",
             lastName: app.announcement.author.profile?.lastName || "",
@@ -118,16 +122,14 @@ export async function GET(request: NextRequest) {
           deliveryAddress: app.announcement.deliveryAddress || "",
         },
         payment: {
-          id: `payment_${app.id}`,
-          amount: app.proposedPrice || 0,
-          currency: "EUR",
-          status: "COMPLETED",
+          status: "COMPLETED", // Les applications PAID sont considérées comme ayant un paiement complété
+          paidAt: app.paidAt,
         },
         applicationData: {
           proposedPrice: app.proposedPrice,
           message: app.message,
           applicationId: app.id,
-          paymentStatus: app.paymentStatus,
+          paymentStatus: app.status,
           paidAt: app.paidAt,
           availableDates: app.availableDates,
         },

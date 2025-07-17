@@ -66,7 +66,7 @@ export function ServiceCatalog({ onServiceSelect }: ServiceCatalogProps) {
   const [filteredServices, setFilteredServices] = useState<Service[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState<string>("");
+  const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [sortBy, setSortBy] = useState<string>("name");
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -117,7 +117,7 @@ export function ServiceCatalog({ onServiceSelect }: ServiceCatalogProps) {
     }
 
     // Filter by category
-    if (selectedCategory) {
+    if (selectedCategory && selectedCategory !== "all") {
       filtered = filtered.filter(
         (service) => service.type === selectedCategory,
       );
@@ -216,7 +216,7 @@ export function ServiceCatalog({ onServiceSelect }: ServiceCatalogProps) {
             <SelectValue placeholder={t("filters.category")} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">{t("filters.all_categories")}</SelectItem>
+                          <SelectItem value="all">{t("filters.all_categories")}</SelectItem>
             {ServiceCategoryValues.map((category) => (
               <SelectItem key={category} value={category}>
                 {getCategoryLabel(category)}

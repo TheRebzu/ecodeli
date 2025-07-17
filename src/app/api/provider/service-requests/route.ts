@@ -60,7 +60,7 @@ export async function GET(request: NextRequest) {
     // Construction des filtres - demandes de services actives des clients
     const where: any = {
       type: "HOME_SERVICE",
-      status: "ACTIVE", // Seulement les demandes actives
+      status: { in: ["ACTIVE", "IN_PROGRESS"] }, // Inclure les demandes actives ET en cours
     };
 
     // Filtres optionnels
@@ -232,15 +232,14 @@ export async function GET(request: NextRequest) {
         isRecurring: request.ServiceAnnouncement?.recurringService || false,
         frequency: request.ServiceAnnouncement?.recurringPattern,
         urgency: request.isUrgent ? "URGENT" : "NORMAL",
-        location: request.location
-          ? {
-              address: (request.location as any)?.address || "",
-              city: (request.location as any)?.city || "",
-              postalCode: (request.location as any)?.postalCode || "",
-              latitude: (request.location as any)?.latitude,
-              longitude: (request.location as any)?.longitude,
-            }
-          : undefined,
+        location: {
+          pickupAddress: request.pickupAddress,
+          pickupLatitude: request.pickupLatitude,
+          pickupLongitude: request.pickupLongitude,
+          deliveryAddress: request.deliveryAddress,
+          deliveryLatitude: request.deliveryLatitude,
+          deliveryLongitude: request.deliveryLongitude,
+        },
         createdAt: request.createdAt.toISOString(),
         updatedAt: request.updatedAt.toISOString(),
         clientId: request.authorId,

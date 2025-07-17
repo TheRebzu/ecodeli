@@ -43,7 +43,7 @@ export function OpportunitiesList() {
   const [filters, setFilters] = useState({
     maxDistance: 50,
     minPrice: "",
-    type: "",
+    type: "all",
     urgentOnly: false,
   });
 
@@ -58,7 +58,7 @@ export function OpportunitiesList() {
       if (filters.maxDistance)
         params.append("maxDistance", filters.maxDistance.toString());
       if (filters.minPrice) params.append("minPrice", filters.minPrice);
-      if (filters.type) params.append("type", filters.type);
+      if (filters.type && filters.type !== "all") params.append("type", filters.type);
       if (filters.urgentOnly) params.append("urgentOnly", "true");
 
       const response = await fetch(`/api/deliverer/opportunities?${params}`);
@@ -180,7 +180,7 @@ export function OpportunitiesList() {
                   <SelectValue placeholder="Tous types" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Tous types</SelectItem>
+                  <SelectItem value="all">Tous types</SelectItem>
                   <SelectItem value="PACKAGE_DELIVERY">Colis</SelectItem>
                   <SelectItem value="DOCUMENT_DELIVERY">Documents</SelectItem>
                   <SelectItem value="SHOPPING_DELIVERY">Courses</SelectItem>

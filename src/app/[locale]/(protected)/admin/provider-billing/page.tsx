@@ -82,7 +82,7 @@ export default function AdminProviderBillingPage() {
                 <SelectValue placeholder={t("monthFilter")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">{t("allMonths")}</SelectItem>
+                <SelectItem value="all">{t("allMonths")}</SelectItem>
                 <SelectItem value="2024-01">Janvier 2024</SelectItem>
                 <SelectItem value="2024-02">Février 2024</SelectItem>
                 <SelectItem value="2024-03">Mars 2024</SelectItem>

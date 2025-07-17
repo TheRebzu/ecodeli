@@ -546,6 +546,319 @@ export class EmailService {
   }
 
   /**
+   * Envoyer un email de démarrage de service au client
+   */
+  static async sendServiceStartedEmail(
+    clientEmail: string,
+    serviceData: {
+      clientName: string;
+      providerName: string;
+      serviceName: string;
+      serviceDescription: string;
+      startedAt: string;
+      estimatedDuration?: number;
+      serviceId: string;
+    },
+    locale: string = "fr",
+  ) {
+    const subject =
+      locale === "fr"
+        ? "🚀 Votre service a commencé - EcoDeli"
+        : "🚀 Your service has started - EcoDeli";
+
+    const html = `
+      <!DOCTYPE html>
+      <html lang="${locale}">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>${subject}</title>
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; margin: 0; padding: 20px; background-color: #f4f4f4; }
+          .container { max-width: 600px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+          .header { text-align: center; margin-bottom: 30px; background: linear-gradient(135deg, #3b82f6, #1d4ed8); color: white; padding: 20px; border-radius: 8px; }
+          .logo { font-size: 24px; font-weight: bold; margin-bottom: 5px; }
+          .subtitle { font-size: 14px; opacity: 0.9; }
+          .service-card { background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 20px; margin: 20px 0; }
+          .service-detail { display: flex; justify-content: space-between; margin: 10px 0; padding: 8px 0; border-bottom: 1px solid #e0e7ff; }
+          .service-detail:last-child { border-bottom: none; }
+          .label { font-weight: bold; color: #1e40af; }
+          .value { color: #374151; }
+          .status-badge { background: #dcfce7; color: #166534; padding: 8px 16px; border-radius: 20px; font-size: 14px; font-weight: bold; display: inline-block; margin: 15px 0; }
+          .button { display: inline-block; background: #3b82f6; color: white; text-decoration: none; padding: 12px 30px; border-radius: 5px; font-weight: bold; margin: 20px 0; text-align: center; }
+          .footer { text-align: center; margin-top: 30px; color: #666; font-size: 14px; border-top: 1px solid #e2e8f0; padding-top: 20px; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <div class="logo">🌱 EcoDeli</div>
+            <div class="subtitle">${locale === "fr" ? "Votre plateforme de services éco-responsables" : "Your eco-friendly services platform"}</div>
+          </div>
+          
+          <h2>${locale === "fr" ? "🚀 Votre service a commencé !" : "🚀 Your service has started!"}</h2>
+          
+          <p>${
+            locale === "fr"
+              ? `Bonjour ${serviceData.clientName},`
+              : `Hello ${serviceData.clientName},`
+          }</p>
+          
+          <p>${
+            locale === "fr"
+              ? `Bonne nouvelle ! <strong>${serviceData.providerName}</strong> vient de commencer votre service.`
+              : `Good news! <strong>${serviceData.providerName}</strong> has just started your service.`
+          }</p>
+          
+          <div class="service-card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+              <h3 style="margin: 0; color: #1e40af;">${serviceData.serviceName}</h3>
+              <span class="status-badge">${locale === "fr" ? "🟢 EN COURS" : "🟢 IN PROGRESS"}</span>
+            </div>
+            
+            <div class="service-detail">
+              <span class="label">${locale === "fr" ? "Prestataire :" : "Provider:"}</span>
+              <span class="value">${serviceData.providerName}</span>
+            </div>
+            
+            <div class="service-detail">
+              <span class="label">${locale === "fr" ? "Service :" : "Service:"}</span>
+              <span class="value">${serviceData.serviceName}</span>
+            </div>
+            
+            <div class="service-detail">
+              <span class="label">${locale === "fr" ? "Commencé le :" : "Started on:"}</span>
+              <span class="value">${serviceData.startedAt}</span>
+            </div>
+            
+            ${
+              serviceData.estimatedDuration
+                ? `
+            <div class="service-detail">
+              <span class="label">${locale === "fr" ? "Durée estimée :" : "Estimated duration:"}</span>
+              <span class="value">${Math.floor(serviceData.estimatedDuration / 60)}h${serviceData.estimatedDuration % 60 > 0 ? ` ${serviceData.estimatedDuration % 60}min` : ""}</span>
+            </div>
+            `
+                : ""
+            }
+            
+            <div class="service-detail">
+              <span class="label">${locale === "fr" ? "Référence :" : "Reference:"}</span>
+              <span class="value">#${serviceData.serviceId.slice(-8).toUpperCase()}</span>
+            </div>
+          </div>
+          
+          <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 15px; margin: 20px 0;">
+            <h4 style="margin-top: 0; color: #166534;">${locale === "fr" ? "📋 Informations importantes" : "📋 Important information"}</h4>
+            <ul style="margin: 0; padding-left: 20px; color: #374151;">
+              <li>${locale === "fr" ? "Votre prestataire travaille maintenant sur votre demande" : "Your provider is now working on your request"}</li>
+              <li>${locale === "fr" ? "Vous recevrez une notification une fois le service terminé" : "You will receive a notification once the service is completed"}</li>
+              <li>${locale === "fr" ? "Vous pourrez évaluer le service après sa réalisation" : "You will be able to rate the service after completion"}</li>
+            </ul>
+          </div>
+          
+          <div style="text-align: center;">
+            <a href="${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/client/services/${serviceData.serviceId}" class="button">
+              ${locale === "fr" ? "📱 Suivre mon service" : "📱 Track my service"}
+            </a>
+          </div>
+          
+          <div class="footer">
+            <p>${
+              locale === "fr"
+                ? "Besoin d'aide ? Contactez notre support à"
+                : "Need help? Contact our support at"
+            } <a href="mailto:support@ecodeli.me">support@ecodeli.me</a></p>
+            <p>© 2025 EcoDeli - ${locale === "fr" ? "Services écologiques" : "Eco-friendly services"}</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+
+    const mailOptions = {
+      from: process.env.GMAIL_USER || "noreply@ecodeli.me",
+      to: clientEmail,
+      subject,
+      html,
+    };
+
+    try {
+      const result = await transporter.sendMail(mailOptions);
+      return { success: true, messageId: result.messageId };
+    } catch (error) {
+      console.error("❌ Erreur envoi email service commencé:", error);
+      throw error;
+    }
+  }
+
+  /**
+   * Envoyer un email de fin de service au client
+   */
+  static async sendServiceCompletedEmail(
+    clientEmail: string,
+    serviceData: {
+      clientName: string;
+      providerName: string;
+      serviceName: string;
+      serviceDescription: string;
+      completedAt: string;
+      actualDuration?: number;
+      serviceId: string;
+    },
+    locale: string = "fr",
+  ) {
+    const subject =
+      locale === "fr"
+        ? "✅ Votre service est terminé - EcoDeli"
+        : "✅ Your service is completed - EcoDeli";
+
+    const html = `
+      <!DOCTYPE html>
+      <html lang="${locale}">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>${subject}</title>
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; margin: 0; padding: 20px; background-color: #f4f4f4; }
+          .container { max-width: 600px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+          .header { text-align: center; margin-bottom: 30px; background: linear-gradient(135deg, #16a34a, #22c55e); color: white; padding: 20px; border-radius: 8px; }
+          .logo { font-size: 24px; font-weight: bold; margin-bottom: 5px; }
+          .subtitle { font-size: 14px; opacity: 0.9; }
+          .service-card { background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 20px; margin: 20px 0; }
+          .service-detail { display: flex; justify-content: space-between; margin: 10px 0; padding: 8px 0; border-bottom: 1px solid #dcfce7; }
+          .service-detail:last-child { border-bottom: none; }
+          .label { font-weight: bold; color: #166534; }
+          .value { color: #374151; }
+          .status-badge { background: #dcfce7; color: #166534; padding: 8px 16px; border-radius: 20px; font-size: 14px; font-weight: bold; display: inline-block; margin: 15px 0; }
+          .button { display: inline-block; color: white; text-decoration: none; padding: 12px 30px; border-radius: 5px; font-weight: bold; margin: 10px 5px; text-align: center; }
+          .btn-rate { background: #f59e0b; }
+          .btn-view { background: #16a34a; }
+          .footer { text-align: center; margin-top: 30px; color: #666; font-size: 14px; border-top: 1px solid #e2e8f0; padding-top: 20px; }
+          .rating-section { background: #fef3c7; border: 1px solid #fbbf24; border-radius: 8px; padding: 20px; margin: 20px 0; text-align: center; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <div class="logo">🌱 EcoDeli</div>
+            <div class="subtitle">${locale === "fr" ? "Votre plateforme de services éco-responsables" : "Your eco-friendly services platform"}</div>
+          </div>
+          
+          <h2>${locale === "fr" ? "🎉 Service terminé avec succès !" : "🎉 Service completed successfully!"}</h2>
+          
+          <p>${
+            locale === "fr"
+              ? `Bonjour ${serviceData.clientName},`
+              : `Hello ${serviceData.clientName},`
+          }</p>
+          
+          <p>${
+            locale === "fr"
+              ? `Excellente nouvelle ! <strong>${serviceData.providerName}</strong> vient de terminer votre service.`
+              : `Great news! <strong>${serviceData.providerName}</strong> has just completed your service.`
+          }</p>
+          
+          <div class="service-card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+              <h3 style="margin: 0; color: #166534;">${serviceData.serviceName}</h3>
+              <span class="status-badge">${locale === "fr" ? "✅ TERMINÉ" : "✅ COMPLETED"}</span>
+            </div>
+            
+            <div class="service-detail">
+              <span class="label">${locale === "fr" ? "Prestataire :" : "Provider:"}</span>
+              <span class="value">${serviceData.providerName}</span>
+            </div>
+            
+            <div class="service-detail">
+              <span class="label">${locale === "fr" ? "Service :" : "Service:"}</span>
+              <span class="value">${serviceData.serviceName}</span>
+            </div>
+            
+            <div class="service-detail">
+              <span class="label">${locale === "fr" ? "Terminé le :" : "Completed on:"}</span>
+              <span class="value">${serviceData.completedAt}</span>
+            </div>
+            
+            ${
+              serviceData.actualDuration
+                ? `
+            <div class="service-detail">
+              <span class="label">${locale === "fr" ? "Durée réelle :" : "Actual duration:"}</span>
+              <span class="value">${Math.floor(serviceData.actualDuration / 60)}h${serviceData.actualDuration % 60 > 0 ? ` ${serviceData.actualDuration % 60}min` : ""}</span>
+            </div>
+            `
+                : ""
+            }
+            
+            <div class="service-detail">
+              <span class="label">${locale === "fr" ? "Référence :" : "Reference:"}</span>
+              <span class="value">#${serviceData.serviceId.slice(-8).toUpperCase()}</span>
+            </div>
+          </div>
+          
+          <div class="rating-section">
+            <h3 style="margin-top: 0; color: #92400e;">${locale === "fr" ? "⭐ Évaluez votre expérience" : "⭐ Rate your experience"}</h3>
+            <p style="margin: 10px 0; color: #374151;">
+              ${
+                locale === "fr"
+                  ? "Votre avis nous aide à améliorer nos services et aide les autres clients dans leur choix."
+                  : "Your feedback helps us improve our services and helps other clients make their choices."
+              }
+            </p>
+            <a href="${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/client/services/${serviceData.serviceId}/review" class="button btn-rate">
+              ${locale === "fr" ? "⭐ Donner mon avis" : "⭐ Leave a review"}
+            </a>
+          </div>
+          
+          <div style="text-align: center;">
+            <a href="${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/client/services/${serviceData.serviceId}" class="button btn-view">
+              ${locale === "fr" ? "📱 Voir les détails" : "📱 View details"}
+            </a>
+          </div>
+          
+          <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 15px; margin: 20px 0;">
+            <h4 style="margin-top: 0; color: #1e40af;">${locale === "fr" ? "💝 Merci pour votre confiance" : "💝 Thank you for your trust"}</h4>
+            <p style="margin: 10px 0; color: #374151;">
+              ${
+                locale === "fr"
+                  ? "Nous espérons que vous êtes satisfait du service. N'hésitez pas à faire appel à nouveau à nos prestataires !"
+                  : "We hope you are satisfied with the service. Don't hesitate to use our providers again!"
+              }
+            </p>
+          </div>
+          
+          <div class="footer">
+            <p>${
+              locale === "fr"
+                ? "Besoin d'aide ? Contactez notre support à"
+                : "Need help? Contact our support at"
+            } <a href="mailto:support@ecodeli.me">support@ecodeli.me</a></p>
+            <p>© 2025 EcoDeli - ${locale === "fr" ? "Services écologiques" : "Eco-friendly services"}</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+
+    const mailOptions = {
+      from: process.env.GMAIL_USER || "noreply@ecodeli.me",
+      to: clientEmail,
+      subject,
+      html,
+    };
+
+    try {
+      const result = await transporter.sendMail(mailOptions);
+      return { success: true, messageId: result.messageId };
+    } catch (error) {
+      console.error("❌ Erreur envoi email service terminé:", error);
+      throw error;
+    }
+  }
+
+  /**
    * Tester la connexion SMTP
    */
   static async testConnection() {

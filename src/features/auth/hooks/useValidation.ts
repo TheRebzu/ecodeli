@@ -72,7 +72,7 @@ export function useValidation(): ValidationStatus {
     if (status.needsEmailVerification) {
       status.canLogin = false;
       status.validationMessage = "Vérification email requise";
-      status.nextStepUrl = "/verify-email";
+              status.nextStepUrl = "/login";
     } else if (status.needsDocumentUpload) {
       status.canLogin = false;
       status.validationMessage = getDocumentUploadMessage(
@@ -83,7 +83,7 @@ export function useValidation(): ValidationStatus {
       } else if (user.role === "DELIVERER") {
         status.nextStepUrl = "/deliverer/validation";
       } else {
-        status.nextStepUrl = "/onboarding/documents";
+        status.nextStepUrl = "/client/documents";
       }
     } else if (status.needsAdminValidation) {
       status.canLogin = false;
@@ -93,15 +93,15 @@ export function useValidation(): ValidationStatus {
       } else if (user.role === "DELIVERER") {
         status.nextStepUrl = "/deliverer/validation";
       } else {
-        status.nextStepUrl = "/onboarding/pending";
+        status.nextStepUrl = "/client/dashboard";
       }
     } else if (status.needsTutorial) {
       status.validationMessage = "Tutoriel requis";
-      status.nextStepUrl = "/onboarding/tutorial";
+      status.nextStepUrl = "/client/tutorial";
     } else if (status.needsContractSignature) {
       status.canLogin = false;
       status.validationMessage = "Signature de contrat requise";
-      status.nextStepUrl = "/onboarding/contract";
+      status.nextStepUrl = "/merchant/contracts";
     }
 
     setValidationStatus(status);

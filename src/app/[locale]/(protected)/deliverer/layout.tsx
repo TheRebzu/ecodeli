@@ -22,24 +22,46 @@ export default function DelivererLayout({ children }: DelivererLayoutProps) {
   // Redirect non-validated deliverers to recruitment page, with debug logs
   useEffect(() => {
     if (!isLoading && user && user.role === "DELIVERER") {
-      const isValidated = user.validationStatus === "APPROVED" && user.isActive === true;
+      // Check both user-level and profile-level validation status
+      const userValidationStatus = user.validationStatus;
+      const profileValidationStatus = user.profileData?.validationStatus;
+      const userIsActive = user.isActive;
+      const profileIsActive = user.profileData?.isActive;
+      
+      // User is considered validated if either user-level or profile-level is validated/approved
+      const isValidated = (
+        (userValidationStatus === "APPROVED" || userValidationStatus === "VALIDATED") ||
+        (profileValidationStatus === "APPROVED" || profileValidationStatus === "VALIDATED")
+      ) && (userIsActive || profileIsActive);
+      
       const isRecruitmentPage = pathname.includes("/deliverer/recruitment");
+      const isValidationPage = pathname.includes("/deliverer/validation") || pathname.includes("/deliverer/documents");
+      
       console.log("[DelivererLayout Debug]", {
         user,
-        validationStatus: user.validationStatus,
-        isActive: user.isActive,
+        userValidationStatus,
+        profileValidationStatus,
+        userIsActive,
+        profileIsActive,
         isValidated,
         pathname,
-        isRecruitmentPage
+        isRecruitmentPage,
+        isValidationPage
       });
-      if (!isValidated && !isRecruitmentPage) {
-        console.info("[DelivererLayout] Redirecting deliverer to http://172.21.112.1:3000/fr/deliverer/recruitment", {
+      
+      // Only redirect if not validated AND not already on recruitment/validation pages
+      if (!isValidated && !isRecruitmentPage && !isValidationPage) {
+        console.info("[DelivererLayout] Redirecting deliverer to recruitment page", {
           userId: user.id,
-          validationStatus: user.validationStatus,
-          isActive: user.isActive
+          userValidationStatus,
+          profileValidationStatus,
+          userIsActive,
+          profileIsActive
         });
         router.replace("/fr/deliverer/recruitment");
       }
+      
+      // If validated and on recruitment page, redirect to main deliverer page
       if (isValidated && isRecruitmentPage) {
         console.log("[DelivererLayout Debug] Redirecting to /fr/deliverer because user is validated but on recruitment page.");
         router.replace("/fr/deliverer");

@@ -351,7 +351,7 @@ export function AnnouncementDashboard() {
               <span className="flex-1 truncate">
                 <span className="font-medium">{announcement.title}</span>
                 <span className="text-gray-500 ml-2">
-                  • {formatCurrency(announcement.price)}
+                                          • {formatCurrency(announcement.basePrice || 0)}
                 </span>
               </span>
               <span className="text-gray-400">

@@ -28,8 +28,8 @@ export async function POST(request: NextRequest) {
       applicationData = await prisma.serviceApplication.update({
         where: { id: applicationId },
         data: {
-          paymentStatus: paymentStatus,
-          paidAt: new Date(),
+          status: paymentStatus, // Remplace paymentStatus par status
+          updatedAt: new Date(),
         },
         include: {
           announcement: true,
@@ -40,6 +40,42 @@ export async function POST(request: NextRequest) {
           },
         },
       });
+
+      // Créer automatiquement le booking si non existant
+      let clientId = applicationData.announcement.clientId;
+      if (!clientId && applicationData.announcement.authorId) {
+        const client = await prisma.client.findUnique({
+          where: { userId: applicationData.announcement.authorId },
+        });
+        clientId = client?.id;
+      }
+      if (!clientId) {
+        return NextResponse.json({ error: "Client introuvable pour l'annonce." }, { status: 400 });
+      }
+      const bookingWhere: any = {
+        clientId,
+        providerId: applicationData.providerId,
+      };
+      if (applicationData.announcement.serviceDetails?.serviceId) {
+        bookingWhere.serviceId = applicationData.announcement.serviceDetails.serviceId;
+      }
+      const booking = await prisma.booking.findFirst({ where: bookingWhere });
+      if (booking) {
+        // Créer l'intervention si elle n'existe pas déjà
+        const existingIntervention = await prisma.intervention.findFirst({
+          where: { bookingId: booking.id, providerId: applicationData.providerId },
+        });
+        if (!existingIntervention) {
+          await prisma.intervention.create({
+            data: {
+              bookingId: booking.id,
+              providerId: applicationData.providerId,
+              startTime: null,
+              isCompleted: false,
+            },
+          });
+        }
+      }
     }
 
     const successData = {
@@ -50,8 +86,8 @@ export async function POST(request: NextRequest) {
         : "Prestataire EcoDeli",
       serviceTitle: applicationData?.announcement?.title || "Service demandé",
       status: "success",
-      paymentStatus: applicationData?.paymentStatus || paymentStatus,
-      paidAt: applicationData?.paidAt || new Date(),
+      paymentStatus: applicationData?.status || paymentStatus, // Utilise status
+      paidAt: new Date(), // Simule la date de paiement
     };
 
     return NextResponse.json(successData);

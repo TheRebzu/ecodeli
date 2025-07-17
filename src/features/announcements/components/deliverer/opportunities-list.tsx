@@ -177,7 +177,7 @@ export function OpportunitiesList({
                       </span>
                       <div className="text-green-900 font-semibold">
                         {formatEarnings(
-                          opportunity.announcement.price,
+                          opportunity.announcement.basePrice || 0,
                           opportunity.matchScore,
                         )}
                       </div>
