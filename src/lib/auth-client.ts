@@ -1,7 +1,6 @@
 "use client";
 
-import { createAuth } from "@auth/core";
-import { getSession } from "@auth/core";
+import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 
 // Types pour EcoDeli
@@ -18,7 +17,7 @@ export type ValidationStatus =
   | "VALIDATED"
   | "REJECTED";
 
-// Types pour la session Better Auth
+// Types pour la session NextAuth
 export interface Session {
   user: {
     id: string;
@@ -47,32 +46,20 @@ export interface User {
   profile?: any;
 }
 
-// Hook pour utiliser Better Auth côté client
+// Hook pour utiliser NextAuth côté client
 export function useAuth() {
-  const [user, setUser] = useState<User | null>(null);
+  const { data: session, status } = useSession();
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const response = await fetch("/api/auth/session");
-        if (response.ok) {
-          const session = await response.json();
-          setUser(session?.user || null);
-        }
-      } catch (error) {
-        console.error("Error fetching session:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchUser();
-  }, []);
+    if (status !== "loading") {
+      setIsLoading(false);
+    }
+  }, [status]);
 
   return {
-    user,
+    user: session?.user || null,
     isLoading,
-    isAuthenticated: !!user,
+    isAuthenticated: !!session?.user,
   };
 }

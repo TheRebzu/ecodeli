@@ -133,7 +133,7 @@ export async function seedUsers(ctx: SeedContext) {
 
   console.log("   Creating users with NextAuth compatibility...");
 
-  const password = await bcrypt.hash("Test123!", 10);
+  const password = await bcrypt.hash("Test123!", 12);
   const createdUsers = [];
 
   // Utiliser les adresses de Paris

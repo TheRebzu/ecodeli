@@ -23,8 +23,10 @@ export const config = {
         password: { label: "Password", type: "password" }
       },
       async authorize(credentials) {
+        console.log("[AUTH] authorize: start", credentials);
         if (!credentials?.email || !credentials?.password) {
-          return null
+          console.log("[AUTH] authorize: missing credentials");
+          return null;
         }
 
         const user = await db.user.findUnique({
@@ -39,10 +41,13 @@ export const config = {
             provider: true,
             admin: true
           }
-        })
+        });
+
+        console.log("[AUTH] authorize: user found?", !!user, user && { id: user.id, email: user.email, isActive: user.isActive, role: user.role });
 
         if (!user) {
-          return null
+          console.log("[AUTH] authorize: user not found");
+          return null;
         }
 
         // Vérifier le mot de passe (si présent)
@@ -50,30 +55,28 @@ export const config = {
           const isPasswordValid = await bcrypt.compare(
             credentials.password as string,
             user.password
-          )
+          );
+
+          console.log("[AUTH] authorize: password valid?", isPasswordValid);
 
           if (!isPasswordValid) {
-            return null
+            console.log("[AUTH] authorize: invalid password");
+            return null;
           }
         }
 
-        // Vérifier si l'utilisateur est actif
-        // Debug: 'Auth debug:', {
-        //   email: user.email,
-        //   isActive: user.isActive,
-        //   role: user.role,
-        //   validationStatus: user.validationStatus
-        // }
-        // Règles de validation par rôle
-        const requiresActiveStatus = ['DELIVERER', 'PROVIDER']
-        if (!user.isActive && requiresActiveStatus.includes(user.role)) {
-          // Debug: 'Utilisateur bloqué - isActive:', user.isActive, 'role:', user.role
-          throw new Error("Compte en attente de validation")
-        }
+        // ✅ CORRECTION : Permettre la connexion même si inactif
+        // La gestion se fera côté frontend avec email de vérification
+        const roleSpecificValidationStatus = getRoleValidationStatus(user);
+        const effectiveValidationStatus = roleSpecificValidationStatus || user.validationStatus;
 
-        // Obtenir le validationStatus spécifique au rôle
-        const roleSpecificValidationStatus = getRoleValidationStatus(user)
-        const effectiveValidationStatus = roleSpecificValidationStatus || user.validationStatus
+        console.log("[AUTH] authorize: returning user", {
+          id: user.id,
+          email: user.email,
+          role: user.role,
+          isActive: user.isActive,
+          validationStatus: effectiveValidationStatus
+        });
 
         return {
           id: user.id,
@@ -84,7 +87,7 @@ export const config = {
           isActive: user.isActive,
           validationStatus: effectiveValidationStatus,
           profileData: getProfileData(user)
-        }
+        };
       }
     })
   ],
@@ -171,22 +174,22 @@ export const config = {
       return session
     },
     async signIn({ user, account, profile }) {
-      // Règles de validation par rôle
-      const requiresActiveStatus = ['DELIVERER', 'PROVIDER']
+      // ✅ CORRECTION : Permettre la connexion, gestion côté frontend
+      console.log(`✅ [AUTH] Connexion autorisée pour ${user.email} (${user.role}) - isActive: ${user.isActive}`)
       
-      if (!user.isActive && requiresActiveStatus.includes(user.role)) {
-        return false
-      }
-
       // Mettre à jour la date de dernière connexion
       if (user.id) {
-        await db.user.update({
-          where: { id: user.id },
-          data: { lastLoginAt: new Date() }
-        })
+        try {
+          await db.user.update({
+            where: { id: user.id },
+            data: { lastLoginAt: new Date() }
+          })
+        } catch (error) {
+          console.error('❌ [AUTH] Erreur mise à jour lastLoginAt:', error)
+        }
       }
 
-      return true
+      return true // ✅ Toujours autoriser la connexion
     }
   },
   events: {
@@ -251,7 +254,7 @@ declare module "next-auth" {
   }
 }
 
-declare module "@auth/core/jwt" {
+declare module "next-auth/jwt" {
   interface JWT {
     role: UserRole
     isActive: boolean

@@ -4,16 +4,23 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslations } from "next-intl";
-import { signIn } from "@/lib/auth";
+import { signIn } from "next-auth/react";
 import {
   loginSchema,
   type LoginData,
 } from "@/features/auth/schemas/auth.schema";
 import { Link, useRouter } from "@/i18n/navigation";
+import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Mail, CheckCircle, AlertTriangle } from "lucide-react";
 
 export function LoginForm() {
   const [isLoading, setIsLoading] = useState(false);
+  const [isSendingVerification, setIsSendingVerification] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showVerificationButton, setShowVerificationButton] = useState(false);
+  const [verificationEmail, setVerificationEmail] = useState("");
+  const [verificationSent, setVerificationSent] = useState(false);
   const router = useRouter();
   const t = useTranslations();
 
@@ -21,6 +28,7 @@ export function LoginForm() {
     register,
     handleSubmit,
     formState: { errors },
+    getValues,
   } = useForm<LoginData>({
     resolver: zodResolver(loginSchema),
   });
@@ -28,9 +36,10 @@ export function LoginForm() {
   const onSubmit = async (data: LoginData) => {
     setIsLoading(true);
     setError(null);
+    setShowVerificationButton(false);
 
     try {
-      // Utiliser Better Auth signIn
+      // Utiliser NextAuth signIn
       const result = await signIn("credentials", {
         email: data.email,
         password: data.password,
@@ -38,7 +47,14 @@ export function LoginForm() {
       });
 
       if (result?.error) {
-        setError("Email ou mot de passe incorrect");
+        // Vérifier si c'est un utilisateur inactif
+        if (result.error.includes("Account pending validation") || result.error.includes("inactive")) {
+          setShowVerificationButton(true);
+          setVerificationEmail(data.email);
+          setError("Votre compte n'est pas encore activé. Veuillez vérifier votre email.");
+        } else {
+          setError("Email ou mot de passe incorrect");
+        }
         return;
       }
 
@@ -64,12 +80,73 @@ export function LoginForm() {
     }
   };
 
+  const handleSendVerificationEmail = async () => {
+    if (!verificationEmail) return;
+
+    setIsSendingVerification(true);
+    setError(null);
+
+    try {
+      const response = await fetch("/api/auth/verify-email", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email: verificationEmail }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setVerificationSent(true);
+        setShowVerificationButton(false);
+      } else {
+        setError(data.error || "Erreur lors de l'envoi de l'email de vérification");
+      }
+    } catch (error) {
+      console.error("Erreur envoi email vérification:", error);
+      setError("Erreur de connexion au serveur");
+    } finally {
+      setIsSendingVerification(false);
+    }
+  };
+
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       {error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-3">
-          <p className="text-sm text-red-600">{error}</p>
-        </div>
+        <Alert variant="destructive">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
+
+      {verificationSent && (
+        <Alert>
+          <CheckCircle className="h-4 w-4" />
+          <AlertDescription>
+            Email de vérification envoyé ! Vérifiez votre boîte de réception et cliquez sur le lien pour activer votre compte.
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {showVerificationButton && (
+        <Alert>
+          <Mail className="h-4 w-4" />
+          <AlertDescription>
+            <div className="space-y-3">
+              <p>Votre compte n'est pas encore activé. Cliquez sur le bouton ci-dessous pour recevoir un email de vérification.</p>
+              <Button
+                type="button"
+                onClick={handleSendVerificationEmail}
+                disabled={isSendingVerification}
+                className="w-full"
+                variant="outline"
+              >
+                {isSendingVerification ? "Envoi en cours..." : "📧 Envoyer email de vérification"}
+              </Button>
+            </div>
+          </AlertDescription>
+        </Alert>
       )}
 
       <div>

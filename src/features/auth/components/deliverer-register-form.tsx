@@ -34,17 +34,16 @@ export function DelivererRegisterForm() {
     setError(null);
 
     try {
-      const response = await fetch("/api/auth/sign-up/email", {
+      const response = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           email: data.email,
           password: data.password,
-          name: data.name,
+          firstName: data.name.split(' ')[0] || data.name,
+          lastName: data.name.split(' ').slice(1).join(' ') || data.name,
           role: "DELIVERER",
-          // Propriétés additionnelles pour NextAuth
-          isActive: false,
-          validationStatus: "PENDING",
+          phone: data.phone,
         }),
       });
 

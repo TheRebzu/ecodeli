@@ -33,7 +33,7 @@ export class AuthService {
       }
 
       // Hasher le mot de passe
-      const hashedPassword = await bcrypt.hash(data.password, 10);
+      const hashedPassword = await bcrypt.hash(data.password, 12);
 
       // Créer l'utilisateur et ses profils en transaction
       const user = await prisma.$transaction(async (tx) => {
@@ -108,7 +108,7 @@ export class AuthService {
         throw new Error("Cet email est déjà utilisé");
       }
 
-      const hashedPassword = await bcrypt.hash(data.password, 10);
+      const hashedPassword = await bcrypt.hash(data.password, 12);
 
       const user = await prisma.$transaction(async (tx) => {
         const newUser = await tx.user.create({
@@ -195,7 +195,7 @@ export class AuthService {
         throw new Error("Ce SIRET est déjà enregistré");
       }
 
-      const hashedPassword = await bcrypt.hash(data.password, 10);
+      const hashedPassword = await bcrypt.hash(data.password, 12);
 
       const user = await prisma.$transaction(async (tx) => {
         const newUser = await tx.user.create({
@@ -282,7 +282,7 @@ export class AuthService {
         }
       }
 
-      const hashedPassword = await bcrypt.hash(data.password, 10);
+      const hashedPassword = await bcrypt.hash(data.password, 12);
 
       const user = await prisma.$transaction(async (tx) => {
         const newUser = await tx.user.create({

@@ -10,6 +10,7 @@ import { MerchantHeader } from "./merchant-header";
 import { ProviderHeader } from "./provider-header";
 import { Footer } from "./footer";
 import { Sidebar } from "@/components/ui/sidebar";
+import { VerificationNotice } from "@/components/auth/verification-notice";
 
 /**
  * Layout principal pour les espaces utilisateur (dashboard)
@@ -72,7 +73,11 @@ export function DashboardLayout({
 
         {/* Main Content */}
         <main className="flex-1 overflow-y-auto">
-          <div className="container mx-auto p-6">{children}</div>
+          <div className="container mx-auto p-6">
+            {/* Afficher la notice de vérification en haut */}
+            <VerificationNotice className="mb-6" />
+            {children}
+          </div>
         </main>
       </div>
 

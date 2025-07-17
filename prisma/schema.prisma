@@ -219,6 +219,8 @@ model User {
   role             UserRole         @default(CLIENT)
   isActive         Boolean          @default(false)
   validationStatus ValidationStatus @default(PENDING)
+  verificationToken String?         @unique
+  verificationTokenExpires DateTime?
   language         String           @default("fr")
   lastLoginAt      DateTime?
   createdAt        DateTime         @default(now())

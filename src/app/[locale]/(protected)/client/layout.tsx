@@ -7,6 +7,7 @@ import { ClientSidebar } from "@/components/layout/sidebars/client-sidebar";
 import { TutorialManager } from "@/features/tutorials/components/tutorial-manager";
 import { Toaster } from "@/components/ui/toaster";
 import { cn } from "@/lib/utils";
+import { AccountActivationNotice } from "@/components/ui/account-activation-notice";
 
 interface ClientLayoutProps {
   children: React.ReactNode;
@@ -160,7 +161,10 @@ export default function ClientLayout({ children }: ClientLayoutProps) {
           {/* Page Content */}
           <main className="flex-1 overflow-auto bg-background dark:bg-background">
             <div className="p-6">
-              <div className="mx-auto max-w-7xl">{children}</div>
+              <div className="mx-auto max-w-7xl">
+                <AccountActivationNotice />
+                {children}
+              </div>
             </div>
           </main>
         </div>

@@ -52,17 +52,19 @@ export function ClientRegisterForm() {
 
       console.log("📤 Envoi des données:", apiData);
 
-      const response = await fetch("/api/auth/sign-up/email", {
+      const response = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           email: apiData.email,
           password: apiData.password,
-          name: `${apiData.firstName} ${apiData.lastName}`,
+          firstName: apiData.firstName,
+          lastName: apiData.lastName,
           role: apiData.role,
-          // Propriétés additionnelles pour NextAuth
-          isActive: true,
-          validationStatus: "APPROVED",
+          phone: apiData.phone,
+          address: apiData.address,
+          city: apiData.city,
+          postalCode: apiData.postalCode,
         }),
       });
 

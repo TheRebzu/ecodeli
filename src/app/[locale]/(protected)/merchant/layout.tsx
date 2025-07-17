@@ -8,6 +8,7 @@ import { MerchantHeader } from "@/components/layout/headers/merchant-header";
 import { MerchantSidebar } from "@/components/layout/sidebars/merchant-sidebar";
 import { Toaster } from "@/components/ui/toaster";
 import { cn } from "@/lib/utils";
+import { AccountActivationNotice } from "@/components/ui/account-activation-notice";
 
 export default function MerchantLayout({
   children,
@@ -135,7 +136,10 @@ export default function MerchantLayout({
         {/* Page Content */}
         <main className="flex-1 overflow-auto bg-background dark:bg-background">
           <div className="p-6">
-            <div className="mx-auto max-w-7xl">{children}</div>
+            <div className="mx-auto max-w-7xl">
+              <AccountActivationNotice />
+              {children}
+            </div>
           </div>
         </main>
       </div>
