@@ -4,7 +4,6 @@ import { useEffect, useState, useRef } from 'react'
 import { useSession, signOut, signIn } from 'next-auth/react'
 import { useSearchParams } from 'next/navigation'
 import { useAuth } from "@/hooks/use-auth";
-import { useValidationSync } from "@/hooks/use-validation-sync";
 import DelivererRecruitmentSystem from "@/features/deliverer/components/recruitment/deliverer-recruitment-system";
 import { PageHeader } from "@/components/layout/page-header";
 import { useTranslations } from "next-intl";
@@ -17,7 +16,6 @@ export default function DelivererRecruitmentPage() {
   // Déplacer TOUS les hooks au début du composant
   const { data: session, status, update } = useSession()
   const { user } = useAuth();
-  const { isLoading: isSyncing } = useValidationSync();
   const t = useTranslations("deliverer.recruitment");
   const searchParams = useSearchParams()
   
@@ -79,8 +77,10 @@ export default function DelivererRecruitmentPage() {
 
     checkCookies();
     
-    // Vérifier l'état de la session
-    checkSessionStatus();
+    // Vérifier l'état de la session seulement si nécessaire
+    if (session?.user) {
+      checkSessionStatus();
+    }
   }, [session?.user]);
 
   // Traiter la synchronisation UNE SEULE FOIS au montage
@@ -102,7 +102,7 @@ export default function DelivererRecruitmentPage() {
     }
   }, [session?.user?.id]) // Seulement l'ID de l'utilisateur comme dépendance
   
-  // Fonction pour vérifier l'état de la session
+  // Fonction pour vérifier l'état de la session (uniquement si besoin)
   const checkSessionStatus = async () => {
     try {
       const response = await fetch('/api/debug/session', {
@@ -193,6 +193,7 @@ export default function DelivererRecruitmentPage() {
     }
   };
 
+  // Ne synchroniser QUE si explicitement demandé
   const syncValidationStatus = async () => {
     if (isValidating) return
     setIsValidating(true)
@@ -256,8 +257,8 @@ export default function DelivererRecruitmentPage() {
       // Forcer une mise à jour de la session
       await update();
       
-      // Vérifier à nouveau l'état de la session
-      await checkSessionStatus();
+      // Supprimer l'appel automatique qui peut causer des boucles
+      // await checkSessionStatus();
       
       // Recharger la page après un court délai
       setTimeout(() => {
@@ -356,7 +357,8 @@ export default function DelivererRecruitmentPage() {
     <div className="space-y-6">
       <PageHeader title={t("page.title")} description={t("page.description")} />
 
-      {isSyncing && (
+      {/* Supprimer l'indicateur de synchronisation automatique */}
+      {/* {isSyncing && (
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
           <div className="flex items-center space-x-3">
             <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
@@ -365,7 +367,7 @@ export default function DelivererRecruitmentPage() {
             </span>
           </div>
         </div>
-      )}
+      )} */}
 
       <DelivererRecruitmentSystem userId={effectiveUser.id} />
     </div>

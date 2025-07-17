@@ -27,10 +27,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    // Vérifier que l'utilisateur a un profil de livreur
+    // Vérifier que la candidature existe
     const deliverer = await db.deliverer.findUnique({
       where: { userId },
-      include: { user: true },
+      include: {
+        user: {
+          include: {
+            profile: true,
+          },
+        },
+      },
     });
 
     if (!deliverer) {

@@ -14,16 +14,24 @@ export async function GET(
 
   try {
     const { id: documentId } = await params;
+    
+    // Vérifier si on veut télécharger ou afficher le fichier
+    const url = new URL(request.url);
+    const download = url.searchParams.get("download") === "true";
 
     // Récupérer le document
-    const document = await db.delivererRecruitmentDocument.findUnique({
+    const document = await db.document.findUnique({
       where: { id: documentId },
       include: {
-        recruitment: {
+        user: {
           select: {
-            userId: true,
-            firstName: true,
-            lastName: true,
+            id: true,
+            profile: {
+              select: {
+                firstName: true,
+                lastName: true,
+              },
+            },
           },
         },
       },
@@ -37,21 +45,27 @@ export async function GET(
     }
 
     // Vérifier les permissions
-    if (document.recruitment.userId !== user.id && user.role !== "ADMIN") {
+    if (document.userId !== user.id && user.role !== "ADMIN") {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
     // Lire le fichier
-    const fileBuffer = await readFile(document.filePath);
+    const fileBuffer = await readFile(document.url);
 
     // Retourner le fichier
-    return new NextResponse(fileBuffer, {
-      headers: {
-        "Content-Type": document.mimeType,
-        "Content-Disposition": `attachment; filename="${document.name}"`,
-        "Content-Length": document.fileSize.toString(),
-      },
-    });
+    const headers: Record<string, string> = {
+      "Content-Type": document.mimeType,
+      "Content-Length": document.size.toString(),
+    };
+
+    // Si download=true, forcer le téléchargement, sinon afficher dans le navigateur
+    if (download) {
+      headers["Content-Disposition"] = `attachment; filename="${document.originalName}"`;
+    } else {
+      headers["Content-Disposition"] = `inline; filename="${document.originalName}"`;
+    }
+
+    return new NextResponse(fileBuffer, { headers });
   } catch (error) {
     console.error("Error downloading recruitment document:", error);
     return NextResponse.json(

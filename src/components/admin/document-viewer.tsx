@@ -49,6 +49,12 @@ export function DocumentViewer({ document, onValidate, isValidating }: DocumentV
   const [rejectionReason, setRejectionReason] = useState("");
   const [showRejectionForm, setShowRejectionForm] = useState(false);
 
+  // Générer l'URL d'accès au document via l'API
+  const getDocumentUrl = (download: boolean = false) => {
+    const baseUrl = `/api/deliverer/recruitment/documents/${document.id}/download`;
+    return download ? `${baseUrl}?download=true` : baseUrl;
+  };
+
   const getDocumentTypeLabel = (type: string) => {
     const labels: Record<string, string> = {
       IDENTITY: "Pièce d'identité",
@@ -98,12 +104,12 @@ export function DocumentViewer({ document, onValidate, isValidating }: DocumentV
     setRejectionReason("");
   };
 
-  const isImage = (url: string) => {
-    return /\.(jpg|jpeg|png|gif|webp)$/i.test(url);
+  const isImage = (filename: string) => {
+    return /\.(jpg|jpeg|png|gif|webp)$/i.test(filename);
   };
 
-  const isPDF = (url: string) => {
-    return /\.pdf$/i.test(url);
+  const isPDF = (filename: string) => {
+    return /\.pdf$/i.test(filename);
   };
 
   return (
@@ -183,7 +189,7 @@ export function DocumentViewer({ document, onValidate, isValidating }: DocumentV
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => window.open(document.url, "_blank")}
+                onClick={() => window.open(getDocumentUrl(true), "_blank")}
               >
                 <Download className="h-4 w-4 mr-1" />
                 Télécharger
@@ -191,15 +197,15 @@ export function DocumentViewer({ document, onValidate, isValidating }: DocumentV
             </div>
             
             <div className="border rounded-lg p-4">
-              {isImage(document.url) ? (
+              {isImage(document.originalName) ? (
                 <img 
-                  src={document.url} 
+                  src={getDocumentUrl()} 
                   alt={document.originalName}
                   className="max-w-full h-auto max-h-96 mx-auto"
                 />
-              ) : isPDF(document.url) ? (
+              ) : isPDF(document.originalName) ? (
                 <iframe 
-                  src={document.url}
+                  src={getDocumentUrl()}
                   className="w-full h-96 border rounded"
                   title={document.originalName}
                 />

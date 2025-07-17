@@ -328,7 +328,7 @@ export default function DocumentManager({ delivererId }: DocumentManagerProps) {
                         <Button
                           size="sm"
                           variant="ghost"
-                          onClick={() => window.open(document.url, "_blank")}
+                          onClick={() => window.open(`/api/deliverer/recruitment/documents/${document.id}/download`, "_blank")}
                         >
                           <Eye className="w-4 h-4" />
                         </Button>
@@ -337,7 +337,7 @@ export default function DocumentManager({ delivererId }: DocumentManagerProps) {
                           variant="ghost"
                           onClick={() =>
                             window.open(
-                              document.url + "?download=true",
+                              `/api/deliverer/recruitment/documents/${document.id}/download?download=true`,
                               "_blank",
                             )
                           }

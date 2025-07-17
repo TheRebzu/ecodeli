@@ -10,8 +10,8 @@ import { DocumentType } from "@prisma/client";
  */
 const validateDocumentSchema = z.object({
   documentId: z.string().cuid(),
-  status: z.enum(["APPROVED", "REJECTED"]),
-  notes: z.string().optional(),
+  action: z.enum(["APPROVED", "REJECTED"]),
+  reason: z.string().optional(),
 });
 
 /**
@@ -30,7 +30,10 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { documentId, action, reason } = body;
+    
+    // Validation des données avec Zod
+    const validatedData = validateDocumentSchema.parse(body);
+    const { documentId, action, reason } = validatedData;
 
     if (!documentId || !action) {
       return NextResponse.json(
@@ -143,6 +146,15 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error("Erreur validation document:", error);
+    
+    // Erreur de validation Zod
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        { error: "Données invalides", details: error.errors },
+        { status: 400 }
+      );
+    }
+    
     return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
   }
 }

@@ -15,7 +15,7 @@ export function useValidationSync() {
   const shouldCheckValidation = useCallback(() => {
     if (!session?.user) return false
 
-    // Vérifier seulement s'il y a un paramètre URL explicite ou si c'est la première connexion
+    // Vérifier seulement s'il y a un paramètre URL explicite
     const needsSync = searchParams.get('sync-validation') === 'true' || 
                      searchParams.get('check-validation') === 'true'
     
@@ -94,6 +94,7 @@ export function useValidationSync() {
       syncValidation()
     }
   }, [session?.user?.id, shouldCheckValidation]) // SEULEMENT ces dépendances
+>>>>>>> 23ec1e6c76e4f3fa50a5e81f01887c15e16ea94d
 
   return {
     isLoading,

@@ -5,18 +5,18 @@
   "auth": {
     "login": {
       "loginButton": "Se connecter",
-      "subtitle": "Sous-titre",
-      "title": "Titre",
-      "forgotPassword": "Forgot Password",
-      "noAccount": "No Account",
+      "subtitle": "Connectez-vous à votre compte EcoDeli",
+      "title": "Connexion",
+      "forgotPassword": "Mot de passe oublié ?",
+      "noAccount": "Pas encore de compte ?",
       "errors": {
-        "generic": "Generic"
+        "generic": "Une erreur est survenue lors de la connexion"
       },
       "email": "Email",
-      "emailPlaceholder": "Email Placeholder",
+      "emailPlaceholder": "votre@email.com",
       "password": "Mot de passe",
-      "passwordPlaceholder": "Password Placeholder",
-      "signing": "Signing"
+      "passwordPlaceholder": "Votre mot de passe",
+      "signing": "Connexion en cours..."
     },
     "register": {
       "alreadyHaveAccount": "Vous avez déjà un compte ?",
@@ -39,35 +39,35 @@
         "subtitle": "Rejoignez notre réseau de commerçants et développez vos ventes",
         "title": "Devenir Commerçant Partenaire"
       },
-      "title": "Titre",
-      "chooseType": "Choose Type"
+      "title": "Inscription",
+      "chooseType": "Choisissez votre type de compte"
     },
     "validation": {
     "loading": "Chargement...",
-      "loadingMessage": "Loading Message",
+      "loadingMessage": "Validation en cours...",
       "error": "Erreur",
-      "userNotFound": "User Not Found",
-      "userNotFoundMessage": "User Not Found Message",
-      "title": "Titre",
-      "description": "Description",
-      "userInfo": "User Info",
-      "emailVerified": "Email Verified",
-      "profileVerified": "Profile Verified",
-      "validationProcess": "Validation Process",
-      "validationProcessDescription": "Validation Process Description"
+      "userNotFound": "Utilisateur non trouvé",
+      "userNotFoundMessage": "L'utilisateur demandé n'existe pas",
+      "title": "Validation du compte",
+      "description": "Votre compte est en cours de validation",
+      "userInfo": "Informations utilisateur",
+      "emailVerified": "Email vérifié",
+      "profileVerified": "Profil vérifié",
+      "validationProcess": "Processus de validation",
+      "validationProcessDescription": "Votre compte sera activé après validation des documents"
     },
     "verifyEmail": {
     "success": "Succès",
       "error": "Erreur",
-      "verifying": "Verifying",
-      "successMessage": "Success Message",
-      "errorMessage": "Error Message",
-      "verifyingMessage": "Verifying Message",
-      "emailAddress": "Email Address",
-      "goToLogin": "Go To Login",
-      "troubleshoot": "Troubleshoot",
-      "backToLogin": "Back To Login",
-      "pleaseWait": "Please Wait"
+      "verifying": "Vérification en cours...",
+      "successMessage": "Votre email a été vérifié avec succès",
+      "errorMessage": "Erreur lors de la vérification de l'email",
+      "verifyingMessage": "Vérification de votre email en cours...",
+      "emailAddress": "Adresse email",
+      "goToLogin": "Aller à la connexion",
+      "troubleshoot": "Dépannage",
+      "backToLogin": "Retour à la connexion",
+      "pleaseWait": "Veuillez patienter"
     },
     "required_title": "Required Title",
     "required_description": "Required Description",
