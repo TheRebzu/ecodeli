@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Vérifier que la candidature existe
-    const application = await db.deliverer.findFirst({
+    const deliverer = await db.deliverer.findUnique({
       where: { userId },
       include: {
         user: {
@@ -41,9 +41,9 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    if (!application) {
+    if (!deliverer) {
       return NextResponse.json(
-        { error: "No recruitment application found" },
+        { error: "No deliverer profile found" },
         { status: 404 },
       );
     }
@@ -88,7 +88,11 @@ export async function POST(request: NextRequest) {
     const existingDoc = await db.document.findFirst({
       where: {
         userId,
+<<<<<<< HEAD
         type: type as any,
+=======
+        type: type as any, // Type de document (IDENTITY, DRIVING_LICENSE, etc.)
+>>>>>>> 23ec1e6c76e4f3fa50a5e81f01887c15e16ea94d
       },
     });
 
@@ -97,6 +101,9 @@ export async function POST(request: NextRequest) {
         where: { id: existingDoc.id },
       });
     }
+
+    // Générer l'URL relative pour accéder au fichier via l'API
+    const fileUrl = `/api/storage/recruitment/${userId}/${fileName}`;
 
     // Enregistrer en base de données
     const document = await db.document.create({
@@ -107,11 +114,16 @@ export async function POST(request: NextRequest) {
         originalName: file.name,
         mimeType: file.type,
         size: file.size,
+<<<<<<< HEAD
         url: filePath,
+=======
+        url: fileUrl,
+>>>>>>> 23ec1e6c76e4f3fa50a5e81f01887c15e16ea94d
         validationStatus: "PENDING",
       },
     });
 
+<<<<<<< HEAD
     // Notifier les admins qu'un nouveau document a été uploadé
     const admins = await db.user.findMany({
       where: { role: "ADMIN" },
@@ -133,6 +145,9 @@ export async function POST(request: NextRequest) {
     await db.notification.createMany({
       data: notifications,
     });
+=======
+    // Les notifications ont été retirées selon les demandes du client
+>>>>>>> 23ec1e6c76e4f3fa50a5e81f01887c15e16ea94d
 
     return NextResponse.json({
       success: true,
