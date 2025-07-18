@@ -129,14 +129,6 @@ export function AdminSidebar({
       category: "operations",
     },
 
-    {
-      key: "deliveries-monitoring",
-      label: t("deliveriesMonitoring"),
-      href: "/admin/deliveries-monitoring",
-      icon: <Monitor className="h-4 w-4" />,
-      category: "operations",
-    },
-
     // ===== ANNONCES =====
     {
       key: "announcements",
@@ -146,68 +138,6 @@ export function AdminSidebar({
       category: "content",
     },
 
-    // ===== LITIGES =====
-    {
-      key: "disputes",
-      label: t("disputes"),
-      href: "/admin/disputes",
-      icon: <MessageSquare className="h-4 w-4" />,
-      category: "support",
-    },
-
-    // ===== TICKETS SUPPORT =====
-    {
-      key: "support-tickets",
-      label: t("supportTickets"),
-      href: "/admin/support-tickets",
-      icon: <MessageSquare className="h-4 w-4" />,
-      category: "support",
-    },
-
-    // ===== MODÉRATION =====
-    {
-      key: "moderation",
-      label: t("moderation"),
-      href: "/admin/moderation",
-      icon: <Shield className="h-4 w-4" />,
-      category: "content",
-    },
-
-    // ===== FINANCE =====
-    {
-      key: "finance",
-      label: t("finance"),
-      href: "/admin/finance",
-      icon: <DollarSign className="h-4 w-4" />,
-      category: "finance",
-    },
-
-    {
-      key: "billing",
-      label: t("billing"),
-      href: "/admin/billing",
-      icon: <CreditCard className="h-4 w-4" />,
-      category: "finance",
-    },
-
-    // ===== FACTURATION PRESTATAIRES =====
-    {
-      key: "provider-billing",
-      label: t("providerBilling"),
-      href: "/admin/provider-billing",
-      icon: <TrendingUp className="h-4 w-4" />,
-      category: "finance",
-    },
-
-    // ===== CONTRATS =====
-    {
-      key: "contracts",
-      label: t("contracts"),
-      href: "/admin/contracts",
-      icon: <Handshake className="h-4 w-4" />,
-      category: "business",
-    },
-
     // ===== ENTREPÔTS =====
     {
       key: "locations",
@@ -215,51 +145,6 @@ export function AdminSidebar({
       href: "/admin/locations",
       icon: <Building className="h-4 w-4" />,
       category: "infrastructure",
-    },
-
-    // ===== ASSURANCE =====
-    {
-      key: "insurance",
-      label: t("insurance"),
-      href: "/admin/insurance",
-      icon: <Heart className="h-4 w-4" />,
-      category: "business",
-    },
-
-    // ===== PARRAINAGE =====
-    {
-      key: "referrals",
-      label: t("referrals"),
-      href: "/admin/referrals",
-      icon: <UserCheck className="h-4 w-4" />,
-      category: "marketing",
-    },
-
-    // ===== MONITORING =====
-    {
-      key: "monitoring",
-      label: t("monitoring"),
-      href: "/admin/monitoring",
-      icon: <Activity className="h-4 w-4" />,
-      category: "system",
-    },
-
-    // ===== CONFIGURATION SYSTÈME =====
-    {
-      key: "system-config",
-      label: t("systemConfig"),
-      href: "/admin/system-config",
-      icon: <Settings className="h-4 w-4" />,
-      category: "system",
-    },
-
-    // ===== PARAMÈTRES =====
-    {
-      key: "settings",
-      label: t("settings"),
-      href: "/admin/settings",
-      icon: <Settings className="h-4 w-4" />,
-      category: "system",
     },
 
     // ===== TESTS =====
