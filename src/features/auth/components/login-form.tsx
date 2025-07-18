@@ -70,7 +70,8 @@ export function LoginForm() {
           
           if (profileData.needsCompletion) {
             const locale = window.location.pathname.split("/")[1] || "fr";
-            window.location.href = `/${locale}/complete-profile`;
+            const role = session.user.role.toLowerCase();
+            window.location.href = `/${locale}/${role}/recruitment`;
             return;
           }
         }

@@ -170,7 +170,7 @@ export function ValidationStatus({ className }: ValidationStatusProps) {
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>
               Vous n'avez pas encore téléchargé de documents. 
-              <Link href="/complete-profile" className="text-blue-600 hover:underline ml-1">
+              <Link href="/deliverer/recruitment" className="text-blue-600 hover:underline ml-1">
                 Compléter mon profil
               </Link>
             </AlertDescription>
@@ -223,7 +223,7 @@ export function ValidationStatus({ className }: ValidationStatusProps) {
                   </Badge>
                   {doc.validationStatus === "REJECTED" && (
                     <Button size="sm" variant="outline" asChild>
-                      <Link href="/complete-profile">
+                      <Link href="/deliverer/recruitment">
                         <Upload className="h-3 w-3 mr-1" />
                         Corriger
                       </Link>
@@ -238,7 +238,7 @@ export function ValidationStatus({ className }: ValidationStatusProps) {
         {/* Actions */}
         <div className="flex justify-between pt-4">
           <Button variant="outline" asChild>
-            <Link href="/complete-profile">
+            <Link href="/deliverer/recruitment">
               <Upload className="h-4 w-4 mr-2" />
               Gérer mes documents
             </Link>

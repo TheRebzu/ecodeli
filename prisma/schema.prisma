@@ -1217,6 +1217,7 @@ model Document {
   validationStatus ValidationStatus @default(PENDING)
   size             Int
   url              String
+  content          String?          // Base64 encoded file content (ajouté pour upload direct en base)
   validatedAt      DateTime?
   validatedBy      String?
   rejectionReason  String?

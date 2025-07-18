@@ -9,7 +9,8 @@ model Document {
   mimeType          String
   validationStatus  ValidationStatus    @default(PENDING)
   size              Int                 // en bytes
-  url               String
+  url               String?             // Optional for backward compatibility
+  content           String?             // Base64 encoded file content
   validatedAt       DateTime?
   validatedBy       String?             // ID de l'admin qui a validé
   rejectionReason   String?

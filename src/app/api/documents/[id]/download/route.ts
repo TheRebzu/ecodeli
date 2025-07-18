@@ -24,15 +24,7 @@ export async function GET(
     // Récupérer le document
     const document = await db.document.findUnique({
       where: { id: documentId },
-      select: {
-        id: true,
-        userId: true,
-        type: true,
-        originalName: true,
-        mimeType: true,
-        validationStatus: true,
-        size: true,
-        content: true, // Ajout du champ content pour le download
+      include: {
         user: {
           select: {
             id: true,
@@ -61,15 +53,60 @@ export async function GET(
 
     let fileBuffer: Buffer;
 
-    // Toujours servir depuis le champ content (base64 en base de données)
+    // NOUVEAU: Gestion rétrocompatibilité
     if (document.content) {
+      // Nouveau système: contenu base64
       console.log('📄 [DOCUMENT] Serving from base64 content');
       fileBuffer = Buffer.from(document.content, 'base64');
+    } else if (document.url) {
+      // Ancien système: fichier sur le disque
+      console.log('📁 [DOCUMENT] Serving from filesystem (legacy)');
+      
+      try {
+        // Construire le chemin du fichier depuis l'URL
+        let filePath: string;
+        
+        if (document.url.startsWith('/api/storage/recruitment/')) {
+          // Format: /api/storage/recruitment/userId/filename
+          const pathParts = document.url.split('/');
+          const userId = pathParts[4];
+          const filename = pathParts[5];
+          filePath = join(process.cwd(), "storage", "recruitment", userId, filename);
+        } else if (document.url.startsWith('/uploads/documents/')) {
+          // Format: /uploads/documents/filename  
+          const filename = document.url.split('/').pop();
+          filePath = join(process.cwd(), "uploads", "documents", filename!);
+        } else if (document.url.startsWith('/api/uploads/documents/')) {
+          // Format: /api/uploads/documents/filename
+          const filename = document.url.split('/').pop();
+          filePath = join(process.cwd(), "uploads", "documents", filename!);
+        } else {
+          throw new Error("Format d'URL non reconnu");
+        }
+        
+        if (!existsSync(filePath)) {
+          console.error(`❌ File not found on disk: ${filePath}`);
+          return NextResponse.json(
+            { error: "Document file not found on disk" },
+            { status: 404 },
+          );
+        }
+        
+        fileBuffer = await readFile(filePath);
+        console.log(`✅ File loaded from disk: ${filePath} (${fileBuffer.length} bytes)`);
+        
+      } catch (fileError) {
+        console.error("❌ Error reading file from disk:", fileError);
+        return NextResponse.json(
+          { error: "Error reading document file" },
+          { status: 500 },
+        );
+      }
     } else {
       // Aucun contenu disponible
-      console.error("❌ Document has no content in database");
+      console.error("❌ Document has no content and no URL");
       return NextResponse.json(
-        { error: "Document content not available in database" },
+        { error: "Document content not available" },
         { status: 404 },
       );
     }
@@ -97,10 +134,10 @@ export async function GET(
 
     return new NextResponse(fileBuffer, { headers });
   } catch (error) {
-    console.error("Error downloading recruitment document:", error);
+    console.error("Error downloading document:", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 },
     );
   }
-}
+} 

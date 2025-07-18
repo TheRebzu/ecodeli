@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
-import { readFile } from "fs/promises";
-import path from "path";
 
 export async function GET(
   request: NextRequest,
@@ -55,35 +53,42 @@ export async function GET(
       );
     }
 
-    // Construire le chemin du fichier
-    const uploadsDir = path.join(process.cwd(), "uploads", "documents");
-    const filePath = path.join(uploadsDir, document.filename);
-
-    try {
-      // Lire le fichier
-      const fileBuffer = await readFile(filePath);
-
-      // Retourner le fichier
-      return new NextResponse(fileBuffer, {
-        headers: {
-          "Content-Type": document.mimeType,
-          "Content-Disposition": `attachment; filename="${document.originalName}"`,
-          "Content-Length": document.size.toString(),
-        },
-      });
-    } catch (fileError) {
-      console.error("Erreur lecture fichier:", fileError);
-      
-      // Si le fichier n'existe pas localement, essayer de rediriger vers l'URL
-      if (document.url && document.url.startsWith("http")) {
-        return NextResponse.redirect(document.url);
-      }
-      
+    // Vérifier que le contenu base64 existe
+    if (!document.content) {
       return NextResponse.json(
-        { error: "Fichier non trouvé" },
+        { error: "Contenu du document non trouvé" },
         { status: 404 }
       );
     }
+
+    // Convertir le contenu base64 en buffer
+    const fileBuffer = Buffer.from(document.content, 'base64');
+
+    // Déterminer si c'est un téléchargement ou un affichage
+    const url = new URL(request.url);
+    const download = url.searchParams.get("download") === "true";
+
+    // Retourner le fichier
+    const headers: Record<string, string> = {
+      "Content-Type": document.mimeType,
+      "Content-Length": fileBuffer.length.toString(),
+    };
+
+    // Si download=true, forcer le téléchargement, sinon afficher dans le navigateur
+    if (download) {
+      headers["Content-Disposition"] = `attachment; filename="${encodeURIComponent(document.originalName)}"`;
+    } else {
+      headers["Content-Disposition"] = `inline; filename="${encodeURIComponent(document.originalName)}"`;
+    }
+
+    console.log('✅ [PROVIDER DOCUMENT DOWNLOAD] Fichier servi:', {
+      contentType: document.mimeType,
+      fileSize: fileBuffer.length,
+      originalName: document.originalName,
+      isDownload: download
+    });
+
+    return new NextResponse(fileBuffer, { headers });
   } catch (error) {
     console.error("Erreur téléchargement document:", error);
     return NextResponse.json(

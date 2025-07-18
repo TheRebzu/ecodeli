@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getUserFromSession } from "@/lib/auth/utils";
 import { db } from "@/lib/db";
-import { writeFile, mkdir } from "fs/promises";
-import { join } from "path";
 import { nanoid } from "nanoid";
 
 export async function POST(request: NextRequest) {
@@ -74,15 +72,10 @@ export async function POST(request: NextRequest) {
     const fileExtension = file.name.split(".").pop();
     const fileName = `${nanoid()}.${fileExtension}`;
 
-    // Créer le répertoire de stockage s'il n'existe pas
-    const uploadDir = join(process.cwd(), "storage", "recruitment", userId);
-    await mkdir(uploadDir, { recursive: true });
-
-    // Sauvegarder le fichier
-    const filePath = join(uploadDir, fileName);
+    // Convertir le fichier en base64
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
-    await writeFile(filePath, buffer);
+    const base64Content = buffer.toString('base64');
 
     // Supprimer l'ancien document du même type s'il existe
     const existingDoc = await db.document.findFirst({
@@ -98,10 +91,7 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Générer l'URL relative pour accéder au fichier via l'API
-    const fileUrl = `/api/storage/recruitment/${userId}/${fileName}`;
-
-    // Enregistrer en base de données
+    // Enregistrer en base de données avec le contenu base64 dans le champ content
     const document = await db.document.create({
       data: {
         userId,
@@ -110,8 +100,9 @@ export async function POST(request: NextRequest) {
         originalName: file.name,
         mimeType: file.type,
         size: file.size,
-        url: fileUrl,
         validationStatus: "PENDING",
+        url: `/uploads/documents/${fileName}`,
+        content: base64Content // Ajout du champ content pour stockage base64
       },
     });
 

@@ -1,9 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
-import { writeFile, mkdir } from "fs/promises";
-import { join } from "path";
-import { existsSync } from "fs";
 
 export async function POST(request: NextRequest) {
   try {
@@ -63,21 +60,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Créer le dossier d'upload s'il n'existe pas
-    const uploadDir = join(process.cwd(), "uploads", "documents");
-    if (!existsSync(uploadDir)) {
-      await mkdir(uploadDir, { recursive: true });
-    }
-
     // Générer un nom de fichier unique
     const timestamp = Date.now();
     const filename = `${session.user.id}_${typeId}_${timestamp}${fileExtension}`;
-    const filePath = join(uploadDir, filename);
 
-    // Sauvegarder le fichier
+    // Convertir le fichier en base64
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
-    await writeFile(filePath, buffer);
+    const base64Content = buffer.toString('base64');
 
     // Supprimer l'ancien document du même type s'il existe
     await prisma.document.deleteMany({
@@ -87,7 +77,7 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // Créer l'enregistrement du document
+    // Créer l'enregistrement du document avec le contenu base64
     const document = await prisma.document.create({
       data: {
         userId: session.user.id,
@@ -97,7 +87,8 @@ export async function POST(request: NextRequest) {
         mimeType: file.type,
         validationStatus: "PENDING",
         size: file.size,
-        url: `/api/uploads/documents/${filename}`,
+        content: base64Content,
+        // url est maintenant optionnel car on stocke en base64
       },
     });
 
